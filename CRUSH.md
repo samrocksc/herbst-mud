@@ -12,11 +12,20 @@ A MUD game server written in Go with SSH capability using the charm `wish` libra
 # Build the server for current platform
 make build
 
-# Run the server
+# Run the server (with database storage - default)
 make run
+
+# Run the server with JSON storage only
+make run-json
+
+# Run the server with database storage explicitly
+make run-db
 
 # Run the server with debug mode enabled
 make run-debug
+
+# Run the server with debug mode and JSON storage only
+make run-debug-json
 
 # Build for all supported platforms
 make build-all
@@ -46,7 +55,8 @@ make clean
 │   ├── rooms/              # Room system
 │   ├── items/              # Item system
 │   ├── combat/             # Combat system
-│   └── actions/            # Actions system
+│   ├── actions/            # Actions system
+│   └── database/           # Database implementation
 ├── data/
 │   ├── items/              # JSON item definitions
 │   ├── rooms/              # JSON room definitions
@@ -71,10 +81,12 @@ make clean
 
 ### Data Persistence
 
-- Uses JSON files for persistence in the `data/` directory
+- Uses JSON files for initial data loading in the `data/` directory
 - JSON Schema validation for data integrity (schemas in `data/schemas/`)
 - Each entity type (rooms, items, characters) has its own directory with JSON files
 - References between entities are resolved at load time
+- SQLite database for runtime persistence of configuration, sessions, and users
+- Automated migration system for database schema updates
 
 ### Session Management
 
@@ -87,6 +99,19 @@ make clean
 - `Adapter` interface in `internal/adapters/adapter.go` defines connection handling
 - `SSHAdapter` implements the interface for SSH connections
 - Processes commands and manages user interaction
+
+### Database Implementation
+
+The MUD server now includes a SQLite-based database implementation for runtime persistence:
+
+- **Database Package**: Located in `internal/database/` with repository pattern implementation
+- **Migration System**: Automated schema management with version tracking
+- **Core Tables**:
+  - `configuration`: Game configuration settings (e.g., MUD name)
+  - `sessions`: Active user sessions with session IDs, user IDs, character IDs, and room IDs
+  - `users`: User accounts linking characters to rooms
+- **Database Adapter**: Integration layer between database and game logic in `internal/database/adapter.go`
+- **Repository Pattern**: Clean data access layer with separate repositories for each entity type
 
 ## Key Data Structures
 
@@ -167,6 +192,21 @@ From `agents.md`:
 1. Create a new JSON file in the appropriate directory (`data/items/` or `data/characters/`)
 2. Follow the respective schema in `data/schemas/`
 3. Reference the item/character in rooms as needed
+
+### Adding a New Database Migration
+
+1. Add a new entry to the `migrations` slice in `internal/database/migrations.go`
+2. Follow the naming pattern `XXX_description` where XXX is a sequential number
+3. Write the SQL for the migration
+4. The migration will be automatically applied when the server starts
+
+### Adding a New Database Entity
+
+1. Create a new table in a migration file
+2. Add a new repository file in `internal/database/` (e.g., `entity.go`)
+3. Implement repository methods for Create, Get, Update, Delete operations
+4. Add the repository to the `DBAdapter` struct and initialization
+5. Test with comprehensive unit tests
 
 ## Deployment
 

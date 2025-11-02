@@ -14,6 +14,7 @@ Basically, I want to learn Go, and I love MUDs. I think this is a great way to s
 - Item system with movable and immovable objects
 - Combat system with stats-based mechanics
 - Extensible architecture with adapter pattern
+- Database persistence with SQLite
 
 ## Technical Specifications
 
@@ -54,8 +55,14 @@ cd makeathing
 # Build the server
 make build
 
-# Run the server
+# Run the server (with database storage - default)
 make run
+
+# Run the server with JSON storage only
+make run-json
+
+# Run the server with database storage explicitly
+make run-db
 ```
 
 ### Cross-platform Builds
@@ -106,7 +113,8 @@ Available commands:
 │   ├── rooms/              # Room system
 │   ├── items/              # Item system
 │   ├── combat/             # Combat system
-│   └── actions/            # Actions system
+│   ├── actions/            # Actions system
+│   └── database/           # Database implementation
 ├── .ssh/                   # SSH keys for the server
 ├── rules.md                # Game requirements
 ├── Makefile                # Build automation
@@ -128,7 +136,6 @@ make test
 - Character creation
 - World expansion
 - BDD testing with Gherkin
-- Database persistence
 - More character races and classes
 - Quest system
 - Vendor NPCs
