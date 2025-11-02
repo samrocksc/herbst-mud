@@ -1,0 +1,12 @@
+{
+  "$schema": "../schemas/item.schema.json",
+  "name": "Rusty Sword",
+  "description": "A rusty old sword, not very sharp but better than nothing.",
+  "type": "weapon",
+  "stats": {
+    "strength": 3,
+    "intelligence": 0,
+    "dexterity": 1
+  },
+  "isMagical": false
+}

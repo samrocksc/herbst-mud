@@ -1,0 +1,12 @@
+{
+  "$schema": "../schemas/item.schema.json",
+  "name": "Healing Potion",
+  "description": "A small vial containing a red liquid that heals wounds.",
+  "type": "movable",
+  "stats": {
+    "strength": 0,
+    "intelligence": 2,
+    "dexterity": 0
+  },
+  "isMagical": true
+}

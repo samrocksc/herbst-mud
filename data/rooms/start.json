@@ -8,7 +8,30 @@
     "east": "e_room"
   },
   "immovableObjects": [],
-  "movableObjects": [],
+  "movableObjects": [
+    {
+      "name": "Rusty Sword",
+      "description": "A rusty old sword, not very sharp but better than nothing.",
+      "type": "weapon",
+      "stats": {
+        "strength": 3,
+        "intelligence": 0,
+        "dexterity": 1
+      },
+      "isMagical": false
+    },
+    {
+      "name": "Healing Potion",
+      "description": "A small vial containing a red liquid that heals wounds.",
+      "type": "movable",
+      "stats": {
+        "strength": 0,
+        "intelligence": 2,
+        "dexterity": 0
+      },
+      "isMagical": true
+    }
+  ],
   "smells": "The air smells fresh and clean.",
   "npcs": [
     {

@@ -6,7 +6,19 @@
     "down": "start"
   },
   "immovableObjects": [],
-  "movableObjects": [],
+  "movableObjects": [
+    {
+      "name": "Wooden Shield",
+      "description": "A sturdy wooden shield that provides decent protection.",
+      "type": "wearable",
+      "stats": {
+        "strength": 1,
+        "intelligence": 0,
+        "dexterity": -1
+      },
+      "isMagical": false
+    }
+  ],
   "smells": "The air smells musty.",
   "npcs": []
 }
