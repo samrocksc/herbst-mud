@@ -133,11 +133,28 @@ func initializeGameWorld(game *Game) {
 	}
 	game.Admin = admin
 
+	// Create Nelly the dog NPC
+	nelly := characters.Character{
+		Name:  "Nelly",
+		Race:  characters.Dog,
+		Class: characters.Warrior,
+		Stats: characters.Stats{
+			Strength:     8,
+			Intelligence: 5,
+			Dexterity:    12,
+		},
+		Health:   30,
+		Mana:     0,
+		Level:    1,
+		IsVendor: false,
+		IsNpc:    true,
+	}
+
 	// Create the first 4 rooms as specified in the rules
 	// Starting room with exits to up, northwest, and east
 	startRoom := &rooms.Room{
 		ID:          "start",
-		Description: "You are in the starting room. There are exits to the up, northwest, and east.",
+		Description: "You are in the starting room. There are exits to the up, northwest, and east. A small caramel coloured dog with a waggy tail is here.",
 		Exits: map[rooms.Direction]string{
 			rooms.Up:        "up_room",
 			rooms.Northwest: "nw_room",
@@ -146,7 +163,7 @@ func initializeGameWorld(game *Game) {
 		ImmovableObjects: []items.Item{},
 		MovableObjects:   []items.Item{},
 		Smells:           "The air smells fresh and clean.",
-		NPCs:             []characters.Character{},
+		NPCs:             []characters.Character{nelly},
 	}
 
 	upRoom := &rooms.Room{

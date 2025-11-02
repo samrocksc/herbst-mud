@@ -27,6 +27,7 @@ const (
 	Human     Race = "Human"
 	RatPeople Race = "Rat People"
 	Dwarf     Race = "Dwarf"
+	Dog       Race = "Dog"
 )
 
 // Class represents a character's class
