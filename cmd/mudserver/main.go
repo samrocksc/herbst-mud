@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/charmbracelet/wish/logging"
 	"github.com/sam/makeathing/internal/adapters"
 	"github.com/sam/makeathing/internal/characters"
+	"github.com/sam/makeathing/internal/database"
 	"github.com/sam/makeathing/internal/rooms"
 )
 
@@ -26,13 +28,39 @@ type Game struct {
 	Characters map[string]*characters.Character
 	Rooms      map[string]*rooms.Room
 	Admin      *characters.Character
+	DBAdapter  *database.DBAdapter
+	UseDB      bool
 }
 
 func main() {
+	// Parse command line flags
+	var useDB bool
+	flag.BoolVar(&useDB, "db", true, "Use database storage (false for JSON only)")
+	flag.Parse()
+
+	// Create the database adapter if using DB
+	var dbAdapter *database.DBAdapter
+	if useDB {
+		var err error
+		dbAdapter, err = database.NewDBAdapter("./data/mud.db")
+		if err != nil {
+			log.Fatalf("Failed to create database adapter: %v", err)
+		}
+		defer dbAdapter.Close()
+
+		// Set default configuration
+		err = dbAdapter.SetConfiguration("mud_name", "Makeathing MUD")
+		if err != nil {
+			log.Fatalf("Failed to set configuration: %v", err)
+		}
+	}
+
 	// Create the game instance
 	game := &Game{
 		Characters: make(map[string]*characters.Character),
 		Rooms:      make(map[string]*rooms.Room),
+		DBAdapter:  dbAdapter,
+		UseDB:      useDB,
 	}
 
 	// Initialize the game world
@@ -97,6 +125,12 @@ func main() {
 	}
 
 	infoLog("Starting SSH server on :2222")
+	if useDB {
+		infoLog("Using database storage")
+	} else {
+		infoLog("Using JSON storage only")
+	}
+	
 	if err = s.ListenAndServe(); err != nil {
 		log.Fatalln(err)
 	}
@@ -111,6 +145,9 @@ func (g *Game) GetRoom(roomID string) *rooms.Room {
 func (g *Game) GetStartingRoom() *rooms.Room {
 	return g.Rooms["start"]
 }
+
+// Ensure Game implements GameDBInterface
+var _ database.GameDBInterface = (*Game)(nil)
 
 // initializeGameWorld sets up the initial game world
 func initializeGameWorld(game *Game) {

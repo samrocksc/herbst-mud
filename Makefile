@@ -27,9 +27,21 @@ build-darwin-amd64:
 run:
 	go run ./${MAIN_DIR}
 
+# Run the server with database storage (default)
+run-db:
+	go run ./${MAIN_DIR} -db=true
+
+# Run the server with JSON storage only
+run-json:
+	go run ./${MAIN_DIR} -db=false
+
 # Run the server with debug mode enabled
 run-debug:
 	DEBUG=true go run ./${MAIN_DIR}
+
+# Run the server with debug mode and JSON storage only
+run-debug-json:
+	DEBUG=true go run ./${MAIN_DIR} -db=false
 
 # Install dependencies
 deps:
@@ -48,4 +60,4 @@ test:
 fmt:
 	go fmt ./...
 
-.PHONY: build build-all build-linux build-darwin-arm64 build-darwin-amd64 run run-debug deps clean test fmt
+.PHONY: build build-all build-linux build-darwin-arm64 build-darwin-amd64 run run-db run-json run-debug run-debug-json deps clean test fmt
