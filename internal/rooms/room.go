@@ -161,7 +161,7 @@ func LoadRoomFromJSONWithReferences(filename string, itemsMap map[string]*items.
 		} else {
 			// If no matching item is found in the items map, use the original reference object
 			// This is for backward compatibility with inline item definitions
-			items.Item{ID: ref.ID}
+			movableObjects = append(movableObjects, items.Item{ID: ref.ID})
 		}
 	}
 
