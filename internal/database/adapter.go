@@ -1,7 +1,10 @@
 package database
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/sam/makeathing/internal/adapters"
 	"github.com/sam/makeathing/internal/characters"
@@ -11,14 +14,14 @@ import (
 
 // DBAdapter implements the Adapter interface for database operations
 type DBAdapter struct {
-	db *DB
-	configRepo *ConfigurationRepository
-	sessionRepo *SessionRepository
-	userRepo    *UserRepository
-	roomRepo    *RoomRepository
+	db            *DB
+	configRepo    *ConfigurationRepository
+	sessionRepo   *SessionRepository
+	userRepo      *UserRepository
+	roomRepo      *RoomRepository
 	characterRepo *CharacterRepository
-	itemRepo    *ItemRepository
-	actionRepo  *ActionRepository
+	itemRepo      *ItemRepository
+	actionRepo    *ActionRepository
 }
 
 // NewDBAdapter creates a new database adapter
@@ -29,13 +32,13 @@ func NewDBAdapter(dbPath string) (*DBAdapter, error) {
 	}
 
 	return &DBAdapter{
-		db:          db,
-		configRepo:  NewConfigurationRepository(db),
-		sessionRepo: NewSessionRepository(db),
-		userRepo:    NewUserRepository(db),
-		roomRepo:    NewRoomRepository(db),
+		db:            db,
+		configRepo:    NewConfigurationRepository(db),
+		sessionRepo:   NewSessionRepository(db),
+		userRepo:      NewUserRepository(db),
+		roomRepo:      NewRoomRepository(db),
 		characterRepo: NewCharacterRepository(db),
-		itemRepo:    NewItemRepository(db),
+		itemRepo:      NewItemRepository(db),
 	}, nil
 }
 
@@ -73,7 +76,7 @@ func (d *DBAdapter) CreateSession(sessionID string, userID int, characterID, roo
 		CharacterID: characterID,
 		RoomID:      roomID,
 	}
-	
+
 	return d.sessionRepo.Create(session)
 }
 
@@ -98,12 +101,12 @@ func (d *DBAdapter) CreateUser(characterID, roomID string) (int, error) {
 		CharacterID: characterID,
 		RoomID:      roomID,
 	}
-	
+
 	err := d.userRepo.Create(user)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	return user.ID, nil
 }
 
@@ -135,7 +138,7 @@ func (d *DBAdapter) CreateRoom(jsonRoom *rooms.RoomJSON) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return d.roomRepo.Create(room)
 }
 
@@ -145,11 +148,11 @@ func (d *DBAdapter) GetRoom(roomID string) (*rooms.RoomJSON, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if room == nil {
 		return nil, nil
 	}
-	
+
 	return room.ToJSONRoom()
 }
 
@@ -159,7 +162,7 @@ func (d *DBAdapter) UpdateRoom(jsonRoom *rooms.RoomJSON) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return d.roomRepo.Update(room)
 }
 
@@ -176,7 +179,7 @@ func (d *DBAdapter) CreateCharacter(jsonCharacter *characters.CharacterJSON) err
 	if err != nil {
 		return err
 	}
-	
+
 	return d.characterRepo.Create(character)
 }
 
@@ -186,11 +189,11 @@ func (d *DBAdapter) GetCharacter(characterID string) (*characters.CharacterJSON,
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if character == nil {
 		return nil, nil
 	}
-	
+
 	return character.ToJSONCharacter()
 }
 
@@ -200,7 +203,7 @@ func (d *DBAdapter) UpdateCharacter(jsonCharacter *characters.CharacterJSON) err
 	if err != nil {
 		return err
 	}
-	
+
 	return d.characterRepo.Update(character)
 }
 
@@ -217,7 +220,7 @@ func (d *DBAdapter) CreateItem(jsonItem *items.ItemJSON) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return d.itemRepo.Create(item)
 }
 
@@ -227,11 +230,11 @@ func (d *DBAdapter) GetItem(itemID string) (*items.ItemJSON, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if item == nil {
 		return nil, nil
 	}
-	
+
 	return item.ToJSONItem()
 }
 
@@ -241,7 +244,7 @@ func (d *DBAdapter) UpdateItem(jsonItem *items.ItemJSON) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return d.itemRepo.Update(item)
 }
 
@@ -256,7 +259,7 @@ func (d *DBAdapter) GetAllItems() ([]*items.ItemJSON, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var jsonItems []*items.ItemJSON
 	for _, item := range dbItems {
 		jsonItem, err := item.ToJSONItem()
@@ -265,7 +268,7 @@ func (d *DBAdapter) GetAllItems() ([]*items.ItemJSON, error) {
 		}
 		jsonItems = append(jsonItems, jsonItem)
 	}
-	
+
 	return jsonItems, nil
 }
 
@@ -275,7 +278,7 @@ func (d *DBAdapter) GetAllCharacters() ([]*characters.CharacterJSON, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var jsonCharacters []*characters.CharacterJSON
 	for _, character := range dbCharacters {
 		jsonCharacter, err := character.ToJSONCharacter()
@@ -284,7 +287,7 @@ func (d *DBAdapter) GetAllCharacters() ([]*characters.CharacterJSON, error) {
 		}
 		jsonCharacters = append(jsonCharacters, jsonCharacter)
 	}
-	
+
 	return jsonCharacters, nil
 }
 
@@ -294,7 +297,7 @@ func (d *DBAdapter) GetAllRooms() ([]*rooms.RoomJSON, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var jsonRooms []*rooms.RoomJSON
 	for _, room := range dbRooms {
 		jsonRoom, err := room.ToJSONRoom()
@@ -303,7 +306,7 @@ func (d *DBAdapter) GetAllRooms() ([]*rooms.RoomJSON, error) {
 		}
 		jsonRooms = append(jsonRooms, jsonRoom)
 	}
-	
+
 	return jsonRooms, nil
 }
 
@@ -321,10 +324,50 @@ type SessionManagerWithDB struct {
 }
 
 // NewSessionManagerWithDB creates a new session manager with database persistence
-func NewSessionManagerWithDB(game GameDBInterface, dbAdapter *DBAdapter) *SessionManagerWithDB {
-	return &SessionManagerWithDB{
+func NewSessionManagerWithDB(game GameDBInterface, dbAdapter *DBAdapter, userDir string) (*SessionManagerWithDB, error) {
+	// Load all users from the specified directory
+	users, err := LoadAllUsersFromDirectory(userDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load users: %w", err)
+	}
+
+	// Example: Log loaded users
+	for id, user := range users {
+		fmt.Printf("Loaded user: %s (%s)\n", id, user.Username)
+	}
+
+	return manager, nil
+	manager := &SessionManagerWithDB{
 		SessionManager: adapters.NewSessionManager(game),
 		dbAdapter:      dbAdapter,
 		game:           game,
 	}
+}
+
+// LoadAllUsersFromDirectory loads all users from JSON files in a directory
+func LoadAllUsersFromDirectory(directory string) (map[string]*User, error) {
+	users := make(map[string]*User)
+
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			filename := filepath.Join(directory, file.Name())
+			data, err := os.ReadFile(filename)
+			if err != nil {
+				return nil, err
+			}
+
+			var user User
+			if err := json.Unmarshal(data, &user); err != nil {
+				return nil, err
+			}
+			users[user.ID] = &user
+		}
+	}
+
+	return users, nil
 }
