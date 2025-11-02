@@ -130,7 +130,7 @@ func main() {
 	} else {
 		infoLog("Using JSON storage only")
 	}
-	
+
 	if err = s.ListenAndServe(); err != nil {
 		log.Fatalln(err)
 	}
@@ -170,7 +170,7 @@ func initializeGameWorld(game *Game) {
 	game.Admin = admin
 
 	// Load rooms with resolved item/character references from JSON files
-	rooms, err := rooms.LoadAllRoomsFromDirectoryWithReferences("./data/rooms", "./data/items", "./data/characters")
+	rooms, err := rooms.LoadAllRoomsItemsAndCharactersWithReferences("./data/rooms", "./data/items", "./data/characters")
 	if err != nil {
 		log.Fatalf("Failed to load rooms with references from JSON: %v", err)
 	}

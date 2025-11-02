@@ -35,13 +35,13 @@ type RoomJSON struct {
 
 // RoomWithReferences represents a room that needs to resolve references
 type RoomWithReferences struct {
-	ID               string                 `json:"id"`
-	Description      string                 `json:"description"`
-	Exits            map[string]string      `json:"exits"`
-	ImmovableObjects []ItemReference        `json:"immovableObjects"`
-	MovableObjects   []ItemReference        `json:"movableObjects"`
-	Smells           string                 `json:"smells"`
-	NPCs             []CharacterReference   `json:"npcs"`
+	ID               string               `json:"id"`
+	Description      string               `json:"description"`
+	Exits            map[string]string    `json:"exits"`
+	ImmovableObjects []ItemReference      `json:"immovableObjects"`
+	MovableObjects   []ItemReference      `json:"movableObjects"`
+	Smells           string               `json:"smells"`
+	NPCs             []CharacterReference `json:"npcs"`
 }
 
 // ItemReference represents a reference to an item by ID
@@ -115,7 +115,7 @@ func LoadRoomFromJSONWithReferences(filename string, itemsMap map[string]*items.
 		if err := json.Unmarshal(data, &roomJSON); err != nil {
 			return nil, err
 		}
-		
+
 		// Convert exits from string keys to Direction keys
 		exits := make(map[Direction]string)
 		for k, v := range roomJSON.Exits {
@@ -263,8 +263,8 @@ func LoadAllRoomJSONsFromDirectory(directory string) (map[string]*RoomJSON, erro
 	return rooms, nil
 }
 
-// LoadAllRoomsFromDirectoryWithReferences loads all rooms from JSON files in a directory with resolved item/character references
-func LoadAllRoomsFromDirectoryWithReferences(roomDir string, itemsDir string, charactersDir string) (map[string]*Room, error) {
+// LoadAllRoomsItemsAndCharactersWithReferences loads all rooms from JSON files in a directory with resolved item/character references
+func LoadAllRoomsItemsAndCharactersWithReferences(roomDir string, itemsDir string, charactersDir string) (map[string]*Room, error) {
 	// Load all items
 	itemsMap, err := items.LoadAllItemsFromDirectory(itemsDir)
 	if err != nil {
