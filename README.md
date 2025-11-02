@@ -2,6 +2,10 @@
 
 A Multi-User Dungeon (MUD) game server written in Go with SSH capability using the charm `wish` library.
 
+## Why do this?
+
+Basically, I want to learn Go, and I love MUDs. I think this is a great way to spend my time. I am heavily using `crush` to build this.
+
 ## Features
 
 - SSH-based multiplayer access
@@ -65,6 +69,7 @@ ssh localhost -p 2222
 When connecting for the first time, you may see a security warning about the host key. This is normal for a new SSH server.
 
 Available commands:
+
 - `help` - Show available commands
 - `look` - Look around the room
 - `quit`/`exit` - Exit the game
@@ -107,3 +112,4 @@ make test
 - More character races and classes
 - Quest system
 - Vendor NPCs
+
