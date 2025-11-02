@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/sam/makeathing/internal/characters"
-	"github.com/sam/makeathing/internal/rooms"
 	"github.com/sam/makeathing/internal/combat"
+	"github.com/sam/makeathing/internal/rooms"
 )
 
 func TestCharacterCreation(t *testing.T) {

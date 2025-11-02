@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/ssh"
+	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/logging"
 	"github.com/sam/makeathing/internal/adapters"
 	"github.com/sam/makeathing/internal/characters"
@@ -56,12 +56,12 @@ func main() {
 						infoLog("Local Address: %s", sess.LocalAddr())
 						infoLog("User: %s", sess.User())
 						infoLog("Session ID: %s", sess.Context().SessionID())
-						
+
 						// Check if PTY is requested
 						pty, winCh, isPty := sess.Pty()
 						if isPty {
 							infoLog("PTY Requested - Terminal: %s, Columns: %d, Rows: %d", pty.Term, pty.Window.Width, pty.Window.Height)
-							
+
 							// Log window size changes
 							go func() {
 								for win := range winCh {
@@ -71,7 +71,7 @@ func main() {
 						} else {
 							infoLog("No PTY requested")
 						}
-						
+
 						// Log environment variables
 						env := sess.Environ()
 						if len(env) > 0 {
@@ -80,11 +80,11 @@ func main() {
 								infoLog("  %s", e)
 							}
 						}
-						
+
 						infoLog("Raw Command: %s", sess.RawCommand())
 						infoLog("Command: %v", sess.Command())
 					}
-					
+
 					// Handle the connection
 					sshAdapter.HandleConnection(sess)
 					next(sess)
@@ -137,7 +137,7 @@ func initializeGameWorld(game *Game) {
 	if err != nil {
 		log.Fatalf("Failed to load rooms from JSON: %v", err)
 	}
-	
+
 	// Verify that all required rooms are loaded
 	requiredRooms := []string{"start", "up_room", "nw_room", "e_room"}
 	for _, roomID := range requiredRooms {

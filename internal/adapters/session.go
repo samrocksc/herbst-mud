@@ -45,7 +45,7 @@ func (sm *SessionManager) GetPlayerSession(sessionID string) *PlayerSession {
 func (sm *SessionManager) CreatePlayerSession(sessionID string) *PlayerSession {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
-	
+
 	session := &PlayerSession{
 		CurrentRoom: sm.game.GetStartingRoom(),
 	}
@@ -64,24 +64,24 @@ func (sm *SessionManager) RemovePlayerSession(sessionID string) {
 func (sm *SessionManager) MovePlayer(sessionID string, direction rooms.Direction) (*rooms.Room, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
-	
+
 	session, exists := sm.sessions[sessionID]
 	if !exists {
 		return nil, fmt.Errorf("player session not found")
 	}
-	
+
 	// Check if there's an exit in that direction
 	nextRoomID, exists := session.CurrentRoom.Exits[direction]
 	if !exists {
 		return nil, fmt.Errorf("you cannot go %s", direction)
 	}
-	
+
 	// Get the next room
 	nextRoom := sm.game.GetRoom(nextRoomID)
 	if nextRoom == nil {
 		return nil, fmt.Errorf("destination room not found")
 	}
-	
+
 	// Move the player
 	session.CurrentRoom = nextRoom
 	return nextRoom, nil

@@ -50,7 +50,7 @@ func LoadItemFromJSON(filename string) (*Item, error) {
 // LoadAllItemsFromDirectory loads all items from JSON files in a directory
 func LoadAllItemsFromDirectory(directory string) (map[string]*Item, error) {
 	items := make(map[string]*Item)
-	
+
 	files, err := os.ReadDir(directory)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func LoadAllItemsFromDirectory(directory string) (map[string]*Item, error) {
 			if err != nil {
 				return nil, err
 			}
-			
+
 			// Use the item name as the key (converted to lowercase and spaces replaced with underscores)
 			key := file.Name()[:len(file.Name())-5] // Remove .json extension
 			items[key] = item

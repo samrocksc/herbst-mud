@@ -6,18 +6,18 @@ import (
 
 // Character represents a character in the game
 type Character struct {
-	Name      string
-	Race      Race
-	Class     Class
-	Stats     Stats
-	Health    int
-	Mana      int
+	Name       string
+	Race       Race
+	Class      Class
+	Stats      Stats
+	Health     int
+	Mana       int
 	Experience int
-	Level     int
-	IsVendor  bool
-	IsNpc     bool
-	Inventory []items.Item
-	Skills    []Skill
+	Level      int
+	IsVendor   bool
+	IsNpc      bool
+	Inventory  []items.Item
+	Skills     []Skill
 }
 
 // Race represents a character's race

@@ -91,7 +91,7 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 			} else if char == '\r' {
 				// Windows line ending or Mac classic line ending
 				debugLog("Received carriage return (CR)")
-				
+
 				// Try to peek at the next character to see if it's \n
 				nextByte, err := reader.Peek(1)
 				if err != nil {
@@ -101,7 +101,7 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 					fmt.Fprintf(sess, "\n")
 					break
 				}
-				
+
 				// If the next byte is \n, consume it
 				if len(nextByte) > 0 && nextByte[0] == '\n' {
 					// Consume the \n
@@ -160,7 +160,7 @@ func (s *SSHAdapter) SendMessage(sess ssh.Session, message string) {
 func (s *SSHAdapter) GetInput(sess ssh.Session) string {
 	debugLog("Getting input from client")
 	reader := bufio.NewReader(sess)
-	
+
 	// Read character by character and echo back
 	var input strings.Builder
 	for {
@@ -169,17 +169,17 @@ func (s *SSHAdapter) GetInput(sess ssh.Session) string {
 			infoLog("Error reading input: %v", err)
 			return ""
 		}
-		
+
 		// Echo the character back to the user (except for line terminators)
 		if char != '\n' && char != '\r' {
 			fmt.Fprintf(sess, "%c", char)
 		}
-		
+
 		// Check for line terminators
 		if char == '\n' || char == '\r' {
 			// Echo a newline to the user
 			fmt.Fprintf(sess, "\n")
-			
+
 			// Handle CRLF sequence
 			if char == '\r' {
 				// Peek to see if next char is \n
@@ -191,11 +191,11 @@ func (s *SSHAdapter) GetInput(sess ssh.Session) string {
 			}
 			break
 		}
-		
+
 		// Add character to input
 		input.WriteByte(char)
 	}
-	
+
 	trimmed := strings.TrimSpace(input.String())
 	debugLog("Input received: %q", trimmed)
 	return trimmed
@@ -289,4 +289,3 @@ func (s *SSHAdapter) processCommand(sess ssh.Session, command string, sessionID 
 		s.SendMessage(sess, fmt.Sprintf("Unknown command: %s\n", command))
 	}
 }
-

@@ -9,13 +9,13 @@ import (
 // TestSSHAdapterSendMessage tests the SendMessage method
 func TestSSHAdapterSendMessage(t *testing.T) {
 	message := "Test message\n"
-	
+
 	// Use a bytes.Buffer to simulate the session
 	output := &bytes.Buffer{}
-	
+
 	// Test the underlying logic by directly calling fmt.Fprint with our buffer
 	fmt.Fprint(output, message)
-	
+
 	if output.String() != message {
 		t.Errorf("Expected %q, got %q", message, output.String())
 	}

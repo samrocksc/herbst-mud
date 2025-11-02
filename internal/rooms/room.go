@@ -5,15 +5,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sam/makeathing/internal/items"
 	"github.com/sam/makeathing/internal/characters"
+	"github.com/sam/makeathing/internal/items"
 )
 
 // Room represents a room in the game
 type Room struct {
-	ID          string
-	Description string
-	Exits       map[Direction]string // Direction to Room ID
+	ID               string
+	Description      string
+	Exits            map[Direction]string // Direction to Room ID
 	ImmovableObjects []items.Item
 	MovableObjects   []items.Item
 	Smells           string
@@ -82,7 +82,7 @@ func LoadRoomFromJSON(filename string) (*Room, error) {
 // LoadAllRoomsFromDirectory loads all rooms from JSON files in a directory
 func LoadAllRoomsFromDirectory(directory string) (map[string]*Room, error) {
 	rooms := make(map[string]*Room)
-	
+
 	files, err := os.ReadDir(directory)
 	if err != nil {
 		return nil, err
