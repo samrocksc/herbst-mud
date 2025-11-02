@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/samrocksc/herbst-mud/blob/main/data/schemas/item.schema.json",
+  "title": "Item",
+  "description": "An item in the game",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the item"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the item"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["weapon", "wearable", "movable", "immovable"],
+      "description": "Type of the item"
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "strength": {
+          "type": "integer"
+        },
+        "intelligence": {
+          "type": "integer"
+        },
+        "dexterity": {
+          "type": "integer"
+        }
+      }
+    },
+    "isMagical": {
+      "type": "boolean",
+      "description": "Whether the item is magical"
+    }
+  },
+  "required": ["name", "description", "type"]
+}

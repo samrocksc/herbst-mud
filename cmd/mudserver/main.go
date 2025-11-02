@@ -11,7 +11,6 @@ import (
 	"github.com/sam/makeathing/internal/adapters"
 	"github.com/sam/makeathing/internal/characters"
 	"github.com/sam/makeathing/internal/rooms"
-	"github.com/sam/makeathing/internal/items"
 )
 
 // debugMode checks if debug mode is enabled
@@ -133,78 +132,19 @@ func initializeGameWorld(game *Game) {
 	}
 	game.Admin = admin
 
-	// Create Nelly the dog NPC
-	nelly := characters.Character{
-		Name:  "Nelly",
-		Race:  characters.Dog,
-		Class: characters.Warrior,
-		Stats: characters.Stats{
-			Strength:     8,
-			Intelligence: 5,
-			Dexterity:    12,
-		},
-		Health:   30,
-		Mana:     0,
-		Level:    1,
-		IsVendor: false,
-		IsNpc:    true,
+	// Load rooms from JSON files
+	rooms, err := rooms.LoadAllRoomsFromDirectory("./data/rooms")
+	if err != nil {
+		log.Fatalf("Failed to load rooms from JSON: %v", err)
+	}
+	
+	// Verify that all required rooms are loaded
+	requiredRooms := []string{"start", "up_room", "nw_room", "e_room"}
+	for _, roomID := range requiredRooms {
+		if _, exists := rooms[roomID]; !exists {
+			log.Fatalf("Required room '%s' not found in JSON files", roomID)
+		}
 	}
 
-	// Create the first 4 rooms as specified in the rules
-	// Starting room with exits to up, northwest, and east
-	startRoom := &rooms.Room{
-		ID:          "start",
-		Description: "You are in the starting room. There are exits to the up, northwest, and east. A small caramel coloured dog with a waggy tail is here.",
-		Exits: map[rooms.Direction]string{
-			rooms.Up:        "up_room",
-			rooms.Northwest: "nw_room",
-			rooms.East:      "e_room",
-		},
-		ImmovableObjects: []items.Item{},
-		MovableObjects:   []items.Item{},
-		Smells:           "The air smells fresh and clean.",
-		NPCs:             []characters.Character{nelly},
-	}
-
-	upRoom := &rooms.Room{
-		ID:          "up_room",
-		Description: "You are in the room above the starting room. There is an exit back down.",
-		Exits: map[rooms.Direction]string{
-			rooms.Down: "start",
-		},
-		ImmovableObjects: []items.Item{},
-		MovableObjects:   []items.Item{},
-		Smells:           "The air smells musty.",
-		NPCs:             []characters.Character{},
-	}
-
-	nwRoom := &rooms.Room{
-		ID:          "nw_room",
-		Description: "You are in the northwest room. There is an exit back southeast.",
-		Exits: map[rooms.Direction]string{
-			rooms.Southeast: "start",
-		},
-		ImmovableObjects: []items.Item{},
-		MovableObjects:   []items.Item{},
-		Smells:           "The air smells damp.",
-		NPCs:             []characters.Character{},
-	}
-
-	eRoom := &rooms.Room{
-		ID:          "e_room",
-		Description: "You are in the east room. There is an exit back west.",
-		Exits: map[rooms.Direction]string{
-			rooms.West: "start",
-		},
-		ImmovableObjects: []items.Item{},
-		MovableObjects:   []items.Item{},
-		Smells:           "The air smells of incense.",
-		NPCs:             []characters.Character{},
-	}
-
-	// Add rooms to the game
-	game.Rooms["start"] = startRoom
-	game.Rooms["up_room"] = upRoom
-	game.Rooms["nw_room"] = nwRoom
-	game.Rooms["e_room"] = eRoom
+	game.Rooms = rooms
 }

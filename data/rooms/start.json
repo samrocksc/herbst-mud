@@ -1,0 +1,33 @@
+{
+  "$schema": "./schemas/room.schema.json",
+  "id": "start",
+  "description": "You are in the starting room. There are exits to the up, northwest, and east. A small caramel coloured dog with a waggy tail is here.",
+  "exits": {
+    "up": "up_room",
+    "northwest": "nw_room",
+    "east": "e_room"
+  },
+  "immovableObjects": [],
+  "movableObjects": [],
+  "smells": "The air smells fresh and clean.",
+  "npcs": [
+    {
+      "name": "Nelly",
+      "race": "Dog",
+      "class": "Warrior",
+      "stats": {
+        "strength": 8,
+        "intelligence": 5,
+        "dexterity": 12
+      },
+      "health": 30,
+      "mana": 0,
+      "experience": 0,
+      "level": 1,
+      "isVendor": false,
+      "isNpc": true,
+      "inventory": [],
+      "skills": []
+    }
+  ]
+}

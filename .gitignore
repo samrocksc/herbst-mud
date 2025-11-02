@@ -57,3 +57,6 @@ bench.txt
 # Temporary files
 tmp/
 temp/
+
+# Data files
+data/rooms/*.json~

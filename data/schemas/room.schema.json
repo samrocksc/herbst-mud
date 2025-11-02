@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/samrocksc/herbst-mud/blob/main/data/schemas/room.schema.json",
+  "title": "Room",
+  "description": "A room in the game world",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the room"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the room"
+    },
+    "exits": {
+      "type": "object",
+      "description": "Map of directions to room IDs",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "immovableObjects": {
+      "type": "array",
+      "items": {
+        "$ref": "item.schema.json"
+      }
+    },
+    "movableObjects": {
+      "type": "array",
+      "items": {
+        "$ref": "item.schema.json"
+      }
+    },
+    "smells": {
+      "type": "string",
+      "description": "Smell description of the room"
+    },
+    "npcs": {
+      "type": "array",
+      "items": {
+        "$ref": "character.schema.json"
+      }
+    }
+  },
+  "required": ["id", "description"]
+}

@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/samrocksc/herbst-mud/blob/main/data/schemas/character.schema.json",
+  "title": "Character",
+  "description": "A character in the game",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the character"
+    },
+    "race": {
+      "type": "string",
+      "enum": ["Human", "Rat People", "Dwarf", "Dog"],
+      "description": "Race of the character"
+    },
+    "class": {
+      "type": "string",
+      "enum": ["Warrior", "Mage", "Rogue"],
+      "description": "Class of the character"
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "strength": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 25
+        },
+        "intelligence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 25
+        },
+        "dexterity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 25
+        }
+      },
+      "required": ["strength", "intelligence", "dexterity"]
+    },
+    "health": {
+      "type": "integer",
+      "description": "Current health points"
+    },
+    "mana": {
+      "type": "integer",
+      "description": "Current mana points"
+    },
+    "experience": {
+      "type": "integer",
+      "description": "Experience points"
+    },
+    "level": {
+      "type": "integer",
+      "description": "Character level"
+    },
+    "isVendor": {
+      "type": "boolean",
+      "description": "Whether the character is a vendor"
+    },
+    "isNpc": {
+      "type": "boolean",
+      "description": "Whether the character is an NPC"
+    },
+    "inventory": {
+      "type": "array",
+      "items": {
+        "$ref": "item.schema.json"
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["race-based", "class-skill", "spell"]
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "type", "description"]
+      }
+    }
+  },
+  "required": ["name", "race", "class", "stats"]
+}

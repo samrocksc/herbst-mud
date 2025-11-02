@@ -1,0 +1,12 @@
+{
+  "$schema": "./schemas/room.schema.json",
+  "id": "e_room",
+  "description": "You are in the east room. There is an exit back west.",
+  "exits": {
+    "west": "start"
+  },
+  "immovableObjects": [],
+  "movableObjects": [],
+  "smells": "The air smells of incense.",
+  "npcs": []
+}

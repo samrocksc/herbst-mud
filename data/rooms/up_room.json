@@ -1,0 +1,12 @@
+{
+  "$schema": "./schemas/room.schema.json",
+  "id": "up_room",
+  "description": "You are in the room above the starting room. There is an exit back down.",
+  "exits": {
+    "down": "start"
+  },
+  "immovableObjects": [],
+  "movableObjects": [],
+  "smells": "The air smells musty.",
+  "npcs": []
+}
