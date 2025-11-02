@@ -18,6 +18,8 @@ type DBAdapter struct {
 	characterRepo *CharacterRepository
 	itemRepo      *ItemRepository
 	actionRepo    *ActionRepository
+	globalStateCharacterRepo *GlobalStateCharacterRepository
+	globalStateRoomRepo      *GlobalStateRoomRepository
 }
 
 // NewDBAdapter creates a new database adapter
@@ -35,6 +37,9 @@ func NewDBAdapter(dbPath string) (*DBAdapter, error) {
 		roomRepo:      NewRoomRepository(db),
 		characterRepo: NewCharacterRepository(db),
 		itemRepo:      NewItemRepository(db),
+		actionRepo:    NewActionRepository(db),
+		globalStateCharacterRepo: NewGlobalStateCharacterRepository(db),
+		globalStateRoomRepo:      NewGlobalStateRoomRepository(db),
 	}, nil
 }
 
@@ -304,6 +309,80 @@ func (d *DBAdapter) GetAllRooms() ([]*rooms.RoomJSON, error) {
 	}
 
 	return jsonRooms, nil
+}
+
+// Global State Character operations
+
+// InitializeCharacterState initializes a new character state
+func (d *DBAdapter) InitializeCharacterState(characterID, roomID string, health int) error {
+	return d.globalStateCharacterRepo.InitializeCharacterState(characterID, roomID, health)
+}
+
+// GetCharacterState retrieves a character's state by character ID
+func (d *DBAdapter) GetCharacterState(characterID string) (*GlobalStateCharacter, error) {
+	return d.globalStateCharacterRepo.GetByCharacterID(characterID)
+}
+
+// UpdateCharacterRoom updates the room for a character
+func (d *DBAdapter) UpdateCharacterRoom(characterID, roomID string) error {
+	return d.globalStateCharacterRepo.UpdateRoom(characterID, roomID)
+}
+
+// UpdateCharacterHealth updates the health for a character
+func (d *DBAdapter) UpdateCharacterHealth(characterID string, health int) error {
+	return d.globalStateCharacterRepo.UpdateHealth(characterID, health)
+}
+
+// UpdateCharacterStatus updates the status for a character
+func (d *DBAdapter) UpdateCharacterStatus(characterID, status string) error {
+	return d.globalStateCharacterRepo.UpdateStatus(characterID, status)
+}
+
+// GetCharactersInRoom retrieves all character states in a specific room
+func (d *DBAdapter) GetCharactersInRoom(roomID string) ([]*GlobalStateCharacter, error) {
+	return d.globalStateCharacterRepo.GetCharactersInRoom(roomID)
+}
+
+// Global State Room operations
+
+// InitializeRoomState initializes a new room state
+func (d *DBAdapter) InitializeRoomState(roomID string) error {
+	return d.globalStateRoomRepo.InitializeRoomState(roomID)
+}
+
+// GetRoomState retrieves a room's state by room ID
+func (d *DBAdapter) GetRoomState(roomID string) (*GlobalStateRoom, error) {
+	return d.globalStateRoomRepo.GetByRoomID(roomID)
+}
+
+// UpdateRoomNPCState updates the NPC state for a room
+func (d *DBAdapter) UpdateRoomNPCState(roomID string, npcState []NPCState) error {
+	return d.globalStateRoomRepo.UpdateNPCState(roomID, npcState)
+}
+
+// UpdateRoomItemState updates the item state for a room
+func (d *DBAdapter) UpdateRoomItemState(roomID string, itemState []ItemState) error {
+	return d.globalStateRoomRepo.UpdateItemState(roomID, itemState)
+}
+
+// GetRoomNPCState retrieves the NPC state for a room
+func (d *DBAdapter) GetRoomNPCState(roomID string) ([]NPCState, error) {
+	return d.globalStateRoomRepo.GetNPCState(roomID)
+}
+
+// GetRoomItemState retrieves the item state for a room
+func (d *DBAdapter) GetRoomItemState(roomID string) ([]ItemState, error) {
+	return d.globalStateRoomRepo.GetItemState(roomID)
+}
+
+// IncrementRoomPlayerCount increments the player count for a room
+func (d *DBAdapter) IncrementRoomPlayerCount(roomID string) error {
+	return d.globalStateRoomRepo.IncrementPlayerCount(roomID)
+}
+
+// DecrementRoomPlayerCount decrements the player count for a room
+func (d *DBAdapter) DecrementRoomPlayerCount(roomID string) error {
+	return d.globalStateRoomRepo.DecrementPlayerCount(roomID)
 }
 
 // GameDBInterface defines the methods needed from the game engine for database operations

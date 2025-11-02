@@ -77,7 +77,7 @@ make clean
 
 1. **Game Engine**: Central coordinator in `cmd/mudserver/main.go`
 2. **Adapters**: Connection handling (SSH) in `internal/adapters/`
-3. **Domain Objects**: 
+3. **Domain Objects**:
    - Rooms in `internal/rooms/`
    - Characters in `internal/characters/`
    - Items in `internal/items/`
@@ -118,6 +118,8 @@ The MUD server now includes a SQLite-based database implementation for runtime p
   - `characters`: Character data mirroring JSON structure with JSON-serialized complex fields
   - `items`: Item data mirroring JSON structure with JSON-serialized complex fields
   - `actions`: Action data for available game actions
+  - `global_state_characters`: Global state tracking for character positions, health, and status
+  - `global_state_rooms`: Global state tracking for room occupancy and dynamic content
 - **Database Adapter**: Integration layer between database and game logic in `internal/database/adapter.go`
 - **Repository Pattern**: Clean data access layer with separate repositories for each entity type
 - **Configuration Loading**: Initial configuration loaded from `data/configuration.json` at startup
@@ -155,6 +157,24 @@ The MUD server now includes a SQLite-based database implementation for runtime p
 - Has ID, character ID, and room ID fields that mirror the database users table
 - Stored as JSON files in `data/users/`
 - Loaded at server startup for initial user data
+
+### Global State Tables
+
+#### Global State Characters
+
+- Tracks the real-time status of characters in the game
+- Stores character ID, current room ID, health, status, and timestamps
+- Used to maintain accurate character positions and health across sessions
+- Automatically updates when characters move between rooms or take damage
+- Referenced by foreign keys to characters and rooms tables
+
+#### Global State Rooms
+
+- Tracks the real-time status of rooms in the game
+- Stores room ID, player count, NPC state, and item state as JSON
+- Used to maintain accurate room occupancy and dynamic content
+- Automatically updates when players enter/leave rooms or NPCs/items change state
+- Referenced by foreign key to rooms table
 
 ## Testing Approach
 
@@ -253,6 +273,8 @@ From `agents.md`:
 6. Add new CLI methods to `DBAdapter` for easy access
 7. Create corresponding JSON structures in `internal/entity/` package
 8. Create JSON schema in `data/schemas/entity.schema.json`
+
+**Examples**: The `global_state_characters` and `global_state_rooms` tables demonstrate these patterns for tracking game state in real-time.
 
 ## Deployment
 

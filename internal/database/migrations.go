@@ -111,4 +111,35 @@ CREATE TABLE IF NOT EXISTS actions (
 );
 `,
 	},
+	{
+		Name: "008_create_global_state_characters_table",
+		SQL: `
+CREATE TABLE IF NOT EXISTS global_state_characters (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	character_id TEXT NOT NULL,
+	current_room_id TEXT NOT NULL,
+	health INTEGER NOT NULL,
+	status TEXT NOT NULL,
+	last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (character_id) REFERENCES characters(id),
+	FOREIGN KEY (current_room_id) REFERENCES rooms(id)
+);
+`,
+	},
+	{
+		Name: "009_create_global_state_rooms_table",
+		SQL: `
+CREATE TABLE IF NOT EXISTS global_state_rooms (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	room_id TEXT NOT NULL,
+	player_count INTEGER NOT NULL DEFAULT 0,
+	npc_state_json TEXT,
+	item_state_json TEXT,
+	last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (room_id) REFERENCES rooms(id)
+);
+`,
+	},
 }
