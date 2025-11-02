@@ -112,6 +112,7 @@ The MUD server now includes a SQLite-based database implementation for runtime p
   - `configuration`: Game configuration settings (e.g., MUD name)
   - `sessions`: Active user sessions with session IDs, user IDs, character IDs, and room IDs
   - `users`: User accounts linking characters to rooms
+  - `rooms`: Room data mirroring JSON structure with JSON-serialized complex fields
 - **Database Adapter**: Integration layer between database and game logic in `internal/database/adapter.go`
 - **Repository Pattern**: Clean data access layer with separate repositories for each entity type
 - **Configuration Loading**: Initial configuration loaded from `data/configuration.json` at startup
@@ -209,6 +210,14 @@ From `agents.md`:
 2. The configuration is loaded at server startup
 3. For runtime changes, use the database configuration system
 
+### Uploading JSON Rooms to Database
+
+1. All existing JSON rooms in `data/rooms/` have been uploaded to the database
+2. New rooms added as JSON files can be uploaded using database adapter methods
+3. The rooms table stores complex nested data as JSON-serialized strings
+4. Use `DBAdapter.CreateRoom()` to upload individual rooms
+5. Existing rooms can be updated with `DBAdapter.UpdateRoom()`
+
 ### Adding a New Database Migration
 
 1. Add a new entry to the `migrations` slice in `internal/database/migrations.go`
@@ -223,6 +232,7 @@ From `agents.md`:
 3. Implement repository methods for Create, Get, Update, Delete operations
 4. Add the repository to the `DBAdapter` struct and initialization
 5. Test with comprehensive unit tests
+6. Add new CLI methods to `DBAdapter` for easy access
 
 ## Deployment
 

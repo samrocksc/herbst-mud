@@ -2,6 +2,7 @@ package rooms
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -217,6 +218,45 @@ func LoadAllRoomsFromDirectory(directory string) (map[string]*Room, error) {
 				return nil, err
 			}
 			rooms[room.ID] = room
+		}
+	}
+
+	return rooms, nil
+}
+
+// LoadRoomJSONFromJSON loads a RoomJSON from a JSON file
+func LoadRoomJSONFromJSON(filename string) (*RoomJSON, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var roomJSON RoomJSON
+	if err := json.Unmarshal(data, &roomJSON); err != nil {
+		return nil, err
+	}
+
+	return &roomJSON, nil
+}
+
+// LoadAllRoomJSONsFromDirectory loads all RoomJSONs from JSON files in a directory
+func LoadAllRoomJSONsFromDirectory(directory string) (map[string]*RoomJSON, error) {
+	rooms := make(map[string]*RoomJSON)
+
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			filename := filepath.Join(directory, file.Name())
+			roomJSON, err := LoadRoomJSONFromJSON(filename)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load room JSON from %s: %w", filename, err)
+			}
+			// Use the room ID as the key
+			rooms[roomJSON.ID] = roomJSON
 		}
 	}
 

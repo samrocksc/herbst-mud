@@ -13,6 +13,7 @@ type DBAdapter struct {
 	configRepo *ConfigurationRepository
 	sessionRepo *SessionRepository
 	userRepo    *UserRepository
+	roomRepo    *RoomRepository
 }
 
 // NewDBAdapter creates a new database adapter
@@ -27,6 +28,7 @@ func NewDBAdapter(dbPath string) (*DBAdapter, error) {
 		configRepo:  NewConfigurationRepository(db),
 		sessionRepo: NewSessionRepository(db),
 		userRepo:    NewUserRepository(db),
+		roomRepo:    NewRoomRepository(db),
 	}, nil
 }
 
@@ -116,6 +118,66 @@ func (d *DBAdapter) UpdateUser(user *User) error {
 // DeleteUser deletes a user
 func (d *DBAdapter) DeleteUser(userID int) error {
 	return d.userRepo.Delete(userID)
+}
+
+// Room operations
+
+// CreateRoom creates a new room from a JSON room
+func (d *DBAdapter) CreateRoom(jsonRoom *rooms.RoomJSON) error {
+	room, err := RoomFromJSONRoom(jsonRoom)
+	if err != nil {
+		return err
+	}
+	
+	return d.roomRepo.Create(room)
+}
+
+// GetRoom retrieves a room by ID
+func (d *DBAdapter) GetRoom(roomID string) (*rooms.RoomJSON, error) {
+	room, err := d.roomRepo.GetByID(roomID)
+	if err != nil {
+		return nil, err
+	}
+	
+	if room == nil {
+		return nil, nil
+	}
+	
+	return room.ToJSONRoom()
+}
+
+// UpdateRoom updates a room
+func (d *DBAdapter) UpdateRoom(jsonRoom *rooms.RoomJSON) error {
+	room, err := RoomFromJSONRoom(jsonRoom)
+	if err != nil {
+		return err
+	}
+	
+	return d.roomRepo.Update(room)
+}
+
+// DeleteRoom deletes a room
+func (d *DBAdapter) DeleteRoom(roomID string) error {
+	return d.roomRepo.Delete(roomID)
+}
+
+// GetAllRooms retrieves all rooms
+func (d *DBAdapter) GetAllRooms() ([]*rooms.RoomJSON, error) {
+	dbRooms, err := d.roomRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	
+	var jsonRooms []*rooms.RoomJSON
+	for _, room := range dbRooms {
+		jsonRoom, err := room.ToJSONRoom()
+		if err != nil {
+			return nil, err
+		}
+		jsonRooms = append(jsonRooms, jsonRoom)
+	}
+	
+	return jsonRooms, nil
 }
 
 // GameDBInterface defines the methods needed from the game engine for database operations

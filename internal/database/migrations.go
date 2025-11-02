@@ -42,4 +42,20 @@ CREATE TABLE IF NOT EXISTS users (
 );
 `,
 	},
+	{
+		Name: "004_create_rooms_table",
+		SQL: `
+CREATE TABLE IF NOT EXISTS rooms (
+	id TEXT PRIMARY KEY,
+	description TEXT NOT NULL,
+	smells TEXT,
+	exits_json TEXT,
+	immovable_objects_json TEXT,
+	movable_objects_json TEXT,
+	npcs_json TEXT,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`,
+	},
 }

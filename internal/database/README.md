@@ -24,6 +24,11 @@ The database implementation provides:
 - Stores user information
 - Links characters to rooms
 
+### Rooms
+- Stores room data mirroring the JSON structure
+- Complex nested data (exits, items, NPCs) stored as JSON-serialized strings
+- All existing JSON rooms have been uploaded to the database
+
 ## Usage
 
 To use the database in your code:
@@ -44,6 +49,12 @@ if err != nil {
 
 // Get a configuration value
 config, err := dbAdapter.GetConfiguration("My Awesome MUD")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Create a room from JSON
+err = dbAdapter.CreateRoom(roomJSON)
 if err != nil {
     log.Fatal(err)
 }
