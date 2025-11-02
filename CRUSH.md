@@ -1,0 +1,190 @@
+# CRUSH.md - Development Guide for Makeathing MUD Server
+
+This document provides essential information for agents working with the Makeathing MUD (Multi-User Dungeon) server codebase.
+
+## Project Overview
+
+A MUD game server written in Go with SSH capability using the charm `wish` library. The server allows multiple players to connect via SSH and navigate a text-based world with rooms, items, characters, and combat.
+
+## Essential Commands
+
+```bash
+# Build the server for current platform
+make build
+
+# Run the server
+make run
+
+# Run the server with debug mode enabled
+make run-debug
+
+# Build for all supported platforms
+make build-all
+
+# Run tests
+make test
+
+# Format code
+make fmt
+
+# Install/update dependencies
+make deps
+
+# Clean build artifacts
+make clean
+```
+
+## Code Organization
+
+```
+.
+├── cmd/
+│   └── mudserver/          # Main server application
+├── internal/
+│   ├── adapters/           # Connection adapters (SSH, etc.)
+│   ├── characters/         # Character system
+│   ├── rooms/              # Room system
+│   ├── items/              # Item system
+│   ├── combat/             # Combat system
+│   └── actions/            # Actions system
+├── data/
+│   ├── items/              # JSON item definitions
+│   ├── rooms/              # JSON room definitions
+│   ├── characters/         # JSON character definitions
+│   └── schemas/            # JSON schemas for validation
+├── .ssh/                   # SSH keys for the server
+├── Makefile                # Build automation
+└── README.md               # Project documentation
+```
+
+## Architecture Patterns
+
+### Core Components
+
+1. **Game Engine**: Central coordinator in `cmd/mudserver/main.go`
+2. **Adapters**: Connection handling (SSH) in `internal/adapters/`
+3. **Domain Objects**: 
+   - Rooms in `internal/rooms/`
+   - Characters in `internal/characters/`
+   - Items in `internal/items/`
+   - Combat in `internal/combat/`
+
+### Data Persistence
+
+- Uses JSON files for persistence in the `data/` directory
+- JSON Schema validation for data integrity (schemas in `data/schemas/`)
+- Each entity type (rooms, items, characters) has its own directory with JSON files
+- References between entities are resolved at load time
+
+### Session Management
+
+- Sessions are managed by `SessionManager` in `internal/adapters/session.go`
+- Each connected player has a `PlayerSession` tracking their state
+- Thread-safe with mutex protection for concurrent access
+
+### Adapter Pattern
+
+- `Adapter` interface in `internal/adapters/adapter.go` defines connection handling
+- `SSHAdapter` implements the interface for SSH connections
+- Processes commands and manages user interaction
+
+## Key Data Structures
+
+### Room
+
+- Defined in `internal/rooms/room.go`
+- Contains description, exits, objects, NPCs, and smells
+- Exits are directional (north, south, east, west, etc.)
+- Supports both movable and immovable objects
+
+### Character
+
+- Defined in `internal/characters/character.go`
+- Has race, class, stats (strength, intelligence, dexterity), health, mana
+- Supports levels, vendor status, and NPC flags
+
+### Item
+
+- Defined in `internal/items/item.go`
+- Has ID, name, description, and movability flag
+
+## Testing Approach
+
+- Unit tests in `*_test.go` files
+- Integration tests in `*_integration_test.go` files
+- Uses Go's standard testing package
+- Run all tests with `make test`
+
+## Naming Conventions
+
+- Go standard conventions: PascalCase for exported, camelCase for unexported
+- JSON field names use snake_case
+- Interface names are often suffixed with "er" (e.g., Adapter)
+- Constants use SCREAMING_SNAKE_CASE
+
+## Code Style Guidelines
+
+From `agents.md`:
+
+- **Imports**: Use goimports formatting, group stdlib, external, internal packages
+- **Formatting**: Use gofumpt (stricter than gofmt)
+- **Error handling**: Return errors explicitly, use `fmt.Errorf` for wrapping
+- **Context**: Always pass context.Context as first parameter for operations
+- **Interfaces**: Define interfaces in consuming packages, keep them small and focused
+- **JSON tags**: Use snake_case for JSON field names
+- **Comments**: End comments in periods unless comments are at the end of the line
+
+## Important Gotchas
+
+1. **SSH Input Handling**: Custom line reading logic in `SSHAdapter.HandleConnection` to properly handle both Unix (\n) and Windows (\r\n) line endings
+
+2. **Session Management**: Thread-safe access to sessions using read/write mutexes
+
+3. **Data Loading**: Items and characters are loaded first, then referenced in rooms at load time
+
+4. **Command Abbreviations**: Single-letter movement commands (n, s, e, w) are expanded to full directions
+
+5. **Debug Mode**: Enable with `DEBUG=true` environment variable for verbose logging
+
+## Common Development Tasks
+
+### Adding a New Room
+
+1. Create a new JSON file in `data/rooms/` following the room schema
+2. Define exits to other rooms by their IDs
+3. Reference existing items/characters or create new ones
+4. Test by running the server and navigating to the new room
+
+### Adding a New Command
+
+1. Modify the `processCommand` function in `internal/adapters/adapter.go`
+2. Add command help text in the "help" case
+3. Implement command logic
+4. Test with `make run` and connecting via SSH
+
+### Adding a New Item/Character
+
+1. Create a new JSON file in the appropriate directory (`data/items/` or `data/characters/`)
+2. Follow the respective schema in `data/schemas/`
+3. Reference the item/character in rooms as needed
+
+## Deployment
+
+The server listens on port 2222 for SSH connections. Connect with:
+```bash
+ssh localhost -p 2222
+```
+
+Cross-platform binaries can be built with:
+```bash
+make build-all
+```
+
+## Debugging
+
+Enable debug mode to get verbose logging:
+```bash
+make run-debug
+# or
+DEBUG=true go run ./cmd/mudserver
+```
