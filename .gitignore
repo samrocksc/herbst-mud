@@ -1,3 +1,59 @@
+# Rules and conversations
 rules.md
 conversations/
+
+# SSH keys
 .ssh
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Go workspace
+go.work
+go.work.sum
+
+# Go modules
+go.mod
+go.sum
+
+# Build outputs
+bin/
+out/
+dist/
+build/
+
+# Test binary
+mudserver
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Coverage output
+coverage.txt
+coverage.out
+
+# Benchmark output
+bench.txt
+
+# Temporary files
+tmp/
+temp/
