@@ -73,6 +73,11 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 				return
 			}
 
+			// Echo the character back to the user (except for line terminators)
+			if char != '\n' && char != '\r' {
+				fmt.Fprintf(sess, "%c", char)
+			}
+
 			// Log each character for debugging (only in debug mode)
 			debugLog("Received character: %q (byte: %d)", char, char)
 
@@ -80,6 +85,8 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 			if char == '\n' {
 				// Unix line ending
 				debugLog("Received Unix line ending (LF)")
+				// Echo a newline to the user
+				fmt.Fprintf(sess, "\n")
 				break
 			} else if char == '\r' {
 				// Windows line ending or Mac classic line ending
@@ -90,6 +97,8 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 				if err != nil {
 					// If we can't peek (EOF or other error), treat \r as end of line
 					debugLog("Error peeking after CR (%v), treating CR as end of line", err)
+					// Echo a newline to the user
+					fmt.Fprintf(sess, "\n")
 					break
 				}
 				
@@ -103,6 +112,8 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 						debugLog("Consumed CRLF sequence")
 					}
 				}
+				// Echo a newline to the user
+				fmt.Fprintf(sess, "\n")
 				break
 			}
 
@@ -149,12 +160,43 @@ func (s *SSHAdapter) SendMessage(sess ssh.Session, message string) {
 func (s *SSHAdapter) GetInput(sess ssh.Session) string {
 	debugLog("Getting input from client")
 	reader := bufio.NewReader(sess)
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		infoLog("Error reading input: %v", err)
-		return ""
+	
+	// Read character by character and echo back
+	var input strings.Builder
+	for {
+		char, err := reader.ReadByte()
+		if err != nil {
+			infoLog("Error reading input: %v", err)
+			return ""
+		}
+		
+		// Echo the character back to the user (except for line terminators)
+		if char != '\n' && char != '\r' {
+			fmt.Fprintf(sess, "%c", char)
+		}
+		
+		// Check for line terminators
+		if char == '\n' || char == '\r' {
+			// Echo a newline to the user
+			fmt.Fprintf(sess, "\n")
+			
+			// Handle CRLF sequence
+			if char == '\r' {
+				// Peek to see if next char is \n
+				nextByte, err := reader.Peek(1)
+				if err == nil && len(nextByte) > 0 && nextByte[0] == '\n' {
+					// Consume the \n
+					reader.ReadByte()
+				}
+			}
+			break
+		}
+		
+		// Add character to input
+		input.WriteByte(char)
 	}
-	trimmed := strings.TrimSpace(input)
+	
+	trimmed := strings.TrimSpace(input.String())
 	debugLog("Input received: %q", trimmed)
 	return trimmed
 }
