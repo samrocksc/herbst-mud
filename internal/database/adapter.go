@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/sam/makeathing/internal/adapters"
+	"github.com/sam/makeathing/internal/characters"
+	"github.com/sam/makeathing/internal/items"
 	"github.com/sam/makeathing/internal/rooms"
 )
 
@@ -14,6 +16,9 @@ type DBAdapter struct {
 	sessionRepo *SessionRepository
 	userRepo    *UserRepository
 	roomRepo    *RoomRepository
+	characterRepo *CharacterRepository
+	itemRepo    *ItemRepository
+	actionRepo  *ActionRepository
 }
 
 // NewDBAdapter creates a new database adapter
@@ -29,6 +34,8 @@ func NewDBAdapter(dbPath string) (*DBAdapter, error) {
 		sessionRepo: NewSessionRepository(db),
 		userRepo:    NewUserRepository(db),
 		roomRepo:    NewRoomRepository(db),
+		characterRepo: NewCharacterRepository(db),
+		itemRepo:    NewItemRepository(db),
 	}, nil
 }
 
@@ -159,6 +166,126 @@ func (d *DBAdapter) UpdateRoom(jsonRoom *rooms.RoomJSON) error {
 // DeleteRoom deletes a room
 func (d *DBAdapter) DeleteRoom(roomID string) error {
 	return d.roomRepo.Delete(roomID)
+}
+
+// Character operations
+
+// CreateCharacter creates a new character from a JSON character
+func (d *DBAdapter) CreateCharacter(jsonCharacter *characters.CharacterJSON) error {
+	character, err := CharacterFromJSONCharacter(jsonCharacter)
+	if err != nil {
+		return err
+	}
+	
+	return d.characterRepo.Create(character)
+}
+
+// GetCharacter retrieves a character by ID
+func (d *DBAdapter) GetCharacter(characterID string) (*characters.CharacterJSON, error) {
+	character, err := d.characterRepo.GetByID(characterID)
+	if err != nil {
+		return nil, err
+	}
+	
+	if character == nil {
+		return nil, nil
+	}
+	
+	return character.ToJSONCharacter()
+}
+
+// UpdateCharacter updates a character
+func (d *DBAdapter) UpdateCharacter(jsonCharacter *characters.CharacterJSON) error {
+	character, err := CharacterFromJSONCharacter(jsonCharacter)
+	if err != nil {
+		return err
+	}
+	
+	return d.characterRepo.Update(character)
+}
+
+// DeleteCharacter deletes a character
+func (d *DBAdapter) DeleteCharacter(characterID string) error {
+	return d.characterRepo.Delete(characterID)
+}
+
+// Item operations
+
+// CreateItem creates a new item from a JSON item
+func (d *DBAdapter) CreateItem(jsonItem *items.ItemJSON) error {
+	item, err := ItemFromJSONItem(jsonItem)
+	if err != nil {
+		return err
+	}
+	
+	return d.itemRepo.Create(item)
+}
+
+// GetItem retrieves an item by ID
+func (d *DBAdapter) GetItem(itemID string) (*items.ItemJSON, error) {
+	item, err := d.itemRepo.GetByID(itemID)
+	if err != nil {
+		return nil, err
+	}
+	
+	if item == nil {
+		return nil, nil
+	}
+	
+	return item.ToJSONItem()
+}
+
+// UpdateItem updates an item
+func (d *DBAdapter) UpdateItem(jsonItem *items.ItemJSON) error {
+	item, err := ItemFromJSONItem(jsonItem)
+	if err != nil {
+		return err
+	}
+	
+	return d.itemRepo.Update(item)
+}
+
+// DeleteItem deletes an item
+func (d *DBAdapter) DeleteItem(itemID string) error {
+	return d.itemRepo.Delete(itemID)
+}
+
+// GetAllItems retrieves all items
+func (d *DBAdapter) GetAllItems() ([]*items.ItemJSON, error) {
+	dbItems, err := d.itemRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	
+	var jsonItems []*items.ItemJSON
+	for _, item := range dbItems {
+		jsonItem, err := item.ToJSONItem()
+		if err != nil {
+			return nil, err
+		}
+		jsonItems = append(jsonItems, jsonItem)
+	}
+	
+	return jsonItems, nil
+}
+
+// GetAllCharacters retrieves all characters
+func (d *DBAdapter) GetAllCharacters() ([]*characters.CharacterJSON, error) {
+	dbCharacters, err := d.characterRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	
+	var jsonCharacters []*characters.CharacterJSON
+	for _, character := range dbCharacters {
+		jsonCharacter, err := character.ToJSONCharacter()
+		if err != nil {
+			return nil, err
+		}
+		jsonCharacters = append(jsonCharacters, jsonCharacter)
+	}
+	
+	return jsonCharacters, nil
 }
 
 // GetAllRooms retrieves all rooms

@@ -2,6 +2,7 @@ package characters
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -23,6 +24,24 @@ type Character struct {
 	IsNpc       bool
 	Inventory   []items.Item
 	Skills      []Skill
+}
+
+// CharacterJSON represents a character in JSON format
+type CharacterJSON struct {
+	Schema     string      `json:"$schema"`
+	ID         string      `json:"id"`
+	Name       string      `json:"name"`
+	Race       string      `json:"race"`
+	Class      string      `json:"class"`
+	Stats      Stats       `json:"stats"`
+	Health     int         `json:"health"`
+	Mana       int         `json:"mana"`
+	Experience int         `json:"experience"`
+	Level      int         `json:"level"`
+	IsVendor   bool        `json:"isVendor"`
+	IsNpc      bool        `json:"isNpc"`
+	Inventory  []items.Item `json:"inventory"`
+	Skills     []Skill     `json:"skills"`
 }
 
 // Race represents a character's race
@@ -67,19 +86,69 @@ const (
 	Spell      SkillType = "spell"
 )
 
-// LoadCharacterFromJSON loads a character from a JSON file
-func LoadCharacterFromJSON(filename string) (*Character, error) {
+// LoadCharacterJSONFromJSON loads a CharacterJSON from a JSON file
+func LoadCharacterJSONFromJSON(filename string) (*CharacterJSON, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	var character Character
-	if err := json.Unmarshal(data, &character); err != nil {
+	var characterJSON CharacterJSON
+	if err := json.Unmarshal(data, &characterJSON); err != nil {
 		return nil, err
 	}
 
-	return &character, nil
+	return &characterJSON, nil
+}
+
+// LoadAllCharacterJSONsFromDirectory loads all CharacterJSONs from JSON files in a directory
+func LoadAllCharacterJSONsFromDirectory(directory string) (map[string]*CharacterJSON, error) {
+	characters := make(map[string]*CharacterJSON)
+
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			filename := filepath.Join(directory, file.Name())
+			characterJSON, err := LoadCharacterJSONFromJSON(filename)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load character JSON from %s: %w", filename, err)
+			}
+			// Use the character ID as the key
+			characters[characterJSON.ID] = characterJSON
+		}
+	}
+
+	return characters, nil
+}
+
+// LoadCharacterFromJSON loads a character from a JSON file
+func LoadCharacterFromJSON(filename string) (*Character, error) {
+	characterJSON, err := LoadCharacterJSONFromJSON(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	character := &Character{
+		ID:          characterJSON.ID,
+		Name:        characterJSON.Name,
+		Race:        Race(characterJSON.Race),
+		Class:       Class(characterJSON.Class),
+		Stats:       characterJSON.Stats,
+		Health:      characterJSON.Health,
+		Mana:        characterJSON.Mana,
+		Experience:  characterJSON.Experience,
+		Level:       characterJSON.Level,
+		IsVendor:    characterJSON.IsVendor,
+		IsNpc:       characterJSON.IsNpc,
+		Inventory:   characterJSON.Inventory,
+		Skills:      characterJSON.Skills,
+	}
+
+	return character, nil
 }
 
 // LoadAllCharactersFromDirectory loads all characters from JSON files in a directory

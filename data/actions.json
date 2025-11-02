@@ -1,0 +1,61 @@
+{
+  "$schema": "./schemas/action.schema.json",
+  "actions": [
+    {
+      "name": "attack",
+      "type": "combat",
+      "description": "Basic physical attack with a weapon",
+      "requirements": {
+        "minLevel": 1,
+        "requiredStats": {
+          "strength": 3,
+          "intelligence": 1,
+          "dexterity": 2
+        },
+        "requiredSkills": []
+      }
+    },
+    {
+      "name": "cast_spell",
+      "type": "magic",
+      "description": "Cast a magical spell",
+      "requirements": {
+        "minLevel": 1,
+        "requiredStats": {
+          "strength": 1,
+          "intelligence": 3,
+          "dexterity": 1
+        },
+        "requiredSkills": []
+      }
+    },
+    {
+      "name": "sneak",
+      "type": "stealth",
+      "description": "Move silently to avoid detection",
+      "requirements": {
+        "minLevel": 2,
+        "requiredStats": {
+          "strength": 1,
+          "intelligence": 2,
+          "dexterity": 5
+        },
+        "requiredSkills": []
+      }
+    },
+    {
+      "name": "heal",
+      "type": "magic",
+      "description": "Use healing magic to restore health",
+      "requirements": {
+        "minLevel": 3,
+        "requiredStats": {
+          "strength": 1,
+          "intelligence": 5,
+          "dexterity": 1
+        },
+        "requiredSkills": ["cast_spell"]
+      }
+    }
+  ]
+}
