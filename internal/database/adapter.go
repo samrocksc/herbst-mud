@@ -1,12 +1,8 @@
 package database
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 
-	"github.com/sam/makeathing/internal/adapters"
 	"github.com/sam/makeathing/internal/characters"
 	"github.com/sam/makeathing/internal/items"
 	"github.com/sam/makeathing/internal/rooms"
@@ -314,60 +310,4 @@ func (d *DBAdapter) GetAllRooms() ([]*rooms.RoomJSON, error) {
 type GameDBInterface interface {
 	GetRoom(roomID string) *rooms.Room
 	GetStartingRoom() *rooms.Room
-}
-
-// SessionManagerWithDB wraps the existing SessionManager to add database persistence
-type SessionManagerWithDB struct {
-	*adapters.SessionManager
-	dbAdapter *DBAdapter
-	game      GameDBInterface
-}
-
-// NewSessionManagerWithDB creates a new session manager with database persistence
-func NewSessionManagerWithDB(game GameDBInterface, dbAdapter *DBAdapter, userDir string) (*SessionManagerWithDB, error) {
-	// Load all users from the specified directory
-	users, err := LoadAllUsersFromDirectory(userDir)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load users: %w", err)
-	}
-
-	// Example: Log loaded users
-	for id, user := range users {
-		fmt.Printf("Loaded user: %s (%s)\n", id, user.Username)
-	}
-
-	return manager, nil
-	manager := &SessionManagerWithDB{
-		SessionManager: adapters.NewSessionManager(game),
-		dbAdapter:      dbAdapter,
-		game:           game,
-	}
-}
-
-// LoadAllUsersFromDirectory loads all users from JSON files in a directory
-func LoadAllUsersFromDirectory(directory string) (map[string]*User, error) {
-	users := make(map[string]*User)
-
-	files, err := os.ReadDir(directory)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, file := range files {
-		if filepath.Ext(file.Name()) == ".json" {
-			filename := filepath.Join(directory, file.Name())
-			data, err := os.ReadFile(filename)
-			if err != nil {
-				return nil, err
-			}
-
-			var user User
-			if err := json.Unmarshal(data, &user); err != nil {
-				return nil, err
-			}
-			users[user.ID] = &user
-		}
-	}
-
-	return users, nil
 }

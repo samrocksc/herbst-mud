@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/samrocksc/herbst-mud/blob/main/data/schemas/user.schema.json",
+  "title": "User",
+  "description": "A user in the game",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Unique identifier for the user"
+    },
+    "characterId": {
+      "type": "string",
+      "description": "ID of the character this user controls"
+    },
+    "roomId": {
+      "type": "string",
+      "description": "ID of the room this user is currently in"
+    }
+  },
+  "required": ["id", "characterId", "roomId"]
+}

@@ -1,0 +1,6 @@
+{
+  "$schema": "./schemas/user.schema.json",
+  "id": 1,
+  "characterId": "char_nelly",
+  "roomId": "start"
+}

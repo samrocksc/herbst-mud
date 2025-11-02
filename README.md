@@ -115,11 +115,13 @@ Available commands:
 │   ├── combat/             # Combat system
 │   ├── actions/            # Actions system
 │   ├── configuration/      # Configuration system
+│   ├── users/              # Users system
 │   └── database/           # Database implementation
 ├── data/
 │   ├── items/              # JSON item definitions
 │   ├── rooms/              # JSON room definitions
 │   ├── characters/         # JSON character definitions
+│   ├── users/              # JSON user definitions
 │   ├── configuration.json  # JSON configuration
 │   └── schemas/            # JSON schemas for validation
 ├── .ssh/                   # SSH keys for the server

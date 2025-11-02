@@ -59,4 +59,3 @@ tmp/
 temp/
 
 # Data files
-data/rooms/*.json~

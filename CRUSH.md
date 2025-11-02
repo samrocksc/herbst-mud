@@ -57,11 +57,13 @@ make clean
 │   ├── combat/             # Combat system
 │   ├── actions/            # Actions system
 │   ├── configuration/      # Configuration system
+│   ├── users/              # Users system
 │   └── database/           # Database implementation
 ├── data/
 │   ├── items/              # JSON item definitions
 │   ├── rooms/              # JSON room definitions
 │   ├── characters/         # JSON character definitions
+│   ├── users/              # JSON user definitions
 │   ├── configuration.json  # JSON configuration
 │   └── schemas/            # JSON schemas for validation
 ├── .ssh/                   # SSH keys for the server
@@ -85,9 +87,9 @@ make clean
 
 - Uses JSON files for initial data loading in the `data/` directory
 - JSON Schema validation for data integrity (schemas in `data/schemas/`)
-- Each entity type (rooms, items, characters, configuration) has its own directory or file with JSON files
+- Each entity type (rooms, items, characters, users, configuration) has its own directory or file with JSON files
 - References between entities are resolved at load time
-- SQLite database for runtime persistence of configuration, sessions, and users
+- SQLite database for runtime persistence of configuration, sessions, users, characters, rooms, items, and actions
 - Automated migration system for database schema updates
 
 ### Session Management
@@ -113,6 +115,9 @@ The MUD server now includes a SQLite-based database implementation for runtime p
   - `sessions`: Active user sessions with session IDs, user IDs, character IDs, and room IDs
   - `users`: User accounts linking characters to rooms
   - `rooms`: Room data mirroring JSON structure with JSON-serialized complex fields
+  - `characters`: Character data mirroring JSON structure with JSON-serialized complex fields
+  - `items`: Item data mirroring JSON structure with JSON-serialized complex fields
+  - `actions`: Action data for available game actions
 - **Database Adapter**: Integration layer between database and game logic in `internal/database/adapter.go`
 - **Repository Pattern**: Clean data access layer with separate repositories for each entity type
 - **Configuration Loading**: Initial configuration loaded from `data/configuration.json` at startup
@@ -143,6 +148,13 @@ The MUD server now includes a SQLite-based database implementation for runtime p
 - Has ID and name fields that mirror the database configuration table
 - Stored as JSON file in `data/configuration.json`
 - Loaded at server startup for initial configuration
+
+### Users
+
+- Defined in `internal/users/users.go`
+- Has ID, character ID, and room ID fields that mirror the database users table
+- Stored as JSON files in `data/users/`
+- Loaded at server startup for initial user data
 
 ## Testing Approach
 
@@ -210,6 +222,12 @@ From `agents.md`:
 2. The configuration is loaded at server startup
 3. For runtime changes, use the database configuration system
 
+### Adding a New User
+
+1. Create a new JSON file in `data/users/` following the user schema
+2. Define the user with an ID, character ID, and room ID
+3. The user will be loaded at server startup
+
 ### Uploading JSON Rooms to Database
 
 1. All existing JSON rooms in `data/rooms/` have been uploaded to the database
@@ -233,6 +251,8 @@ From `agents.md`:
 4. Add the repository to the `DBAdapter` struct and initialization
 5. Test with comprehensive unit tests
 6. Add new CLI methods to `DBAdapter` for easy access
+7. Create corresponding JSON structures in `internal/entity/` package
+8. Create JSON schema in `data/schemas/entity.schema.json`
 
 ## Deployment
 
