@@ -1,5 +1,6 @@
 {
   "$schema": "../schemas/item.schema.json",
+  "id": "item_rusty_sword",
   "name": "Rusty Sword",
   "description": "A rusty old sword, not very sharp but better than nothing.",
   "type": "weapon",

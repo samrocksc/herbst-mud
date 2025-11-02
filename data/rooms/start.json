@@ -10,6 +10,7 @@
   "immovableObjects": [],
   "movableObjects": [
     {
+      "id": "item_rusty_sword",
       "name": "Rusty Sword",
       "description": "A rusty old sword, not very sharp but better than nothing.",
       "type": "weapon",
@@ -21,6 +22,7 @@
       "isMagical": false
     },
     {
+      "id": "item_healing_potion",
       "name": "Healing Potion",
       "description": "A small vial containing a red liquid that heals wounds.",
       "type": "movable",
@@ -35,6 +37,7 @@
   "smells": "The air smells fresh and clean.",
   "npcs": [
     {
+      "id": "char_nelly",
       "name": "Nelly",
       "race": "Dog",
       "class": "Warrior",

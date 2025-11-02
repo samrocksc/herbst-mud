@@ -8,6 +8,7 @@ import (
 
 // Item represents an item in the game
 type Item struct {
+	ID          string
 	Name        string
 	Description string
 	Type        ItemType
@@ -64,11 +65,18 @@ func LoadAllItemsFromDirectory(directory string) (map[string]*Item, error) {
 				return nil, err
 			}
 
-			// Use the item name as the key (converted to lowercase and spaces replaced with underscores)
-			key := file.Name()[:len(file.Name())-5] // Remove .json extension
-			items[key] = item
+			// Store the item by its ID
+			items[item.ID] = item
 		}
 	}
 
 	return items, nil
+}
+
+// FindItemByID finds an item by its ID in a map of items
+func FindItemByID(items map[string]*Item, id string) *Item {
+	if item, ok := items[id]; ok {
+		return item
+	}
+	return nil
 }

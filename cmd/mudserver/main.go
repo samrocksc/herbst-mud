@@ -132,10 +132,10 @@ func initializeGameWorld(game *Game) {
 	}
 	game.Admin = admin
 
-	// Load rooms from JSON files
-	rooms, err := rooms.LoadAllRoomsFromDirectory("./data/rooms")
+	// Load rooms with resolved item/character references from JSON files
+	rooms, err := rooms.LoadAllRoomsFromDirectoryWithReferences("./data/rooms", "./data/items", "./data/characters")
 	if err != nil {
-		log.Fatalf("Failed to load rooms from JSON: %v", err)
+		log.Fatalf("Failed to load rooms with references from JSON: %v", err)
 	}
 
 	// Verify that all required rooms are loaded

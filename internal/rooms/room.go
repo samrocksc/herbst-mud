@@ -32,6 +32,27 @@ type RoomJSON struct {
 	NPCs             []characters.Character `json:"npcs"`
 }
 
+// RoomWithReferences represents a room that needs to resolve references
+type RoomWithReferences struct {
+	ID               string                 `json:"id"`
+	Description      string                 `json:"description"`
+	Exits            map[string]string      `json:"exits"`
+	ImmovableObjects []ItemReference        `json:"immovableObjects"`
+	MovableObjects   []ItemReference        `json:"movableObjects"`
+	Smells           string                 `json:"smells"`
+	NPCs             []CharacterReference   `json:"npcs"`
+}
+
+// ItemReference represents a reference to an item by ID
+type ItemReference struct {
+	ID string `json:"id"`
+}
+
+// CharacterReference represents a reference to a character by ID
+type CharacterReference struct {
+	ID string `json:"id"`
+}
+
 // Direction represents cardinal directions
 type Direction string
 
@@ -79,6 +100,106 @@ func LoadRoomFromJSON(filename string) (*Room, error) {
 	return room, nil
 }
 
+// LoadRoomFromJSONWithReferences loads a room from a JSON file and resolves item/character references
+func LoadRoomFromJSONWithReferences(filename string, itemsMap map[string]*items.Item, charactersMap map[string]*characters.Character) (*Room, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var roomWithRefs RoomWithReferences
+	if err := json.Unmarshal(data, &roomWithRefs); err != nil {
+		// If JSON unmarshaling as RoomWithReferences fails, try unmarshaling as RoomJSON (backward compatibility)
+		var roomJSON RoomJSON
+		if err := json.Unmarshal(data, &roomJSON); err != nil {
+			return nil, err
+		}
+		
+		// Convert exits from string keys to Direction keys
+		exits := make(map[Direction]string)
+		for k, v := range roomJSON.Exits {
+			exits[Direction(k)] = v
+		}
+
+		room := &Room{
+			ID:               roomJSON.ID,
+			Description:      roomJSON.Description,
+			Exits:            exits,
+			ImmovableObjects: roomJSON.ImmovableObjects,
+			MovableObjects:   roomJSON.MovableObjects,
+			Smells:           roomJSON.Smells,
+			NPCs:             roomJSON.NPCs,
+		}
+
+		return room, nil
+	}
+
+	// Resolve item references
+	immovableObjects := make([]items.Item, 0)
+	for _, ref := range roomWithRefs.ImmovableObjects {
+		// First, check if it's a reference by ID
+		if item := items.FindItemByID(itemsMap, ref.ID); item != nil {
+			// Create a copy of the item with the reference ID
+			itemCopy := *item
+			itemCopy.ID = ref.ID
+			immovableObjects = append(immovableObjects, itemCopy)
+		} else {
+			// If no matching item is found in the items map, use the original reference object
+			// This is for backward compatibility with inline item definitions
+			immovableObjects = append(immovableObjects, items.Item{ID: ref.ID})
+		}
+	}
+
+	movableObjects := make([]items.Item, 0)
+	for _, ref := range roomWithRefs.MovableObjects {
+		// First, check if it's a reference by ID
+		if item := items.FindItemByID(itemsMap, ref.ID); item != nil {
+			// Create a copy of the item with the reference ID
+			itemCopy := *item
+			itemCopy.ID = ref.ID
+			movableObjects = append(movableObjects, itemCopy)
+		} else {
+			// If no matching item is found in the items map, use the original reference object
+			// This is for backward compatibility with inline item definitions
+			items.Item{ID: ref.ID}
+		}
+	}
+
+	// Resolve character references
+	npcs := make([]characters.Character, 0)
+	for _, ref := range roomWithRefs.NPCs {
+		// First, check if it's a reference by ID
+		if char := characters.FindCharacterByID(charactersMap, ref.ID); char != nil {
+			// Create a copy of the character with the reference ID
+			charCopy := *char
+			charCopy.ID = ref.ID
+			npcs = append(npcs, charCopy)
+		} else {
+			// If no matching character is found in the characters map, use the original reference object
+			// This is for backward compatibility with inline character definitions
+			npcs = append(npcs, characters.Character{ID: ref.ID})
+		}
+	}
+
+	// Convert exits from string keys to Direction keys
+	exits := make(map[Direction]string)
+	for k, v := range roomWithRefs.Exits {
+		exits[Direction(k)] = v
+	}
+
+	room := &Room{
+		ID:               roomWithRefs.ID,
+		Description:      roomWithRefs.Description,
+		Exits:            exits,
+		ImmovableObjects: immovableObjects,
+		MovableObjects:   movableObjects,
+		Smells:           roomWithRefs.Smells,
+		NPCs:             npcs,
+	}
+
+	return room, nil
+}
+
 // LoadAllRoomsFromDirectory loads all rooms from JSON files in a directory
 func LoadAllRoomsFromDirectory(directory string) (map[string]*Room, error) {
 	rooms := make(map[string]*Room)
@@ -92,6 +213,41 @@ func LoadAllRoomsFromDirectory(directory string) (map[string]*Room, error) {
 		if filepath.Ext(file.Name()) == ".json" {
 			filename := filepath.Join(directory, file.Name())
 			room, err := LoadRoomFromJSON(filename)
+			if err != nil {
+				return nil, err
+			}
+			rooms[room.ID] = room
+		}
+	}
+
+	return rooms, nil
+}
+
+// LoadAllRoomsFromDirectoryWithReferences loads all rooms from JSON files in a directory with resolved item/character references
+func LoadAllRoomsFromDirectoryWithReferences(roomDir string, itemsDir string, charactersDir string) (map[string]*Room, error) {
+	// Load all items
+	itemsMap, err := items.LoadAllItemsFromDirectory(itemsDir)
+	if err != nil {
+		return nil, err
+	}
+
+	// Load all characters
+	charactersMap, err := characters.LoadAllCharactersFromDirectory(charactersDir)
+	if err != nil {
+		return nil, err
+	}
+
+	rooms := make(map[string]*Room)
+
+	files, err := os.ReadDir(roomDir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			filename := filepath.Join(roomDir, file.Name())
+			room, err := LoadRoomFromJSONWithReferences(filename, itemsMap, charactersMap)
 			if err != nil {
 				return nil, err
 			}

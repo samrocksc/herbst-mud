@@ -8,6 +8,7 @@
   "immovableObjects": [],
   "movableObjects": [
     {
+      "id": "item_wooden_shield",
       "name": "Wooden Shield",
       "description": "A sturdy wooden shield that provides decent protection.",
       "type": "wearable",

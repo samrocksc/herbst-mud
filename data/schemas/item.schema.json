@@ -5,6 +5,10 @@
   "description": "An item in the game",
   "type": "object",
   "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the item"
+    },
     "name": {
       "type": "string",
       "description": "Name of the item"
@@ -37,5 +41,5 @@
       "description": "Whether the item is magical"
     }
   },
-  "required": ["name", "description", "type"]
+  "required": ["id", "name", "description", "type"]
 }

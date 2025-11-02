@@ -1,5 +1,6 @@
 {
   "$schema": "../schemas/item.schema.json",
+  "id": "item_healing_potion",
   "name": "Healing Potion",
   "description": "A small vial containing a red liquid that heals wounds.",
   "type": "movable",

@@ -5,6 +5,10 @@
   "description": "A character in the game",
   "type": "object",
   "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the character"
+    },
     "name": {
       "type": "string",
       "description": "Name of the character"
@@ -90,5 +94,5 @@
       }
     }
   },
-  "required": ["name", "race", "class", "stats"]
+  "required": ["id", "name", "race", "class", "stats"]
 }
