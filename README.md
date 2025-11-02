@@ -58,6 +58,26 @@ make build
 make run
 ```
 
+### Cross-platform Builds
+
+The project supports building for multiple platforms:
+
+```bash
+# Build for all supported platforms
+make build-all
+
+# Build for specific platforms
+make build-linux     # Linux (Intel/AMD 64-bit)
+make build-darwin-arm64  # macOS (Apple Silicon)
+make build-darwin-amd64  # macOS (Intel)
+```
+
+Binaries are output to the `dist/` directory.
+
+### Pre-built Binaries
+
+Pre-built binaries for Linux and macOS are available in the [releases](https://github.com/samrocksc/herbst-mud/releases) section.
+
 ### Connecting
 
 Connect to the server using any SSH client:
