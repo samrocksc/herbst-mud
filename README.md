@@ -114,7 +114,14 @@ Available commands:
 │   ├── items/              # Item system
 │   ├── combat/             # Combat system
 │   ├── actions/            # Actions system
+│   ├── configuration/      # Configuration system
 │   └── database/           # Database implementation
+├── data/
+│   ├── items/              # JSON item definitions
+│   ├── rooms/              # JSON room definitions
+│   ├── characters/         # JSON character definitions
+│   ├── configuration.json  # JSON configuration
+│   └── schemas/            # JSON schemas for validation
 ├── .ssh/                   # SSH keys for the server
 ├── rules.md                # Game requirements
 ├── Makefile                # Build automation

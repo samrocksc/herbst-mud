@@ -1,0 +1,5 @@
+{
+  "$schema": "../schemas/configuration.schema.json",
+  "id": 1,
+  "name": "herbst"
+}

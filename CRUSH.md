@@ -56,11 +56,13 @@ make clean
 │   ├── items/              # Item system
 │   ├── combat/             # Combat system
 │   ├── actions/            # Actions system
+│   ├── configuration/      # Configuration system
 │   └── database/           # Database implementation
 ├── data/
 │   ├── items/              # JSON item definitions
 │   ├── rooms/              # JSON room definitions
 │   ├── characters/         # JSON character definitions
+│   ├── configuration.json  # JSON configuration
 │   └── schemas/            # JSON schemas for validation
 ├── .ssh/                   # SSH keys for the server
 ├── Makefile                # Build automation
@@ -83,7 +85,7 @@ make clean
 
 - Uses JSON files for initial data loading in the `data/` directory
 - JSON Schema validation for data integrity (schemas in `data/schemas/`)
-- Each entity type (rooms, items, characters) has its own directory with JSON files
+- Each entity type (rooms, items, characters, configuration) has its own directory or file with JSON files
 - References between entities are resolved at load time
 - SQLite database for runtime persistence of configuration, sessions, and users
 - Automated migration system for database schema updates
@@ -112,6 +114,7 @@ The MUD server now includes a SQLite-based database implementation for runtime p
   - `users`: User accounts linking characters to rooms
 - **Database Adapter**: Integration layer between database and game logic in `internal/database/adapter.go`
 - **Repository Pattern**: Clean data access layer with separate repositories for each entity type
+- **Configuration Loading**: Initial configuration loaded from `data/configuration.json` at startup
 
 ## Key Data Structures
 
@@ -132,6 +135,13 @@ The MUD server now includes a SQLite-based database implementation for runtime p
 
 - Defined in `internal/items/item.go`
 - Has ID, name, description, and movability flag
+
+### Configuration
+
+- Defined in `internal/configuration/configuration.go`
+- Has ID and name fields that mirror the database configuration table
+- Stored as JSON file in `data/configuration.json`
+- Loaded at server startup for initial configuration
 
 ## Testing Approach
 
@@ -192,6 +202,12 @@ From `agents.md`:
 1. Create a new JSON file in the appropriate directory (`data/items/` or `data/characters/`)
 2. Follow the respective schema in `data/schemas/`
 3. Reference the item/character in rooms as needed
+
+### Adding a New Configuration
+
+1. Modify `data/configuration.json` with the desired settings
+2. The configuration is loaded at server startup
+3. For runtime changes, use the database configuration system
 
 ### Adding a New Database Migration
 
