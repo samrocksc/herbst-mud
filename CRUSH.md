@@ -308,6 +308,51 @@ The initialization process:
 4. Uses "starting_room" as default for characters without a known location
 5. Maintains idempotency - can be called multiple times safely
 
+### Managing Releases with Changesets
+
+The project uses [Changesets](https://github.com/changesets/changesets) to manage versioning and changelog generation, even though it's a Go project rather than a JavaScript project.
+
+#### Workflow:
+
+1. **Create a changeset** after making significant changes:
+   ```bash
+   npx changeset
+   ```
+   - Select the package ("makeathing-mud")
+   - Choose the version bump type (patch/minor/major)
+   - Write a summary of changes
+
+2. **Update versions and changelog** when preparing for a release:
+   ```bash
+   npx changeset version
+   ```
+
+3. **Update the VERSION file** to match package.json:
+   ```bash
+   # Check the version in package.json
+   grep '"version"' package.json
+   
+   # Update VERSION file to match
+   echo "0.1.2" > VERSION  # Replace with actual version
+   ```
+
+4. **Commit and tag the release**:
+   ```bash
+   git add .
+   git commit -m "chore: prepare release vX.Y.Z"
+   git tag vX.Y.Z  # Use the version from package.json/VERSION
+   git push origin main --tags
+   ```
+
+#### Key Files:
+- `.changeset/` - Directory containing changeset configuration
+- `CHANGELOG.md` - Generated changelog of all releases
+- `package.json` - Minimal file for Changesets compatibility
+- `VERSION` - Go project version file (must be manually updated)
+- `CHANGESETS.md` - Detailed documentation on the changesets workflow
+
+See `CHANGESETS.md` for comprehensive instructions on using changesets.
+
 ## Deployment
 
 The server listens on port 2222 for SSH connections. Connect with:
