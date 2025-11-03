@@ -72,6 +72,7 @@ const (
 
 // LoadRoomFromJSON loads a room from a JSON file
 func LoadRoomFromJSON(filename string) (*Room, error) {
+	fmt.Println("LoadRoomFromJSON started")
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err

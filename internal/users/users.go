@@ -73,6 +73,7 @@ func LoadAllUserJSONsFromDirectory(directory string) (map[string]*UserJSON, erro
 
 // LoadUserFromJSON loads a user from a JSON file
 func LoadUserFromJSON(filename string) (*User, error) {
+	fmt.Println("LoadUserFromJSON started")
 	userJSON, err := LoadUserJSONFromJSON(filename)
 	if err != nil {
 		return nil, err
@@ -93,6 +94,7 @@ func LoadUserFromJSON(filename string) (*User, error) {
 
 // LoadAllUsersFromDirectory loads all users from JSON files in a directory
 func LoadAllUsersFromDirectory(directory string) (map[string]*User, error) {
+	fmt.Println("LoadAllUsersFromDirectory started")
 	users := make(map[string]*User)
 
 	files, err := os.ReadDir(directory)
@@ -112,6 +114,6 @@ func LoadAllUsersFromDirectory(directory string) (map[string]*User, error) {
 			users[key] = user
 		}
 	}
-
+	fmt.Println("LoadAllUsersFromDirectory ended")
 	return users, nil
 }
