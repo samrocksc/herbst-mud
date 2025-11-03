@@ -26,6 +26,25 @@ type Character struct {
 	Skills      []Skill
 }
 
+// ToJSON converts a Character to a CharacterJSON
+func (c *Character) ToJSON() *CharacterJSON {
+	return &CharacterJSON{
+		ID:          c.ID,
+		Name:        c.Name,
+		Race:        string(c.Race),
+		Class:       string(c.Class),
+		Stats:       c.Stats,
+		Health:      c.Health,
+		Mana:        c.Mana,
+		Experience:  c.Experience,
+		Level:       c.Level,
+		IsVendor:    c.IsVendor,
+		IsNpc:       c.IsNpc,
+		Inventory:   c.Inventory,
+		Skills:      c.Skills,
+	}
+}
+
 // CharacterJSON represents a character in JSON format
 type CharacterJSON struct {
 	Schema     string      `json:"$schema"`

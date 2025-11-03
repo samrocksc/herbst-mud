@@ -21,6 +21,24 @@ type Room struct {
 	NPCs             []characters.Character
 }
 
+// ToJSON converts a Room to a RoomJSON
+func (r *Room) ToJSON() *RoomJSON {
+	exits := make(map[string]string)
+	for k, v := range r.Exits {
+		exits[string(k)] = v
+	}
+
+	return &RoomJSON{
+		ID:               r.ID,
+		Description:      r.Description,
+		Exits:            exits,
+		ImmovableObjects: r.ImmovableObjects,
+		MovableObjects:   r.MovableObjects,
+		Smells:           r.Smells,
+		NPCs:             r.NPCs,
+	}
+}
+
 // RoomJSON represents a room in JSON format
 type RoomJSON struct {
 	Schema           string                 `json:"$schema"`
@@ -204,6 +222,7 @@ func LoadRoomFromJSONWithReferences(filename string, itemsMap map[string]*items.
 
 // LoadAllRoomsFromDirectory loads all rooms from JSON files in a directory
 func LoadAllRoomsFromDirectory(directory string) (map[string]*Room, error) {
+	fmt.Println("LoadAllRoomsFromDirectory:", directory)
 	rooms := make(map[string]*Room)
 
 	files, err := os.ReadDir(directory)
@@ -227,6 +246,7 @@ func LoadAllRoomsFromDirectory(directory string) (map[string]*Room, error) {
 
 // LoadRoomJSONFromJSON loads a RoomJSON from a JSON file
 func LoadRoomJSONFromJSON(filename string) (*RoomJSON, error) {
+	fmt.Println("LoadAllRoomsFromDirectory:", filename)
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err

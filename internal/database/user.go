@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"time"
+
+	"github.com/sam/makeathing/internal/users"
 )
 
 // User represents a user in the database
@@ -14,6 +16,33 @@ type User struct {
 	RoomID      string    `json:"room_id"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// UserFromJSONUser converts a JSON user to a database user
+func UserFromJSONUser(jsonUser *users.UserJSON) (*User, error) {
+	return &User{
+		ID:          jsonUser.ID,
+		Username:    jsonUser.Username,
+		Password:    jsonUser.Password,
+		CharacterID: jsonUser.CharacterID,
+		RoomID:      jsonUser.RoomID,
+		CreatedAt:   jsonUser.CreatedAt,
+		UpdatedAt:   jsonUser.UpdatedAt,
+	}, nil
+}
+
+// ToJSONUser converts a database user to a JSON user
+func (u *User) ToJSONUser() (*users.UserJSON, error) {
+	return &users.UserJSON{
+		Schema:      "", // This would typically be set when saving to JSON
+		ID:          u.ID,
+		Username:    u.Username,
+		Password:    u.Password,
+		CharacterID: u.CharacterID,
+		RoomID:      u.RoomID,
+		CreatedAt:   u.CreatedAt,
+		UpdatedAt:   u.UpdatedAt,
+	}, nil
 }
 
 // UserRepository provides methods for working with users

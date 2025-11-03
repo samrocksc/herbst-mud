@@ -37,7 +37,7 @@ run-json:
 
 # Run the server with debug mode enabled
 run-debug:
-	DEBUG=true go run ./${MAIN_DIR}
+	DEBUG=true go run ./${MAIN_DIR} --merge-json
 
 # Run the server with debug mode and JSON storage only
 run-debug-json:

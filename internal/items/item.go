@@ -17,6 +17,18 @@ type Item struct {
 	IsMagical   bool
 }
 
+// ToJSON converts an Item to an ItemJSON
+func (i *Item) ToJSON() *ItemJSON {
+	return &ItemJSON{
+		ID:          i.ID,
+		Name:        i.Name,
+		Description: i.Description,
+		Type:        string(i.Type),
+		Stats:       i.Stats,
+		IsMagical:   i.IsMagical,
+	}
+}
+
 // ItemType represents the type of item
 type ItemType string
 

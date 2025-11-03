@@ -3,9 +3,11 @@ package database
 import (
 	"fmt"
 
+	"github.com/sam/makeathing/internal/actions"
 	"github.com/sam/makeathing/internal/characters"
 	"github.com/sam/makeathing/internal/items"
 	"github.com/sam/makeathing/internal/rooms"
+	"github.com/sam/makeathing/internal/users"
 )
 
 // DBAdapter implements the Adapter interface for database operations
@@ -254,6 +256,124 @@ func (d *DBAdapter) DeleteItem(itemID string) error {
 	return d.itemRepo.Delete(itemID)
 }
 
+// Action operations
+
+// CreateAction creates a new action from a JSON action
+func (d *DBAdapter) CreateAction(jsonAction *actions.Action) error {
+	action, err := ActionFromJSONAction(jsonAction)
+	if err != nil {
+		return err
+	}
+
+	return d.actionRepo.Create(action)
+}
+
+// GetAction retrieves an action by name
+func (d *DBAdapter) GetAction(name string) (*actions.Action, error) {
+	action, err := d.actionRepo.GetByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	if action == nil {
+		return nil, nil
+	}
+
+	return action.ToJSONAction()
+}
+
+// UpdateAction updates an action
+func (d *DBAdapter) UpdateAction(jsonAction *actions.Action) error {
+	action, err := ActionFromJSONAction(jsonAction)
+	if err != nil {
+		return err
+	}
+
+	// Get the existing action to get its ID
+	existingAction, err := d.actionRepo.GetByName(jsonAction.Name)
+	if err != nil {
+		return err
+	}
+
+	if existingAction != nil {
+		action.ID = existingAction.ID
+	}
+
+	return d.actionRepo.Update(action)
+}
+
+// DeleteAction deletes an action by name
+func (d *DBAdapter) DeleteAction(name string) error {
+	action, err := d.actionRepo.GetByName(name)
+	if err != nil {
+		return err
+	}
+
+	if action == nil {
+		return nil
+	}
+
+	return d.actionRepo.Delete(action.ID)
+}
+
+// GetAllActions retrieves all actions
+func (d *DBAdapter) GetAllActions() ([]*actions.Action, error) {
+	dbActions, err := d.actionRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonActions []*actions.Action
+	for _, action := range dbActions {
+		jsonAction, err := action.ToJSONAction()
+		if err != nil {
+			return nil, err
+		}
+		jsonActions = append(jsonActions, jsonAction)
+	}
+
+	return jsonActions, nil
+}
+
+// CreateUserFromJSON creates a new user from a JSON user
+func (d *DBAdapter) CreateUserFromJSON(jsonUser *users.UserJSON) error {
+	user, err := UserFromJSONUser(jsonUser)
+	if err != nil {
+		return err
+	}
+
+	// If no ID was provided in the JSON, let the database generate one
+	if user.ID == 0 {
+		return d.userRepo.Create(user)
+	}
+
+	// Check if user already exists
+	existingUser, err := d.userRepo.GetByID(user.ID)
+	if err != nil {
+		return err
+	}
+
+	if existingUser == nil {
+		return d.userRepo.Create(user)
+	}
+
+	return d.userRepo.Update(user)
+}
+
+// GetUserByUsername retrieves a user by username
+func (d *DBAdapter) GetUserByUsername(username string) (*users.UserJSON, error) {
+	user, err := d.userRepo.GetByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, nil
+	}
+
+	return user.ToJSONUser()
+}
+
 // GetAllItems retrieves all items
 func (d *DBAdapter) GetAllItems() ([]*items.ItemJSON, error) {
 	dbItems, err := d.itemRepo.GetAll()
@@ -400,11 +520,6 @@ func (d *DBAdapter) AuthenticateUser(username, password string) (*User, error) {
 	// For basic implementation, accept any password for existing users
 	// In a real implementation, you would hash and compare passwords
 	return user, nil
-}
-
-// GetUserByUsername retrieves a user by username
-func (d *DBAdapter) GetUserByUsername(username string) (*User, error) {
-	return d.userRepo.GetByUsername(username)
 }
 
 // InitializeGlobalState loads all existing data into global state tables
