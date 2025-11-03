@@ -385,6 +385,138 @@ func (d *DBAdapter) DecrementRoomPlayerCount(roomID string) error {
 	return d.globalStateRoomRepo.DecrementPlayerCount(roomID)
 }
 
+// InitializeGlobalState loads all existing data into global state tables
+func (d *DBAdapter) InitializeGlobalState() error {
+	// Initialize room states for all existing rooms
+	rooms, err := d.GetAllRooms()
+	if err != nil {
+		return fmt.Errorf("failed to get all rooms: %w", err)
+	}
+
+	for _, room := range rooms {
+		// Check if room state already exists
+		existingState, err := d.GetRoomState(room.ID)
+		if err != nil {
+			return fmt.Errorf("failed to check room state for %s: %w", room.ID, err)
+		}
+
+		if existingState == nil {
+			// Initialize room state with empty states
+			err = d.globalStateRoomRepo.InitializeRoomState(room.ID)
+			if err != nil {
+				return fmt.Errorf("failed to initialize room state for %s: %w", room.ID, err)
+			}
+		}
+	}
+
+	// Initialize character states for all existing characters
+	characters, err := d.GetAllCharacters()
+	if err != nil {
+		return fmt.Errorf("failed to get all characters: %w", err)
+	}
+
+	for _, character := range characters {
+		// Check if character state already exists
+		existingState, err := d.GetCharacterState(character.ID)
+		if err != nil {
+			return fmt.Errorf("failed to check character state for %s: %w", character.ID, err)
+		}
+
+		if existingState == nil {
+			// Get character's current room from sessions or users table
+			roomID := ""
+			
+			// Try to get room from session first
+			session, err := d.GetSession(character.ID)
+			if err == nil && session != nil {
+				roomID = session.RoomID
+			} else {
+				// If no session, try to get room from users table
+				user, err := d.GetUserByCharacterID(character.ID)
+				if err == nil && user != nil {
+					roomID = user.RoomID
+				}
+			}
+
+			// If no room found, use starting room
+			if roomID == "" {
+				roomID = "starting_room"
+			}
+
+			// Initialize character state with current health from character data
+			err = d.globalStateCharacterRepo.InitializeCharacterState(character.ID, roomID, character.Health)
+			if err != nil {
+				return fmt.Errorf("failed to initialize character state for %s: %w", character.ID, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// InitializeGlobalStateForCharacter initializes global state for a single character
+func (d *DBAdapter) InitializeGlobalStateForCharacter(characterID string) error {
+	// Check if character state already exists
+	existingState, err := d.GetCharacterState(characterID)
+	if err != nil {
+		return fmt.Errorf("failed to check character state for %s: %w", characterID, err)
+	}
+
+	if existingState != nil {
+		// Character state already exists
+		return nil
+	}
+
+	// Get character data
+	character, err := d.GetCharacter(characterID)
+	if err != nil {
+		return fmt.Errorf("failed to get character %s: %w", characterID, err)
+	}
+
+	if character == nil {
+		return fmt.Errorf("character %s not found", characterID)
+	}
+
+	// Get character's current room
+	roomID := ""
+	
+	// Try to get room from session first
+	session, err := d.GetSession(characterID)
+	if err == nil && session != nil {
+		roomID = session.RoomID
+	} else {
+		// If no session, try to get room from users table
+		user, err := d.GetUserByCharacterID(characterID)
+		if err == nil && user != nil {
+			roomID = user.RoomID
+		}
+	}
+
+	// If no room found, use starting room
+	if roomID == "" {
+		roomID = "starting_room"
+	}
+
+	// Initialize character state
+	return d.globalStateCharacterRepo.InitializeCharacterState(characterID, roomID, character.Health)
+}
+
+// InitializeGlobalStateForRoom initializes global state for a single room
+func (d *DBAdapter) InitializeGlobalStateForRoom(roomID string) error {
+	// Check if room state already exists
+	existingState, err := d.GetRoomState(roomID)
+	if err != nil {
+		return fmt.Errorf("failed to check room state for %s: %w", roomID, err)
+	}
+
+	if existingState == nil {
+		// Initialize room state
+		return d.globalStateRoomRepo.InitializeRoomState(roomID)
+	}
+
+	return nil
+}
+
 // GameDBInterface defines the methods needed from the game engine for database operations
 type GameDBInterface interface {
 	GetRoom(roomID string) *rooms.Room

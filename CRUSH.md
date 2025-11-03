@@ -276,6 +276,27 @@ From `agents.md`:
 
 **Examples**: The `global_state_characters` and `global_state_rooms` tables demonstrate these patterns for tracking game state in real-time.
 
+### Global State Initialization
+
+The global state tracking system can be initialized using the following methods:
+
+#### Database Adapter Methods:
+- **InitializeGlobalState()**: Loads all existing rooms and characters into global state tables
+- **InitializeGlobalStateForCharacter(characterID string)**: Initializes global state for a specific character
+- **InitializeGlobalStateForRoom(roomID string)**: Initializes global state for a specific room
+
+#### Bootstrap Utility Functions (in `internal/database/bootstrap.go`):
+- **BootstrapGlobalState(dbAdapter)**: Convenience function to load all existing data into global state (recommended for server startup)
+- **BootstrapGlobalStateForNewGame(dbAdapter)**: Initialize global state for a fresh game
+- **RefreshGlobalState(dbAdapter)**: Refresh/re-sync all global state data
+
+The initialization process:
+1. Creates room states for all rooms without existing states
+2. Creates character states for all characters without existing states  
+3. Determines character positions from sessions or users tables
+4. Uses "starting_room" as default for characters without a known location
+5. Maintains idempotency - can be called multiple times safely
+
 ## Deployment
 
 The server listens on port 2222 for SSH connections. Connect with:
