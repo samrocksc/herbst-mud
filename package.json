@@ -1,0 +1,21 @@
+{
+  "name": "makeathing-mud",
+  "version": "0.1.2",
+  "description": "A Multi-User Dungeon (MUD) game server written in Go",
+  "private": true,
+  "scripts": {
+    "build": "make build",
+    "test": "make test",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
+  },
+  "keywords": [
+    "mud",
+    "game",
+    "go",
+    "ssh"
+  ],
+  "author": "Sam",
+  "license": "MIT"
+}

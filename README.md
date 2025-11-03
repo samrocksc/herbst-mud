@@ -101,6 +101,10 @@ Available commands:
 - `look` - Look around the room
 - `quit`/`exit` - Exit the game
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
+
 ## Project Structure
 
 ```
