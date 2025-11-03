@@ -158,23 +158,34 @@ The MUD server now includes a SQLite-based database implementation for runtime p
 - Stored as JSON files in `data/users/`
 - Loaded at server startup for initial user data
 
-### Global State Tables
+### User Authentication
 
-#### Global State Characters
+The MUD server now includes username/password authentication:
 
-- Tracks the real-time status of characters in the game
-- Stores character ID, current room ID, health, status, and timestamps
-- Used to maintain accurate character positions and health across sessions
-- Automatically updates when characters move between rooms or take damage
-- Referenced by foreign keys to characters and rooms tables
+#### Authentication Flow:
+1. **Connection**: User connects via SSH (port 2222)
+2. **Username Prompt**: Server asks for username
+3. **Password Prompt**: Server asks for password
+4. **Validation**: Server checks if username exists in users database
+5. **Access Decision**: 
+   - If username exists and password provided → Allow access
+   - If username doesn't exist → Disconnect
+6. **Session Creation**: If authenticated, create database session with user's character ID and room
 
-#### Global State Rooms
+#### Default User:
+- **Username**: `nelly`
+- **Password**: `password` (any password works for existing users)
+- **Character**: `char_nelly` in room `start`
 
-- Tracks the real-time status of rooms in the game
-- Stores room ID, player count, NPC state, and item state as JSON
-- Used to maintain accurate room occupancy and dynamic content
-- Automatically updates when players enter/leave rooms or NPCs/items change state
-- Referenced by foreign key to rooms table
+#### Authentication Methods:
+- **AuthenticateUser(username, password)**: Basic authentication checking
+- **GetUserByUsername(username)**: Find user by username
+- **CreateSession()**: Links authenticated user to game session
+
+#### Security Notes:
+- Currently uses basic password validation (any password accepted for existing users)
+- For production use, implement proper password hashing and validation
+- Username uniqueness enforced by database unique constraint
 
 ## Testing Approach
 

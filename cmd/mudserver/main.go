@@ -67,7 +67,7 @@ func main() {
 	initializeGameWorld(game)
 
 	// Create the SSH adapter with the game
-	sshAdapter := &adapters.SSHAdapter{Game: game}
+	sshAdapter := &adapters.SSHAdapter{Game: game, DBAdapter: dbAdapter}
 
 	// Create the wish server
 	s, err := wish.NewServer(

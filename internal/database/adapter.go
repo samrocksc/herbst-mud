@@ -385,6 +385,28 @@ func (d *DBAdapter) DecrementRoomPlayerCount(roomID string) error {
 	return d.globalStateRoomRepo.DecrementPlayerCount(roomID)
 }
 
+// AuthenticateUser authenticates a user with username and password
+func (d *DBAdapter) AuthenticateUser(username, password string) (*User, error) {
+	user, err := d.userRepo.GetByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+	
+	if user == nil {
+		// User doesn't exist
+		return nil, nil
+	}
+	
+	// For basic implementation, accept any password for existing users
+	// In a real implementation, you would hash and compare passwords
+	return user, nil
+}
+
+// GetUserByUsername retrieves a user by username
+func (d *DBAdapter) GetUserByUsername(username string) (*User, error) {
+	return d.userRepo.GetByUsername(username)
+}
+
 // InitializeGlobalState loads all existing data into global state tables
 func (d *DBAdapter) InitializeGlobalState() error {
 	// Initialize room states for all existing rooms

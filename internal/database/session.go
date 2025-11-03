@@ -5,6 +5,16 @@ import (
 	"time"
 )
 
+// Session represents a user session
+type Session struct {
+	ID          string    `json:"id"`
+	UserID      int       `json:"user_id"`
+	CharacterID string    `json:"character_id"`
+	RoomID      string    `json:"room_id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
 // SessionRepository provides methods for working with sessions
 type SessionRepository struct {
 	db *DB

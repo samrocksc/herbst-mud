@@ -142,4 +142,14 @@ CREATE TABLE IF NOT EXISTS global_state_rooms (
 );
 `,
 	},
+	{
+		Name: "010_add_username_password_to_users",
+		SQL: `
+ALTER TABLE users ADD COLUMN username TEXT;
+ALTER TABLE users ADD COLUMN password TEXT;
+UPDATE users SET username = 'user_' || id WHERE username IS NULL;
+UPDATE users SET password = 'password' WHERE password IS NULL;
+CREATE UNIQUE INDEX idx_users_username ON users(username);
+`,
+	},
 }

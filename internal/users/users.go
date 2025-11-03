@@ -5,21 +5,30 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // User represents a user in the game
 type User struct {
 	ID          int
+	Username    string
+	Password    string
 	CharacterID string
 	RoomID      string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 // UserJSON represents a user in JSON format
 type UserJSON struct {
-	Schema      string `json:"$schema"`
-	ID          int    `json:"id"`
-	CharacterID string `json:"characterId"`
-	RoomID      string `json:"roomId"`
+	Schema      string    `json:"$schema"`
+	ID          int       `json:"id"`
+	Username    string    `json:"username"`
+	Password    string    `json:"password"`
+	CharacterID string    `json:"characterId"`
+	RoomID      string    `json:"roomId"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // LoadUserJSONFromJSON loads a UserJSON from a JSON file
@@ -71,8 +80,12 @@ func LoadUserFromJSON(filename string) (*User, error) {
 
 	user := &User{
 		ID:          userJSON.ID,
+		Username:    userJSON.Username,
+		Password:    userJSON.Password,
 		CharacterID: userJSON.CharacterID,
 		RoomID:      userJSON.RoomID,
+		CreatedAt:   userJSON.CreatedAt,
+		UpdatedAt:   userJSON.UpdatedAt,
 	}
 
 	return user, nil

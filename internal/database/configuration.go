@@ -2,32 +2,12 @@ package database
 
 import (
 	"database/sql"
-	"time"
 )
 
 // Configuration represents the game configuration
 type Configuration struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
-}
-
-// Session represents a user session
-type Session struct {
-	ID         string    `json:"id"`
-	UserID     int       `json:"user_id"`
-	CharacterID string    `json:"character_id"`
-	RoomID     string    `json:"room_id"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-}
-
-// User represents a user in the system
-type User struct {
-	ID          int       `json:"id"`
-	CharacterID string    `json:"character_id"`
-	RoomID      string    `json:"room_id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // ConfigurationRepository provides methods for working with configuration

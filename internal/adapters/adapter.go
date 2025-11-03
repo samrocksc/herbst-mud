@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/ssh"
+	"github.com/sam/makeathing/internal/database"
 	"github.com/sam/makeathing/internal/rooms"
 )
 
@@ -21,6 +22,7 @@ type Adapter interface {
 type SSHAdapter struct {
 	Game           GameInterface
 	SessionManager *SessionManager
+	DBAdapter      *database.DBAdapter
 }
 
 // HandleConnection handles an SSH connection
@@ -32,9 +34,85 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 		s.SessionManager = NewSessionManager(s.Game)
 	}
 
-	// Create a player session
+	// AUTHENTICATION FLOW - Ask for username and password before creating session
+	var authenticatedUser *database.User
+	var authenticated bool
+	
+	if s.DBAdapter != nil {
+		// Prompt for username
+		s.SendMessage(sess, "Welcome to the MUD game!\n")
+		s.SendMessage(sess, "Username: ")
+		username := s.GetInput(sess)
+		
+		if username == "" {
+			s.SendMessage(sess, "Invalid username. Disconnecting.\n")
+			infoLog("Empty username provided, disconnecting")
+			return
+		}
+		
+		// Prompt for password
+		s.SendMessage(sess, "Password: ")
+		password := s.GetInput(sess)
+		
+		if password == "" {
+			s.SendMessage(sess, "Invalid password. Disconnecting.\n")
+			infoLog("Empty password provided for username %s, disconnecting", username)
+			return
+		}
+		
+		// Authenticate user
+		infoLog("Authenticating user: %s", username)
+		user, err := s.DBAdapter.AuthenticateUser(username, password)
+		if err != nil {
+			infoLog("Authentication error: %v", err)
+			s.SendMessage(sess, "Authentication error. Disconnecting.\n")
+			return
+		}
+		
+		if user == nil {
+			// User doesn't exist
+			s.SendMessage(sess, "Invalid username or password. Disconnecting.\n")
+			infoLog("Authentication failed for username: %s", username)
+			return
+		}
+		
+		// Authentication successful
+		authenticatedUser = user
+		authenticated = true
+		infoLog("Authentication successful for user: %s (ID: %d, Character: %s)", 
+			user.Username, user.ID, user.CharacterID)
+	} else {
+		infoLog("No database adapter available, proceeding without authentication")
+		authenticated = true // Allow connection without auth if no DB
+	}
+	
+	if !authenticated {
+		return
+	}
+
+	// AUTHENTICATION PASSED - Create session and proceed to game
 	sessionID := sess.Context().SessionID()
 	debugLog("Creating session for ID: %s", sessionID)
+	
+	var characterID string
+	if authenticatedUser != nil {
+		characterID = authenticatedUser.CharacterID
+	} else {
+		// Default character if no authentication
+		characterID = "char_nelly"
+	}
+	
+	// Create session in database if we have user info and DB adapter
+	if authenticatedUser != nil && s.DBAdapter != nil {
+		err := s.DBAdapter.CreateSession(sessionID, authenticatedUser.ID, characterID, authenticatedUser.RoomID)
+		if err != nil {
+			infoLog("Failed to create database session: %v", err)
+			s.SendMessage(sess, "Failed to create session. Disconnecting.\n")
+			return
+		}
+		infoLog("Created database session for user %d, character %s", authenticatedUser.ID, characterID)
+	}
+	
 	playerSession := s.SessionManager.CreatePlayerSession(sessionID)
 	debugLog("Session created successfully")
 
@@ -45,15 +123,16 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 		debugLog("PTY requested: %v, term: %s", isPty, pty.Term)
 	}
 
-	// Send welcome message
-	debugLog("Sending welcome message")
-	s.SendMessage(sess, "Welcome to the MUD game!\n")
+	// Send welcome message with username if authenticated
+	if authenticatedUser != nil {
+		s.SendMessage(sess, fmt.Sprintf("Welcome %s!\n", authenticatedUser.Username))
+	}
 	s.SendMessage(sess, fmt.Sprintf("You are in: %s\n", playerSession.CurrentRoom.Description))
 	s.SendMessage(sess, "Type 'help' for available commands.\n")
 	s.SendMessage(sess, "\n> ")
 	debugLog("Welcome message sent")
 
-	// Handle user input
+	// Handle user input (existing code from here on)
 	debugLog("Starting input loop")
 	reader := bufio.NewReader(sess)
 	commandCount := 0

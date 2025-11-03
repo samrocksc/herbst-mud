@@ -5,6 +5,17 @@ import (
 	"time"
 )
 
+// User represents a user in the database
+type User struct {
+	ID          int       `json:"id"`
+	Username    string    `json:"username"`
+	Password    string    `json:"password"`
+	CharacterID string    `json:"character_id"`
+	RoomID      string    `json:"room_id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
 // UserRepository provides methods for working with users
 type UserRepository struct {
 	db *DB
@@ -18,8 +29,8 @@ func NewUserRepository(db *DB) *UserRepository {
 // Create creates a new user
 func (r *UserRepository) Create(user *User) error {
 	stmt, err := r.db.Prepare(`
-		INSERT INTO users (character_id, room_id, created_at, updated_at)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO users (username, password, character_id, room_id, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return err
@@ -27,6 +38,8 @@ func (r *UserRepository) Create(user *User) error {
 	defer stmt.Close()
 
 	result, err := stmt.Exec(
+		user.Username,
+		user.Password,
 		user.CharacterID,
 		user.RoomID,
 		user.CreatedAt,
@@ -48,7 +61,7 @@ func (r *UserRepository) Create(user *User) error {
 // GetByID retrieves a user by its ID
 func (r *UserRepository) GetByID(id int) (*User, error) {
 	row := r.db.QueryRow(`
-		SELECT id, character_id, room_id, created_at, updated_at
+		SELECT id, username, password, character_id, room_id, created_at, updated_at
 		FROM users
 		WHERE id = ?
 	`, id)
@@ -56,6 +69,36 @@ func (r *UserRepository) GetByID(id int) (*User, error) {
 	user := &User{}
 	err := row.Scan(
 		&user.ID,
+		&user.Username,
+		&user.Password,
+		&user.CharacterID,
+		&user.RoomID,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// GetByUsername retrieves a user by username
+func (r *UserRepository) GetByUsername(username string) (*User, error) {
+	row := r.db.QueryRow(`
+		SELECT id, username, password, character_id, room_id, created_at, updated_at
+		FROM users
+		WHERE username = ?
+	`, username)
+
+	user := &User{}
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Password,
 		&user.CharacterID,
 		&user.RoomID,
 		&user.CreatedAt,
@@ -74,7 +117,7 @@ func (r *UserRepository) GetByID(id int) (*User, error) {
 // GetByCharacterID retrieves a user by character ID
 func (r *UserRepository) GetByCharacterID(characterID string) (*User, error) {
 	row := r.db.QueryRow(`
-		SELECT id, character_id, room_id, created_at, updated_at
+		SELECT id, username, password, character_id, room_id, created_at, updated_at
 		FROM users
 		WHERE character_id = ?
 	`, characterID)
@@ -82,6 +125,8 @@ func (r *UserRepository) GetByCharacterID(characterID string) (*User, error) {
 	user := &User{}
 	err := row.Scan(
 		&user.ID,
+		&user.Username,
+		&user.Password,
 		&user.CharacterID,
 		&user.RoomID,
 		&user.CreatedAt,
@@ -101,7 +146,7 @@ func (r *UserRepository) GetByCharacterID(characterID string) (*User, error) {
 func (r *UserRepository) Update(user *User) error {
 	stmt, err := r.db.Prepare(`
 		UPDATE users
-		SET character_id = ?, room_id = ?, updated_at = ?
+		SET username = ?, password = ?, character_id = ?, room_id = ?, updated_at = ?
 		WHERE id = ?
 	`)
 	if err != nil {
@@ -110,6 +155,8 @@ func (r *UserRepository) Update(user *User) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(
+		user.Username,
+		user.Password,
 		user.CharacterID,
 		user.RoomID,
 		time.Now(),
@@ -133,7 +180,7 @@ func (r *UserRepository) Delete(id int) error {
 // GetAll retrieves all users
 func (r *UserRepository) GetAll() ([]*User, error) {
 	rows, err := r.db.Query(`
-		SELECT id, character_id, room_id, created_at, updated_at
+		SELECT id, username, password, character_id, room_id, created_at, updated_at
 		FROM users
 	`)
 	if err != nil {
@@ -146,6 +193,8 @@ func (r *UserRepository) GetAll() ([]*User, error) {
 		user := &User{}
 		err := rows.Scan(
 			&user.ID,
+			&user.Username,
+			&user.Password,
 			&user.CharacterID,
 			&user.RoomID,
 			&user.CreatedAt,
