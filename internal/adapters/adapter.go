@@ -313,7 +313,7 @@ func (s *SSHAdapter) processCommand(sess ssh.Session, command string, sessionID 
 		command = "up"
 	case "d":
 		command = "down"
-	case "l":
+	case "l", "look":
 		command = "look"
 	}
 
@@ -338,7 +338,7 @@ func (s *SSHAdapter) processCommand(sess ssh.Session, command string, sessionID 
 		debugLog("Help command received")
 		s.SendMessage(sess, "Available commands:\n")
 		s.SendMessage(sess, "- help: Show this help message\n")
-		s.SendMessage(sess, "- look (l): Look around the room\n")
+		s.SendMessage(sess, "- look, l: Look around the room\n")
 		s.SendMessage(sess, "- n/s/e/w/ne/nw/se/sw/u/d or north/south/east/west/northeast/northwest/southeast/southwest/up/down: Move in a direction\n")
 		s.SendMessage(sess, "- quit/exit: Exit the game\n")
 	case "look":
