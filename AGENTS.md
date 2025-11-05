@@ -1,3 +1,4 @@
+
 # CRUSH.md - Development Guide for Makeathing MUD Server
 
 This document provides essential information for agents working with the Makeathing MUD (Multi-User Dungeon) server codebase.
