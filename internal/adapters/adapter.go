@@ -37,29 +37,29 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 	// AUTHENTICATION FLOW - Ask for username and password before creating session
 	var authenticatedUser *database.User
 	var authenticated bool
-	
+
 	if s.DBAdapter != nil {
 		// Prompt for username
 		s.SendMessage(sess, "Welcome to the MUD game!\n")
 		s.SendMessage(sess, "Username: ")
 		username := s.GetInput(sess)
-		
+
 		if username == "" {
 			s.SendMessage(sess, "Invalid username. Disconnecting.\n")
 			infoLog("Empty username provided, disconnecting")
 			return
 		}
-		
+
 		// Prompt for password
 		s.SendMessage(sess, "Password: ")
 		password := s.GetInput(sess)
-		
+
 		if password == "" {
 			s.SendMessage(sess, "Invalid password. Disconnecting.\n")
 			infoLog("Empty password provided for username %s, disconnecting", username)
 			return
 		}
-		
+
 		// Authenticate user
 		infoLog("Authenticating user: %s", username)
 		user, err := s.DBAdapter.AuthenticateUser(username, password)
@@ -68,24 +68,24 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 			s.SendMessage(sess, "Authentication error. Disconnecting.\n")
 			return
 		}
-		
+
 		if user == nil {
 			// User doesn't exist
 			s.SendMessage(sess, "Invalid username or password. Disconnecting.\n")
 			infoLog("Authentication failed for username: %s", username)
 			return
 		}
-		
+
 		// Authentication successful
 		authenticatedUser = user
 		authenticated = true
-		infoLog("Authentication successful for user: %s (ID: %d, Character: %s)", 
+		infoLog("Authentication successful for user: %s (ID: %d, Character: %s)",
 			user.Username, user.ID, user.CharacterID)
 	} else {
 		infoLog("No database adapter available, proceeding without authentication")
 		authenticated = true // Allow connection without auth if no DB
 	}
-	
+
 	if !authenticated {
 		return
 	}
@@ -93,7 +93,7 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 	// AUTHENTICATION PASSED - Create session and proceed to game
 	sessionID := sess.Context().SessionID()
 	debugLog("Creating session for ID: %s", sessionID)
-	
+
 	var characterID string
 	if authenticatedUser != nil {
 		characterID = authenticatedUser.CharacterID
@@ -101,7 +101,7 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 		// Default character if no authentication
 		characterID = "char_nelly"
 	}
-	
+
 	// Create session in database if we have user info and DB adapter
 	if authenticatedUser != nil && s.DBAdapter != nil {
 		err := s.DBAdapter.CreateSession(sessionID, authenticatedUser.ID, characterID, authenticatedUser.RoomID)
@@ -112,7 +112,7 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 		}
 		infoLog("Created database session for user %d, character %s", authenticatedUser.ID, characterID)
 	}
-	
+
 	playerSession := s.SessionManager.CreatePlayerSession(sessionID)
 	debugLog("Session created successfully")
 
@@ -129,7 +129,10 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 	}
 	s.SendMessage(sess, fmt.Sprintf("You are in: %s\n", playerSession.CurrentRoom.Description))
 	s.SendMessage(sess, "Type 'help' for available commands.\n")
-	s.SendMessage(sess, "\n> ")
+
+	// Get character info for prompt
+	prompt := s.getCharacterPrompt(sessionID)
+	s.SendMessage(sess, fmt.Sprintf("\n%s", prompt))
 	debugLog("Welcome message sent")
 
 	// Handle user input (existing code from here on)
@@ -217,7 +220,10 @@ func (s *SSHAdapter) HandleConnection(sess ssh.Session) {
 		debugLog("Processing command: %q", inputStr)
 		s.processCommand(sess, inputStr, sessionID)
 		debugLog("Command processed")
-		s.SendMessage(sess, "\n> ")
+
+		// Get character info for prompt
+		prompt := s.getCharacterPrompt(sessionID)
+		s.SendMessage(sess, fmt.Sprintf("\n%s", prompt))
 		commandCount++
 		debugLog("Prompt sent (command #%d completed)", commandCount)
 	}
@@ -367,4 +373,23 @@ func (s *SSHAdapter) processCommand(sess ssh.Session, command string, sessionID 
 		debugLog("Unknown command received: %s", command)
 		s.SendMessage(sess, fmt.Sprintf("Unknown command: %s\n", command))
 	}
+}
+
+// getCharacterPrompt returns a formatted prompt string with character stats
+func (s *SSHAdapter) getCharacterPrompt(sessionID string) string {
+	// Try to get character data from the database if we have a DB adapter
+	if s.DBAdapter != nil {
+		// Get session from database
+		session, err := s.DBAdapter.GetSession(sessionID)
+		if err == nil && session != nil {
+			// Get character from database
+			character, err := s.DBAdapter.GetCharacter(session.CharacterID)
+			if err == nil && character != nil {
+				return fmt.Sprintf("HP:%d M:%d XP:%d> ", character.Health, character.Mana, character.Experience)
+			}
+		}
+	}
+
+	// Fallback to default values if we can't get character data
+	return "HP:30 M:0 XP:0> "
 }
