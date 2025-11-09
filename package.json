@@ -1,6 +1,6 @@
 {
   "name": "makeathing-mud",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A Multi-User Dungeon (MUD) game server written in Go",
   "private": true,
   "scripts": {
