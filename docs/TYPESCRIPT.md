@@ -1,0 +1,1 @@
+Utilize functional lite typescript styling

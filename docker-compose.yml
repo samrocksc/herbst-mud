@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mud-ssh:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4444:4444"
+    volumes:
+      - ./cmd/ssh:/app/cmd/ssh
+      - ./bin:/app/bin
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+    environment:
+      - GODEBUG=netdns=go
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
