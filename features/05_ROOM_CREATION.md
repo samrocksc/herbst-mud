@@ -1,1 +1,0 @@
-We want to create a room from the admin UI.
