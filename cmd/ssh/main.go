@@ -8,74 +8,59 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type model struct {
-	choices []string
-	cursor  int
-	selected map[int]struct{}
+type welcomeModel struct {
+	connected   bool
+	welcomeMsg  string
+	quitting    bool
 }
 
-func newModel() tea.Model {
-	return model{
-		choices: []string{"Welcome to MUD!", "Start Game", "Help", "Exit"},
-		cursor:  0,
-		selected: make(map[int]struct{}),
+func newWelcomeModel() tea.Model {
+	return welcomeModel{
+		connected:  true,
+		quitting:   false,
+		welcomeMsg: `Welcome to MUD - Multi-User Dungeon!
+
+You've successfully connected to the game server.
+
+This is a passwordless SSH connection - your credentials are handled
+when you log into the game itself.
+
+Press any key to continue or Ctrl+C to disconnect.
+
+`,
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m welcomeModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m welcomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch msg.Type {
+		case tea.KeyCtrlC:
+			m.quitting = true
 			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-		case "enter", " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
-			}
+		default:
+			// Any key closes welcome and shows status
+			return m, tea.Quit
 		}
 	}
 	return m, nil
 }
 
-func (m model) View() string {
-	s := "MUD Server\n\n"
-	
-	for i, choice := range m.choices {
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
-		}
-		
-		checked := " "
-		if _, ok := m.selected[i]; ok {
-			checked = "x"
-		}
-		
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+func (m welcomeModel) View() string {
+	if m.quitting {
+		return "Goodbye!\n"
 	}
-	
-	s += "\nPress q to quit.\n"
-	return s
+	return m.welcomeMsg
 }
 
 func handleSession(conn net.Conn, config *ssh.ServerConfig) {
@@ -107,19 +92,41 @@ func handleSession(conn net.Conn, config *ssh.ServerConfig) {
 				if req.Type == "shell" {
 					req.Reply(true, nil)
 				}
+				if req.Type == "pty-req" {
+					req.Reply(true, nil)
+				}
 			}
 		}(requests)
 
-		p := tea.NewProgram(newModel(), 
+		// Show welcome screen
+		p := tea.NewProgram(newWelcomeModel(), 
 			tea.WithInput(channel),
 			tea.WithOutput(channel),
 			tea.WithoutSignalHandler(),
 		)
 		
-		if _, err := p.Run(); err != nil {
-			log.Printf("Error running bubbletea: %v", err)
+		result, err := p.Run()
+		if err != nil {
+			log.Printf("Error running welcome screen: %v", err)
 		}
 		
+		// Check if user wants to stay connected
+		if model, ok := result.(welcomeModel); ok && !model.quitting {
+			// User pressed a key other than Ctrl+C, show them they're staying connected
+			fmt.Fprintf(channel, "\nThank you for connecting to MUD!\n")
+			fmt.Fprintf(channel, "Game login system coming soon...\n") 
+			fmt.Fprintf(channel, "Stay connected or press Ctrl+C to disconnect.\n")
+			fmt.Fprintf(channel, "Server will keep this session open.\n")
+			
+			// Keep the session alive for a bit
+			for i := 0; i < 3; i++ {
+				time.Sleep(10 * time.Second)
+				fmt.Fprintf(channel, ".")
+			}
+		}
+		
+		fmt.Fprintf(channel, "\nSession ending. Goodbye!\n")
+		time.Sleep(1 * time.Second)
 		channel.Close()
 	}
 }
@@ -138,12 +145,11 @@ func main() {
 		log.Fatalf("Failed to load host key: %v", err)
 	}
 
+	// Configure for passwordless authentication
 	config := &ssh.ServerConfig{
-		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
-			if c.User() == "mud" && string(pass) == "mud" {
-				return nil, nil
-			}
-			return nil, fmt.Errorf("password rejected for %q", c.User())
+		NoClientAuthCallback: func(ctx ssh.ConnMetadata) (*ssh.Permissions, error) {
+			// Accept all connections without authentication
+			return nil, nil
 		},
 	}
 	config.AddHostKey(signer)
@@ -155,8 +161,8 @@ func main() {
 	defer listener.Close()
 
 	fmt.Println("MUD SSH server started on :4444")
-	fmt.Println("Connect with: ssh mud@localhost -p 4444")
-	fmt.Println("Password: mud")
+	fmt.Println("Connect with: ssh localhost -p 4444")
+	fmt.Println("(No password required - SSH authentication is disabled)")
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)

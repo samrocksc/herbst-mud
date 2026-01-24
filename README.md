@@ -2,60 +2,115 @@
 
 A text-based multiplayer game with SSH connectivity and React admin panel.
 
-## Quick Start
+## 🚀 Quick Start
 
-### Option 1: Run directly
+### Option 1: Automated Setup (Recommended)
 ```bash
-./bin/mud-ssh
+make install && make dev
 ```
 
-### Option 2: Docker Compose
+### Option 2: Docker Development
 ```bash
 docker-compose up
 ```
 
-## SSH Connection
-
-Connect using:
+### Option 3: Manual Setup
 ```bash
-ssh mud@localhost -p 4444
+# Install dependencies
+make install
+
+# Start services
+make dev
 ```
-Password: mud
 
-## Development
+## 📋 Available Makefile Commands
 
-### SSH Server
-- Location: cmd/ssh/
-- Tests: cmd/ssh/main_test.go
-- Compile: go build -o bin/mud-ssh ./cmd/ssh
+### Setup & Installation
+- `make help` - Show all available commands
+- `make install` - Install all dependencies (Go and Node.js)
+- `make build` - Build all components
+- `make clean` - Clean build artifacts
 
-### Admin Panel
-- Location: admin/
-- Framework: Vite + React
-- Port: 3000
+### Development
+- `make dev` - Start SSH server + Admin panel
+- `make ssh-server` - Start SSH server only
+- `make admin` - Start Admin panel only
+- `make stop` - Stop all development services
+- `make status` - Check development status
 
 ### Testing
-```bash
-# SSH server tests
-cd cmd/ssh && go test -v
+- `make test` - Run all tests
 
-# Build and run
-go build -o bin/mud-ssh ./cmd/ssh
-./bin/mud-ssh
+### Docker
+- `make docker-dev` - Start with Docker Compose
+- `make docker-build` - Build Docker images
+- `make docker-clean` - Clean Docker resources
+
+## 🔌 Connection Details
+
+### SSH Server
+- **Port**: 4444
+- **Connection**: `ssh localhost -p 4444`
+- **Password**: No password required
+- **Authentication**: Passwordless SSH (authentication handled by game)
+
+### Admin Panel
+- **URL**: http://localhost:3000
+- **Technology**: Vite + React + TypeScript
+- **Features**: TanStack Router/Query/Forms
+
+## 📁 Project Structure
+
+```
+a-mud/
+├── Makefile              # Development automation
+├── docker-compose.yml    # Docker development
+├── Dockerfile            # MUD SSH server image
+├── cmd/ssh/              # SSH server implementation
+│   ├── main.go           # Main SSH server with Bubbletea
+│   ├── main_test.go      # Comprehensive tests
+│   └── host_key          # SSH host key
+├── admin/                # React admin panel
+│   ├── package.json      # Dependencies and scripts
+│   ├── tsconfig.json     # TypeScript configuration
+│   └── src/              # TypeScript source files
+├── bin/                  # Compiled binaries
+└── docs/                 # Project documentation
 ```
 
-## Architecture
+## 🛠️ Technology Stack
 
-- Go SSH server using native crypto library
-- Bubbletea for terminal UI
-- Simple authentication (username: mud, password: mud)
-- Clean separation between cmd/, internal/, and pkg/
+### Backend (SSH Server)
+- **Go 1.21+** - Systems programming language
+- **Bubbletea** - Terminal UI framework
+- **golang.org/x/crypto/ssh** - SSH server implementation
+- **Standard testing** - Go testing library
 
-## Features Implemented
+### Frontend (Admin Panel)
+- **TypeScript 5.0+** - Type-safe JavaScript
+- **Vite** - Fast development build tool
+- **React 18** - UI library
+- **TanStack Router** - Modern routing
+- **TanStack Query** - Data fetching
+- **TanStack Forms** - Form management
+
+## 🧪 Testing
+
+### SSH Server Tests
+```bash
+make test
+cd cmd/ssh && go test -v
+```
+
+### Features Implemented
 
 ✅ SSH server on port 4444
+✅ Passwordless SSH authentication
+✅ Welcome screen on connection
 ✅ Bubbletea terminal interface
-✅ Basic menu system
 ✅ Tests for SSH functionality
 ✅ Docker development environment
-✅ React admin panel scaffolding
+✅ React admin panel with TypeScript
+✅ TanStack Router/Query/Forms
+✅ Makefile automation
+✅ Comprehensive documentation

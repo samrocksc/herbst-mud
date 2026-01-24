@@ -1,4 +1,4 @@
-# Connecting over ssh
+# Connecting over ssh (COMPLETED)
 
 We want the ability to connect to our application over ssh on port 4444.
 
