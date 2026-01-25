@@ -23,3 +23,7 @@ We want to create a database that will hold the configuration of our application
 - [ ] Each room should have a name field.
 - [ ] Each room should have a `isStartingRoom` boolean field to indicate if it's a starting room.
 - [ ] Each character should have a `currentRoomId` field to indicate which room they are
+
+## Technical Guidance
+
+Utilize the prisma golang generator to create the client for herbst
