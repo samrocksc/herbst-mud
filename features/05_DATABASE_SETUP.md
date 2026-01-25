@@ -7,11 +7,11 @@ is_completed: false
 
 ## Summary
 
-We want to create a database that will hold the configuration of our application. We want to utilize prisma as our ORM and a relational database postgres PostgreSQL.
+We want to create a database that will hold the configuration of our application. We want to utilize [ent](https://entgo.io/) as our ORM and a relational database postgres PostgreSQL.
 
 ## Acceptance Criteria
 
-- [ ] We will use prisma in a folder named `db`, it will generate the ORM client for the server, and also for herbst, so they will need to have clients generated for each.
+- [ ] We will use ent in a folder named `db`, it will generate the ORM client for the server, and also for herbst, so they will need to have clients generated for each.
 - [ ] We will use PostgreSQL as our database.
 - [ ] The database will be set up with the `docker-compose.yml` file to run a postgres instance.
 - [ ] Run migrations on the server start to ensure the status of the database.
@@ -26,4 +26,4 @@ We want to create a database that will hold the configuration of our application
 
 ## Technical Guidance
 
-Utilize the prisma golang generator to create the client for herbst
+Utilize the ent library to create the client for herbst
