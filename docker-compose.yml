@@ -14,6 +14,8 @@ services:
       - ./go.sum:/app/go.sum
     environment:
       - GODEBUG=netdns=go
+    depends_on:
+      - postgres
 
   admin:
     build:
@@ -26,3 +28,17 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: herbst
+      POSTGRES_PASSWORD: herbst_password
+      POSTGRES_DB: herbst_mud
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
