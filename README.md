@@ -7,7 +7,7 @@ A modern MUD (Multi-User Dungeon) game built with Go, TypeScript, and PostgreSQL
 - SSH-based multiplayer gameplay
 - REST API for administration and game management
 - Web-based admin panel
-- PostgreSQL database with Prisma ORM
+- PostgreSQL database with ent ORM
 - Docker-based deployment
 
 ## Project Structure
@@ -37,22 +37,7 @@ A modern MUD (Multi-User Dungeon) game built with Go, TypeScript, and PostgreSQL
 
 ## Database Setup
 
-The project uses PostgreSQL with Prisma ORM. To set up the database:
-
-1. Start the database:
-   ```bash
-   make db-up
-   ```
-
-2. Run migrations:
-   ```bash
-   make db-migrate
-   ```
-
-3. Seed initial data:
-   ```bash
-   make db-seed
-   ```
+The project uses PostgreSQL with ent ORM. The database is automatically initialized when the servers start.
 
 ## Development
 
@@ -70,9 +55,6 @@ The project uses PostgreSQL with Prisma ORM. To set up the database:
 - `make start` - Start SSH server
 - `make start-web` - Start web server
 - `make start-admin` - Start admin frontend
-- `make db-up` - Start database
-- `make db-migrate` - Run database migrations
-- `make db-seed` - Seed database
 - `make test` - Run tests
 - `make test-bdd` - Run BDD tests
 

@@ -1,12 +1,36 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
+	_ "github.com/lib/pq"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/db"
+	"herbst-server/dbinit"
 )
 
 func main() {
+	// Initialize database
+	client, err := db.Open("postgres", "host=localhost port=5432 user=herbst password=herbst_password dbname=herbst_mud sslmode=disable")
+	if err != nil {
+		log.Fatalf("failed connecting to postgres: %v", err)
+	}
+	defer client.Close()
+
+	// Run auto migration tool
+	if err := client.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
+
+	log.Println("Database initialized successfully")
+
+	// Initialize cross-shaped rooms
+	if err := dbinit.InitCrossWay(client); err != nil {
+		log.Printf("Warning: failed to initialize cross-shaped rooms: %v", err)
+	}
+
 	// Set up Gin router
 	router := gin.Default()
 
@@ -15,6 +39,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 			"ssh":    "running",
+			"db":     "connected",
 		})
 	})
 

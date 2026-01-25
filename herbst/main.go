@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -9,9 +10,25 @@ import (
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/logging"
+	"herbst/db"
 )
 
 func main() {
+	// Initialize database
+	client, err := db.Open("postgres", "host=localhost port=5432 user=herbst password=herbst_password dbname=herbst_mud sslmode=disable")
+	if err != nil {
+		log.Printf("Warning: failed connecting to postgres: %v", err)
+	} else {
+		defer client.Close()
+
+		// Run auto migration tool
+		if err := client.Schema.Create(context.Background()); err != nil {
+			log.Printf("Warning: failed creating schema resources: %v", err)
+		} else {
+			log.Println("Database initialized successfully")
+		}
+	}
+
 	srv, err := wish.NewServer(
 		wish.WithAddress(":4444"),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),

@@ -19,3 +19,4 @@ We need to implement CRUD (Create, Read, Update, Delete) operations for managing
 - [ ] The character should have a many to one relationship with users.
 - [ ] The character should have a currentRoomId field to indicate which room they are currently
 - [ ] modify the seed file with five new characters, and put them in rnadom rooms from the current seed file.
+- [ ] Create a Character called "Gandalf" who is an NPC and starts in the "hole" room. Make sure he has a db flag for _is_admin_ set to true.

@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `dev-frontend` Makefile target to automatically generate TypeScript client from backend API
 - Integration with `@hey-api/openapi-ts` for generating frontend client code
 - Automated client generation during development startup
+- Database setup with ent ORM and PostgreSQL
+- Cross-shaped rooms initialization with "The Hole" as the central starting room
+- Database integration in both SSH server and web API server
+- Users, characters, and rooms entities with relationships
 
 ### Changed
 - Updated Makefile to include new development workflow
