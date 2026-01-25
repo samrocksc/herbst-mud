@@ -1,6 +1,6 @@
 ---
-title: Initial Backend Server Scaffolding
-id: 03
+title: OPENAPI Spec Scaffolding
+id: 04
 requires_bdd: true
 is_completed: true
 ---
@@ -11,14 +11,15 @@ We need to use the openapi generator from the api in order to create a `client` 
 
 ## Acceptance Criteria
 
-1. As a user I should be able to run make dev and have the frontend start, and then generate the client from the backend openapi spec
+- [ ] As a user I should be able to run make dev and have the frontend start, and then generate the client from the backend openapi spec
+- [ ] It should be typesafe.
 
 ## Technical Guidance
 
 Here is an example of how we should use the makefile to accomplish this, but utilize the `admin` file instead:
 
 ```makefile
-dev:
+dev-frontend:
  @echo "Starting backend server..."
  cd backend && . venv/bin/activate && uvicorn main:app --reload & \
  BACKEND_PID=$$! && \

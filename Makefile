@@ -74,6 +74,18 @@ dev: ## Start both SSH and web servers in the background
 	@echo "SSH server started with PID $$(cat .herbst.pid)"
 	@echo "Web server started with PID $$(cat .web.pid)"
 
+dev-frontend: ## Start frontend with OpenAPI client generation
+	@echo "Starting backend server..."
+	@cd server && go run main.go & \
+	BACKEND_PID=$$! && \
+	echo "Backend started with PID $$BACKEND_PID" && \
+	sleep 5 && \
+	echo "Generating frontend types from API..." && \
+	cd admin && npx @hey-api/openapi-ts -i http://localhost:8080/openapi.json -o src/client && \
+	echo "Generated frontend types" && \
+	echo "Starting frontend development server..." && \
+	cd ../admin && npm run dev
+
 dev-all: ## Start all services including admin frontend
 	@echo "Starting all services..."
 	@cd herbst && go run main.go &
