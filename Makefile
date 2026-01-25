@@ -1,4 +1,4 @@
-.PHONY: help start stop run start-web stop-web dev test test-bdd test-server-bdd
+.PHONY: help start stop run start-web stop-web dev start-admin stop-admin dev-all test test-bdd test-server-bdd
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -49,6 +49,22 @@ stop-web: ## Stop the web server
 		echo "No running web server found."; \
 	fi
 
+start-admin: ## Start the admin frontend in the background
+	@echo "Starting admin frontend..."
+	@cd admin && npm run dev &
+	@echo $$! > .admin.pid
+	@echo "Admin frontend started with PID $$(cat .admin.pid)"
+
+stop-admin: ## Stop the admin frontend
+	@if [ -f .admin.pid ]; then \
+		echo "Stopping admin frontend with PID $$(cat .admin.pid)..."; \
+		kill $$(cat .admin.pid) 2>/dev/null || true; \
+		rm -f .admin.pid; \
+		echo "Admin frontend stopped."; \
+	else \
+		echo "No running admin frontend found."; \
+	fi
+
 dev: ## Start both SSH and web servers in the background
 	@echo "Starting both SSH and web servers..."
 	@cd herbst && go run main.go &
@@ -57,6 +73,18 @@ dev: ## Start both SSH and web servers in the background
 	@echo $$! > .web.pid
 	@echo "SSH server started with PID $$(cat .herbst.pid)"
 	@echo "Web server started with PID $$(cat .web.pid)"
+
+dev-all: ## Start all services including admin frontend
+	@echo "Starting all services..."
+	@cd herbst && go run main.go &
+	@echo $$! > .herbst.pid
+	@cd server && go run main.go &
+	@echo $$! > .web.pid
+	@cd admin && npm run dev &
+	@echo $$! > .admin.pid
+	@echo "SSH server started with PID $$(cat .herbst.pid)"
+	@echo "Web server started with PID $$(cat .web.pid)"
+	@echo "Admin frontend started with PID $$(cat .admin.pid)"
 
 test: ## Run tests
 	@cd herbst && go test ./...

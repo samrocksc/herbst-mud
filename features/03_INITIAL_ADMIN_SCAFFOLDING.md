@@ -1,6 +1,6 @@
 ---
-title: Initial Backend Server Scaffolding
-id: 02
+title: Initial Admin Scaffolding
+id: 03
 requires_bdd: true
 is_completed: true
 ---
@@ -11,12 +11,12 @@ We want to create an administrative backend for the MUD. This will be used to ad
 
 ## Acceptance Criteria
 
-- Create a new folder called _admin_
-- It should stand up a vite app with React and typescript
-- It should use functional lite typescript
-- It Should use a username and password
+- [x] Create a new folder called _admin_
+- [x] It should stand up a vite app with React and typescript
+- [x] It should use functional lite typescript
+- [x] It Should use a username and password
 
 ## Technical Guidance
 
-- Utilize Tanstack router file routing and using the `-Folder` convention to keep components near their routes
-- Utilize Tanstack Query for all queries and mutations
+- [x] Utilize Tanstack router file routing and using the `-Folder` convention to keep components near their routes
+- [x] Utilize Tanstack Query for all queries and mutations
