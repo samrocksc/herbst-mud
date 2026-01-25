@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/dbinit"
+	"herbst-server/routes"
 )
 
 func main() {
@@ -33,6 +34,9 @@ func main() {
 
 	// Set up Gin router
 	router := gin.Default()
+
+	// Register room routes
+	routes.RegisterRoomRoutes(router, client)
 
 	// Healthz endpoint
 	router.GET("/healthz", func(c *gin.Context) {
@@ -105,6 +109,192 @@ func getOpenAPISpec() map[string]interface{} {
 										"type": "object",
 									},
 								},
+							},
+						},
+					},
+				},
+			},
+			"/rooms": map[string]interface{}{
+				"get": map[string]interface{}{
+					"summary": "Get all rooms",
+					"description": "Returns a list of all rooms in the game",
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "Successful response",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"type": "array",
+										"items": map[string]interface{}{
+											"$ref": "#/components/schemas/Room",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"post": map[string]interface{}{
+					"summary": "Create a new room",
+					"description": "Creates a new room with the provided details",
+					"requestBody": map[string]interface{}{
+						"required": true,
+						"content": map[string]interface{}{
+							"application/json": map[string]interface{}{
+								"schema": map[string]interface{}{
+									"$ref": "#/components/schemas/RoomInput",
+								},
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"201": map[string]interface{}{
+							"description": "Room created successfully",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/Room",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"/rooms/{id}": map[string]interface{}{
+				"get": map[string]interface{}{
+					"summary": "Get a room by ID",
+					"description": "Returns a single room by its ID",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "Successful response",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/Room",
+									},
+								},
+							},
+						},
+						"404": map[string]interface{}{
+							"description": "Room not found",
+						},
+					},
+				},
+				"put": map[string]interface{}{
+					"summary": "Update a room",
+					"description": "Updates an existing room with the provided details",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"requestBody": map[string]interface{}{
+						"required": true,
+						"content": map[string]interface{}{
+							"application/json": map[string]interface{}{
+								"schema": map[string]interface{}{
+									"$ref": "#/components/schemas/RoomInput",
+								},
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "Room updated successfully",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/Room",
+									},
+								},
+							},
+						},
+						"404": map[string]interface{}{
+							"description": "Room not found",
+						},
+					},
+				},
+				"delete": map[string]interface{}{
+					"summary": "Delete a room",
+					"description": "Deletes a room by its ID",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"204": map[string]interface{}{
+							"description": "Room deleted successfully",
+						},
+						"404": map[string]interface{}{
+							"description": "Room not found",
+						},
+					},
+				},
+			},
+		},
+		"components": map[string]interface{}{
+			"schemas": map[string]interface{}{
+				"Room": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"id": map[string]interface{}{
+							"type": "integer",
+						},
+						"name": map[string]interface{}{
+							"type": "string",
+						},
+						"description": map[string]interface{}{
+							"type": "string",
+						},
+						"isStartingRoom": map[string]interface{}{
+							"type": "boolean",
+						},
+						"exits": map[string]interface{}{
+							"type": "object",
+							"additionalProperties": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+				},
+				"RoomInput": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"name": map[string]interface{}{
+							"type": "string",
+						},
+						"description": map[string]interface{}{
+							"type": "string",
+						},
+						"isStartingRoom": map[string]interface{}{
+							"type": "boolean",
+						},
+						"exits": map[string]interface{}{
+							"type": "object",
+							"additionalProperties": map[string]interface{}{
+								"type": "integer",
 							},
 						},
 					},
