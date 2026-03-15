@@ -69,6 +69,16 @@ func CurrentRoomId(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldCurrentRoomId, v))
 }
 
+// StartingRoomId applies equality check predicate on the "startingRoomId" field. It's identical to StartingRoomIdEQ.
+func StartingRoomId(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldStartingRoomId, v))
+}
+
+// IsAdmin applies equality check predicate on the "is_admin" field. It's identical to IsAdminEQ.
+func IsAdmin(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsAdmin, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldName, v))
@@ -162,6 +172,56 @@ func CurrentRoomIdIn(vs ...int) predicate.Character {
 // CurrentRoomIdNotIn applies the NotIn predicate on the "currentRoomId" field.
 func CurrentRoomIdNotIn(vs ...int) predicate.Character {
 	return predicate.Character(sql.FieldNotIn(FieldCurrentRoomId, vs...))
+}
+
+// StartingRoomIdEQ applies the EQ predicate on the "startingRoomId" field.
+func StartingRoomIdEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldStartingRoomId, v))
+}
+
+// StartingRoomIdNEQ applies the NEQ predicate on the "startingRoomId" field.
+func StartingRoomIdNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldStartingRoomId, v))
+}
+
+// StartingRoomIdIn applies the In predicate on the "startingRoomId" field.
+func StartingRoomIdIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldStartingRoomId, vs...))
+}
+
+// StartingRoomIdNotIn applies the NotIn predicate on the "startingRoomId" field.
+func StartingRoomIdNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldStartingRoomId, vs...))
+}
+
+// StartingRoomIdGT applies the GT predicate on the "startingRoomId" field.
+func StartingRoomIdGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldStartingRoomId, v))
+}
+
+// StartingRoomIdGTE applies the GTE predicate on the "startingRoomId" field.
+func StartingRoomIdGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldStartingRoomId, v))
+}
+
+// StartingRoomIdLT applies the LT predicate on the "startingRoomId" field.
+func StartingRoomIdLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldStartingRoomId, v))
+}
+
+// StartingRoomIdLTE applies the LTE predicate on the "startingRoomId" field.
+func StartingRoomIdLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldStartingRoomId, v))
+}
+
+// IsAdminEQ applies the EQ predicate on the "is_admin" field.
+func IsAdminEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsAdmin, v))
+}
+
+// IsAdminNEQ applies the NEQ predicate on the "is_admin" field.
+func IsAdminNEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldIsAdmin, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

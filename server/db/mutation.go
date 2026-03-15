@@ -33,19 +33,22 @@ const (
 // CharacterMutation represents an operation that mutates the Character nodes in the graph.
 type CharacterMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	name          *string
-	isNPC         *bool
-	clearedFields map[string]struct{}
-	user          *int
-	cleareduser   bool
-	room          *int
-	clearedroom   bool
-	done          bool
-	oldValue      func(context.Context) (*Character, error)
-	predicates    []predicate.Character
+	op                Op
+	typ               string
+	id                *int
+	name              *string
+	isNPC             *bool
+	startingRoomId    *int
+	addstartingRoomId *int
+	is_admin          *bool
+	clearedFields     map[string]struct{}
+	user              *int
+	cleareduser       bool
+	room              *int
+	clearedroom       bool
+	done              bool
+	oldValue          func(context.Context) (*Character, error)
+	predicates        []predicate.Character
 }
 
 var _ ent.Mutation = (*CharacterMutation)(nil)
@@ -254,6 +257,98 @@ func (m *CharacterMutation) ResetCurrentRoomId() {
 	m.room = nil
 }
 
+// SetStartingRoomId sets the "startingRoomId" field.
+func (m *CharacterMutation) SetStartingRoomId(i int) {
+	m.startingRoomId = &i
+	m.addstartingRoomId = nil
+}
+
+// StartingRoomId returns the value of the "startingRoomId" field in the mutation.
+func (m *CharacterMutation) StartingRoomId() (r int, exists bool) {
+	v := m.startingRoomId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartingRoomId returns the old "startingRoomId" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldStartingRoomId(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartingRoomId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartingRoomId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartingRoomId: %w", err)
+	}
+	return oldValue.StartingRoomId, nil
+}
+
+// AddStartingRoomId adds i to the "startingRoomId" field.
+func (m *CharacterMutation) AddStartingRoomId(i int) {
+	if m.addstartingRoomId != nil {
+		*m.addstartingRoomId += i
+	} else {
+		m.addstartingRoomId = &i
+	}
+}
+
+// AddedStartingRoomId returns the value that was added to the "startingRoomId" field in this mutation.
+func (m *CharacterMutation) AddedStartingRoomId() (r int, exists bool) {
+	v := m.addstartingRoomId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStartingRoomId resets all changes to the "startingRoomId" field.
+func (m *CharacterMutation) ResetStartingRoomId() {
+	m.startingRoomId = nil
+	m.addstartingRoomId = nil
+}
+
+// SetIsAdmin sets the "is_admin" field.
+func (m *CharacterMutation) SetIsAdmin(b bool) {
+	m.is_admin = &b
+}
+
+// IsAdmin returns the value of the "is_admin" field in the mutation.
+func (m *CharacterMutation) IsAdmin() (r bool, exists bool) {
+	v := m.is_admin
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsAdmin returns the old "is_admin" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldIsAdmin(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsAdmin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsAdmin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsAdmin: %w", err)
+	}
+	return oldValue.IsAdmin, nil
+}
+
+// ResetIsAdmin resets all changes to the "is_admin" field.
+func (m *CharacterMutation) ResetIsAdmin() {
+	m.is_admin = nil
+}
+
 // SetUserID sets the "user" edge to the User entity by id.
 func (m *CharacterMutation) SetUserID(id int) {
 	m.user = &id
@@ -367,7 +462,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -376,6 +471,12 @@ func (m *CharacterMutation) Fields() []string {
 	}
 	if m.room != nil {
 		fields = append(fields, character.FieldCurrentRoomId)
+	}
+	if m.startingRoomId != nil {
+		fields = append(fields, character.FieldStartingRoomId)
+	}
+	if m.is_admin != nil {
+		fields = append(fields, character.FieldIsAdmin)
 	}
 	return fields
 }
@@ -391,6 +492,10 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.IsNPC()
 	case character.FieldCurrentRoomId:
 		return m.CurrentRoomId()
+	case character.FieldStartingRoomId:
+		return m.StartingRoomId()
+	case character.FieldIsAdmin:
+		return m.IsAdmin()
 	}
 	return nil, false
 }
@@ -406,6 +511,10 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldIsNPC(ctx)
 	case character.FieldCurrentRoomId:
 		return m.OldCurrentRoomId(ctx)
+	case character.FieldStartingRoomId:
+		return m.OldStartingRoomId(ctx)
+	case character.FieldIsAdmin:
+		return m.OldIsAdmin(ctx)
 	}
 	return nil, fmt.Errorf("unknown Character field %s", name)
 }
@@ -436,6 +545,20 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCurrentRoomId(v)
 		return nil
+	case character.FieldStartingRoomId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartingRoomId(v)
+		return nil
+	case character.FieldIsAdmin:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsAdmin(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Character field %s", name)
 }
@@ -444,6 +567,9 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *CharacterMutation) AddedFields() []string {
 	var fields []string
+	if m.addstartingRoomId != nil {
+		fields = append(fields, character.FieldStartingRoomId)
+	}
 	return fields
 }
 
@@ -452,6 +578,8 @@ func (m *CharacterMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *CharacterMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case character.FieldStartingRoomId:
+		return m.AddedStartingRoomId()
 	}
 	return nil, false
 }
@@ -461,6 +589,13 @@ func (m *CharacterMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *CharacterMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case character.FieldStartingRoomId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStartingRoomId(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Character numeric field %s", name)
 }
@@ -496,6 +631,12 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldCurrentRoomId:
 		m.ResetCurrentRoomId()
+		return nil
+	case character.FieldStartingRoomId:
+		m.ResetStartingRoomId()
+		return nil
+	case character.FieldIsAdmin:
+		m.ResetIsAdmin()
 		return nil
 	}
 	return fmt.Errorf("unknown Character field %s", name)

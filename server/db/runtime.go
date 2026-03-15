@@ -19,6 +19,10 @@ func init() {
 	characterDescIsNPC := characterFields[1].Descriptor()
 	// character.DefaultIsNPC holds the default value on creation for the isNPC field.
 	character.DefaultIsNPC = characterDescIsNPC.Default.(bool)
+	// characterDescIsAdmin is the schema descriptor for is_admin field.
+	characterDescIsAdmin := characterFields[4].Descriptor()
+	// character.DefaultIsAdmin holds the default value on creation for the is_admin field.
+	character.DefaultIsAdmin = characterDescIsAdmin.Default.(bool)
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
 	// roomDescIsStartingRoom is the schema descriptor for isStartingRoom field.

@@ -33,10 +33,10 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			SetIsAdmin(req.IsAdmin)
 
 		if req.CurrentRoom > 0 {
-			builder.SetCurrentRoomID(req.CurrentRoom)
+			builder.SetCurrentRoomId(req.CurrentRoom)
 		}
 		if req.StartingRoom > 0 {
-			builder.SetStartingRoomID(req.StartingRoom)
+			builder.SetStartingRoomId(req.StartingRoom)
 		}
 		if req.UserID > 0 {
 			builder.SetUserID(req.UserID)
@@ -110,10 +110,10 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			updater.SetIsNPC(*req.IsNPC)
 		}
 		if req.CurrentRoom != nil {
-			updater.SetCurrentRoomID(*req.CurrentRoom)
+			updater.SetCurrentRoomId(*req.CurrentRoom)
 		}
 		if req.StartingRoom != nil {
-			updater.SetStartingRoomID(*req.StartingRoom)
+			updater.SetStartingRoomId(*req.StartingRoom)
 		}
 		if req.IsAdmin != nil {
 			updater.SetIsAdmin(*req.IsAdmin)
