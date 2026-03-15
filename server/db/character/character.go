@@ -18,6 +18,10 @@ const (
 	FieldIsNPC = "is_npc"
 	// FieldCurrentRoomId holds the string denoting the currentroomid field in the database.
 	FieldCurrentRoomId = "current_room_id"
+	// FieldStartingRoomId holds the string denoting the startingroomid field in the database.
+	FieldStartingRoomId = "starting_room_id"
+	// FieldIsAdmin holds the string denoting the is_admin field in the database.
+	FieldIsAdmin = "is_admin"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
@@ -46,6 +50,8 @@ var Columns = []string{
 	FieldName,
 	FieldIsNPC,
 	FieldCurrentRoomId,
+	FieldStartingRoomId,
+	FieldIsAdmin,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "characters"
@@ -73,6 +79,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsNPC holds the default value on creation for the "isNPC" field.
 	DefaultIsNPC bool
+	// DefaultIsAdmin holds the default value on creation for the "is_admin" field.
+	DefaultIsAdmin bool
 )
 
 // OrderOption defines the ordering options for the Character queries.
@@ -96,6 +104,16 @@ func ByIsNPC(opts ...sql.OrderTermOption) OrderOption {
 // ByCurrentRoomId orders the results by the currentRoomId field.
 func ByCurrentRoomId(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrentRoomId, opts...).ToFunc()
+}
+
+// ByStartingRoomId orders the results by the startingRoomId field.
+func ByStartingRoomId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartingRoomId, opts...).ToFunc()
+}
+
+// ByIsAdmin orders the results by the is_admin field.
+func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

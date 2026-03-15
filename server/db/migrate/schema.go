@@ -13,6 +13,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "is_npc", Type: field.TypeBool, Default: false},
+		{Name: "starting_room_id", Type: field.TypeInt},
+		{Name: "is_admin", Type: field.TypeBool, Default: false},
 		{Name: "current_room_id", Type: field.TypeInt},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
 		{Name: "user_characters", Type: field.TypeInt, Nullable: true},
@@ -25,19 +27,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[3]},
+				Columns:    []*schema.Column{CharactersColumns[5]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[4]},
+				Columns:    []*schema.Column{CharactersColumns[6]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[5]},
+				Columns:    []*schema.Column{CharactersColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 
 	"herbst-server/db"
+	"herbst-server/db/room"
 )
 
 const (
@@ -151,5 +153,78 @@ func InitCrossWay(client *db.Client) error {
 	}
 
 	log.Println("Cross-shaped rooms initialized successfully")
+	return nil
+}
+
+// InitCharacters creates initial characters including test characters and Gandalf the admin NPC
+func InitCharacters(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if characters already exist
+	existingChars, err := client.Character.Query().Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to count existing characters: %w", err)
+	}
+
+	if existingChars > 0 {
+		log.Println("Characters already exist, skipping seed...")
+		return nil
+	}
+
+	// Get all rooms to assign random rooms to test characters
+	rooms, err := client.Room.Query().All(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get rooms: %w", err)
+	}
+
+	if len(rooms) == 0 {
+		log.Println("No rooms available for character placement, skipping...")
+		return nil
+	}
+
+	// Create 5 test characters in random rooms
+	testCharacterNames := []string{"Aragorn", "Legolas", "Gimli", "Frodo", "Sam"}
+	for _, name := range testCharacterNames {
+		randomRoom := rooms[rand.Intn(len(rooms))]
+		_, err := client.Character.
+			Create().
+			SetName(name).
+			SetIsNPC(false).
+			SetCurrentRoomId(randomRoom.ID).
+			SetStartingRoomId(randomRoom.ID).
+			SetIsAdmin(false).
+			Save(ctx)
+		if err != nil {
+			log.Printf("Warning: failed to create character %s: %v", name, err)
+		}
+	}
+
+	// Find or create the "hole" room (center room with "The Hole" name)
+	holeRoom, err := client.Room.Query().Where(room.NameEQ("The Hole")).Only(ctx)
+	if err != nil {
+		log.Printf("Warning: could not find 'The Hole' room: %v", err)
+		// Use center room as fallback
+		if len(rooms) > 0 {
+			holeRoom = rooms[0]
+		}
+	}
+
+	// Create Gandalf as admin NPC in the "hole" room
+	if holeRoom != nil {
+		_, err = client.Character.
+			Create().
+			SetName("Gandalf").
+			SetIsNPC(true).
+			SetCurrentRoomId(holeRoom.ID).
+			SetStartingRoomId(holeRoom.ID).
+			SetIsAdmin(true).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to create Gandalf: %w", err)
+		}
+		log.Println("Created Gandalf NPC in 'The Hole' room with admin privileges")
+	}
+
+	log.Println("Character seed data initialized successfully")
 	return nil
 }
