@@ -15,12 +15,32 @@ type Character struct {
 func (Character) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
+		field.String("password").
+			Optional(),
 		field.Bool("isNPC").
 			Default(false),
 		field.Int("currentRoomId"),
 		field.Int("startingRoomId"),
 		field.Bool("is_admin").
 			Default(false),
+		field.Int("hitpoints").
+			Default(100).
+			Comment("Health points"),
+		field.Int("max_hitpoints").
+			Default(100).
+			Comment("Maximum health points"),
+		field.Int("stamina").
+			Default(50).
+			Comment("Stamina points"),
+		field.Int("max_stamina").
+			Default(50).
+			Comment("Maximum stamina points"),
+		field.Int("mana").
+			Default(25).
+			Comment("Magic/energy points"),
+		field.Int("max_mana").
+			Default(25).
+			Comment("Maximum magic/energy points"),
 	}
 }
 

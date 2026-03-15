@@ -59,6 +59,11 @@ func Name(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldName, v))
 }
 
+// Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
+func Password(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldPassword, v))
+}
+
 // IsNPC applies equality check predicate on the "isNPC" field. It's identical to IsNPCEQ.
 func IsNPC(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsNPC, v))
@@ -77,6 +82,36 @@ func StartingRoomId(v int) predicate.Character {
 // IsAdmin applies equality check predicate on the "is_admin" field. It's identical to IsAdminEQ.
 func IsAdmin(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsAdmin, v))
+}
+
+// Hitpoints applies equality check predicate on the "hitpoints" field. It's identical to HitpointsEQ.
+func Hitpoints(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldHitpoints, v))
+}
+
+// MaxHitpoints applies equality check predicate on the "max_hitpoints" field. It's identical to MaxHitpointsEQ.
+func MaxHitpoints(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxHitpoints, v))
+}
+
+// Stamina applies equality check predicate on the "stamina" field. It's identical to StaminaEQ.
+func Stamina(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldStamina, v))
+}
+
+// MaxStamina applies equality check predicate on the "max_stamina" field. It's identical to MaxStaminaEQ.
+func MaxStamina(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxStamina, v))
+}
+
+// Mana applies equality check predicate on the "mana" field. It's identical to ManaEQ.
+func Mana(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMana, v))
+}
+
+// MaxMana applies equality check predicate on the "max_mana" field. It's identical to MaxManaEQ.
+func MaxMana(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxMana, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -142,6 +177,81 @@ func NameEqualFold(v string) predicate.Character {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Character {
 	return predicate.Character(sql.FieldContainsFold(FieldName, v))
+}
+
+// PasswordEQ applies the EQ predicate on the "password" field.
+func PasswordEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldPassword, v))
+}
+
+// PasswordNEQ applies the NEQ predicate on the "password" field.
+func PasswordNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldPassword, v))
+}
+
+// PasswordIn applies the In predicate on the "password" field.
+func PasswordIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldPassword, vs...))
+}
+
+// PasswordNotIn applies the NotIn predicate on the "password" field.
+func PasswordNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldPassword, vs...))
+}
+
+// PasswordGT applies the GT predicate on the "password" field.
+func PasswordGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldPassword, v))
+}
+
+// PasswordGTE applies the GTE predicate on the "password" field.
+func PasswordGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldPassword, v))
+}
+
+// PasswordLT applies the LT predicate on the "password" field.
+func PasswordLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldPassword, v))
+}
+
+// PasswordLTE applies the LTE predicate on the "password" field.
+func PasswordLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldPassword, v))
+}
+
+// PasswordContains applies the Contains predicate on the "password" field.
+func PasswordContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldPassword, v))
+}
+
+// PasswordHasPrefix applies the HasPrefix predicate on the "password" field.
+func PasswordHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldPassword, v))
+}
+
+// PasswordHasSuffix applies the HasSuffix predicate on the "password" field.
+func PasswordHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldPassword, v))
+}
+
+// PasswordIsNil applies the IsNil predicate on the "password" field.
+func PasswordIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldPassword))
+}
+
+// PasswordNotNil applies the NotNil predicate on the "password" field.
+func PasswordNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldPassword))
+}
+
+// PasswordEqualFold applies the EqualFold predicate on the "password" field.
+func PasswordEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldPassword, v))
+}
+
+// PasswordContainsFold applies the ContainsFold predicate on the "password" field.
+func PasswordContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldPassword, v))
 }
 
 // IsNPCEQ applies the EQ predicate on the "isNPC" field.
@@ -222,6 +332,246 @@ func IsAdminEQ(v bool) predicate.Character {
 // IsAdminNEQ applies the NEQ predicate on the "is_admin" field.
 func IsAdminNEQ(v bool) predicate.Character {
 	return predicate.Character(sql.FieldNEQ(FieldIsAdmin, v))
+}
+
+// HitpointsEQ applies the EQ predicate on the "hitpoints" field.
+func HitpointsEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldHitpoints, v))
+}
+
+// HitpointsNEQ applies the NEQ predicate on the "hitpoints" field.
+func HitpointsNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldHitpoints, v))
+}
+
+// HitpointsIn applies the In predicate on the "hitpoints" field.
+func HitpointsIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldHitpoints, vs...))
+}
+
+// HitpointsNotIn applies the NotIn predicate on the "hitpoints" field.
+func HitpointsNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldHitpoints, vs...))
+}
+
+// HitpointsGT applies the GT predicate on the "hitpoints" field.
+func HitpointsGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldHitpoints, v))
+}
+
+// HitpointsGTE applies the GTE predicate on the "hitpoints" field.
+func HitpointsGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldHitpoints, v))
+}
+
+// HitpointsLT applies the LT predicate on the "hitpoints" field.
+func HitpointsLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldHitpoints, v))
+}
+
+// HitpointsLTE applies the LTE predicate on the "hitpoints" field.
+func HitpointsLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldHitpoints, v))
+}
+
+// MaxHitpointsEQ applies the EQ predicate on the "max_hitpoints" field.
+func MaxHitpointsEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsNEQ applies the NEQ predicate on the "max_hitpoints" field.
+func MaxHitpointsNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsIn applies the In predicate on the "max_hitpoints" field.
+func MaxHitpointsIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldMaxHitpoints, vs...))
+}
+
+// MaxHitpointsNotIn applies the NotIn predicate on the "max_hitpoints" field.
+func MaxHitpointsNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldMaxHitpoints, vs...))
+}
+
+// MaxHitpointsGT applies the GT predicate on the "max_hitpoints" field.
+func MaxHitpointsGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsGTE applies the GTE predicate on the "max_hitpoints" field.
+func MaxHitpointsGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsLT applies the LT predicate on the "max_hitpoints" field.
+func MaxHitpointsLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsLTE applies the LTE predicate on the "max_hitpoints" field.
+func MaxHitpointsLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldMaxHitpoints, v))
+}
+
+// StaminaEQ applies the EQ predicate on the "stamina" field.
+func StaminaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldStamina, v))
+}
+
+// StaminaNEQ applies the NEQ predicate on the "stamina" field.
+func StaminaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldStamina, v))
+}
+
+// StaminaIn applies the In predicate on the "stamina" field.
+func StaminaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldStamina, vs...))
+}
+
+// StaminaNotIn applies the NotIn predicate on the "stamina" field.
+func StaminaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldStamina, vs...))
+}
+
+// StaminaGT applies the GT predicate on the "stamina" field.
+func StaminaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldStamina, v))
+}
+
+// StaminaGTE applies the GTE predicate on the "stamina" field.
+func StaminaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldStamina, v))
+}
+
+// StaminaLT applies the LT predicate on the "stamina" field.
+func StaminaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldStamina, v))
+}
+
+// StaminaLTE applies the LTE predicate on the "stamina" field.
+func StaminaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldStamina, v))
+}
+
+// MaxStaminaEQ applies the EQ predicate on the "max_stamina" field.
+func MaxStaminaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxStamina, v))
+}
+
+// MaxStaminaNEQ applies the NEQ predicate on the "max_stamina" field.
+func MaxStaminaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldMaxStamina, v))
+}
+
+// MaxStaminaIn applies the In predicate on the "max_stamina" field.
+func MaxStaminaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldMaxStamina, vs...))
+}
+
+// MaxStaminaNotIn applies the NotIn predicate on the "max_stamina" field.
+func MaxStaminaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldMaxStamina, vs...))
+}
+
+// MaxStaminaGT applies the GT predicate on the "max_stamina" field.
+func MaxStaminaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldMaxStamina, v))
+}
+
+// MaxStaminaGTE applies the GTE predicate on the "max_stamina" field.
+func MaxStaminaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldMaxStamina, v))
+}
+
+// MaxStaminaLT applies the LT predicate on the "max_stamina" field.
+func MaxStaminaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldMaxStamina, v))
+}
+
+// MaxStaminaLTE applies the LTE predicate on the "max_stamina" field.
+func MaxStaminaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldMaxStamina, v))
+}
+
+// ManaEQ applies the EQ predicate on the "mana" field.
+func ManaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMana, v))
+}
+
+// ManaNEQ applies the NEQ predicate on the "mana" field.
+func ManaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldMana, v))
+}
+
+// ManaIn applies the In predicate on the "mana" field.
+func ManaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldMana, vs...))
+}
+
+// ManaNotIn applies the NotIn predicate on the "mana" field.
+func ManaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldMana, vs...))
+}
+
+// ManaGT applies the GT predicate on the "mana" field.
+func ManaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldMana, v))
+}
+
+// ManaGTE applies the GTE predicate on the "mana" field.
+func ManaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldMana, v))
+}
+
+// ManaLT applies the LT predicate on the "mana" field.
+func ManaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldMana, v))
+}
+
+// ManaLTE applies the LTE predicate on the "mana" field.
+func ManaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldMana, v))
+}
+
+// MaxManaEQ applies the EQ predicate on the "max_mana" field.
+func MaxManaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxMana, v))
+}
+
+// MaxManaNEQ applies the NEQ predicate on the "max_mana" field.
+func MaxManaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldMaxMana, v))
+}
+
+// MaxManaIn applies the In predicate on the "max_mana" field.
+func MaxManaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldMaxMana, vs...))
+}
+
+// MaxManaNotIn applies the NotIn predicate on the "max_mana" field.
+func MaxManaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldMaxMana, vs...))
+}
+
+// MaxManaGT applies the GT predicate on the "max_mana" field.
+func MaxManaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldMaxMana, v))
+}
+
+// MaxManaGTE applies the GTE predicate on the "max_mana" field.
+func MaxManaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldMaxMana, v))
+}
+
+// MaxManaLT applies the LT predicate on the "max_mana" field.
+func MaxManaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldMaxMana, v))
+}
+
+// MaxManaLTE applies the LTE predicate on the "max_mana" field.
+func MaxManaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldMaxMana, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

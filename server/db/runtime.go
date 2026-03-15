@@ -4,6 +4,7 @@ package db
 
 import (
 	"herbst-server/db/character"
+	"herbst-server/db/equipment"
 	"herbst-server/db/room"
 	"herbst-server/db/schema"
 	"herbst-server/db/user"
@@ -16,13 +17,51 @@ func init() {
 	characterFields := schema.Character{}.Fields()
 	_ = characterFields
 	// characterDescIsNPC is the schema descriptor for isNPC field.
-	characterDescIsNPC := characterFields[1].Descriptor()
+	characterDescIsNPC := characterFields[2].Descriptor()
 	// character.DefaultIsNPC holds the default value on creation for the isNPC field.
 	character.DefaultIsNPC = characterDescIsNPC.Default.(bool)
 	// characterDescIsAdmin is the schema descriptor for is_admin field.
-	characterDescIsAdmin := characterFields[4].Descriptor()
+	characterDescIsAdmin := characterFields[5].Descriptor()
 	// character.DefaultIsAdmin holds the default value on creation for the is_admin field.
 	character.DefaultIsAdmin = characterDescIsAdmin.Default.(bool)
+	// characterDescHitpoints is the schema descriptor for hitpoints field.
+	characterDescHitpoints := characterFields[6].Descriptor()
+	// character.DefaultHitpoints holds the default value on creation for the hitpoints field.
+	character.DefaultHitpoints = characterDescHitpoints.Default.(int)
+	// characterDescMaxHitpoints is the schema descriptor for max_hitpoints field.
+	characterDescMaxHitpoints := characterFields[7].Descriptor()
+	// character.DefaultMaxHitpoints holds the default value on creation for the max_hitpoints field.
+	character.DefaultMaxHitpoints = characterDescMaxHitpoints.Default.(int)
+	// characterDescStamina is the schema descriptor for stamina field.
+	characterDescStamina := characterFields[8].Descriptor()
+	// character.DefaultStamina holds the default value on creation for the stamina field.
+	character.DefaultStamina = characterDescStamina.Default.(int)
+	// characterDescMaxStamina is the schema descriptor for max_stamina field.
+	characterDescMaxStamina := characterFields[9].Descriptor()
+	// character.DefaultMaxStamina holds the default value on creation for the max_stamina field.
+	character.DefaultMaxStamina = characterDescMaxStamina.Default.(int)
+	// characterDescMana is the schema descriptor for mana field.
+	characterDescMana := characterFields[10].Descriptor()
+	// character.DefaultMana holds the default value on creation for the mana field.
+	character.DefaultMana = characterDescMana.Default.(int)
+	// characterDescMaxMana is the schema descriptor for max_mana field.
+	characterDescMaxMana := characterFields[11].Descriptor()
+	// character.DefaultMaxMana holds the default value on creation for the max_mana field.
+	character.DefaultMaxMana = characterDescMaxMana.Default.(int)
+	equipmentFields := schema.Equipment{}.Fields()
+	_ = equipmentFields
+	// equipmentDescLevel is the schema descriptor for level field.
+	equipmentDescLevel := equipmentFields[3].Descriptor()
+	// equipment.DefaultLevel holds the default value on creation for the level field.
+	equipment.DefaultLevel = equipmentDescLevel.Default.(int)
+	// equipmentDescWeight is the schema descriptor for weight field.
+	equipmentDescWeight := equipmentFields[4].Descriptor()
+	// equipment.DefaultWeight holds the default value on creation for the weight field.
+	equipment.DefaultWeight = equipmentDescWeight.Default.(int)
+	// equipmentDescIsEquipped is the schema descriptor for isEquipped field.
+	equipmentDescIsEquipped := equipmentFields[5].Descriptor()
+	// equipment.DefaultIsEquipped holds the default value on creation for the isEquipped field.
+	equipment.DefaultIsEquipped = equipmentDescIsEquipped.Default.(bool)
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
 	// roomDescIsStartingRoom is the schema descriptor for isStartingRoom field.

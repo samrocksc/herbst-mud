@@ -20,6 +20,8 @@ type Character struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Password holds the value of the "password" field.
+	Password string `json:"password,omitempty"`
 	// IsNPC holds the value of the "isNPC" field.
 	IsNPC bool `json:"isNPC,omitempty"`
 	// CurrentRoomId holds the value of the "currentRoomId" field.
@@ -28,6 +30,18 @@ type Character struct {
 	StartingRoomId int `json:"startingRoomId,omitempty"`
 	// IsAdmin holds the value of the "is_admin" field.
 	IsAdmin bool `json:"is_admin,omitempty"`
+	// Health points
+	Hitpoints int `json:"hitpoints,omitempty"`
+	// Maximum health points
+	MaxHitpoints int `json:"max_hitpoints,omitempty"`
+	// Stamina points
+	Stamina int `json:"stamina,omitempty"`
+	// Maximum stamina points
+	MaxStamina int `json:"max_stamina,omitempty"`
+	// Magic/energy points
+	Mana int `json:"mana,omitempty"`
+	// Maximum magic/energy points
+	MaxMana int `json:"max_mana,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
 	Edges           CharacterEdges `json:"edges"`
@@ -76,9 +90,9 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case character.FieldIsNPC, character.FieldIsAdmin:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana:
 			values[i] = new(sql.NullInt64)
-		case character.FieldName:
+		case character.FieldName, character.FieldPassword:
 			values[i] = new(sql.NullString)
 		case character.ForeignKeys[0]: // room_characters
 			values[i] = new(sql.NullInt64)
@@ -111,6 +125,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Name = value.String
 			}
+		case character.FieldPassword:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field password", values[i])
+			} else if value.Valid {
+				_m.Password = value.String
+			}
 		case character.FieldIsNPC:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field isNPC", values[i])
@@ -134,6 +154,42 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_admin", values[i])
 			} else if value.Valid {
 				_m.IsAdmin = value.Bool
+			}
+		case character.FieldHitpoints:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field hitpoints", values[i])
+			} else if value.Valid {
+				_m.Hitpoints = int(value.Int64)
+			}
+		case character.FieldMaxHitpoints:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field max_hitpoints", values[i])
+			} else if value.Valid {
+				_m.MaxHitpoints = int(value.Int64)
+			}
+		case character.FieldStamina:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field stamina", values[i])
+			} else if value.Valid {
+				_m.Stamina = int(value.Int64)
+			}
+		case character.FieldMaxStamina:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field max_stamina", values[i])
+			} else if value.Valid {
+				_m.MaxStamina = int(value.Int64)
+			}
+		case character.FieldMana:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field mana", values[i])
+			} else if value.Valid {
+				_m.Mana = int(value.Int64)
+			}
+		case character.FieldMaxMana:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field max_mana", values[i])
+			} else if value.Valid {
+				_m.MaxMana = int(value.Int64)
 			}
 		case character.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -198,6 +254,9 @@ func (_m *Character) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
+	builder.WriteString("password=")
+	builder.WriteString(_m.Password)
+	builder.WriteString(", ")
 	builder.WriteString("isNPC=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsNPC))
 	builder.WriteString(", ")
@@ -209,6 +268,24 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_admin=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsAdmin))
+	builder.WriteString(", ")
+	builder.WriteString("hitpoints=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Hitpoints))
+	builder.WriteString(", ")
+	builder.WriteString("max_hitpoints=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxHitpoints))
+	builder.WriteString(", ")
+	builder.WriteString("stamina=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Stamina))
+	builder.WriteString(", ")
+	builder.WriteString("max_stamina=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxStamina))
+	builder.WriteString(", ")
+	builder.WriteString("mana=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Mana))
+	builder.WriteString(", ")
+	builder.WriteString("max_mana=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxMana))
 	builder.WriteByte(')')
 	return builder.String()
 }

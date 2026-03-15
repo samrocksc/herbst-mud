@@ -43,6 +43,26 @@ func (_u *CharacterUpdate) SetNillableName(v *string) *CharacterUpdate {
 	return _u
 }
 
+// SetPassword sets the "password" field.
+func (_u *CharacterUpdate) SetPassword(v string) *CharacterUpdate {
+	_u.mutation.SetPassword(v)
+	return _u
+}
+
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillablePassword(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetPassword(*v)
+	}
+	return _u
+}
+
+// ClearPassword clears the value of the "password" field.
+func (_u *CharacterUpdate) ClearPassword() *CharacterUpdate {
+	_u.mutation.ClearPassword()
+	return _u
+}
+
 // SetIsNPC sets the "isNPC" field.
 func (_u *CharacterUpdate) SetIsNPC(v bool) *CharacterUpdate {
 	_u.mutation.SetIsNPC(v)
@@ -103,6 +123,132 @@ func (_u *CharacterUpdate) SetNillableIsAdmin(v *bool) *CharacterUpdate {
 	if v != nil {
 		_u.SetIsAdmin(*v)
 	}
+	return _u
+}
+
+// SetHitpoints sets the "hitpoints" field.
+func (_u *CharacterUpdate) SetHitpoints(v int) *CharacterUpdate {
+	_u.mutation.ResetHitpoints()
+	_u.mutation.SetHitpoints(v)
+	return _u
+}
+
+// SetNillableHitpoints sets the "hitpoints" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableHitpoints(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetHitpoints(*v)
+	}
+	return _u
+}
+
+// AddHitpoints adds value to the "hitpoints" field.
+func (_u *CharacterUpdate) AddHitpoints(v int) *CharacterUpdate {
+	_u.mutation.AddHitpoints(v)
+	return _u
+}
+
+// SetMaxHitpoints sets the "max_hitpoints" field.
+func (_u *CharacterUpdate) SetMaxHitpoints(v int) *CharacterUpdate {
+	_u.mutation.ResetMaxHitpoints()
+	_u.mutation.SetMaxHitpoints(v)
+	return _u
+}
+
+// SetNillableMaxHitpoints sets the "max_hitpoints" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableMaxHitpoints(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetMaxHitpoints(*v)
+	}
+	return _u
+}
+
+// AddMaxHitpoints adds value to the "max_hitpoints" field.
+func (_u *CharacterUpdate) AddMaxHitpoints(v int) *CharacterUpdate {
+	_u.mutation.AddMaxHitpoints(v)
+	return _u
+}
+
+// SetStamina sets the "stamina" field.
+func (_u *CharacterUpdate) SetStamina(v int) *CharacterUpdate {
+	_u.mutation.ResetStamina()
+	_u.mutation.SetStamina(v)
+	return _u
+}
+
+// SetNillableStamina sets the "stamina" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableStamina(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetStamina(*v)
+	}
+	return _u
+}
+
+// AddStamina adds value to the "stamina" field.
+func (_u *CharacterUpdate) AddStamina(v int) *CharacterUpdate {
+	_u.mutation.AddStamina(v)
+	return _u
+}
+
+// SetMaxStamina sets the "max_stamina" field.
+func (_u *CharacterUpdate) SetMaxStamina(v int) *CharacterUpdate {
+	_u.mutation.ResetMaxStamina()
+	_u.mutation.SetMaxStamina(v)
+	return _u
+}
+
+// SetNillableMaxStamina sets the "max_stamina" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableMaxStamina(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetMaxStamina(*v)
+	}
+	return _u
+}
+
+// AddMaxStamina adds value to the "max_stamina" field.
+func (_u *CharacterUpdate) AddMaxStamina(v int) *CharacterUpdate {
+	_u.mutation.AddMaxStamina(v)
+	return _u
+}
+
+// SetMana sets the "mana" field.
+func (_u *CharacterUpdate) SetMana(v int) *CharacterUpdate {
+	_u.mutation.ResetMana()
+	_u.mutation.SetMana(v)
+	return _u
+}
+
+// SetNillableMana sets the "mana" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableMana(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetMana(*v)
+	}
+	return _u
+}
+
+// AddMana adds value to the "mana" field.
+func (_u *CharacterUpdate) AddMana(v int) *CharacterUpdate {
+	_u.mutation.AddMana(v)
+	return _u
+}
+
+// SetMaxMana sets the "max_mana" field.
+func (_u *CharacterUpdate) SetMaxMana(v int) *CharacterUpdate {
+	_u.mutation.ResetMaxMana()
+	_u.mutation.SetMaxMana(v)
+	return _u
+}
+
+// SetNillableMaxMana sets the "max_mana" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableMaxMana(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetMaxMana(*v)
+	}
+	return _u
+}
+
+// AddMaxMana adds value to the "max_mana" field.
+func (_u *CharacterUpdate) AddMaxMana(v int) *CharacterUpdate {
+	_u.mutation.AddMaxMana(v)
 	return _u
 }
 
@@ -203,6 +349,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(character.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Password(); ok {
+		_spec.SetField(character.FieldPassword, field.TypeString, value)
+	}
+	if _u.mutation.PasswordCleared() {
+		_spec.ClearField(character.FieldPassword, field.TypeString)
+	}
 	if value, ok := _u.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 	}
@@ -214,6 +366,42 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Hitpoints(); ok {
+		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHitpoints(); ok {
+		_spec.AddField(character.FieldHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxHitpoints(); ok {
+		_spec.SetField(character.FieldMaxHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxHitpoints(); ok {
+		_spec.AddField(character.FieldMaxHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Stamina(); ok {
+		_spec.SetField(character.FieldStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStamina(); ok {
+		_spec.AddField(character.FieldStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxStamina(); ok {
+		_spec.SetField(character.FieldMaxStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxStamina(); ok {
+		_spec.AddField(character.FieldMaxStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Mana(); ok {
+		_spec.SetField(character.FieldMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMana(); ok {
+		_spec.AddField(character.FieldMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxMana(); ok {
+		_spec.SetField(character.FieldMaxMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxMana(); ok {
+		_spec.AddField(character.FieldMaxMana, field.TypeInt, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -307,6 +495,26 @@ func (_u *CharacterUpdateOne) SetNillableName(v *string) *CharacterUpdateOne {
 	return _u
 }
 
+// SetPassword sets the "password" field.
+func (_u *CharacterUpdateOne) SetPassword(v string) *CharacterUpdateOne {
+	_u.mutation.SetPassword(v)
+	return _u
+}
+
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillablePassword(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetPassword(*v)
+	}
+	return _u
+}
+
+// ClearPassword clears the value of the "password" field.
+func (_u *CharacterUpdateOne) ClearPassword() *CharacterUpdateOne {
+	_u.mutation.ClearPassword()
+	return _u
+}
+
 // SetIsNPC sets the "isNPC" field.
 func (_u *CharacterUpdateOne) SetIsNPC(v bool) *CharacterUpdateOne {
 	_u.mutation.SetIsNPC(v)
@@ -367,6 +575,132 @@ func (_u *CharacterUpdateOne) SetNillableIsAdmin(v *bool) *CharacterUpdateOne {
 	if v != nil {
 		_u.SetIsAdmin(*v)
 	}
+	return _u
+}
+
+// SetHitpoints sets the "hitpoints" field.
+func (_u *CharacterUpdateOne) SetHitpoints(v int) *CharacterUpdateOne {
+	_u.mutation.ResetHitpoints()
+	_u.mutation.SetHitpoints(v)
+	return _u
+}
+
+// SetNillableHitpoints sets the "hitpoints" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableHitpoints(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetHitpoints(*v)
+	}
+	return _u
+}
+
+// AddHitpoints adds value to the "hitpoints" field.
+func (_u *CharacterUpdateOne) AddHitpoints(v int) *CharacterUpdateOne {
+	_u.mutation.AddHitpoints(v)
+	return _u
+}
+
+// SetMaxHitpoints sets the "max_hitpoints" field.
+func (_u *CharacterUpdateOne) SetMaxHitpoints(v int) *CharacterUpdateOne {
+	_u.mutation.ResetMaxHitpoints()
+	_u.mutation.SetMaxHitpoints(v)
+	return _u
+}
+
+// SetNillableMaxHitpoints sets the "max_hitpoints" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableMaxHitpoints(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetMaxHitpoints(*v)
+	}
+	return _u
+}
+
+// AddMaxHitpoints adds value to the "max_hitpoints" field.
+func (_u *CharacterUpdateOne) AddMaxHitpoints(v int) *CharacterUpdateOne {
+	_u.mutation.AddMaxHitpoints(v)
+	return _u
+}
+
+// SetStamina sets the "stamina" field.
+func (_u *CharacterUpdateOne) SetStamina(v int) *CharacterUpdateOne {
+	_u.mutation.ResetStamina()
+	_u.mutation.SetStamina(v)
+	return _u
+}
+
+// SetNillableStamina sets the "stamina" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableStamina(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetStamina(*v)
+	}
+	return _u
+}
+
+// AddStamina adds value to the "stamina" field.
+func (_u *CharacterUpdateOne) AddStamina(v int) *CharacterUpdateOne {
+	_u.mutation.AddStamina(v)
+	return _u
+}
+
+// SetMaxStamina sets the "max_stamina" field.
+func (_u *CharacterUpdateOne) SetMaxStamina(v int) *CharacterUpdateOne {
+	_u.mutation.ResetMaxStamina()
+	_u.mutation.SetMaxStamina(v)
+	return _u
+}
+
+// SetNillableMaxStamina sets the "max_stamina" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableMaxStamina(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetMaxStamina(*v)
+	}
+	return _u
+}
+
+// AddMaxStamina adds value to the "max_stamina" field.
+func (_u *CharacterUpdateOne) AddMaxStamina(v int) *CharacterUpdateOne {
+	_u.mutation.AddMaxStamina(v)
+	return _u
+}
+
+// SetMana sets the "mana" field.
+func (_u *CharacterUpdateOne) SetMana(v int) *CharacterUpdateOne {
+	_u.mutation.ResetMana()
+	_u.mutation.SetMana(v)
+	return _u
+}
+
+// SetNillableMana sets the "mana" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableMana(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetMana(*v)
+	}
+	return _u
+}
+
+// AddMana adds value to the "mana" field.
+func (_u *CharacterUpdateOne) AddMana(v int) *CharacterUpdateOne {
+	_u.mutation.AddMana(v)
+	return _u
+}
+
+// SetMaxMana sets the "max_mana" field.
+func (_u *CharacterUpdateOne) SetMaxMana(v int) *CharacterUpdateOne {
+	_u.mutation.ResetMaxMana()
+	_u.mutation.SetMaxMana(v)
+	return _u
+}
+
+// SetNillableMaxMana sets the "max_mana" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableMaxMana(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetMaxMana(*v)
+	}
+	return _u
+}
+
+// AddMaxMana adds value to the "max_mana" field.
+func (_u *CharacterUpdateOne) AddMaxMana(v int) *CharacterUpdateOne {
+	_u.mutation.AddMaxMana(v)
 	return _u
 }
 
@@ -497,6 +831,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(character.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Password(); ok {
+		_spec.SetField(character.FieldPassword, field.TypeString, value)
+	}
+	if _u.mutation.PasswordCleared() {
+		_spec.ClearField(character.FieldPassword, field.TypeString)
+	}
 	if value, ok := _u.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 	}
@@ -508,6 +848,42 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Hitpoints(); ok {
+		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHitpoints(); ok {
+		_spec.AddField(character.FieldHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxHitpoints(); ok {
+		_spec.SetField(character.FieldMaxHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxHitpoints(); ok {
+		_spec.AddField(character.FieldMaxHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Stamina(); ok {
+		_spec.SetField(character.FieldStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStamina(); ok {
+		_spec.AddField(character.FieldStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxStamina(); ok {
+		_spec.SetField(character.FieldMaxStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxStamina(); ok {
+		_spec.AddField(character.FieldMaxStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Mana(); ok {
+		_spec.SetField(character.FieldMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMana(); ok {
+		_spec.AddField(character.FieldMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxMana(); ok {
+		_spec.SetField(character.FieldMaxMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxMana(); ok {
+		_spec.AddField(character.FieldMaxMana, field.TypeInt, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

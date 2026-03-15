@@ -14,6 +14,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldPassword holds the string denoting the password field in the database.
+	FieldPassword = "password"
 	// FieldIsNPC holds the string denoting the isnpc field in the database.
 	FieldIsNPC = "is_npc"
 	// FieldCurrentRoomId holds the string denoting the currentroomid field in the database.
@@ -22,6 +24,18 @@ const (
 	FieldStartingRoomId = "starting_room_id"
 	// FieldIsAdmin holds the string denoting the is_admin field in the database.
 	FieldIsAdmin = "is_admin"
+	// FieldHitpoints holds the string denoting the hitpoints field in the database.
+	FieldHitpoints = "hitpoints"
+	// FieldMaxHitpoints holds the string denoting the max_hitpoints field in the database.
+	FieldMaxHitpoints = "max_hitpoints"
+	// FieldStamina holds the string denoting the stamina field in the database.
+	FieldStamina = "stamina"
+	// FieldMaxStamina holds the string denoting the max_stamina field in the database.
+	FieldMaxStamina = "max_stamina"
+	// FieldMana holds the string denoting the mana field in the database.
+	FieldMana = "mana"
+	// FieldMaxMana holds the string denoting the max_mana field in the database.
+	FieldMaxMana = "max_mana"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
@@ -48,10 +62,17 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldPassword,
 	FieldIsNPC,
 	FieldCurrentRoomId,
 	FieldStartingRoomId,
 	FieldIsAdmin,
+	FieldHitpoints,
+	FieldMaxHitpoints,
+	FieldStamina,
+	FieldMaxStamina,
+	FieldMana,
+	FieldMaxMana,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "characters"
@@ -81,6 +102,18 @@ var (
 	DefaultIsNPC bool
 	// DefaultIsAdmin holds the default value on creation for the "is_admin" field.
 	DefaultIsAdmin bool
+	// DefaultHitpoints holds the default value on creation for the "hitpoints" field.
+	DefaultHitpoints int
+	// DefaultMaxHitpoints holds the default value on creation for the "max_hitpoints" field.
+	DefaultMaxHitpoints int
+	// DefaultStamina holds the default value on creation for the "stamina" field.
+	DefaultStamina int
+	// DefaultMaxStamina holds the default value on creation for the "max_stamina" field.
+	DefaultMaxStamina int
+	// DefaultMana holds the default value on creation for the "mana" field.
+	DefaultMana int
+	// DefaultMaxMana holds the default value on creation for the "max_mana" field.
+	DefaultMaxMana int
 )
 
 // OrderOption defines the ordering options for the Character queries.
@@ -94,6 +127,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByPassword orders the results by the password field.
+func ByPassword(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPassword, opts...).ToFunc()
 }
 
 // ByIsNPC orders the results by the isNPC field.
@@ -114,6 +152,36 @@ func ByStartingRoomId(opts ...sql.OrderTermOption) OrderOption {
 // ByIsAdmin orders the results by the is_admin field.
 func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
+}
+
+// ByHitpoints orders the results by the hitpoints field.
+func ByHitpoints(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHitpoints, opts...).ToFunc()
+}
+
+// ByMaxHitpoints orders the results by the max_hitpoints field.
+func ByMaxHitpoints(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxHitpoints, opts...).ToFunc()
+}
+
+// ByStamina orders the results by the stamina field.
+func ByStamina(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStamina, opts...).ToFunc()
+}
+
+// ByMaxStamina orders the results by the max_stamina field.
+func ByMaxStamina(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxStamina, opts...).ToFunc()
+}
+
+// ByMana orders the results by the mana field.
+func ByMana(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMana, opts...).ToFunc()
+}
+
+// ByMaxMana orders the results by the max_mana field.
+func ByMaxMana(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxMana, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

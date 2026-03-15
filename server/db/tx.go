@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// Equipment is the client for interacting with the Equipment builders.
+	Equipment *EquipmentClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// User is the client for interacting with the User builders.
@@ -150,6 +152,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Character = NewCharacterClient(tx.config)
+	tx.Equipment = NewEquipmentClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
