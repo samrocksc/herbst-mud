@@ -1,11 +1,15 @@
 package routes
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/db/character"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterCharacterRoutes registers all character-related routes
@@ -14,6 +18,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 	router.POST("/characters", func(c *gin.Context) {
 		var req struct {
 			Name        string `json:"name" binding:"required"`
+			Password    string `json:"password"`
 			IsNPC       bool   `json:"isNPC"`
 			CurrentRoom int    `json:"currentRoomId"`
 			StartingRoom int   `json:"startingRoomId"`
@@ -26,11 +31,26 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
+		// Hash the password if provided
+		var hashedPassword string
+		if req.Password != "" {
+			hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+				return
+			}
+			hashedPassword = string(hash)
+		}
+
 		builder := client.Character.
 			Create().
 			SetName(req.Name).
 			SetIsNPC(req.IsNPC).
 			SetIsAdmin(req.IsAdmin)
+
+		if hashedPassword != "" {
+			builder.SetPassword(hashedPassword)
+		}
 
 		if req.CurrentRoom > 0 {
 			builder.SetCurrentRoomId(req.CurrentRoom)
@@ -49,7 +69,14 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		c.JSON(http.StatusCreated, character)
+		c.JSON(http.StatusCreated, gin.H{
+			"id":           character.ID,
+			"name":         character.Name,
+			"isNPC":        character.IsNPC,
+			"is_admin":     character.IsAdmin,
+			"currentRoomId": character.CurrentRoomId,
+			"startingRoomId": character.StartingRoomId,
+		})
 	})
 
 	// Get all characters
@@ -143,5 +170,53 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		c.JSON(http.StatusNoContent, nil)
+	})
+
+	// Authenticate a character
+	router.POST("/characters/authenticate", func(c *gin.Context) {
+		var req struct {
+			Name     string `json:"name" binding:"required"`
+			Password string `json:"password" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Find character by name
+		char, err := client.Character.Query().Where(character.NameEQ(req.Name)).Only(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Character not found"})
+			return
+		}
+
+		// Check if character has a password set
+		if char.Password == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Character has no password set"})
+			return
+		}
+
+		// Verify password
+		err = bcrypt.CompareHashAndPassword([]byte(char.Password), []byte(req.Password))
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
+			return
+		}
+
+		// Generate access token
+		tokenBytes := make([]byte, 32)
+		rand.Read(tokenBytes)
+		accessToken := hex.EncodeToString(tokenBytes)
+
+		c.JSON(http.StatusOK, gin.H{
+			"authenticated": true,
+			"access_token": accessToken,
+			"character": gin.H{
+				"id":       char.ID,
+				"name":     char.Name,
+				"is_admin": char.IsAdmin,
+			},
+		})
 	})
 }

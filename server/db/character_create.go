@@ -27,6 +27,20 @@ func (_c *CharacterCreate) SetName(v string) *CharacterCreate {
 	return _c
 }
 
+// SetPassword sets the "password" field.
+func (_c *CharacterCreate) SetPassword(v string) *CharacterCreate {
+	_c.mutation.SetPassword(v)
+	return _c
+}
+
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillablePassword(v *string) *CharacterCreate {
+	if v != nil {
+		_c.SetPassword(*v)
+	}
+	return _c
+}
+
 // SetIsNPC sets the "isNPC" field.
 func (_c *CharacterCreate) SetIsNPC(v bool) *CharacterCreate {
 	_c.mutation.SetIsNPC(v)
@@ -63,6 +77,90 @@ func (_c *CharacterCreate) SetIsAdmin(v bool) *CharacterCreate {
 func (_c *CharacterCreate) SetNillableIsAdmin(v *bool) *CharacterCreate {
 	if v != nil {
 		_c.SetIsAdmin(*v)
+	}
+	return _c
+}
+
+// SetHitpoints sets the "hitpoints" field.
+func (_c *CharacterCreate) SetHitpoints(v int) *CharacterCreate {
+	_c.mutation.SetHitpoints(v)
+	return _c
+}
+
+// SetNillableHitpoints sets the "hitpoints" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableHitpoints(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetHitpoints(*v)
+	}
+	return _c
+}
+
+// SetMaxHitpoints sets the "max_hitpoints" field.
+func (_c *CharacterCreate) SetMaxHitpoints(v int) *CharacterCreate {
+	_c.mutation.SetMaxHitpoints(v)
+	return _c
+}
+
+// SetNillableMaxHitpoints sets the "max_hitpoints" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableMaxHitpoints(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetMaxHitpoints(*v)
+	}
+	return _c
+}
+
+// SetStamina sets the "stamina" field.
+func (_c *CharacterCreate) SetStamina(v int) *CharacterCreate {
+	_c.mutation.SetStamina(v)
+	return _c
+}
+
+// SetNillableStamina sets the "stamina" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableStamina(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetStamina(*v)
+	}
+	return _c
+}
+
+// SetMaxStamina sets the "max_stamina" field.
+func (_c *CharacterCreate) SetMaxStamina(v int) *CharacterCreate {
+	_c.mutation.SetMaxStamina(v)
+	return _c
+}
+
+// SetNillableMaxStamina sets the "max_stamina" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableMaxStamina(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetMaxStamina(*v)
+	}
+	return _c
+}
+
+// SetMana sets the "mana" field.
+func (_c *CharacterCreate) SetMana(v int) *CharacterCreate {
+	_c.mutation.SetMana(v)
+	return _c
+}
+
+// SetNillableMana sets the "mana" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableMana(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetMana(*v)
+	}
+	return _c
+}
+
+// SetMaxMana sets the "max_mana" field.
+func (_c *CharacterCreate) SetMaxMana(v int) *CharacterCreate {
+	_c.mutation.SetMaxMana(v)
+	return _c
+}
+
+// SetNillableMaxMana sets the "max_mana" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableMaxMana(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetMaxMana(*v)
 	}
 	return _c
 }
@@ -140,6 +238,30 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultIsAdmin
 		_c.mutation.SetIsAdmin(v)
 	}
+	if _, ok := _c.mutation.Hitpoints(); !ok {
+		v := character.DefaultHitpoints
+		_c.mutation.SetHitpoints(v)
+	}
+	if _, ok := _c.mutation.MaxHitpoints(); !ok {
+		v := character.DefaultMaxHitpoints
+		_c.mutation.SetMaxHitpoints(v)
+	}
+	if _, ok := _c.mutation.Stamina(); !ok {
+		v := character.DefaultStamina
+		_c.mutation.SetStamina(v)
+	}
+	if _, ok := _c.mutation.MaxStamina(); !ok {
+		v := character.DefaultMaxStamina
+		_c.mutation.SetMaxStamina(v)
+	}
+	if _, ok := _c.mutation.Mana(); !ok {
+		v := character.DefaultMana
+		_c.mutation.SetMana(v)
+	}
+	if _, ok := _c.mutation.MaxMana(); !ok {
+		v := character.DefaultMaxMana
+		_c.mutation.SetMaxMana(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -158,6 +280,24 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsAdmin(); !ok {
 		return &ValidationError{Name: "is_admin", err: errors.New(`db: missing required field "Character.is_admin"`)}
+	}
+	if _, ok := _c.mutation.Hitpoints(); !ok {
+		return &ValidationError{Name: "hitpoints", err: errors.New(`db: missing required field "Character.hitpoints"`)}
+	}
+	if _, ok := _c.mutation.MaxHitpoints(); !ok {
+		return &ValidationError{Name: "max_hitpoints", err: errors.New(`db: missing required field "Character.max_hitpoints"`)}
+	}
+	if _, ok := _c.mutation.Stamina(); !ok {
+		return &ValidationError{Name: "stamina", err: errors.New(`db: missing required field "Character.stamina"`)}
+	}
+	if _, ok := _c.mutation.MaxStamina(); !ok {
+		return &ValidationError{Name: "max_stamina", err: errors.New(`db: missing required field "Character.max_stamina"`)}
+	}
+	if _, ok := _c.mutation.Mana(); !ok {
+		return &ValidationError{Name: "mana", err: errors.New(`db: missing required field "Character.mana"`)}
+	}
+	if _, ok := _c.mutation.MaxMana(); !ok {
+		return &ValidationError{Name: "max_mana", err: errors.New(`db: missing required field "Character.max_mana"`)}
 	}
 	if len(_c.mutation.RoomIDs()) == 0 {
 		return &ValidationError{Name: "room", err: errors.New(`db: missing required edge "Character.room"`)}
@@ -192,6 +332,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 		_spec.SetField(character.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
+	if value, ok := _c.mutation.Password(); ok {
+		_spec.SetField(character.FieldPassword, field.TypeString, value)
+		_node.Password = value
+	}
 	if value, ok := _c.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 		_node.IsNPC = value
@@ -203,6 +347,30 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
 		_node.IsAdmin = value
+	}
+	if value, ok := _c.mutation.Hitpoints(); ok {
+		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)
+		_node.Hitpoints = value
+	}
+	if value, ok := _c.mutation.MaxHitpoints(); ok {
+		_spec.SetField(character.FieldMaxHitpoints, field.TypeInt, value)
+		_node.MaxHitpoints = value
+	}
+	if value, ok := _c.mutation.Stamina(); ok {
+		_spec.SetField(character.FieldStamina, field.TypeInt, value)
+		_node.Stamina = value
+	}
+	if value, ok := _c.mutation.MaxStamina(); ok {
+		_spec.SetField(character.FieldMaxStamina, field.TypeInt, value)
+		_node.MaxStamina = value
+	}
+	if value, ok := _c.mutation.Mana(); ok {
+		_spec.SetField(character.FieldMana, field.TypeInt, value)
+		_node.Mana = value
+	}
+	if value, ok := _c.mutation.MaxMana(); ok {
+		_spec.SetField(character.FieldMaxMana, field.TypeInt, value)
+		_node.MaxMana = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
