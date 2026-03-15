@@ -13,6 +13,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "is_npc", Type: field.TypeBool, Default: false},
+		{Name: "starting_room_id", Type: field.TypeInt},
+		{Name: "is_admin", Type: field.TypeBool, Default: false},
 		{Name: "current_room_id", Type: field.TypeInt},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
 		{Name: "user_characters", Type: field.TypeInt, Nullable: true},
@@ -25,20 +27,45 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[3]},
+				Columns:    []*schema.Column{CharactersColumns[5]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[4]},
+				Columns:    []*schema.Column{CharactersColumns[6]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[5]},
+				Columns:    []*schema.Column{CharactersColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// EquipmentColumns holds the columns for the "equipment" table.
+	EquipmentColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "slot", Type: field.TypeString},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "weight", Type: field.TypeInt, Default: 0},
+		{Name: "is_equipped", Type: field.TypeBool, Default: false},
+		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
+	}
+	// EquipmentTable holds the schema information for the "equipment" table.
+	EquipmentTable = &schema.Table{
+		Name:       "equipment",
+		Columns:    EquipmentColumns,
+		PrimaryKey: []*schema.Column{EquipmentColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "equipment_rooms_equipment",
+				Columns:    []*schema.Column{EquipmentColumns[7]},
+				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -50,6 +77,7 @@ var (
 		{Name: "description", Type: field.TypeString},
 		{Name: "is_starting_room", Type: field.TypeBool, Default: false},
 		{Name: "exits", Type: field.TypeJSON},
+		{Name: "atmosphere", Type: field.TypeEnum, Enums: []string{"air", "water", "wind"}, Default: "air"},
 	}
 	// RoomsTable holds the schema information for the "rooms" table.
 	RoomsTable = &schema.Table{
@@ -73,6 +101,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CharactersTable,
+		EquipmentTable,
 		RoomsTable,
 		UsersTable,
 	}
@@ -82,4 +111,5 @@ func init() {
 	CharactersTable.ForeignKeys[0].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[1].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[2].RefTable = UsersTable
+	EquipmentTable.ForeignKeys[0].RefTable = RoomsTable
 }

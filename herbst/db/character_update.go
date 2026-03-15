@@ -71,6 +71,41 @@ func (_u *CharacterUpdate) SetNillableCurrentRoomId(v *int) *CharacterUpdate {
 	return _u
 }
 
+// SetStartingRoomId sets the "startingRoomId" field.
+func (_u *CharacterUpdate) SetStartingRoomId(v int) *CharacterUpdate {
+	_u.mutation.ResetStartingRoomId()
+	_u.mutation.SetStartingRoomId(v)
+	return _u
+}
+
+// SetNillableStartingRoomId sets the "startingRoomId" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableStartingRoomId(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetStartingRoomId(*v)
+	}
+	return _u
+}
+
+// AddStartingRoomId adds value to the "startingRoomId" field.
+func (_u *CharacterUpdate) AddStartingRoomId(v int) *CharacterUpdate {
+	_u.mutation.AddStartingRoomId(v)
+	return _u
+}
+
+// SetIsAdmin sets the "is_admin" field.
+func (_u *CharacterUpdate) SetIsAdmin(v bool) *CharacterUpdate {
+	_u.mutation.SetIsAdmin(v)
+	return _u
+}
+
+// SetNillableIsAdmin sets the "is_admin" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableIsAdmin(v *bool) *CharacterUpdate {
+	if v != nil {
+		_u.SetIsAdmin(*v)
+	}
+	return _u
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_u *CharacterUpdate) SetUserID(id int) *CharacterUpdate {
 	_u.mutation.SetUserID(id)
@@ -170,6 +205,15 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.StartingRoomId(); ok {
+		_spec.SetField(character.FieldStartingRoomId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStartingRoomId(); ok {
+		_spec.AddField(character.FieldStartingRoomId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.IsAdmin(); ok {
+		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -287,6 +331,41 @@ func (_u *CharacterUpdateOne) SetCurrentRoomId(v int) *CharacterUpdateOne {
 func (_u *CharacterUpdateOne) SetNillableCurrentRoomId(v *int) *CharacterUpdateOne {
 	if v != nil {
 		_u.SetCurrentRoomId(*v)
+	}
+	return _u
+}
+
+// SetStartingRoomId sets the "startingRoomId" field.
+func (_u *CharacterUpdateOne) SetStartingRoomId(v int) *CharacterUpdateOne {
+	_u.mutation.ResetStartingRoomId()
+	_u.mutation.SetStartingRoomId(v)
+	return _u
+}
+
+// SetNillableStartingRoomId sets the "startingRoomId" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableStartingRoomId(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetStartingRoomId(*v)
+	}
+	return _u
+}
+
+// AddStartingRoomId adds value to the "startingRoomId" field.
+func (_u *CharacterUpdateOne) AddStartingRoomId(v int) *CharacterUpdateOne {
+	_u.mutation.AddStartingRoomId(v)
+	return _u
+}
+
+// SetIsAdmin sets the "is_admin" field.
+func (_u *CharacterUpdateOne) SetIsAdmin(v bool) *CharacterUpdateOne {
+	_u.mutation.SetIsAdmin(v)
+	return _u
+}
+
+// SetNillableIsAdmin sets the "is_admin" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableIsAdmin(v *bool) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetIsAdmin(*v)
 	}
 	return _u
 }
@@ -420,6 +499,15 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.StartingRoomId(); ok {
+		_spec.SetField(character.FieldStartingRoomId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStartingRoomId(); ok {
+		_spec.AddField(character.FieldStartingRoomId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.IsAdmin(); ok {
+		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

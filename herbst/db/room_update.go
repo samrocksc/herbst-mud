@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst/db/character"
+	"herbst/db/equipment"
 	"herbst/db/predicate"
 	"herbst/db/room"
 
@@ -76,6 +77,20 @@ func (_u *RoomUpdate) SetExits(v map[string]int) *RoomUpdate {
 	return _u
 }
 
+// SetAtmosphere sets the "atmosphere" field.
+func (_u *RoomUpdate) SetAtmosphere(v room.Atmosphere) *RoomUpdate {
+	_u.mutation.SetAtmosphere(v)
+	return _u
+}
+
+// SetNillableAtmosphere sets the "atmosphere" field if the given value is not nil.
+func (_u *RoomUpdate) SetNillableAtmosphere(v *room.Atmosphere) *RoomUpdate {
+	if v != nil {
+		_u.SetAtmosphere(*v)
+	}
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *RoomUpdate) AddCharacterIDs(ids ...int) *RoomUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -89,6 +104,21 @@ func (_u *RoomUpdate) AddCharacters(v ...*Character) *RoomUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddCharacterIDs(ids...)
+}
+
+// AddEquipmentIDs adds the "equipment" edge to the Equipment entity by IDs.
+func (_u *RoomUpdate) AddEquipmentIDs(ids ...int) *RoomUpdate {
+	_u.mutation.AddEquipmentIDs(ids...)
+	return _u
+}
+
+// AddEquipment adds the "equipment" edges to the Equipment entity.
+func (_u *RoomUpdate) AddEquipment(v ...*Equipment) *RoomUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEquipmentIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -115,6 +145,27 @@ func (_u *RoomUpdate) RemoveCharacters(v ...*Character) *RoomUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearEquipment clears all "equipment" edges to the Equipment entity.
+func (_u *RoomUpdate) ClearEquipment() *RoomUpdate {
+	_u.mutation.ClearEquipment()
+	return _u
+}
+
+// RemoveEquipmentIDs removes the "equipment" edge to Equipment entities by IDs.
+func (_u *RoomUpdate) RemoveEquipmentIDs(ids ...int) *RoomUpdate {
+	_u.mutation.RemoveEquipmentIDs(ids...)
+	return _u
+}
+
+// RemoveEquipment removes "equipment" edges to Equipment entities.
+func (_u *RoomUpdate) RemoveEquipment(v ...*Equipment) *RoomUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEquipmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -144,7 +195,20 @@ func (_u *RoomUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *RoomUpdate) check() error {
+	if v, ok := _u.mutation.Atmosphere(); ok {
+		if err := room.AtmosphereValidator(v); err != nil {
+			return &ValidationError{Name: "atmosphere", err: fmt.Errorf(`db: validator failed for field "Room.atmosphere": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(room.Table, room.Columns, sqlgraph.NewFieldSpec(room.FieldID, field.TypeInt))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -164,6 +228,9 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Exits(); ok {
 		_spec.SetField(room.FieldExits, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.Atmosphere(); ok {
+		_spec.SetField(room.FieldAtmosphere, field.TypeEnum, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -203,6 +270,51 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.EquipmentTable,
+			Columns: []string{room.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEquipmentIDs(); len(nodes) > 0 && !_u.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.EquipmentTable,
+			Columns: []string{room.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.EquipmentTable,
+			Columns: []string{room.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -278,6 +390,20 @@ func (_u *RoomUpdateOne) SetExits(v map[string]int) *RoomUpdateOne {
 	return _u
 }
 
+// SetAtmosphere sets the "atmosphere" field.
+func (_u *RoomUpdateOne) SetAtmosphere(v room.Atmosphere) *RoomUpdateOne {
+	_u.mutation.SetAtmosphere(v)
+	return _u
+}
+
+// SetNillableAtmosphere sets the "atmosphere" field if the given value is not nil.
+func (_u *RoomUpdateOne) SetNillableAtmosphere(v *room.Atmosphere) *RoomUpdateOne {
+	if v != nil {
+		_u.SetAtmosphere(*v)
+	}
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *RoomUpdateOne) AddCharacterIDs(ids ...int) *RoomUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -291,6 +417,21 @@ func (_u *RoomUpdateOne) AddCharacters(v ...*Character) *RoomUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddCharacterIDs(ids...)
+}
+
+// AddEquipmentIDs adds the "equipment" edge to the Equipment entity by IDs.
+func (_u *RoomUpdateOne) AddEquipmentIDs(ids ...int) *RoomUpdateOne {
+	_u.mutation.AddEquipmentIDs(ids...)
+	return _u
+}
+
+// AddEquipment adds the "equipment" edges to the Equipment entity.
+func (_u *RoomUpdateOne) AddEquipment(v ...*Equipment) *RoomUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEquipmentIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -317,6 +458,27 @@ func (_u *RoomUpdateOne) RemoveCharacters(v ...*Character) *RoomUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearEquipment clears all "equipment" edges to the Equipment entity.
+func (_u *RoomUpdateOne) ClearEquipment() *RoomUpdateOne {
+	_u.mutation.ClearEquipment()
+	return _u
+}
+
+// RemoveEquipmentIDs removes the "equipment" edge to Equipment entities by IDs.
+func (_u *RoomUpdateOne) RemoveEquipmentIDs(ids ...int) *RoomUpdateOne {
+	_u.mutation.RemoveEquipmentIDs(ids...)
+	return _u
+}
+
+// RemoveEquipment removes "equipment" edges to Equipment entities.
+func (_u *RoomUpdateOne) RemoveEquipment(v ...*Equipment) *RoomUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEquipmentIDs(ids...)
 }
 
 // Where appends a list predicates to the RoomUpdate builder.
@@ -359,7 +521,20 @@ func (_u *RoomUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *RoomUpdateOne) check() error {
+	if v, ok := _u.mutation.Atmosphere(); ok {
+		if err := room.AtmosphereValidator(v); err != nil {
+			return &ValidationError{Name: "atmosphere", err: fmt.Errorf(`db: validator failed for field "Room.atmosphere": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(room.Table, room.Columns, sqlgraph.NewFieldSpec(room.FieldID, field.TypeInt))
 	id, ok := _u.mutation.ID()
 	if !ok {
@@ -396,6 +571,9 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 	}
 	if value, ok := _u.mutation.Exits(); ok {
 		_spec.SetField(room.FieldExits, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.Atmosphere(); ok {
+		_spec.SetField(room.FieldAtmosphere, field.TypeEnum, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -435,6 +613,51 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.EquipmentTable,
+			Columns: []string{room.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEquipmentIDs(); len(nodes) > 0 && !_u.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.EquipmentTable,
+			Columns: []string{room.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.EquipmentTable,
+			Columns: []string{room.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

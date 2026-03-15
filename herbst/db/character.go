@@ -24,6 +24,10 @@ type Character struct {
 	IsNPC bool `json:"isNPC,omitempty"`
 	// CurrentRoomId holds the value of the "currentRoomId" field.
 	CurrentRoomId int `json:"currentRoomId,omitempty"`
+	// StartingRoomId holds the value of the "startingRoomId" field.
+	StartingRoomId int `json:"startingRoomId,omitempty"`
+	// IsAdmin holds the value of the "is_admin" field.
+	IsAdmin bool `json:"is_admin,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
 	Edges           CharacterEdges `json:"edges"`
@@ -70,9 +74,9 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case character.FieldIsNPC:
+		case character.FieldIsNPC, character.FieldIsAdmin:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId:
 			values[i] = new(sql.NullInt64)
 		case character.FieldName:
 			values[i] = new(sql.NullString)
@@ -118,6 +122,18 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field currentRoomId", values[i])
 			} else if value.Valid {
 				_m.CurrentRoomId = int(value.Int64)
+			}
+		case character.FieldStartingRoomId:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field startingRoomId", values[i])
+			} else if value.Valid {
+				_m.StartingRoomId = int(value.Int64)
+			}
+		case character.FieldIsAdmin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_admin", values[i])
+			} else if value.Valid {
+				_m.IsAdmin = value.Bool
 			}
 		case character.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -187,6 +203,12 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("currentRoomId=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CurrentRoomId))
+	builder.WriteString(", ")
+	builder.WriteString("startingRoomId=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StartingRoomId))
+	builder.WriteString(", ")
+	builder.WriteString("is_admin=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsAdmin))
 	builder.WriteByte(')')
 	return builder.String()
 }

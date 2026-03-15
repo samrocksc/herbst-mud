@@ -4,6 +4,7 @@ package db
 
 import (
 	"herbst/db/character"
+	"herbst/db/equipment"
 	"herbst/db/room"
 	"herbst/db/schema"
 	"herbst/db/user"
@@ -19,6 +20,24 @@ func init() {
 	characterDescIsNPC := characterFields[1].Descriptor()
 	// character.DefaultIsNPC holds the default value on creation for the isNPC field.
 	character.DefaultIsNPC = characterDescIsNPC.Default.(bool)
+	// characterDescIsAdmin is the schema descriptor for is_admin field.
+	characterDescIsAdmin := characterFields[4].Descriptor()
+	// character.DefaultIsAdmin holds the default value on creation for the is_admin field.
+	character.DefaultIsAdmin = characterDescIsAdmin.Default.(bool)
+	equipmentFields := schema.Equipment{}.Fields()
+	_ = equipmentFields
+	// equipmentDescLevel is the schema descriptor for level field.
+	equipmentDescLevel := equipmentFields[3].Descriptor()
+	// equipment.DefaultLevel holds the default value on creation for the level field.
+	equipment.DefaultLevel = equipmentDescLevel.Default.(int)
+	// equipmentDescWeight is the schema descriptor for weight field.
+	equipmentDescWeight := equipmentFields[4].Descriptor()
+	// equipment.DefaultWeight holds the default value on creation for the weight field.
+	equipment.DefaultWeight = equipmentDescWeight.Default.(int)
+	// equipmentDescIsEquipped is the schema descriptor for isEquipped field.
+	equipmentDescIsEquipped := equipmentFields[5].Descriptor()
+	// equipment.DefaultIsEquipped holds the default value on creation for the isEquipped field.
+	equipment.DefaultIsEquipped = equipmentDescIsEquipped.Default.(bool)
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
 	// roomDescIsStartingRoom is the schema descriptor for isStartingRoom field.

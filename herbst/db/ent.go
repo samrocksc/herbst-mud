@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst/db/character"
+	"herbst/db/equipment"
 	"herbst/db/room"
 	"herbst/db/user"
 	"reflect"
@@ -76,6 +77,7 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			character.Table: character.ValidColumn,
+			equipment.Table: equipment.ValidColumn,
 			room.Table:      room.ValidColumn,
 			user.Table:      user.ValidColumn,
 		})

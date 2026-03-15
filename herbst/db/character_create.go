@@ -47,6 +47,26 @@ func (_c *CharacterCreate) SetCurrentRoomId(v int) *CharacterCreate {
 	return _c
 }
 
+// SetStartingRoomId sets the "startingRoomId" field.
+func (_c *CharacterCreate) SetStartingRoomId(v int) *CharacterCreate {
+	_c.mutation.SetStartingRoomId(v)
+	return _c
+}
+
+// SetIsAdmin sets the "is_admin" field.
+func (_c *CharacterCreate) SetIsAdmin(v bool) *CharacterCreate {
+	_c.mutation.SetIsAdmin(v)
+	return _c
+}
+
+// SetNillableIsAdmin sets the "is_admin" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableIsAdmin(v *bool) *CharacterCreate {
+	if v != nil {
+		_c.SetIsAdmin(*v)
+	}
+	return _c
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_c *CharacterCreate) SetUserID(id int) *CharacterCreate {
 	_c.mutation.SetUserID(id)
@@ -116,6 +136,10 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultIsNPC
 		_c.mutation.SetIsNPC(v)
 	}
+	if _, ok := _c.mutation.IsAdmin(); !ok {
+		v := character.DefaultIsAdmin
+		_c.mutation.SetIsAdmin(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -128,6 +152,12 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.CurrentRoomId(); !ok {
 		return &ValidationError{Name: "currentRoomId", err: errors.New(`db: missing required field "Character.currentRoomId"`)}
+	}
+	if _, ok := _c.mutation.StartingRoomId(); !ok {
+		return &ValidationError{Name: "startingRoomId", err: errors.New(`db: missing required field "Character.startingRoomId"`)}
+	}
+	if _, ok := _c.mutation.IsAdmin(); !ok {
+		return &ValidationError{Name: "is_admin", err: errors.New(`db: missing required field "Character.is_admin"`)}
 	}
 	if len(_c.mutation.RoomIDs()) == 0 {
 		return &ValidationError{Name: "room", err: errors.New(`db: missing required edge "Character.room"`)}
@@ -165,6 +195,14 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 		_node.IsNPC = value
+	}
+	if value, ok := _c.mutation.StartingRoomId(); ok {
+		_spec.SetField(character.FieldStartingRoomId, field.TypeInt, value)
+		_node.StartingRoomId = value
+	}
+	if value, ok := _c.mutation.IsAdmin(); ok {
+		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
+		_node.IsAdmin = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
