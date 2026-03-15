@@ -1,3 +1,6 @@
+# Agent-specific files (personal to each agent)
+AGENT_KNOWLEDGE.md
+
 # SSH keys
 .ssh/
 
