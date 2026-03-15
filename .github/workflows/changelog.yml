@@ -1,0 +1,42 @@
+name: Changelog
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v4
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Changelog
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ steps.changelog.outputs.changelog }}" > CHANGELOG.md
+
+      - name: Create Pull Request
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: Update changelog
+          title: 'chore: Update CHANGELOG.md'
+          body: |
+            Automated changelog update.
+          branch: chore/update-changelog
+          delete-branch: true
+          token: ${{ secrets.GITHUB_TOKEN }}
