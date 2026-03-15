@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"herbst-server/db"
+	"herbst/db"
 )
 
 const (

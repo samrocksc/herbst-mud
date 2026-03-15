@@ -32,11 +32,19 @@ func main() {
 		log.Printf("Warning: failed to initialize cross-shaped rooms: %v", err)
 	}
 
+	// Initialize default admin user
+	if err := dbinit.InitAdminUser(client); err != nil {
+		log.Printf("Warning: failed to initialize admin user: %v", err)
+	}
+
 	// Set up Gin router
 	router := gin.Default()
 
 	// Register room routes
 	routes.RegisterRoomRoutes(router, client)
+
+	// Register user routes
+	routes.RegisterUserRoutes(router, client)
 
 	// Healthz endpoint
 	router.GET("/healthz", func(c *gin.Context) {

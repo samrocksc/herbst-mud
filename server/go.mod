@@ -3,14 +3,15 @@ module herbst-server
 go 1.25.4
 
 require (
+	entgo.io/ent v0.14.5
 	github.com/cucumber/godog v0.15.1
 	github.com/gin-gonic/gin v1.11.0
+	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.11.1
 )
 
 require (
 	ariga.io/atlas v0.32.1-0.20250325101103-175b25e1c1b9 // indirect
-	entgo.io/ent v0.14.5 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
@@ -40,7 +41,6 @@ require (
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect

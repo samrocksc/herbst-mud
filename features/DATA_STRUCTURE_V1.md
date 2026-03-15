@@ -1,0 +1,41 @@
+We should keep good relations
+
+- A user 
+  - is a person
+  - can have up to three characters
+  - can have god mode, which is unkillable
+- A character
+  - a gender
+  - A class
+  - a race
+  - can be an npc or a person
+  - has equipment
+  - has stats
+    - Strength
+    - intellect
+    - Wisdom
+    - Dexterity
+    - Fortitude
+- A room 
+  - can hold characters
+  - can hold Equipment
+  - Has a description
+  - Has exits
+  - Has atmosphere(air/water/wind)
+- A class
+  - can have the following Types
+    - Warrior
+    - magician
+    - thief
+    - Charlatan
+    - Vigilante
+- A Race
+  - can be the following
+    - mutant
+      - can have a mix(e.g. turtle, rat, rhino)
+    - human
+    - animal
+      - can have a species
+- A gender
+  - can be:
+    - he/him/she/her/it/their/they/them etc.  

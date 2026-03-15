@@ -32,6 +32,20 @@ func (_c *UserCreate) SetPassword(v string) *UserCreate {
 	return _c
 }
 
+// SetIsAdmin sets the "is_admin" field.
+func (_c *UserCreate) SetIsAdmin(v bool) *UserCreate {
+	_c.mutation.SetIsAdmin(v)
+	return _c
+}
+
+// SetNillableIsAdmin sets the "is_admin" field if the given value is not nil.
+func (_c *UserCreate) SetNillableIsAdmin(v *bool) *UserCreate {
+	if v != nil {
+		_c.SetIsAdmin(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_c *UserCreate) AddCharacterIDs(ids ...int) *UserCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -54,6 +68,7 @@ func (_c *UserCreate) Mutation() *UserMutation {
 
 // Save creates the User in the database.
 func (_c *UserCreate) Save(ctx context.Context) (*User, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -79,6 +94,14 @@ func (_c *UserCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *UserCreate) defaults() {
+	if _, ok := _c.mutation.IsAdmin(); !ok {
+		v := user.DefaultIsAdmin
+		_c.mutation.SetIsAdmin(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *UserCreate) check() error {
 	if _, ok := _c.mutation.Email(); !ok {
@@ -86,6 +109,9 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Password(); !ok {
 		return &ValidationError{Name: "password", err: errors.New(`db: missing required field "User.password"`)}
+	}
+	if _, ok := _c.mutation.IsAdmin(); !ok {
+		return &ValidationError{Name: "is_admin", err: errors.New(`db: missing required field "User.is_admin"`)}
 	}
 	return nil
 }
@@ -120,6 +146,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 		_node.Password = value
+	}
+	if value, ok := _c.mutation.IsAdmin(); ok {
+		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
+		_node.IsAdmin = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -158,6 +188,7 @@ func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*UserMutation)
 				if !ok {

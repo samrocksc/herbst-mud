@@ -17,6 +17,8 @@ func (User) Fields() []ent.Field {
 		field.String("email").
 			Unique(),
 		field.String("password"),
+		field.Bool("is_admin").
+			Default(false),
 	}
 }
 

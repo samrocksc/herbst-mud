@@ -11,6 +11,7 @@ import (
 	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/logging"
 	"herbst/db"
+	"herbst/dbinit"
 )
 
 func main() {
@@ -26,6 +27,11 @@ func main() {
 			log.Printf("Warning: failed creating schema resources: %v", err)
 		} else {
 			log.Println("Database initialized successfully")
+		}
+
+		// Initialize default admin user
+		if err := dbinit.InitAdminUser(client); err != nil {
+			log.Printf("Warning: failed to initialize admin user: %v", err)
 		}
 	}
 
