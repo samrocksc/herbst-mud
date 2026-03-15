@@ -18,6 +18,8 @@ const (
 	FieldPassword = "password"
 	// FieldIsAdmin holds the string denoting the is_admin field in the database.
 	FieldIsAdmin = "is_admin"
+	// FieldGodMode holds the string denoting the god_mode field in the database.
+	FieldGodMode = "god_mode"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// Table holds the table name of the user in the database.
@@ -37,6 +39,7 @@ var Columns = []string{
 	FieldEmail,
 	FieldPassword,
 	FieldIsAdmin,
+	FieldGodMode,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -52,6 +55,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsAdmin holds the default value on creation for the "is_admin" field.
 	DefaultIsAdmin bool
+	// DefaultGodMode holds the default value on creation for the "god_mode" field.
+	DefaultGodMode bool
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -75,6 +80,11 @@ func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 // ByIsAdmin orders the results by the is_admin field.
 func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
+}
+
+// ByGodMode orders the results by the god_mode field.
+func ByGodMode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGodMode, opts...).ToFunc()
 }
 
 // ByCharactersCount orders the results by characters count.

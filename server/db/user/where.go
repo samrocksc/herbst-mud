@@ -69,6 +69,11 @@ func IsAdmin(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldIsAdmin, v))
 }
 
+// GodMode applies equality check predicate on the "god_mode" field. It's identical to GodModeEQ.
+func GodMode(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldGodMode, v))
+}
+
 // EmailEQ applies the EQ predicate on the "email" field.
 func EmailEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
@@ -207,6 +212,16 @@ func IsAdminEQ(v bool) predicate.User {
 // IsAdminNEQ applies the NEQ predicate on the "is_admin" field.
 func IsAdminNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldIsAdmin, v))
+}
+
+// GodModeEQ applies the EQ predicate on the "god_mode" field.
+func GodModeEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldGodMode, v))
+}
+
+// GodModeNEQ applies the NEQ predicate on the "god_mode" field.
+func GodModeNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldGodMode, v))
 }
 
 // HasCharacters applies the HasEdge predicate on the "characters" edge.

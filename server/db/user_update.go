@@ -70,6 +70,20 @@ func (_u *UserUpdate) SetNillableIsAdmin(v *bool) *UserUpdate {
 	return _u
 }
 
+// SetGodMode sets the "god_mode" field.
+func (_u *UserUpdate) SetGodMode(v bool) *UserUpdate {
+	_u.mutation.SetGodMode(v)
+	return _u
+}
+
+// SetNillableGodMode sets the "god_mode" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableGodMode(v *bool) *UserUpdate {
+	if v != nil {
+		_u.SetGodMode(*v)
+	}
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *UserUpdate) AddCharacterIDs(ids ...int) *UserUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -155,6 +169,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.GodMode(); ok {
+		_spec.SetField(user.FieldGodMode, field.TypeBool, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -259,6 +276,20 @@ func (_u *UserUpdateOne) SetIsAdmin(v bool) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillableIsAdmin(v *bool) *UserUpdateOne {
 	if v != nil {
 		_u.SetIsAdmin(*v)
+	}
+	return _u
+}
+
+// SetGodMode sets the "god_mode" field.
+func (_u *UserUpdateOne) SetGodMode(v bool) *UserUpdateOne {
+	_u.mutation.SetGodMode(v)
+	return _u
+}
+
+// SetNillableGodMode sets the "god_mode" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableGodMode(v *bool) *UserUpdateOne {
+	if v != nil {
+		_u.SetGodMode(*v)
 	}
 	return _u
 }
@@ -378,6 +409,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.GodMode(); ok {
+		_spec.SetField(user.FieldGodMode, field.TypeBool, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{

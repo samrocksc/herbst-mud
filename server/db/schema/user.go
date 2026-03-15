@@ -19,6 +19,9 @@ func (User) Fields() []ent.Field {
 		field.String("password"),
 		field.Bool("is_admin").
 			Default(false),
+		field.Bool("god_mode").
+			Default(false).
+			Comment("Unkillable mode for the user"),
 	}
 }
 
