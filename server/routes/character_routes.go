@@ -3,12 +3,15 @@ package routes
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/character"
+	"herbst-server/db/room"
+	"herbst-server/db/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -217,6 +220,180 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				"name":     char.Name,
 				"is_admin": char.IsAdmin,
 			},
+		})
+	})
+
+	// Get characters for a specific user
+	router.GET("/users/:userId/characters", func(c *gin.Context) {
+		userId, err := strconv.Atoi(c.Param("userId"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
+
+		// Check if user exists
+		_, err = client.User.Get(c.Request.Context(), userId)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		// Get characters for this user
+		characters, err := client.Character.Query().
+			Where(character.HasUserWith(user.IDEQ(userId))).
+			All(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Return characters without passwords
+		result := make([]gin.H, len(characters))
+		for i, char := range characters {
+			result[i] = gin.H{
+				"id":              char.ID,
+				"name":            char.Name,
+				"isNPC":           char.IsNPC,
+				"is_admin":        char.IsAdmin,
+				"currentRoomId":   char.CurrentRoomId,
+				"startingRoomId": char.StartingRoomId,
+				"hitpoints":      char.Hitpoints,
+				"max_hitpoints":  char.MaxHitpoints,
+				"stamina":        char.Stamina,
+				"max_stamina":    char.MaxStamina,
+				"mana":           char.Mana,
+				"max_mana":       char.MaxMana,
+			}
+		}
+
+		c.JSON(http.StatusOK, result)
+	})
+
+	// Create a character for a specific user
+	router.POST("/users/:userId/characters", func(c *gin.Context) {
+		userId, err := strconv.Atoi(c.Param("userId"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
+
+		// Check if user exists
+		_, err = client.User.Get(c.Request.Context(), userId)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		var req struct {
+			Name        string `json:"name" binding:"required"`
+			Password    string `json:"password" binding:"required"`
+			Class       string `json:"class"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Check if character name already exists
+		existingChar, err := client.Character.Query().Where(character.NameEQ(req.Name)).Only(c.Request.Context())
+		if err == nil && existingChar != nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "Character name already exists"})
+			return
+		}
+
+		// Hash the password
+		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			return
+		}
+		hashedPassword := string(hash)
+
+		// Set default stats based on class (if provided)
+		hitpoints := 100
+		maxHitpoints := 100
+		stamina := 50
+		maxStamina := 50
+		mana := 50
+		maxMana := 50
+
+		// Get starting room (first room by default)
+		startingRooms, err := client.Room.Query().Where(room.IsStartingRoom(true)).All(c.Request.Context())
+		if err != nil {
+			log.Printf("Warning: failed to get starting room: %v", err)
+		}
+		var startingRoomID int
+		if err == nil && len(startingRooms) > 0 {
+			startingRoomID = startingRooms[0].ID
+		}
+
+		// Create the character
+		char, err := client.Character.
+			Create().
+			SetName(req.Name).
+			SetPassword(hashedPassword).
+			SetUserID(userId).
+			SetHitpoints(hitpoints).
+			SetMaxHitpoints(maxHitpoints).
+			SetStamina(stamina).
+			SetMaxStamina(maxStamina).
+			SetMana(mana).
+			SetMaxMana(maxMana).
+			SetCurrentRoomId(startingRoomID).
+			SetStartingRoomId(startingRoomID).
+			Save(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"id":              char.ID,
+			"name":            char.Name,
+			"isNPC":           char.IsNPC,
+			"is_admin":        char.IsAdmin,
+			"currentRoomId":   char.CurrentRoomId,
+			"startingRoomId":  char.StartingRoomId,
+			"hitpoints":       char.Hitpoints,
+			"max_hitpoints":   char.MaxHitpoints,
+			"stamina":         char.Stamina,
+			"max_stamina":     char.MaxStamina,
+			"mana":            char.Mana,
+			"max_mana":        char.MaxMana,
+		})
+	})
+
+	// Check if user needs to create a character
+	router.GET("/users/:userId/characters/needed", func(c *gin.Context) {
+		userId, err := strconv.Atoi(c.Param("userId"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
+
+		// Check if user exists
+		_, err = client.User.Get(c.Request.Context(), userId)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		// Count characters for this user
+		count, err := client.Character.Query().
+			Where(character.HasUserWith(user.IDEQ(userId))).
+			Count(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"needs_character": count == 0,
+			"character_count": count,
 		})
 	})
 }
