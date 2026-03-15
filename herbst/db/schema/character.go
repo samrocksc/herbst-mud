@@ -18,6 +18,9 @@ func (Character) Fields() []ent.Field {
 		field.Bool("isNPC").
 			Default(false),
 		field.Int("currentRoomId"),
+		field.Int("startingRoomId"),
+		field.Bool("is_admin").
+			Default(false),
 	}
 }
 

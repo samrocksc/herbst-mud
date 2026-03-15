@@ -46,6 +46,9 @@ func main() {
 	// Register user routes
 	routes.RegisterUserRoutes(router, client)
 
+	// Register character routes
+	routes.RegisterCharacterRoutes(router, client)
+
 	// Healthz endpoint
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
