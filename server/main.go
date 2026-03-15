@@ -269,6 +269,145 @@ func getOpenAPISpec() map[string]interface{} {
 					},
 				},
 			},
+			"/users": map[string]interface{}{
+				"get": map[string]interface{}{
+					"summary": "Get all users",
+					"description": "Returns a list of all users in the game",
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "Successful response",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"type": "array",
+										"items": map[string]interface{}{
+											"$ref": "#/components/schemas/User",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"post": map[string]interface{}{
+					"summary": "Create a new user",
+					"description": "Creates a new user with the provided details",
+					"requestBody": map[string]interface{}{
+						"required": true,
+						"content": map[string]interface{}{
+							"application/json": map[string]interface{}{
+								"schema": map[string]interface{}{
+									"$ref": "#/components/schemas/UserInput",
+								},
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"201": map[string]interface{}{
+							"description": "User created successfully",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/User",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"/users/{id}": map[string]interface{}{
+				"get": map[string]interface{}{
+					"summary": "Get a user by ID",
+					"description": "Returns a single user by their ID",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "Successful response",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/User",
+									},
+								},
+							},
+						},
+						"404": map[string]interface{}{
+							"description": "User not found",
+						},
+					},
+				},
+				"put": map[string]interface{}{
+					"summary": "Update a user",
+					"description": "Updates an existing user with the provided details",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"requestBody": map[string]interface{}{
+						"required": true,
+						"content": map[string]interface{}{
+							"application/json": map[string]interface{}{
+								"schema": map[string]interface{}{
+									"$ref": "#/components/schemas/UserInput",
+								},
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "User updated successfully",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/User",
+									},
+								},
+							},
+						},
+						"404": map[string]interface{}{
+							"description": "User not found",
+						},
+					},
+				},
+				"delete": map[string]interface{}{
+					"summary": "Delete a user",
+					"description": "Deletes a user by their ID",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"204": map[string]interface{}{
+							"description": "User deleted successfully",
+						},
+						"404": map[string]interface{}{
+							"description": "User not found",
+						},
+					},
+				},
+			},
 		},
 		"components": map[string]interface{}{
 			"schemas": map[string]interface{}{
@@ -312,6 +451,34 @@ func getOpenAPISpec() map[string]interface{} {
 							"additionalProperties": map[string]interface{}{
 								"type": "integer",
 							},
+						},
+					},
+				},
+				"User": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"id": map[string]interface{}{
+							"type": "integer",
+						},
+						"email": map[string]interface{}{
+							"type": "string",
+						},
+						"is_admin": map[string]interface{}{
+							"type": "boolean",
+						},
+					},
+				},
+				"UserInput": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"email": map[string]interface{}{
+							"type": "string",
+						},
+						"password": map[string]interface{}{
+							"type": "string",
+						},
+						"isAdmin": map[string]interface{}{
+							"type": "boolean",
 						},
 					},
 				},
