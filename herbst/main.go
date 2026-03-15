@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -205,6 +206,7 @@ var (
 	purple = lipgloss.Color("141")
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
+	pink   = lipgloss.Color("219")
 
 	// Exit colors for visited/known/new
 	exitVisitedColor = lipgloss.Color("46")  // Green
@@ -310,13 +312,17 @@ func MiniStatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int) string {
 		hpColor = red
 	}
 
-	return fmt.Sprintf("[%s%s %d%% %s %d%% %s %d%%]",
+	hpStr := lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", hpPercent))
+	staStr := lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", staminaPercent))
+	manaStr := lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", manaPercent))
+
+	return fmt.Sprintf("[%s%s%% %s%s%% %s%s%%]",
 		lipgloss.NewStyle().Foreground(hpColor).Render("❤️"),
-		lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", hpPercent)),
+		hpStr,
 		lipgloss.NewStyle().Foreground(yellow).Render("💪"),
-		lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", staminaPercent)),
+		staStr,
 		lipgloss.NewStyle().Foreground(blue).Render("✨"),
-		lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", manaPercent)))
+		manaStr)
 }
 
 // ============================================================
@@ -1164,30 +1170,47 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenPlaying:
+		// Pink bordered output viewport
+		outputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(pink).
+			Padding(0, 1)
+
 		// Colorful status bar with mini progress bars
-		s.WriteString(MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana))
-		s.WriteString("\n\n")
+		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
 
 		// Room info at top with styling
-		s.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render(fmt.Sprintf("[%s]", m.roomName)))
-		s.WriteString("\n")
-		s.WriteString(m.roomDesc)
-		s.WriteString("\n\n")
-
-		// Exits with color coding
-		s.WriteString(lipgloss.NewStyle().Bold(true).Render("Exits: "))
-		s.WriteString(m.formatExitsWithColor())
-		s.WriteString("\n\n")
+		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
+			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+			m.roomDesc,
+			m.formatExitsWithColor())
 
 		// Show message if any
 		if m.message != "" {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
+			roomInfo += "\n\n" + m.styledMessage(m.message)
 		}
 
-		// Input prompt
-		s.WriteString(promptStyle.Render("\n> "))
-		s.WriteString(m.textInput.View())
+		// Render output viewport with pink border
+		s.WriteString(outputStyle.Render(statsLine + "\n" + roomInfo))
+		s.WriteString("\n\n")
+
+		// Status bar separator with horizontal line
+		separatorStyle := lipgloss.NewStyle().
+			Foreground(pink).
+			Bold(true)
+		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
+		s.WriteString("\n")
+		s.WriteString(separatorStyle.Render(" status_bar "))
+		s.WriteString("\n")
+		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
+		s.WriteString("\n")
+
+		// Pink bordered input area
+		inputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(pink).
+			Padding(0, 1)
+		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 	}
 
 	// Center in terminal (optional - can be disabled if causing issues)
