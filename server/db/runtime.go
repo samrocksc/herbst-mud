@@ -35,4 +35,8 @@ func init() {
 	userDescIsAdmin := userFields[2].Descriptor()
 	// user.DefaultIsAdmin holds the default value on creation for the is_admin field.
 	user.DefaultIsAdmin = userDescIsAdmin.Default.(bool)
+	// userDescGodMode is the schema descriptor for god_mode field.
+	userDescGodMode := userFields[3].Descriptor()
+	// user.DefaultGodMode holds the default value on creation for the god_mode field.
+	user.DefaultGodMode = userDescGodMode.Default.(bool)
 }

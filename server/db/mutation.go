@@ -1324,6 +1324,7 @@ type UserMutation struct {
 	email             *string
 	password          *string
 	is_admin          *bool
+	god_mode          *bool
 	clearedFields     map[string]struct{}
 	characters        map[int]struct{}
 	removedcharacters map[int]struct{}
@@ -1539,6 +1540,42 @@ func (m *UserMutation) ResetIsAdmin() {
 	m.is_admin = nil
 }
 
+// SetGodMode sets the "god_mode" field.
+func (m *UserMutation) SetGodMode(b bool) {
+	m.god_mode = &b
+}
+
+// GodMode returns the value of the "god_mode" field in the mutation.
+func (m *UserMutation) GodMode() (r bool, exists bool) {
+	v := m.god_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGodMode returns the old "god_mode" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldGodMode(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGodMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGodMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGodMode: %w", err)
+	}
+	return oldValue.GodMode, nil
+}
+
+// ResetGodMode resets all changes to the "god_mode" field.
+func (m *UserMutation) ResetGodMode() {
+	m.god_mode = nil
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
 func (m *UserMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -1627,7 +1664,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -1636,6 +1673,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.is_admin != nil {
 		fields = append(fields, user.FieldIsAdmin)
+	}
+	if m.god_mode != nil {
+		fields = append(fields, user.FieldGodMode)
 	}
 	return fields
 }
@@ -1651,6 +1691,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Password()
 	case user.FieldIsAdmin:
 		return m.IsAdmin()
+	case user.FieldGodMode:
+		return m.GodMode()
 	}
 	return nil, false
 }
@@ -1666,6 +1708,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPassword(ctx)
 	case user.FieldIsAdmin:
 		return m.OldIsAdmin(ctx)
+	case user.FieldGodMode:
+		return m.OldGodMode(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1695,6 +1739,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsAdmin(v)
+		return nil
+	case user.FieldGodMode:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGodMode(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -1753,6 +1804,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldIsAdmin:
 		m.ResetIsAdmin()
+		return nil
+	case user.FieldGodMode:
+		m.ResetGodMode()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
