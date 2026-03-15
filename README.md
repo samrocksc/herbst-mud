@@ -61,3 +61,6 @@ The project uses PostgreSQL with ent ORM. The database is automatically initiali
 ## Documentation
 
 See the `docs/` directory for detailed documentation on various aspects of the project.
+## User Management
+
+This PR adds User CRUD operations to the Herbst MUD API.
