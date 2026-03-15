@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
@@ -17,6 +18,15 @@ import (
 
 // StartingRoomID is the ID of the room players start in
 const StartingRoomID = 5
+
+// LoginState represents the authentication state
+type LoginState int
+
+const (
+	StateUsername LoginState = iota
+	StatePassword
+	StateAuthenticated
+)
 
 func main() {
 	// Initialize database
@@ -56,6 +66,7 @@ func main() {
 							session:     s,
 							client:      client,
 							currentRoom: StartingRoomID,
+							loginState:  StateUsername,
 						},
 						tea.WithInput(s),
 						tea.WithOutput(s),
@@ -88,6 +99,12 @@ type model struct {
 	height      int
 	err         error
 
+	// Login state
+	loginState      LoginState
+	username        string
+	password        string
+	loginError      string
+
 	// Player state
 	currentRoom   int
 	roomName      string
@@ -98,8 +115,8 @@ type model struct {
 }
 
 func (m model) Init() tea.Cmd {
-	// Load starting room info
-	if m.client != nil {
+	// If authenticated, load starting room info
+	if m.loginState == StateAuthenticated && m.client != nil {
 		room, err := m.client.Room.Get(context.Background(), StartingRoomID)
 		if err != nil {
 			m.err = fmt.Errorf("failed to load starting room: %v", err)
@@ -113,6 +130,36 @@ func (m model) Init() tea.Cmd {
 	return nil
 }
 
+// authenticateUser verifies username and password against the database
+func (m *model) authenticateUser() bool {
+	if m.client == nil {
+		m.loginError = "Database not connected"
+		return false
+	}
+
+	ctx := context.Background()
+
+	// Find user by email (username)
+	user, err := m.client.User.Query().Where(func(s *sql.Selector) {
+		s.Where(sql.EQ("email", m.username))
+	}).Only(ctx)
+	if err != nil {
+		m.loginError = "Invalid username or password"
+		return false
+	}
+
+	// Check password (plaintext comparison for now - in production use bcrypt)
+	if user.Password != m.password {
+		m.loginError = "Invalid username or password"
+		return false
+	}
+
+	// Authentication successful
+	m.loginState = StateAuthenticated
+	m.loginError = ""
+	return true
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -124,8 +171,43 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Handle Enter key - process command
 		if key == "enter" {
-			m.processCommand(m.inputBuffer)
+			input := m.inputBuffer
 			m.inputBuffer = ""
+
+			// Handle login flow
+			if m.loginState == StateUsername {
+				m.username = input
+				m.loginState = StatePassword
+				return m, nil
+			} else if m.loginState == StatePassword {
+				m.password = input
+				// Attempt authentication
+				if m.authenticateUser() {
+					// Load starting room after successful auth
+					if m.client != nil {
+						room, err := m.client.Room.Get(context.Background(), StartingRoomID)
+						if err != nil {
+							m.err = fmt.Errorf("failed to load starting room: %v", err)
+							return m, nil
+						}
+						m.currentRoom = room.ID
+						m.roomName = room.Name
+						m.roomDesc = room.Description
+						m.exits = room.Exits
+					}
+				} else {
+					// Login failed - reset to username
+					m.loginState = StateUsername
+					m.username = ""
+					m.password = ""
+				}
+				return m, nil
+			}
+
+			// Handle game commands (only when authenticated)
+			if m.loginState == StateAuthenticated {
+				m.processCommand(input)
+			}
 			return m, nil
 		}
 
@@ -230,7 +312,51 @@ func (m model) View() string {
 	// Build the view
 	var s strings.Builder
 
-	// Room info at top
+	// Show login screen if not authenticated
+	if m.loginState != StateAuthenticated {
+		s.WriteString("================================\n")
+		s.WriteString("     🐢 Welcome to Herbst MUD 🐢\n")
+		s.WriteString("================================\n\n")
+
+		if m.loginState == StateUsername {
+			s.WriteString("Enter your username: ")
+			s.WriteString(m.inputBuffer)
+			s.WriteString("_")
+		} else if m.loginState == StatePassword {
+			s.WriteString(fmt.Sprintf("Username: %s\n", m.username))
+			s.WriteString("Enter your password: ")
+			// Mask password
+			for range m.inputBuffer {
+				s.WriteString("*")
+			}
+			s.WriteString("_")
+
+			// Show error if any
+			if m.loginError != "" {
+				s.WriteString(fmt.Sprintf("\n\nError: %s\n", m.loginError))
+				s.WriteString("Press Enter to try again...")
+			}
+		}
+
+		// Center in terminal
+		if m.width > 0 && m.height > 0 {
+			lines := strings.Split(s.String(), "\n")
+			var centered []string
+			for _, line := range lines {
+				padding := (m.width - len(line)) / 2
+				if padding > 0 {
+					centered = append(centered, fmt.Sprintf("%*s%s", padding, "", line))
+				} else {
+					centered = append(centered, line)
+				}
+			}
+			return strings.Join(centered, "\n")
+		}
+
+		return s.String()
+	}
+
+	// Game view (authenticated)
 	s.WriteString(fmt.Sprintf("[%s]\n", m.roomName))
 	s.WriteString(fmt.Sprintf("%s\n\n", m.roomDesc))
 	s.WriteString(fmt.Sprintf("Exits: %s\n\n", m.formatExits()))
