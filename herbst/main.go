@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -23,6 +24,11 @@ import (
 	"herbst/db/user"
 	"herbst/dbinit"
 )
+
+func init() {
+	// Force TERM for proper color support - always set regardless of client value
+	os.Setenv("TERM", "xterm-256color")
+}
 
 // RESTAPIBase is the base URL for the REST API
 const RESTAPIBase = "http://localhost:8080"
@@ -917,16 +923,54 @@ func (m *model) handleProfileInput(input string) {
 func (m *model) handleEditFieldInput(input string) {
 	if m.editField == "gender" {
 		m.characterGender = input
+		m.saveProfileToDB()
 		m.message = "Gender updated!"
 		m.messageType = "success"
 	} else if m.editField == "description" {
 		m.characterDescription = input
+		m.saveProfileToDB()
 		m.message = "Description updated!"
 		m.messageType = "success"
 	}
 	m.screen = ScreenProfile
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
+}
+
+// saveProfileToDB sends profile updates (gender, description) to the server
+func (m *model) saveProfileToDB() {
+	if m.currentCharacterID == 0 {
+		return
+	}
+
+	jsonData, err := json.Marshal(map[string]string{
+		"gender":      m.characterGender,
+		"description": m.characterDescription,
+	})
+	if err != nil {
+		log.Printf("Error marshaling profile data: %v", err)
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d", RESTAPIBase, m.currentCharacterID)
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Printf("Error creating profile update request: %v", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error sending profile update: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Profile update failed with status: %d", resp.StatusCode)
+	}
 }
 
 func (m *model) handlePeerCommand(cmd string) {
