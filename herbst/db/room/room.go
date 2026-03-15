@@ -3,6 +3,8 @@
 package room
 
 import (
+	"fmt"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -20,8 +22,12 @@ const (
 	FieldIsStartingRoom = "is_starting_room"
 	// FieldExits holds the string denoting the exits field in the database.
 	FieldExits = "exits"
+	// FieldAtmosphere holds the string denoting the atmosphere field in the database.
+	FieldAtmosphere = "atmosphere"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
+	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
+	EdgeEquipment = "equipment"
 	// Table holds the table name of the room in the database.
 	Table = "rooms"
 	// CharactersTable is the table that holds the characters relation/edge.
@@ -31,6 +37,13 @@ const (
 	CharactersInverseTable = "characters"
 	// CharactersColumn is the table column denoting the characters relation/edge.
 	CharactersColumn = "room_characters"
+	// EquipmentTable is the table that holds the equipment relation/edge.
+	EquipmentTable = "equipment"
+	// EquipmentInverseTable is the table name for the Equipment entity.
+	// It exists in this package in order to avoid circular dependency with the "equipment" package.
+	EquipmentInverseTable = "equipment"
+	// EquipmentColumn is the table column denoting the equipment relation/edge.
+	EquipmentColumn = "room_equipment"
 )
 
 // Columns holds all SQL columns for room fields.
@@ -40,6 +53,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldIsStartingRoom,
 	FieldExits,
+	FieldAtmosphere,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -56,6 +70,33 @@ var (
 	// DefaultIsStartingRoom holds the default value on creation for the "isStartingRoom" field.
 	DefaultIsStartingRoom bool
 )
+
+// Atmosphere defines the type for the "atmosphere" enum field.
+type Atmosphere string
+
+// AtmosphereAir is the default value of the Atmosphere enum.
+const DefaultAtmosphere = AtmosphereAir
+
+// Atmosphere values.
+const (
+	AtmosphereAir   Atmosphere = "air"
+	AtmosphereWater Atmosphere = "water"
+	AtmosphereWind  Atmosphere = "wind"
+)
+
+func (a Atmosphere) String() string {
+	return string(a)
+}
+
+// AtmosphereValidator is a validator for the "atmosphere" field enum values. It is called by the builders before save.
+func AtmosphereValidator(a Atmosphere) error {
+	switch a {
+	case AtmosphereAir, AtmosphereWater, AtmosphereWind:
+		return nil
+	default:
+		return fmt.Errorf("room: invalid enum value for atmosphere field: %q", a)
+	}
+}
 
 // OrderOption defines the ordering options for the Room queries.
 type OrderOption func(*sql.Selector)
@@ -80,6 +121,11 @@ func ByIsStartingRoom(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsStartingRoom, opts...).ToFunc()
 }
 
+// ByAtmosphere orders the results by the atmosphere field.
+func ByAtmosphere(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAtmosphere, opts...).ToFunc()
+}
+
 // ByCharactersCount orders the results by characters count.
 func ByCharactersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -93,10 +139,31 @@ func ByCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByEquipmentCount orders the results by equipment count.
+func ByEquipmentCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEquipmentStep(), opts...)
+	}
+}
+
+// ByEquipment orders the results by equipment terms.
+func ByEquipment(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEquipmentStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CharactersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CharactersTable, CharactersColumn),
+	)
+}
+func newEquipmentStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EquipmentInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EquipmentTable, EquipmentColumn),
 	)
 }
