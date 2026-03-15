@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,6 +14,9 @@ import (
 	"herbst/db"
 	"herbst/dbinit"
 )
+
+// StartingRoomID is the ID of the room players start in
+const StartingRoomID = 5
 
 func main() {
 	// Initialize database
@@ -35,12 +39,35 @@ func main() {
 		}
 	}
 
+	// Pass client to server options
 	srv, err := wish.NewServer(
 		wish.WithAddress(":4444"),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
 		wish.WithMiddleware(
 			logging.Middleware(),
-			bubbleteaMiddleware,
+			func(next ssh.Handler) ssh.Handler {
+				return func(s ssh.Session) {
+					log.Printf("New connection from %s", s.RemoteAddr().String())
+
+					// Create program with shared client
+					p := tea.NewProgram(
+						&model{
+							connectedAt: time.Now(),
+							session:     s,
+							client:      client,
+							currentRoom: StartingRoomID,
+						},
+						tea.WithInput(s),
+						tea.WithOutput(s),
+					)
+
+					if _, err := p.Run(); err != nil {
+						log.Printf("Bubbletea error: %v", err)
+					}
+
+					log.Printf("Connection from %s closed", s.RemoteAddr().String())
+				}
+			},
 		),
 	)
 	if err != nil {
@@ -53,40 +80,36 @@ func main() {
 	}
 }
 
-// bubbleteaMiddleware handles the bubbletea UI for SSH sessions
-func bubbleteaMiddleware(next ssh.Handler) ssh.Handler {
-	return func(s ssh.Session) {
-		// Log connection information
-		log.Printf("New connection from %s", s.RemoteAddr().String())
-
-		// Create and run the bubbletea program
-		p := tea.NewProgram(
-			&model{
-				connectedAt: time.Now(),
-				session:     s,
-			},
-			tea.WithInput(s),
-			tea.WithOutput(s),
-		)
-
-		// Run the program and handle errors
-		if _, err := p.Run(); err != nil {
-			log.Printf("Bubbletea error: %v", err)
-		}
-
-		log.Printf("Connection from %s closed", s.RemoteAddr().String())
-	}
-}
-
 type model struct {
 	connectedAt time.Time
 	session     ssh.Session
+	client      *db.Client
 	width       int
 	height      int
 	err         error
+
+	// Player state
+	currentRoom   int
+	roomName      string
+	roomDesc      string
+	exits         map[string]int
+	inputBuffer   string
+	message       string
 }
 
 func (m model) Init() tea.Cmd {
+	// Load starting room info
+	if m.client != nil {
+		room, err := m.client.Room.Get(context.Background(), StartingRoomID)
+		if err != nil {
+			m.err = fmt.Errorf("failed to load starting room: %v", err)
+			return nil
+		}
+		m.currentRoom = room.ID
+		m.roomName = room.Name
+		m.roomDesc = room.Description
+		m.exits = room.Exits
+	}
 	return nil
 }
 
@@ -95,41 +118,147 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c":
+		key := msg.String()
+
+		// Handle Enter key - process command
+		if key == "enter" {
+			m.processCommand(m.inputBuffer)
+			m.inputBuffer = ""
+			return m, nil
+		}
+
+		// Handle backspace
+		if key == "backspace" {
+			if len(m.inputBuffer) > 0 {
+				m.inputBuffer = m.inputBuffer[:len(m.inputBuffer)-1]
+			}
+			return m, nil
+		}
+
+		// Handle Ctrl+C or q
+		if key == "q" || key == "ctrl+c" {
 			return m, tea.Quit
+		}
+
+		// Handle regular character input
+		if len(key) == 1 {
+			m.inputBuffer += key
 		}
 	}
 	return m, nil
 }
 
-func (m model) View() string {
-	if m.err != nil {
-		return fmt.Sprintf("Error: %v\nPress 'q' or Ctrl+C to quit\n", m.err)
+func (m *model) processCommand(cmd string) {
+	cmd = strings.TrimSpace(strings.ToLower(cmd))
+
+	if cmd == "" {
+		return
 	}
 
-	s := "Welcome to Herbst MUD!\n\n"
-	s += fmt.Sprintf("Connected at: %s\n", m.connectedAt.Format(time.RFC1123))
-	s += fmt.Sprintf("Client: %s\n", m.session.RemoteAddr().String())
-	s += "\nPress 'q' or Ctrl+C to quit\n"
+	// Handle movement commands
+	if m.handleMovement(cmd) {
+		return
+	}
 
-	// Center the text in the terminal
+	// Handle other commands
+	switch cmd {
+	case "help", "?":
+		m.message = "Commands:\n  n/north - Move north\n  s/south - Move south\n  e/east - Move east\n  w/west - Move west\n  look - Look around\n  exits - Show exits\n  quit - Exit game"
+	case "look", "l":
+		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s", m.roomName, m.roomDesc, m.formatExits())
+	case "exits", "x":
+		m.message = fmt.Sprintf("Exits: %s", m.formatExits())
+	case "quit", "q":
+		// Note: q is handled in Update, this is just fallback
+		m.message = "Type 'q' or Ctrl+C to quit"
+	default:
+		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
+	}
+}
+
+func (m *model) handleMovement(cmd string) bool {
+	directionMap := map[string]string{
+		"n": "north", "north": "north",
+		"s": "south", "south": "south",
+		"e": "east", "east": "east",
+		"w": "west", "west": "west",
+	}
+
+	direction, ok := directionMap[cmd]
+	if !ok {
+		return false
+	}
+
+	// Check if exit exists
+	nextRoomID, ok := m.exits[direction]
+	if !ok {
+		m.message = "You can't go that way."
+		return true
+	}
+
+	// Move to new room
+	if m.client != nil {
+		room, err := m.client.Room.Get(context.Background(), nextRoomID)
+		if err != nil {
+			m.message = fmt.Sprintf("Error moving: %v", err)
+			return true
+		}
+		m.currentRoom = room.ID
+		m.roomName = room.Name
+		m.roomDesc = room.Description
+		m.exits = room.Exits
+		m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s\n\nExits: %s", direction, m.roomName, m.roomDesc, m.formatExits())
+	}
+
+	return true
+}
+
+func (m *model) formatExits() string {
+	if len(m.exits) == 0 {
+		return "none"
+	}
+	var dirs []string
+	for dir := range m.exits {
+		dirs = append(dirs, dir)
+	}
+	return strings.Join(dirs, ", ")
+}
+
+func (m model) View() string {
+	// Build the view
+	var s strings.Builder
+
+	// Room info at top
+	s.WriteString(fmt.Sprintf("[%s]\n", m.roomName))
+	s.WriteString(fmt.Sprintf("%s\n\n", m.roomDesc))
+	s.WriteString(fmt.Sprintf("Exits: %s\n\n", m.formatExits()))
+
+	// Show message if any
+	if m.message != "" {
+		s.WriteString(m.message)
+		s.WriteString("\n\n")
+		m.message = "" // Clear after showing
+	}
+
+	// Input prompt
+	s.WriteString("\n> " + m.inputBuffer + "_")
+
+	// Center in terminal
 	if m.width > 0 && m.height > 0 {
-		lines := []string{}
-		for _, line := range []string{s} {
+		lines := strings.Split(s.String(), "\n")
+		var centered []string
+		for _, line := range lines {
 			padding := (m.width - len(line)) / 2
 			if padding > 0 {
-				lines = append(lines, fmt.Sprintf("%*s%s", padding, "", line))
+				centered = append(centered, fmt.Sprintf("%*s%s", padding, "", line))
 			} else {
-				lines = append(lines, line)
+				centered = append(centered, line)
 			}
 		}
-		s = ""
-		for _, line := range lines {
-			s += line + "\n"
-		}
+		return strings.Join(centered, "\n")
 	}
 
-	return s
+	return s.String()
 }
