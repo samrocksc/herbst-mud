@@ -1145,7 +1145,7 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
-		s.WriteString(loginScreen())
+		s.WriteString(loginScreen(m.width, m.height))
 		s.WriteString("\n\n")
 		if m.message != "" {
 			s.WriteString(m.styledMessage(m.message))
@@ -1155,7 +1155,7 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenRegister:
-		s.WriteString(registerScreen())
+		s.WriteString(registerScreen(m.width, m.height))
 		s.WriteString("\n\n")
 		if m.message != "" {
 			s.WriteString(m.styledMessage(m.message))
@@ -1318,36 +1318,92 @@ func welcomeScreen() string {
 `)
 }
 
-func loginScreen() string {
-	return lipgloss.NewStyle().
+func loginScreen(width, height int) string {
+	// Calculate dynamic dimensions
+	boxWidth := 60
+	if width > 70 {
+		boxWidth = width - 20
+	}
+	if boxWidth > 100 {
+		boxWidth = 100
+	}
+
+	verticalPadding := 2
+	if height > 20 {
+		verticalPadding = (height - 16) / 2
+	}
+	if verticalPadding > 10 {
+		verticalPadding = 10
+	}
+
+	// Build dynamic login screen
+	horizontalBorder := strings.Repeat("═", boxWidth-2)
+
+	var sb strings.Builder
+	// Top padding for vertical centering
+	sb.WriteString(strings.Repeat("\n", verticalPadding))
+	// Box
+	sb.WriteString(lipgloss.NewStyle().
+		Width(boxWidth).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("75")).
 		Padding(1, 2).
-		Render(`
-╔════════════════════════════════════════════════════════════╗
-║                        LOGIN                                  ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   Enter your credentials to continue your adventure.        ║
-║   Press ESC to go back to the main menu.                    ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`)
+		Render(fmt.Sprintf(`
+╔%s╗
+║%s║
+║%s║
+║%s║
+╚%s╝
+`, horizontalBorder,
+			strings.Repeat(" ", boxWidth-2),
+			"                      LOGIN                          ",
+			"  Enter your credentials to continue your adventure.  ",
+			horizontalBorder)))
+
+	return sb.String()
 }
 
-func registerScreen() string {
-	return lipgloss.NewStyle().
+func registerScreen(width, height int) string {
+	// Calculate dynamic dimensions
+	boxWidth := 60
+	if width > 70 {
+		boxWidth = width - 20
+	}
+	if boxWidth > 100 {
+		boxWidth = 100
+	}
+
+	verticalPadding := 2
+	if height > 20 {
+		verticalPadding = (height - 16) / 2
+	}
+	if verticalPadding > 10 {
+		verticalPadding = 10
+	}
+
+	// Build dynamic register screen
+	horizontalBorder := strings.Repeat("═", boxWidth-2)
+
+	var sb strings.Builder
+	// Top padding for vertical centering
+	sb.WriteString(strings.Repeat("\n", verticalPadding))
+	// Box
+	sb.WriteString(lipgloss.NewStyle().
+		Width(boxWidth).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("141")).
 		Padding(1, 2).
-		Render(`
-╔════════════════════════════════════════════════════════════╗
-║                      CREATE ACCOUNT                          ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   Create a new account to begin your adventure!            ║
-║   Press ESC to go back to the main menu.                    ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`)
+		Render(fmt.Sprintf(`
+╔%s╗
+║%s║
+║%s║
+║%s║
+╚%s╝
+`, horizontalBorder,
+			strings.Repeat(" ", boxWidth-2),
+			"                   CREATE ACCOUNT                     ",
+			"   Create a new account to begin your adventure!    ",
+			horizontalBorder)))
+
+	return sb.String()
 }
