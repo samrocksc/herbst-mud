@@ -1153,6 +1153,10 @@ func (m *model) View() string {
 
 	// Debug: log.Printf("View() called, screen: %s, inputBuffer: %q", m.screen, m.inputBuffer)
 
+	// Clear screen before each render to prevent previous state showing below new content
+	// This fixes the "output re-rendering glitch" where previous state appears below new content
+	s.WriteString("\033[2J\033[H")
+
 	// Show loading spinner if loading
 	if m.isLoading {
 		s.WriteString(m.spinner.View())
