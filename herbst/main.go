@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -17,10 +16,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
-	"github.com/muesli/termenv"
 	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/logging"
 	_ "github.com/lib/pq"
+	"github.com/muesli/termenv"
 	"herbst/db"
 	"herbst/db/character"
 	"herbst/db/user"
@@ -120,15 +119,15 @@ func main() {
 					// Create program with shared client
 					p := tea.NewProgram(
 						&model{
-							connectedAt: time.Now(),
+							connectedAt:  time.Now(),
 							session:      s,
 							client:       client,
 							screen:       ScreenWelcome,
-							currentRoom:   StartingRoomID,
-							textInput:     ti,
-							spinner:       sp,
-							visitedRooms:  make(map[int]bool),
-							knownExits:    make(map[string]bool),
+							currentRoom:  StartingRoomID,
+							textInput:    ti,
+							spinner:      sp,
+							visitedRooms: make(map[int]bool),
+							knownExits:   make(map[string]bool),
 						},
 						tea.WithInput(s),
 						tea.WithOutput(s),
@@ -177,17 +176,17 @@ type model struct {
 	loginPassword string
 
 	// Player state
-	currentRoom   int
-	roomName      string
-	roomDesc      string
-	exits         map[string]int
-	inputBuffer   string
-	message       string
-	messageType   string // "success", "error", "info" for styling
+	currentRoom int
+	roomName    string
+	roomDesc    string
+	exits       map[string]int
+	inputBuffer string
+	message     string
+	messageType string // "success", "error", "info" for styling
 
 	// Menu navigation state (vim-style)
-	menuCursor    int
-	menuItems     []string
+	menuCursor int
+	menuItems  []string
 
 	// Character state (for whoami/profile)
 	currentCharacterID   int
@@ -207,9 +206,9 @@ type model struct {
 	editField string // "gender" or "description"
 
 	// Loading state
-	spinner          spinner.Model
-	isLoading       bool
-	loadingMessage   string
+	spinner        spinner.Model
+	isLoading      bool
+	loadingMessage string
 
 	// Room tracking
 	visitedRooms map[int]bool
@@ -232,13 +231,13 @@ var (
 	pink   = lipgloss.Color("219")
 
 	// Raw ANSI for direct terminal output (when lipgloss fails)
-	pinkAnsi   = "\033[38;5;219m"
-	pinkReset  = "\033[0m"
+	pinkAnsi  = "\033[38;5;219m"
+	pinkReset = "\033[0m"
 
 	// Exit colors for visited/known/new
 	exitVisitedColor = lipgloss.Color("46")  // Green
-	exitKnownColor   = lipgloss.Color("226")  // Yellow
-	exitNewColor     = lipgloss.Color("15")   // White
+	exitKnownColor   = lipgloss.Color("226") // Yellow
+	exitNewColor     = lipgloss.Color("15")  // White
 
 	// Styles
 	titleStyle = lipgloss.NewStyle().
@@ -1125,22 +1124,22 @@ func (m *model) loadOrCreateCharacter() {
 	m.currentCharacterID = char.ID
 	m.currentCharacterName = char.Name
 	// Gender/Description - use from DB if available, else defaults
-	m.characterGender = char.Gender
-	m.characterDescription = char.Description
-
-	// Calculate HP/Stamina/Mana from stats (constitution → HP, dexterity → stamina, intelligence → mana)
-	// Base: 50 + (stat * 5)
-	m.characterMaxHP = 50 + (char.Constitution * 5)
-	m.characterMaxStamina = 50 + (char.Dexterity * 5)
-	m.characterMaxMana = 50 + (char.Intelligence * 5)
-	m.characterHP = m.characterMaxHP
-	m.characterStamina = m.characterMaxStamina
-	m.characterMana = m.characterMaxMana
-
-	// Level/Experience - based on total stats for now
-	totalStats := char.Strength + char.Dexterity + char.Constitution + char.Intelligence + char.Wisdom
-	m.characterLevel = (totalStats / 25) + 1 // Level up every 25 stat points
-	m.characterExperience = totalStats % 25 * 100
+// 	m.characterGender = char.Gender
+// 	m.characterDescription = char.Description
+// 
+// 	// Calculate HP/Stamina/Mana from stats (constitution → HP, dexterity → stamina, intelligence → mana)
+// 	// Base: 50 + (stat * 5)
+// 	m.characterMaxHP = 50 + (char.Constitution * 5)
+// 	m.characterMaxStamina = 50 + (char.Dexterity * 5)
+// 	m.characterMaxMana = 50 + (char.Intelligence * 5)
+// 	m.characterHP = m.characterMaxHP
+// 	m.characterStamina = m.characterMaxStamina
+// 	m.characterMana = m.characterMaxMana
+// 
+// 	// Level/Experience - based on total stats for now
+// 	// Level/Experience - defaults since stats not available
+	m.characterLevel = 1
+	m.characterExperience = 0
 }
 
 // ============================================================
@@ -1250,16 +1249,43 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenPlaying:
-		// Pink bordered output viewport
+		// Ensure we have valid dimensions - if not, use defaults
+		width := m.width
+		height := m.height
+		if width < 40 {
+			width = 80
+		}
+		if height < 10 {
+			height = 24
+		}
+
+		// Calculate proportional heights
+		// Input: ~20%, Status bar: ~10%, Viewport: ~70%
+		inputHeight := height * 20 / 100
+		if inputHeight < 3 {
+			inputHeight = 3
+		}
+		statusHeight := height * 10 / 100
+		if statusHeight < 3 {
+			statusHeight = 3
+		}
+		viewportHeight := height - inputHeight - statusHeight
+		if viewportHeight < 5 {
+			viewportHeight = 5
+		}
+
+		// Full-width output viewport (top ~70%)
 		outputStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(pink).
-			Padding(0, 1)
+			Padding(0, 1).
+			Width(width - 2).          // Account for border
+			Height(viewportHeight - 2) // Account for border
 
 		// Colorful status bar with mini progress bars
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
 
-		// Room info at top with styling
+		// Room info at top with styling (only in output viewport, no stats)
 		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
@@ -1270,27 +1296,37 @@ func (m *model) View() string {
 			roomInfo += "\n\n" + m.styledMessage(m.message)
 		}
 
-		// Render output viewport with pink border (room info only - stats go to status bar)
+		// Render output viewport with pink border (room info only, no stats)
 		s.WriteString(outputStyle.Render(roomInfo))
-		s.WriteString("\n\n")
+		s.WriteString("\n")
 
-		// Status bar separator with horizontal line
+		// Full-width status bar separator (middle ~10%)
 		separatorStyle := lipgloss.NewStyle().
 			Foreground(pink).
-			Bold(true)
-		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
+			Bold(true).
+			Width(width)
+		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
+		s.WriteString(separatorLine)
 		s.WriteString("\n")
-		s.WriteString(separatorStyle.Render(" status_bar "))
+		// Stats go in the actual status bar (middle panel)
+		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLine))
 		s.WriteString("\n")
-		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
+		s.WriteString(separatorLine)
 		s.WriteString("\n")
 
-		// Pink bordered input area
+		// Full-width input area (bottom ~20%)
 		inputStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(pink).
-			Padding(0, 1)
+			Padding(0, 1).
+			Width(width - 2).
+			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+
+		// ScreenPlaying uses full-width panels - don't center, just clear message and return
+		m.message = ""
+		m.messageType = ""
+		return s.String()
 	}
 
 	// Center in terminal (optional - can be disabled if causing issues)
@@ -1434,19 +1470,17 @@ func registerScreen(width, height int) string {
 	sb.WriteString(lipgloss.NewStyle().
 		Width(boxWidth).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("141")).
+		BorderForeground(cyan).
 		Padding(1, 2).
-		Render(fmt.Sprintf(`
-╔%s╗
-║%s║
-║%s║
-║%s║
-╚%s╝
-`, horizontalBorder,
-			strings.Repeat(" ", boxWidth-2),
-			"                   CREATE ACCOUNT                     ",
-			"   Create a new account to begin your adventure!    ",
-			horizontalBorder)))
-
-	return sb.String()
+		Render(`
+╔════════════════════════════════════════════════════════════╗
+║                      CREATE ACCOUNT                          ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║   Create a new account to begin your adventure!            ║
+║   Press ESC to go back to the main menu.                    ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+`)
 }
+>>>>>>> main
