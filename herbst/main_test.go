@@ -245,6 +245,88 @@ func TestModelFields(t *testing.T) {
 		t.Log("Model fields test passed")
 	})
 }
+// TestClearCommand verifies the clear/cls command clears the message buffer
+func TestClearCommand(t *testing.T) {
+	t.Run("processInput clears message on 'clear' command", func(t *testing.T) {
+		m := &model{
+			screen:         ScreenPlaying,
+			message:        "Test message that should be cleared",
+			messageType:    "info",
+			roomName:       "Test Room",
+			roomDesc:       "A test room",
+			exits:          map[string]int{"north": 2},
+			knownExits:     make(map[string]bool),
+			visitedRooms:   make(map[int]bool),
+			characterHP:    100,
+			characterMaxHP: 100,
+			characterStamina:     50,
+			characterMaxStamina:  50,
+			characterMana:        25,
+			characterMaxMana:     25,
+			width:         80,
+			height:        24,
+		}
+		m.Init()
+
+		// Verify message is set before
+		if m.message != "Test message that should be cleared" {
+			t.Errorf("Expected message to be set initially")
+		}
+
+		// Execute clear command
+		m.processInput("clear")
+
+		// Message should be cleared
+		if m.message != "" {
+			t.Errorf("Expected message to be cleared, got: %q", m.message)
+		}
+
+		// messageType should be cleared
+		if m.messageType != "" {
+			t.Errorf("Expected messageType to be cleared, got: %q", m.messageType)
+		}
+
+		// inputBuffer should be cleared
+		if m.inputBuffer != "" {
+			t.Errorf("Expected inputBuffer to be cleared, got: %q", m.inputBuffer)
+		}
+
+		t.Log("Clear command test passed")
+	})
+
+	t.Run("processInput clears message on 'cls' command", func(t *testing.T) {
+		m := &model{
+			screen:         ScreenPlaying,
+			message:        "Another test message",
+			messageType:    "success",
+			roomName:       "Test Room",
+			roomDesc:       "A test room",
+			exits:          map[string]int{},
+			knownExits:     make(map[string]bool),
+			visitedRooms:   make(map[int]bool),
+			characterHP:    100,
+			characterMaxHP: 100,
+			characterStamina:     50,
+			characterMaxStamina:  50,
+			characterMana:        25,
+			characterMaxMana:     25,
+			width:         80,
+			height:        24,
+		}
+		m.Init()
+
+		// Execute cls command
+		m.processInput("cls")
+
+		// Message should be cleared
+		if m.message != "" {
+			t.Errorf("Expected message to be cleared, got: %q", m.message)
+		}
+
+		t.Log("CLS command test passed")
+	})
+}
+
 // TestNoDebugOutput verifies that View() doesn't output debug logs during normal rendering
 func TestNoDebugOutput(t *testing.T) {
 	t.Run("View() doesn't produce log output during normal rendering", func(t *testing.T) {

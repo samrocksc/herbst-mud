@@ -793,6 +793,7 @@ func (m *model) processCommand(cmd string) {
   peer <dir> - Peek at adjacent room
   whoami - Show your info
   profile/p - Edit character profile
+  clear/cls - Clear screen
   quit - Exit game`
 		m.messageType = "info"
 	case "look", "l":
@@ -819,6 +820,12 @@ func (m *model) processCommand(cmd string) {
 		m.messageType = "info"
 	case "peer":
 		m.handlePeerCommand(cmd)
+	case "clear", "cls":
+		// Clear the terminal screen - reset message buffer
+		m.message = ""
+		m.messageType = ""
+		m.inputBuffer = ""
+		return
 	case "quit", "q":
 		m.message = "Thanks for playing! Goodbye!"
 		m.messageType = "success"
