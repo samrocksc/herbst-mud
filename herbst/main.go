@@ -226,6 +226,7 @@ var (
 	green  = lipgloss.Color("46")
 	yellow = lipgloss.Color("226")
 	blue   = lipgloss.Color("75")
+	cyan   = lipgloss.Color("81")  // Lighter blue for login
 	purple = lipgloss.Color("141")
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
@@ -1188,24 +1189,62 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
-		s.WriteString(loginScreen(m.width, m.height))
-		s.WriteString("\n\n")
+		// Use split-screen layout like ScreenPlaying
+		outputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(cyan).
+			Padding(0, 1)
+
+		loginContent := loginScreen(m.width, m.height)
 		if m.message != "" {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
+			loginContent += "\n\n" + m.styledMessage(m.message)
 		}
-		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
-		s.WriteString(m.textInput.View())
+
+		s.WriteString(outputStyle.Render(loginContent))
+		s.WriteString("\n\n")
+
+		// Separator
+		separatorStyle := lipgloss.NewStyle().
+			Foreground(cyan).
+			Bold(true)
+		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
+		s.WriteString("\n")
+
+		// Input area
+		inputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(cyan).
+			Padding(0, 1)
+		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
 	case ScreenRegister:
-		s.WriteString(registerScreen(m.width, m.height))
-		s.WriteString("\n\n")
+		// Use split-screen layout like ScreenPlaying
+		outputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(purple).
+			Padding(0, 1)
+
+		registerContent := registerScreen(m.width, m.height)
 		if m.message != "" {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
+			registerContent += "\n\n" + m.styledMessage(m.message)
 		}
-		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
-		s.WriteString(m.textInput.View())
+
+		s.WriteString(outputStyle.Render(registerContent))
+		s.WriteString("\n\n")
+
+		// Separator
+		separatorStyle := lipgloss.NewStyle().
+			Foreground(purple).
+			Bold(true)
+		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
+		s.WriteString("\n")
+
+		// Input area
+		inputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(purple).
+			Padding(0, 1)
+		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
