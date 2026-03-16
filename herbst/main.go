@@ -1105,6 +1105,9 @@ func (m *model) View() string {
 	if m.isLoading {
 		s.WriteString(m.spinner.View())
 		s.WriteString(" " + m.loadingMessage)
+		// Clear message after rendering
+		m.message = ""
+		m.messageType = ""
 		return s.String()
 	}
 
@@ -1251,8 +1254,16 @@ func (m *model) View() string {
 				centered = append(centered, line)
 			}
 		}
+		// Clear message after rendering to prevent accumulation
+		m.message = ""
+		m.messageType = ""
 		return strings.Join(centered, "\n")
 	}
+
+	// Clear message after rendering to prevent accumulation on next tick
+	// This fixes the "jumbled text" issue during combat and other rapid updates
+	m.message = ""
+	m.messageType = ""
 
 	return s.String()
 }
