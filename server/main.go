@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	_ "github.com/lib/pq"
 
 	"github.com/gin-gonic/gin"
@@ -12,9 +14,28 @@ import (
 	"herbst-server/routes"
 )
 
+// getDBConfig returns database connection config from environment variables
+func getDBConfig() string {
+	host := getEnv("DB_HOST", "localhost")
+	port := getEnv("DB_PORT", "5432")
+	user := getEnv("DB_USER", "herbst")
+	password := getEnv("DB_PASSWORD", "herbst_password")
+	dbname := getEnv("DB_NAME", "herbst_mud")
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+}
+
+// getEnv returns environment variable or default
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 func main() {
 	// Initialize database
-	client, err := db.Open("postgres", "host=localhost port=5432 user=herbst password=herbst_password dbname=herbst_mud sslmode=disable")
+	client, err := db.Open("postgres", getDBConfig())
 	if err != nil {
 		log.Fatalf("failed connecting to postgres: %v", err)
 	}
@@ -44,6 +65,18 @@ func main() {
 
 	// Set up Gin router
 	router := gin.Default()
+	
+	// CORS middleware
+	router.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
 
 	// Register room routes
 	routes.RegisterRoomRoutes(router, client)
@@ -69,7 +102,7 @@ func main() {
 	})
 
 	// Start the server
-	router.Run(":8080")
+	router.Run("0.0.0.0:8080")
 }
 
 func getOpenAPISpec() map[string]interface{} {
