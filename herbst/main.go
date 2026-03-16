@@ -1227,8 +1227,8 @@ func (m *model) View() string {
 			roomInfo += "\n\n" + m.styledMessage(m.message)
 		}
 
-		// Render output viewport with pink border
-		s.WriteString(outputStyle.Render(statsLine + "\n" + roomInfo))
+		// Render output viewport with pink border (room info only - stats go to status bar)
+		s.WriteString(outputStyle.Render(roomInfo))
 		s.WriteString("\n\n")
 
 		// Status bar separator with horizontal line
