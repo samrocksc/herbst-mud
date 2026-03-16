@@ -977,6 +977,59 @@ func (m *model) handleEditFieldInput(input string) {
 	m.inputBuffer = ""
 }
 
+// createCharacterInDB creates a character in the database via the API
+func (m *model) createCharacterInDB() {
+	if m.currentUserID == 0 {
+		log.Printf("Cannot create character: no user logged in")
+		return
+	}
+
+	// Use the REST API to create the character
+	jsonData, err := json.Marshal(map[string]interface{}{
+		"name":    m.currentUserName,
+		"userId":  m.currentUserID,
+		"isNPC":   false,
+	})
+	if err != nil {
+		log.Printf("Error marshaling character data: %v", err)
+		return
+	}
+
+	resp, err := http.Post(RESTAPIBase+"/characters", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Printf("Error creating character: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		log.Printf("Failed to create character, status: %d", resp.StatusCode)
+		return
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		log.Printf("Error decoding character response: %v", err)
+		return
+	}
+	if _, ok := result["id"]; !ok {
+		log.Printf("Character created but no ID returned")
+		return
+	}
+
+	if id, ok := result["id"].(float64); ok {
+		m.currentCharacterID = int(id)
+		log.Printf("Character created successfully with ID: %d", m.currentCharacterID)
+	}
+
+	// Set gender/description to default values that will be saved to DB
+	m.characterGender = "unspecified"
+	m.characterDescription = "A mysterious figure."
+
+	// Now save these defaults to the DB
+	m.saveProfileToDB()
+}
+
 // saveProfileToDB sends profile updates (gender, description) to the server
 func (m *model) saveProfileToDB() {
 	if m.currentCharacterID == 0 {
@@ -1061,19 +1114,9 @@ func (m *model) loadOrCreateCharacter() {
 	ctx := context.Background()
 	chars, err := m.client.Character.Query().Where(character.HasUserWith(user.IDEQ(m.currentUserID))).All(ctx)
 	if err != nil || len(chars) == 0 {
-		// No character yet - use defaults
-		m.currentCharacterName = m.currentUserName
-		m.characterGender = "unspecified"
-		m.characterDescription = "A mysterious figure."
-		// Default stats for new characters (Level 1)
-		m.characterHP = 100
-		m.characterMaxHP = 100
-		m.characterStamina = 50
-		m.characterMaxStamina = 50
-		m.characterMana = 25
-		m.characterMaxMana = 25
-		m.characterLevel = 1
-		m.characterExperience = 0
+		// No character in DB yet - try to create one via API
+		log.Printf("No character found for user %d, attempting to create...", m.currentUserID)
+		m.createCharacterInDB()
 		return
 	}
 
