@@ -17,6 +17,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
+	"github.com/muesli/termenv"
 	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/logging"
 	_ "github.com/lib/pq"
@@ -102,6 +103,9 @@ func main() {
 			func(next ssh.Handler) ssh.Handler {
 				return func(s ssh.Session) {
 					log.Printf("New connection from %s", s.RemoteAddr().String())
+
+					// Force TrueColor for this session
+					lipgloss.SetColorProfile(termenv.TrueColor)
 
 					// Create initial text input for login/register
 					ti := textinput.New()
@@ -226,6 +230,10 @@ var (
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
 	pink   = lipgloss.Color("219")
+
+	// Raw ANSI for direct terminal output (when lipgloss fails)
+	pinkAnsi   = "\033[38;5;219m"
+	pinkReset  = "\033[0m"
 
 	// Exit colors for visited/known/new
 	exitVisitedColor = lipgloss.Color("46")  // Green
