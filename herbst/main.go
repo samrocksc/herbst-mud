@@ -53,9 +53,28 @@ const (
 	MenuProfile
 )
 
+// getDBConfig returns database connection config from environment variables
+func getDBConfig() string {
+	host := getEnv("DB_HOST", "localhost")
+	port := getEnv("DB_PORT", "5432")
+	user := getEnv("DB_USER", "herbst")
+	password := getEnv("DB_PASSWORD", "herbst_password")
+	dbname := getEnv("DB_NAME", "herbst_mud")
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+}
+
+// getEnv returns environment variable or default
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 func main() {
 	// Initialize database
-	client, err := db.Open("postgres", "host=localhost port=5432 user=herbst password=herbst_password dbname=herbst_mud sslmode=disable")
+	client, err := db.Open("postgres", getDBConfig())
 	if err != nil {
 		log.Printf("Warning: failed connecting to postgres: %v", err)
 	} else {
