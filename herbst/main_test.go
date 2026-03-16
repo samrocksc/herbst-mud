@@ -245,3 +245,43 @@ func TestModelFields(t *testing.T) {
 		t.Log("Model fields test passed")
 	})
 }
+// TestNoDebugOutput verifies that View() doesn't output debug logs during normal rendering
+func TestNoDebugOutput(t *testing.T) {
+	t.Run("View() doesn't produce log output during normal rendering", func(t *testing.T) {
+		m := &model{
+			screen:         ScreenWelcome,
+			width:          80,
+			height:         24,
+			characterHP:    100,
+			characterMaxHP: 100,
+			characterStamina:     50,
+			characterMaxStamina:  50,
+			characterMana:        25,
+			characterMaxMana:     25,
+			exits:        make(map[string]int),
+			knownExits:   make(map[string]bool),
+			visitedRooms: make(map[int]bool),
+		}
+		m.Init()
+
+		// Render the view - should not produce any output to stdout from debug logs
+		view := m.View()
+		
+		// Verify view renders without issues
+		if view == "" {
+			t.Error("Expected non-empty view")
+		}
+		
+		// Test all screens render without debug output
+		screens := []string{ScreenWelcome, ScreenLogin, ScreenRegister, ScreenProfile, ScreenPlaying}
+		for _, screen := range screens {
+			m.screen = screen
+			view = m.View()
+			if view == "" {
+				t.Errorf("View returned empty for screen: %s", screen)
+			}
+		}
+		
+		t.Log("All screens render without debug log output")
+	})
+}

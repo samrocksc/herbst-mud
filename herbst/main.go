@@ -399,7 +399,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		key := msg.String()
-		log.Printf("KeyMsg received: %q, screen: %s", key, m.screen)
+		// Debug: log.Printf("KeyMsg received: %q, screen: %s", key, m.screen)
 
 		// Global quit handling
 		if key == "ctrl+c" || key == "ctrl+q" {
@@ -433,9 +433,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key == "enter" || key == "ctrl+j" || key == "ctrl+m" {
 			input := m.textInput.Value()
 			m.textInput.SetValue("")
-			log.Printf("Enter pressed, calling processInput with: %q", input)
+			// Debug: log.Printf("Enter pressed, calling processInput with: %q", input)
 			m.processInput(input)
-			log.Printf("After processInput, screen is: %s", m.screen)
+			// Debug: log.Printf("After processInput, screen is: %s", m.screen)
 			return m, nil
 		}
 
@@ -487,7 +487,7 @@ func (m *model) handleEscape() {
 // ============================================================
 
 func (m *model) processInput(input string) {
-	log.Printf("processInput called with: %q, screen: %s", input, m.screen)
+	// Debug: log.Printf("processInput called with: %q, screen: %s", input, m.screen)
 	input = strings.TrimSpace(input)
 
 	switch m.screen {
@@ -507,7 +507,7 @@ func (m *model) processInput(input string) {
 }
 
 func (m *model) handleWelcomeInput(input string) {
-	log.Printf("handleWelcomeInput called with: %q", input)
+	// Debug: log.Printf("handleWelcomeInput called with: %q", input)
 	input = strings.ToLower(input)
 
 	// Vim-style selection with numbers or j/k navigation
@@ -557,7 +557,7 @@ func (m *model) handleLoginInput(input string) {
 }
 
 func (m *model) attemptLogin() {
-	log.Printf("attemptLogin called with username: %q", m.loginUsername)
+	// Debug: log.Printf("attemptLogin called with username: %q", m.loginUsername)
 
 	// Start loading state
 	m.isLoading = true
@@ -569,19 +569,19 @@ func (m *model) attemptLogin() {
 		"password": m.loginPassword,
 	})
 
-	log.Printf("Sending auth request to %s/users/auth", RESTAPIBase)
+	// Debug: log.Printf("Sending auth request to %s/users/auth", RESTAPIBase)
 	resp, err := http.Post(RESTAPIBase+"/users/auth", "application/json", bytes.NewBuffer(jsonData))
 	m.isLoading = false
 
 	if err != nil {
-		log.Printf("Connection error: %v", err)
+		// Debug: log.Printf("Connection error: %v", err)
 		m.message = fmt.Sprintf("Connection error: %v", err)
 		m.messageType = "error"
 		return
 	}
 	defer resp.Body.Close()
 
-	log.Printf("Auth response status: %d", resp.StatusCode)
+	// Debug: log.Printf("Auth response status: %d", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
 		m.message = "Invalid username or password. Try again."
 		m.messageType = "error"
@@ -1073,7 +1073,7 @@ func (m *model) loadOrCreateCharacter() {
 func (m *model) View() string {
 	var s strings.Builder
 
-	log.Printf("View() called, screen: %s, inputBuffer: %q", m.screen, m.inputBuffer)
+	// Debug: log.Printf("View() called, screen: %s, inputBuffer: %q", m.screen, m.inputBuffer)
 
 	// Show loading spinner if loading
 	if m.isLoading {
