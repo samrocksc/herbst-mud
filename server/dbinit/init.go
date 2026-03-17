@@ -7,6 +7,8 @@ import (
 	"math/rand"
 
 	"herbst-server/db"
+	"herbst-server/db/character"
+	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
 )
 
@@ -291,5 +293,70 @@ func InitFountain(client *db.Client) error {
 
 	// Note: StartingRoomID constant in herbst/main.go will need updating
 	log.Println("Fountain and Fountain Plaza rooms initialized successfully")
+	return nil
+}
+
+// InitGizmoNPC creates the Gizmo NPC template and spawns Gizmo in the fountain room
+func InitGizmoNPC(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if gizmo NPC already exists
+	existingNPCs, err := client.Character.Query().Where(character.IsNPC(true)).All(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to query existing NPCs: %w", err)
+	}
+	for _, npc := range existingNPCs {
+		if npc.Name == "Gizmo" {
+			log.Println("Gizmo NPC already exists, skipping...")
+			return nil
+		}
+	}
+
+	// Get the fountain room
+	fountainRoom, err := client.Room.Query().Where(room.NameEQ("The Fountain")).Only(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to find fountain room: %w", err)
+	}
+
+	// Create NPC template for Gizmo
+	_, err = client.NPCTemplate.Create().
+		SetID("gizmo").
+		SetName("Gizmo").
+		SetDescription("A friendly half-dog creature with soulful eyes and wagging tail. Looks eager to help.").
+		SetRace("half-dog").
+		SetDisposition(npctemplate.DispositionFriendly).
+		SetLevel(1).
+		SetSkills(map[string]int{}).
+		SetTradesWith([]string{}).
+		SetGreeting("Welcome, new traveler! I'm Gizmo, here to help you get started.").
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Gizmo NPC template: %w", err)
+	}
+	log.Println("Gizmo NPC template created")
+
+	// Get the NPC template
+	gizmoTemplate, err := client.NPCTemplate.Get(ctx, "gizmo")
+	if err != nil {
+		return fmt.Errorf("failed to get Gizmo template: %w", err)
+	}
+
+	// Create Gizmo character in the fountain room
+	_, err = client.Character.Create().
+		SetName("Gizmo").
+		SetIsNPC(true).
+		SetCurrentRoomId(fountainRoom.ID).
+		SetStartingRoomId(fountainRoom.ID).
+		SetLevel(1).
+		SetRace("half-dog").
+		SetClass("adventurer").
+		SetNPCTemplate(gizmoTemplate).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Gizmo character: %w", err)
+	}
+
+	log.Printf("Gizmo NPC spawned in fountain room (ID: %d)", fountainRoom.ID)
+	log.Println("Gizmo NPC initialization complete")
 	return nil
 }
