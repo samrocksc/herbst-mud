@@ -215,8 +215,21 @@ type model struct {
 	loadingMessage string
 
 	// Room tracking
-	visitedRooms map[int]bool
-	knownExits   map[string]bool // For color-coded exits
+	visitedRooms   map[int]bool
+	knownExits     map[string]bool // For color-coded exits
+	roomCharacters []roomCharacter // Characters in current room
+}
+
+// roomCharacter represents a character in the room (NPC or player)
+type roomCharacter struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	IsNPC    bool   `json:"isNPC"`
+	Level    int    `json:"level"`
+	Class    string `json:"class"`
+	Race     string `json:"race"`
+	UserID   int    `json:"userId"`
+}
 
 	// Render state (prevents double rendering of messages in same frame)
 	renderDone bool
@@ -668,6 +681,9 @@ func (m *model) attemptLogin() {
 		for dir := range m.exits {
 			m.knownExits[dir] = true
 		}
+
+		// Fetch characters in the room (NPCs and players)
+		m.fetchRoomCharacters()
 	}
 }
 
@@ -799,6 +815,9 @@ func (m *model) attemptRegistration(email string) {
 	for dir := range m.exits {
 		m.knownExits[dir] = true
 	}
+
+	// Fetch characters in the room (NPCs and players)
+	m.fetchRoomCharacters()
 }
 
 // ============================================================
@@ -916,6 +935,9 @@ func (m *model) handleMovement(cmd string) bool {
 		for dir := range m.exits {
 			m.knownExits[dir] = true
 		}
+
+		// Fetch characters in the room (NPCs and players)
+		m.fetchRoomCharacters()
 
 		if wasVisited {
 			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s\n\nExits: %s",
@@ -1341,10 +1363,31 @@ func (m *model) View() string {
 		// Colorful status bar with mini progress bars
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
 
+		// Build character list with color coding (NPCs = red, Players = green)
+		var characterList string
+		otherChars := make([]string, 0)
+		for _, rc := range m.roomCharacters {
+			// Skip own character
+			if rc.ID == m.currentCharacterID {
+				continue
+			}
+			var charLine string
+			if rc.IsNPC {
+				charLine = lipgloss.NewStyle().Foreground(red).Render("• " + rc.Name + " (NPC)")
+			} else {
+				charLine = lipgloss.NewStyle().Foreground(green).Render("• " + rc.Name + " (Player)")
+			}
+			otherChars = append(otherChars, charLine)
+		}
+		if len(otherChars) > 0 {
+			characterList = "\nYou see here:\n  " + lipgloss.NewStyle().Bold(true).Render(strings.Join(otherChars, "\n  ")) + "\n"
+		}
+
 		// Room info at top with styling (only in output viewport, no stats)
-		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
+		roomInfo := fmt.Sprintf("[%s]\n%s%s\n\nExits: %s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
+			characterList,
 			m.formatExitsWithColor())
 
 		// Show message if any (only once!)
@@ -1706,4 +1749,61 @@ func (m *model) handleCharacterCreateInput(input string) {
 	default:
 		m.message = "Invalid choice. Select 1-5 or 'done' when finished."
 	}
+}
+
+// fetchRoomCharacters fetches characters (NPCs and players) in the current room
+func (m *model) fetchRoomCharacters() {
+	url := fmt.Sprintf("%s/rooms/%d/characters", RESTAPIBase, m.currentRoom)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Error fetching room characters: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Error fetching room characters: status %d", resp.StatusCode)
+		return
+	}
+
+	var characters []roomCharacter
+	if err := json.NewDecoder(resp.Body).Decode(&characters); err != nil {
+		log.Printf("Error decoding room characters: %v", err)
+		return
+	}
+
+	m.roomCharacters = characters
+}
+
+// formatRoomCharacters returns a formatted string of characters in the room with color coding
+// NPCs show in RED, players show in GREEN
+func (m *model) formatRoomCharacters() string {
+	if len(m.roomCharacters) == 0 {
+		return ""
+	}
+
+	var lines []string
+	lines = append(lines, "\nYou see here:")
+
+	for _, char := range m.roomCharacters {
+		// Skip the current player (their own character)
+		if char.ID == m.currentCharacterID {
+			continue
+		}
+
+		var styledName string
+		if char.IsNPC {
+			// NPCs in RED
+			styledName = lipgloss.NewStyle().Foreground(red).Render(char.Name)
+		} else {
+			// Players in GREEN
+			styledName = lipgloss.NewStyle().Foreground(green).Render(char.Name)
+		}
+
+		// Add level and class info
+		info := fmt.Sprintf("  - %s (Lv.%d %s %s)", styledName, char.Level, char.Race, char.Class)
+		lines = append(lines, info)
+	}
+
+	return strings.Join(lines, "\n")
 }
