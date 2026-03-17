@@ -97,6 +97,11 @@ func main() {
 		if err := dbinit.InitGizmo(client); err != nil {
 			log.Printf("Warning: failed to initialize Gizmo: %v", err)
 		}
+
+		// Initialize fountain item in starting room
+		if err := dbinit.InitFountainItem(client); err != nil {
+			log.Printf("Warning: failed to initialize fountain item: %v", err)
+		}
 	}
 
 	// Pass client to server options

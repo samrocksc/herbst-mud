@@ -272,3 +272,69 @@ func ensureGizmoCharacter(client *db.Client, ctx context.Context) error {
 	log.Println("Gizmo character spawned in the Fountain Courtyard")
 	return nil
 }
+
+// InitFountainItem creates the Stone Fountain as an immovable room item
+func InitFountainItem(client *db.Client) error {
+	ctx := context.Background()
+
+	// Find the starting room (Fountain Courtyard by default, room ID 5)
+	var startingRoom *db.Room
+	var err error
+
+	// Try to find by ID first (StartingRoomID constant is 5)
+	startingRoom, err = client.Room.Get(ctx, 5)
+	if err != nil {
+		// Fallback: try Fountain Courtyard
+		startingRoom, err = client.Room.Query().Where(room.NameEQ("Fountain Courtyard")).Only(ctx)
+		if err != nil {
+			// Fallback: try Fountain Plaza
+			startingRoom, err = client.Room.Query().Where(room.NameEQ("Fountain Plaza")).Only(ctx)
+			if err != nil {
+				// Fallback: try The Fountain
+				startingRoom, err = client.Room.Query().Where(room.NameEQ("The Fountain")).Only(ctx)
+				if err != nil {
+					log.Println("Warning: could not find starting/fountain room for fountain item")
+					return nil
+				}
+			}
+		}
+	}
+
+	// Check if fountain item already exists in the room
+	items, err := client.Room.QueryEquipment(startingRoom).All(ctx)
+	if err == nil {
+		for _, item := range items {
+			if item.Name == "Stone Fountain" {
+				log.Println("Fountain item already exists, skipping...")
+				return nil
+			}
+		}
+	}
+
+	// Create the fountain as an immovable room item
+	_, err = client.Equipment.Create().
+		SetName("Stone Fountain").
+		SetDescription("A weathered stone fountain with crystal-clear water bubbling gently. Strange runes are carved into its basin, glowing faintly with an eerie green light.").
+		SetSlot("room").
+		SetLevel(1).
+		SetWeight(0).
+		SetIsEquipped(false).
+		SetIsImmovable(true).
+		SetColor("220"). // Gold color
+		SetIsVisible(true).
+		SetItemType("furniture").
+		SetMinDamage(0).
+		SetMaxDamage(0).
+		SetWeaponType("none").
+		SetClassRestriction("all").
+		SetIsDroppable(false).
+		SetGuaranteedDrop(false).
+		SetRoom(startingRoom).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create fountain item: %w", err)
+	}
+
+	log.Printf("Fountain item created in room %s (ID: %d)", startingRoom.Name, startingRoom.ID)
+	return nil
+}
