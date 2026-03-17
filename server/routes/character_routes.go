@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/constants"
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/room"
@@ -430,21 +431,17 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Validate class value
-		validClasses := map[string]bool{
-			"tinkerer":     true,
-			"trader":       true,
-			"warrior":     true,
-			"brawler":     true,
-			"mystic":      true,
-			"chef":         true,
-			"vine_climber": true,
-			"survivor":    true,
+		// Validate class using constants
+		classValid := false
+		for _, c := range constants.ValidClasses {
+			if c == req.Class {
+				classValid = true
+				break
+			}
 		}
-
-		if !validClasses[req.Class] {
+		if !classValid {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid class. Valid classes: tinkerer, trader, warrior, brawler, mystic, chef, vine_climber, survivor",
+				"error": fmt.Sprintf("Invalid class. Valid classes: %v", constants.ValidClasses),
 			})
 			return
 		}
@@ -530,15 +527,16 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Validate race
-		validRaces := map[string]bool{
-			"human":         true,
-			"mutant":        true,
-			"android":       true,
-			"escaped_slave": true,
+		// Validate race using constants
+		raceValid := false
+		for _, r := range constants.ValidRaces {
+			if r == req.Race {
+				raceValid = true
+				break
+			}
 		}
-		if !validRaces[req.Race] {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race. Valid races: human, mutant, android, escaped_slave"})
+		if !raceValid {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid race. Valid races: %v", constants.ValidRaces)})
 			return
 		}
 
