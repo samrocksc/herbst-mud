@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	_ "github.com/lib/pq"
 
 	"github.com/gin-gonic/gin"
@@ -12,9 +14,28 @@ import (
 	"herbst-server/routes"
 )
 
+// getDBConfig returns database connection config from environment variables
+func getDBConfig() string {
+	host := getEnv("DB_HOST", "localhost")
+	port := getEnv("DB_PORT", "5432")
+	user := getEnv("DB_USER", "herbst")
+	password := getEnv("DB_PASSWORD", "herbst_password")
+	dbname := getEnv("DB_NAME", "herbst_mud")
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+}
+
+// getEnv returns environment variable or default
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 func main() {
 	// Initialize database
-	client, err := db.Open("postgres", "host=localhost port=5432 user=herbst password=herbst_password dbname=herbst_mud sslmode=disable")
+	client, err := db.Open("postgres", getDBConfig())
 	if err != nil {
 		log.Fatalf("failed connecting to postgres: %v", err)
 	}
@@ -42,8 +63,25 @@ func main() {
 		log.Printf("Warning: failed to initialize characters: %v", err)
 	}
 
+	// Initialize fountain for new character creation flow
+	if err := dbinit.InitFountain(client); err != nil {
+		log.Printf("Warning: failed to initialize fountain: %v", err)
+	}
+
 	// Set up Gin router
 	router := gin.Default()
+	
+	// CORS middleware
+	router.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
 
 	// Register room routes
 	routes.RegisterRoomRoutes(router, client)
@@ -69,7 +107,7 @@ func main() {
 	})
 
 	// Start the server
-	router.Run(":8080")
+	router.Run("0.0.0.0:8080")
 }
 
 func getOpenAPISpec() map[string]interface{} {
@@ -269,6 +307,145 @@ func getOpenAPISpec() map[string]interface{} {
 					},
 				},
 			},
+			"/users": map[string]interface{}{
+				"get": map[string]interface{}{
+					"summary": "Get all users",
+					"description": "Returns a list of all users in the game",
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "Successful response",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"type": "array",
+										"items": map[string]interface{}{
+											"$ref": "#/components/schemas/User",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"post": map[string]interface{}{
+					"summary": "Create a new user",
+					"description": "Creates a new user with the provided details",
+					"requestBody": map[string]interface{}{
+						"required": true,
+						"content": map[string]interface{}{
+							"application/json": map[string]interface{}{
+								"schema": map[string]interface{}{
+									"$ref": "#/components/schemas/UserInput",
+								},
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"201": map[string]interface{}{
+							"description": "User created successfully",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/User",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"/users/{id}": map[string]interface{}{
+				"get": map[string]interface{}{
+					"summary": "Get a user by ID",
+					"description": "Returns a single user by their ID",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "Successful response",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/User",
+									},
+								},
+							},
+						},
+						"404": map[string]interface{}{
+							"description": "User not found",
+						},
+					},
+				},
+				"put": map[string]interface{}{
+					"summary": "Update a user",
+					"description": "Updates an existing user with the provided details",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"requestBody": map[string]interface{}{
+						"required": true,
+						"content": map[string]interface{}{
+							"application/json": map[string]interface{}{
+								"schema": map[string]interface{}{
+									"$ref": "#/components/schemas/UserInput",
+								},
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"200": map[string]interface{}{
+							"description": "User updated successfully",
+							"content": map[string]interface{}{
+								"application/json": map[string]interface{}{
+									"schema": map[string]interface{}{
+										"$ref": "#/components/schemas/User",
+									},
+								},
+							},
+						},
+						"404": map[string]interface{}{
+							"description": "User not found",
+						},
+					},
+				},
+				"delete": map[string]interface{}{
+					"summary": "Delete a user",
+					"description": "Deletes a user by their ID",
+					"parameters": []map[string]interface{}{
+						{
+							"name": "id",
+							"in": "path",
+							"required": true,
+							"schema": map[string]interface{}{
+								"type": "integer",
+							},
+						},
+					},
+					"responses": map[string]interface{}{
+						"204": map[string]interface{}{
+							"description": "User deleted successfully",
+						},
+						"404": map[string]interface{}{
+							"description": "User not found",
+						},
+					},
+				},
+			},
 		},
 		"components": map[string]interface{}{
 			"schemas": map[string]interface{}{
@@ -312,6 +489,34 @@ func getOpenAPISpec() map[string]interface{} {
 							"additionalProperties": map[string]interface{}{
 								"type": "integer",
 							},
+						},
+					},
+				},
+				"User": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"id": map[string]interface{}{
+							"type": "integer",
+						},
+						"email": map[string]interface{}{
+							"type": "string",
+						},
+						"is_admin": map[string]interface{}{
+							"type": "boolean",
+						},
+					},
+				},
+				"UserInput": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"email": map[string]interface{}{
+							"type": "string",
+						},
+						"password": map[string]interface{}{
+							"type": "string",
+						},
+						"isAdmin": map[string]interface{}{
+							"type": "boolean",
 						},
 					},
 				},

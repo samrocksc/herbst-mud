@@ -16,6 +16,12 @@ go.work
 
 # Build outputs
 herbst/.ssh/
+herbst/herbst
+herbst/herbst-tui
+herbst/herbst-server
+server/herbst-server
+*.pid
+server.log
 
 # IDE files
 .vscode/

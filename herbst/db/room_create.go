@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst/db/character"
+	"herbst/db/equipment"
 	"herbst/db/room"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -52,6 +53,20 @@ func (_c *RoomCreate) SetExits(v map[string]int) *RoomCreate {
 	return _c
 }
 
+// SetAtmosphere sets the "atmosphere" field.
+func (_c *RoomCreate) SetAtmosphere(v room.Atmosphere) *RoomCreate {
+	_c.mutation.SetAtmosphere(v)
+	return _c
+}
+
+// SetNillableAtmosphere sets the "atmosphere" field if the given value is not nil.
+func (_c *RoomCreate) SetNillableAtmosphere(v *room.Atmosphere) *RoomCreate {
+	if v != nil {
+		_c.SetAtmosphere(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_c *RoomCreate) AddCharacterIDs(ids ...int) *RoomCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -65,6 +80,21 @@ func (_c *RoomCreate) AddCharacters(v ...*Character) *RoomCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddCharacterIDs(ids...)
+}
+
+// AddEquipmentIDs adds the "equipment" edge to the Equipment entity by IDs.
+func (_c *RoomCreate) AddEquipmentIDs(ids ...int) *RoomCreate {
+	_c.mutation.AddEquipmentIDs(ids...)
+	return _c
+}
+
+// AddEquipment adds the "equipment" edges to the Equipment entity.
+func (_c *RoomCreate) AddEquipment(v ...*Equipment) *RoomCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEquipmentIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -106,6 +136,10 @@ func (_c *RoomCreate) defaults() {
 		v := room.DefaultIsStartingRoom
 		_c.mutation.SetIsStartingRoom(v)
 	}
+	if _, ok := _c.mutation.Atmosphere(); !ok {
+		v := room.DefaultAtmosphere
+		_c.mutation.SetAtmosphere(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -121,6 +155,14 @@ func (_c *RoomCreate) check() error {
 	}
 	if _, ok := _c.mutation.Exits(); !ok {
 		return &ValidationError{Name: "exits", err: errors.New(`db: missing required field "Room.exits"`)}
+	}
+	if _, ok := _c.mutation.Atmosphere(); !ok {
+		return &ValidationError{Name: "atmosphere", err: errors.New(`db: missing required field "Room.atmosphere"`)}
+	}
+	if v, ok := _c.mutation.Atmosphere(); ok {
+		if err := room.AtmosphereValidator(v); err != nil {
+			return &ValidationError{Name: "atmosphere", err: fmt.Errorf(`db: validator failed for field "Room.atmosphere": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -164,6 +206,10 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 		_spec.SetField(room.FieldExits, field.TypeJSON, value)
 		_node.Exits = value
 	}
+	if value, ok := _c.mutation.Atmosphere(); ok {
+		_spec.SetField(room.FieldAtmosphere, field.TypeEnum, value)
+		_node.Atmosphere = value
+	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -173,6 +219,22 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.EquipmentTable,
+			Columns: []string{room.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

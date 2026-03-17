@@ -209,6 +209,26 @@ func IsStartingRoomNEQ(v bool) predicate.Room {
 	return predicate.Room(sql.FieldNEQ(FieldIsStartingRoom, v))
 }
 
+// AtmosphereEQ applies the EQ predicate on the "atmosphere" field.
+func AtmosphereEQ(v Atmosphere) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldAtmosphere, v))
+}
+
+// AtmosphereNEQ applies the NEQ predicate on the "atmosphere" field.
+func AtmosphereNEQ(v Atmosphere) predicate.Room {
+	return predicate.Room(sql.FieldNEQ(FieldAtmosphere, v))
+}
+
+// AtmosphereIn applies the In predicate on the "atmosphere" field.
+func AtmosphereIn(vs ...Atmosphere) predicate.Room {
+	return predicate.Room(sql.FieldIn(FieldAtmosphere, vs...))
+}
+
+// AtmosphereNotIn applies the NotIn predicate on the "atmosphere" field.
+func AtmosphereNotIn(vs ...Atmosphere) predicate.Room {
+	return predicate.Room(sql.FieldNotIn(FieldAtmosphere, vs...))
+}
+
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
 func HasCharacters() predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
@@ -224,6 +244,29 @@ func HasCharacters() predicate.Room {
 func HasCharactersWith(preds ...predicate.Character) predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
 		step := newCharactersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEquipment applies the HasEdge predicate on the "equipment" edge.
+func HasEquipment() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EquipmentTable, EquipmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEquipmentWith applies the HasEdge predicate on the "equipment" edge with a given conditions (other predicates).
+func HasEquipmentWith(preds ...predicate.Equipment) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := newEquipmentStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

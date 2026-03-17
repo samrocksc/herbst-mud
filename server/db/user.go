@@ -22,6 +22,8 @@ type User struct {
 	Password string `json:"password,omitempty"`
 	// IsAdmin holds the value of the "is_admin" field.
 	IsAdmin bool `json:"is_admin,omitempty"`
+	// Unkillable mode for the user
+	GodMode bool `json:"god_mode,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -51,7 +53,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldIsAdmin:
+		case user.FieldIsAdmin, user.FieldGodMode:
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -95,6 +97,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_admin", values[i])
 			} else if value.Valid {
 				_m.IsAdmin = value.Bool
+			}
+		case user.FieldGodMode:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field god_mode", values[i])
+			} else if value.Valid {
+				_m.GodMode = value.Bool
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -145,6 +153,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_admin=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsAdmin))
+	builder.WriteString(", ")
+	builder.WriteString("god_mode=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GodMode))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"herbst/db/character"
+	"herbst/db/equipment"
 	"herbst/db/predicate"
 	"herbst/db/room"
 	"math"
@@ -25,6 +26,7 @@ type RoomQuery struct {
 	inters         []Interceptor
 	predicates     []predicate.Room
 	withCharacters *CharacterQuery
+	withEquipment  *EquipmentQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (_q *RoomQuery) QueryCharacters() *CharacterQuery {
 			sqlgraph.From(room.Table, room.FieldID, selector),
 			sqlgraph.To(character.Table, character.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, room.CharactersTable, room.CharactersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEquipment chains the current query on the "equipment" edge.
+func (_q *RoomQuery) QueryEquipment() *EquipmentQuery {
+	query := (&EquipmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.EquipmentTable, room.EquipmentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +300,7 @@ func (_q *RoomQuery) Clone() *RoomQuery {
 		inters:         append([]Interceptor{}, _q.inters...),
 		predicates:     append([]predicate.Room{}, _q.predicates...),
 		withCharacters: _q.withCharacters.Clone(),
+		withEquipment:  _q.withEquipment.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +315,17 @@ func (_q *RoomQuery) WithCharacters(opts ...func(*CharacterQuery)) *RoomQuery {
 		opt(query)
 	}
 	_q.withCharacters = query
+	return _q
+}
+
+// WithEquipment tells the query-builder to eager-load the nodes that are connected to
+// the "equipment" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RoomQuery) WithEquipment(opts ...func(*EquipmentQuery)) *RoomQuery {
+	query := (&EquipmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEquipment = query
 	return _q
 }
 
@@ -371,8 +407,9 @@ func (_q *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	var (
 		nodes       = []*Room{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withCharacters != nil,
+			_q.withEquipment != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +434,13 @@ func (_q *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 		if err := _q.loadCharacters(ctx, query, nodes,
 			func(n *Room) { n.Edges.Characters = []*Character{} },
 			func(n *Room, e *Character) { n.Edges.Characters = append(n.Edges.Characters, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEquipment; query != nil {
+		if err := _q.loadEquipment(ctx, query, nodes,
+			func(n *Room) { n.Edges.Equipment = []*Equipment{} },
+			func(n *Room, e *Equipment) { n.Edges.Equipment = append(n.Edges.Equipment, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -429,6 +473,37 @@ func (_q *RoomQuery) loadCharacters(ctx context.Context, query *CharacterQuery, 
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "room_characters" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *RoomQuery) loadEquipment(ctx context.Context, query *EquipmentQuery, nodes []*Room, init func(*Room), assign func(*Room, *Equipment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Room)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Equipment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(room.EquipmentColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.room_equipment
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "room_equipment" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "room_equipment" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

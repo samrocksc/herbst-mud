@@ -25,6 +25,8 @@ type Room struct {
 	IsStartingRoom bool `json:"isStartingRoom,omitempty"`
 	// Exits holds the value of the "exits" field.
 	Exits map[string]int `json:"exits,omitempty"`
+	// Atmosphere holds the value of the "atmosphere" field.
+	Atmosphere room.Atmosphere `json:"atmosphere,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomQuery when eager-loading is set.
 	Edges        RoomEdges `json:"edges"`
@@ -35,9 +37,11 @@ type Room struct {
 type RoomEdges struct {
 	// Characters holds the value of the characters edge.
 	Characters []*Character `json:"characters,omitempty"`
+	// Equipment holds the value of the equipment edge.
+	Equipment []*Equipment `json:"equipment,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -47,6 +51,15 @@ func (e RoomEdges) CharactersOrErr() ([]*Character, error) {
 		return e.Characters, nil
 	}
 	return nil, &NotLoadedError{edge: "characters"}
+}
+
+// EquipmentOrErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) EquipmentOrErr() ([]*Equipment, error) {
+	if e.loadedTypes[1] {
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -60,7 +73,7 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case room.FieldID:
 			values[i] = new(sql.NullInt64)
-		case room.FieldName, room.FieldDescription:
+		case room.FieldName, room.FieldDescription, room.FieldAtmosphere:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -109,6 +122,12 @@ func (_m *Room) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field exits: %w", err)
 				}
 			}
+		case room.FieldAtmosphere:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field atmosphere", values[i])
+			} else if value.Valid {
+				_m.Atmosphere = room.Atmosphere(value.String)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -125,6 +144,11 @@ func (_m *Room) Value(name string) (ent.Value, error) {
 // QueryCharacters queries the "characters" edge of the Room entity.
 func (_m *Room) QueryCharacters() *CharacterQuery {
 	return NewRoomClient(_m.config).QueryCharacters(_m)
+}
+
+// QueryEquipment queries the "equipment" edge of the Room entity.
+func (_m *Room) QueryEquipment() *EquipmentQuery {
+	return NewRoomClient(_m.config).QueryEquipment(_m)
 }
 
 // Update returns a builder for updating this Room.
@@ -161,6 +185,9 @@ func (_m *Room) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("exits=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Exits))
+	builder.WriteString(", ")
+	builder.WriteString("atmosphere=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Atmosphere))
 	builder.WriteByte(')')
 	return builder.String()
 }
