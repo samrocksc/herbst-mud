@@ -29,13 +29,13 @@ type Equipment struct {
 	Weight int `json:"weight,omitempty"`
 	// IsEquipped holds the value of the "isEquipped" field.
 	IsEquipped bool `json:"isEquipped,omitempty"`
-	// IsImmovable holds the value of the "isImmovable" field (GitHub #89).
+	// Cannot be picked up if true
 	IsImmovable bool `json:"isImmovable,omitempty"`
-	// Color holds the value of the "color" field (GitHub #89).
+	// Custom display color (e.g., gold for immovable items)
 	Color string `json:"color,omitempty"`
-	// IsVisible holds the value of the "isVisible" field (GitHub #89).
+	// Shown in room list
 	IsVisible bool `json:"isVisible,omitempty"`
-	// ItemType holds the value of the "itemType" field (GitHub #89).
+	// weapon|armor|consumable|quest|misc
 	ItemType string `json:"itemType,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
@@ -69,11 +69,11 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case equipment.FieldIsEquipped:
+		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible:
 			values[i] = new(sql.NullBool)
 		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType:
 			values[i] = new(sql.NullString)
 		case equipment.ForeignKeys[0]: // room_equipment
 			values[i] = new(sql.NullInt64)
@@ -133,6 +133,30 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field isEquipped", values[i])
 			} else if value.Valid {
 				_m.IsEquipped = value.Bool
+			}
+		case equipment.FieldIsImmovable:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isImmovable", values[i])
+			} else if value.Valid {
+				_m.IsImmovable = value.Bool
+			}
+		case equipment.FieldColor:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field color", values[i])
+			} else if value.Valid {
+				_m.Color = value.String
+			}
+		case equipment.FieldIsVisible:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isVisible", values[i])
+			} else if value.Valid {
+				_m.IsVisible = value.Bool
+			}
+		case equipment.FieldItemType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field itemType", values[i])
+			} else if value.Valid {
+				_m.ItemType = value.String
 			}
 		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -199,6 +223,18 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("isEquipped=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsEquipped))
+	builder.WriteString(", ")
+	builder.WriteString("isImmovable=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsImmovable))
+	builder.WriteString(", ")
+	builder.WriteString("color=")
+	builder.WriteString(_m.Color)
+	builder.WriteString(", ")
+	builder.WriteString("isVisible=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsVisible))
+	builder.WriteString(", ")
+	builder.WriteString("itemType=")
+	builder.WriteString(_m.ItemType)
 	builder.WriteByte(')')
 	return builder.String()
 }

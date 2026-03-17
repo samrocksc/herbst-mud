@@ -6,6 +6,9 @@ import (
 	"log"
 
 	"herbst/db"
+	"herbst/db/character"
+	"herbst/db/npctemplate"
+	"herbst/db/room"
 )
 
 const (
@@ -151,5 +154,121 @@ func InitCrossWay(client *db.Client) error {
 	}
 
 	log.Println("Cross-shaped rooms initialized successfully")
+	return nil
+}
+
+// InitFountainRoom creates the fountain room if it doesn't exist
+func InitFountainRoom(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if fountain room already exists
+	existingRoom, err := client.Room.Query().Where(room.NameEQ("Fountain Courtyard")).Only(ctx)
+	if err == nil && existingRoom != nil {
+		log.Println("Fountain Courtyard room already exists, skipping...")
+		return nil
+	}
+
+	// Find the center room to connect to
+	centerRoom, err := client.Room.Query().Where(room.NameEQ("The Hole")).Only(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to find center room: %w", err)
+	}
+
+	// Create the fountain room
+	_, err = client.Room.
+		Create().
+		SetName("Fountain Courtyard").
+		SetDescription("A peaceful courtyard with a beautiful stone fountain in the center. The gentle sound of water is soothing.").
+		SetExits(map[string]int{"west": centerRoom.ID}).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create fountain room: %w", err)
+	}
+
+	// Update the center room to have an east exit to the fountain
+	err = client.Room.UpdateOne(centerRoom).
+		SetExits(map[string]int{"north": 1, "south": 2, "east": 6, "west": 4}).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to update center room exits: %w", err)
+	}
+
+	log.Println("Fountain Courtyard room created successfully")
+	return nil
+}
+
+// InitGizmo creates the Gizmo NPC template and spawns him in the fountain room
+func InitGizmo(client *db.Client) error {
+	ctx := context.Background()
+
+	// First ensure fountain room exists
+	if err := InitFountainRoom(client); err != nil {
+		log.Printf("Warning: failed to initialize fountain room: %v", err)
+	}
+
+	// Check if Gizmo template already exists
+	existingTemplate, err := client.NPCTemplate.Get(ctx, "gizmo")
+	if err == nil && existingTemplate != nil {
+		log.Println("Gizmo NPC template already exists, skipping...")
+		// Still ensure Gizmo character exists in the fountain room
+		return ensureGizmoCharacter(client, ctx)
+	}
+
+	// Create the Gizmo NPC template
+	_, err = client.NPCTemplate.
+		Create().
+		SetID("gizmo").
+		SetName("Gizmo").
+		SetDescription("A friendly half-dog creature with soulful eyes and wagging tail.").
+		SetRace("half-dog").
+		SetDisposition(npctemplate.DispositionFriendly).
+		SetLevel(1).
+		SetSkills(map[string]int{}).
+		SetTradesWith([]string{}).
+		SetGreeting("Welcome, new traveler! I'm Gizmo, here to help you get started.").
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Gizmo NPC template: %w", err)
+	}
+
+	log.Println("Gizmo NPC template created successfully")
+	return ensureGizmoCharacter(client, ctx)
+}
+
+// ensureGizmoCharacter ensures the Gizmo character exists in the fountain room
+func ensureGizmoCharacter(client *db.Client, ctx context.Context) error {
+	// Find the fountain room
+	fountainRoom, err := client.Room.Query().Where(room.NameEQ("Fountain Courtyard")).Only(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to find fountain room: %w", err)
+	}
+
+	// Check if Gizmo character already exists
+	existingGizmo, err := client.Character.Query().Where(character.NameEQ("Gizmo")).Only(ctx)
+	if err == nil && existingGizmo != nil {
+		log.Println("Gizmo character already exists, skipping...")
+		return nil
+	}
+
+	// Get the Gizmo template
+	gizmoTemplate, err := client.NPCTemplate.Get(ctx, "gizmo")
+	if err != nil {
+		return fmt.Errorf("failed to get Gizmo template: %w", err)
+	}
+
+	// Create the Gizmo character in the fountain room
+	_, err = client.Character.
+		Create().
+		SetName("Gizmo").
+		SetIsNPC(true).
+		SetCurrentRoomId(fountainRoom.ID).
+		SetStartingRoomId(fountainRoom.ID).
+		SetNpcTemplate(gizmoTemplate).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Gizmo character: %w", err)
+	}
+
+	log.Println("Gizmo character spawned in the Fountain Courtyard")
 	return nil
 }

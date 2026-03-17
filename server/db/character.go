@@ -5,6 +5,7 @@ package db
 import (
 	"fmt"
 	"herbst-server/db/character"
+	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
 	"strings"
@@ -30,24 +31,63 @@ type Character struct {
 	StartingRoomId int `json:"startingRoomId,omitempty"`
 	// IsAdmin holds the value of the "is_admin" field.
 	IsAdmin bool `json:"is_admin,omitempty"`
-	// Health points
+	// Hitpoints holds the value of the "hitpoints" field.
 	Hitpoints int `json:"hitpoints,omitempty"`
-	// Maximum health points
+	// MaxHitpoints holds the value of the "max_hitpoints" field.
 	MaxHitpoints int `json:"max_hitpoints,omitempty"`
-	// Stamina points
+	// Stamina holds the value of the "stamina" field.
 	Stamina int `json:"stamina,omitempty"`
-	// Maximum stamina points
+	// MaxStamina holds the value of the "max_stamina" field.
 	MaxStamina int `json:"max_stamina,omitempty"`
-	// Magic/energy points
+	// Mana holds the value of the "mana" field.
 	Mana int `json:"mana,omitempty"`
-	// Maximum magic/energy points
+	// MaxMana holds the value of the "max_mana" field.
 	MaxMana int `json:"max_mana,omitempty"`
+	// Race holds the value of the "race" field.
+	Race string `json:"race,omitempty"`
+	// Class holds the value of the "class" field.
+	Class string `json:"class,omitempty"`
+	// Level holds the value of the "level" field.
+	Level int `json:"level,omitempty"`
+	// Constitution holds the value of the "constitution" field.
+	Constitution int `json:"constitution,omitempty"`
+	// Gender holds the value of the "gender" field.
+	Gender string `json:"gender,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// Strength holds the value of the "strength" field.
+	Strength int `json:"strength,omitempty"`
+	// Dexterity holds the value of the "dexterity" field.
+	Dexterity int `json:"dexterity,omitempty"`
+	// Intelligence holds the value of the "intelligence" field.
+	Intelligence int `json:"intelligence,omitempty"`
+	// Wisdom holds the value of the "wisdom" field.
+	Wisdom int `json:"wisdom,omitempty"`
+	// SkillBlades holds the value of the "skill_blades" field.
+	SkillBlades int `json:"skill_blades,omitempty"`
+	// SkillStaves holds the value of the "skill_staves" field.
+	SkillStaves int `json:"skill_staves,omitempty"`
+	// SkillKnives holds the value of the "skill_knives" field.
+	SkillKnives int `json:"skill_knives,omitempty"`
+	// SkillMartial holds the value of the "skill_martial" field.
+	SkillMartial int `json:"skill_martial,omitempty"`
+	// SkillBrawling holds the value of the "skill_brawling" field.
+	SkillBrawling int `json:"skill_brawling,omitempty"`
+	// SkillTech holds the value of the "skill_tech" field.
+	SkillTech int `json:"skill_tech,omitempty"`
+	// SkillLightArmor holds the value of the "skill_light_armor" field.
+	SkillLightArmor int `json:"skill_light_armor,omitempty"`
+	// SkillClothArmor holds the value of the "skill_cloth_armor" field.
+	SkillClothArmor int `json:"skill_cloth_armor,omitempty"`
+	// SkillHeavyArmor holds the value of the "skill_heavy_armor" field.
+	SkillHeavyArmor int `json:"skill_heavy_armor,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
-	Edges           CharacterEdges `json:"edges"`
-	room_characters *int
-	user_characters *int
-	selectValues    sql.SelectValues
+	Edges                  CharacterEdges `json:"edges"`
+	character_npc_template *string
+	room_characters        *int
+	user_characters        *int
+	selectValues           sql.SelectValues
 }
 
 // CharacterEdges holds the relations/edges for other nodes in the graph.
@@ -56,15 +96,11 @@ type CharacterEdges struct {
 	User *User `json:"user,omitempty"`
 	// Room holds the value of the room edge.
 	Room *Room `json:"room,omitempty"`
-	// Skills holds the value of the skills edge.
-	Skills []*CharacterSkill `json:"skills,omitempty"`
-	// Talents holds the value of the talents edge.
-	Talents []*CharacterTalent `json:"talents,omitempty"`
-	// AvailableTalents holds the value of the available_talents edge.
-	AvailableTalents []*AvailableTalent `json:"available_talents,omitempty"`
+	// NpcTemplate holds the value of the npcTemplate edge.
+	NpcTemplate *NPCTemplate `json:"npcTemplate,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [3]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -89,31 +125,15 @@ func (e CharacterEdges) RoomOrErr() (*Room, error) {
 	return nil, &NotLoadedError{edge: "room"}
 }
 
-// SkillsOrErr returns the Skills value or an error if the edge
-// was not loaded in eager-loading.
-func (e CharacterEdges) SkillsOrErr() ([]*CharacterSkill, error) {
-	if e.loadedTypes[2] {
-		return e.Skills, nil
+// NpcTemplateOrErr returns the NpcTemplate value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CharacterEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
+	if e.NpcTemplate != nil {
+		return e.NpcTemplate, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: npctemplate.Label}
 	}
-	return nil, &NotLoadedError{edge: "skills"}
-}
-
-// TalentsOrErr returns the Talents value or an error if the edge
-// was not loaded in eager-loading.
-func (e CharacterEdges) TalentsOrErr() ([]*CharacterTalent, error) {
-	if e.loadedTypes[3] {
-		return e.Talents, nil
-	}
-	return nil, &NotLoadedError{edge: "talents"}
-}
-
-// AvailableTalentsOrErr returns the AvailableTalents value or an error if the edge
-// was not loaded in eager-loading.
-func (e CharacterEdges) AvailableTalentsOrErr() ([]*AvailableTalent, error) {
-	if e.loadedTypes[4] {
-		return e.AvailableTalents, nil
-	}
-	return nil, &NotLoadedError{edge: "available_talents"}
+	return nil, &NotLoadedError{edge: "npcTemplate"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -123,13 +143,15 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case character.FieldIsNPC, character.FieldIsAdmin:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
-		case character.FieldName, character.FieldPassword:
+		case character.FieldName, character.FieldPassword, character.FieldRace, character.FieldClass, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
-		case character.ForeignKeys[0]: // room_characters
+		case character.ForeignKeys[0]: // character_npc_template
+			values[i] = new(sql.NullString)
+		case character.ForeignKeys[1]: // room_characters
 			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[1]: // user_characters
+		case character.ForeignKeys[2]: // user_characters
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -224,14 +246,135 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.MaxMana = int(value.Int64)
 			}
+		case character.FieldRace:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field race", values[i])
+			} else if value.Valid {
+				_m.Race = value.String
+			}
+		case character.FieldClass:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field class", values[i])
+			} else if value.Valid {
+				_m.Class = value.String
+			}
+		case character.FieldLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field level", values[i])
+			} else if value.Valid {
+				_m.Level = int(value.Int64)
+			}
+		case character.FieldConstitution:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field constitution", values[i])
+			} else if value.Valid {
+				_m.Constitution = int(value.Int64)
+			}
+		case character.FieldGender:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field gender", values[i])
+			} else if value.Valid {
+				_m.Gender = value.String
+			}
+		case character.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				_m.Description = value.String
+			}
+		case character.FieldStrength:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field strength", values[i])
+			} else if value.Valid {
+				_m.Strength = int(value.Int64)
+			}
+		case character.FieldDexterity:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field dexterity", values[i])
+			} else if value.Valid {
+				_m.Dexterity = int(value.Int64)
+			}
+		case character.FieldIntelligence:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field intelligence", values[i])
+			} else if value.Valid {
+				_m.Intelligence = int(value.Int64)
+			}
+		case character.FieldWisdom:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field wisdom", values[i])
+			} else if value.Valid {
+				_m.Wisdom = int(value.Int64)
+			}
+		case character.FieldSkillBlades:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_blades", values[i])
+			} else if value.Valid {
+				_m.SkillBlades = int(value.Int64)
+			}
+		case character.FieldSkillStaves:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_staves", values[i])
+			} else if value.Valid {
+				_m.SkillStaves = int(value.Int64)
+			}
+		case character.FieldSkillKnives:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_knives", values[i])
+			} else if value.Valid {
+				_m.SkillKnives = int(value.Int64)
+			}
+		case character.FieldSkillMartial:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_martial", values[i])
+			} else if value.Valid {
+				_m.SkillMartial = int(value.Int64)
+			}
+		case character.FieldSkillBrawling:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_brawling", values[i])
+			} else if value.Valid {
+				_m.SkillBrawling = int(value.Int64)
+			}
+		case character.FieldSkillTech:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_tech", values[i])
+			} else if value.Valid {
+				_m.SkillTech = int(value.Int64)
+			}
+		case character.FieldSkillLightArmor:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_light_armor", values[i])
+			} else if value.Valid {
+				_m.SkillLightArmor = int(value.Int64)
+			}
+		case character.FieldSkillClothArmor:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_cloth_armor", values[i])
+			} else if value.Valid {
+				_m.SkillClothArmor = int(value.Int64)
+			}
+		case character.FieldSkillHeavyArmor:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_heavy_armor", values[i])
+			} else if value.Valid {
+				_m.SkillHeavyArmor = int(value.Int64)
+			}
 		case character.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field character_npc_template", values[i])
+			} else if value.Valid {
+				_m.character_npc_template = new(string)
+				*_m.character_npc_template = value.String
+			}
+		case character.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_characters", value)
 			} else if value.Valid {
 				_m.room_characters = new(int)
 				*_m.room_characters = int(value.Int64)
 			}
-		case character.ForeignKeys[1]:
+		case character.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_characters", value)
 			} else if value.Valid {
@@ -261,19 +404,9 @@ func (_m *Character) QueryRoom() *RoomQuery {
 	return NewCharacterClient(_m.config).QueryRoom(_m)
 }
 
-// QuerySkills queries the "skills" edge of the Character entity.
-func (_m *Character) QuerySkills() *CharacterSkillQuery {
-	return NewCharacterClient(_m.config).QuerySkills(_m)
-}
-
-// QueryTalents queries the "talents" edge of the Character entity.
-func (_m *Character) QueryTalents() *CharacterTalentQuery {
-	return NewCharacterClient(_m.config).QueryTalents(_m)
-}
-
-// QueryAvailableTalents queries the "available_talents" edge of the Character entity.
-func (_m *Character) QueryAvailableTalents() *AvailableTalentQuery {
-	return NewCharacterClient(_m.config).QueryAvailableTalents(_m)
+// QueryNpcTemplate queries the "npcTemplate" edge of the Character entity.
+func (_m *Character) QueryNpcTemplate() *NPCTemplateQuery {
+	return NewCharacterClient(_m.config).QueryNpcTemplate(_m)
 }
 
 // Update returns a builder for updating this Character.
@@ -334,6 +467,63 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("max_mana=")
 	builder.WriteString(fmt.Sprintf("%v", _m.MaxMana))
+	builder.WriteString(", ")
+	builder.WriteString("race=")
+	builder.WriteString(_m.Race)
+	builder.WriteString(", ")
+	builder.WriteString("class=")
+	builder.WriteString(_m.Class)
+	builder.WriteString(", ")
+	builder.WriteString("level=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Level))
+	builder.WriteString(", ")
+	builder.WriteString("constitution=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Constitution))
+	builder.WriteString(", ")
+	builder.WriteString("gender=")
+	builder.WriteString(_m.Gender)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("strength=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Strength))
+	builder.WriteString(", ")
+	builder.WriteString("dexterity=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Dexterity))
+	builder.WriteString(", ")
+	builder.WriteString("intelligence=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Intelligence))
+	builder.WriteString(", ")
+	builder.WriteString("wisdom=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Wisdom))
+	builder.WriteString(", ")
+	builder.WriteString("skill_blades=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillBlades))
+	builder.WriteString(", ")
+	builder.WriteString("skill_staves=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillStaves))
+	builder.WriteString(", ")
+	builder.WriteString("skill_knives=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillKnives))
+	builder.WriteString(", ")
+	builder.WriteString("skill_martial=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillMartial))
+	builder.WriteString(", ")
+	builder.WriteString("skill_brawling=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillBrawling))
+	builder.WriteString(", ")
+	builder.WriteString("skill_tech=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillTech))
+	builder.WriteString(", ")
+	builder.WriteString("skill_light_armor=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillLightArmor))
+	builder.WriteString(", ")
+	builder.WriteString("skill_cloth_armor=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillClothArmor))
+	builder.WriteString(", ")
+	builder.WriteString("skill_heavy_armor=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillHeavyArmor))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -59,6 +59,11 @@ func Name(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldName, v))
 }
 
+// Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
+func Password(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldPassword, v))
+}
+
 // IsNPC applies equality check predicate on the "isNPC" field. It's identical to IsNPCEQ.
 func IsNPC(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsNPC, v))
@@ -77,6 +82,131 @@ func StartingRoomId(v int) predicate.Character {
 // IsAdmin applies equality check predicate on the "is_admin" field. It's identical to IsAdminEQ.
 func IsAdmin(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsAdmin, v))
+}
+
+// Hitpoints applies equality check predicate on the "hitpoints" field. It's identical to HitpointsEQ.
+func Hitpoints(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldHitpoints, v))
+}
+
+// MaxHitpoints applies equality check predicate on the "max_hitpoints" field. It's identical to MaxHitpointsEQ.
+func MaxHitpoints(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxHitpoints, v))
+}
+
+// Stamina applies equality check predicate on the "stamina" field. It's identical to StaminaEQ.
+func Stamina(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldStamina, v))
+}
+
+// MaxStamina applies equality check predicate on the "max_stamina" field. It's identical to MaxStaminaEQ.
+func MaxStamina(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxStamina, v))
+}
+
+// Mana applies equality check predicate on the "mana" field. It's identical to ManaEQ.
+func Mana(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMana, v))
+}
+
+// MaxMana applies equality check predicate on the "max_mana" field. It's identical to MaxManaEQ.
+func MaxMana(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxMana, v))
+}
+
+// Race applies equality check predicate on the "race" field. It's identical to RaceEQ.
+func Race(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldRace, v))
+}
+
+// Class applies equality check predicate on the "class" field. It's identical to ClassEQ.
+func Class(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldClass, v))
+}
+
+// Level applies equality check predicate on the "level" field. It's identical to LevelEQ.
+func Level(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldLevel, v))
+}
+
+// Constitution applies equality check predicate on the "constitution" field. It's identical to ConstitutionEQ.
+func Constitution(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldConstitution, v))
+}
+
+// Gender applies equality check predicate on the "gender" field. It's identical to GenderEQ.
+func Gender(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldGender, v))
+}
+
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldDescription, v))
+}
+
+// Strength applies equality check predicate on the "strength" field. It's identical to StrengthEQ.
+func Strength(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldStrength, v))
+}
+
+// Dexterity applies equality check predicate on the "dexterity" field. It's identical to DexterityEQ.
+func Dexterity(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldDexterity, v))
+}
+
+// Intelligence applies equality check predicate on the "intelligence" field. It's identical to IntelligenceEQ.
+func Intelligence(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIntelligence, v))
+}
+
+// Wisdom applies equality check predicate on the "wisdom" field. It's identical to WisdomEQ.
+func Wisdom(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldWisdom, v))
+}
+
+// SkillBlades applies equality check predicate on the "skill_blades" field. It's identical to SkillBladesEQ.
+func SkillBlades(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillBlades, v))
+}
+
+// SkillStaves applies equality check predicate on the "skill_staves" field. It's identical to SkillStavesEQ.
+func SkillStaves(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillStaves, v))
+}
+
+// SkillKnives applies equality check predicate on the "skill_knives" field. It's identical to SkillKnivesEQ.
+func SkillKnives(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillKnives, v))
+}
+
+// SkillMartial applies equality check predicate on the "skill_martial" field. It's identical to SkillMartialEQ.
+func SkillMartial(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillMartial, v))
+}
+
+// SkillBrawling applies equality check predicate on the "skill_brawling" field. It's identical to SkillBrawlingEQ.
+func SkillBrawling(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillBrawling, v))
+}
+
+// SkillTech applies equality check predicate on the "skill_tech" field. It's identical to SkillTechEQ.
+func SkillTech(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillTech, v))
+}
+
+// SkillLightArmor applies equality check predicate on the "skill_light_armor" field. It's identical to SkillLightArmorEQ.
+func SkillLightArmor(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillLightArmor, v))
+}
+
+// SkillClothArmor applies equality check predicate on the "skill_cloth_armor" field. It's identical to SkillClothArmorEQ.
+func SkillClothArmor(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillClothArmor, v))
+}
+
+// SkillHeavyArmor applies equality check predicate on the "skill_heavy_armor" field. It's identical to SkillHeavyArmorEQ.
+func SkillHeavyArmor(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillHeavyArmor, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -142,6 +272,81 @@ func NameEqualFold(v string) predicate.Character {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Character {
 	return predicate.Character(sql.FieldContainsFold(FieldName, v))
+}
+
+// PasswordEQ applies the EQ predicate on the "password" field.
+func PasswordEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldPassword, v))
+}
+
+// PasswordNEQ applies the NEQ predicate on the "password" field.
+func PasswordNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldPassword, v))
+}
+
+// PasswordIn applies the In predicate on the "password" field.
+func PasswordIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldPassword, vs...))
+}
+
+// PasswordNotIn applies the NotIn predicate on the "password" field.
+func PasswordNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldPassword, vs...))
+}
+
+// PasswordGT applies the GT predicate on the "password" field.
+func PasswordGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldPassword, v))
+}
+
+// PasswordGTE applies the GTE predicate on the "password" field.
+func PasswordGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldPassword, v))
+}
+
+// PasswordLT applies the LT predicate on the "password" field.
+func PasswordLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldPassword, v))
+}
+
+// PasswordLTE applies the LTE predicate on the "password" field.
+func PasswordLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldPassword, v))
+}
+
+// PasswordContains applies the Contains predicate on the "password" field.
+func PasswordContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldPassword, v))
+}
+
+// PasswordHasPrefix applies the HasPrefix predicate on the "password" field.
+func PasswordHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldPassword, v))
+}
+
+// PasswordHasSuffix applies the HasSuffix predicate on the "password" field.
+func PasswordHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldPassword, v))
+}
+
+// PasswordIsNil applies the IsNil predicate on the "password" field.
+func PasswordIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldPassword))
+}
+
+// PasswordNotNil applies the NotNil predicate on the "password" field.
+func PasswordNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldPassword))
+}
+
+// PasswordEqualFold applies the EqualFold predicate on the "password" field.
+func PasswordEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldPassword, v))
+}
+
+// PasswordContainsFold applies the ContainsFold predicate on the "password" field.
+func PasswordContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldPassword, v))
 }
 
 // IsNPCEQ applies the EQ predicate on the "isNPC" field.
@@ -224,6 +429,1126 @@ func IsAdminNEQ(v bool) predicate.Character {
 	return predicate.Character(sql.FieldNEQ(FieldIsAdmin, v))
 }
 
+// HitpointsEQ applies the EQ predicate on the "hitpoints" field.
+func HitpointsEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldHitpoints, v))
+}
+
+// HitpointsNEQ applies the NEQ predicate on the "hitpoints" field.
+func HitpointsNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldHitpoints, v))
+}
+
+// HitpointsIn applies the In predicate on the "hitpoints" field.
+func HitpointsIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldHitpoints, vs...))
+}
+
+// HitpointsNotIn applies the NotIn predicate on the "hitpoints" field.
+func HitpointsNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldHitpoints, vs...))
+}
+
+// HitpointsGT applies the GT predicate on the "hitpoints" field.
+func HitpointsGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldHitpoints, v))
+}
+
+// HitpointsGTE applies the GTE predicate on the "hitpoints" field.
+func HitpointsGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldHitpoints, v))
+}
+
+// HitpointsLT applies the LT predicate on the "hitpoints" field.
+func HitpointsLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldHitpoints, v))
+}
+
+// HitpointsLTE applies the LTE predicate on the "hitpoints" field.
+func HitpointsLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldHitpoints, v))
+}
+
+// MaxHitpointsEQ applies the EQ predicate on the "max_hitpoints" field.
+func MaxHitpointsEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsNEQ applies the NEQ predicate on the "max_hitpoints" field.
+func MaxHitpointsNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsIn applies the In predicate on the "max_hitpoints" field.
+func MaxHitpointsIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldMaxHitpoints, vs...))
+}
+
+// MaxHitpointsNotIn applies the NotIn predicate on the "max_hitpoints" field.
+func MaxHitpointsNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldMaxHitpoints, vs...))
+}
+
+// MaxHitpointsGT applies the GT predicate on the "max_hitpoints" field.
+func MaxHitpointsGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsGTE applies the GTE predicate on the "max_hitpoints" field.
+func MaxHitpointsGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsLT applies the LT predicate on the "max_hitpoints" field.
+func MaxHitpointsLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldMaxHitpoints, v))
+}
+
+// MaxHitpointsLTE applies the LTE predicate on the "max_hitpoints" field.
+func MaxHitpointsLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldMaxHitpoints, v))
+}
+
+// StaminaEQ applies the EQ predicate on the "stamina" field.
+func StaminaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldStamina, v))
+}
+
+// StaminaNEQ applies the NEQ predicate on the "stamina" field.
+func StaminaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldStamina, v))
+}
+
+// StaminaIn applies the In predicate on the "stamina" field.
+func StaminaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldStamina, vs...))
+}
+
+// StaminaNotIn applies the NotIn predicate on the "stamina" field.
+func StaminaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldStamina, vs...))
+}
+
+// StaminaGT applies the GT predicate on the "stamina" field.
+func StaminaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldStamina, v))
+}
+
+// StaminaGTE applies the GTE predicate on the "stamina" field.
+func StaminaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldStamina, v))
+}
+
+// StaminaLT applies the LT predicate on the "stamina" field.
+func StaminaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldStamina, v))
+}
+
+// StaminaLTE applies the LTE predicate on the "stamina" field.
+func StaminaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldStamina, v))
+}
+
+// MaxStaminaEQ applies the EQ predicate on the "max_stamina" field.
+func MaxStaminaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxStamina, v))
+}
+
+// MaxStaminaNEQ applies the NEQ predicate on the "max_stamina" field.
+func MaxStaminaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldMaxStamina, v))
+}
+
+// MaxStaminaIn applies the In predicate on the "max_stamina" field.
+func MaxStaminaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldMaxStamina, vs...))
+}
+
+// MaxStaminaNotIn applies the NotIn predicate on the "max_stamina" field.
+func MaxStaminaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldMaxStamina, vs...))
+}
+
+// MaxStaminaGT applies the GT predicate on the "max_stamina" field.
+func MaxStaminaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldMaxStamina, v))
+}
+
+// MaxStaminaGTE applies the GTE predicate on the "max_stamina" field.
+func MaxStaminaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldMaxStamina, v))
+}
+
+// MaxStaminaLT applies the LT predicate on the "max_stamina" field.
+func MaxStaminaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldMaxStamina, v))
+}
+
+// MaxStaminaLTE applies the LTE predicate on the "max_stamina" field.
+func MaxStaminaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldMaxStamina, v))
+}
+
+// ManaEQ applies the EQ predicate on the "mana" field.
+func ManaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMana, v))
+}
+
+// ManaNEQ applies the NEQ predicate on the "mana" field.
+func ManaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldMana, v))
+}
+
+// ManaIn applies the In predicate on the "mana" field.
+func ManaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldMana, vs...))
+}
+
+// ManaNotIn applies the NotIn predicate on the "mana" field.
+func ManaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldMana, vs...))
+}
+
+// ManaGT applies the GT predicate on the "mana" field.
+func ManaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldMana, v))
+}
+
+// ManaGTE applies the GTE predicate on the "mana" field.
+func ManaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldMana, v))
+}
+
+// ManaLT applies the LT predicate on the "mana" field.
+func ManaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldMana, v))
+}
+
+// ManaLTE applies the LTE predicate on the "mana" field.
+func ManaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldMana, v))
+}
+
+// MaxManaEQ applies the EQ predicate on the "max_mana" field.
+func MaxManaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldMaxMana, v))
+}
+
+// MaxManaNEQ applies the NEQ predicate on the "max_mana" field.
+func MaxManaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldMaxMana, v))
+}
+
+// MaxManaIn applies the In predicate on the "max_mana" field.
+func MaxManaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldMaxMana, vs...))
+}
+
+// MaxManaNotIn applies the NotIn predicate on the "max_mana" field.
+func MaxManaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldMaxMana, vs...))
+}
+
+// MaxManaGT applies the GT predicate on the "max_mana" field.
+func MaxManaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldMaxMana, v))
+}
+
+// MaxManaGTE applies the GTE predicate on the "max_mana" field.
+func MaxManaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldMaxMana, v))
+}
+
+// MaxManaLT applies the LT predicate on the "max_mana" field.
+func MaxManaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldMaxMana, v))
+}
+
+// MaxManaLTE applies the LTE predicate on the "max_mana" field.
+func MaxManaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldMaxMana, v))
+}
+
+// RaceEQ applies the EQ predicate on the "race" field.
+func RaceEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldRace, v))
+}
+
+// RaceNEQ applies the NEQ predicate on the "race" field.
+func RaceNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldRace, v))
+}
+
+// RaceIn applies the In predicate on the "race" field.
+func RaceIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldRace, vs...))
+}
+
+// RaceNotIn applies the NotIn predicate on the "race" field.
+func RaceNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldRace, vs...))
+}
+
+// RaceGT applies the GT predicate on the "race" field.
+func RaceGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldRace, v))
+}
+
+// RaceGTE applies the GTE predicate on the "race" field.
+func RaceGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldRace, v))
+}
+
+// RaceLT applies the LT predicate on the "race" field.
+func RaceLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldRace, v))
+}
+
+// RaceLTE applies the LTE predicate on the "race" field.
+func RaceLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldRace, v))
+}
+
+// RaceContains applies the Contains predicate on the "race" field.
+func RaceContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldRace, v))
+}
+
+// RaceHasPrefix applies the HasPrefix predicate on the "race" field.
+func RaceHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldRace, v))
+}
+
+// RaceHasSuffix applies the HasSuffix predicate on the "race" field.
+func RaceHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldRace, v))
+}
+
+// RaceEqualFold applies the EqualFold predicate on the "race" field.
+func RaceEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldRace, v))
+}
+
+// RaceContainsFold applies the ContainsFold predicate on the "race" field.
+func RaceContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldRace, v))
+}
+
+// ClassEQ applies the EQ predicate on the "class" field.
+func ClassEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldClass, v))
+}
+
+// ClassNEQ applies the NEQ predicate on the "class" field.
+func ClassNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldClass, v))
+}
+
+// ClassIn applies the In predicate on the "class" field.
+func ClassIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldClass, vs...))
+}
+
+// ClassNotIn applies the NotIn predicate on the "class" field.
+func ClassNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldClass, vs...))
+}
+
+// ClassGT applies the GT predicate on the "class" field.
+func ClassGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldClass, v))
+}
+
+// ClassGTE applies the GTE predicate on the "class" field.
+func ClassGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldClass, v))
+}
+
+// ClassLT applies the LT predicate on the "class" field.
+func ClassLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldClass, v))
+}
+
+// ClassLTE applies the LTE predicate on the "class" field.
+func ClassLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldClass, v))
+}
+
+// ClassContains applies the Contains predicate on the "class" field.
+func ClassContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldClass, v))
+}
+
+// ClassHasPrefix applies the HasPrefix predicate on the "class" field.
+func ClassHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldClass, v))
+}
+
+// ClassHasSuffix applies the HasSuffix predicate on the "class" field.
+func ClassHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldClass, v))
+}
+
+// ClassEqualFold applies the EqualFold predicate on the "class" field.
+func ClassEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldClass, v))
+}
+
+// ClassContainsFold applies the ContainsFold predicate on the "class" field.
+func ClassContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldClass, v))
+}
+
+// LevelEQ applies the EQ predicate on the "level" field.
+func LevelEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldLevel, v))
+}
+
+// LevelNEQ applies the NEQ predicate on the "level" field.
+func LevelNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldLevel, v))
+}
+
+// LevelIn applies the In predicate on the "level" field.
+func LevelIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldLevel, vs...))
+}
+
+// LevelNotIn applies the NotIn predicate on the "level" field.
+func LevelNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldLevel, vs...))
+}
+
+// LevelGT applies the GT predicate on the "level" field.
+func LevelGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldLevel, v))
+}
+
+// LevelGTE applies the GTE predicate on the "level" field.
+func LevelGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldLevel, v))
+}
+
+// LevelLT applies the LT predicate on the "level" field.
+func LevelLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldLevel, v))
+}
+
+// LevelLTE applies the LTE predicate on the "level" field.
+func LevelLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldLevel, v))
+}
+
+// ConstitutionEQ applies the EQ predicate on the "constitution" field.
+func ConstitutionEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldConstitution, v))
+}
+
+// ConstitutionNEQ applies the NEQ predicate on the "constitution" field.
+func ConstitutionNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldConstitution, v))
+}
+
+// ConstitutionIn applies the In predicate on the "constitution" field.
+func ConstitutionIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldConstitution, vs...))
+}
+
+// ConstitutionNotIn applies the NotIn predicate on the "constitution" field.
+func ConstitutionNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldConstitution, vs...))
+}
+
+// ConstitutionGT applies the GT predicate on the "constitution" field.
+func ConstitutionGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldConstitution, v))
+}
+
+// ConstitutionGTE applies the GTE predicate on the "constitution" field.
+func ConstitutionGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldConstitution, v))
+}
+
+// ConstitutionLT applies the LT predicate on the "constitution" field.
+func ConstitutionLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldConstitution, v))
+}
+
+// ConstitutionLTE applies the LTE predicate on the "constitution" field.
+func ConstitutionLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldConstitution, v))
+}
+
+// GenderEQ applies the EQ predicate on the "gender" field.
+func GenderEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldGender, v))
+}
+
+// GenderNEQ applies the NEQ predicate on the "gender" field.
+func GenderNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldGender, v))
+}
+
+// GenderIn applies the In predicate on the "gender" field.
+func GenderIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldGender, vs...))
+}
+
+// GenderNotIn applies the NotIn predicate on the "gender" field.
+func GenderNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldGender, vs...))
+}
+
+// GenderGT applies the GT predicate on the "gender" field.
+func GenderGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldGender, v))
+}
+
+// GenderGTE applies the GTE predicate on the "gender" field.
+func GenderGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldGender, v))
+}
+
+// GenderLT applies the LT predicate on the "gender" field.
+func GenderLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldGender, v))
+}
+
+// GenderLTE applies the LTE predicate on the "gender" field.
+func GenderLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldGender, v))
+}
+
+// GenderContains applies the Contains predicate on the "gender" field.
+func GenderContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldGender, v))
+}
+
+// GenderHasPrefix applies the HasPrefix predicate on the "gender" field.
+func GenderHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldGender, v))
+}
+
+// GenderHasSuffix applies the HasSuffix predicate on the "gender" field.
+func GenderHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldGender, v))
+}
+
+// GenderIsNil applies the IsNil predicate on the "gender" field.
+func GenderIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldGender))
+}
+
+// GenderNotNil applies the NotNil predicate on the "gender" field.
+func GenderNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldGender))
+}
+
+// GenderEqualFold applies the EqualFold predicate on the "gender" field.
+func GenderEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldGender, v))
+}
+
+// GenderContainsFold applies the ContainsFold predicate on the "gender" field.
+func GenderContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldGender, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionIsNil applies the IsNil predicate on the "description" field.
+func DescriptionIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldDescription))
+}
+
+// DescriptionNotNil applies the NotNil predicate on the "description" field.
+func DescriptionNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldDescription))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// StrengthEQ applies the EQ predicate on the "strength" field.
+func StrengthEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldStrength, v))
+}
+
+// StrengthNEQ applies the NEQ predicate on the "strength" field.
+func StrengthNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldStrength, v))
+}
+
+// StrengthIn applies the In predicate on the "strength" field.
+func StrengthIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldStrength, vs...))
+}
+
+// StrengthNotIn applies the NotIn predicate on the "strength" field.
+func StrengthNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldStrength, vs...))
+}
+
+// StrengthGT applies the GT predicate on the "strength" field.
+func StrengthGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldStrength, v))
+}
+
+// StrengthGTE applies the GTE predicate on the "strength" field.
+func StrengthGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldStrength, v))
+}
+
+// StrengthLT applies the LT predicate on the "strength" field.
+func StrengthLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldStrength, v))
+}
+
+// StrengthLTE applies the LTE predicate on the "strength" field.
+func StrengthLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldStrength, v))
+}
+
+// DexterityEQ applies the EQ predicate on the "dexterity" field.
+func DexterityEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldDexterity, v))
+}
+
+// DexterityNEQ applies the NEQ predicate on the "dexterity" field.
+func DexterityNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldDexterity, v))
+}
+
+// DexterityIn applies the In predicate on the "dexterity" field.
+func DexterityIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldDexterity, vs...))
+}
+
+// DexterityNotIn applies the NotIn predicate on the "dexterity" field.
+func DexterityNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldDexterity, vs...))
+}
+
+// DexterityGT applies the GT predicate on the "dexterity" field.
+func DexterityGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldDexterity, v))
+}
+
+// DexterityGTE applies the GTE predicate on the "dexterity" field.
+func DexterityGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldDexterity, v))
+}
+
+// DexterityLT applies the LT predicate on the "dexterity" field.
+func DexterityLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldDexterity, v))
+}
+
+// DexterityLTE applies the LTE predicate on the "dexterity" field.
+func DexterityLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldDexterity, v))
+}
+
+// IntelligenceEQ applies the EQ predicate on the "intelligence" field.
+func IntelligenceEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIntelligence, v))
+}
+
+// IntelligenceNEQ applies the NEQ predicate on the "intelligence" field.
+func IntelligenceNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldIntelligence, v))
+}
+
+// IntelligenceIn applies the In predicate on the "intelligence" field.
+func IntelligenceIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldIntelligence, vs...))
+}
+
+// IntelligenceNotIn applies the NotIn predicate on the "intelligence" field.
+func IntelligenceNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldIntelligence, vs...))
+}
+
+// IntelligenceGT applies the GT predicate on the "intelligence" field.
+func IntelligenceGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldIntelligence, v))
+}
+
+// IntelligenceGTE applies the GTE predicate on the "intelligence" field.
+func IntelligenceGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldIntelligence, v))
+}
+
+// IntelligenceLT applies the LT predicate on the "intelligence" field.
+func IntelligenceLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldIntelligence, v))
+}
+
+// IntelligenceLTE applies the LTE predicate on the "intelligence" field.
+func IntelligenceLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldIntelligence, v))
+}
+
+// WisdomEQ applies the EQ predicate on the "wisdom" field.
+func WisdomEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldWisdom, v))
+}
+
+// WisdomNEQ applies the NEQ predicate on the "wisdom" field.
+func WisdomNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldWisdom, v))
+}
+
+// WisdomIn applies the In predicate on the "wisdom" field.
+func WisdomIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldWisdom, vs...))
+}
+
+// WisdomNotIn applies the NotIn predicate on the "wisdom" field.
+func WisdomNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldWisdom, vs...))
+}
+
+// WisdomGT applies the GT predicate on the "wisdom" field.
+func WisdomGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldWisdom, v))
+}
+
+// WisdomGTE applies the GTE predicate on the "wisdom" field.
+func WisdomGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldWisdom, v))
+}
+
+// WisdomLT applies the LT predicate on the "wisdom" field.
+func WisdomLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldWisdom, v))
+}
+
+// WisdomLTE applies the LTE predicate on the "wisdom" field.
+func WisdomLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldWisdom, v))
+}
+
+// SkillBladesEQ applies the EQ predicate on the "skill_blades" field.
+func SkillBladesEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillBlades, v))
+}
+
+// SkillBladesNEQ applies the NEQ predicate on the "skill_blades" field.
+func SkillBladesNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillBlades, v))
+}
+
+// SkillBladesIn applies the In predicate on the "skill_blades" field.
+func SkillBladesIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillBlades, vs...))
+}
+
+// SkillBladesNotIn applies the NotIn predicate on the "skill_blades" field.
+func SkillBladesNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillBlades, vs...))
+}
+
+// SkillBladesGT applies the GT predicate on the "skill_blades" field.
+func SkillBladesGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillBlades, v))
+}
+
+// SkillBladesGTE applies the GTE predicate on the "skill_blades" field.
+func SkillBladesGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillBlades, v))
+}
+
+// SkillBladesLT applies the LT predicate on the "skill_blades" field.
+func SkillBladesLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillBlades, v))
+}
+
+// SkillBladesLTE applies the LTE predicate on the "skill_blades" field.
+func SkillBladesLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillBlades, v))
+}
+
+// SkillStavesEQ applies the EQ predicate on the "skill_staves" field.
+func SkillStavesEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillStaves, v))
+}
+
+// SkillStavesNEQ applies the NEQ predicate on the "skill_staves" field.
+func SkillStavesNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillStaves, v))
+}
+
+// SkillStavesIn applies the In predicate on the "skill_staves" field.
+func SkillStavesIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillStaves, vs...))
+}
+
+// SkillStavesNotIn applies the NotIn predicate on the "skill_staves" field.
+func SkillStavesNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillStaves, vs...))
+}
+
+// SkillStavesGT applies the GT predicate on the "skill_staves" field.
+func SkillStavesGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillStaves, v))
+}
+
+// SkillStavesGTE applies the GTE predicate on the "skill_staves" field.
+func SkillStavesGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillStaves, v))
+}
+
+// SkillStavesLT applies the LT predicate on the "skill_staves" field.
+func SkillStavesLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillStaves, v))
+}
+
+// SkillStavesLTE applies the LTE predicate on the "skill_staves" field.
+func SkillStavesLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillStaves, v))
+}
+
+// SkillKnivesEQ applies the EQ predicate on the "skill_knives" field.
+func SkillKnivesEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillKnives, v))
+}
+
+// SkillKnivesNEQ applies the NEQ predicate on the "skill_knives" field.
+func SkillKnivesNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillKnives, v))
+}
+
+// SkillKnivesIn applies the In predicate on the "skill_knives" field.
+func SkillKnivesIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillKnives, vs...))
+}
+
+// SkillKnivesNotIn applies the NotIn predicate on the "skill_knives" field.
+func SkillKnivesNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillKnives, vs...))
+}
+
+// SkillKnivesGT applies the GT predicate on the "skill_knives" field.
+func SkillKnivesGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillKnives, v))
+}
+
+// SkillKnivesGTE applies the GTE predicate on the "skill_knives" field.
+func SkillKnivesGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillKnives, v))
+}
+
+// SkillKnivesLT applies the LT predicate on the "skill_knives" field.
+func SkillKnivesLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillKnives, v))
+}
+
+// SkillKnivesLTE applies the LTE predicate on the "skill_knives" field.
+func SkillKnivesLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillKnives, v))
+}
+
+// SkillMartialEQ applies the EQ predicate on the "skill_martial" field.
+func SkillMartialEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillMartial, v))
+}
+
+// SkillMartialNEQ applies the NEQ predicate on the "skill_martial" field.
+func SkillMartialNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillMartial, v))
+}
+
+// SkillMartialIn applies the In predicate on the "skill_martial" field.
+func SkillMartialIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillMartial, vs...))
+}
+
+// SkillMartialNotIn applies the NotIn predicate on the "skill_martial" field.
+func SkillMartialNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillMartial, vs...))
+}
+
+// SkillMartialGT applies the GT predicate on the "skill_martial" field.
+func SkillMartialGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillMartial, v))
+}
+
+// SkillMartialGTE applies the GTE predicate on the "skill_martial" field.
+func SkillMartialGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillMartial, v))
+}
+
+// SkillMartialLT applies the LT predicate on the "skill_martial" field.
+func SkillMartialLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillMartial, v))
+}
+
+// SkillMartialLTE applies the LTE predicate on the "skill_martial" field.
+func SkillMartialLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillMartial, v))
+}
+
+// SkillBrawlingEQ applies the EQ predicate on the "skill_brawling" field.
+func SkillBrawlingEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillBrawling, v))
+}
+
+// SkillBrawlingNEQ applies the NEQ predicate on the "skill_brawling" field.
+func SkillBrawlingNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillBrawling, v))
+}
+
+// SkillBrawlingIn applies the In predicate on the "skill_brawling" field.
+func SkillBrawlingIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillBrawling, vs...))
+}
+
+// SkillBrawlingNotIn applies the NotIn predicate on the "skill_brawling" field.
+func SkillBrawlingNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillBrawling, vs...))
+}
+
+// SkillBrawlingGT applies the GT predicate on the "skill_brawling" field.
+func SkillBrawlingGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillBrawling, v))
+}
+
+// SkillBrawlingGTE applies the GTE predicate on the "skill_brawling" field.
+func SkillBrawlingGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillBrawling, v))
+}
+
+// SkillBrawlingLT applies the LT predicate on the "skill_brawling" field.
+func SkillBrawlingLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillBrawling, v))
+}
+
+// SkillBrawlingLTE applies the LTE predicate on the "skill_brawling" field.
+func SkillBrawlingLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillBrawling, v))
+}
+
+// SkillTechEQ applies the EQ predicate on the "skill_tech" field.
+func SkillTechEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillTech, v))
+}
+
+// SkillTechNEQ applies the NEQ predicate on the "skill_tech" field.
+func SkillTechNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillTech, v))
+}
+
+// SkillTechIn applies the In predicate on the "skill_tech" field.
+func SkillTechIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillTech, vs...))
+}
+
+// SkillTechNotIn applies the NotIn predicate on the "skill_tech" field.
+func SkillTechNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillTech, vs...))
+}
+
+// SkillTechGT applies the GT predicate on the "skill_tech" field.
+func SkillTechGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillTech, v))
+}
+
+// SkillTechGTE applies the GTE predicate on the "skill_tech" field.
+func SkillTechGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillTech, v))
+}
+
+// SkillTechLT applies the LT predicate on the "skill_tech" field.
+func SkillTechLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillTech, v))
+}
+
+// SkillTechLTE applies the LTE predicate on the "skill_tech" field.
+func SkillTechLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillTech, v))
+}
+
+// SkillLightArmorEQ applies the EQ predicate on the "skill_light_armor" field.
+func SkillLightArmorEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillLightArmor, v))
+}
+
+// SkillLightArmorNEQ applies the NEQ predicate on the "skill_light_armor" field.
+func SkillLightArmorNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillLightArmor, v))
+}
+
+// SkillLightArmorIn applies the In predicate on the "skill_light_armor" field.
+func SkillLightArmorIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillLightArmor, vs...))
+}
+
+// SkillLightArmorNotIn applies the NotIn predicate on the "skill_light_armor" field.
+func SkillLightArmorNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillLightArmor, vs...))
+}
+
+// SkillLightArmorGT applies the GT predicate on the "skill_light_armor" field.
+func SkillLightArmorGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillLightArmor, v))
+}
+
+// SkillLightArmorGTE applies the GTE predicate on the "skill_light_armor" field.
+func SkillLightArmorGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillLightArmor, v))
+}
+
+// SkillLightArmorLT applies the LT predicate on the "skill_light_armor" field.
+func SkillLightArmorLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillLightArmor, v))
+}
+
+// SkillLightArmorLTE applies the LTE predicate on the "skill_light_armor" field.
+func SkillLightArmorLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillLightArmor, v))
+}
+
+// SkillClothArmorEQ applies the EQ predicate on the "skill_cloth_armor" field.
+func SkillClothArmorEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillClothArmor, v))
+}
+
+// SkillClothArmorNEQ applies the NEQ predicate on the "skill_cloth_armor" field.
+func SkillClothArmorNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillClothArmor, v))
+}
+
+// SkillClothArmorIn applies the In predicate on the "skill_cloth_armor" field.
+func SkillClothArmorIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillClothArmor, vs...))
+}
+
+// SkillClothArmorNotIn applies the NotIn predicate on the "skill_cloth_armor" field.
+func SkillClothArmorNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillClothArmor, vs...))
+}
+
+// SkillClothArmorGT applies the GT predicate on the "skill_cloth_armor" field.
+func SkillClothArmorGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillClothArmor, v))
+}
+
+// SkillClothArmorGTE applies the GTE predicate on the "skill_cloth_armor" field.
+func SkillClothArmorGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillClothArmor, v))
+}
+
+// SkillClothArmorLT applies the LT predicate on the "skill_cloth_armor" field.
+func SkillClothArmorLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillClothArmor, v))
+}
+
+// SkillClothArmorLTE applies the LTE predicate on the "skill_cloth_armor" field.
+func SkillClothArmorLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillClothArmor, v))
+}
+
+// SkillHeavyArmorEQ applies the EQ predicate on the "skill_heavy_armor" field.
+func SkillHeavyArmorEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSkillHeavyArmor, v))
+}
+
+// SkillHeavyArmorNEQ applies the NEQ predicate on the "skill_heavy_armor" field.
+func SkillHeavyArmorNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSkillHeavyArmor, v))
+}
+
+// SkillHeavyArmorIn applies the In predicate on the "skill_heavy_armor" field.
+func SkillHeavyArmorIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSkillHeavyArmor, vs...))
+}
+
+// SkillHeavyArmorNotIn applies the NotIn predicate on the "skill_heavy_armor" field.
+func SkillHeavyArmorNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSkillHeavyArmor, vs...))
+}
+
+// SkillHeavyArmorGT applies the GT predicate on the "skill_heavy_armor" field.
+func SkillHeavyArmorGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSkillHeavyArmor, v))
+}
+
+// SkillHeavyArmorGTE applies the GTE predicate on the "skill_heavy_armor" field.
+func SkillHeavyArmorGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSkillHeavyArmor, v))
+}
+
+// SkillHeavyArmorLT applies the LT predicate on the "skill_heavy_armor" field.
+func SkillHeavyArmorLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSkillHeavyArmor, v))
+}
+
+// SkillHeavyArmorLTE applies the LTE predicate on the "skill_heavy_armor" field.
+func SkillHeavyArmorLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSkillHeavyArmor, v))
+}
+
 // HasUser applies the HasEdge predicate on the "user" edge.
 func HasUser() predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
@@ -262,6 +1587,29 @@ func HasRoom() predicate.Character {
 func HasRoomWith(preds ...predicate.Room) predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
 		step := newRoomStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNpcTemplate applies the HasEdge predicate on the "npcTemplate" edge.
+func HasNpcTemplate() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, NpcTemplateTable, NpcTemplateColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNpcTemplateWith applies the HasEdge predicate on the "npcTemplate" edge with a given conditions (other predicates).
+func HasNpcTemplateWith(preds ...predicate.NPCTemplate) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newNpcTemplateStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

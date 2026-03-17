@@ -24,23 +24,55 @@ func (Character) Fields() []ent.Field {
 		field.Bool("is_admin").
 			Default(false),
 		field.Int("hitpoints").
-			Default(100).
-			Comment("Health points"),
+			Default(100),
 		field.Int("max_hitpoints").
-			Default(100).
-			Comment("Maximum health points"),
+			Default(100),
 		field.Int("stamina").
-			Default(50).
-			Comment("Stamina points"),
+			Default(50),
 		field.Int("max_stamina").
-			Default(50).
-			Comment("Maximum stamina points"),
+			Default(50),
 		field.Int("mana").
-			Default(25).
-			Comment("Magic/energy points"),
+			Default(25),
 		field.Int("max_mana").
-			Default(25).
-			Comment("Maximum magic/energy points"),
+			Default(25),
+		field.String("race").
+			Default("human"),
+		field.String("class").
+			Default("adventurer"),
+		field.Int("level").
+			Default(1),
+		field.Int("constitution").
+			Default(10),
+		field.String("gender").
+			Optional(),
+		field.String("description").
+			Optional(),
+		field.Int("strength").
+			Default(10),
+		field.Int("dexterity").
+			Default(10),
+		field.Int("intelligence").
+			Default(10),
+		field.Int("wisdom").
+			Default(10),
+		field.Int("skill_blades").
+			Default(0),
+		field.Int("skill_staves").
+			Default(0),
+		field.Int("skill_knives").
+			Default(0),
+		field.Int("skill_martial").
+			Default(0),
+		field.Int("skill_brawling").
+			Default(0),
+		field.Int("skill_tech").
+			Default(0),
+		field.Int("skill_light_armor").
+			Default(0),
+		field.Int("skill_cloth_armor").
+			Default(0),
+		field.Int("skill_heavy_armor").
+			Default(0),
 	}
 }
 
@@ -54,8 +86,7 @@ func (Character) Edges() []ent.Edge {
 			Field("currentRoomId").
 			Required().
 			Unique(),
-		edge.To("skills", CharacterSkill.Type),
-		edge.To("talents", CharacterTalent.Type),
-		edge.To("available_talents", AvailableTalent.Type),
+		edge.To("npcTemplate", NPCTemplate.Type).
+			Unique(),
 	}
 }
