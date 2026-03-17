@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -40,15 +39,12 @@ const StartingRoomID = 5
 
 // Screen states
 const (
-	ScreenWelcome        = "welcome"
-	ScreenLogin          = "login"
-	ScreenRegister       = "register"
-	ScreenPlaying        = "playing"
-	ScreenProfile        = "profile"
-	ScreenEditField      = "edit_field"
-	ScreenFountainWake   = "fountain_wake"
-	ScreenFountainWash   = "fountain_wash"
-	ScreenCharacterCreate = "character_create"
+	ScreenWelcome   = "welcome"
+	ScreenLogin     = "login"
+	ScreenRegister  = "register"
+	ScreenPlaying   = "playing"
+	ScreenProfile   = "profile"
+	ScreenEditField = "edit_field"
 )
 
 // Menu selection constants for vim-style navigation
@@ -94,6 +90,11 @@ func main() {
 		// Initialize default admin user
 		if err := dbinit.InitAdminUser(client); err != nil {
 			log.Printf("Warning: failed to initialize admin user: %v", err)
+		}
+
+		// Initialize Gizmo NPC and fountain room
+		if err := dbinit.InitGizmo(client); err != nil {
+			log.Printf("Warning: failed to initialize Gizmo: %v", err)
 		}
 	}
 
@@ -217,9 +218,6 @@ type model struct {
 	// Room tracking
 	visitedRooms map[int]bool
 	knownExits   map[string]bool // For color-coded exits
-
-	// Render state (prevents double rendering of messages in same frame)
-	renderDone bool
 }
 
 // ============================================================
@@ -232,7 +230,6 @@ var (
 	green  = lipgloss.Color("46")
 	yellow = lipgloss.Color("226")
 	blue   = lipgloss.Color("75")
-	cyan   = lipgloss.Color("81")  // Lighter blue for login
 	purple = lipgloss.Color("141")
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
@@ -984,59 +981,6 @@ func (m *model) handleEditFieldInput(input string) {
 	m.inputBuffer = ""
 }
 
-// createCharacterInDB creates a character in the database via the API
-func (m *model) createCharacterInDB() {
-	if m.currentUserID == 0 {
-		log.Printf("Cannot create character: no user logged in")
-		return
-	}
-
-	// Use the REST API to create the character
-	jsonData, err := json.Marshal(map[string]interface{}{
-		"name":    m.currentUserName,
-		"userId":  m.currentUserID,
-		"isNPC":   false,
-	})
-	if err != nil {
-		log.Printf("Error marshaling character data: %v", err)
-		return
-	}
-
-	resp, err := http.Post(RESTAPIBase+"/characters", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		log.Printf("Error creating character: %v", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		log.Printf("Failed to create character, status: %d", resp.StatusCode)
-		return
-	}
-
-	var result map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		log.Printf("Error decoding character response: %v", err)
-		return
-	}
-	if _, ok := result["id"]; !ok {
-		log.Printf("Character created but no ID returned")
-		return
-	}
-
-	if id, ok := result["id"].(float64); ok {
-		m.currentCharacterID = int(id)
-		log.Printf("Character created successfully with ID: %d", m.currentCharacterID)
-	}
-
-	// Set gender/description to default values that will be saved to DB
-	m.characterGender = "unspecified"
-	m.characterDescription = "A mysterious figure."
-
-	// Now save these defaults to the DB
-	m.saveProfileToDB()
-}
-
 // saveProfileToDB sends profile updates (gender, description) to the server
 func (m *model) saveProfileToDB() {
 	if m.currentCharacterID == 0 {
@@ -1121,9 +1065,19 @@ func (m *model) loadOrCreateCharacter() {
 	ctx := context.Background()
 	chars, err := m.client.Character.Query().Where(character.HasUserWith(user.IDEQ(m.currentUserID))).All(ctx)
 	if err != nil || len(chars) == 0 {
-		// No character in DB yet - try to create one via API
-		log.Printf("No character found for user %d, attempting to create...", m.currentUserID)
-		m.createCharacterInDB()
+		// No character yet - use defaults
+		m.currentCharacterName = m.currentUserName
+		m.characterGender = "unspecified"
+		m.characterDescription = "A mysterious figure."
+		// Default stats for new characters (Level 1)
+		m.characterHP = 100
+		m.characterMaxHP = 100
+		m.characterStamina = 50
+		m.characterMaxStamina = 50
+		m.characterMana = 25
+		m.characterMaxMana = 25
+		m.characterLevel = 1
+		m.characterExperience = 0
 		return
 	}
 
@@ -1158,13 +1112,6 @@ func (m *model) View() string {
 	var s strings.Builder
 
 	// Debug: log.Printf("View() called, screen: %s, inputBuffer: %q", m.screen, m.inputBuffer)
-
-	// Reset render state at start of each render cycle
-	m.renderDone = false
-
-	// Clear screen before each render to prevent previous state showing below new content
-	// This fixes the "output re-rendering glitch" where previous state appears below new content
-	s.WriteString("\033[2J\033[H")
 
 	// Show loading spinner if loading
 	if m.isLoading {
@@ -1202,62 +1149,24 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
-		// Use split-screen layout like ScreenPlaying
-		outputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(cyan).
-			Padding(0, 1)
-
-		loginContent := loginScreen(m.width, m.height)
-		if m.message != "" {
-			loginContent += "\n\n" + m.styledMessage(m.message)
-		}
-
-		s.WriteString(outputStyle.Render(loginContent))
+		s.WriteString(loginScreen())
 		s.WriteString("\n\n")
-
-		// Separator
-		separatorStyle := lipgloss.NewStyle().
-			Foreground(cyan).
-			Bold(true)
-		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
-		s.WriteString("\n")
-
-		// Input area
-		inputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(cyan).
-			Padding(0, 1)
-		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
+		}
+		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
+		s.WriteString(m.textInput.View())
 
 	case ScreenRegister:
-		// Use split-screen layout like ScreenPlaying
-		outputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
-			Padding(0, 1)
-
-		registerContent := registerScreen(m.width, m.height)
-		if m.message != "" {
-			registerContent += "\n\n" + m.styledMessage(m.message)
-		}
-
-		s.WriteString(outputStyle.Render(registerContent))
+		s.WriteString(registerScreen(m.width, m.height))
 		s.WriteString("\n\n")
-
-		// Separator
-		separatorStyle := lipgloss.NewStyle().
-			Foreground(purple).
-			Bold(true)
-		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
-		s.WriteString("\n")
-
-		// Input area
-		inputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
-			Padding(0, 1)
-		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
+		}
+		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
+		s.WriteString(m.textInput.View())
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
@@ -1302,9 +1211,6 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenPlaying:
-		// Track if we've already rendered the message in this frame
-		messageRendered := false
-
 		// Ensure we have valid dimensions - if not, use defaults
 		width := m.width
 		height := m.height
@@ -1347,10 +1253,9 @@ func (m *model) View() string {
 			m.roomDesc,
 			m.formatExitsWithColor())
 
-		// Show message if any (only once!)
-		if m.message != "" && !messageRendered {
+		// Show message if any
+		if m.message != "" {
 			roomInfo += "\n\n" + m.styledMessage(m.message)
-			messageRendered = true
 		}
 
 		// Render output viewport with pink border (room info only, no stats)
@@ -1380,50 +1285,18 @@ func (m *model) View() string {
 			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
-	case ScreenFountainWake:
-		s.WriteString(fountainWakeScreen())
-		s.WriteString("\n\n")
-		if m.message != "" && !messageRendered {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
-			messageRendered = true
-		}
-		s.WriteString(promptStyle.Render("Press ENTER to continue..."))
-
-	case ScreenFountainWash:
-		s.WriteString(fountainWashScreen())
-		s.WriteString("\n\n")
-		if m.message != "" && !messageRendered {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
-			messageRendered = true
-		}
-		s.WriteString(promptStyle.Render("Press ENTER to wash your face and remember who you are..."))
-
-	case ScreenCharacterCreate:
-		s.WriteString(characterCreateScreen())
-		s.WriteString("\n\n")
-		if m.message != "" && !messageRendered {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
-			messageRendered = true
-		}
-		s.WriteString(promptStyle.Render("> "))
-		s.WriteString(m.textInput.View())
-
 		// ScreenPlaying uses full-width panels - don't center, just clear message and return
 		m.message = ""
 		m.messageType = ""
 		return s.String()
 	}
 
-	// Center in terminal using proper visual width calculation
-	// lipgloss.Width() correctly handles ANSI escape codes (they don't take visual space)
+	// Center in terminal (optional - can be disabled if causing issues)
+	// Use lipgloss.Width() to correctly handle ANSI escape codes (fixes issue #75)
 	if m.width > 0 && m.height > 0 && m.width > 60 {
 		lines := strings.Split(s.String(), "\n")
 		var centered []string
 		for _, line := range lines {
-			// Use lipgloss.Width for proper visual width (ignores ANSI codes)
 			visualWidth := lipgloss.Width(line)
 			padding := (m.width - visualWidth) / 2
 			if padding > 0 && visualWidth < m.width-10 {
@@ -1451,90 +1324,58 @@ func (m *model) View() string {
 // ============================================================
 
 func welcomeScreen() string {
-	// Use a flexible layout that works at various terminal widths
-	// The ASCII art logo is designed to be ~60 chars wide, so we let it be
-	// but wrap it in a bordered box that adapts
 	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("46")).
 		Padding(1, 2).
-		MaxWidth(80). // Limit max width to prevent overflow on wide terminals
 		Render(`
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║
-║    ██████╗ ███████╗████████╗██████╗  ██████╗                ║
-║    ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗               ║
-║    ██████╔╝█████╗     ██║   ██████╔╝██║   ██║               ║
-║    ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║               ║
-║    ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝               ║
-║    ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝                ║
+║    ██████╗ ███████╗████████╗██████╗  ██████╗                 ║
+║    ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗                ║
+║    ██████╔╝█████╗     ██║   ██████╔╝██║   ██║                ║
+║    ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║                ║
+║    ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝                ║
+║    ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝                 ║
 ║                                                            ║
 ║           ██████╗  █████╗  ██████╗ ██████╗                  ║
 ║           ██╔══██╗██╔══██╗██╔════╝██╔═══██╗                 ║
-║           ██████╔╝███████║██║     ██║   ██║                 ║
+║           ██████╔╝███████║██║     ██║   ██║                ║
 ║           ██╔══██╗██╔══██║██║     ██║   ██║                 ║
 ║           ██║  ██║██║  ██║╚██████╗╚██████╔╝                 ║
 ║           ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝                  ║
 ║                                                            ║
 ║                    Welcome to Herbst MUD!                  ║
-║                    Das Text-Adventure                      ║
+║                    Das Text-Adventure                       ║
 ║                                                            ║
 ╠════════════════════════════════════════════════════════════╣
 ║                                                            ║
 ║   1. Login      - Log in to your existing account         ║
 ║   2. Register   - Create a new player account             ║
-║   3. Quit       - Exit the game                           ║
+║   3. Quit       - Exit the game                            ║
 ║                                                            ║
-║   Use ↑/↓ or j/k to navigate, Enter to select             ║
-║   Press ESC to go back                                    ║
+║   Use ↑/↓ or j/k to navigate, Enter to select            ║
+║   Press ESC to go back                                     ║
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
 `)
 }
 
-func loginScreen(width, height int) string {
-	// Calculate dynamic dimensions
-	boxWidth := 60
-	if width > 70 {
-		boxWidth = width - 20
-	}
-	if boxWidth > 100 {
-		boxWidth = 100
-	}
-
-	verticalPadding := 2
-	if height > 20 {
-		verticalPadding = (height - 16) / 2
-	}
-	if verticalPadding > 10 {
-		verticalPadding = 10
-	}
-
-	// Build dynamic login screen
-	horizontalBorder := strings.Repeat("═", boxWidth-2)
-
-	var sb strings.Builder
-	// Top padding for vertical centering
-	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	// Box
-	sb.WriteString(lipgloss.NewStyle().
-		Width(boxWidth).
+func loginScreen() string {
+	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("75")).
 		Padding(1, 2).
-		Render(fmt.Sprintf(`
-╔%s╗
-║%s║
-║%s║
-║%s║
-╚%s╝
-`, horizontalBorder,
-			strings.Repeat(" ", boxWidth-2),
-			"                      LOGIN                          ",
-			"  Enter your credentials to continue your adventure.  ",
-			horizontalBorder)))
-
-	return sb.String()
+		Render(`
+╔════════════════════════════════════════════════════════════╗
+║                        LOGIN                                  ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║   Enter your credentials to continue your adventure.        ║
+║   Press ESC to go back to the main menu.                    ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+`)
 }
 
 func registerScreen(width, height int) string {
@@ -1555,155 +1396,14 @@ func registerScreen(width, height int) string {
 		verticalPadding = 10
 	}
 
-	// Build dynamic register screen
 	var sb strings.Builder
-	// Top padding for vertical centering
 	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	// Box - split screen style with purple border
 	sb.WriteString(lipgloss.NewStyle().
 		Width(boxWidth).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(purple).
 		Padding(1, 2).
-		Render("CREATE ACCOUNT\n\nCreate a new account to begin your adventure!\nPress ESC to go back to the main menu."))
+		Render("CREATE ACCOUNT - Press ESC to go back to the main menu."))
 
 	return sb.String()
-}
-
-// ============================================================
-// FOUNTAIN CHARACTER CREATION SCREENS
-// ============================================================
-
-func fountainWakeScreen() string {
-	return lipgloss.NewStyle().
-		Foreground(green).
-		Bold(true).
-		MaxWidth(80).
-		Render(`
-╔══════════════════════════════════════════════════════════════════════╗
-║                         ♨ THE FOUNTAIN ♨                             ║
-╠══════════════════════════════════════════════════════════════════════╣
-║                                                                      ║
-║    You wake up at a murky fountain, covered in sticky mutant mud.    ║
-║    The water glows faintly with an eerie green Ooze color.          ║
-║    Your head throbs - you have no memory of how you got here.       ║
-║    Something glints in the mud near your hand...                    ║
-║                                                                      ║
-║    The world around you is strange. Mutant weeds push through       ║
-║    cracked cobblestones. The air smells of pizza and ooze.          ║
-║                                                                      ║
-║    You reach down and pick up the glinting object - a small        ║
-║    copper coin with a turtle symbol on it.                          ║
-║                                                                      ║
-║    As you touch it, visions flash through your mind:               ║
-║    → Mutant turtles trained by a wise rat master                    ║
-║    → A city ruined by a strange Ooze                                ║
-║    → Your own face, now covered in fur and scales...                ║
-║                                                                      ║
-║    You remember now. You ARE a turtle! And there's a whole          ║
-║    world out there to explore. First, you need to wash up.          ║
-║                                                                      ║
-╚══════════════════════════════════════════════════════════════════════╝
-`)
-}
-
-func fountainWashScreen() string {
-	return lipgloss.NewStyle().
-		Foreground(cyan).
-		Bold(true).
-		MaxWidth(80).
-		Render(`
-╔══════════════════════════════════════════════════════════════════════╗
-║                      ♨ WASHING AT THE FOUNTAIN ♨                     ║
-╠══════════════════════════════════════════════════════════════════════╣
-║                                                                      ║
-║    You lean over the fountain and splash the cool, glowing water    ║
-║    on your face. The mutant mud washes away, revealing your true     ║
-║    form - a green turtle shell, scaly skin, and determined eyes.    ║
-║                                                                      ║
-║    As the mud clears, so do your memories...                        ║
-║                                                                      ║
-║    You are a Mutant Turtle, trained in the martial arts by your     ║
-║    sensei, Splinter. The Great Mutagen Spill transformed you        ║
-║    from a ordinary turtle into a thinking, speaking being.          ║
-║                                                                      ║
-║    Your sensei taught you well. You know:                           ║
-║    → Ninjutsu - the way of the shadow warrior                       ║
-║    → Survival - how to live in this post-Ooze world                ║
-║    → Pizza - the most important food in existence                   ║
-║                                                                      ║
-║    The fountain water shows your reflection - you're ready for      ║
-║    your next adventure!                                             ║
-║                                                                      ║
-║    A path leads north to the Crossroads.                            ║
-║    To the east, you see signs for the "Canal District".            ║
-║                                                                      ║
-╚══════════════════════════════════════════════════════════════════════╝
-`)
-}
-
-func characterCreateScreen() string {
-	return lipgloss.NewStyle().
-		Foreground(yellow).
-		Bold(true).
-		MaxWidth(80).
-		Render(`
-╔══════════════════════════════════════════════════════════════════════╗
-║                    ✦ CHARACTER CREATION ✦                            ║
-╠══════════════════════════════════════════════════════════════════════╣
-║                                                                      ║
-║    Welcome, young turtle! Time to create your hero!                  ║
-║                                                                      ║
-║    Available Options:                                                ║
-║                                                                      ║
-
-║    [1] Name     - What shall we call you?                           ║
-║    [2] Race     - Human, Turtle, Rabbit, Rat, Rhino                  ║
-║    [3] Gender   - Male, Female, Other                                ║
-║    [4] Class    - Warrior, Chef, Mystic                              ║
-║    [5] Size     - Small, Medium, Large (affects combat)              ║
-║                                                                      ║
-║    Type a number to select, or 'done' when finished.                ║
-║                                                                      ║
-╚══════════════════════════════════════════════════════════════════════╝
-`)
-}
-
-// ============================================================
-// INPUT HANDLERS FOR FOUNTAIN FLOW
-// ============================================================
-
-func (m *model) handleFountainWakeInput(input string) {
-	// Any input advances to the wash screen
-	m.screen = ScreenFountainWash
-	m.message = "You wash the mud from your face. The cool water feels refreshing. Your memories start to return..."
-}
-
-func (m *model) handleFountainWashInput(input string) {
-	// Any input advances to character creation
-	m.screen = ScreenCharacterCreate
-	m.message = "Now to create your character!\n\nSelect an option (1-5) or type 'done' when finished."
-}
-
-func (m *model) handleCharacterCreateInput(input string) {
-	input = strings.ToLower(strings.TrimSpace(input))
-
-	switch input {
-	case "1", "name":
-		m.message = "Enter your character name:"
-		// Could switch to edit field mode for name input
-	case "2", "race":
-		m.message = "Select your race:\n1. Human - Balanced stats\n2. Turtle - High defense, low speed\n3. Rabbit - High speed, low defense\n4. Rat - High agility, stealthy\n5. Rhino - High strength, slow"
-	case "3", "gender":
-		m.message = "Select your gender:\n1. Male\n2. Female\n3. Other"
-	case "4", "class":
-		m.message = "Select your class:\n1. Warrior - Strong melee fighter\n2. Chef - Pizza-powered combat\n3. Mystic - Uses Ooze energy"
-	case "5", "size":
-		m.message = "Select your size:\n1. Small - Fast, less HP\n2. Medium - Balanced\n3. Large - Slow, more HP"
-	case "done", "finished", "complete":
-		m.message = "Character creation complete! Welcome to Herbst MUD!"
-		m.screen = ScreenPlaying
-	default:
-		m.message = "Invalid choice. Select 1-5 or 'done' when finished."
-	}
 }
