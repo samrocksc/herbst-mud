@@ -156,7 +156,6 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 				"level":    char.Level,
 				"class":    char.Class,
 				"race":     char.Race,
-				"userId":   char.UserID,
 			}
 		}
 

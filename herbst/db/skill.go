@@ -30,9 +30,8 @@ type Skill struct {
 	Power int `json:"power,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SkillQuery when eager-loading is set.
-	Edges            SkillEdges `json:"edges"`
-	character_skills *int
-	selectValues     sql.SelectValues
+	Edges        SkillEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // SkillEdges holds the relations/edges for other nodes in the graph.
@@ -62,8 +61,6 @@ func (*Skill) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case skill.FieldName, skill.FieldDescription, skill.FieldType:
 			values[i] = new(sql.NullString)
-		case skill.ForeignKeys[0]: // character_skills
-			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -120,13 +117,6 @@ func (_m *Skill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field power", values[i])
 			} else if value.Valid {
 				_m.Power = int(value.Int64)
-			}
-		case skill.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field character_skills", value)
-			} else if value.Valid {
-				_m.character_skills = new(int)
-				*_m.character_skills = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])

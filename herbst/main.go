@@ -218,6 +218,20 @@ type model struct {
 	// Room tracking
 	visitedRooms map[int]bool
 	knownExits   map[string]bool // For color-coded exits
+
+	// Room items (GitHub #89 - Item system)
+	roomItems []RoomItem
+}
+
+// RoomItem represents an item in a room for display
+type RoomItem struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsImmovable bool   `json:"isImmovable"`
+	Color       string `json:"color"`
+	IsVisible   bool   `json:"isVisible"`
+	ItemType    string `json:"itemType"`
 }
 
 // ============================================================
@@ -799,6 +813,90 @@ func (m *model) attemptRegistration(email string) {
 }
 
 // ============================================================
+// ROOM ITEM DISPLAY (GitHub #89 - Item system)
+// ============================================================
+
+// Item colors for display
+var (
+	itemColorGold   = lipgloss.Color("220") // Gold for immovable items
+	itemColorWeapon = lipgloss.Color("196") // Red for weapons
+	itemColorArmor  = lipgloss.Color("75")  // Blue for armor
+	itemColorMisc   = lipgloss.Color("242") // Gray for misc
+)
+
+// formatRoomItems returns a formatted string of items in the room
+func (m *model) formatRoomItems() string {
+	if len(m.roomItems) == 0 {
+		return ""
+	}
+
+	var items []string
+	for _, item := range m.roomItems {
+		if !item.IsVisible {
+			continue // Skip invisible items
+		}
+
+		var style lipgloss.Style
+		if item.IsImmovable {
+			// Immobile items get gold color by default or custom color
+			if item.Color != "" {
+				style = lipgloss.NewStyle().Foreground(lipgloss.Color(item.Color))
+			} else {
+				style = lipgloss.NewStyle().Foreground(itemColorGold)
+			}
+		} else {
+			// Regular items get color based on type
+			switch item.ItemType {
+			case "weapon":
+				style = lipgloss.NewStyle().Foreground(itemColorWeapon)
+			case "armor":
+				style = lipgloss.NewStyle().Foreground(itemColorArmor)
+			default:
+				style = lipgloss.NewStyle().Foreground(itemColorMisc)
+			}
+		}
+
+		// Add special marker for immovable items
+		if item.IsImmovable {
+			items = append(items, style.Render("⬥ "+item.Name))
+		} else {
+			items = append(items, style.Render(item.Name))
+		}
+	}
+
+	if len(items) == 0 {
+		return ""
+	}
+	return "\n\nYou see: " + strings.Join(items, ", ")
+}
+
+// loadRoomItems fetches items for the current room from the API
+func (m *model) loadRoomItems() {
+	if m.currentRoom == 0 {
+		return
+	}
+
+	resp, err := http.Get(fmt.Sprintf("%s/rooms/%d/equipment", RESTAPIBase, m.currentRoom))
+	if err != nil {
+		log.Printf("Error fetching room items: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return
+	}
+
+	var items []RoomItem
+	if err := json.NewDecoder(resp.Body).Decode(&items); err != nil {
+		log.Printf("Error decoding room items: %v", err)
+		return
+	}
+
+	m.roomItems = items
+}
+
+// ============================================================
 // GAME COMMAND PROCESSING
 // ============================================================
 
@@ -819,19 +917,24 @@ func (m *model) processCommand(cmd string) {
 	case "help", "?":
 		m.message = `Commands:
   n/north, s/south, e/east, w/west - Move
-  look/l - Look around
+  look/l - Look around (shows items)
   exits/x - Show exits  
   peer <dir> - Peek at adjacent room
+  take/get <item> - Pick up an item
+  drop <item> - Drop an item
+  inventory/i - Show your inventory
   whoami - Show your info
   profile/p - Edit character profile
   clear/cls - Clear screen
   quit - Exit game`
 		m.messageType = "info"
 	case "look", "l":
-		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s",
+		m.loadRoomItems()
+		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s%s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
-			m.formatExitsWithColor())
+			m.formatExitsWithColor(),
+			m.formatRoomItems())
 		m.messageType = "info"
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
@@ -863,6 +966,21 @@ func (m *model) processCommand(cmd string) {
 		m.inputBuffer = ""
 		return
 	default:
+		// Check for take/get command (GitHub #89 - Item system)
+		if strings.HasPrefix(cmd, "take ") || strings.HasPrefix(cmd, "get ") {
+			m.handleTakeCommand(cmd)
+			return
+		}
+		// Check for drop command
+		if strings.HasPrefix(cmd, "drop ") {
+			m.handleDropCommand(cmd)
+			return
+		}
+		// Check for inventory command
+		if cmd == "inventory" || cmd == "i" || cmd == "inv" {
+			m.handleInventoryCommand()
+			return
+		}
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
 		m.messageType = "error"
 	}
@@ -1058,6 +1176,148 @@ func (m *model) handlePeerCommand(cmd string) {
 			room.Description)
 		m.messageType = "info"
 	}
+}
+
+// ============================================================
+// ITEM COMMANDS (GitHub #89 - Item system)
+// ============================================================
+
+// handleTakeCommand handles the take/get command
+func (m *model) handleTakeCommand(cmd string) {
+	// Extract item name from command
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Take what? Usage: take <item name>"
+		m.messageType = "error"
+		return
+	}
+	itemName := strings.Join(parts[1:], " ")
+
+	// Load room items to find the item
+	m.loadRoomItems()
+
+	// Find item by name (case-insensitive partial match)
+	var targetItem *RoomItem
+	for i := range m.roomItems {
+		if strings.Contains(strings.ToLower(m.roomItems[i].Name), strings.ToLower(itemName)) {
+			targetItem = &m.roomItems[i]
+			break
+		}
+	}
+
+	if targetItem == nil {
+		m.message = fmt.Sprintf("You don't see any %s here.", itemName)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if immovable
+	if targetItem.IsImmovable {
+		var colorStyle lipgloss.Style
+		if targetItem.Color != "" {
+			colorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(targetItem.Color))
+		} else {
+			colorStyle = lipgloss.NewStyle().Foreground(itemColorGold)
+		}
+		m.message = fmt.Sprintf("You can't take the %s. It's firmly fixed in place.", colorStyle.Render(targetItem.Name))
+		m.messageType = "error"
+		return
+	}
+
+	// Take the item - move it to player's inventory (roomId = 0 or null)
+	url := fmt.Sprintf("%s/equipment/%d", RESTAPIBase, targetItem.ID)
+	jsonData, _ := json.Marshal(map[string]interface{}{"roomId": nil})
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		m.message = fmt.Sprintf("Error picking up item: %v", err)
+		m.messageType = "error"
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		m.message = fmt.Sprintf("Error picking up item: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.message = fmt.Sprintf("Failed to pick up %s.", targetItem.Name)
+		m.messageType = "error"
+		return
+	}
+
+	m.message = fmt.Sprintf("You pick up the %s.", targetItem.Name)
+	m.messageType = "success"
+}
+
+// handleDropCommand handles the drop command
+func (m *model) handleDropCommand(cmd string) {
+	// Extract item name from command
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Drop what? Usage: drop <item name>"
+		m.messageType = "error"
+		return
+	}
+	itemName := strings.Join(parts[1:], " ")
+
+	// For now, show a message that inventory is not fully implemented
+	// This would need player inventory tracking
+	m.message = fmt.Sprintf("You don't have any %s to drop.", itemName)
+	m.messageType = "error"
+}
+
+// handleInventoryCommand handles the inventory/i command
+func (m *model) handleInventoryCommand() {
+	// Fetch player's inventory from API
+	// For now, show a placeholder message
+	resp, err := http.Get(fmt.Sprintf("%s/equipment?ownerId=%d", RESTAPIBase, m.currentCharacterID))
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching inventory: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	// Parse inventory items
+	var items []struct {
+		ID          int    `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		ItemType    string `json:"itemType"`
+		IsEquipped  bool   `json:"isEquipped"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&items); err != nil {
+		m.message = "You aren't carrying anything."
+		m.messageType = "info"
+		return
+	}
+
+	if len(items) == 0 {
+		m.message = "You aren't carrying anything."
+		m.messageType = "info"
+		return
+	}
+
+	// Format inventory display
+	var inv strings.Builder
+	inv.WriteString("=== INVENTORY ===\n\n")
+	for _, item := range items {
+		equipped := ""
+		if item.IsEquipped {
+			equipped = " [equipped]"
+		}
+		inv.WriteString(fmt.Sprintf("  %s%s\n", item.Name, equipped))
+		if item.Description != "" {
+			inv.WriteString(fmt.Sprintf("    %s\n", item.Description))
+		}
+	}
+	m.message = inv.String()
+	m.messageType = "info"
 }
 
 func (m *model) loadOrCreateCharacter() {

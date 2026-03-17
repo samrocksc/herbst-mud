@@ -44,6 +44,8 @@ var (
 		{Name: "current_room_id", Type: field.TypeInt},
 		{Name: "character_npc_template", Type: field.TypeString, Nullable: true},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
+		{Name: "skill_characters", Type: field.TypeInt, Nullable: true},
+		{Name: "talent_characters", Type: field.TypeInt, Nullable: true},
 		{Name: "user_characters", Type: field.TypeInt, Nullable: true},
 	}
 	// CharactersTable holds the schema information for the "characters" table.
@@ -71,8 +73,20 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "characters_users_characters",
+				Symbol:     "characters_skills_characters",
 				Columns:    []*schema.Column{CharactersColumns[34]},
+				RefColumns: []*schema.Column{SkillsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "characters_talents_characters",
+				Columns:    []*schema.Column{CharactersColumns[35]},
+				RefColumns: []*schema.Column{TalentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "characters_users_characters",
+				Columns:    []*schema.Column{CharactersColumns[36]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -140,6 +154,35 @@ var (
 		Columns:    RoomsColumns,
 		PrimaryKey: []*schema.Column{RoomsColumns[0]},
 	}
+	// SkillsColumns holds the columns for the "skills" table.
+	SkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "type", Type: field.TypeString},
+		{Name: "cost", Type: field.TypeInt},
+		{Name: "cooldown", Type: field.TypeInt},
+		{Name: "power", Type: field.TypeInt},
+	}
+	// SkillsTable holds the schema information for the "skills" table.
+	SkillsTable = &schema.Table{
+		Name:       "skills",
+		Columns:    SkillsColumns,
+		PrimaryKey: []*schema.Column{SkillsColumns[0]},
+	}
+	// TalentsColumns holds the columns for the "talents" table.
+	TalentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "requirements", Type: field.TypeJSON},
+	}
+	// TalentsTable holds the schema information for the "talents" table.
+	TalentsTable = &schema.Table{
+		Name:       "talents",
+		Columns:    TalentsColumns,
+		PrimaryKey: []*schema.Column{TalentsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -159,6 +202,8 @@ var (
 		EquipmentTable,
 		NpcTemplatesTable,
 		RoomsTable,
+		SkillsTable,
+		TalentsTable,
 		UsersTable,
 	}
 )
@@ -167,6 +212,8 @@ func init() {
 	CharactersTable.ForeignKeys[0].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
-	CharactersTable.ForeignKeys[3].RefTable = UsersTable
+	CharactersTable.ForeignKeys[3].RefTable = SkillsTable
+	CharactersTable.ForeignKeys[4].RefTable = TalentsTable
+	CharactersTable.ForeignKeys[5].RefTable = UsersTable
 	EquipmentTable.ForeignKeys[0].RefTable = RoomsTable
 }

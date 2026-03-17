@@ -3,7 +3,10 @@
 package db
 
 import (
+	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/characterskill"
+	"herbst-server/db/charactertalent"
 	"herbst-server/db/equipment"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
@@ -16,6 +19,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	availabletalentFields := schema.AvailableTalent{}.Fields()
+	_ = availabletalentFields
+	// availabletalentDescUnlockReason is the schema descriptor for unlock_reason field.
+	availabletalentDescUnlockReason := availabletalentFields[0].Descriptor()
+	// availabletalent.DefaultUnlockReason holds the default value on creation for the unlock_reason field.
+	availabletalent.DefaultUnlockReason = availabletalentDescUnlockReason.Default.(string)
+	// availabletalentDescUnlockedAtLevel is the schema descriptor for unlocked_at_level field.
+	availabletalentDescUnlockedAtLevel := availabletalentFields[1].Descriptor()
+	// availabletalent.DefaultUnlockedAtLevel holds the default value on creation for the unlocked_at_level field.
+	availabletalent.DefaultUnlockedAtLevel = availabletalentDescUnlockedAtLevel.Default.(int)
 	characterFields := schema.Character{}.Fields()
 	_ = characterFields
 	// characterDescIsNPC is the schema descriptor for isNPC field.
@@ -118,6 +131,22 @@ func init() {
 	characterDescSkillHeavyArmor := characterFields[30].Descriptor()
 	// character.DefaultSkillHeavyArmor holds the default value on creation for the skill_heavy_armor field.
 	character.DefaultSkillHeavyArmor = characterDescSkillHeavyArmor.Default.(int)
+	characterskillFields := schema.CharacterSkill{}.Fields()
+	_ = characterskillFields
+	// characterskillDescLevel is the schema descriptor for level field.
+	characterskillDescLevel := characterskillFields[0].Descriptor()
+	// characterskill.DefaultLevel holds the default value on creation for the level field.
+	characterskill.DefaultLevel = characterskillDescLevel.Default.(int)
+	// characterskillDescExperience is the schema descriptor for experience field.
+	characterskillDescExperience := characterskillFields[1].Descriptor()
+	// characterskill.DefaultExperience holds the default value on creation for the experience field.
+	characterskill.DefaultExperience = characterskillDescExperience.Default.(int)
+	charactertalentFields := schema.CharacterTalent{}.Fields()
+	_ = charactertalentFields
+	// charactertalentDescSlot is the schema descriptor for slot field.
+	charactertalentDescSlot := charactertalentFields[0].Descriptor()
+	// charactertalent.DefaultSlot holds the default value on creation for the slot field.
+	charactertalent.DefaultSlot = charactertalentDescSlot.Default.(int)
 	equipmentFields := schema.Equipment{}.Fields()
 	_ = equipmentFields
 	// equipmentDescLevel is the schema descriptor for level field.
@@ -132,6 +161,22 @@ func init() {
 	equipmentDescIsEquipped := equipmentFields[5].Descriptor()
 	// equipment.DefaultIsEquipped holds the default value on creation for the isEquipped field.
 	equipment.DefaultIsEquipped = equipmentDescIsEquipped.Default.(bool)
+	// equipmentDescIsImmovable is the schema descriptor for isImmovable field.
+	equipmentDescIsImmovable := equipmentFields[6].Descriptor()
+	// equipment.DefaultIsImmovable holds the default value on creation for the isImmovable field.
+	equipment.DefaultIsImmovable = equipmentDescIsImmovable.Default.(bool)
+	// equipmentDescColor is the schema descriptor for color field.
+	equipmentDescColor := equipmentFields[7].Descriptor()
+	// equipment.DefaultColor holds the default value on creation for the color field.
+	equipment.DefaultColor = equipmentDescColor.Default.(string)
+	// equipmentDescIsVisible is the schema descriptor for isVisible field.
+	equipmentDescIsVisible := equipmentFields[8].Descriptor()
+	// equipment.DefaultIsVisible holds the default value on creation for the isVisible field.
+	equipment.DefaultIsVisible = equipmentDescIsVisible.Default.(bool)
+	// equipmentDescItemType is the schema descriptor for itemType field.
+	equipmentDescItemType := equipmentFields[9].Descriptor()
+	// equipment.DefaultItemType holds the default value on creation for the itemType field.
+	equipment.DefaultItemType = equipmentDescItemType.Default.(string)
 	npctemplateFields := schema.NPCTemplate{}.Fields()
 	_ = npctemplateFields
 	// npctemplateDescLevel is the schema descriptor for level field.

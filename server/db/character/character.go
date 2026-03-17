@@ -80,6 +80,12 @@ const (
 	EdgeRoom = "room"
 	// EdgeNpcTemplate holds the string denoting the npctemplate edge name in mutations.
 	EdgeNpcTemplate = "npcTemplate"
+	// EdgeSkills holds the string denoting the skills edge name in mutations.
+	EdgeSkills = "skills"
+	// EdgeTalents holds the string denoting the talents edge name in mutations.
+	EdgeTalents = "talents"
+	// EdgeAvailableTalents holds the string denoting the available_talents edge name in mutations.
+	EdgeAvailableTalents = "available_talents"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -103,6 +109,27 @@ const (
 	NpcTemplateInverseTable = "npc_templates"
 	// NpcTemplateColumn is the table column denoting the npcTemplate relation/edge.
 	NpcTemplateColumn = "character_npc_template"
+	// SkillsTable is the table that holds the skills relation/edge.
+	SkillsTable = "character_skills"
+	// SkillsInverseTable is the table name for the CharacterSkill entity.
+	// It exists in this package in order to avoid circular dependency with the "characterskill" package.
+	SkillsInverseTable = "character_skills"
+	// SkillsColumn is the table column denoting the skills relation/edge.
+	SkillsColumn = "character_skills"
+	// TalentsTable is the table that holds the talents relation/edge.
+	TalentsTable = "character_talents"
+	// TalentsInverseTable is the table name for the CharacterTalent entity.
+	// It exists in this package in order to avoid circular dependency with the "charactertalent" package.
+	TalentsInverseTable = "character_talents"
+	// TalentsColumn is the table column denoting the talents relation/edge.
+	TalentsColumn = "character_talents"
+	// AvailableTalentsTable is the table that holds the available_talents relation/edge.
+	AvailableTalentsTable = "available_talents"
+	// AvailableTalentsInverseTable is the table name for the AvailableTalent entity.
+	// It exists in this package in order to avoid circular dependency with the "availabletalent" package.
+	AvailableTalentsInverseTable = "available_talents"
+	// AvailableTalentsColumn is the table column denoting the available_talents relation/edge.
+	AvailableTalentsColumn = "character_available_talents"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -146,8 +173,6 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"character_npc_template",
 	"room_characters",
-	"skill_characters",
-	"talent_characters",
 	"user_characters",
 }
 
@@ -402,6 +427,48 @@ func ByNpcTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newNpcTemplateStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// BySkillsCount orders the results by skills count.
+func BySkillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSkillsStep(), opts...)
+	}
+}
+
+// BySkills orders the results by skills terms.
+func BySkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTalentsCount orders the results by talents count.
+func ByTalentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTalentsStep(), opts...)
+	}
+}
+
+// ByTalents orders the results by talents terms.
+func ByTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAvailableTalentsCount orders the results by available_talents count.
+func ByAvailableTalentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAvailableTalentsStep(), opts...)
+	}
+}
+
+// ByAvailableTalents orders the results by available_talents terms.
+func ByAvailableTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAvailableTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -421,5 +488,26 @@ func newNpcTemplateStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NpcTemplateInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, NpcTemplateTable, NpcTemplateColumn),
+	)
+}
+func newSkillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SkillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SkillsTable, SkillsColumn),
+	)
+}
+func newTalentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TalentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TalentsTable, TalentsColumn),
+	)
+}
+func newAvailableTalentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AvailableTalentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AvailableTalentsTable, AvailableTalentsColumn),
 	)
 }
