@@ -217,6 +217,9 @@ type model struct {
 	// Room tracking
 	visitedRooms map[int]bool
 	knownExits   map[string]bool // For color-coded exits
+
+	// Render state (prevents double rendering of messages in same frame)
+	renderDone bool
 }
 
 // ============================================================
@@ -1156,6 +1159,9 @@ func (m *model) View() string {
 
 	// Debug: log.Printf("View() called, screen: %s, inputBuffer: %q", m.screen, m.inputBuffer)
 
+	// Reset render state at start of each render cycle
+	m.renderDone = false
+
 	// Clear screen before each render to prevent previous state showing below new content
 	// This fixes the "output re-rendering glitch" where previous state appears below new content
 	s.WriteString("\033[2J\033[H")
@@ -1296,6 +1302,9 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenPlaying:
+		// Track if we've already rendered the message in this frame
+		messageRendered := false
+
 		// Ensure we have valid dimensions - if not, use defaults
 		width := m.width
 		height := m.height
@@ -1338,9 +1347,10 @@ func (m *model) View() string {
 			m.roomDesc,
 			m.formatExitsWithColor())
 
-		// Show message if any
-		if m.message != "" {
+		// Show message if any (only once!)
+		if m.message != "" && !messageRendered {
 			roomInfo += "\n\n" + m.styledMessage(m.message)
+			messageRendered = true
 		}
 
 		// Render output viewport with pink border (room info only, no stats)
@@ -1373,27 +1383,30 @@ func (m *model) View() string {
 	case ScreenFountainWake:
 		s.WriteString(fountainWakeScreen())
 		s.WriteString("\n\n")
-		if m.message != "" {
+		if m.message != "" && !messageRendered {
 			s.WriteString(m.styledMessage(m.message))
 			s.WriteString("\n\n")
+			messageRendered = true
 		}
 		s.WriteString(promptStyle.Render("Press ENTER to continue..."))
 
 	case ScreenFountainWash:
 		s.WriteString(fountainWashScreen())
 		s.WriteString("\n\n")
-		if m.message != "" {
+		if m.message != "" && !messageRendered {
 			s.WriteString(m.styledMessage(m.message))
 			s.WriteString("\n\n")
+			messageRendered = true
 		}
 		s.WriteString(promptStyle.Render("Press ENTER to wash your face and remember who you are..."))
 
 	case ScreenCharacterCreate:
 		s.WriteString(characterCreateScreen())
 		s.WriteString("\n\n")
-		if m.message != "" {
+		if m.message != "" && !messageRendered {
 			s.WriteString(m.styledMessage(m.message))
 			s.WriteString("\n\n")
+			messageRendered = true
 		}
 		s.WriteString(promptStyle.Render("> "))
 		s.WriteString(m.textInput.View())
