@@ -1292,12 +1292,14 @@ func (m *model) View() string {
 	}
 
 	// Center in terminal (optional - can be disabled if causing issues)
+	// Use lipgloss.Width() to correctly handle ANSI escape codes (fixes issue #75)
 	if m.width > 0 && m.height > 0 && m.width > 60 {
 		lines := strings.Split(s.String(), "\n")
 		var centered []string
 		for _, line := range lines {
-			padding := (m.width - len(line)) / 2
-			if padding > 0 && len(line) < m.width-10 {
+			visualWidth := lipgloss.Width(line)
+			padding := (m.width - visualWidth) / 2
+			if padding > 0 && visualWidth < m.width-10 {
 				centered = append(centered, fmt.Sprintf("%*s%s", padding, "", line))
 			} else {
 				centered = append(centered, line)
