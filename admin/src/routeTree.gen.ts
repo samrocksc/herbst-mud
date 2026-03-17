@@ -14,7 +14,6 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
 import { Route as AuthRoomsRouteImport } from './routes/_auth/rooms'
-import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
 import { Route as AuthNpcsRouteImport } from './routes/_auth/npcs'
 import { Route as AuthMapRouteImport } from './routes/_auth/map'
 import { Route as AuthItemsRouteImport } from './routes/_auth/items'
@@ -42,11 +41,6 @@ const AuthSkillsRoute = AuthSkillsRouteImport.update({
 const AuthRoomsRoute = AuthRoomsRouteImport.update({
   id: '/rooms',
   path: '/rooms',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthPlayersRoute = AuthPlayersRouteImport.update({
-  id: '/players',
-  path: '/players',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthNpcsRoute = AuthNpcsRouteImport.update({
@@ -77,7 +71,6 @@ export interface FileRoutesByFullPath {
   '/items': typeof AuthItemsRoute
   '/map': typeof AuthMapRoute
   '/npcs': typeof AuthNpcsRoute
-  '/players': typeof AuthPlayersRoute
   '/rooms': typeof AuthRoomsRoute
   '/skills': typeof AuthSkillsRoute
 }
@@ -88,7 +81,6 @@ export interface FileRoutesByTo {
   '/items': typeof AuthItemsRoute
   '/map': typeof AuthMapRoute
   '/npcs': typeof AuthNpcsRoute
-  '/players': typeof AuthPlayersRoute
   '/rooms': typeof AuthRoomsRoute
   '/skills': typeof AuthSkillsRoute
 }
@@ -101,7 +93,6 @@ export interface FileRoutesById {
   '/_auth/items': typeof AuthItemsRoute
   '/_auth/map': typeof AuthMapRoute
   '/_auth/npcs': typeof AuthNpcsRoute
-  '/_auth/players': typeof AuthPlayersRoute
   '/_auth/rooms': typeof AuthRoomsRoute
   '/_auth/skills': typeof AuthSkillsRoute
 }
@@ -114,7 +105,6 @@ export interface FileRouteTypes {
     | '/items'
     | '/map'
     | '/npcs'
-    | '/players'
     | '/rooms'
     | '/skills'
   fileRoutesByTo: FileRoutesByTo
@@ -125,7 +115,6 @@ export interface FileRouteTypes {
     | '/items'
     | '/map'
     | '/npcs'
-    | '/players'
     | '/rooms'
     | '/skills'
   id:
@@ -137,7 +126,6 @@ export interface FileRouteTypes {
     | '/_auth/items'
     | '/_auth/map'
     | '/_auth/npcs'
-    | '/_auth/players'
     | '/_auth/rooms'
     | '/_auth/skills'
   fileRoutesById: FileRoutesById
@@ -185,13 +173,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRoomsRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/players': {
-      id: '/_auth/players'
-      path: '/players'
-      fullPath: '/players'
-      preLoaderRoute: typeof AuthPlayersRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/npcs': {
       id: '/_auth/npcs'
       path: '/npcs'
@@ -228,7 +209,6 @@ interface AuthRouteChildren {
   AuthItemsRoute: typeof AuthItemsRoute
   AuthMapRoute: typeof AuthMapRoute
   AuthNpcsRoute: typeof AuthNpcsRoute
-  AuthPlayersRoute: typeof AuthPlayersRoute
   AuthRoomsRoute: typeof AuthRoomsRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
 }
@@ -238,7 +218,6 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthItemsRoute: AuthItemsRoute,
   AuthMapRoute: AuthMapRoute,
   AuthNpcsRoute: AuthNpcsRoute,
-  AuthPlayersRoute: AuthPlayersRoute,
   AuthRoomsRoute: AuthRoomsRoute,
   AuthSkillsRoute: AuthSkillsRoute,
 }

@@ -12,6 +12,8 @@ import (
 	"herbst-server/db/migrate"
 
 	"herbst-server/db/character"
+	"herbst-server/db/equipment"
+	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
 
@@ -28,6 +30,10 @@ type Client struct {
 	Schema *migrate.Schema
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// Equipment is the client for interacting with the Equipment builders.
+	Equipment *EquipmentClient
+	// NPCTemplate is the client for interacting with the NPCTemplate builders.
+	NPCTemplate *NPCTemplateClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// User is the client for interacting with the User builders.
@@ -44,6 +50,8 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Character = NewCharacterClient(c.config)
+	c.Equipment = NewEquipmentClient(c.config)
+	c.NPCTemplate = NewNPCTemplateClient(c.config)
 	c.Room = NewRoomClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -136,11 +144,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		Character: NewCharacterClient(cfg),
-		Room:      NewRoomClient(cfg),
-		User:      NewUserClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Character:   NewCharacterClient(cfg),
+		Equipment:   NewEquipmentClient(cfg),
+		NPCTemplate: NewNPCTemplateClient(cfg),
+		Room:        NewRoomClient(cfg),
+		User:        NewUserClient(cfg),
 	}, nil
 }
 
@@ -158,11 +168,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:       ctx,
-		config:    cfg,
-		Character: NewCharacterClient(cfg),
-		Room:      NewRoomClient(cfg),
-		User:      NewUserClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Character:   NewCharacterClient(cfg),
+		Equipment:   NewEquipmentClient(cfg),
+		NPCTemplate: NewNPCTemplateClient(cfg),
+		Room:        NewRoomClient(cfg),
+		User:        NewUserClient(cfg),
 	}, nil
 }
 
@@ -192,6 +204,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Character.Use(hooks...)
+	c.Equipment.Use(hooks...)
+	c.NPCTemplate.Use(hooks...)
 	c.Room.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -200,6 +214,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Character.Intercept(interceptors...)
+	c.Equipment.Intercept(interceptors...)
+	c.NPCTemplate.Intercept(interceptors...)
 	c.Room.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
@@ -209,6 +225,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
+	case *EquipmentMutation:
+		return c.Equipment.mutate(ctx, m)
+	case *NPCTemplateMutation:
+		return c.NPCTemplate.mutate(ctx, m)
 	case *RoomMutation:
 		return c.Room.mutate(ctx, m)
 	case *UserMutation:
@@ -358,6 +378,22 @@ func (c *CharacterClient) QueryRoom(_m *Character) *RoomQuery {
 	return query
 }
 
+// QueryNpcTemplate queries the npcTemplate edge of a Character.
+func (c *CharacterClient) QueryNpcTemplate(_m *Character) *NPCTemplateQuery {
+	query := (&NPCTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, character.NpcTemplateTable, character.NpcTemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CharacterClient) Hooks() []Hook {
 	return c.hooks.Character
@@ -380,6 +416,288 @@ func (c *CharacterClient) mutate(ctx context.Context, m *CharacterMutation) (Val
 		return (&CharacterDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Character mutation op: %q", m.Op())
+	}
+}
+
+// EquipmentClient is a client for the Equipment schema.
+type EquipmentClient struct {
+	config
+}
+
+// NewEquipmentClient returns a client for the Equipment from the given config.
+func NewEquipmentClient(c config) *EquipmentClient {
+	return &EquipmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `equipment.Hooks(f(g(h())))`.
+func (c *EquipmentClient) Use(hooks ...Hook) {
+	c.hooks.Equipment = append(c.hooks.Equipment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `equipment.Intercept(f(g(h())))`.
+func (c *EquipmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Equipment = append(c.inters.Equipment, interceptors...)
+}
+
+// Create returns a builder for creating a Equipment entity.
+func (c *EquipmentClient) Create() *EquipmentCreate {
+	mutation := newEquipmentMutation(c.config, OpCreate)
+	return &EquipmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Equipment entities.
+func (c *EquipmentClient) CreateBulk(builders ...*EquipmentCreate) *EquipmentCreateBulk {
+	return &EquipmentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EquipmentClient) MapCreateBulk(slice any, setFunc func(*EquipmentCreate, int)) *EquipmentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EquipmentCreateBulk{err: fmt.Errorf("calling to EquipmentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EquipmentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EquipmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Equipment.
+func (c *EquipmentClient) Update() *EquipmentUpdate {
+	mutation := newEquipmentMutation(c.config, OpUpdate)
+	return &EquipmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EquipmentClient) UpdateOne(_m *Equipment) *EquipmentUpdateOne {
+	mutation := newEquipmentMutation(c.config, OpUpdateOne, withEquipment(_m))
+	return &EquipmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EquipmentClient) UpdateOneID(id int) *EquipmentUpdateOne {
+	mutation := newEquipmentMutation(c.config, OpUpdateOne, withEquipmentID(id))
+	return &EquipmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Equipment.
+func (c *EquipmentClient) Delete() *EquipmentDelete {
+	mutation := newEquipmentMutation(c.config, OpDelete)
+	return &EquipmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EquipmentClient) DeleteOne(_m *Equipment) *EquipmentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EquipmentClient) DeleteOneID(id int) *EquipmentDeleteOne {
+	builder := c.Delete().Where(equipment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EquipmentDeleteOne{builder}
+}
+
+// Query returns a query builder for Equipment.
+func (c *EquipmentClient) Query() *EquipmentQuery {
+	return &EquipmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEquipment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Equipment entity by its id.
+func (c *EquipmentClient) Get(ctx context.Context, id int) (*Equipment, error) {
+	return c.Query().Where(equipment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EquipmentClient) GetX(ctx context.Context, id int) *Equipment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRoom queries the room edge of a Equipment.
+func (c *EquipmentClient) QueryRoom(_m *Equipment) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, equipment.RoomTable, equipment.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EquipmentClient) Hooks() []Hook {
+	return c.hooks.Equipment
+}
+
+// Interceptors returns the client interceptors.
+func (c *EquipmentClient) Interceptors() []Interceptor {
+	return c.inters.Equipment
+}
+
+func (c *EquipmentClient) mutate(ctx context.Context, m *EquipmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EquipmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EquipmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EquipmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EquipmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Equipment mutation op: %q", m.Op())
+	}
+}
+
+// NPCTemplateClient is a client for the NPCTemplate schema.
+type NPCTemplateClient struct {
+	config
+}
+
+// NewNPCTemplateClient returns a client for the NPCTemplate from the given config.
+func NewNPCTemplateClient(c config) *NPCTemplateClient {
+	return &NPCTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `npctemplate.Hooks(f(g(h())))`.
+func (c *NPCTemplateClient) Use(hooks ...Hook) {
+	c.hooks.NPCTemplate = append(c.hooks.NPCTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `npctemplate.Intercept(f(g(h())))`.
+func (c *NPCTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NPCTemplate = append(c.inters.NPCTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a NPCTemplate entity.
+func (c *NPCTemplateClient) Create() *NPCTemplateCreate {
+	mutation := newNPCTemplateMutation(c.config, OpCreate)
+	return &NPCTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NPCTemplate entities.
+func (c *NPCTemplateClient) CreateBulk(builders ...*NPCTemplateCreate) *NPCTemplateCreateBulk {
+	return &NPCTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NPCTemplateClient) MapCreateBulk(slice any, setFunc func(*NPCTemplateCreate, int)) *NPCTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NPCTemplateCreateBulk{err: fmt.Errorf("calling to NPCTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NPCTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NPCTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NPCTemplate.
+func (c *NPCTemplateClient) Update() *NPCTemplateUpdate {
+	mutation := newNPCTemplateMutation(c.config, OpUpdate)
+	return &NPCTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NPCTemplateClient) UpdateOne(_m *NPCTemplate) *NPCTemplateUpdateOne {
+	mutation := newNPCTemplateMutation(c.config, OpUpdateOne, withNPCTemplate(_m))
+	return &NPCTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NPCTemplateClient) UpdateOneID(id string) *NPCTemplateUpdateOne {
+	mutation := newNPCTemplateMutation(c.config, OpUpdateOne, withNPCTemplateID(id))
+	return &NPCTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NPCTemplate.
+func (c *NPCTemplateClient) Delete() *NPCTemplateDelete {
+	mutation := newNPCTemplateMutation(c.config, OpDelete)
+	return &NPCTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NPCTemplateClient) DeleteOne(_m *NPCTemplate) *NPCTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NPCTemplateClient) DeleteOneID(id string) *NPCTemplateDeleteOne {
+	builder := c.Delete().Where(npctemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NPCTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for NPCTemplate.
+func (c *NPCTemplateClient) Query() *NPCTemplateQuery {
+	return &NPCTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNPCTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NPCTemplate entity by its id.
+func (c *NPCTemplateClient) Get(ctx context.Context, id string) (*NPCTemplate, error) {
+	return c.Query().Where(npctemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NPCTemplateClient) GetX(ctx context.Context, id string) *NPCTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NPCTemplateClient) Hooks() []Hook {
+	return c.hooks.NPCTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *NPCTemplateClient) Interceptors() []Interceptor {
+	return c.inters.NPCTemplate
+}
+
+func (c *NPCTemplateClient) mutate(ctx context.Context, m *NPCTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NPCTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NPCTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NPCTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NPCTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown NPCTemplate mutation op: %q", m.Op())
 	}
 }
 
@@ -500,6 +818,22 @@ func (c *RoomClient) QueryCharacters(_m *Room) *CharacterQuery {
 			sqlgraph.From(room.Table, room.FieldID, id),
 			sqlgraph.To(character.Table, character.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, room.CharactersTable, room.CharactersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEquipment queries the equipment edge of a Room.
+func (c *RoomClient) QueryEquipment(_m *Room) *EquipmentQuery {
+	query := (&EquipmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, id),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.EquipmentTable, room.EquipmentColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -684,9 +1018,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Character, Room, User []ent.Hook
+		Character, Equipment, NPCTemplate, Room, User []ent.Hook
 	}
 	inters struct {
-		Character, Room, User []ent.Interceptor
+		Character, Equipment, NPCTemplate, Room, User []ent.Interceptor
 	}
 )

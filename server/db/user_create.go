@@ -46,6 +46,20 @@ func (_c *UserCreate) SetNillableIsAdmin(v *bool) *UserCreate {
 	return _c
 }
 
+// SetGodMode sets the "god_mode" field.
+func (_c *UserCreate) SetGodMode(v bool) *UserCreate {
+	_c.mutation.SetGodMode(v)
+	return _c
+}
+
+// SetNillableGodMode sets the "god_mode" field if the given value is not nil.
+func (_c *UserCreate) SetNillableGodMode(v *bool) *UserCreate {
+	if v != nil {
+		_c.SetGodMode(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_c *UserCreate) AddCharacterIDs(ids ...int) *UserCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -100,6 +114,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultIsAdmin
 		_c.mutation.SetIsAdmin(v)
 	}
+	if _, ok := _c.mutation.GodMode(); !ok {
+		v := user.DefaultGodMode
+		_c.mutation.SetGodMode(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -112,6 +130,9 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsAdmin(); !ok {
 		return &ValidationError{Name: "is_admin", err: errors.New(`db: missing required field "User.is_admin"`)}
+	}
+	if _, ok := _c.mutation.GodMode(); !ok {
+		return &ValidationError{Name: "god_mode", err: errors.New(`db: missing required field "User.god_mode"`)}
 	}
 	return nil
 }
@@ -150,6 +171,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsAdmin(); ok {
 		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
 		_node.IsAdmin = value
+	}
+	if value, ok := _c.mutation.GodMode(); ok {
+		_spec.SetField(user.FieldGodMode, field.TypeBool, value)
+		_node.GodMode = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

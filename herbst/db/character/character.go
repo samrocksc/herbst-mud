@@ -14,6 +14,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldPassword holds the string denoting the password field in the database.
+	FieldPassword = "password"
 	// FieldIsNPC holds the string denoting the isnpc field in the database.
 	FieldIsNPC = "is_npc"
 	// FieldCurrentRoomId holds the string denoting the currentroomid field in the database.
@@ -22,30 +24,62 @@ const (
 	FieldStartingRoomId = "starting_room_id"
 	// FieldIsAdmin holds the string denoting the is_admin field in the database.
 	FieldIsAdmin = "is_admin"
-	// FieldClassID holds the string denoting the class_id field in the database.
-	FieldClassID = "class_id"
-	// FieldRaceID holds the string denoting the race_id field in the database.
-	FieldRaceID = "race_id"
-	// FieldGenderID holds the string denoting the gender_id field in the database.
-	FieldGenderID = "gender_id"
+	// FieldHitpoints holds the string denoting the hitpoints field in the database.
+	FieldHitpoints = "hitpoints"
+	// FieldMaxHitpoints holds the string denoting the max_hitpoints field in the database.
+	FieldMaxHitpoints = "max_hitpoints"
+	// FieldStamina holds the string denoting the stamina field in the database.
+	FieldStamina = "stamina"
+	// FieldMaxStamina holds the string denoting the max_stamina field in the database.
+	FieldMaxStamina = "max_stamina"
+	// FieldMana holds the string denoting the mana field in the database.
+	FieldMana = "mana"
+	// FieldMaxMana holds the string denoting the max_mana field in the database.
+	FieldMaxMana = "max_mana"
+	// FieldRace holds the string denoting the race field in the database.
+	FieldRace = "race"
+	// FieldClass holds the string denoting the class field in the database.
+	FieldClass = "class"
 	// FieldLevel holds the string denoting the level field in the database.
 	FieldLevel = "level"
-	// FieldExperience holds the string denoting the experience field in the database.
-	FieldExperience = "experience"
-	// FieldSkillPoints holds the string denoting the skill_points field in the database.
-	FieldSkillPoints = "skill_points"
-	// FieldTalentPoints holds the string denoting the talent_points field in the database.
-	FieldTalentPoints = "talent_points"
-	// FieldStats holds the string denoting the stats field in the database.
-	FieldStats = "stats"
+	// FieldConstitution holds the string denoting the constitution field in the database.
+	FieldConstitution = "constitution"
+	// FieldGender holds the string denoting the gender field in the database.
+	FieldGender = "gender"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldStrength holds the string denoting the strength field in the database.
+	FieldStrength = "strength"
+	// FieldDexterity holds the string denoting the dexterity field in the database.
+	FieldDexterity = "dexterity"
+	// FieldIntelligence holds the string denoting the intelligence field in the database.
+	FieldIntelligence = "intelligence"
+	// FieldWisdom holds the string denoting the wisdom field in the database.
+	FieldWisdom = "wisdom"
+	// FieldSkillBlades holds the string denoting the skill_blades field in the database.
+	FieldSkillBlades = "skill_blades"
+	// FieldSkillStaves holds the string denoting the skill_staves field in the database.
+	FieldSkillStaves = "skill_staves"
+	// FieldSkillKnives holds the string denoting the skill_knives field in the database.
+	FieldSkillKnives = "skill_knives"
+	// FieldSkillMartial holds the string denoting the skill_martial field in the database.
+	FieldSkillMartial = "skill_martial"
+	// FieldSkillBrawling holds the string denoting the skill_brawling field in the database.
+	FieldSkillBrawling = "skill_brawling"
+	// FieldSkillTech holds the string denoting the skill_tech field in the database.
+	FieldSkillTech = "skill_tech"
+	// FieldSkillLightArmor holds the string denoting the skill_light_armor field in the database.
+	FieldSkillLightArmor = "skill_light_armor"
+	// FieldSkillClothArmor holds the string denoting the skill_cloth_armor field in the database.
+	FieldSkillClothArmor = "skill_cloth_armor"
+	// FieldSkillHeavyArmor holds the string denoting the skill_heavy_armor field in the database.
+	FieldSkillHeavyArmor = "skill_heavy_armor"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
-	// EdgeSkills holds the string denoting the skills edge name in mutations.
-	EdgeSkills = "skills"
-	// EdgeTalents holds the string denoting the talents edge name in mutations.
-	EdgeTalents = "talents"
+	// EdgeNpcTemplate holds the string denoting the npctemplate edge name in mutations.
+	EdgeNpcTemplate = "npcTemplate"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -62,46 +96,56 @@ const (
 	RoomInverseTable = "rooms"
 	// RoomColumn is the table column denoting the room relation/edge.
 	RoomColumn = "current_room_id"
-	// SkillsTable is the table that holds the skills relation/edge.
-	SkillsTable = "skills"
-	// SkillsInverseTable is the table name for the Skill entity.
-	// It exists in this package in order to avoid circular dependency with the "skill" package.
-	SkillsInverseTable = "skills"
-	// SkillsColumn is the table column denoting the skills relation/edge.
-	SkillsColumn = "character_skills"
-	// TalentsTable is the table that holds the talents relation/edge.
-	TalentsTable = "talents"
-	// TalentsInverseTable is the table name for the Talent entity.
-	// It exists in this package in order to avoid circular dependency with the "talent" package.
-	TalentsInverseTable = "talents"
-	// TalentsColumn is the table column denoting the talents relation/edge.
-	TalentsColumn = "character_talents"
+	// NpcTemplateTable is the table that holds the npcTemplate relation/edge.
+	NpcTemplateTable = "characters"
+	// NpcTemplateInverseTable is the table name for the NPCTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "npctemplate" package.
+	NpcTemplateInverseTable = "npc_templates"
+	// NpcTemplateColumn is the table column denoting the npcTemplate relation/edge.
+	NpcTemplateColumn = "character_npc_template"
 )
 
 // Columns holds all SQL columns for character fields.
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldPassword,
 	FieldIsNPC,
 	FieldCurrentRoomId,
 	FieldStartingRoomId,
 	FieldIsAdmin,
-	FieldClassID,
-	FieldRaceID,
-	FieldGenderID,
+	FieldHitpoints,
+	FieldMaxHitpoints,
+	FieldStamina,
+	FieldMaxStamina,
+	FieldMana,
+	FieldMaxMana,
+	FieldRace,
+	FieldClass,
 	FieldLevel,
-	FieldExperience,
-	FieldSkillPoints,
-	FieldTalentPoints,
-	FieldStats,
+	FieldConstitution,
+	FieldGender,
+	FieldDescription,
+	FieldStrength,
+	FieldDexterity,
+	FieldIntelligence,
+	FieldWisdom,
+	FieldSkillBlades,
+	FieldSkillStaves,
+	FieldSkillKnives,
+	FieldSkillMartial,
+	FieldSkillBrawling,
+	FieldSkillTech,
+	FieldSkillLightArmor,
+	FieldSkillClothArmor,
+	FieldSkillHeavyArmor,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "characters"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"character_npc_template",
 	"room_characters",
-	"skill_characters",
-	"talent_characters",
 	"user_characters",
 }
 
@@ -125,20 +169,52 @@ var (
 	DefaultIsNPC bool
 	// DefaultIsAdmin holds the default value on creation for the "is_admin" field.
 	DefaultIsAdmin bool
-	// DefaultClassID holds the default value on creation for the "class_id" field.
-	DefaultClassID int
-	// DefaultRaceID holds the default value on creation for the "race_id" field.
-	DefaultRaceID int
-	// DefaultGenderID holds the default value on creation for the "gender_id" field.
-	DefaultGenderID int
+	// DefaultHitpoints holds the default value on creation for the "hitpoints" field.
+	DefaultHitpoints int
+	// DefaultMaxHitpoints holds the default value on creation for the "max_hitpoints" field.
+	DefaultMaxHitpoints int
+	// DefaultStamina holds the default value on creation for the "stamina" field.
+	DefaultStamina int
+	// DefaultMaxStamina holds the default value on creation for the "max_stamina" field.
+	DefaultMaxStamina int
+	// DefaultMana holds the default value on creation for the "mana" field.
+	DefaultMana int
+	// DefaultMaxMana holds the default value on creation for the "max_mana" field.
+	DefaultMaxMana int
+	// DefaultRace holds the default value on creation for the "race" field.
+	DefaultRace string
+	// DefaultClass holds the default value on creation for the "class" field.
+	DefaultClass string
 	// DefaultLevel holds the default value on creation for the "level" field.
 	DefaultLevel int
-	// DefaultExperience holds the default value on creation for the "experience" field.
-	DefaultExperience int
-	// DefaultSkillPoints holds the default value on creation for the "skill_points" field.
-	DefaultSkillPoints int
-	// DefaultTalentPoints holds the default value on creation for the "talent_points" field.
-	DefaultTalentPoints int
+	// DefaultConstitution holds the default value on creation for the "constitution" field.
+	DefaultConstitution int
+	// DefaultStrength holds the default value on creation for the "strength" field.
+	DefaultStrength int
+	// DefaultDexterity holds the default value on creation for the "dexterity" field.
+	DefaultDexterity int
+	// DefaultIntelligence holds the default value on creation for the "intelligence" field.
+	DefaultIntelligence int
+	// DefaultWisdom holds the default value on creation for the "wisdom" field.
+	DefaultWisdom int
+	// DefaultSkillBlades holds the default value on creation for the "skill_blades" field.
+	DefaultSkillBlades int
+	// DefaultSkillStaves holds the default value on creation for the "skill_staves" field.
+	DefaultSkillStaves int
+	// DefaultSkillKnives holds the default value on creation for the "skill_knives" field.
+	DefaultSkillKnives int
+	// DefaultSkillMartial holds the default value on creation for the "skill_martial" field.
+	DefaultSkillMartial int
+	// DefaultSkillBrawling holds the default value on creation for the "skill_brawling" field.
+	DefaultSkillBrawling int
+	// DefaultSkillTech holds the default value on creation for the "skill_tech" field.
+	DefaultSkillTech int
+	// DefaultSkillLightArmor holds the default value on creation for the "skill_light_armor" field.
+	DefaultSkillLightArmor int
+	// DefaultSkillClothArmor holds the default value on creation for the "skill_cloth_armor" field.
+	DefaultSkillClothArmor int
+	// DefaultSkillHeavyArmor holds the default value on creation for the "skill_heavy_armor" field.
+	DefaultSkillHeavyArmor int
 )
 
 // OrderOption defines the ordering options for the Character queries.
@@ -152,6 +228,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByPassword orders the results by the password field.
+func ByPassword(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPassword, opts...).ToFunc()
 }
 
 // ByIsNPC orders the results by the isNPC field.
@@ -174,19 +255,44 @@ func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
 }
 
-// ByClassID orders the results by the class_id field.
-func ByClassID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldClassID, opts...).ToFunc()
+// ByHitpoints orders the results by the hitpoints field.
+func ByHitpoints(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHitpoints, opts...).ToFunc()
 }
 
-// ByRaceID orders the results by the race_id field.
-func ByRaceID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRaceID, opts...).ToFunc()
+// ByMaxHitpoints orders the results by the max_hitpoints field.
+func ByMaxHitpoints(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxHitpoints, opts...).ToFunc()
 }
 
-// ByGenderID orders the results by the gender_id field.
-func ByGenderID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldGenderID, opts...).ToFunc()
+// ByStamina orders the results by the stamina field.
+func ByStamina(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStamina, opts...).ToFunc()
+}
+
+// ByMaxStamina orders the results by the max_stamina field.
+func ByMaxStamina(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxStamina, opts...).ToFunc()
+}
+
+// ByMana orders the results by the mana field.
+func ByMana(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMana, opts...).ToFunc()
+}
+
+// ByMaxMana orders the results by the max_mana field.
+func ByMaxMana(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxMana, opts...).ToFunc()
+}
+
+// ByRace orders the results by the race field.
+func ByRace(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRace, opts...).ToFunc()
+}
+
+// ByClass orders the results by the class field.
+func ByClass(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClass, opts...).ToFunc()
 }
 
 // ByLevel orders the results by the level field.
@@ -194,19 +300,84 @@ func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLevel, opts...).ToFunc()
 }
 
-// ByExperience orders the results by the experience field.
-func ByExperience(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExperience, opts...).ToFunc()
+// ByConstitution orders the results by the constitution field.
+func ByConstitution(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConstitution, opts...).ToFunc()
 }
 
-// BySkillPoints orders the results by the skill_points field.
-func BySkillPoints(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillPoints, opts...).ToFunc()
+// ByGender orders the results by the gender field.
+func ByGender(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGender, opts...).ToFunc()
 }
 
-// ByTalentPoints orders the results by the talent_points field.
-func ByTalentPoints(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTalentPoints, opts...).ToFunc()
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByStrength orders the results by the strength field.
+func ByStrength(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStrength, opts...).ToFunc()
+}
+
+// ByDexterity orders the results by the dexterity field.
+func ByDexterity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDexterity, opts...).ToFunc()
+}
+
+// ByIntelligence orders the results by the intelligence field.
+func ByIntelligence(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIntelligence, opts...).ToFunc()
+}
+
+// ByWisdom orders the results by the wisdom field.
+func ByWisdom(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWisdom, opts...).ToFunc()
+}
+
+// BySkillBlades orders the results by the skill_blades field.
+func BySkillBlades(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillBlades, opts...).ToFunc()
+}
+
+// BySkillStaves orders the results by the skill_staves field.
+func BySkillStaves(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillStaves, opts...).ToFunc()
+}
+
+// BySkillKnives orders the results by the skill_knives field.
+func BySkillKnives(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillKnives, opts...).ToFunc()
+}
+
+// BySkillMartial orders the results by the skill_martial field.
+func BySkillMartial(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillMartial, opts...).ToFunc()
+}
+
+// BySkillBrawling orders the results by the skill_brawling field.
+func BySkillBrawling(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillBrawling, opts...).ToFunc()
+}
+
+// BySkillTech orders the results by the skill_tech field.
+func BySkillTech(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillTech, opts...).ToFunc()
+}
+
+// BySkillLightArmor orders the results by the skill_light_armor field.
+func BySkillLightArmor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillLightArmor, opts...).ToFunc()
+}
+
+// BySkillClothArmor orders the results by the skill_cloth_armor field.
+func BySkillClothArmor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillClothArmor, opts...).ToFunc()
+}
+
+// BySkillHeavyArmor orders the results by the skill_heavy_armor field.
+func BySkillHeavyArmor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillHeavyArmor, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.
@@ -223,31 +394,10 @@ func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// BySkillsCount orders the results by skills count.
-func BySkillsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByNpcTemplateField orders the results by npcTemplate field.
+func ByNpcTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSkillsStep(), opts...)
-	}
-}
-
-// BySkills orders the results by skills terms.
-func BySkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByTalentsCount orders the results by talents count.
-func ByTalentsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTalentsStep(), opts...)
-	}
-}
-
-// ByTalents orders the results by talents terms.
-func ByTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newNpcTemplateStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newUserStep() *sqlgraph.Step {
@@ -264,17 +414,10 @@ func newRoomStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, false, RoomTable, RoomColumn),
 	)
 }
-func newSkillsStep() *sqlgraph.Step {
+func newNpcTemplateStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SkillsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SkillsTable, SkillsColumn),
-	)
-}
-func newTalentsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TalentsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TalentsTable, TalentsColumn),
+		sqlgraph.To(NpcTemplateInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, NpcTemplateTable, NpcTemplateColumn),
 	)
 }

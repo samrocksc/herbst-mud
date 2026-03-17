@@ -9,6 +9,12 @@ import (
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 
+// Equipment is the predicate function for equipment builders.
+type Equipment func(*sql.Selector)
+
+// NPCTemplate is the predicate function for npctemplate builders.
+type NPCTemplate func(*sql.Selector)
+
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
 
