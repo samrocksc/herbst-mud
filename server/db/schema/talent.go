@@ -26,6 +26,7 @@ func (Talent) Fields() []ent.Field {
 // Edges of the Talent.
 func (Talent) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("characters", Character.Type),
+		edge.To("characters", CharacterTalent.Type),
+		edge.To("available_to_characters", AvailableTalent.Type),
 	}
 }

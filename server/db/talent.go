@@ -31,19 +31,30 @@ type Talent struct {
 // TalentEdges holds the relations/edges for other nodes in the graph.
 type TalentEdges struct {
 	// Characters holds the value of the characters edge.
-	Characters []*Character `json:"characters,omitempty"`
+	Characters []*CharacterTalent `json:"characters,omitempty"`
+	// AvailableToCharacters holds the value of the available_to_characters edge.
+	AvailableToCharacters []*AvailableTalent `json:"available_to_characters,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
 // was not loaded in eager-loading.
-func (e TalentEdges) CharactersOrErr() ([]*Character, error) {
+func (e TalentEdges) CharactersOrErr() ([]*CharacterTalent, error) {
 	if e.loadedTypes[0] {
 		return e.Characters, nil
 	}
 	return nil, &NotLoadedError{edge: "characters"}
+}
+
+// AvailableToCharactersOrErr returns the AvailableToCharacters value or an error if the edge
+// was not loaded in eager-loading.
+func (e TalentEdges) AvailableToCharactersOrErr() ([]*AvailableTalent, error) {
+	if e.loadedTypes[1] {
+		return e.AvailableToCharacters, nil
+	}
+	return nil, &NotLoadedError{edge: "available_to_characters"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -108,8 +119,13 @@ func (_m *Talent) Value(name string) (ent.Value, error) {
 }
 
 // QueryCharacters queries the "characters" edge of the Talent entity.
-func (_m *Talent) QueryCharacters() *CharacterQuery {
+func (_m *Talent) QueryCharacters() *CharacterTalentQuery {
 	return NewTalentClient(_m.config).QueryCharacters(_m)
+}
+
+// QueryAvailableToCharacters queries the "available_to_characters" edge of the Talent entity.
+func (_m *Talent) QueryAvailableToCharacters() *AvailableTalentQuery {
+	return NewTalentClient(_m.config).QueryAvailableToCharacters(_m)
 }
 
 // Update returns a builder for updating this Talent.

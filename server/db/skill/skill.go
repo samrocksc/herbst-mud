@@ -29,10 +29,10 @@ const (
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
 	// CharactersTable is the table that holds the characters relation/edge.
-	CharactersTable = "characters"
-	// CharactersInverseTable is the table name for the Character entity.
-	// It exists in this package in order to avoid circular dependency with the "character" package.
-	CharactersInverseTable = "characters"
+	CharactersTable = "character_skills"
+	// CharactersInverseTable is the table name for the CharacterSkill entity.
+	// It exists in this package in order to avoid circular dependency with the "characterskill" package.
+	CharactersInverseTable = "character_skills"
 	// CharactersColumn is the table column denoting the characters relation/edge.
 	CharactersColumn = "skill_characters"
 )

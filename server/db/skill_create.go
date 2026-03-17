@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"herbst-server/db/character"
+	"herbst-server/db/characterskill"
 	"herbst-server/db/skill"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -80,14 +80,14 @@ func (_c *SkillCreate) SetNillableRequirements(v *string) *SkillCreate {
 	return _c
 }
 
-// AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
+// AddCharacterIDs adds the "characters" edge to the CharacterSkill entity by IDs.
 func (_c *SkillCreate) AddCharacterIDs(ids ...int) *SkillCreate {
 	_c.mutation.AddCharacterIDs(ids...)
 	return _c
 }
 
-// AddCharacters adds the "characters" edges to the Character entity.
-func (_c *SkillCreate) AddCharacters(v ...*Character) *SkillCreate {
+// AddCharacters adds the "characters" edges to the CharacterSkill entity.
+func (_c *SkillCreate) AddCharacters(v ...*CharacterSkill) *SkillCreate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -215,7 +215,7 @@ func (_c *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 			Columns: []string{skill.CharactersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

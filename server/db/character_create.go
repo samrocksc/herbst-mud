@@ -6,7 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/characterskill"
+	"herbst-server/db/charactertalent"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
 
@@ -193,6 +196,51 @@ func (_c *CharacterCreate) SetRoomID(id int) *CharacterCreate {
 // SetRoom sets the "room" edge to the Room entity.
 func (_c *CharacterCreate) SetRoom(v *Room) *CharacterCreate {
 	return _c.SetRoomID(v.ID)
+}
+
+// AddSkillIDs adds the "skills" edge to the CharacterSkill entity by IDs.
+func (_c *CharacterCreate) AddSkillIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddSkillIDs(ids...)
+	return _c
+}
+
+// AddSkills adds the "skills" edges to the CharacterSkill entity.
+func (_c *CharacterCreate) AddSkills(v ...*CharacterSkill) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSkillIDs(ids...)
+}
+
+// AddTalentIDs adds the "talents" edge to the CharacterTalent entity by IDs.
+func (_c *CharacterCreate) AddTalentIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddTalentIDs(ids...)
+	return _c
+}
+
+// AddTalents adds the "talents" edges to the CharacterTalent entity.
+func (_c *CharacterCreate) AddTalents(v ...*CharacterTalent) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTalentIDs(ids...)
+}
+
+// AddAvailableTalentIDs adds the "available_talents" edge to the AvailableTalent entity by IDs.
+func (_c *CharacterCreate) AddAvailableTalentIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddAvailableTalentIDs(ids...)
+	return _c
+}
+
+// AddAvailableTalents adds the "available_talents" edges to the AvailableTalent entity.
+func (_c *CharacterCreate) AddAvailableTalents(v ...*AvailableTalent) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAvailableTalentIDs(ids...)
 }
 
 // Mutation returns the CharacterMutation object of the builder.
@@ -404,6 +452,54 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CurrentRoomId = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.SkillsTable,
+			Columns: []string{character.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TalentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TalentsTable,
+			Columns: []string{character.TalentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AvailableTalentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.AvailableTalentsTable,
+			Columns: []string{character.AvailableTalentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

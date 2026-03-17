@@ -54,5 +54,8 @@ func (Character) Edges() []ent.Edge {
 			Field("currentRoomId").
 			Required().
 			Unique(),
+		edge.To("skills", CharacterSkill.Type),
+		edge.To("talents", CharacterTalent.Type),
+		edge.To("available_talents", AvailableTalent.Type),
 	}
 }

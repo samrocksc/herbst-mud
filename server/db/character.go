@@ -44,12 +44,10 @@ type Character struct {
 	MaxMana int `json:"max_mana,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
-	Edges             CharacterEdges `json:"edges"`
-	room_characters   *int
-	skill_characters  *int
-	talent_characters *int
-	user_characters   *int
-	selectValues      sql.SelectValues
+	Edges           CharacterEdges `json:"edges"`
+	room_characters *int
+	user_characters *int
+	selectValues    sql.SelectValues
 }
 
 // CharacterEdges holds the relations/edges for other nodes in the graph.
@@ -58,9 +56,15 @@ type CharacterEdges struct {
 	User *User `json:"user,omitempty"`
 	// Room holds the value of the room edge.
 	Room *Room `json:"room,omitempty"`
+	// Skills holds the value of the skills edge.
+	Skills []*CharacterSkill `json:"skills,omitempty"`
+	// Talents holds the value of the talents edge.
+	Talents []*CharacterTalent `json:"talents,omitempty"`
+	// AvailableTalents holds the value of the available_talents edge.
+	AvailableTalents []*AvailableTalent `json:"available_talents,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [5]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -85,6 +89,33 @@ func (e CharacterEdges) RoomOrErr() (*Room, error) {
 	return nil, &NotLoadedError{edge: "room"}
 }
 
+// SkillsOrErr returns the Skills value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) SkillsOrErr() ([]*CharacterSkill, error) {
+	if e.loadedTypes[2] {
+		return e.Skills, nil
+	}
+	return nil, &NotLoadedError{edge: "skills"}
+}
+
+// TalentsOrErr returns the Talents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) TalentsOrErr() ([]*CharacterTalent, error) {
+	if e.loadedTypes[3] {
+		return e.Talents, nil
+	}
+	return nil, &NotLoadedError{edge: "talents"}
+}
+
+// AvailableTalentsOrErr returns the AvailableTalents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) AvailableTalentsOrErr() ([]*AvailableTalent, error) {
+	if e.loadedTypes[4] {
+		return e.AvailableTalents, nil
+	}
+	return nil, &NotLoadedError{edge: "available_talents"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -98,11 +129,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case character.ForeignKeys[0]: // room_characters
 			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[1]: // skill_characters
-			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[2]: // talent_characters
-			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[3]: // user_characters
+		case character.ForeignKeys[1]: // user_characters
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -206,20 +233,6 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 			}
 		case character.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field skill_characters", value)
-			} else if value.Valid {
-				_m.skill_characters = new(int)
-				*_m.skill_characters = int(value.Int64)
-			}
-		case character.ForeignKeys[2]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field talent_characters", value)
-			} else if value.Valid {
-				_m.talent_characters = new(int)
-				*_m.talent_characters = int(value.Int64)
-			}
-		case character.ForeignKeys[3]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_characters", value)
 			} else if value.Valid {
 				_m.user_characters = new(int)
@@ -246,6 +259,21 @@ func (_m *Character) QueryUser() *UserQuery {
 // QueryRoom queries the "room" edge of the Character entity.
 func (_m *Character) QueryRoom() *RoomQuery {
 	return NewCharacterClient(_m.config).QueryRoom(_m)
+}
+
+// QuerySkills queries the "skills" edge of the Character entity.
+func (_m *Character) QuerySkills() *CharacterSkillQuery {
+	return NewCharacterClient(_m.config).QuerySkills(_m)
+}
+
+// QueryTalents queries the "talents" edge of the Character entity.
+func (_m *Character) QueryTalents() *CharacterTalentQuery {
+	return NewCharacterClient(_m.config).QueryTalents(_m)
+}
+
+// QueryAvailableTalents queries the "available_talents" edge of the Character entity.
+func (_m *Character) QueryAvailableTalents() *AvailableTalentQuery {
+	return NewCharacterClient(_m.config).QueryAvailableTalents(_m)
 }
 
 // Update returns a builder for updating this Character.

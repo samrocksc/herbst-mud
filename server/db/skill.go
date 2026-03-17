@@ -37,7 +37,7 @@ type Skill struct {
 // SkillEdges holds the relations/edges for other nodes in the graph.
 type SkillEdges struct {
 	// Characters holds the value of the characters edge.
-	Characters []*Character `json:"characters,omitempty"`
+	Characters []*CharacterSkill `json:"characters,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
@@ -45,7 +45,7 @@ type SkillEdges struct {
 
 // CharactersOrErr returns the Characters value or an error if the edge
 // was not loaded in eager-loading.
-func (e SkillEdges) CharactersOrErr() ([]*Character, error) {
+func (e SkillEdges) CharactersOrErr() ([]*CharacterSkill, error) {
 	if e.loadedTypes[0] {
 		return e.Characters, nil
 	}
@@ -132,7 +132,7 @@ func (_m *Skill) Value(name string) (ent.Value, error) {
 }
 
 // QueryCharacters queries the "characters" edge of the Skill entity.
-func (_m *Skill) QueryCharacters() *CharacterQuery {
+func (_m *Skill) QueryCharacters() *CharacterSkillQuery {
 	return NewSkillClient(_m.config).QueryCharacters(_m)
 }
 

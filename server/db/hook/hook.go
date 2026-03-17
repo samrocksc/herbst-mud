@@ -8,6 +8,18 @@ import (
 	"herbst-server/db"
 )
 
+// The AvailableTalentFunc type is an adapter to allow the use of ordinary
+// function as AvailableTalent mutator.
+type AvailableTalentFunc func(context.Context, *db.AvailableTalentMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AvailableTalentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AvailableTalentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AvailableTalentMutation", m)
+}
+
 // The CharacterFunc type is an adapter to allow the use of ordinary
 // function as Character mutator.
 type CharacterFunc func(context.Context, *db.CharacterMutation) (db.Value, error)
@@ -18,6 +30,30 @@ func (f CharacterFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterMutation", m)
+}
+
+// The CharacterSkillFunc type is an adapter to allow the use of ordinary
+// function as CharacterSkill mutator.
+type CharacterSkillFunc func(context.Context, *db.CharacterSkillMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterSkillFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterSkillMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterSkillMutation", m)
+}
+
+// The CharacterTalentFunc type is an adapter to allow the use of ordinary
+// function as CharacterTalent mutator.
+type CharacterTalentFunc func(context.Context, *db.CharacterTalentMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterTalentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterTalentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterTalentMutation", m)
 }
 
 // The EquipmentFunc type is an adapter to allow the use of ordinary

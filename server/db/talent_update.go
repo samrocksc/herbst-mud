@@ -6,7 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"herbst-server/db/character"
+	"herbst-server/db/availabletalent"
+	"herbst-server/db/charactertalent"
 	"herbst-server/db/predicate"
 	"herbst-server/db/talent"
 
@@ -76,14 +77,14 @@ func (_u *TalentUpdate) ClearRequirements() *TalentUpdate {
 	return _u
 }
 
-// AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
+// AddCharacterIDs adds the "characters" edge to the CharacterTalent entity by IDs.
 func (_u *TalentUpdate) AddCharacterIDs(ids ...int) *TalentUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
 	return _u
 }
 
-// AddCharacters adds the "characters" edges to the Character entity.
-func (_u *TalentUpdate) AddCharacters(v ...*Character) *TalentUpdate {
+// AddCharacters adds the "characters" edges to the CharacterTalent entity.
+func (_u *TalentUpdate) AddCharacters(v ...*CharacterTalent) *TalentUpdate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -91,30 +92,66 @@ func (_u *TalentUpdate) AddCharacters(v ...*Character) *TalentUpdate {
 	return _u.AddCharacterIDs(ids...)
 }
 
+// AddAvailableToCharacterIDs adds the "available_to_characters" edge to the AvailableTalent entity by IDs.
+func (_u *TalentUpdate) AddAvailableToCharacterIDs(ids ...int) *TalentUpdate {
+	_u.mutation.AddAvailableToCharacterIDs(ids...)
+	return _u
+}
+
+// AddAvailableToCharacters adds the "available_to_characters" edges to the AvailableTalent entity.
+func (_u *TalentUpdate) AddAvailableToCharacters(v ...*AvailableTalent) *TalentUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAvailableToCharacterIDs(ids...)
+}
+
 // Mutation returns the TalentMutation object of the builder.
 func (_u *TalentUpdate) Mutation() *TalentMutation {
 	return _u.mutation
 }
 
-// ClearCharacters clears all "characters" edges to the Character entity.
+// ClearCharacters clears all "characters" edges to the CharacterTalent entity.
 func (_u *TalentUpdate) ClearCharacters() *TalentUpdate {
 	_u.mutation.ClearCharacters()
 	return _u
 }
 
-// RemoveCharacterIDs removes the "characters" edge to Character entities by IDs.
+// RemoveCharacterIDs removes the "characters" edge to CharacterTalent entities by IDs.
 func (_u *TalentUpdate) RemoveCharacterIDs(ids ...int) *TalentUpdate {
 	_u.mutation.RemoveCharacterIDs(ids...)
 	return _u
 }
 
-// RemoveCharacters removes "characters" edges to Character entities.
-func (_u *TalentUpdate) RemoveCharacters(v ...*Character) *TalentUpdate {
+// RemoveCharacters removes "characters" edges to CharacterTalent entities.
+func (_u *TalentUpdate) RemoveCharacters(v ...*CharacterTalent) *TalentUpdate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearAvailableToCharacters clears all "available_to_characters" edges to the AvailableTalent entity.
+func (_u *TalentUpdate) ClearAvailableToCharacters() *TalentUpdate {
+	_u.mutation.ClearAvailableToCharacters()
+	return _u
+}
+
+// RemoveAvailableToCharacterIDs removes the "available_to_characters" edge to AvailableTalent entities by IDs.
+func (_u *TalentUpdate) RemoveAvailableToCharacterIDs(ids ...int) *TalentUpdate {
+	_u.mutation.RemoveAvailableToCharacterIDs(ids...)
+	return _u
+}
+
+// RemoveAvailableToCharacters removes "available_to_characters" edges to AvailableTalent entities.
+func (_u *TalentUpdate) RemoveAvailableToCharacters(v ...*AvailableTalent) *TalentUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAvailableToCharacterIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -173,7 +210,7 @@ func (_u *TalentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{talent.CharactersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -186,7 +223,7 @@ func (_u *TalentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{talent.CharactersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -202,7 +239,52 @@ func (_u *TalentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{talent.CharactersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AvailableToCharactersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   talent.AvailableToCharactersTable,
+			Columns: []string{talent.AvailableToCharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAvailableToCharactersIDs(); len(nodes) > 0 && !_u.mutation.AvailableToCharactersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   talent.AvailableToCharactersTable,
+			Columns: []string{talent.AvailableToCharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AvailableToCharactersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   talent.AvailableToCharactersTable,
+			Columns: []string{talent.AvailableToCharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -278,14 +360,14 @@ func (_u *TalentUpdateOne) ClearRequirements() *TalentUpdateOne {
 	return _u
 }
 
-// AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
+// AddCharacterIDs adds the "characters" edge to the CharacterTalent entity by IDs.
 func (_u *TalentUpdateOne) AddCharacterIDs(ids ...int) *TalentUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
 	return _u
 }
 
-// AddCharacters adds the "characters" edges to the Character entity.
-func (_u *TalentUpdateOne) AddCharacters(v ...*Character) *TalentUpdateOne {
+// AddCharacters adds the "characters" edges to the CharacterTalent entity.
+func (_u *TalentUpdateOne) AddCharacters(v ...*CharacterTalent) *TalentUpdateOne {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -293,30 +375,66 @@ func (_u *TalentUpdateOne) AddCharacters(v ...*Character) *TalentUpdateOne {
 	return _u.AddCharacterIDs(ids...)
 }
 
+// AddAvailableToCharacterIDs adds the "available_to_characters" edge to the AvailableTalent entity by IDs.
+func (_u *TalentUpdateOne) AddAvailableToCharacterIDs(ids ...int) *TalentUpdateOne {
+	_u.mutation.AddAvailableToCharacterIDs(ids...)
+	return _u
+}
+
+// AddAvailableToCharacters adds the "available_to_characters" edges to the AvailableTalent entity.
+func (_u *TalentUpdateOne) AddAvailableToCharacters(v ...*AvailableTalent) *TalentUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAvailableToCharacterIDs(ids...)
+}
+
 // Mutation returns the TalentMutation object of the builder.
 func (_u *TalentUpdateOne) Mutation() *TalentMutation {
 	return _u.mutation
 }
 
-// ClearCharacters clears all "characters" edges to the Character entity.
+// ClearCharacters clears all "characters" edges to the CharacterTalent entity.
 func (_u *TalentUpdateOne) ClearCharacters() *TalentUpdateOne {
 	_u.mutation.ClearCharacters()
 	return _u
 }
 
-// RemoveCharacterIDs removes the "characters" edge to Character entities by IDs.
+// RemoveCharacterIDs removes the "characters" edge to CharacterTalent entities by IDs.
 func (_u *TalentUpdateOne) RemoveCharacterIDs(ids ...int) *TalentUpdateOne {
 	_u.mutation.RemoveCharacterIDs(ids...)
 	return _u
 }
 
-// RemoveCharacters removes "characters" edges to Character entities.
-func (_u *TalentUpdateOne) RemoveCharacters(v ...*Character) *TalentUpdateOne {
+// RemoveCharacters removes "characters" edges to CharacterTalent entities.
+func (_u *TalentUpdateOne) RemoveCharacters(v ...*CharacterTalent) *TalentUpdateOne {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearAvailableToCharacters clears all "available_to_characters" edges to the AvailableTalent entity.
+func (_u *TalentUpdateOne) ClearAvailableToCharacters() *TalentUpdateOne {
+	_u.mutation.ClearAvailableToCharacters()
+	return _u
+}
+
+// RemoveAvailableToCharacterIDs removes the "available_to_characters" edge to AvailableTalent entities by IDs.
+func (_u *TalentUpdateOne) RemoveAvailableToCharacterIDs(ids ...int) *TalentUpdateOne {
+	_u.mutation.RemoveAvailableToCharacterIDs(ids...)
+	return _u
+}
+
+// RemoveAvailableToCharacters removes "available_to_characters" edges to AvailableTalent entities.
+func (_u *TalentUpdateOne) RemoveAvailableToCharacters(v ...*AvailableTalent) *TalentUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAvailableToCharacterIDs(ids...)
 }
 
 // Where appends a list predicates to the TalentUpdate builder.
@@ -405,7 +523,7 @@ func (_u *TalentUpdateOne) sqlSave(ctx context.Context) (_node *Talent, err erro
 			Columns: []string{talent.CharactersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -418,7 +536,7 @@ func (_u *TalentUpdateOne) sqlSave(ctx context.Context) (_node *Talent, err erro
 			Columns: []string{talent.CharactersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -434,7 +552,52 @@ func (_u *TalentUpdateOne) sqlSave(ctx context.Context) (_node *Talent, err erro
 			Columns: []string{talent.CharactersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AvailableToCharactersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   talent.AvailableToCharactersTable,
+			Columns: []string{talent.AvailableToCharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAvailableToCharactersIDs(); len(nodes) > 0 && !_u.mutation.AvailableToCharactersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   talent.AvailableToCharactersTable,
+			Columns: []string{talent.AvailableToCharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AvailableToCharactersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   talent.AvailableToCharactersTable,
+			Columns: []string{talent.AvailableToCharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

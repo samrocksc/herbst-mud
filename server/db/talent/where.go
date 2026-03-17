@@ -286,9 +286,32 @@ func HasCharacters() predicate.Talent {
 }
 
 // HasCharactersWith applies the HasEdge predicate on the "characters" edge with a given conditions (other predicates).
-func HasCharactersWith(preds ...predicate.Character) predicate.Talent {
+func HasCharactersWith(preds ...predicate.CharacterTalent) predicate.Talent {
 	return predicate.Talent(func(s *sql.Selector) {
 		step := newCharactersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAvailableToCharacters applies the HasEdge predicate on the "available_to_characters" edge.
+func HasAvailableToCharacters() predicate.Talent {
+	return predicate.Talent(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AvailableToCharactersTable, AvailableToCharactersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAvailableToCharactersWith applies the HasEdge predicate on the "available_to_characters" edge with a given conditions (other predicates).
+func HasAvailableToCharactersWith(preds ...predicate.AvailableTalent) predicate.Talent {
+	return predicate.Talent(func(s *sql.Selector) {
+		step := newAvailableToCharactersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
