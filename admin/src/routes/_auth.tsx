@@ -10,12 +10,12 @@ function AuthLayout() {
       <header>
         <h1>Herbst MUD Admin</h1>
         <nav>
-          <a href="/_auth/dashboard">Dashboard</a>
-          <a href="/_auth/items">Items</a>
-          <a href="/_auth/rooms">Rooms</a>
-          <a href="/_auth/skills">Skills/Talents</a>
-          <a href="/_auth/npcs">NPCs</a>
-          <a href="/_auth/map">Map Builder</a>
+          <a href="dashboard">Dashboard</a>
+          <a href="items">Items</a>
+          <a href="rooms">Rooms</a>
+          <a href="skills">Skills/Talents</a>
+          <a href="npcs">NPCs</a>
+          <a href="map">Map Builder</a>
           <a href="/">Logout</a>
         </nav>
       </header>

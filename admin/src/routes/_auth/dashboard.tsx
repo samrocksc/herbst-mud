@@ -51,11 +51,11 @@ function Dashboard() {
         <div className="card">
           <h3>Quick Actions</h3>
           <div className="quick-actions">
-            <a href="/_auth/items"><button>Manage Items</button></a>
-            <a href="/_auth/rooms"><button>Manage Rooms</button></a>
-            <a href="/_auth/skills"><button>Manage Skills</button></a>
-            <a href="/_auth/npcs"><button>Manage NPCs</button></a>
-            <a href="/_auth/map"><button>Map Builder</button></a>
+            <a href="items"><button>Manage Items</button></a>
+            <a href="rooms"><button>Manage Rooms</button></a>
+            <a href="skills"><button>Manage Skills</button></a>
+            <a href="npcs"><button>Manage NPCs</button></a>
+            <a href="map"><button>Map Builder</button></a>
           </div>
         </div>
         
