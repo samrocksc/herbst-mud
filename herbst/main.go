@@ -124,15 +124,16 @@ func main() {
 					// Create program with shared client
 					p := tea.NewProgram(
 						&model{
-							connectedAt:  time.Now(),
-							session:      s,
-							client:       client,
-							screen:       ScreenWelcome,
-							currentRoom:  StartingRoomID,
-							textInput:    ti,
-							spinner:      sp,
-							visitedRooms: make(map[int]bool),
-							knownExits:   make(map[string]bool),
+							connectedAt:     time.Now(),
+							session:         s,
+							client:          client,
+							screen:          ScreenWelcome,
+							currentRoom:     StartingRoomID,
+							textInput:       ti,
+							spinner:         sp,
+							visitedRooms:    make(map[int]bool),
+							knownExits:      make(map[string]bool),
+							roomCharacters:  make([]roomCharacter, 0),
 						},
 						tea.WithInput(s),
 						tea.WithOutput(s),
@@ -216,9 +217,21 @@ type model struct {
 	loadingMessage string
 
 	// Room tracking
-	visitedRooms map[int]bool
-	knownExits   map[string]bool // For color-coded exits
-	roomItems    []roomItemDisplay
+	visitedRooms   map[int]bool
+	knownExits     map[string]bool // For color-coded exits
+	roomItems      []roomItemDisplay
+	roomCharacters []roomCharacter // Characters in current room (NPCs + players)
+}
+
+// roomCharacter holds info about characters in a room for display
+type roomCharacter struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	IsNPC  bool   `json:"isNPC"`
+	Level  int    `json:"level"`
+	Class  string `json:"class"`
+	Race   string `json:"race"`
+	UserID int    `json:"userId,omitempty"`
 }
 
 // roomItemDisplay holds display info for items in a room
@@ -439,6 +452,54 @@ func (m *model) formatRoomItemsWithColor() string {
 	}
 
 	return lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Items:") + "\n  " + strings.Join(items, "\n  ")
+}
+
+// formatRoomCharactersWithColor returns a formatted string of characters in the room
+// NPCs are shown in RED, players are shown in GREEN
+func (m *model) formatRoomCharactersWithColor() string {
+	if len(m.roomCharacters) == 0 {
+		return ""
+	}
+
+	var chars []string
+	for _, rc := range m.roomCharacters {
+		var charStyle lipgloss.Style
+		var typeLabel string
+		if rc.IsNPC {
+			// NPCs in RED
+			charStyle = lipgloss.NewStyle().Foreground(red).Bold(true)
+			typeLabel = "NPC"
+		} else {
+			// Players in GREEN
+			charStyle = lipgloss.NewStyle().Foreground(green).Bold(true)
+			typeLabel = "Player"
+		}
+
+		// Format: "Name (NPC) - Level 5 Orc Warrior" or just "Name (Player)"
+		var details []string
+		if rc.Level > 0 {
+			details = append(details, fmt.Sprintf("Level %d", rc.Level))
+		}
+		if rc.Race != "" {
+			details = append(details, rc.Race)
+		}
+		if rc.Class != "" {
+			details = append(details, rc.Class)
+		}
+
+		var detailStr string
+		if len(details) > 0 {
+			detailStr = " - " + strings.Join(details, " ")
+		}
+
+		chars = append(chars, charStyle.Render(rc.Name)+fmt.Sprintf(" (%s)%s", typeLabel, detailStr))
+	}
+
+	if len(chars) == 0 {
+		return ""
+	}
+
+	return lipgloss.NewStyle().Bold(true).Foreground(yellow).Render("You see:") + "\n  • " + strings.Join(chars, "\n  • ")
 }
 
 // ============================================================
@@ -725,6 +786,8 @@ func (m *model) attemptLogin() {
 
 		// Load room items
 		m.loadRoomItems()
+		// Load room characters
+		m.loadRoomCharacters()
 	}
 }
 
@@ -761,6 +824,40 @@ func (m *model) loadRoomItems() {
 			display.color = lipgloss.Color("15") // White
 		}
 		m.roomItems = append(m.roomItems, display)
+	}
+}
+
+// loadRoomCharacters fetches characters from the server for the current room
+func (m *model) loadRoomCharacters() {
+	if m.currentRoom == 0 {
+		return
+	}
+
+	url := fmt.Sprintf("%s/rooms/%d/characters", RESTAPIBase, m.currentRoom)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Error loading room characters: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Failed to load room characters: status %d", resp.StatusCode)
+		return
+	}
+
+	var chars []roomCharacter
+	if err := json.NewDecoder(resp.Body).Decode(&chars); err != nil {
+		log.Printf("Error decoding room characters: %v", err)
+		return
+	}
+
+	// Filter out current player
+	m.roomCharacters = make([]roomCharacter, 0, len(chars))
+	for _, rc := range chars {
+		if rc.ID != m.currentCharacterID {
+			m.roomCharacters = append(m.roomCharacters, rc)
+		}
 	}
 }
 
@@ -943,19 +1040,27 @@ func (m *model) processCommand(cmd string) {
   quit - Exit game`
 		m.messageType = "info"
 	case "look", "l":
+		// Format items and characters
 		itemStr := m.formatRoomItemsWithColor()
+		charStr := m.formatRoomCharactersWithColor()
+
+		var extraParts []string
 		if itemStr != "" {
-			m.message = fmt.Sprintf("[%s]\n%s\n\n%s\n\nExits: %s",
-				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
-				m.roomDesc,
-				itemStr,
-				m.formatExitsWithColor())
-		} else {
-			m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s",
-				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
-				m.roomDesc,
-				m.formatExitsWithColor())
+			extraParts = append(extraParts, itemStr)
 		}
+		if charStr != "" {
+			extraParts = append(extraParts, charStr)
+		}
+		extraPart := ""
+		if len(extraParts) > 0 {
+			extraPart = "\n\n" + strings.Join(extraParts, "\n\n")
+		}
+
+		m.message = fmt.Sprintf("[%s]\n%s%s\n\nExits: %s",
+			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+			m.roomDesc,
+			extraPart,
+			m.formatExitsWithColor())
 		m.messageType = "info"
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
@@ -1040,12 +1145,23 @@ func (m *model) handleMovement(cmd string) bool {
 
 		// Load room items
 		m.loadRoomItems()
+		// Load room characters
+		m.loadRoomCharacters()
 
-		// Format items
+		// Format items and characters
 		itemStr := m.formatRoomItemsWithColor()
-		itemPart := ""
+		charStr := m.formatRoomCharactersWithColor()
+
+		var extraParts []string
 		if itemStr != "" {
-			itemPart = "\n\n" + itemStr
+			extraParts = append(extraParts, itemStr)
+		}
+		if charStr != "" {
+			extraParts = append(extraParts, charStr)
+		}
+		extraPart := ""
+		if len(extraParts) > 0 {
+			extraPart = "\n\n" + strings.Join(extraParts, "\n\n")
 		}
 
 		if wasVisited {
@@ -1053,14 +1169,14 @@ func (m *model) handleMovement(cmd string) bool {
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 				m.roomDesc,
-				itemPart,
+				extraPart,
 				m.formatExitsWithColor())
 		} else {
 			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s\n\nExits: %s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(m.roomName),
 				m.roomDesc,
-				itemPart,
+				extraPart,
 				m.formatExitsWithColor())
 		}
 		m.messageType = "success"
@@ -1526,30 +1642,31 @@ func (m *model) View() string {
 
 		// Room info at top with styling (only in output viewport, no stats)
 		itemStr := m.formatRoomItemsWithColor()
+		charStr := m.formatRoomCharactersWithColor()
+
+		var extraParts []string
 		if itemStr != "" {
-			roomInfo := fmt.Sprintf("[%s]\n%s\n\n%s\n\nExits: %s",
-				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
-				m.roomDesc,
-				itemStr,
-				m.formatExitsWithColor())
-			// Show message if any
-			if m.message != "" {
-				roomInfo += "\n\n" + m.styledMessage(m.message)
-			}
-			// Render output viewport with pink border (room info only, no stats)
-			s.WriteString(outputStyle.Render(roomInfo))
-		} else {
-			roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
-				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
-				m.roomDesc,
-				m.formatExitsWithColor())
-			// Show message if any
-			if m.message != "" {
-				roomInfo += "\n\n" + m.styledMessage(m.message)
-			}
-			// Render output viewport with pink border (room info only, no stats)
-			s.WriteString(outputStyle.Render(roomInfo))
+			extraParts = append(extraParts, itemStr)
 		}
+		if charStr != "" {
+			extraParts = append(extraParts, charStr)
+		}
+		extraPart := ""
+		if len(extraParts) > 0 {
+			extraPart = "\n\n" + strings.Join(extraParts, "\n\n")
+		}
+
+		roomInfo := fmt.Sprintf("[%s]\n%s%s\n\nExits: %s",
+			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+			m.roomDesc,
+			extraPart,
+			m.formatExitsWithColor())
+		// Show message if any
+		if m.message != "" {
+			roomInfo += "\n\n" + m.styledMessage(m.message)
+		}
+		// Render output viewport with pink border (room info only, no stats)
+		s.WriteString(outputStyle.Render(roomInfo))
 		s.WriteString("\n")
 
 		// Full-width status bar separator (middle ~10%)
