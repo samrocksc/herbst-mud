@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -402,13 +403,24 @@ func (m *model) styledMessage(msg string) string {
 }
 
 // formatExitsWithColor returns color-coded exits
+// IMPORTANT: This function must be PURE - it should NOT modify model state
+// State changes (like marking exits as known) should happen in Update(), not View()
 func (m *model) formatExitsWithColor() string {
 	if len(m.exits) == 0 {
 		return lipgloss.NewStyle().Foreground(gray).Render("none")
 	}
 
+	// Sort exits for consistent order (Go maps are unordered)
 	var dirs []string
-	for dir, roomID := range m.exits {
+	for dir := range m.exits {
+		dirs = append(dirs, dir)
+	}
+	// Sort alphabetically for consistent display
+	sort.Strings(dirs)
+
+	var result []string
+	for _, dir := range dirs {
+		roomID := m.exits[dir]
 		var exitStyle lipgloss.Style
 		if m.visitedRooms[roomID] {
 			// Green = visited
@@ -417,14 +429,14 @@ func (m *model) formatExitsWithColor() string {
 			// Yellow = known but not visited
 			exitStyle = lipgloss.NewStyle().Foreground(exitKnownColor)
 		} else {
-			// White = new
-			m.knownExits[dir] = true
+			// White = new (never seen before)
+			// NOTE: We do NOT mark as known here - that's done in Update()
 			exitStyle = lipgloss.NewStyle().Foreground(exitNewColor)
 		}
-		dirs = append(dirs, exitStyle.Render(dir))
+		result = append(result, exitStyle.Render(dir))
 	}
 
-	return strings.Join(dirs, ", ")
+	return strings.Join(result, ", ")
 }
 
 // formatRoomItemsWithColor returns a formatted string of items in the room
