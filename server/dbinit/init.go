@@ -228,3 +228,68 @@ func InitCharacters(client *db.Client) error {
 	log.Println("Character seed data initialized successfully")
 	return nil
 }
+
+// InitFountain creates the Fountain starting area for new character creation
+func InitFountain(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if fountain room already exists
+	existingRooms, err := client.Room.Query().Where(room.NameEQ("The Fountain")).Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for fountain room: %w", err)
+	}
+
+	if existingRooms > 0 {
+		log.Println("Fountain already initialized, skipping...")
+		return nil
+	}
+
+	// Create The Fountain room
+	fountainRoom, err := client.Room.
+		Create().
+		SetName("The Fountain").
+		SetDescription("You wake up at a murky fountain, covered in sticky mutant mud. The water glows faintly with an eerie green Ooze color. Your head throbs - you have no memory of how you got here. Something glints in the mud near your hand.").
+		SetIsStartingRoom(false).
+		SetExits(map[string]int{}).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create fountain room: %w", err)
+	}
+
+	log.Printf("Fountain room created with ID: %d", fountainRoom.ID)
+
+	// Update the main crossway center to point to fountain
+	err = client.Room.Update().
+		Where(room.NameEQ("The Hole")).
+		SetExits(map[string]int{
+			"north": 1,
+			"south": 2,
+			"east":  4,
+			"west":  5,
+		}).Exec(ctx)
+	if err != nil {
+		log.Printf("Warning: failed to update center room exits: %v", err)
+	}
+
+	// Create the starting room (New Venice - Fountain Plaza)
+	// This is where players end up after washing at the fountain
+	startingRoom, err := client.Room.
+		Create().
+		SetName("Fountain Plaza").
+		SetDescription("You stand in a dusty plaza dominated by a large stone fountain at its center. The water glows with a faint green Ooze color - the result of the Great Mutagen Spill. Mutant weeds push through cracked cobblestones. The Canal District lies to the east. A path leads north toward the Crossroads.").
+		SetIsStartingRoom(true).
+		SetExits(map[string]int{
+			"east":  0, // Will be canal district
+			"north": 3, // Crossroads
+		}).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create starting room: %w", err)
+	}
+
+	log.Printf("Starting room (Fountain Plaza) created with ID: %d", startingRoom.ID)
+
+	// Note: StartingRoomID constant in herbst/main.go will need updating
+	log.Println("Fountain and Fountain Plaza rooms initialized successfully")
+	return nil
+}

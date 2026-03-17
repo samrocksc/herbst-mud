@@ -146,6 +146,8 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"character_npc_template",
 	"room_characters",
+	"skill_characters",
+	"talent_characters",
 	"user_characters",
 }
 
