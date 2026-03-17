@@ -9,6 +9,8 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
+	"herbst-server/db/skill"
+	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"reflect"
 	"sync"
@@ -79,6 +81,8 @@ func checkColumn(t, c string) error {
 			character.Table: character.ValidColumn,
 			equipment.Table: equipment.ValidColumn,
 			room.Table:      room.ValidColumn,
+			skill.Table:     skill.ValidColumn,
+			talent.Table:    talent.ValidColumn,
 			user.Table:      user.ValidColumn,
 		})
 	})

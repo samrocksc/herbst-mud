@@ -79,6 +79,8 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"room_characters",
+	"skill_characters",
+	"talent_characters",
 	"user_characters",
 }
 

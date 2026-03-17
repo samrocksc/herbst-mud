@@ -7,6 +7,7 @@ import (
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
 	"herbst-server/db/schema"
+	"herbst-server/db/skill"
 	"herbst-server/db/user"
 )
 
@@ -68,6 +69,16 @@ func init() {
 	roomDescIsStartingRoom := roomFields[2].Descriptor()
 	// room.DefaultIsStartingRoom holds the default value on creation for the isStartingRoom field.
 	room.DefaultIsStartingRoom = roomDescIsStartingRoom.Default.(bool)
+	skillFields := schema.Skill{}.Fields()
+	_ = skillFields
+	// skillDescCost is the schema descriptor for cost field.
+	skillDescCost := skillFields[3].Descriptor()
+	// skill.DefaultCost holds the default value on creation for the cost field.
+	skill.DefaultCost = skillDescCost.Default.(int)
+	// skillDescCooldown is the schema descriptor for cooldown field.
+	skillDescCooldown := skillFields[4].Descriptor()
+	// skill.DefaultCooldown holds the default value on creation for the cooldown field.
+	skill.DefaultCooldown = skillDescCooldown.Default.(int)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescIsAdmin is the schema descriptor for is_admin field.
