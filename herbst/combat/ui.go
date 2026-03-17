@@ -118,6 +118,10 @@ func (ui *CombatUI) Render(combat *Combat, stateMachine *CombatStateMachine, inp
 	b.WriteString(ui.renderTickCounter(combat, stateMachine, inputManager, playerID))
 	b.WriteString("\n")
 	
+	// Status effects
+	b.WriteString(ui.renderStatusEffects(combat, playerID))
+	b.WriteString("\n")
+	
 	// Action bar (talents 1-4)
 	b.WriteString(ui.renderActionBar(combat, playerID, inputManager))
 	b.WriteString("\n")
@@ -354,6 +358,46 @@ func (ui *CombatUI) renderTickCounter(combat *Combat, stateMachine *CombatStateM
 	return style.Render(tickStr)
 }
 
+// renderStatusEffects renders active status effects for a participant
+func (ui *CombatUI) renderStatusEffects(combat *Combat, playerID int) string {
+	var b strings.Builder
+
+	// Get active effects from the registry
+	effects := combat.Effects.GetEffectsForParticipant(playerID)
+	if len(effects) == 0 {
+		return ""
+	}
+
+	b.WriteString(headerStyle.Render("Status Effects:"))
+	b.WriteString("\n")
+
+	for _, effect := range effects {
+		var icon string
+		switch effect.Type {
+		case "buff":
+			icon = "💚"
+		case "debuff":
+			icon = "💔"
+		case "channel":
+			icon = "🔄"
+		case "charge":
+			icon = "⏳"
+		default:
+			icon = "⚪"
+		}
+
+		remaining := ""
+		if effect.TicksRemaining > 0 {
+			remaining = fmt.Sprintf(" (%d ticks)", effect.TicksRemaining)
+		}
+
+		line := fmt.Sprintf("  %s %s%s\n", icon, effect.Name, remaining)
+		b.WriteString(line)
+	}
+
+	return b.String()
+}
+
 // renderActionBar renders the action bar with talent slots
 func (ui *CombatUI) renderActionBar(combat *Combat, playerID int, inputManager *InputManager) string {
 	var b strings.Builder
@@ -480,3 +524,4 @@ func FormatTimeRemaining(d time.Duration) string {
 	}
 	return fmt.Sprintf("%.1f", seconds)
 }
+
