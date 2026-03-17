@@ -227,6 +227,9 @@ type model struct {
 	knownExits     map[string]bool // For color-coded exits
 	roomItems      []roomItemDisplay
 	roomCharacters []roomCharacter // Characters in current room (NPCs + players)
+
+	// Debug mode - shows room ID in status bar
+	debugMode bool
 }
 
 // roomCharacter holds info about characters in a room for display
@@ -1033,6 +1036,7 @@ func (m *model) attemptRegistration(email string) {
 
 func (m *model) processCommand(cmd string) {
 	cmd = strings.TrimSpace(strings.ToLower(cmd))
+	args := cmd // For commands that need the full string with args
 
 	if cmd == "" {
 		return
@@ -1107,6 +1111,9 @@ func (m *model) processCommand(cmd string) {
 		m.message = "Thanks for playing! Goodbye!"
 		m.messageType = "success"
 		m.inputBuffer = ""
+		return
+	case "debug":
+		m.handleDebugCommand(args)
 		return
 	default:
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
@@ -1326,6 +1333,35 @@ func (m *model) handlePeerCommand(cmd string) {
 			lipgloss.NewStyle().Bold(true).Foreground(blue).Render(room.Name),
 			room.Description)
 		m.messageType = "info"
+	}
+}
+
+func (m *model) handleDebugCommand(cmd string) {
+	parts := strings.Fields(strings.ToLower(cmd))
+	if len(parts) < 2 {
+		// Show current debug status
+		if m.debugMode {
+			m.message = "Debug mode: ON (Room ID visible in status bar)"
+		} else {
+			m.message = "Debug mode: OFF\nUsage: debug on | debug off"
+		}
+		m.messageType = "info"
+		return
+	}
+
+	subCmd := parts[1]
+	switch subCmd {
+	case "on", "true", "1", "yes":
+		m.debugMode = true
+		m.message = "Debug mode: ON (Room ID will show in status bar)"
+		m.messageType = "success"
+	case "off", "false", "0", "no":
+		m.debugMode = false
+		m.message = "Debug mode: OFF"
+		m.messageType = "info"
+	default:
+		m.message = "Usage: debug on | debug off"
+		m.messageType = "error"
 	}
 }
 
@@ -1658,6 +1694,12 @@ func (m *model) View() string {
 		// Colorful status bar with mini progress bars
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
 
+		// Debug mode - show room ID when enabled
+		debugInfo := ""
+		if m.debugMode {
+			debugInfo = " " + lipgloss.NewStyle().Foreground(yellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))
+		}
+
 		// Room info at top with styling (only in output viewport, no stats)
 		itemStr := m.formatRoomItemsWithColor()
 		charStr := m.formatRoomCharactersWithColor()
@@ -1695,8 +1737,9 @@ func (m *model) View() string {
 		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
 		s.WriteString(separatorLine)
 		s.WriteString("\n")
-		// Stats go in the actual status bar (middle panel)
-		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLine))
+		// Stats go in the actual status bar (middle panel) - include debug info if enabled
+		statsLineWithDebug := statsLine + debugInfo
+		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLineWithDebug))
 		s.WriteString("\n")
 		s.WriteString(separatorLine)
 		s.WriteString("\n")
