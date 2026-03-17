@@ -1366,6 +1366,34 @@ func (m *model) View() string {
 			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
+	case ScreenFountainWake:
+		s.WriteString(fountainWakeScreen())
+		s.WriteString("\n\n")
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
+		}
+		s.WriteString(promptStyle.Render("Press ENTER to continue..."))
+
+	case ScreenFountainWash:
+		s.WriteString(fountainWashScreen())
+		s.WriteString("\n\n")
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
+		}
+		s.WriteString(promptStyle.Render("Press ENTER to wash your face and remember who you are..."))
+
+	case ScreenCharacterCreate:
+		s.WriteString(characterCreateScreen())
+		s.WriteString("\n\n")
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
+		}
+		s.WriteString(promptStyle.Render("> "))
+		s.WriteString(m.textInput.View())
+
 		// ScreenPlaying uses full-width panels - don't center, just clear message and return
 		m.message = ""
 		m.messageType = ""
@@ -1526,4 +1554,137 @@ func registerScreen(width, height int) string {
 ╚════════════════════════════════════════════════════════════╝
 `)
 }
->>>>>>> main
+
+// ============================================================
+// FOUNTAIN CHARACTER CREATION SCREENS
+// ============================================================
+
+func fountainWakeScreen() string {
+	return lipgloss.NewStyle().
+		Foreground(green).
+		Bold(true).
+		Render(`
+╔══════════════════════════════════════════════════════════════════════╗
+║                         ♨ THE FOUNTAIN ♨                             ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║    You wake up at a murky fountain, covered in sticky mutant mud.   ║
+║    The water glows faintly with an eerie green Ooze color.           ║
+║    Your head throbs - you have no memory of how you got here.        ║
+║    Something glints in the mud near your hand...                     ║
+║                                                                      ║
+║    The world around you is strange. Mutant weeds push through         ║
+║    cracked cobblestones. The air smells of pizza and ooze.           ║
+║                                                                      ║
+║    You reach down and pick up the glinting object - a small          ║
+║    copper coin with a turtle symbol on it.                           ║
+║                                                                      ║
+║    As you touch it, visions flash through your mind:                ║
+║    → Mutant turtles trained by a wise rat master                     ║
+║    → A city ruined by a strange Ooze                                   ║
+║    → Your own face, now covered in fur and scales...                 ║
+║                                                                      ║
+║    You remember now. You ARE a turtle! And there's a whole           ║
+║    world out there to explore. First, you need to wash up.           ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+`)
+}
+
+func fountainWashScreen() string {
+	return lipgloss.NewStyle().
+		Foreground(cyan).
+		Bold(true).
+		Render(`
+╔══════════════════════════════════════════════════════════════════════╗
+║                      ♨ WASHING AT THE FOUNTAIN ♨                    ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║    You lean over the fountain and splash the cool, glowing water    ║
+║    on your face. The mutant mud washes away, revealing your true    ║
+║    form - a green turtle shell, scaly skin, and determined eyes.    ║
+║                                                                      ║
+║    As the mud clears, so do your memories...                         ║
+║                                                                      ║
+║    You are a Mutant Turtle, trained in the martial arts by your      ║
+║    sensei, Splinter. The Great Mutagen Spill transformed you         ║
+║    from a ordinary turtle into a thinking, speaking being.           ║
+║                                                                      ║
+║    Your sensei taught you well. You know:                            ║
+║    → Ninjutsu - the way of the shadow warrior                        ║
+║    → Survival - how to live in this post-Ooze world                  ║
+║    → Pizza - the most important food in existence                    ║
+║                                                                      ║
+║    The fountain water shows your reflection - you're ready for       ║
+║    your next adventure!                                             ║
+║                                                                      ║
+║    A path leads north to the Crossroads.                             ║
+║    To the east, you see signs for the "Canal District".             ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+`)
+}
+
+func characterCreateScreen() string {
+	return lipgloss.NewStyle().
+		Foreground(yellow).
+		Bold(true).
+		Render(`
+╔══════════════════════════════════════════════════════════════════════╗
+║                    ✦ CHARACTER CREATION ✦                            ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║    Welcome, young turtle! Time to create your hero!                  ║
+║                                                                      ║
+║    Available Options:                                                ║
+║                                                                      ║
+║    [1] Name     - What shall we call you?                           ║
+║    [2] Race     - Human, Turtle, Rabbit, Rat, Rhino                  ║
+║    [3] Gender   - Male, Female, Other                                ║
+║    [4] Class    - Warrior, Chef, Mystic                              ║
+║    [5] Size     - Small, Medium, Large (affects combat)              ║
+║                                                                      ║
+║    Type a number to select, or 'done' when finished.                ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+`)
+}
+
+// ============================================================
+// INPUT HANDLERS FOR FOUNTAIN FLOW
+// ============================================================
+
+func (m *model) handleFountainWakeInput(input string) {
+	// Any input advances to the wash screen
+	m.screen = ScreenFountainWash
+	m.message = "You wash the mud from your face. The cool water feels refreshing. Your memories start to return..."
+}
+
+func (m *model) handleFountainWashInput(input string) {
+	// Any input advances to character creation
+	m.screen = ScreenCharacterCreate
+	m.message = "Now to create your character!\n\nSelect an option (1-5) or type 'done' when finished."
+}
+
+func (m *model) handleCharacterCreateInput(input string) {
+	input = strings.ToLower(strings.TrimSpace(input))
+
+	switch input {
+	case "1", "name":
+		m.message = "Enter your character name:"
+		// Could switch to edit field mode for name input
+	case "2", "race":
+		m.message = "Select your race:\n1. Human - Balanced stats\n2. Turtle - High defense, low speed\n3. Rabbit - High speed, low defense\n4. Rat - High agility, stealthy\n5. Rhino - High strength, slow"
+	case "3", "gender":
+		m.message = "Select your gender:\n1. Male\n2. Female\n3. Other"
+	case "4", "class":
+		m.message = "Select your class:\n1. Warrior - Strong melee fighter\n2. Chef - Pizza-powered combat\n3. Mystic - Uses Ooze energy"
+	case "5", "size":
+		m.message = "Select your size:\n1. Small - Fast, less HP\n2. Medium - Balanced\n3. Large - Slow, more HP"
+	case "done", "finished", "complete":
+		m.message = "Character creation complete! Welcome to Herbst MUD!"
+		m.screen = ScreenPlaying
+	default:
+		m.message = "Invalid choice. Select 1-5 or 'done' when finished."
+	}
+}

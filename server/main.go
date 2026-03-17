@@ -63,6 +63,11 @@ func main() {
 		log.Printf("Warning: failed to initialize characters: %v", err)
 	}
 
+	// Initialize fountain for new character creation flow
+	if err := dbinit.InitFountain(client); err != nil {
+		log.Printf("Warning: failed to initialize fountain: %v", err)
+	}
+
 	// Set up Gin router
 	router := gin.Default()
 	
