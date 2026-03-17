@@ -215,6 +215,11 @@ func (er *EffectRegistry) IsStunned(participantID int) bool {
 	defer er.mu.RUnlock()
 
 	for _, effect := range er.effects[participantID] {
+		// Check for STUNNED status effect
+		if effect.ID == string(StatusStunned) && effect.TicksRemaining > 0 {
+			return true
+		}
+		// Also check for generic EffectStun type
 		if effect.Type == EffectStun && effect.TicksRemaining > 0 {
 			return true
 		}
