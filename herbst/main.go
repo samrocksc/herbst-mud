@@ -534,6 +534,8 @@ func (m *model) handleEscape() {
 		m.inputField = "username"
 		m.message = ""
 		m.messageType = "info"
+		m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
+		m.textInput.EchoCharacter = 0 // Reset echo character
 		// Re-initialize menu items for welcome screen
 		m.menuItems = []string{"Login", "Register", "Quit"}
 		m.menuCursor = 0
@@ -585,18 +587,24 @@ func (m *model) handleWelcomeInput(input string) {
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
-		m.message = "Enter your username:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear any previous input
 		m.textInput.Placeholder = "Enter your username..."
+		m.textInput.EchoMode = textinput.EchoNormal // Ensure normal echo for username
+		m.textInput.EchoCharacter = 0 // Reset echo character
 		m.textInput.Focus()
 	case "2", "register", "r", "create":
 		m.screen = ScreenRegister
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
-		m.message = "Choose a username:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear any previous input
 		m.textInput.Placeholder = "Choose a username..."
+		m.textInput.EchoMode = textinput.EchoNormal // Ensure normal echo for username
+		m.textInput.EchoCharacter = 0 // Reset echo character
 		m.textInput.Focus()
 	case "3", "quit", "q":
 		m.message = "Goodbye! Thanks for playing Herbst MUD."
@@ -615,13 +623,18 @@ func (m *model) handleLoginInput(input string) {
 	if m.inputField == "username" {
 		m.loginUsername = input
 		m.inputField = "password"
-		m.message = "Enter your password:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear previous input
+		m.textInput.Placeholder = "Enter your password..."
 		m.textInput.EchoMode = textinput.EchoPassword
+		m.textInput.EchoCharacter = '•' // Use bullet character for masking
 		m.textInput.Focus()
 	} else if m.inputField == "password" {
 		m.loginPassword = input
+		m.textInput.SetValue("")
 		m.textInput.EchoMode = textinput.EchoNormal
+		m.textInput.EchoCharacter = 0 // Reset to default
 		m.attemptLogin()
 	}
 }
@@ -658,7 +671,10 @@ func (m *model) attemptLogin() {
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
+		m.textInput.SetValue("")
 		m.textInput.EchoMode = textinput.EchoNormal
+		m.textInput.EchoCharacter = 0
+		m.textInput.Placeholder = "Enter your username..."
 		return
 	}
 
@@ -678,6 +694,8 @@ func (m *model) attemptLogin() {
 	}
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
+	m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
+	m.textInput.EchoCharacter = 0 // Reset echo character
 	m.inputBuffer = ""
 	m.message = fmt.Sprintf("Welcome back, %s!", m.currentUserName)
 	m.messageType = "success"
@@ -755,9 +773,12 @@ func (m *model) handleRegisterInput(input string) {
 		}
 		m.loginUsername = input
 		m.inputField = "password"
-		m.message = "Choose a password:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear previous input
+		m.textInput.Placeholder = "Choose a password..."
 		m.textInput.EchoMode = textinput.EchoPassword
+		m.textInput.EchoCharacter = '•' // Use bullet character for masking
 		m.textInput.Focus()
 	} else if m.inputField == "password" {
 		if input == "" {
@@ -767,8 +788,10 @@ func (m *model) handleRegisterInput(input string) {
 		}
 		m.loginPassword = input
 		m.inputField = "confirm_password"
-		m.message = "Confirm your password:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear previous input
+		m.textInput.Placeholder = "Confirm your password..."
 		m.textInput.Focus()
 	} else if m.inputField == "confirm_password" {
 		if input != m.loginPassword {
@@ -776,14 +799,20 @@ func (m *model) handleRegisterInput(input string) {
 			m.messageType = "error"
 			m.inputField = "password"
 			m.loginPassword = ""
+			m.textInput.SetValue("")
+			m.textInput.Placeholder = "Choose a password..."
 			m.textInput.EchoMode = textinput.EchoPassword
+			m.textInput.EchoCharacter = '•'
 			m.textInput.Focus()
 			return
 		}
 		m.inputField = "email"
-		m.message = "Enter your email (optional, press enter to skip):"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("")
+		m.textInput.Placeholder = "Enter your email..."
 		m.textInput.EchoMode = textinput.EchoNormal
+		m.textInput.EchoCharacter = 0 // Reset to default
 		m.textInput.Focus()
 	} else if m.inputField == "email" {
 		// Email is optional - use username if not provided
@@ -819,7 +848,10 @@ func (m *model) attemptRegistration(email string) {
 			m.inputField = "username"
 			m.loginUsername = ""
 			m.loginPassword = ""
+			m.textInput.SetValue("")
 			m.textInput.EchoMode = textinput.EchoNormal
+			m.textInput.EchoCharacter = 0
+			m.textInput.Placeholder = "Choose a username..."
 			return
 		}
 		m.message = "Failed to create account. Please try again."
@@ -849,6 +881,8 @@ func (m *model) attemptRegistration(email string) {
 	}
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
+	m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
+	m.textInput.EchoCharacter = 0 // Reset echo character
 	m.inputBuffer = ""
 	m.message = fmt.Sprintf("Account created! Welcome to Herbst MUD, %s!", m.currentUserName)
 	m.messageType = "success"
@@ -1251,34 +1285,160 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
-		// Top: Login box (centered, fills terminal)
-		s.WriteString(loginScreen(m.width, m.height))
-
-		// Middle: Messages (if any)
-		s.WriteString("\n\n")
-		if m.message != "" {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
+		// Split-screen layout matching ScreenPlaying
+		width := m.width
+		height := m.height
+		if width < 40 {
+			width = 40
+		}
+		if height < 10 {
+			height = 10
 		}
 
-		// Bottom: Input pane (always visible, consistent location)
-		s.WriteString(strings.Repeat("\n", max(0, m.height-20)))
-		s.WriteString(bottomInputPane("LOGIN", m.textInput.Placeholder, m.textInput.Value(), m.width))
+		// Calculate proportional heights (same as ScreenPlaying)
+		inputHeight := height * 20 / 100
+		if inputHeight < 3 {
+			inputHeight = 3
+		}
+		statusHeight := height * 10 / 100
+		if statusHeight < 3 {
+			statusHeight = 3
+		}
+		viewportHeight := height - inputHeight - statusHeight
+		if viewportHeight < 5 {
+			viewportHeight = 5
+		}
+
+		// Output viewport (top ~70%)
+		outputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("75")).
+			Padding(1, 1).
+			Width(width - 2).
+			Height(viewportHeight - 2)
+
+		content := loginScreenContent()
+		s.WriteString(outputStyle.Render(content))
+		s.WriteString("\n")
+
+		// Status bar separator (middle ~10%)
+		separatorStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("75")).
+			Bold(true).
+			Width(width)
+		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
+		s.WriteString(separatorLine)
+		s.WriteString("\n")
+
+		// Status line showing current prompt
+		fieldLabel := "Username:"
+		if m.inputField == "password" {
+			fieldLabel = "Password:"
+		}
+		var statusText string
+		if m.messageType != "" && m.message != "" {
+			// Show error/success messages
+			statusText = lipgloss.NewStyle().Foreground(lipgloss.Color("86")).Bold(true).Render("LOGIN: ") + m.styledMessage(m.message)
+		} else {
+			// Show current field label
+			statusText = lipgloss.NewStyle().Foreground(lipgloss.Color("86")).Bold(true).Render("LOGIN: ") + fieldLabel
+		}
+		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statusText))
+		s.WriteString("\n")
+		s.WriteString(separatorLine)
+		s.WriteString("\n")
+
+		// Input area (bottom ~20%)
+		inputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("75")).
+			Padding(0, 1).
+			Width(width - 2).
+			Height(inputHeight - 2)
+		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+
+		// Don't center - return directly like ScreenPlaying
+		return s.String()
 
 	case ScreenRegister:
-		// Top: Register box
-		s.WriteString(registerScreen(m.width, m.height))
-
-		// Middle: Messages (if any)
-		s.WriteString("\n\n")
-		if m.message != "" {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
+		// Split-screen layout matching ScreenPlaying
+		width := m.width
+		height := m.height
+		if width < 40 {
+			width = 40
+		}
+		if height < 10 {
+			height = 10
 		}
 
-		// Bottom: Input pane (always visible, consistent location)
-		s.WriteString(strings.Repeat("\n", max(0, m.height-20)))
-		s.WriteString(bottomInputPane("REGISTER", m.textInput.Placeholder, m.textInput.Value(), m.width))
+		// Calculate proportional heights (same as ScreenPlaying)
+		inputHeight := height * 20 / 100
+		if inputHeight < 3 {
+			inputHeight = 3
+		}
+		statusHeight := height * 10 / 100
+		if statusHeight < 3 {
+			statusHeight = 3
+		}
+		viewportHeight := height - inputHeight - statusHeight
+		if viewportHeight < 5 {
+			viewportHeight = 5
+		}
+
+		// Output viewport (top ~70%)
+		outputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("147")).
+			Padding(1, 1).
+			Width(width - 2).
+			Height(viewportHeight - 2)
+
+		content := registerScreenContent()
+		s.WriteString(outputStyle.Render(content))
+		s.WriteString("\n")
+
+		// Status bar separator (middle ~10%)
+		separatorStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("147")).
+			Bold(true).
+			Width(width)
+		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
+		s.WriteString(separatorLine)
+		s.WriteString("\n")
+
+		// Status line showing current prompt
+		fieldLabel := "Username:"
+		if m.inputField == "password" {
+			fieldLabel = "Password:"
+		} else if m.inputField == "confirm_password" {
+			fieldLabel = "Confirm password:"
+		} else if m.inputField == "email" {
+			fieldLabel = "Email (optional):"
+		}
+		var statusText string
+		if m.messageType != "" && m.message != "" {
+			// Show error/success messages
+			statusText = lipgloss.NewStyle().Foreground(lipgloss.Color("86")).Bold(true).Render("REGISTER: ") + m.styledMessage(m.message)
+		} else {
+			// Show current field label
+			statusText = lipgloss.NewStyle().Foreground(lipgloss.Color("86")).Bold(true).Render("REGISTER: ") + fieldLabel
+		}
+		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statusText))
+		s.WriteString("\n")
+		s.WriteString(separatorLine)
+		s.WriteString("\n")
+
+		// Input area (bottom ~20%)
+		inputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("147")).
+			Padding(0, 1).
+			Width(width - 2).
+			Height(inputHeight - 2)
+		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+
+		// Don't center - return directly like ScreenPlaying
+		return s.String()
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
@@ -1484,130 +1644,36 @@ func welcomeScreen() string {
 `)
 }
 
-func loginScreen(width, height int) string {
-	// Calculate dynamic dimensions
-	boxWidth := 60
-	if width > 70 {
-		boxWidth = width - 20
-	}
-	if boxWidth > 100 {
-		boxWidth = 100
-	}
-
-	// Calculate vertical centering
-	verticalPadding := 2
-	if height > 20 {
-		verticalPadding = (height - 16) / 2
-	}
-	if verticalPadding > 10 {
-		verticalPadding = 10
-	}
-
-	// Build the login content dynamically
-	titleStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("75")).
-		Bold(true).
-		Padding(0, 2).
-		Width(boxWidth).
-		Align(lipgloss.Center)
-
-	contentStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("252")).
-		Padding(0, 2).
-		Width(boxWidth).
-		Align(lipgloss.Left)
-
-	var sb strings.Builder
-	sb.WriteString(strings.Repeat("\n", verticalPadding))
-
-	// Title
-	sb.WriteString(titleStyle.Render("=== LOGIN ==="))
-	sb.WriteString("\n\n")
-
-	// Content
-	sb.WriteString(contentStyle.Render("Enter your credentials to continue your adventure."))
-	sb.WriteString("\n")
-	sb.WriteString(contentStyle.Render("Press ESC to go back to the main menu."))
-	sb.WriteString("\n")
-
-	return sb.String()
+// loginScreenContent returns the content for the login screen (layout handled in View())
+func loginScreenContent() string {
+	return `
+        ╔════════════════════════════════════════╗
+        ║                                        ║
+        ║              === LOGIN ===             ║
+        ║                                        ║
+        ║    Enter your credentials to           ║
+        ║    continue your adventure.            ║
+        ║                                        ║
+        ║    Press ESC to go back to menu        ║
+        ║                                        ║
+        ╚════════════════════════════════════════╝
+`
 }
 
-func registerScreen(width, height int) string {
-	// Calculate dynamic dimensions
-	boxWidth := 60
-	if width > 70 {
-		boxWidth = width - 20
-	}
-	if boxWidth > 100 {
-		boxWidth = 100
-	}
-
-	// Calculate vertical centering
-	verticalPadding := 2
-	if height > 20 {
-		verticalPadding = (height - 16) / 2
-	}
-	if verticalPadding > 10 {
-		verticalPadding = 10
-	}
-
-	// Build the register content dynamically
-	titleStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("147")).
-		Bold(true).
-		Padding(0, 2).
-		Width(boxWidth).
-		Align(lipgloss.Center)
-
-	contentStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("252")).
-		Padding(0, 2).
-		Width(boxWidth).
-		Align(lipgloss.Left)
-
-	var sb strings.Builder
-	sb.WriteString(strings.Repeat("\n", verticalPadding))
-
-	// Title
-	sb.WriteString(titleStyle.Render("=== CREATE ACCOUNT ==="))
-	sb.WriteString("\n\n")
-
-	// Content
-	sb.WriteString(contentStyle.Render("Choose a username and password to begin your adventure."))
-	sb.WriteString("\n")
-	sb.WriteString(contentStyle.Render("Press ESC to go back to the main menu."))
-	sb.WriteString("\n")
-
-	return sb.String()
+// registerScreenContent returns the content for the register screen (layout handled in View())
+func registerScreenContent() string {
+	return `
+        ╔════════════════════════════════════════╗
+        ║                                        ║
+        ║           === CREATE ACCOUNT ===        ║
+        ║                                        ║
+        ║    Choose a username and password      ║
+        ║    to begin your adventure.            ║
+        ║                                        ║
+        ║    Press ESC to go back to menu        ║
+        ║                                        ║
+        ╚════════════════════════════════════════╝
+`
 }
 
-// bottomInputPane renders a consistent input area at the bottom of the screen
-// Note: model width/height are passed via closure since we can't modify the signature
-func bottomInputPane(title, placeholder, value string, width int) string {
-	// Honor terminal width - use at least 40 but respect terminal width
-	inputWidth := width
-	if inputWidth < 40 {
-		inputWidth = 40
-	}
-	// Account for borders (2 chars) and padding
-	inputWidth -= 4
 
-	inputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("75")).
-		Padding(0, 1).
-		Width(inputWidth)
-
-	promptStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("86")). // cyan-ish
-		Bold(true)
-
-	// If there's a value, show it; otherwise show placeholder
-	displayText := value
-	if displayText == "" {
-		displayText = placeholder
-	}
-
-	return promptStyle.Render(title+"> ") + inputStyle.Render(displayText)
-}
