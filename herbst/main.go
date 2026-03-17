@@ -1509,11 +1509,11 @@ func registerScreen(width, height int) string {
 	var sb strings.Builder
 	// Top padding for vertical centering
 	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	// Box - split screen style with cyan border
+	// Box - split screen style with purple border
 	sb.WriteString(lipgloss.NewStyle().
 		Width(boxWidth).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(cyan).
+		BorderForeground(purple).
 		Padding(1, 2).
 		Render(`
 ╔════════════════════════════════════════════════════════════╗
