@@ -1376,10 +1376,36 @@ func loginScreen() string {
 `)
 }
 
-func registerScreen() string {
-	return lipgloss.NewStyle().
+func registerScreen(width, height int) string {
+	// Calculate dynamic dimensions
+	boxWidth := 60
+	if width > 70 {
+		boxWidth = width - 20
+	}
+	if boxWidth > 100 {
+		boxWidth = 100
+	}
+
+	verticalPadding := 2
+	if height > 20 {
+		verticalPadding = (height - 16) / 2
+	}
+	if verticalPadding > 10 {
+		verticalPadding = 10
+	}
+
+	// Build dynamic register screen
+	horizontalBorder := strings.Repeat("═", boxWidth-2)
+
+	var sb strings.Builder
+	// Top padding for vertical centering
+	sb.WriteString(strings.Repeat("\n", verticalPadding))
+	// Box - split screen style with purple border
+	sb.WriteString(lipgloss.NewStyle().
+		Width(boxWidth).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("141")).
+		BorderForeground(purple).
+>>>>>>> origin/main
 		Padding(1, 2).
 		Render(`
 ╔════════════════════════════════════════════════════════════╗
