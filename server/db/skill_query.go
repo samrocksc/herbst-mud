@@ -6,7 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
-	"herbst-server/db/character"
+	"herbst-server/db/characterskill"
 	"herbst-server/db/predicate"
 	"herbst-server/db/skill"
 	"math"
@@ -24,7 +24,7 @@ type SkillQuery struct {
 	order          []skill.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.Skill
-	withCharacters *CharacterQuery
+	withCharacters *CharacterSkillQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -62,8 +62,8 @@ func (_q *SkillQuery) Order(o ...skill.OrderOption) *SkillQuery {
 }
 
 // QueryCharacters chains the current query on the "characters" edge.
-func (_q *SkillQuery) QueryCharacters() *CharacterQuery {
-	query := (&CharacterClient{config: _q.config}).Query()
+func (_q *SkillQuery) QueryCharacters() *CharacterSkillQuery {
+	query := (&CharacterSkillClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -74,7 +74,7 @@ func (_q *SkillQuery) QueryCharacters() *CharacterQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(skill.Table, skill.FieldID, selector),
-			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.To(characterskill.Table, characterskill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, skill.CharactersTable, skill.CharactersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
@@ -284,8 +284,8 @@ func (_q *SkillQuery) Clone() *SkillQuery {
 
 // WithCharacters tells the query-builder to eager-load the nodes that are connected to
 // the "characters" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SkillQuery) WithCharacters(opts ...func(*CharacterQuery)) *SkillQuery {
-	query := (&CharacterClient{config: _q.config}).Query()
+func (_q *SkillQuery) WithCharacters(opts ...func(*CharacterSkillQuery)) *SkillQuery {
+	query := (&CharacterSkillClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -395,15 +395,15 @@ func (_q *SkillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Skill,
 	}
 	if query := _q.withCharacters; query != nil {
 		if err := _q.loadCharacters(ctx, query, nodes,
-			func(n *Skill) { n.Edges.Characters = []*Character{} },
-			func(n *Skill, e *Character) { n.Edges.Characters = append(n.Edges.Characters, e) }); err != nil {
+			func(n *Skill) { n.Edges.Characters = []*CharacterSkill{} },
+			func(n *Skill, e *CharacterSkill) { n.Edges.Characters = append(n.Edges.Characters, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *SkillQuery) loadCharacters(ctx context.Context, query *CharacterQuery, nodes []*Skill, init func(*Skill), assign func(*Skill, *Character)) error {
+func (_q *SkillQuery) loadCharacters(ctx context.Context, query *CharacterSkillQuery, nodes []*Skill, init func(*Skill), assign func(*Skill, *CharacterSkill)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Skill)
 	for i := range nodes {
@@ -414,7 +414,7 @@ func (_q *SkillQuery) loadCharacters(ctx context.Context, query *CharacterQuery,
 		}
 	}
 	query.withFKs = true
-	query.Where(predicate.Character(func(s *sql.Selector) {
+	query.Where(predicate.CharacterSkill(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(skill.CharactersColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)

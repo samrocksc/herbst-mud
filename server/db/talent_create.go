@@ -6,7 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"herbst-server/db/character"
+	"herbst-server/db/availabletalent"
+	"herbst-server/db/charactertalent"
 	"herbst-server/db/talent"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -46,19 +47,34 @@ func (_c *TalentCreate) SetNillableRequirements(v *string) *TalentCreate {
 	return _c
 }
 
-// AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
+// AddCharacterIDs adds the "characters" edge to the CharacterTalent entity by IDs.
 func (_c *TalentCreate) AddCharacterIDs(ids ...int) *TalentCreate {
 	_c.mutation.AddCharacterIDs(ids...)
 	return _c
 }
 
-// AddCharacters adds the "characters" edges to the Character entity.
-func (_c *TalentCreate) AddCharacters(v ...*Character) *TalentCreate {
+// AddCharacters adds the "characters" edges to the CharacterTalent entity.
+func (_c *TalentCreate) AddCharacters(v ...*CharacterTalent) *TalentCreate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
 	return _c.AddCharacterIDs(ids...)
+}
+
+// AddAvailableToCharacterIDs adds the "available_to_characters" edge to the AvailableTalent entity by IDs.
+func (_c *TalentCreate) AddAvailableToCharacterIDs(ids ...int) *TalentCreate {
+	_c.mutation.AddAvailableToCharacterIDs(ids...)
+	return _c
+}
+
+// AddAvailableToCharacters adds the "available_to_characters" edges to the AvailableTalent entity.
+func (_c *TalentCreate) AddAvailableToCharacters(v ...*AvailableTalent) *TalentCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAvailableToCharacterIDs(ids...)
 }
 
 // Mutation returns the TalentMutation object of the builder.
@@ -147,7 +163,23 @@ func (_c *TalentCreate) createSpec() (*Talent, *sqlgraph.CreateSpec) {
 			Columns: []string{talent.CharactersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AvailableToCharactersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   talent.AvailableToCharactersTable,
+			Columns: []string{talent.AvailableToCharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

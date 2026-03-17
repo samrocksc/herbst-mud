@@ -20,15 +20,24 @@ const (
 	FieldRequirements = "requirements"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
+	// EdgeAvailableToCharacters holds the string denoting the available_to_characters edge name in mutations.
+	EdgeAvailableToCharacters = "available_to_characters"
 	// Table holds the table name of the talent in the database.
 	Table = "talents"
 	// CharactersTable is the table that holds the characters relation/edge.
-	CharactersTable = "characters"
-	// CharactersInverseTable is the table name for the Character entity.
-	// It exists in this package in order to avoid circular dependency with the "character" package.
-	CharactersInverseTable = "characters"
+	CharactersTable = "character_talents"
+	// CharactersInverseTable is the table name for the CharacterTalent entity.
+	// It exists in this package in order to avoid circular dependency with the "charactertalent" package.
+	CharactersInverseTable = "character_talents"
 	// CharactersColumn is the table column denoting the characters relation/edge.
 	CharactersColumn = "talent_characters"
+	// AvailableToCharactersTable is the table that holds the available_to_characters relation/edge.
+	AvailableToCharactersTable = "available_talents"
+	// AvailableToCharactersInverseTable is the table name for the AvailableTalent entity.
+	// It exists in this package in order to avoid circular dependency with the "availabletalent" package.
+	AvailableToCharactersInverseTable = "available_talents"
+	// AvailableToCharactersColumn is the table column denoting the available_to_characters relation/edge.
+	AvailableToCharactersColumn = "talent_available_to_characters"
 )
 
 // Columns holds all SQL columns for talent fields.
@@ -85,10 +94,31 @@ func ByCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAvailableToCharactersCount orders the results by available_to_characters count.
+func ByAvailableToCharactersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAvailableToCharactersStep(), opts...)
+	}
+}
+
+// ByAvailableToCharacters orders the results by available_to_characters terms.
+func ByAvailableToCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAvailableToCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CharactersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CharactersTable, CharactersColumn),
+	)
+}
+func newAvailableToCharactersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AvailableToCharactersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AvailableToCharactersTable, AvailableToCharactersColumn),
 	)
 }

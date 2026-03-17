@@ -34,6 +34,6 @@ func (Skill) Fields() []ent.Field {
 // Edges of the Skill.
 func (Skill) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("characters", Character.Type),
+		edge.To("characters", CharacterSkill.Type),
 	}
 }

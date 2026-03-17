@@ -446,7 +446,7 @@ func HasCharacters() predicate.Skill {
 }
 
 // HasCharactersWith applies the HasEdge predicate on the "characters" edge with a given conditions (other predicates).
-func HasCharactersWith(preds ...predicate.Character) predicate.Skill {
+func HasCharactersWith(preds ...predicate.CharacterSkill) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
 		step := newCharactersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

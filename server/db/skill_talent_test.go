@@ -363,3 +363,220 @@ func TestTalentDelete(t *testing.T) {
 		t.Error("expected talent to be deleted, but it still exists")
 	}
 }
+
+// TestCharacterSkill tests the CharacterSkill edge between Character and Skill
+func TestCharacterSkill(t *testing.T) {
+	client, err := db.Open(dialect.SQLite, "file:ent?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("failed to open db: %v", err)
+	}
+	defer client.Close()
+
+	ctx := context.Background()
+	if err := client.Schema.Create(ctx); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	// Create a room first (required for character)
+	room, err := client.Room.Create().
+		SetName("Test Room").
+		SetDescription("A test room").
+		SetIsStartingRoom(true).
+		SetExits(map[string]int{}).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create room: %v", err)
+	}
+
+	// Create a character
+	char, err := client.Character.Create().
+		SetName("TestChar").
+		SetCurrentRoomId(room.ID).
+		SetStartingRoomId(room.ID).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create character: %v", err)
+	}
+
+	// Create a skill
+	sk, err := client.Skill.Create().
+		SetName("Sword").
+		SetDescription("Sword proficiency").
+		SetSkillType("combat").
+		SetCost(5).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create skill: %v", err)
+	}
+
+	// Link character to skill
+	charSkill, err := client.CharacterSkill.Create().
+		SetCharacterID(char.ID).
+		SetSkillID(sk.ID).
+		SetLevel(5).
+		SetExperience(100).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create character skill: %v", err)
+	}
+
+	if charSkill.Level != 5 {
+		t.Errorf("expected level 5, got %d", charSkill.Level)
+	}
+
+	if charSkill.Experience != 100 {
+		t.Errorf("expected experience 100, got %d", charSkill.Experience)
+	}
+
+	// Query skills for character
+	charSkills, err := char.QuerySkills().All(ctx)
+	if err != nil {
+		t.Fatalf("failed to query character skills: %v", err)
+	}
+	if len(charSkills) != 1 {
+		t.Errorf("expected 1 skill, got %d", len(charSkills))
+	}
+}
+
+// TestCharacterTalent tests the CharacterTalent edge between Character and Talent
+func TestCharacterTalent(t *testing.T) {
+	client, err := db.Open(dialect.SQLite, "file:ent?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("failed to open db: %v", err)
+	}
+	defer client.Close()
+
+	ctx := context.Background()
+	if err := client.Schema.Create(ctx); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	// Create a room first (required for character)
+	room, err := client.Room.Create().
+		SetName("Test Room 2").
+		SetDescription("A test room").
+		SetIsStartingRoom(true).
+		SetExits(map[string]int{}).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create room: %v", err)
+	}
+
+	// Create a character
+	char, err := client.Character.Create().
+		SetName("TestChar2").
+		SetCurrentRoomId(room.ID).
+		SetStartingRoomId(room.ID).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create character: %v", err)
+	}
+
+	// Create a talent
+	tal, err := client.Talent.Create().
+		SetName("Power Strike").
+		SetDescription("A powerful strike").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create talent: %v", err)
+	}
+
+	// Link character to talent (slot 0)
+	charTalent, err := client.CharacterTalent.Create().
+		SetCharacterID(char.ID).
+		SetTalentID(tal.ID).
+		SetSlot(0).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create character talent: %v", err)
+	}
+
+	if charTalent.Slot != 0 {
+		t.Errorf("expected slot 0, got %d", charTalent.Slot)
+	}
+
+	// Query talents for character
+	charTalents, err := char.QueryTalents().All(ctx)
+	if err != nil {
+		t.Fatalf("failed to query character talents: %v", err)
+	}
+	if len(charTalents) != 1 {
+		t.Errorf("expected 1 talent, got %d", len(charTalents))
+	}
+}
+
+// TestCharacterMultipleTalents tests equipping multiple talents
+func TestCharacterMultipleTalents(t *testing.T) {
+	client, err := db.Open(dialect.SQLite, "file:ent?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("failed to open db: %v", err)
+	}
+	defer client.Close()
+
+	ctx := context.Background()
+	if err := client.Schema.Create(ctx); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	// Create a room first (required for character)
+	room, err := client.Room.Create().
+		SetName("Multi Talent Room").
+		SetDescription("A test room").
+		SetIsStartingRoom(true).
+		SetExits(map[string]int{}).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create room: %v", err)
+	}
+
+	// Create a character
+	char, err := client.Character.Create().
+		SetName("MultiTalentChar").
+		SetCurrentRoomId(room.ID).
+		SetStartingRoomId(room.ID).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("failed to create character: %v", err)
+	}
+
+	// Create 4 talents and equip them
+	talentNames := []string{"Strike", "Block", "Heal", "Sprint"}
+	for i, name := range talentNames {
+		tal, err := client.Talent.Create().
+			SetName(name).
+			SetDescription(name + " ability").
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("failed to create talent %s: %v", name, err)
+		}
+
+		_, err = client.CharacterTalent.Create().
+			SetCharacterID(char.ID).
+			SetTalentID(tal.ID).
+			SetSlot(i).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("failed to equip talent %s: %v", name, err)
+		}
+	}
+
+	// Verify all 4 slots are filled
+	charTalents, err := char.QueryTalents().All(ctx)
+	if err != nil {
+		t.Fatalf("failed to query character talents: %v", err)
+	}
+	if len(charTalents) != 4 {
+		t.Errorf("expected 4 talents, got %d", len(charTalents))
+	}
+
+	// Verify slots
+	slots := make(map[int]bool)
+	for _, ct := range charTalents {
+		slots[ct.Slot] = true
+	}
+	for i := 0; i < 4; i++ {
+		if !slots[i] {
+			t.Errorf("expected slot %d to be filled", i)
+		}
+	}
+}
