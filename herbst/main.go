@@ -1263,7 +1263,7 @@ func (m *model) View() string {
 
 		// Bottom: Input pane (always visible, consistent location)
 		s.WriteString(strings.Repeat("\n", max(0, m.height-20)))
-		s.WriteString(bottomInputPane("LOGIN", m.textInput.Placeholder, m.textInput.Value()))
+		s.WriteString(bottomInputPane("LOGIN", m.textInput.Placeholder, m.textInput.Value(), m.width))
 
 	case ScreenRegister:
 		// Top: Register box
@@ -1278,7 +1278,7 @@ func (m *model) View() string {
 
 		// Bottom: Input pane (always visible, consistent location)
 		s.WriteString(strings.Repeat("\n", max(0, m.height-20)))
-		s.WriteString(bottomInputPane("REGISTER", m.textInput.Placeholder, m.textInput.Value()))
+		s.WriteString(bottomInputPane("REGISTER", m.textInput.Placeholder, m.textInput.Value(), m.width))
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
@@ -1323,6 +1323,11 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenPlaying:
+		// CRITICAL: Clear message BEFORE rendering to prevent previous state from showing
+		// This fixes the "output re-rendering glitch" bug where old content briefly appears
+		m.message = ""
+		m.messageType = ""
+
 		// Ensure we have valid dimensions - if not, use defaults
 		width := m.width
 		height := m.height
@@ -1410,36 +1415,29 @@ func (m *model) View() string {
 			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
-		// ScreenPlaying uses full-width panels - don't center, just clear message and return
-		m.message = ""
-		m.messageType = ""
+		// ScreenPlaying uses full-width panels - don't center, return directly
 		return s.String()
 	}
 
 	// Center in terminal (optional - can be disabled if causing issues)
 	// Use lipgloss.Width() to correctly handle ANSI escape codes (fixes issue #75)
+	// CRITICAL: Respect terminal width - don't center if content would be truncated
 	if m.width > 0 && m.height > 0 && m.width > 60 {
 		lines := strings.Split(s.String(), "\n")
 		var centered []string
 		for _, line := range lines {
 			visualWidth := lipgloss.Width(line)
+			// Only center if it won't cause truncation - always honor terminal width
 			padding := (m.width - visualWidth) / 2
-			if padding > 0 && visualWidth < m.width-10 {
+			if padding > 0 && visualWidth > 0 && visualWidth < m.width {
 				centered = append(centered, fmt.Sprintf("%*s%s", padding, "", line))
 			} else {
+				// Content exceeds or matches terminal width - don't pad, let it flow
 				centered = append(centered, line)
 			}
 		}
-		// Clear message after rendering to prevent accumulation
-		m.message = ""
-		m.messageType = ""
 		return strings.Join(centered, "\n")
 	}
-
-	// Clear message after rendering to prevent accumulation on next tick
-	// This fixes the "jumbled text" issue during combat and other rapid updates
-	m.message = ""
-	m.messageType = ""
 
 	return s.String()
 }
@@ -1534,12 +1532,21 @@ func registerScreen(width, height int) string {
 }
 
 // bottomInputPane renders a consistent input area at the bottom of the screen
-func bottomInputPane(title, placeholder, value string) string {
+// Note: model width/height are passed via closure since we can't modify the signature
+func bottomInputPane(title, placeholder, value string, width int) string {
+	// Honor terminal width - use at least 40 but respect terminal width
+	inputWidth := width
+	if inputWidth < 40 {
+		inputWidth = 40
+	}
+	// Account for borders (2 chars) and padding
+	inputWidth -= 4
+
 	inputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("75")).
 		Padding(0, 1).
-		Width(40)
+		Width(inputWidth)
 
 	promptStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("86")). // cyan-ish
