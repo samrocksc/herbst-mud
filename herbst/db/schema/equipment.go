@@ -23,6 +23,19 @@ func (Equipment) Fields() []ent.Field {
 			Default(0),
 		field.Bool("isEquipped").
 			Default(false),
+		// New fields for item system (GitHub #89)
+		field.Bool("isImmovable").
+			Default(false).
+			Comment("Cannot be picked up if true"),
+		field.String("color").
+			Default("").
+			Comment("Custom display color (e.g., gold for immovable items)"),
+		field.Bool("isVisible").
+			Default(true).
+			Comment("Shown in room list"),
+		field.String("itemType").
+			Default("misc").
+			Comment("weapon|armor|consumable|quest|misc"),
 	}
 }
 

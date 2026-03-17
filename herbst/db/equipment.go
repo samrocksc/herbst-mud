@@ -29,6 +29,14 @@ type Equipment struct {
 	Weight int `json:"weight,omitempty"`
 	// IsEquipped holds the value of the "isEquipped" field.
 	IsEquipped bool `json:"isEquipped,omitempty"`
+	// IsImmovable holds the value of the "isImmovable" field (GitHub #89).
+	IsImmovable bool `json:"isImmovable,omitempty"`
+	// Color holds the value of the "color" field (GitHub #89).
+	Color string `json:"color,omitempty"`
+	// IsVisible holds the value of the "isVisible" field (GitHub #89).
+	IsVisible bool `json:"isVisible,omitempty"`
+	// ItemType holds the value of the "itemType" field (GitHub #89).
+	ItemType string `json:"itemType,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges          EquipmentEdges `json:"edges"`

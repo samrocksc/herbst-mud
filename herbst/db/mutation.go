@@ -750,6 +750,10 @@ type EquipmentMutation struct {
 	weight        *int
 	addweight     *int
 	isEquipped    *bool
+	isImmovable   *bool  // GitHub #89
+	color         *string // GitHub #89
+	isVisible     *bool  // GitHub #89
+	itemType      *string // GitHub #89
 	clearedFields map[string]struct{}
 	room          *int
 	clearedroom   bool
@@ -1110,6 +1114,82 @@ func (m *EquipmentMutation) OldIsEquipped(ctx context.Context) (v bool, err erro
 // ResetIsEquipped resets all changes to the "isEquipped" field.
 func (m *EquipmentMutation) ResetIsEquipped() {
 	m.isEquipped = nil
+}
+
+// SetIsImmovable sets the "isImmovable" field (GitHub #89).
+func (m *EquipmentMutation) SetIsImmovable(b bool) {
+	m.isImmovable = &b
+}
+
+// IsImmovable returns the value of the "isImmovable" field in the mutation.
+func (m *EquipmentMutation) IsImmovable() (r bool, exists bool) {
+	v := m.isImmovable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIsImmovable resets all changes to the "isImmovable" field.
+func (m *EquipmentMutation) ResetIsImmovable() {
+	m.isImmovable = nil
+}
+
+// SetColor sets the "color" field (GitHub #89).
+func (m *EquipmentMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *EquipmentMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *EquipmentMutation) ResetColor() {
+	m.color = nil
+}
+
+// SetIsVisible sets the "isVisible" field (GitHub #89).
+func (m *EquipmentMutation) SetIsVisible(b bool) {
+	m.isVisible = &b
+}
+
+// IsVisible returns the value of the "isVisible" field in the mutation.
+func (m *EquipmentMutation) IsVisible() (r bool, exists bool) {
+	v := m.isVisible
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIsVisible resets all changes to the "isVisible" field.
+func (m *EquipmentMutation) ResetIsVisible() {
+	m.isVisible = nil
+}
+
+// SetItemType sets the "itemType" field (GitHub #89).
+func (m *EquipmentMutation) SetItemType(s string) {
+	m.itemType = &s
+}
+
+// ItemType returns the value of the "itemType" field in the mutation.
+func (m *EquipmentMutation) ItemType() (r string, exists bool) {
+	v := m.itemType
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetItemType resets all changes to the "itemType" field.
+func (m *EquipmentMutation) ResetItemType() {
+	m.itemType = nil
 }
 
 // SetRoomID sets the "room" edge to the Room entity by id.

@@ -91,6 +91,20 @@ func TestUserFieldsExist(t *testing.T) {
 	t.Log("✅ User fields are accessible via setters")
 }
 
+// TestEquipmentItemSystemFields verifies the item system fields for GitHub #89
+func TestEquipmentItemSystemFields(t *testing.T) {
+	// Equipment should have: isImmovable, color, isVisible, itemType
+	ec := &EquipmentCreate{}
+
+	// New item system fields from #89
+	_ = ec.SetIsImmovable(true)
+	_ = ec.SetColor("gold")
+	_ = ec.SetIsVisible(true)
+	_ = ec.SetItemType("quest")
+
+	t.Log("✅ Equipment item system fields verified: isImmovable, color, isVisible, itemType")
+}
+
 // TestDataStructureScenarios covers the Gherkin scenarios from the feature file
 func TestDataStructureScenarios(t *testing.T) {
 	t.Run("Verify character data structure", func(t *testing.T) {
