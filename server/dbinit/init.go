@@ -10,6 +10,8 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
+	"herbst-server/db/skill"
+	"herbst-server/db/talent"
 )
 
 const (
@@ -319,7 +321,7 @@ func InitSkillsAndTalents(client *db.Client) error {
 	}
 
 	for _, s := range skills {
-		existing, err := client.Skill.Query().Where(db.Skill.Name(s.name)).Exist(ctx)
+		existing, err := client.Skill.Query().Where(skill.Name(s.name)).Exist(ctx)
 		if err == nil && existing {
 			continue
 		}
@@ -353,7 +355,7 @@ func InitSkillsAndTalents(client *db.Client) error {
 	}
 
 	for _, t := range talents {
-		existing, err := client.Talent.Query().Where(db.Talent.Name(t.name)).Exist(ctx)
+		existing, err := client.Talent.Query().Where(talent.Name(t.name)).Exist(ctx)
 		if err == nil && existing {
 			continue
 		}
@@ -541,7 +543,6 @@ func InitJunkyard(client *db.Client) error {
 			SetName("Junkyard - " + roomType).
 			SetDescription(desc).
 			SetExits(map[string]int{}). // Will be populated after all rooms created
-			SetRoomType("junkyard").
 			Save(ctx)
 		if err != nil {
 			log.Printf("Warning: failed to create junkyard room %d: %v", i, err)
@@ -592,34 +593,32 @@ func InitJunkyard(client *db.Client) error {
 		// Special case: Entrance room (row 4, col 0) connects to Fountain
 		if row == 4 && col == 0 && fountainRoom != nil {
 			exits["west"] = fountainRoom.ID
-			room.SetDescription("You stand at the entrance to the Junkyard. To the west, you can see the Fountain area. The twisted metal landscape stretches out before you.")
-			room.SetName("Junkyard Entrance")
+			_, err = room.Update().
+				SetDescription("You stand at the entrance to the Junkyard. To the west, you can see the Fountain area. The twisted metal landscape stretches out before you.").
+				SetName("Junkyard Entrance").
+				SetExits(exits).
+				Save(ctx)
+		} else {
+			_, err = room.Update().SetExits(exits).Save(ctx)
 		}
-
-		room.SetExits(exits)
-		_, err = room.Update().SetExits(exits).Save(ctx)
 		if err != nil {
 			log.Printf("Warning: failed to update exits for room %s: %v", room.Name, err)
 		}
 	}
 
 	// Find or create NPC template for Rust Bucket Golem
-	var npcTemplate *db.NpcTemplate
-	npcTemplate, err = client.NpcTemplate.Query().Where(npctemplate.NameEQ("Rust Bucket Golem")).Only(ctx)
+	var npcTemplate *db.NPCTemplate
+	npcTemplate, err = client.NPCTemplate.Query().Where(npctemplate.NameEQ("Rust Bucket Golem")).Only(ctx)
 	if err != nil {
 		// Create the NPC template
-		npcTemplate, err = client.NpcTemplate.Create().
+		npcTemplate, err = client.NPCTemplate.Create().
+			SetID("rust_bucket_golem").
 			SetName("Rust Bucket Golem").
 			SetDescription("A hulking construct of rusted metal and broken machinery. Its eyes glow with a faint orange light. Despite its dilapidated appearance, it's still functional - and aggressive.").
+			SetRace("golem").
+			SetDisposition(npctemplate.DispositionHostile).
 			SetLevel(1).
-			SetHP(10).
-			SetMaxHP(10).
-			SetDamage(1).
-			SetXP(5).
-			SetAggroRange(3).
-			SetNpcType("golem").
-			SetSpawnRoom("Junkyard - Golem Nest").
-			SetBehavior("patrol").
+			SetSkills(map[string]int{"basic_combat": 1}).
 			Save(ctx)
 		if err != nil {
 			log.Printf("Warning: failed to create Rust Bucket Golem template: %v", err)
@@ -645,14 +644,12 @@ func InitJunkyard(client *db.Client) error {
 			_, err = client.Character.Create().
 				SetName("Rust Bucket Golem").
 				SetLevel(1).
-				SetHP(10).
-				SetMaxHP(10).
-				SetExperience(0).
+				SetHitpoints(10).
+				SetMaxHitpoints(10).
 				SetClass("npc").
 				SetRace("golem").
 				SetGender("none").
-				SetDescription("A hulking rusted golem").
-				SetRoom(room).
+				SetCurrentRoomId(room.ID).
 				SetNpcTemplate(npcTemplate).
 				SetIsNPC(true).
 				Save(ctx)
