@@ -1251,8 +1251,8 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
-		// Top: Login box (centered)
-		s.WriteString(loginScreen())
+		// Top: Login box (centered, fills terminal)
+		s.WriteString(loginScreen(m.width, m.height))
 
 		// Middle: Messages (if any)
 		s.WriteString("\n\n")
@@ -1484,21 +1484,53 @@ func welcomeScreen() string {
 `)
 }
 
-func loginScreen() string {
-	return lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("75")).
-		Padding(1, 2).
-		Render(`
-╔════════════════════════════════════════════════════════════╗
-║                        LOGIN                                  ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   Enter your credentials to continue your adventure.        ║
-║   Press ESC to go back to the main menu.                    ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`)
+func loginScreen(width, height int) string {
+	// Calculate dynamic dimensions
+	boxWidth := 60
+	if width > 70 {
+		boxWidth = width - 20
+	}
+	if boxWidth > 100 {
+		boxWidth = 100
+	}
+
+	// Calculate vertical centering
+	verticalPadding := 2
+	if height > 20 {
+		verticalPadding = (height - 16) / 2
+	}
+	if verticalPadding > 10 {
+		verticalPadding = 10
+	}
+
+	// Build the login content dynamically
+	titleStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("75")).
+		Bold(true).
+		Padding(0, 2).
+		Width(boxWidth).
+		Align(lipgloss.Center)
+
+	contentStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("252")).
+		Padding(0, 2).
+		Width(boxWidth).
+		Align(lipgloss.Left)
+
+	var sb strings.Builder
+	sb.WriteString(strings.Repeat("\n", verticalPadding))
+
+	// Title
+	sb.WriteString(titleStyle.Render("=== LOGIN ==="))
+	sb.WriteString("\n\n")
+
+	// Content
+	sb.WriteString(contentStyle.Render("Enter your credentials to continue your adventure."))
+	sb.WriteString("\n")
+	sb.WriteString(contentStyle.Render("Press ESC to go back to the main menu."))
+	sb.WriteString("\n")
+
+	return sb.String()
 }
 
 func registerScreen(width, height int) string {
@@ -1511,6 +1543,7 @@ func registerScreen(width, height int) string {
 		boxWidth = 100
 	}
 
+	// Calculate vertical centering
 	verticalPadding := 2
 	if height > 20 {
 		verticalPadding = (height - 16) / 2
@@ -1519,14 +1552,32 @@ func registerScreen(width, height int) string {
 		verticalPadding = 10
 	}
 
+	// Build the register content dynamically
+	titleStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("147")).
+		Bold(true).
+		Padding(0, 2).
+		Width(boxWidth).
+		Align(lipgloss.Center)
+
+	contentStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("252")).
+		Padding(0, 2).
+		Width(boxWidth).
+		Align(lipgloss.Left)
+
 	var sb strings.Builder
 	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	sb.WriteString(lipgloss.NewStyle().
-		Width(boxWidth).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(purple).
-		Padding(1, 2).
-		Render("CREATE ACCOUNT - Press ESC to go back to the main menu."))
+
+	// Title
+	sb.WriteString(titleStyle.Render("=== CREATE ACCOUNT ==="))
+	sb.WriteString("\n\n")
+
+	// Content
+	sb.WriteString(contentStyle.Render("Choose a username and password to begin your adventure."))
+	sb.WriteString("\n")
+	sb.WriteString(contentStyle.Render("Press ESC to go back to the main menu."))
+	sb.WriteString("\n")
 
 	return sb.String()
 }
