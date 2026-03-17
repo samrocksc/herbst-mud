@@ -98,9 +98,15 @@ type CharacterEdges struct {
 	Room *Room `json:"room,omitempty"`
 	// NpcTemplate holds the value of the npcTemplate edge.
 	NpcTemplate *NPCTemplate `json:"npcTemplate,omitempty"`
+	// Skills holds the value of the skills edge.
+	Skills []*CharacterSkill `json:"skills,omitempty"`
+	// Talents holds the value of the talents edge.
+	Talents []*CharacterTalent `json:"talents,omitempty"`
+	// AvailableTalents holds the value of the available_talents edge.
+	AvailableTalents []*AvailableTalent `json:"available_talents,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [6]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -134,6 +140,33 @@ func (e CharacterEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
 		return nil, &NotFoundError{label: npctemplate.Label}
 	}
 	return nil, &NotLoadedError{edge: "npcTemplate"}
+}
+
+// SkillsOrErr returns the Skills value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) SkillsOrErr() ([]*CharacterSkill, error) {
+	if e.loadedTypes[3] {
+		return e.Skills, nil
+	}
+	return nil, &NotLoadedError{edge: "skills"}
+}
+
+// TalentsOrErr returns the Talents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) TalentsOrErr() ([]*CharacterTalent, error) {
+	if e.loadedTypes[4] {
+		return e.Talents, nil
+	}
+	return nil, &NotLoadedError{edge: "talents"}
+}
+
+// AvailableTalentsOrErr returns the AvailableTalents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) AvailableTalentsOrErr() ([]*AvailableTalent, error) {
+	if e.loadedTypes[5] {
+		return e.AvailableTalents, nil
+	}
+	return nil, &NotLoadedError{edge: "available_talents"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -407,6 +440,21 @@ func (_m *Character) QueryRoom() *RoomQuery {
 // QueryNpcTemplate queries the "npcTemplate" edge of the Character entity.
 func (_m *Character) QueryNpcTemplate() *NPCTemplateQuery {
 	return NewCharacterClient(_m.config).QueryNpcTemplate(_m)
+}
+
+// QuerySkills queries the "skills" edge of the Character entity.
+func (_m *Character) QuerySkills() *CharacterSkillQuery {
+	return NewCharacterClient(_m.config).QuerySkills(_m)
+}
+
+// QueryTalents queries the "talents" edge of the Character entity.
+func (_m *Character) QueryTalents() *CharacterTalentQuery {
+	return NewCharacterClient(_m.config).QueryTalents(_m)
+}
+
+// QueryAvailableTalents queries the "available_talents" edge of the Character entity.
+func (_m *Character) QueryAvailableTalents() *AvailableTalentQuery {
+	return NewCharacterClient(_m.config).QueryAvailableTalents(_m)
 }
 
 // Update returns a builder for updating this Character.

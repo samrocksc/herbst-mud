@@ -30,9 +30,11 @@ func (AvailableTalent) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("character", Character.Type).
 			Ref("available_talents").
-			Unique(),
+			Unique().
+			Required(),
 		edge.From("talent", Talent.Type).
 			Ref("available_to_characters").
-			Unique(),
+			Unique().
+			Required(),
 	}
 }
