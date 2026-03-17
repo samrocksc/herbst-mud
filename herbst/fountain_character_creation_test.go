@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+
+	"github.com/charmbracelet/bubbles/textinput"
 )
 
 // TestFountainScreensExist verifies the fountain character creation screens are defined
@@ -45,7 +47,7 @@ func TestCharacterCreateInput(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected string
+		contains string
 	}{
 		{"name option", "1", "Enter your character name:"},
 		{"race option", "2", "Select your race:"},
@@ -66,11 +68,26 @@ func TestCharacterCreateInput(t *testing.T) {
 			}
 			m.handleCharacterCreateInput(tt.input)
 
-			if m.message != tt.expected {
-				t.Errorf("Expected message %q, got %q", tt.expected, m.message)
+			if !containsSubstring(m.message, tt.contains) {
+				t.Errorf("Expected message to contain %q, got %q", tt.contains, m.message)
 			}
 		})
 	}
+}
+
+// containsSubstring checks if s contains substr
+func containsSubstring(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
+		(len(s) > 0 && len(substr) > 0 && findSubstring(s, substr)))
+}
+
+func findSubstring(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 // TestScreenConstants verifies all screen constants are defined

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -39,12 +40,15 @@ const StartingRoomID = 5
 
 // Screen states
 const (
-	ScreenWelcome   = "welcome"
-	ScreenLogin     = "login"
-	ScreenRegister  = "register"
-	ScreenPlaying   = "playing"
-	ScreenProfile   = "profile"
-	ScreenEditField = "edit_field"
+	ScreenWelcome        = "welcome"
+	ScreenLogin          = "login"
+	ScreenRegister       = "register"
+	ScreenPlaying        = "playing"
+	ScreenProfile        = "profile"
+	ScreenEditField      = "edit_field"
+	ScreenFountainWake   = "fountain_wake"
+	ScreenFountainWash   = "fountain_wash"
+	ScreenCharacterCreate = "character_create"
 )
 
 // Menu selection constants for vim-style navigation
@@ -1400,13 +1404,16 @@ func (m *model) View() string {
 		return s.String()
 	}
 
-	// Center in terminal (optional - can be disabled if causing issues)
+	// Center in terminal using proper visual width calculation
+	// lipgloss.Width() correctly handles ANSI escape codes (they don't take visual space)
 	if m.width > 0 && m.height > 0 && m.width > 60 {
 		lines := strings.Split(s.String(), "\n")
 		var centered []string
 		for _, line := range lines {
-			padding := (m.width - len(line)) / 2
-			if padding > 0 && len(line) < m.width-10 {
+			// Use lipgloss.Width for proper visual width (ignores ANSI codes)
+			visualWidth := lipgloss.Width(line)
+			padding := (m.width - visualWidth) / 2
+			if padding > 0 && visualWidth < m.width-10 {
 				centered = append(centered, fmt.Sprintf("%*s%s", padding, "", line))
 			} else {
 				centered = append(centered, line)
@@ -1431,38 +1438,42 @@ func (m *model) View() string {
 // ============================================================
 
 func welcomeScreen() string {
+	// Use a flexible layout that works at various terminal widths
+	// The ASCII art logo is designed to be ~60 chars wide, so we let it be
+	// but wrap it in a bordered box that adapts
 	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("46")).
 		Padding(1, 2).
+		MaxWidth(80). // Limit max width to prevent overflow on wide terminals
 		Render(`
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║
-║    ██████╗ ███████╗████████╗██████╗  ██████╗                 ║
-║    ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗                ║
-║    ██████╔╝█████╗     ██║   ██████╔╝██║   ██║                ║
-║    ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║                ║
-║    ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝                ║
-║    ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝                 ║
+║    ██████╗ ███████╗████████╗██████╗  ██████╗                ║
+║    ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗               ║
+║    ██████╔╝█████╗     ██║   ██████╔╝██║   ██║               ║
+║    ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║               ║
+║    ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝               ║
+║    ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝                ║
 ║                                                            ║
 ║           ██████╗  █████╗  ██████╗ ██████╗                  ║
 ║           ██╔══██╗██╔══██╗██╔════╝██╔═══██╗                 ║
-║           ██████╔╝███████║██║     ██║   ██║                ║
+║           ██████╔╝███████║██║     ██║   ██║                 ║
 ║           ██╔══██╗██╔══██║██║     ██║   ██║                 ║
 ║           ██║  ██║██║  ██║╚██████╗╚██████╔╝                 ║
 ║           ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝                  ║
 ║                                                            ║
 ║                    Welcome to Herbst MUD!                  ║
-║                    Das Text-Adventure                       ║
+║                    Das Text-Adventure                      ║
 ║                                                            ║
 ╠════════════════════════════════════════════════════════════╣
 ║                                                            ║
 ║   1. Login      - Log in to your existing account         ║
 ║   2. Register   - Create a new player account             ║
-║   3. Quit       - Exit the game                            ║
+║   3. Quit       - Exit the game                           ║
 ║                                                            ║
-║   Use ↑/↓ or j/k to navigate, Enter to select            ║
-║   Press ESC to go back                                     ║
+║   Use ↑/↓ or j/k to navigate, Enter to select             ║
+║   Press ESC to go back                                    ║
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
 `)
@@ -1532,8 +1543,6 @@ func registerScreen(width, height int) string {
 	}
 
 	// Build dynamic register screen
-	horizontalBorder := strings.Repeat("═", boxWidth-2)
-
 	var sb strings.Builder
 	// Top padding for vertical centering
 	sb.WriteString(strings.Repeat("\n", verticalPadding))
@@ -1543,16 +1552,9 @@ func registerScreen(width, height int) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(purple).
 		Padding(1, 2).
-		Render(`
-╔════════════════════════════════════════════════════════════╗
-║                      CREATE ACCOUNT                          ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   Create a new account to begin your adventure!            ║
-║   Press ESC to go back to the main menu.                    ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`)
+		Render("CREATE ACCOUNT\n\nCreate a new account to begin your adventure!\nPress ESC to go back to the main menu."))
+
+	return sb.String()
 }
 
 // ============================================================
@@ -1563,29 +1565,30 @@ func fountainWakeScreen() string {
 	return lipgloss.NewStyle().
 		Foreground(green).
 		Bold(true).
+		MaxWidth(80).
 		Render(`
 ╔══════════════════════════════════════════════════════════════════════╗
 ║                         ♨ THE FOUNTAIN ♨                             ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║                                                                      ║
-║    You wake up at a murky fountain, covered in sticky mutant mud.   ║
-║    The water glows faintly with an eerie green Ooze color.           ║
-║    Your head throbs - you have no memory of how you got here.        ║
-║    Something glints in the mud near your hand...                     ║
+║    You wake up at a murky fountain, covered in sticky mutant mud.    ║
+║    The water glows faintly with an eerie green Ooze color.          ║
+║    Your head throbs - you have no memory of how you got here.       ║
+║    Something glints in the mud near your hand...                    ║
 ║                                                                      ║
-║    The world around you is strange. Mutant weeds push through         ║
-║    cracked cobblestones. The air smells of pizza and ooze.           ║
+║    The world around you is strange. Mutant weeds push through       ║
+║    cracked cobblestones. The air smells of pizza and ooze.          ║
 ║                                                                      ║
-║    You reach down and pick up the glinting object - a small          ║
-║    copper coin with a turtle symbol on it.                           ║
+║    You reach down and pick up the glinting object - a small        ║
+║    copper coin with a turtle symbol on it.                          ║
 ║                                                                      ║
-║    As you touch it, visions flash through your mind:                ║
-║    → Mutant turtles trained by a wise rat master                     ║
-║    → A city ruined by a strange Ooze                                   ║
-║    → Your own face, now covered in fur and scales...                 ║
+║    As you touch it, visions flash through your mind:               ║
+║    → Mutant turtles trained by a wise rat master                    ║
+║    → A city ruined by a strange Ooze                                ║
+║    → Your own face, now covered in fur and scales...                ║
 ║                                                                      ║
-║    You remember now. You ARE a turtle! And there's a whole           ║
-║    world out there to explore. First, you need to wash up.           ║
+║    You remember now. You ARE a turtle! And there's a whole          ║
+║    world out there to explore. First, you need to wash up.          ║
 ║                                                                      ║
 ╚══════════════════════════════════════════════════════════════════════╝
 `)
@@ -1595,31 +1598,32 @@ func fountainWashScreen() string {
 	return lipgloss.NewStyle().
 		Foreground(cyan).
 		Bold(true).
+		MaxWidth(80).
 		Render(`
 ╔══════════════════════════════════════════════════════════════════════╗
-║                      ♨ WASHING AT THE FOUNTAIN ♨                    ║
+║                      ♨ WASHING AT THE FOUNTAIN ♨                     ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║                                                                      ║
 ║    You lean over the fountain and splash the cool, glowing water    ║
-║    on your face. The mutant mud washes away, revealing your true    ║
+║    on your face. The mutant mud washes away, revealing your true     ║
 ║    form - a green turtle shell, scaly skin, and determined eyes.    ║
 ║                                                                      ║
-║    As the mud clears, so do your memories...                         ║
+║    As the mud clears, so do your memories...                        ║
 ║                                                                      ║
-║    You are a Mutant Turtle, trained in the martial arts by your      ║
-║    sensei, Splinter. The Great Mutagen Spill transformed you         ║
-║    from a ordinary turtle into a thinking, speaking being.           ║
+║    You are a Mutant Turtle, trained in the martial arts by your     ║
+║    sensei, Splinter. The Great Mutagen Spill transformed you        ║
+║    from a ordinary turtle into a thinking, speaking being.          ║
 ║                                                                      ║
-║    Your sensei taught you well. You know:                            ║
-║    → Ninjutsu - the way of the shadow warrior                        ║
-║    → Survival - how to live in this post-Ooze world                  ║
-║    → Pizza - the most important food in existence                    ║
+║    Your sensei taught you well. You know:                           ║
+║    → Ninjutsu - the way of the shadow warrior                       ║
+║    → Survival - how to live in this post-Ooze world                ║
+║    → Pizza - the most important food in existence                   ║
 ║                                                                      ║
-║    The fountain water shows your reflection - you're ready for       ║
+║    The fountain water shows your reflection - you're ready for      ║
 ║    your next adventure!                                             ║
 ║                                                                      ║
-║    A path leads north to the Crossroads.                             ║
-║    To the east, you see signs for the "Canal District".             ║
+║    A path leads north to the Crossroads.                            ║
+║    To the east, you see signs for the "Canal District".            ║
 ║                                                                      ║
 ╚══════════════════════════════════════════════════════════════════════╝
 `)
@@ -1629,6 +1633,7 @@ func characterCreateScreen() string {
 	return lipgloss.NewStyle().
 		Foreground(yellow).
 		Bold(true).
+		MaxWidth(80).
 		Render(`
 ╔══════════════════════════════════════════════════════════════════════╗
 ║                    ✦ CHARACTER CREATION ✦                            ║
@@ -1638,6 +1643,7 @@ func characterCreateScreen() string {
 ║                                                                      ║
 ║    Available Options:                                                ║
 ║                                                                      ║
+
 ║    [1] Name     - What shall we call you?                           ║
 ║    [2] Race     - Human, Turtle, Rabbit, Rat, Rhino                  ║
 ║    [3] Gender   - Male, Female, Other                                ║
