@@ -47,6 +47,8 @@ type Character struct {
 	Race string `json:"race,omitempty"`
 	// Class holds the value of the "class" field.
 	Class string `json:"class,omitempty"`
+	// Class specialty (e.g., fighter for warrior)
+	Specialty string `json:"specialty,omitempty"`
 	// Level holds the value of the "level" field.
 	Level int `json:"level,omitempty"`
 	// Constitution holds the value of the "constitution" field.
@@ -98,9 +100,15 @@ type CharacterEdges struct {
 	Room *Room `json:"room,omitempty"`
 	// NpcTemplate holds the value of the npcTemplate edge.
 	NpcTemplate *NPCTemplate `json:"npcTemplate,omitempty"`
+	// AvailableTalents holds the value of the available_talents edge.
+	AvailableTalents []*AvailableTalent `json:"available_talents,omitempty"`
+	// Skills holds the value of the skills edge.
+	Skills []*CharacterSkill `json:"skills,omitempty"`
+	// Talents holds the value of the talents edge.
+	Talents []*CharacterTalent `json:"talents,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [6]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -136,6 +144,33 @@ func (e CharacterEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
 	return nil, &NotLoadedError{edge: "npcTemplate"}
 }
 
+// AvailableTalentsOrErr returns the AvailableTalents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) AvailableTalentsOrErr() ([]*AvailableTalent, error) {
+	if e.loadedTypes[3] {
+		return e.AvailableTalents, nil
+	}
+	return nil, &NotLoadedError{edge: "available_talents"}
+}
+
+// SkillsOrErr returns the Skills value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) SkillsOrErr() ([]*CharacterSkill, error) {
+	if e.loadedTypes[4] {
+		return e.Skills, nil
+	}
+	return nil, &NotLoadedError{edge: "skills"}
+}
+
+// TalentsOrErr returns the Talents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) TalentsOrErr() ([]*CharacterTalent, error) {
+	if e.loadedTypes[5] {
+		return e.Talents, nil
+	}
+	return nil, &NotLoadedError{edge: "talents"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -145,7 +180,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
-		case character.FieldName, character.FieldPassword, character.FieldRace, character.FieldClass, character.FieldGender, character.FieldDescription:
+		case character.FieldName, character.FieldPassword, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
 		case character.ForeignKeys[0]: // character_npc_template
 			values[i] = new(sql.NullString)
@@ -257,6 +292,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field class", values[i])
 			} else if value.Valid {
 				_m.Class = value.String
+			}
+		case character.FieldSpecialty:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field specialty", values[i])
+			} else if value.Valid {
+				_m.Specialty = value.String
 			}
 		case character.FieldLevel:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -409,6 +450,21 @@ func (_m *Character) QueryNpcTemplate() *NPCTemplateQuery {
 	return NewCharacterClient(_m.config).QueryNpcTemplate(_m)
 }
 
+// QueryAvailableTalents queries the "available_talents" edge of the Character entity.
+func (_m *Character) QueryAvailableTalents() *AvailableTalentQuery {
+	return NewCharacterClient(_m.config).QueryAvailableTalents(_m)
+}
+
+// QuerySkills queries the "skills" edge of the Character entity.
+func (_m *Character) QuerySkills() *CharacterSkillQuery {
+	return NewCharacterClient(_m.config).QuerySkills(_m)
+}
+
+// QueryTalents queries the "talents" edge of the Character entity.
+func (_m *Character) QueryTalents() *CharacterTalentQuery {
+	return NewCharacterClient(_m.config).QueryTalents(_m)
+}
+
 // Update returns a builder for updating this Character.
 // Note that you need to call Character.Unwrap() before calling this method if this Character
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -473,6 +529,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("class=")
 	builder.WriteString(_m.Class)
+	builder.WriteString(", ")
+	builder.WriteString("specialty=")
+	builder.WriteString(_m.Specialty)
 	builder.WriteString(", ")
 	builder.WriteString("level=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Level))

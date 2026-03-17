@@ -8,6 +8,18 @@ import (
 )
 
 var (
+	// AvailableTalentsColumns holds the columns for the "available_talents" table.
+	AvailableTalentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "unlock_reason", Type: field.TypeString, Nullable: true, Default: "level_up"},
+		{Name: "unlocked_at_level", Type: field.TypeInt, Default: 1},
+	}
+	// AvailableTalentsTable holds the schema information for the "available_talents" table.
+	AvailableTalentsTable = &schema.Table{
+		Name:       "available_talents",
+		Columns:    AvailableTalentsColumns,
+		PrimaryKey: []*schema.Column{AvailableTalentsColumns[0]},
+	}
 	// CharactersColumns holds the columns for the "characters" table.
 	CharactersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -24,6 +36,7 @@ var (
 		{Name: "max_mana", Type: field.TypeInt, Default: 25},
 		{Name: "race", Type: field.TypeString, Default: "human"},
 		{Name: "class", Type: field.TypeString, Default: "adventurer"},
+		{Name: "specialty", Type: field.TypeString, Nullable: true},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "constitution", Type: field.TypeInt, Default: 10},
 		{Name: "gender", Type: field.TypeString, Nullable: true},
@@ -54,26 +67,81 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[31]},
+				Columns:    []*schema.Column{CharactersColumns[32]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[32]},
+				Columns:    []*schema.Column{CharactersColumns[33]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[33]},
+				Columns:    []*schema.Column{CharactersColumns[34]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[34]},
+				Columns:    []*schema.Column{CharactersColumns[35]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CharacterSkillsColumns holds the columns for the "character_skills" table.
+	CharacterSkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "experience", Type: field.TypeInt, Default: 0},
+		{Name: "character_skills", Type: field.TypeInt, Nullable: true},
+		{Name: "skill_characters", Type: field.TypeInt, Nullable: true},
+	}
+	// CharacterSkillsTable holds the schema information for the "character_skills" table.
+	CharacterSkillsTable = &schema.Table{
+		Name:       "character_skills",
+		Columns:    CharacterSkillsColumns,
+		PrimaryKey: []*schema.Column{CharacterSkillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_skills_characters_skills",
+				Columns:    []*schema.Column{CharacterSkillsColumns[3]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "character_skills_skills_characters",
+				Columns:    []*schema.Column{CharacterSkillsColumns[4]},
+				RefColumns: []*schema.Column{SkillsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CharacterTalentsColumns holds the columns for the "character_talents" table.
+	CharacterTalentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "slot", Type: field.TypeInt, Default: 0},
+		{Name: "character_talents", Type: field.TypeInt, Nullable: true},
+		{Name: "talent_characters", Type: field.TypeInt, Nullable: true},
+	}
+	// CharacterTalentsTable holds the schema information for the "character_talents" table.
+	CharacterTalentsTable = &schema.Table{
+		Name:       "character_talents",
+		Columns:    CharacterTalentsColumns,
+		PrimaryKey: []*schema.Column{CharacterTalentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_talents_characters_talents",
+				Columns:    []*schema.Column{CharacterTalentsColumns[2]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "character_talents_talents_characters",
+				Columns:    []*schema.Column{CharacterTalentsColumns[3]},
+				RefColumns: []*schema.Column{TalentsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -136,6 +204,35 @@ var (
 		Columns:    RoomsColumns,
 		PrimaryKey: []*schema.Column{RoomsColumns[0]},
 	}
+	// SkillsColumns holds the columns for the "skills" table.
+	SkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString},
+		{Name: "skill_type", Type: field.TypeString},
+		{Name: "cost", Type: field.TypeInt, Default: 0},
+		{Name: "cooldown", Type: field.TypeInt, Default: 0},
+		{Name: "requirements", Type: field.TypeString, Nullable: true},
+	}
+	// SkillsTable holds the schema information for the "skills" table.
+	SkillsTable = &schema.Table{
+		Name:       "skills",
+		Columns:    SkillsColumns,
+		PrimaryKey: []*schema.Column{SkillsColumns[0]},
+	}
+	// TalentsColumns holds the columns for the "talents" table.
+	TalentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString},
+		{Name: "requirements", Type: field.TypeString, Nullable: true},
+	}
+	// TalentsTable holds the schema information for the "talents" table.
+	TalentsTable = &schema.Table{
+		Name:       "talents",
+		Columns:    TalentsColumns,
+		PrimaryKey: []*schema.Column{TalentsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -150,13 +247,70 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// CharacterAvailableTalentsColumns holds the columns for the "character_available_talents" table.
+	CharacterAvailableTalentsColumns = []*schema.Column{
+		{Name: "character_id", Type: field.TypeInt},
+		{Name: "available_talent_id", Type: field.TypeInt},
+	}
+	// CharacterAvailableTalentsTable holds the schema information for the "character_available_talents" table.
+	CharacterAvailableTalentsTable = &schema.Table{
+		Name:       "character_available_talents",
+		Columns:    CharacterAvailableTalentsColumns,
+		PrimaryKey: []*schema.Column{CharacterAvailableTalentsColumns[0], CharacterAvailableTalentsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_available_talents_character_id",
+				Columns:    []*schema.Column{CharacterAvailableTalentsColumns[0]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "character_available_talents_available_talent_id",
+				Columns:    []*schema.Column{CharacterAvailableTalentsColumns[1]},
+				RefColumns: []*schema.Column{AvailableTalentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// TalentAvailableToCharactersColumns holds the columns for the "talent_available_to_characters" table.
+	TalentAvailableToCharactersColumns = []*schema.Column{
+		{Name: "talent_id", Type: field.TypeInt},
+		{Name: "available_talent_id", Type: field.TypeInt},
+	}
+	// TalentAvailableToCharactersTable holds the schema information for the "talent_available_to_characters" table.
+	TalentAvailableToCharactersTable = &schema.Table{
+		Name:       "talent_available_to_characters",
+		Columns:    TalentAvailableToCharactersColumns,
+		PrimaryKey: []*schema.Column{TalentAvailableToCharactersColumns[0], TalentAvailableToCharactersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "talent_available_to_characters_talent_id",
+				Columns:    []*schema.Column{TalentAvailableToCharactersColumns[0]},
+				RefColumns: []*schema.Column{TalentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "talent_available_to_characters_available_talent_id",
+				Columns:    []*schema.Column{TalentAvailableToCharactersColumns[1]},
+				RefColumns: []*schema.Column{AvailableTalentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AvailableTalentsTable,
 		CharactersTable,
+		CharacterSkillsTable,
+		CharacterTalentsTable,
 		EquipmentTable,
 		NpcTemplatesTable,
 		RoomsTable,
+		SkillsTable,
+		TalentsTable,
 		UsersTable,
+		CharacterAvailableTalentsTable,
+		TalentAvailableToCharactersTable,
 	}
 )
 
@@ -165,5 +319,13 @@ func init() {
 	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[3].RefTable = UsersTable
+	CharacterSkillsTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterSkillsTable.ForeignKeys[1].RefTable = SkillsTable
+	CharacterTalentsTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterTalentsTable.ForeignKeys[1].RefTable = TalentsTable
 	EquipmentTable.ForeignKeys[0].RefTable = RoomsTable
+	CharacterAvailableTalentsTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterAvailableTalentsTable.ForeignKeys[1].RefTable = AvailableTalentsTable
+	TalentAvailableToCharactersTable.ForeignKeys[0].RefTable = TalentsTable
+	TalentAvailableToCharactersTable.ForeignKeys[1].RefTable = AvailableTalentsTable
 }

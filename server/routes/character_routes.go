@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/constants"
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/room"
@@ -351,8 +352,18 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			class = req.Class
 		}
 
-		// Create the character
-		char, err := client.Character.
+		// Get class configuration with specialty
+		classConfig := constants.GetClassConfig(class, "")
+
+		// Calculate base stats with class bonuses
+		baseStrength := constants.DefaultStats.Strength + classConfig.StatBonuses.Strength
+		baseDexterity := constants.DefaultStats.Dexterity + classConfig.StatBonuses.Dexterity
+		baseConstitution := constants.DefaultStats.Constitution + classConfig.StatBonuses.Constitution
+		baseIntelligence := constants.DefaultStats.Intelligence + classConfig.StatBonuses.Intelligence
+		baseWisdom := constants.DefaultStats.Wisdom + classConfig.StatBonuses.Wisdom
+
+		// Create the character builder
+		builder := client.Character.
 			Create().
 			SetName(req.Name).
 			SetPassword(hashedPassword).
@@ -367,7 +378,33 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			SetStartingRoomId(startingRoomID).
 			SetRace(race).
 			SetClass(class).
-			Save(c.Request.Context())
+			SetSpecialty(classConfig.Specialty).
+			SetStrength(baseStrength).
+			SetDexterity(baseDexterity).
+			SetConstitution(baseConstitution).
+			SetIntelligence(baseIntelligence).
+			SetWisdom(baseWisdom)
+
+		// Apply starting skills
+		for skill, level := range classConfig.StartingSkills {
+			switch skill {
+			case "blades":
+				builder.SetSkillBlades(level)
+			case "staves":
+				builder.SetSkillStaves(level)
+			case "knives":
+				builder.SetSkillKnives(level)
+			case "martial":
+				builder.SetSkillMartial(level)
+			case "brawling":
+				builder.SetSkillBrawling(level)
+			case "tech":
+				builder.SetSkillTech(level)
+			}
+		}
+
+		// Create the character
+		char, err := builder.Save(c.Request.Context())
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -389,6 +426,12 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			"max_mana":        char.MaxMana,
 			"race":            char.Race,
 			"class":           char.Class,
+			"specialty":       char.Specialty,
+			"strength":        char.Strength,
+			"dexterity":       char.Dexterity,
+			"constitution":    char.Constitution,
+			"intelligence":    char.Intelligence,
+			"wisdom":          char.Wisdom,
 		})
 	})
 
@@ -459,6 +502,75 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			"id":    char.ID,
 			"name":  char.Name,
 			"class": char.Class,
+		})
+	})
+
+	// Get character specialty
+	router.GET("/characters/:id/specialty", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		char, err := client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":        char.ID,
+			"name":      char.Name,
+			"class":     char.Class,
+			"specialty": char.Specialty,
+		})
+	})
+
+	// Update character specialty
+	router.PUT("/characters/:id/specialty", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var req struct {
+			Specialty string `json:"specialty" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		char, err := client.Character.UpdateOneID(id).SetSpecialty(req.Specialty).Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":        char.ID,
+			"name":      char.Name,
+			"class":     char.Class,
+			"specialty": char.Specialty,
+		})
+	})
+
+	// Get available specialties for a class
+	router.GET("/classes/:class/specialties", func(c *gin.Context) {
+		class := c.Param("class")
+
+		specialties, ok := constants.ClassSpecialties[class]
+		if !ok {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Class not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"class":       class,
+			"specialties": specialties,
 		})
 	})
 

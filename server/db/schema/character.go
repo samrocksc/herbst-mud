@@ -39,6 +39,9 @@ func (Character) Fields() []ent.Field {
 			Default("human"),
 		field.String("class").
 			Default("adventurer"),
+		field.String("specialty").
+			Optional().
+			Comment("Class specialty (e.g., fighter for warrior)"),
 		field.Int("level").
 			Default(1),
 		field.Int("constitution").
@@ -88,5 +91,8 @@ func (Character) Edges() []ent.Edge {
 			Unique(),
 		edge.To("npcTemplate", NPCTemplate.Type).
 			Unique(),
+		edge.To("available_talents", AvailableTalent.Type),
+		edge.To("skills", CharacterSkill.Type),
+		edge.To("talents", CharacterTalent.Type),
 	}
 }
