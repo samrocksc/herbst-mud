@@ -1159,7 +1159,7 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenRegister:
-		s.WriteString(registerScreen())
+		s.WriteString(registerScreen(m.width, m.height))
 		s.WriteString("\n\n")
 		if m.message != "" {
 			s.WriteString(m.styledMessage(m.message))
@@ -1394,27 +1394,14 @@ func registerScreen(width, height int) string {
 		verticalPadding = 10
 	}
 
-	// Build dynamic register screen
-	horizontalBorder := strings.Repeat("═", boxWidth-2)
-
 	var sb strings.Builder
-	// Top padding for vertical centering
 	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	// Box - split screen style with purple border
 	sb.WriteString(lipgloss.NewStyle().
 		Width(boxWidth).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(purple).
->>>>>>> origin/main
 		Padding(1, 2).
-		Render(`
-╔════════════════════════════════════════════════════════════╗
-║                      CREATE ACCOUNT                          ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   Create a new account to begin your adventure!            ║
-║   Press ESC to go back to the main menu.                    ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`)
+		Render("CREATE ACCOUNT - Press ESC to go back to the main menu."))
+
+	return sb.String()
 }

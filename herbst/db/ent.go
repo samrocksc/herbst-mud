@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"herbst/db/character"
 	"herbst/db/equipment"
+	"herbst/db/npctemplate"
 	"herbst/db/room"
 	"herbst/db/user"
 	"reflect"
@@ -76,10 +77,11 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			character.Table: character.ValidColumn,
-			equipment.Table: equipment.ValidColumn,
-			room.Table:      room.ValidColumn,
-			user.Table:      user.ValidColumn,
+			character.Table:   character.ValidColumn,
+			equipment.Table:   equipment.ValidColumn,
+			npctemplate.Table: npctemplate.ValidColumn,
+			room.Table:        room.ValidColumn,
+			user.Table:        user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)
