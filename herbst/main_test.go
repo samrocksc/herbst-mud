@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -365,5 +366,44 @@ func TestNoDebugOutput(t *testing.T) {
 		}
 		
 		t.Log("All screens render without debug log output")
+	})
+
+	// Test that debug logging is disabled in Update and processInput
+	t.Run("Debug logging statements are commented out in Update", func(t *testing.T) {
+		// Read the main.go file and check that debug log.Printf are commented
+		content, err := os.ReadFile("main.go")
+		if err != nil {
+			t.Fatalf("Failed to read main.go: %v", err)
+		}
+
+		// Check that active (non-commented) debug logs don't exist in Update/processInput
+		lines := strings.Split(string(content), "\n")
+		updateStarted := false
+		processInputStarted := false
+
+		for _, line := range lines {
+			if strings.Contains(line, "func (m *model) Update(") {
+				updateStarted = true
+				processInputStarted = false
+			}
+			if strings.Contains(line, "func (m *model) processInput(") {
+				processInputStarted = true
+				updateStarted = false
+			}
+			if strings.Contains(line, "func (m *model) handle") && processInputStarted {
+				processInputStarted = false
+			}
+
+			// Check for active debug log.Printf in Update and processInput functions
+			isCommented := strings.HasPrefix(strings.TrimSpace(line), "//")
+
+			if (updateStarted || processInputStarted) && strings.Contains(line, "log.Printf") && !isCommented {
+				// Check if it's actually a debug log (not error logging)
+				if !strings.Contains(line, "Warning") && !strings.Contains(line, "Error") {
+					t.Errorf("Found active debug log.Printf in Update/processInput: %s", strings.TrimSpace(line))
+				}
+			}
+		}
+		t.Log("Debug logging properly disabled in Update and processInput")
 	})
 }
