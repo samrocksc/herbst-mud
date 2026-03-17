@@ -396,7 +396,7 @@ func (c *AvailableTalentClient) QueryCharacter(_m *AvailableTalent) *CharacterQu
 		step := sqlgraph.NewStep(
 			sqlgraph.From(availabletalent.Table, availabletalent.FieldID, id),
 			sqlgraph.To(character.Table, character.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, availabletalent.CharacterTable, availabletalent.CharacterColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, availabletalent.CharacterTable, availabletalent.CharacterPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -412,7 +412,7 @@ func (c *AvailableTalentClient) QueryTalent(_m *AvailableTalent) *TalentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(availabletalent.Table, availabletalent.FieldID, id),
 			sqlgraph.To(talent.Table, talent.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, availabletalent.TalentTable, availabletalent.TalentColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, availabletalent.TalentTable, availabletalent.TalentPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -601,6 +601,22 @@ func (c *CharacterClient) QueryNpcTemplate(_m *Character) *NPCTemplateQuery {
 	return query
 }
 
+// QueryAvailableTalents queries the available_talents edge of a Character.
+func (c *CharacterClient) QueryAvailableTalents(_m *Character) *AvailableTalentQuery {
+	query := (&AvailableTalentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(availabletalent.Table, availabletalent.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, character.AvailableTalentsTable, character.AvailableTalentsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySkills queries the skills edge of a Character.
 func (c *CharacterClient) QuerySkills(_m *Character) *CharacterSkillQuery {
 	query := (&CharacterSkillClient{config: c.config}).Query()
@@ -626,22 +642,6 @@ func (c *CharacterClient) QueryTalents(_m *Character) *CharacterTalentQuery {
 			sqlgraph.From(character.Table, character.FieldID, id),
 			sqlgraph.To(charactertalent.Table, charactertalent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, character.TalentsTable, character.TalentsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAvailableTalents queries the available_talents edge of a Character.
-func (c *CharacterClient) QueryAvailableTalents(_m *Character) *AvailableTalentQuery {
-	query := (&AvailableTalentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(character.Table, character.FieldID, id),
-			sqlgraph.To(availabletalent.Table, availabletalent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, character.AvailableTalentsTable, character.AvailableTalentsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1732,7 +1732,7 @@ func (c *TalentClient) QueryAvailableToCharacters(_m *Talent) *AvailableTalentQu
 		step := sqlgraph.NewStep(
 			sqlgraph.From(talent.Table, talent.FieldID, id),
 			sqlgraph.To(availabletalent.Table, availabletalent.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, talent.AvailableToCharactersTable, talent.AvailableToCharactersColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, talent.AvailableToCharactersTable, talent.AvailableToCharactersPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

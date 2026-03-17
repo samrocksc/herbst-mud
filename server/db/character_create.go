@@ -197,6 +197,20 @@ func (_c *CharacterCreate) SetNillableClass(v *string) *CharacterCreate {
 	return _c
 }
 
+// SetSpecialty sets the "specialty" field.
+func (_c *CharacterCreate) SetSpecialty(v string) *CharacterCreate {
+	_c.mutation.SetSpecialty(v)
+	return _c
+}
+
+// SetNillableSpecialty sets the "specialty" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableSpecialty(v *string) *CharacterCreate {
+	if v != nil {
+		_c.SetSpecialty(*v)
+	}
+	return _c
+}
+
 // SetLevel sets the "level" field.
 func (_c *CharacterCreate) SetLevel(v int) *CharacterCreate {
 	_c.mutation.SetLevel(v)
@@ -484,6 +498,21 @@ func (_c *CharacterCreate) SetNpcTemplate(v *NPCTemplate) *CharacterCreate {
 	return _c.SetNpcTemplateID(v.ID)
 }
 
+// AddAvailableTalentIDs adds the "available_talents" edge to the AvailableTalent entity by IDs.
+func (_c *CharacterCreate) AddAvailableTalentIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddAvailableTalentIDs(ids...)
+	return _c
+}
+
+// AddAvailableTalents adds the "available_talents" edges to the AvailableTalent entity.
+func (_c *CharacterCreate) AddAvailableTalents(v ...*AvailableTalent) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAvailableTalentIDs(ids...)
+}
+
 // AddSkillIDs adds the "skills" edge to the CharacterSkill entity by IDs.
 func (_c *CharacterCreate) AddSkillIDs(ids ...int) *CharacterCreate {
 	_c.mutation.AddSkillIDs(ids...)
@@ -512,21 +541,6 @@ func (_c *CharacterCreate) AddTalents(v ...*CharacterTalent) *CharacterCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddTalentIDs(ids...)
-}
-
-// AddAvailableTalentIDs adds the "available_talents" edge to the AvailableTalent entity by IDs.
-func (_c *CharacterCreate) AddAvailableTalentIDs(ids ...int) *CharacterCreate {
-	_c.mutation.AddAvailableTalentIDs(ids...)
-	return _c
-}
-
-// AddAvailableTalents adds the "available_talents" edges to the AvailableTalent entity.
-func (_c *CharacterCreate) AddAvailableTalents(v ...*AvailableTalent) *CharacterCreate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddAvailableTalentIDs(ids...)
 }
 
 // Mutation returns the CharacterMutation object of the builder.
@@ -833,6 +847,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 		_spec.SetField(character.FieldClass, field.TypeString, value)
 		_node.Class = value
 	}
+	if value, ok := _c.mutation.Specialty(); ok {
+		_spec.SetField(character.FieldSpecialty, field.TypeString, value)
+		_node.Specialty = value
+	}
 	if value, ok := _c.mutation.Level(); ok {
 		_spec.SetField(character.FieldLevel, field.TypeInt, value)
 		_node.Level = value
@@ -952,6 +970,22 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 		_node.character_npc_template = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.AvailableTalentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   character.AvailableTalentsTable,
+			Columns: character.AvailableTalentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.SkillsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -977,22 +1011,6 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.AvailableTalentsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   character.AvailableTalentsTable,
-			Columns: []string{character.AvailableTalentsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -40,6 +40,8 @@ const (
 	FieldRace = "race"
 	// FieldClass holds the string denoting the class field in the database.
 	FieldClass = "class"
+	// FieldSpecialty holds the string denoting the specialty field in the database.
+	FieldSpecialty = "specialty"
 	// FieldLevel holds the string denoting the level field in the database.
 	FieldLevel = "level"
 	// FieldConstitution holds the string denoting the constitution field in the database.
@@ -80,12 +82,12 @@ const (
 	EdgeRoom = "room"
 	// EdgeNpcTemplate holds the string denoting the npctemplate edge name in mutations.
 	EdgeNpcTemplate = "npcTemplate"
+	// EdgeAvailableTalents holds the string denoting the available_talents edge name in mutations.
+	EdgeAvailableTalents = "available_talents"
 	// EdgeSkills holds the string denoting the skills edge name in mutations.
 	EdgeSkills = "skills"
 	// EdgeTalents holds the string denoting the talents edge name in mutations.
 	EdgeTalents = "talents"
-	// EdgeAvailableTalents holds the string denoting the available_talents edge name in mutations.
-	EdgeAvailableTalents = "available_talents"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -109,6 +111,11 @@ const (
 	NpcTemplateInverseTable = "npc_templates"
 	// NpcTemplateColumn is the table column denoting the npcTemplate relation/edge.
 	NpcTemplateColumn = "character_npc_template"
+	// AvailableTalentsTable is the table that holds the available_talents relation/edge. The primary key declared below.
+	AvailableTalentsTable = "character_available_talents"
+	// AvailableTalentsInverseTable is the table name for the AvailableTalent entity.
+	// It exists in this package in order to avoid circular dependency with the "availabletalent" package.
+	AvailableTalentsInverseTable = "available_talents"
 	// SkillsTable is the table that holds the skills relation/edge.
 	SkillsTable = "character_skills"
 	// SkillsInverseTable is the table name for the CharacterSkill entity.
@@ -123,13 +130,6 @@ const (
 	TalentsInverseTable = "character_talents"
 	// TalentsColumn is the table column denoting the talents relation/edge.
 	TalentsColumn = "character_talents"
-	// AvailableTalentsTable is the table that holds the available_talents relation/edge.
-	AvailableTalentsTable = "available_talents"
-	// AvailableTalentsInverseTable is the table name for the AvailableTalent entity.
-	// It exists in this package in order to avoid circular dependency with the "availabletalent" package.
-	AvailableTalentsInverseTable = "available_talents"
-	// AvailableTalentsColumn is the table column denoting the available_talents relation/edge.
-	AvailableTalentsColumn = "character_available_talents"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -149,6 +149,7 @@ var Columns = []string{
 	FieldMaxMana,
 	FieldRace,
 	FieldClass,
+	FieldSpecialty,
 	FieldLevel,
 	FieldConstitution,
 	FieldGender,
@@ -175,6 +176,12 @@ var ForeignKeys = []string{
 	"room_characters",
 	"user_characters",
 }
+
+var (
+	// AvailableTalentsPrimaryKey and AvailableTalentsColumn2 are the table columns denoting the
+	// primary key for the available_talents relation (M2M).
+	AvailableTalentsPrimaryKey = []string{"character_id", "available_talent_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -322,6 +329,11 @@ func ByClass(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldClass, opts...).ToFunc()
 }
 
+// BySpecialty orders the results by the specialty field.
+func BySpecialty(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSpecialty, opts...).ToFunc()
+}
+
 // ByLevel orders the results by the level field.
 func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLevel, opts...).ToFunc()
@@ -428,6 +440,20 @@ func ByNpcTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByAvailableTalentsCount orders the results by available_talents count.
+func ByAvailableTalentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAvailableTalentsStep(), opts...)
+	}
+}
+
+// ByAvailableTalents orders the results by available_talents terms.
+func ByAvailableTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAvailableTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // BySkillsCount orders the results by skills count.
 func BySkillsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -455,20 +481,6 @@ func ByTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-
-// ByAvailableTalentsCount orders the results by available_talents count.
-func ByAvailableTalentsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAvailableTalentsStep(), opts...)
-	}
-}
-
-// ByAvailableTalents orders the results by available_talents terms.
-func ByAvailableTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAvailableTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -490,6 +502,13 @@ func newNpcTemplateStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, false, NpcTemplateTable, NpcTemplateColumn),
 	)
 }
+func newAvailableTalentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AvailableTalentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, AvailableTalentsTable, AvailableTalentsPrimaryKey...),
+	)
+}
 func newSkillsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -502,12 +521,5 @@ func newTalentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TalentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TalentsTable, TalentsColumn),
-	)
-}
-func newAvailableTalentsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AvailableTalentsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AvailableTalentsTable, AvailableTalentsColumn),
 	)
 }

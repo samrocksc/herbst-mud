@@ -2,7 +2,6 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -40,6 +39,9 @@ func (Character) Fields() []ent.Field {
 			Default("human"),
 		field.String("class").
 			Default("adventurer"),
+		field.String("specialty").
+			Optional().
+			Comment("Class specialty (e.g., fighter for warrior)"),
 		field.Int("level").
 			Default(1),
 		field.Int("constitution").
@@ -89,11 +91,8 @@ func (Character) Edges() []ent.Edge {
 			Unique(),
 		edge.To("npcTemplate", NPCTemplate.Type).
 			Unique(),
-		edge.To("skills", CharacterSkill.Type).
-			Annotations(entsql.OnDelete(entsql.Cascade)),
-		edge.To("talents", CharacterTalent.Type).
-			Annotations(entsql.OnDelete(entsql.Cascade)),
-		edge.To("available_talents", AvailableTalent.Type).
-			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("available_talents", AvailableTalent.Type),
+		edge.To("skills", CharacterSkill.Type),
+		edge.To("talents", CharacterTalent.Type),
 	}
 }
