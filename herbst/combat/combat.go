@@ -1,6 +1,9 @@
 package combat
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // Combat represents a single combat encounter
 type Combat struct {
@@ -123,6 +126,11 @@ func (p *Participant) CanAct() bool {
 // AddLogEntry adds an entry to the combat log
 func (c *Combat) AddLogEntry(entry CombatLogEntry) {
 	c.Log = append(c.Log, entry)
+}
+
+// FormatCombatLog is a helper for consistent log formatting
+func FormatCombatLog(format string, args ...interface{}) string {
+	return fmt.Sprintf(format, args...)
 }
 
 // GetParticipantByID finds a participant by their ID

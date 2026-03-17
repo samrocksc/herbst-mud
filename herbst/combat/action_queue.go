@@ -21,49 +21,12 @@ const (
 	PriorityLast
 )
 
-// ActionType defines how an action executes
-type ActionType string
-
-const (
-	// ActionInstant executes immediately in the current tick
-	ActionInstant ActionType = "INSTANT"
-	// ActionChannel requires multiple ticks to complete
-	ActionChannel ActionType = "CHANNEL"
-	// ActionCharge requires buildup before execution
-	ActionCharge ActionType = "CHARGE"
-)
-
-// Action represents a combat action that can be performed
-type Action struct {
-	ID           string        `json:"id"`
-	Name         string        `json:"name"`
-	Description  string        `json:"description"`
-	Type         ActionType    `json:"type"`
-	Priority     ActionPriority `json:"priority"`
-	TickCost     int           `json:"tickCost"`      // Ticks required to execute
-	ChannelTicks int           `json:"channelTicks"`  // For channeling: total ticks
-	ChargeTicks  int           `json:"chargeTicks"`   // For charging: ticks to charge
-
-	// Base damage/healing
-	BaseDamage   int           `json:"baseDamage"`
-	BaseHeal     int           `json:"baseHeal"`
-
-	// Requirements
-	ManaCost     int           `json:"manaCost"`
-	StaminaCost  int           `json:"staminaCost"`
-	Cooldown     int           `json:"cooldown"`      // Ticks before can use again
-
-	// Flags
-	IsAttack     bool          `json:"isAttack"`
-	IsDefend     bool           `json:"isDefend"`
-	IsHeal       bool           `json:"isHeal"`
-	IsFlee       bool           `json:"isFlee"`
-	IsWait       bool           `json:"isWait"`
-}
+// Action is an alias to ActionDefinition for queue compatibility
+// The full definition is in actions.go
 
 // QueuedAction represents an action queued for a specific tick
 type QueuedAction struct {
-	Action      *Action     `json:"action"`
+	Action      *ActionDefinition `json:"action"`
 	Source      *Participant `json:"source"`
 	Target      *Participant `json:"target"`
 	TickNumber  int         `json:"tickNumber"`  // Which tick this executes on
@@ -87,7 +50,7 @@ func NewActionQueue() *ActionQueue {
 }
 
 // Queue adds an action to the queue
-func (aq *ActionQueue) Queue(action *Action, source, target *Participant, tickNumber int) *QueuedAction {
+func (aq *ActionQueue) Queue(action *ActionDefinition, source, target *Participant, tickNumber int) *QueuedAction {
 	aq.mu.Lock()
 	defer aq.mu.Unlock()
 
@@ -114,12 +77,12 @@ func (aq *ActionQueue) Queue(action *Action, source, target *Participant, tickNu
 }
 
 // QueueImmediate queues an action for immediate execution (current tick)
-func (aq *ActionQueue) QueueImmediate(action *Action, source, target *Participant, currentTick int) *QueuedAction {
+func (aq *ActionQueue) QueueImmediate(action *ActionDefinition, source, target *Participant, currentTick int) *QueuedAction {
 	return aq.Queue(action, source, target, currentTick)
 }
 
 // QueueForNextTick queues an action for the next tick
-func (aq *ActionQueue) QueueForNextTick(action *Action, source, target *Participant, currentTick int) *QueuedAction {
+func (aq *ActionQueue) QueueForNextTick(action *ActionDefinition, source, target *Participant, currentTick int) *QueuedAction {
 	return aq.Queue(action, source, target, currentTick+1)
 }
 
