@@ -27,6 +27,9 @@ type Combat struct {
 
 	// Combat log entries
 	Log []CombatLogEntry
+
+	// Weapon drops by player ID (populated on victory)
+	WeaponDrops map[int][]*WeaponDrop `json:"weaponDrops,omitempty"`
 }
 
 // CombatLogEntry represents a single entry in the combat log
@@ -40,6 +43,16 @@ type CombatLogEntry struct {
 	Value     int       `json:"value,omitempty"`
 }
 
+// WeaponDrop represents a weapon that can be dropped
+type WeaponDrop struct {
+	Name             string `json:"name"`
+	WeaponType       string `json:"weaponType"` // "sword", "pipe", "dagger", etc.
+	ClassRestriction string `json:"classRestriction"` // "warrior", "chef", etc. - empty means any
+	MinDamage        int    `json:"minDamage"`
+	MaxDamage        int    `json:"maxDamage"`
+	Guaranteed       bool   `json:"guaranteed"` // Guaranteed first drop
+}
+
 // Participant represents a character in combat
 type Participant struct {
 	ID           int       `json:"id"`
@@ -48,6 +61,10 @@ type Participant struct {
 	IsNPC        bool      `json:"isNPC"`
 	UserID       int       `json:"userId,omitempty"` // For players
 	NPCID        int       `json:"npcId,omitempty"`  // For NPCs
+
+	// Weapon drop fields
+	HasGuaranteedDrop bool   `json:"hasGuaranteedDrop"` // NPC has guaranteed weapon drop
+	DropWeapon        string `json:"dropWeapon"`        // Name of weapon to drop
 
 	// Stats
 	HP           int       `json:"hp"`
