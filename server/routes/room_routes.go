@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/db/character"
 )
 
 // RegisterRoomRoutes registers all room-related routes
@@ -127,5 +128,38 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		c.JSON(http.StatusNoContent, nil)
+	})
+
+	// Get characters in a room (for displaying NPCs vs players)
+	router.GET("/rooms/:id/characters", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+			return
+		}
+
+		characters, err := client.Character.Query().
+			Where(character.CurrentRoomId(id)).
+			All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Return characters without sensitive data
+		result := make([]gin.H, len(characters))
+		for i, char := range characters {
+			result[i] = gin.H{
+				"id":       char.ID,
+				"name":     char.Name,
+				"isNPC":    char.IsNPC,
+				"level":    char.Level,
+				"class":    char.Class,
+				"race":     char.Race,
+				"userId":   char.UserID,
+			}
+		}
+
+		c.JSON(http.StatusOK, result)
 	})
 }
