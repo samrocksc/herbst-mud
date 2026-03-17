@@ -91,6 +91,11 @@ func main() {
 		if err := dbinit.InitAdminUser(client); err != nil {
 			log.Printf("Warning: failed to initialize admin user: %v", err)
 		}
+
+		// Initialize Gizmo NPC and fountain room
+		if err := dbinit.InitGizmo(client); err != nil {
+			log.Printf("Warning: failed to initialize Gizmo: %v", err)
+		}
 	}
 
 	// Pass client to server options
@@ -225,7 +230,6 @@ var (
 	green  = lipgloss.Color("46")
 	yellow = lipgloss.Color("226")
 	blue   = lipgloss.Color("75")
-	cyan   = lipgloss.Color("81")  // Lighter blue for login
 	purple = lipgloss.Color("141")
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
@@ -977,59 +981,6 @@ func (m *model) handleEditFieldInput(input string) {
 	m.inputBuffer = ""
 }
 
-// createCharacterInDB creates a character in the database via the API
-func (m *model) createCharacterInDB() {
-	if m.currentUserID == 0 {
-		log.Printf("Cannot create character: no user logged in")
-		return
-	}
-
-	// Use the REST API to create the character
-	jsonData, err := json.Marshal(map[string]interface{}{
-		"name":    m.currentUserName,
-		"userId":  m.currentUserID,
-		"isNPC":   false,
-	})
-	if err != nil {
-		log.Printf("Error marshaling character data: %v", err)
-		return
-	}
-
-	resp, err := http.Post(RESTAPIBase+"/characters", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		log.Printf("Error creating character: %v", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		log.Printf("Failed to create character, status: %d", resp.StatusCode)
-		return
-	}
-
-	var result map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		log.Printf("Error decoding character response: %v", err)
-		return
-	}
-	if _, ok := result["id"]; !ok {
-		log.Printf("Character created but no ID returned")
-		return
-	}
-
-	if id, ok := result["id"].(float64); ok {
-		m.currentCharacterID = int(id)
-		log.Printf("Character created successfully with ID: %d", m.currentCharacterID)
-	}
-
-	// Set gender/description to default values that will be saved to DB
-	m.characterGender = "unspecified"
-	m.characterDescription = "A mysterious figure."
-
-	// Now save these defaults to the DB
-	m.saveProfileToDB()
-}
-
 // saveProfileToDB sends profile updates (gender, description) to the server
 func (m *model) saveProfileToDB() {
 	if m.currentCharacterID == 0 {
@@ -1114,9 +1065,19 @@ func (m *model) loadOrCreateCharacter() {
 	ctx := context.Background()
 	chars, err := m.client.Character.Query().Where(character.HasUserWith(user.IDEQ(m.currentUserID))).All(ctx)
 	if err != nil || len(chars) == 0 {
-		// No character in DB yet - try to create one via API
-		log.Printf("No character found for user %d, attempting to create...", m.currentUserID)
-		m.createCharacterInDB()
+		// No character yet - use defaults
+		m.currentCharacterName = m.currentUserName
+		m.characterGender = "unspecified"
+		m.characterDescription = "A mysterious figure."
+		// Default stats for new characters (Level 1)
+		m.characterHP = 100
+		m.characterMaxHP = 100
+		m.characterStamina = 50
+		m.characterMaxStamina = 50
+		m.characterMana = 25
+		m.characterMaxMana = 25
+		m.characterLevel = 1
+		m.characterExperience = 0
 		return
 	}
 
@@ -1151,10 +1112,6 @@ func (m *model) View() string {
 	var s strings.Builder
 
 	// Debug: log.Printf("View() called, screen: %s, inputBuffer: %q", m.screen, m.inputBuffer)
-
-	// Clear screen before each render to prevent previous state showing below new content
-	// This fixes the "output re-rendering glitch" where previous state appears below new content
-	s.WriteString("\033[2J\033[H")
 
 	// Show loading spinner if loading
 	if m.isLoading {
@@ -1192,62 +1149,24 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
-		// Use split-screen layout like ScreenPlaying
-		outputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(cyan).
-			Padding(0, 1)
-
-		loginContent := loginScreen(m.width, m.height)
-		if m.message != "" {
-			loginContent += "\n\n" + m.styledMessage(m.message)
-		}
-
-		s.WriteString(outputStyle.Render(loginContent))
+		s.WriteString(loginScreen())
 		s.WriteString("\n\n")
-
-		// Separator
-		separatorStyle := lipgloss.NewStyle().
-			Foreground(cyan).
-			Bold(true)
-		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
-		s.WriteString("\n")
-
-		// Input area
-		inputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(cyan).
-			Padding(0, 1)
-		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
+		}
+		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
+		s.WriteString(m.textInput.View())
 
 	case ScreenRegister:
-		// Use split-screen layout like ScreenPlaying
-		outputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
-			Padding(0, 1)
-
-		registerContent := registerScreen(m.width, m.height)
-		if m.message != "" {
-			registerContent += "\n\n" + m.styledMessage(m.message)
-		}
-
-		s.WriteString(outputStyle.Render(registerContent))
+		s.WriteString(registerScreen())
 		s.WriteString("\n\n")
-
-		// Separator
-		separatorStyle := lipgloss.NewStyle().
-			Foreground(purple).
-			Bold(true)
-		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
-		s.WriteString("\n")
-
-		// Input area
-		inputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
-			Padding(0, 1)
-		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
+		}
+		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
+		s.WriteString(m.textInput.View())
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
@@ -1440,49 +1359,21 @@ func welcomeScreen() string {
 `)
 }
 
-func loginScreen(width, height int) string {
-	// Calculate dynamic dimensions
-	boxWidth := 60
-	if width > 70 {
-		boxWidth = width - 20
-	}
-	if boxWidth > 100 {
-		boxWidth = 100
-	}
-
-	verticalPadding := 2
-	if height > 20 {
-		verticalPadding = (height - 16) / 2
-	}
-	if verticalPadding > 10 {
-		verticalPadding = 10
-	}
-
-	// Build dynamic login screen
-	horizontalBorder := strings.Repeat("═", boxWidth-2)
-
-	var sb strings.Builder
-	// Top padding for vertical centering
-	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	// Box
-	sb.WriteString(lipgloss.NewStyle().
-		Width(boxWidth).
+func loginScreen() string {
+	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("75")).
 		Padding(1, 2).
-		Render(fmt.Sprintf(`
-╔%s╗
-║%s║
-║%s║
-║%s║
-╚%s╝
-`, horizontalBorder,
-			strings.Repeat(" ", boxWidth-2),
-			"                      LOGIN                          ",
-			"  Enter your credentials to continue your adventure.  ",
-			horizontalBorder)))
-
-	return sb.String()
+		Render(`
+╔════════════════════════════════════════════════════════════╗
+║                        LOGIN                                  ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║   Enter your credentials to continue your adventure.        ║
+║   Press ESC to go back to the main menu.                    ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+`)
 }
 
 func registerScreen(width, height int) string {
@@ -1514,6 +1405,7 @@ func registerScreen(width, height int) string {
 		Width(boxWidth).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(purple).
+>>>>>>> origin/main
 		Padding(1, 2).
 		Render(`
 ╔════════════════════════════════════════════════════════════╗
@@ -1526,4 +1418,3 @@ func registerScreen(width, height int) string {
 ╚════════════════════════════════════════════════════════════╝
 `)
 }
->>>>>>> main
