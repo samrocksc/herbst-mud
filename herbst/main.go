@@ -102,6 +102,11 @@ func main() {
 		if err := dbinit.InitFountainItem(client); err != nil {
 			log.Printf("Warning: failed to initialize fountain item: %v", err)
 		}
+
+		// Initialize starter weapons in the Junkyard
+		if err := dbinit.InitWeapons(client); err != nil {
+			log.Printf("Warning: failed to initialize starter weapons: %v", err)
+		}
 	}
 
 	// Pass client to server options
@@ -1057,6 +1062,7 @@ func (m *model) processCommand(cmd string) {
   peer <dir> - Peek at adjacent room
   whoami - Show your info
   profile/p - Edit character profile
+  pickup/get/take - Pick up a weapon
   clear/cls - Clear screen
   quit - Exit game`
 		m.messageType = "info"
@@ -1106,6 +1112,9 @@ func (m *model) processCommand(cmd string) {
 		m.message = ""
 		m.messageType = ""
 		m.inputBuffer = ""
+		return
+	case "pickup", "get", "take":
+		m.handlePickupCommand()
 		return
 	case "quit", "q":
 		m.message = "Thanks for playing! Goodbye!"
@@ -1363,6 +1372,77 @@ func (m *model) handleDebugCommand(cmd string) {
 		m.message = "Usage: debug on | debug off"
 		m.messageType = "error"
 	}
+}
+
+// handlePickupCommand handles the pickup/get/take command to pick up items from the room
+func (m *model) handlePickupCommand() {
+	ctx := context.Background()
+
+	// Get current room's items
+	room, err := m.client.Room.Get(ctx, m.currentRoomID)
+	if err != nil {
+		m.message = "Error: Could not find current room."
+		m.messageType = "error"
+		return
+	}
+
+	items, err := m.client.Room.QueryEquipment(room).All(ctx)
+	if err != nil {
+		m.message = "Error: Could not query room items."
+		m.messageType = "error"
+		return
+	}
+
+	// Filter for pickable items (not immovable, visible, weapon type)
+	var pickableItems []*db.Equipment
+	for _, item := range items {
+		if !item.IsImmovable && item.IsVisible && item.ItemType == "weapon" && item.IsDroppable {
+			pickableItems = append(pickableItems, item)
+		}
+	}
+
+	if len(pickableItems) == 0 {
+		m.message = "There are no weapons here to pick up."
+		m.messageType = "info"
+		return
+	}
+
+	// Get the first pickable weapon
+	weapon := pickableItems[0]
+
+	// Check character class restriction
+	char, err := m.client.Character.Get(ctx, m.currentCharacterID)
+	if err != nil {
+		m.message = "Error: Could not find your character."
+		m.messageType = "error"
+		return
+	}
+
+	if weapon.ClassRestriction != "" && weapon.ClassRestriction != "all" && weapon.ClassRestriction != char.Class {
+		m.message = fmt.Sprintf("You cannot use the %s - it's restricted to %s class.", weapon.Name, weapon.ClassRestriction)
+		m.messageType = "error"
+		return
+	}
+
+	// Move weapon from room to character inventory
+	err = m.client.Equipment.UpdateOne(weapon).
+		SetRoom(nil).
+		SetCharacter(char).
+		SetIsEquipped(true).
+		Exec(ctx)
+	if err != nil {
+		m.message = fmt.Sprintf("Error: Could not pick up %s: %v", weapon.Name, err)
+		m.messageType = "error"
+		return
+	}
+
+	// Format success message with weapon details
+	m.message = fmt.Sprintf("You pick up the %s!\n  Damage: %d-%d\n  Type: %s\n\nIt glows faintly in your hand as you equip it.",
+		weapon.Name, weapon.MinDamage, weapon.MaxDamage, weapon.WeaponType)
+	m.messageType = "success"
+
+	// Update character's equipped weapon reference if needed
+	m.message += "\n(Use 'unequip' to remove it)"
 }
 
 func (m *model) loadOrCreateCharacter() {

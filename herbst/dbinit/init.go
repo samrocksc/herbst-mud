@@ -7,6 +7,7 @@ import (
 
 	"herbst/db"
 	"herbst/db/character"
+	"herbst/db/ent/equipment"
 	"herbst/db/npctemplate"
 	"herbst/db/room"
 )
@@ -336,5 +337,87 @@ func InitFountainItem(client *db.Client) error {
 	}
 
 	log.Printf("Fountain item created in room %s (ID: %d)", startingRoom.Name, startingRoom.ID)
+	return nil
+}
+
+// InitWeapons creates starter weapons in the Junkyard for Rust Bucket Golem drops
+func InitWeapons(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if weapons already exist
+	existingWeapons, err := client.Equipment.Query().Where(
+		dbequipment.ItemTypeEQ("weapon"),
+		dbequipment.GuaranteedDropEQ(true),
+	).Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to query existing weapons: %w", err)
+	}
+	if existingWeapons > 0 {
+		log.Println("Starter weapons already exist, skipping...")
+		return nil
+	}
+
+	// Find or create the Junkyard room
+	var junkyardRoom *db.Room
+	junkyardRoom, err = client.Room.Query().Where(room.NameEQ("Junkyard")).Only(ctx)
+	if err != nil {
+		// Try to find any room to use as fallback
+		junkyardRoom, err = client.Room.Query().Only(ctx)
+		if err != nil {
+			log.Println("Warning: no rooms found, skipping weapon initialization")
+			return nil
+		}
+		log.Printf("Junkyard room not found, using %s as fallback", junkyardRoom.Name)
+	}
+
+	// Create Rusty Sword (Warrior starter weapon)
+	_, err = client.Equipment.Create().
+		SetName("Rusty Sword").
+		SetDescription("A worn and battered sword. Still sharp enough to cut through the Ooze.").
+		SetSlot("weapon").
+		SetLevel(1).
+		SetWeight(5).
+		SetIsEquipped(false).
+		SetItemType("weapon").
+		SetMinDamage(1).
+		SetMaxDamage(3).
+		SetWeaponType("sword").
+		SetClassRestriction("warrior").
+		SetIsDroppable(true).
+		SetGuaranteedDrop(true).
+		SetColor("red").
+		SetIsVisible(true).
+		SetRoom(junkyardRoom).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Rusty Sword: %w", err)
+	}
+	log.Println("Rusty Sword created (Warrior starter weapon)")
+
+	// Create Twisted Pipe (Chef starter weapon)
+	_, err = client.Equipment.Create().
+		SetName("Twisted Pipe").
+		SetDescription("A crinkled pipe from the junkyard. Crude but effective in the right hands.").
+		SetSlot("weapon").
+		SetLevel(1).
+		SetWeight(3).
+		SetIsEquipped(false).
+		SetItemType("weapon").
+		SetMinDamage(1).
+		SetMaxDamage(2).
+		SetWeaponType("pipe").
+		SetClassRestriction("chef").
+		SetIsDroppable(true).
+		SetGuaranteedDrop(true).
+		SetColor("cyan").
+		SetIsVisible(true).
+		SetRoom(junkyardRoom).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Twisted Pipe: %w", err)
+	}
+	log.Println("Twisted Pipe created (Chef starter weapon)")
+
+	log.Printf("Starter weapons created in %s (ID: %d)", junkyardRoom.Name, junkyardRoom.ID)
 	return nil
 }

@@ -336,10 +336,53 @@ func (csm *CombatStateMachine) endCombat(result, reason string) {
 		Message:   FormatCombatLog("Combat ended: %s - %s", result, reason),
 	})
 
+	// Handle weapon drops on NPC defeat (victory)
+	if result == "victory" {
+		csm.handleWeaponDrops()
+	}
+
 	csm.TransitionTo(StateEnded)
 
 	if csm.combatManager != nil {
 		csm.combatManager.EndCombat(csm.combat.ID, reason)
+	}
+}
+
+// handleWeaponDrops processes weapon drops when enemies are defeated
+func (csm *CombatStateMachine) handleWeaponDrops() {
+	// Get all defeated NPCs in this combat
+	for _, participant := range csm.combat.Participants {
+		if participant.IsNPC && !participant.IsAlive {
+			// NPC was defeated - check if it has a guaranteed drop
+			csm.combat.AddLogEntry(CombatLogEntry{
+				Tick:      csm.combat.TickNumber,
+				Timestamp: time.Now(),
+				Type:      "loot",
+				TargetID:  participant.ID,
+				Message:   FormatCombatLog("%s has been defeated!", participant.Name),
+			})
+
+			// Log that a weapon can be picked up (actual pickup happens via game command)
+			csm.combat.AddLogEntry(CombatLogEntry{
+				Tick:      csm.combat.TickNumber,
+				Timestamp: time.Now(),
+				Type:      "loot",
+				Message:   FormatCombatLog("You see weapons among the remains..."),
+			})
+		}
+	}
+
+	// Log weapon availability to players
+	for _, participant := range csm.combat.Participants {
+		if participant.IsPlayer && participant.IsAlive {
+			csm.combat.AddLogEntry(CombatLogEntry{
+				Tick:      csm.combat.TickNumber,
+				Timestamp: time.Now(),
+				Type:      "loot",
+				TargetID:  participant.ID,
+				Message:   FormatCombatLog("Victory! Use 'pickup' to claim your weapon from the fallen!"),
+			})
+		}
 	}
 }
 
