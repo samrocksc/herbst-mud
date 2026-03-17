@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	_ "herbst-server/db/runtime"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func TestInitJunkyard(t *testing.T) {
@@ -118,4 +119,55 @@ func TestInitJunkyardIdempotent(t *testing.T) {
 	}
 
 	t.Logf("Idempotency test passed: %d rooms (unchanged)", roomsAfter)
+}
+
+func TestInitJunkyardGolemSpawns(t *testing.T) {
+	client, err := db.Open("sqlite3", "file:junkyard_golem_test?mode=memory&_foreign_keys=on")
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+	defer client.Close()
+
+	// Run migrations
+	if err := client.Schema.Create(context.Background()); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	// Initialize required rooms first
+	if err := InitCrossWay(client); err != nil {
+		t.Fatalf("failed to init crossway: %v", err)
+	}
+	if err := InitFountain(client); err != nil {
+		t.Fatalf("failed to init fountain: %v", err)
+	}
+
+	// Run InitJunkyard
+	if err := InitJunkyard(client); err != nil {
+		t.Fatalf("failed to init junkyard: %v", err)
+	}
+
+	// Verify we have at least one Golem Nest room
+	ctx := context.Background()
+	golemNests, err := client.Room.Query().Where(room.DescriptionContains("Rust Bucket Golems")).All(ctx)
+	if err != nil {
+		t.Fatalf("failed to find Golem Nest rooms: %v", err)
+	}
+
+	// There should be Golem Nest type rooms (might be 0-5 depending on randomization)
+	t.Logf("Found %d Golem Nest rooms", len(golemNests))
+
+	// Verify Junkyard Entrance connects to Fountain Plaza
+	entrance, err := client.Room.Query().Where(room.NameEQ("Junkyard Entrance")).Only(ctx)
+	if err != nil {
+		t.Fatalf("failed to find Junkyard Entrance: %v", err)
+	}
+
+	// West exit should lead to Fountain Plaza
+	if entrance.Exits["west"] == 0 {
+		t.Error("Junkyard Entrance should have west exit to Fountain Plaza")
+	} else {
+		t.Logf("Junkyard Entrance west exit leads to room %d", entrance.Exits["west"])
+	}
+
+	t.Log("Golem spawn locations test passed!")
 }

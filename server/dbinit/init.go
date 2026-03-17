@@ -350,7 +350,7 @@ func InitGizmoNPC(client *db.Client) error {
 		SetLevel(1).
 		SetRace("half-dog").
 		SetClass("adventurer").
-		SetNPCTemplate(gizmoTemplate).
+		SetNpcTemplate(gizmoTemplate).
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create Gizmo character: %w", err)
@@ -460,7 +460,7 @@ func InitJunkyard(client *db.Client) error {
 				Create().
 				SetName(name).
 				SetDescription(desc).
-				SetAtmosphere(atmosphere).
+				SetAtmosphere(room.AtmosphereWind).
 				SetIsStartingRoom(false).
 				SetExits(map[string]int{}).
 				Save(ctx)
