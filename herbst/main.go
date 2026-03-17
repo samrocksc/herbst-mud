@@ -37,6 +37,11 @@ func main() {
 		if err := dbinit.InitAdminUser(client); err != nil {
 			log.Printf("Warning: failed to initialize admin user: %v", err)
 		}
+
+		// Initialize skills and talents
+		if err := dbinit.InitSkillsAndTalents(client); err != nil {
+			log.Printf("Warning: failed to initialize skills and talents: %v", err)
+		}
 	}
 
 	// Pass client to server options
@@ -89,6 +94,7 @@ type model struct {
 	err         error
 
 	// Player state
+	characterId   int
 	currentRoom   int
 	roomName      string
 	roomDesc      string
@@ -157,6 +163,22 @@ func (m *model) processCommand(cmd string) {
 		return
 	}
 
+	// Handle commands with arguments
+	parts := strings.Fields(cmd)
+	if len(parts) > 1 {
+		baseCmd := parts[0]
+		args := parts[1:]
+		
+		switch baseCmd {
+		case "/swap-skill":
+			m.handleSwapSkill(args)
+			return
+		case "/swap-talent":
+			m.handleSwapTalent(args)
+			return
+		}
+	}
+
 	// Handle movement commands
 	if m.handleMovement(cmd) {
 		return
@@ -165,17 +187,97 @@ func (m *model) processCommand(cmd string) {
 	// Handle other commands
 	switch cmd {
 	case "help", "?":
-		m.message = "Commands:\n  n/north - Move north\n  s/south - Move south\n  e/east - Move east\n  w/west - Move west\n  look - Look around\n  exits - Show exits\n  quit - Exit game"
+		m.message = "Commands:\n  n/north - Move north\n  s/south - Move south\n  e/east - Move east\n  w/west - Move west\n  look - Look around\n  exits - Show exits\n  skills - Show your skills\n  talents - Show your talents\n  /swap-skill - Swap a skill\n  /swap-talent - Swap a talent\n  quit - Exit game"
 	case "look", "l":
 		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s", m.roomName, m.roomDesc, m.formatExits())
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExits())
+	case "skills":
+		m.handleSkillsCommand()
+	case "talents":
+		m.handleTalentsCommand()
+	case "swap-skill", "/swap-skill":
+		m.message = "Usage: /swap-skill <old_skill> <new_skill>\nUse 'skills' to see available skills"
+	case "swap-talent", "/swap-talent":
+		m.message = "Usage: /swap-talent <old_talent> <new_talent>\nUse 'talents' to see available talents"
 	case "quit", "q":
 		// Note: q is handled in Update, this is just fallback
 		m.message = "Type 'q' or Ctrl+C to quit"
 	default:
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
 	}
+}
+
+// handleSkillsCommand shows available skills
+func (m *model) handleSkillsCommand() {
+	if m.client == nil {
+		m.message = "Database not connected"
+		return
+	}
+
+	ctx := context.Background()
+
+	// Get all available skills
+	allSkills, err := m.client.Skill.Query().All(ctx)
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching skills: %v", err)
+		return
+	}
+
+	if len(allSkills) == 0 {
+		m.message = "No skills available yet."
+		return
+	}
+
+	var sb strings.Builder
+	sb.WriteString("=== AVAILABLE SKILLS ===\n\n")
+	for _, s := range allSkills {
+		sb.WriteString(fmt.Sprintf("[%s] %s\n", s.Name, s.Description))
+		sb.WriteString(fmt.Sprintf("  Type: %s | Cost: %d | Cooldown: %ds | Power: %d\n\n", 
+			s.Type, s.Cost, s.Cooldown, s.Power))
+	}
+
+	m.message = sb.String()
+}
+
+// handleTalentsCommand shows available talents
+func (m *model) handleTalentsCommand() {
+	if m.client == nil {
+		m.message = "Database not connected"
+		return
+	}
+
+	ctx := context.Background()
+
+	// Get all available talents
+	allTalents, err := m.client.Talent.Query().All(ctx)
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching talents: %v", err)
+		return
+	}
+
+	if len(allTalents) == 0 {
+		m.message = "No talents available yet."
+		return
+	}
+
+	var sb strings.Builder
+	sb.WriteString("=== AVAILABLE TALENTS ===\n\n")
+	for _, t := range allTalents {
+		sb.WriteString(fmt.Sprintf("[%s] %s\n", t.Name, t.Description))
+		if t.Requirements != nil && len(t.Requirements) > 0 {
+			sb.WriteString("  Requirements: ")
+			reqs := []string{}
+			for k, v := range t.Requirements {
+				reqs = append(reqs, fmt.Sprintf("%s %d", k, v))
+			}
+			sb.WriteString(strings.Join(reqs, ", "))
+			sb.WriteString("\n")
+		}
+		sb.WriteString("\n")
+	}
+
+	m.message = sb.String()
 }
 
 func (m *model) handleMovement(cmd string) bool {
@@ -213,6 +315,97 @@ func (m *model) handleMovement(cmd string) bool {
 	}
 
 	return true
+}
+
+// handleSwapSkill handles the /swap-skill command
+func (m *model) handleSwapSkill(args []string) {
+	if m.client == nil {
+		m.message = "Database not connected"
+		return
+	}
+
+	if len(args) != 2 {
+		m.message = "Usage: /swap-skill <old_skill> <new_skill>\nUse 'skills' to see available skills"
+		return
+	}
+
+	oldSkillName := args[0]
+	newSkillName := args[1]
+
+	ctx := context.Background()
+
+	// Get all skills and find the one with matching name
+	allSkills, err := m.client.Skill.Query().All(ctx)
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching skills: %v", err)
+		return
+	}
+
+	var newSkill *db.Skill
+	for _, s := range allSkills {
+		if strings.EqualFold(s.Name, newSkillName) {
+			newSkill = s
+			break
+		}
+	}
+
+	if newSkill == nil {
+		m.message = fmt.Sprintf("Skill '%s' not found. Use 'skills' to see available skills.", newSkillName)
+		return
+	}
+
+	// Check if character has skill points
+	// For now, we just do the swap (simplified version)
+	m.message = fmt.Sprintf("Skill swap feature coming soon!\nWould swap '%s' for '%s' (Cost: %d skill points)", 
+		oldSkillName, newSkill.Name, newSkill.Cost)
+}
+
+// handleSwapTalent handles the /swap-talent command
+func (m *model) handleSwapTalent(args []string) {
+	if m.client == nil {
+		m.message = "Database not connected"
+		return
+	}
+
+	if len(args) != 2 {
+		m.message = "Usage: /swap-talent <old_talent> <new_talent>\nUse 'talents' to see available talents"
+		return
+	}
+
+	oldTalentName := args[0]
+	newTalentName := args[1]
+
+	ctx := context.Background()
+
+	// Get all talents and find the one with matching name
+	allTalents, err := m.client.Talent.Query().All(ctx)
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching talents: %v", err)
+		return
+	}
+
+	var newTalent *db.Talent
+	for _, t := range allTalents {
+		if strings.EqualFold(t.Name, newTalentName) {
+			newTalent = t
+			break
+		}
+	}
+
+	if newTalent == nil {
+		m.message = fmt.Sprintf("Talent '%s' not found. Use 'talents' to see available talents.", newTalentName)
+		return
+	}
+
+	// Check requirements
+	if newTalent.Requirements != nil {
+		m.message = fmt.Sprintf("Talent swap feature coming soon!\nWould swap '%s' for '%s' (Requirements: %v)", 
+			oldTalentName, newTalent.Name, newTalent.Requirements)
+		return
+	}
+
+	m.message = fmt.Sprintf("Talent swap feature coming soon!\nWould swap '%s' for '%s'", 
+		oldTalentName, newTalent.Name)
 }
 
 func (m *model) formatExits() string {

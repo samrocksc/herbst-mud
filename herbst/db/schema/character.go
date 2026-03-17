@@ -21,6 +21,28 @@ func (Character) Fields() []ent.Field {
 		field.Int("startingRoomId"),
 		field.Bool("is_admin").
 			Default(false),
+		field.Int("class_id").
+			Default(0),
+		field.Int("race_id").
+			Default(0),
+		field.Int("gender_id").
+			Default(0),
+		field.Int("level").
+			Default(1),
+		field.Int("experience").
+			Default(0),
+		field.Int("skill_points").
+			Default(0),
+		field.Int("talent_points").
+			Default(0),
+		field.JSON("stats", map[string]int{
+			"strength":     10,
+			"dexterity":     10,
+			"constitution": 10,
+			"intelligence": 10,
+			"wisdom":        10,
+			"charisma":      10,
+		}),
 	}
 }
 
@@ -34,5 +56,7 @@ func (Character) Edges() []ent.Edge {
 			Field("currentRoomId").
 			Required().
 			Unique(),
+		edge.To("skills", Skill.Type),
+		edge.To("talents", Talent.Type),
 	}
 }

@@ -12,5 +12,11 @@ type Character func(*sql.Selector)
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
 
+// Skill is the predicate function for skill builders.
+type Skill func(*sql.Selector)
+
+// Talent is the predicate function for talent builders.
+type Talent func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

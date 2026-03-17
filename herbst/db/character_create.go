@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"herbst/db/character"
 	"herbst/db/room"
+	"herbst/db/skill"
+	"herbst/db/talent"
 	"herbst/db/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -47,6 +49,130 @@ func (_c *CharacterCreate) SetCurrentRoomId(v int) *CharacterCreate {
 	return _c
 }
 
+// SetStartingRoomId sets the "startingRoomId" field.
+func (_c *CharacterCreate) SetStartingRoomId(v int) *CharacterCreate {
+	_c.mutation.SetStartingRoomId(v)
+	return _c
+}
+
+// SetIsAdmin sets the "is_admin" field.
+func (_c *CharacterCreate) SetIsAdmin(v bool) *CharacterCreate {
+	_c.mutation.SetIsAdmin(v)
+	return _c
+}
+
+// SetNillableIsAdmin sets the "is_admin" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableIsAdmin(v *bool) *CharacterCreate {
+	if v != nil {
+		_c.SetIsAdmin(*v)
+	}
+	return _c
+}
+
+// SetClassID sets the "class_id" field.
+func (_c *CharacterCreate) SetClassID(v int) *CharacterCreate {
+	_c.mutation.SetClassID(v)
+	return _c
+}
+
+// SetNillableClassID sets the "class_id" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableClassID(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetClassID(*v)
+	}
+	return _c
+}
+
+// SetRaceID sets the "race_id" field.
+func (_c *CharacterCreate) SetRaceID(v int) *CharacterCreate {
+	_c.mutation.SetRaceID(v)
+	return _c
+}
+
+// SetNillableRaceID sets the "race_id" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableRaceID(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetRaceID(*v)
+	}
+	return _c
+}
+
+// SetGenderID sets the "gender_id" field.
+func (_c *CharacterCreate) SetGenderID(v int) *CharacterCreate {
+	_c.mutation.SetGenderID(v)
+	return _c
+}
+
+// SetNillableGenderID sets the "gender_id" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableGenderID(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetGenderID(*v)
+	}
+	return _c
+}
+
+// SetLevel sets the "level" field.
+func (_c *CharacterCreate) SetLevel(v int) *CharacterCreate {
+	_c.mutation.SetLevel(v)
+	return _c
+}
+
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableLevel(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetLevel(*v)
+	}
+	return _c
+}
+
+// SetExperience sets the "experience" field.
+func (_c *CharacterCreate) SetExperience(v int) *CharacterCreate {
+	_c.mutation.SetExperience(v)
+	return _c
+}
+
+// SetNillableExperience sets the "experience" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableExperience(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetExperience(*v)
+	}
+	return _c
+}
+
+// SetSkillPoints sets the "skill_points" field.
+func (_c *CharacterCreate) SetSkillPoints(v int) *CharacterCreate {
+	_c.mutation.SetSkillPoints(v)
+	return _c
+}
+
+// SetNillableSkillPoints sets the "skill_points" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableSkillPoints(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetSkillPoints(*v)
+	}
+	return _c
+}
+
+// SetTalentPoints sets the "talent_points" field.
+func (_c *CharacterCreate) SetTalentPoints(v int) *CharacterCreate {
+	_c.mutation.SetTalentPoints(v)
+	return _c
+}
+
+// SetNillableTalentPoints sets the "talent_points" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableTalentPoints(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetTalentPoints(*v)
+	}
+	return _c
+}
+
+// SetStats sets the "stats" field.
+func (_c *CharacterCreate) SetStats(v map[string]int) *CharacterCreate {
+	_c.mutation.SetStats(v)
+	return _c
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_c *CharacterCreate) SetUserID(id int) *CharacterCreate {
 	_c.mutation.SetUserID(id)
@@ -75,6 +201,36 @@ func (_c *CharacterCreate) SetRoomID(id int) *CharacterCreate {
 // SetRoom sets the "room" edge to the Room entity.
 func (_c *CharacterCreate) SetRoom(v *Room) *CharacterCreate {
 	return _c.SetRoomID(v.ID)
+}
+
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (_c *CharacterCreate) AddSkillIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddSkillIDs(ids...)
+	return _c
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (_c *CharacterCreate) AddSkills(v ...*Skill) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSkillIDs(ids...)
+}
+
+// AddTalentIDs adds the "talents" edge to the Talent entity by IDs.
+func (_c *CharacterCreate) AddTalentIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddTalentIDs(ids...)
+	return _c
+}
+
+// AddTalents adds the "talents" edges to the Talent entity.
+func (_c *CharacterCreate) AddTalents(v ...*Talent) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTalentIDs(ids...)
 }
 
 // Mutation returns the CharacterMutation object of the builder.
@@ -116,6 +272,38 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultIsNPC
 		_c.mutation.SetIsNPC(v)
 	}
+	if _, ok := _c.mutation.IsAdmin(); !ok {
+		v := character.DefaultIsAdmin
+		_c.mutation.SetIsAdmin(v)
+	}
+	if _, ok := _c.mutation.ClassID(); !ok {
+		v := character.DefaultClassID
+		_c.mutation.SetClassID(v)
+	}
+	if _, ok := _c.mutation.RaceID(); !ok {
+		v := character.DefaultRaceID
+		_c.mutation.SetRaceID(v)
+	}
+	if _, ok := _c.mutation.GenderID(); !ok {
+		v := character.DefaultGenderID
+		_c.mutation.SetGenderID(v)
+	}
+	if _, ok := _c.mutation.Level(); !ok {
+		v := character.DefaultLevel
+		_c.mutation.SetLevel(v)
+	}
+	if _, ok := _c.mutation.Experience(); !ok {
+		v := character.DefaultExperience
+		_c.mutation.SetExperience(v)
+	}
+	if _, ok := _c.mutation.SkillPoints(); !ok {
+		v := character.DefaultSkillPoints
+		_c.mutation.SetSkillPoints(v)
+	}
+	if _, ok := _c.mutation.TalentPoints(); !ok {
+		v := character.DefaultTalentPoints
+		_c.mutation.SetTalentPoints(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -128,6 +316,36 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.CurrentRoomId(); !ok {
 		return &ValidationError{Name: "currentRoomId", err: errors.New(`db: missing required field "Character.currentRoomId"`)}
+	}
+	if _, ok := _c.mutation.StartingRoomId(); !ok {
+		return &ValidationError{Name: "startingRoomId", err: errors.New(`db: missing required field "Character.startingRoomId"`)}
+	}
+	if _, ok := _c.mutation.IsAdmin(); !ok {
+		return &ValidationError{Name: "is_admin", err: errors.New(`db: missing required field "Character.is_admin"`)}
+	}
+	if _, ok := _c.mutation.ClassID(); !ok {
+		return &ValidationError{Name: "class_id", err: errors.New(`db: missing required field "Character.class_id"`)}
+	}
+	if _, ok := _c.mutation.RaceID(); !ok {
+		return &ValidationError{Name: "race_id", err: errors.New(`db: missing required field "Character.race_id"`)}
+	}
+	if _, ok := _c.mutation.GenderID(); !ok {
+		return &ValidationError{Name: "gender_id", err: errors.New(`db: missing required field "Character.gender_id"`)}
+	}
+	if _, ok := _c.mutation.Level(); !ok {
+		return &ValidationError{Name: "level", err: errors.New(`db: missing required field "Character.level"`)}
+	}
+	if _, ok := _c.mutation.Experience(); !ok {
+		return &ValidationError{Name: "experience", err: errors.New(`db: missing required field "Character.experience"`)}
+	}
+	if _, ok := _c.mutation.SkillPoints(); !ok {
+		return &ValidationError{Name: "skill_points", err: errors.New(`db: missing required field "Character.skill_points"`)}
+	}
+	if _, ok := _c.mutation.TalentPoints(); !ok {
+		return &ValidationError{Name: "talent_points", err: errors.New(`db: missing required field "Character.talent_points"`)}
+	}
+	if _, ok := _c.mutation.Stats(); !ok {
+		return &ValidationError{Name: "stats", err: errors.New(`db: missing required field "Character.stats"`)}
 	}
 	if len(_c.mutation.RoomIDs()) == 0 {
 		return &ValidationError{Name: "room", err: errors.New(`db: missing required edge "Character.room"`)}
@@ -166,6 +384,46 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 		_node.IsNPC = value
 	}
+	if value, ok := _c.mutation.StartingRoomId(); ok {
+		_spec.SetField(character.FieldStartingRoomId, field.TypeInt, value)
+		_node.StartingRoomId = value
+	}
+	if value, ok := _c.mutation.IsAdmin(); ok {
+		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
+		_node.IsAdmin = value
+	}
+	if value, ok := _c.mutation.ClassID(); ok {
+		_spec.SetField(character.FieldClassID, field.TypeInt, value)
+		_node.ClassID = value
+	}
+	if value, ok := _c.mutation.RaceID(); ok {
+		_spec.SetField(character.FieldRaceID, field.TypeInt, value)
+		_node.RaceID = value
+	}
+	if value, ok := _c.mutation.GenderID(); ok {
+		_spec.SetField(character.FieldGenderID, field.TypeInt, value)
+		_node.GenderID = value
+	}
+	if value, ok := _c.mutation.Level(); ok {
+		_spec.SetField(character.FieldLevel, field.TypeInt, value)
+		_node.Level = value
+	}
+	if value, ok := _c.mutation.Experience(); ok {
+		_spec.SetField(character.FieldExperience, field.TypeInt, value)
+		_node.Experience = value
+	}
+	if value, ok := _c.mutation.SkillPoints(); ok {
+		_spec.SetField(character.FieldSkillPoints, field.TypeInt, value)
+		_node.SkillPoints = value
+	}
+	if value, ok := _c.mutation.TalentPoints(); ok {
+		_spec.SetField(character.FieldTalentPoints, field.TypeInt, value)
+		_node.TalentPoints = value
+	}
+	if value, ok := _c.mutation.Stats(); ok {
+		_spec.SetField(character.FieldStats, field.TypeJSON, value)
+		_node.Stats = value
+	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -198,6 +456,38 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CurrentRoomId = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.SkillsTable,
+			Columns: []string{character.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TalentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TalentsTable,
+			Columns: []string{character.TalentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(talent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

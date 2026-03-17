@@ -19,6 +19,38 @@ func init() {
 	characterDescIsNPC := characterFields[1].Descriptor()
 	// character.DefaultIsNPC holds the default value on creation for the isNPC field.
 	character.DefaultIsNPC = characterDescIsNPC.Default.(bool)
+	// characterDescIsAdmin is the schema descriptor for is_admin field.
+	characterDescIsAdmin := characterFields[4].Descriptor()
+	// character.DefaultIsAdmin holds the default value on creation for the is_admin field.
+	character.DefaultIsAdmin = characterDescIsAdmin.Default.(bool)
+	// characterDescClassID is the schema descriptor for class_id field.
+	characterDescClassID := characterFields[5].Descriptor()
+	// character.DefaultClassID holds the default value on creation for the class_id field.
+	character.DefaultClassID = characterDescClassID.Default.(int)
+	// characterDescRaceID is the schema descriptor for race_id field.
+	characterDescRaceID := characterFields[6].Descriptor()
+	// character.DefaultRaceID holds the default value on creation for the race_id field.
+	character.DefaultRaceID = characterDescRaceID.Default.(int)
+	// characterDescGenderID is the schema descriptor for gender_id field.
+	characterDescGenderID := characterFields[7].Descriptor()
+	// character.DefaultGenderID holds the default value on creation for the gender_id field.
+	character.DefaultGenderID = characterDescGenderID.Default.(int)
+	// characterDescLevel is the schema descriptor for level field.
+	characterDescLevel := characterFields[8].Descriptor()
+	// character.DefaultLevel holds the default value on creation for the level field.
+	character.DefaultLevel = characterDescLevel.Default.(int)
+	// characterDescExperience is the schema descriptor for experience field.
+	characterDescExperience := characterFields[9].Descriptor()
+	// character.DefaultExperience holds the default value on creation for the experience field.
+	character.DefaultExperience = characterDescExperience.Default.(int)
+	// characterDescSkillPoints is the schema descriptor for skill_points field.
+	characterDescSkillPoints := characterFields[10].Descriptor()
+	// character.DefaultSkillPoints holds the default value on creation for the skill_points field.
+	character.DefaultSkillPoints = characterDescSkillPoints.Default.(int)
+	// characterDescTalentPoints is the schema descriptor for talent_points field.
+	characterDescTalentPoints := characterFields[11].Descriptor()
+	// character.DefaultTalentPoints holds the default value on creation for the talent_points field.
+	character.DefaultTalentPoints = characterDescTalentPoints.Default.(int)
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
 	// roomDescIsStartingRoom is the schema descriptor for isStartingRoom field.

@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"herbst/db/character"
 	"herbst/db/room"
@@ -24,12 +25,34 @@ type Character struct {
 	IsNPC bool `json:"isNPC,omitempty"`
 	// CurrentRoomId holds the value of the "currentRoomId" field.
 	CurrentRoomId int `json:"currentRoomId,omitempty"`
+	// StartingRoomId holds the value of the "startingRoomId" field.
+	StartingRoomId int `json:"startingRoomId,omitempty"`
+	// IsAdmin holds the value of the "is_admin" field.
+	IsAdmin bool `json:"is_admin,omitempty"`
+	// ClassID holds the value of the "class_id" field.
+	ClassID int `json:"class_id,omitempty"`
+	// RaceID holds the value of the "race_id" field.
+	RaceID int `json:"race_id,omitempty"`
+	// GenderID holds the value of the "gender_id" field.
+	GenderID int `json:"gender_id,omitempty"`
+	// Level holds the value of the "level" field.
+	Level int `json:"level,omitempty"`
+	// Experience holds the value of the "experience" field.
+	Experience int `json:"experience,omitempty"`
+	// SkillPoints holds the value of the "skill_points" field.
+	SkillPoints int `json:"skill_points,omitempty"`
+	// TalentPoints holds the value of the "talent_points" field.
+	TalentPoints int `json:"talent_points,omitempty"`
+	// Stats holds the value of the "stats" field.
+	Stats map[string]int `json:"stats,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
-	Edges           CharacterEdges `json:"edges"`
-	room_characters *int
-	user_characters *int
-	selectValues    sql.SelectValues
+	Edges             CharacterEdges `json:"edges"`
+	room_characters   *int
+	skill_characters  *int
+	talent_characters *int
+	user_characters   *int
+	selectValues      sql.SelectValues
 }
 
 // CharacterEdges holds the relations/edges for other nodes in the graph.
@@ -38,9 +61,13 @@ type CharacterEdges struct {
 	User *User `json:"user,omitempty"`
 	// Room holds the value of the room edge.
 	Room *Room `json:"room,omitempty"`
+	// Skills holds the value of the skills edge.
+	Skills []*Skill `json:"skills,omitempty"`
+	// Talents holds the value of the talents edge.
+	Talents []*Talent `json:"talents,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -65,20 +92,44 @@ func (e CharacterEdges) RoomOrErr() (*Room, error) {
 	return nil, &NotLoadedError{edge: "room"}
 }
 
+// SkillsOrErr returns the Skills value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) SkillsOrErr() ([]*Skill, error) {
+	if e.loadedTypes[2] {
+		return e.Skills, nil
+	}
+	return nil, &NotLoadedError{edge: "skills"}
+}
+
+// TalentsOrErr returns the Talents value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) TalentsOrErr() ([]*Talent, error) {
+	if e.loadedTypes[3] {
+		return e.Talents, nil
+	}
+	return nil, &NotLoadedError{edge: "talents"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case character.FieldIsNPC:
+		case character.FieldStats:
+			values[i] = new([]byte)
+		case character.FieldIsNPC, character.FieldIsAdmin:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldClassID, character.FieldRaceID, character.FieldGenderID, character.FieldLevel, character.FieldExperience, character.FieldSkillPoints, character.FieldTalentPoints:
 			values[i] = new(sql.NullInt64)
 		case character.FieldName:
 			values[i] = new(sql.NullString)
 		case character.ForeignKeys[0]: // room_characters
 			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[1]: // user_characters
+		case character.ForeignKeys[1]: // skill_characters
+			values[i] = new(sql.NullInt64)
+		case character.ForeignKeys[2]: // talent_characters
+			values[i] = new(sql.NullInt64)
+		case character.ForeignKeys[3]: // user_characters
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -119,6 +170,68 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.CurrentRoomId = int(value.Int64)
 			}
+		case character.FieldStartingRoomId:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field startingRoomId", values[i])
+			} else if value.Valid {
+				_m.StartingRoomId = int(value.Int64)
+			}
+		case character.FieldIsAdmin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_admin", values[i])
+			} else if value.Valid {
+				_m.IsAdmin = value.Bool
+			}
+		case character.FieldClassID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field class_id", values[i])
+			} else if value.Valid {
+				_m.ClassID = int(value.Int64)
+			}
+		case character.FieldRaceID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field race_id", values[i])
+			} else if value.Valid {
+				_m.RaceID = int(value.Int64)
+			}
+		case character.FieldGenderID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gender_id", values[i])
+			} else if value.Valid {
+				_m.GenderID = int(value.Int64)
+			}
+		case character.FieldLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field level", values[i])
+			} else if value.Valid {
+				_m.Level = int(value.Int64)
+			}
+		case character.FieldExperience:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field experience", values[i])
+			} else if value.Valid {
+				_m.Experience = int(value.Int64)
+			}
+		case character.FieldSkillPoints:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_points", values[i])
+			} else if value.Valid {
+				_m.SkillPoints = int(value.Int64)
+			}
+		case character.FieldTalentPoints:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field talent_points", values[i])
+			} else if value.Valid {
+				_m.TalentPoints = int(value.Int64)
+			}
+		case character.FieldStats:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field stats", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Stats); err != nil {
+					return fmt.Errorf("unmarshal field stats: %w", err)
+				}
+			}
 		case character.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_characters", value)
@@ -127,6 +240,20 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				*_m.room_characters = int(value.Int64)
 			}
 		case character.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field skill_characters", value)
+			} else if value.Valid {
+				_m.skill_characters = new(int)
+				*_m.skill_characters = int(value.Int64)
+			}
+		case character.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field talent_characters", value)
+			} else if value.Valid {
+				_m.talent_characters = new(int)
+				*_m.talent_characters = int(value.Int64)
+			}
+		case character.ForeignKeys[3]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_characters", value)
 			} else if value.Valid {
@@ -154,6 +281,16 @@ func (_m *Character) QueryUser() *UserQuery {
 // QueryRoom queries the "room" edge of the Character entity.
 func (_m *Character) QueryRoom() *RoomQuery {
 	return NewCharacterClient(_m.config).QueryRoom(_m)
+}
+
+// QuerySkills queries the "skills" edge of the Character entity.
+func (_m *Character) QuerySkills() *SkillQuery {
+	return NewCharacterClient(_m.config).QuerySkills(_m)
+}
+
+// QueryTalents queries the "talents" edge of the Character entity.
+func (_m *Character) QueryTalents() *TalentQuery {
+	return NewCharacterClient(_m.config).QueryTalents(_m)
 }
 
 // Update returns a builder for updating this Character.
@@ -187,6 +324,36 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("currentRoomId=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CurrentRoomId))
+	builder.WriteString(", ")
+	builder.WriteString("startingRoomId=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StartingRoomId))
+	builder.WriteString(", ")
+	builder.WriteString("is_admin=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsAdmin))
+	builder.WriteString(", ")
+	builder.WriteString("class_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ClassID))
+	builder.WriteString(", ")
+	builder.WriteString("race_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RaceID))
+	builder.WriteString(", ")
+	builder.WriteString("gender_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GenderID))
+	builder.WriteString(", ")
+	builder.WriteString("level=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Level))
+	builder.WriteString(", ")
+	builder.WriteString("experience=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Experience))
+	builder.WriteString(", ")
+	builder.WriteString("skill_points=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillPoints))
+	builder.WriteString(", ")
+	builder.WriteString("talent_points=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TalentPoints))
+	builder.WriteString(", ")
+	builder.WriteString("stats=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Stats))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -18,10 +18,34 @@ const (
 	FieldIsNPC = "is_npc"
 	// FieldCurrentRoomId holds the string denoting the currentroomid field in the database.
 	FieldCurrentRoomId = "current_room_id"
+	// FieldStartingRoomId holds the string denoting the startingroomid field in the database.
+	FieldStartingRoomId = "starting_room_id"
+	// FieldIsAdmin holds the string denoting the is_admin field in the database.
+	FieldIsAdmin = "is_admin"
+	// FieldClassID holds the string denoting the class_id field in the database.
+	FieldClassID = "class_id"
+	// FieldRaceID holds the string denoting the race_id field in the database.
+	FieldRaceID = "race_id"
+	// FieldGenderID holds the string denoting the gender_id field in the database.
+	FieldGenderID = "gender_id"
+	// FieldLevel holds the string denoting the level field in the database.
+	FieldLevel = "level"
+	// FieldExperience holds the string denoting the experience field in the database.
+	FieldExperience = "experience"
+	// FieldSkillPoints holds the string denoting the skill_points field in the database.
+	FieldSkillPoints = "skill_points"
+	// FieldTalentPoints holds the string denoting the talent_points field in the database.
+	FieldTalentPoints = "talent_points"
+	// FieldStats holds the string denoting the stats field in the database.
+	FieldStats = "stats"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
+	// EdgeSkills holds the string denoting the skills edge name in mutations.
+	EdgeSkills = "skills"
+	// EdgeTalents holds the string denoting the talents edge name in mutations.
+	EdgeTalents = "talents"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -38,6 +62,20 @@ const (
 	RoomInverseTable = "rooms"
 	// RoomColumn is the table column denoting the room relation/edge.
 	RoomColumn = "current_room_id"
+	// SkillsTable is the table that holds the skills relation/edge.
+	SkillsTable = "skills"
+	// SkillsInverseTable is the table name for the Skill entity.
+	// It exists in this package in order to avoid circular dependency with the "skill" package.
+	SkillsInverseTable = "skills"
+	// SkillsColumn is the table column denoting the skills relation/edge.
+	SkillsColumn = "character_skills"
+	// TalentsTable is the table that holds the talents relation/edge.
+	TalentsTable = "talents"
+	// TalentsInverseTable is the table name for the Talent entity.
+	// It exists in this package in order to avoid circular dependency with the "talent" package.
+	TalentsInverseTable = "talents"
+	// TalentsColumn is the table column denoting the talents relation/edge.
+	TalentsColumn = "character_talents"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -46,12 +84,24 @@ var Columns = []string{
 	FieldName,
 	FieldIsNPC,
 	FieldCurrentRoomId,
+	FieldStartingRoomId,
+	FieldIsAdmin,
+	FieldClassID,
+	FieldRaceID,
+	FieldGenderID,
+	FieldLevel,
+	FieldExperience,
+	FieldSkillPoints,
+	FieldTalentPoints,
+	FieldStats,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "characters"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"room_characters",
+	"skill_characters",
+	"talent_characters",
 	"user_characters",
 }
 
@@ -73,6 +123,22 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsNPC holds the default value on creation for the "isNPC" field.
 	DefaultIsNPC bool
+	// DefaultIsAdmin holds the default value on creation for the "is_admin" field.
+	DefaultIsAdmin bool
+	// DefaultClassID holds the default value on creation for the "class_id" field.
+	DefaultClassID int
+	// DefaultRaceID holds the default value on creation for the "race_id" field.
+	DefaultRaceID int
+	// DefaultGenderID holds the default value on creation for the "gender_id" field.
+	DefaultGenderID int
+	// DefaultLevel holds the default value on creation for the "level" field.
+	DefaultLevel int
+	// DefaultExperience holds the default value on creation for the "experience" field.
+	DefaultExperience int
+	// DefaultSkillPoints holds the default value on creation for the "skill_points" field.
+	DefaultSkillPoints int
+	// DefaultTalentPoints holds the default value on creation for the "talent_points" field.
+	DefaultTalentPoints int
 )
 
 // OrderOption defines the ordering options for the Character queries.
@@ -98,6 +164,51 @@ func ByCurrentRoomId(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrentRoomId, opts...).ToFunc()
 }
 
+// ByStartingRoomId orders the results by the startingRoomId field.
+func ByStartingRoomId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartingRoomId, opts...).ToFunc()
+}
+
+// ByIsAdmin orders the results by the is_admin field.
+func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
+}
+
+// ByClassID orders the results by the class_id field.
+func ByClassID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClassID, opts...).ToFunc()
+}
+
+// ByRaceID orders the results by the race_id field.
+func ByRaceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRaceID, opts...).ToFunc()
+}
+
+// ByGenderID orders the results by the gender_id field.
+func ByGenderID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGenderID, opts...).ToFunc()
+}
+
+// ByLevel orders the results by the level field.
+func ByLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLevel, opts...).ToFunc()
+}
+
+// ByExperience orders the results by the experience field.
+func ByExperience(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExperience, opts...).ToFunc()
+}
+
+// BySkillPoints orders the results by the skill_points field.
+func BySkillPoints(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillPoints, opts...).ToFunc()
+}
+
+// ByTalentPoints orders the results by the talent_points field.
+func ByTalentPoints(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTalentPoints, opts...).ToFunc()
+}
+
 // ByUserField orders the results by user field.
 func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -109,6 +220,34 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySkillsCount orders the results by skills count.
+func BySkillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSkillsStep(), opts...)
+	}
+}
+
+// BySkills orders the results by skills terms.
+func BySkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTalentsCount orders the results by talents count.
+func ByTalentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTalentsStep(), opts...)
+	}
+}
+
+// ByTalents orders the results by talents terms.
+func ByTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newUserStep() *sqlgraph.Step {
@@ -123,5 +262,19 @@ func newRoomStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RoomInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, RoomTable, RoomColumn),
+	)
+}
+func newSkillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SkillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SkillsTable, SkillsColumn),
+	)
+}
+func newTalentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TalentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TalentsTable, TalentsColumn),
 	)
 }

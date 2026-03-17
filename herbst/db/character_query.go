@@ -4,10 +4,13 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"herbst/db/character"
 	"herbst/db/predicate"
 	"herbst/db/room"
+	"herbst/db/skill"
+	"herbst/db/talent"
 	"herbst/db/user"
 	"math"
 
@@ -20,13 +23,15 @@ import (
 // CharacterQuery is the builder for querying Character entities.
 type CharacterQuery struct {
 	config
-	ctx        *QueryContext
-	order      []character.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Character
-	withUser   *UserQuery
-	withRoom   *RoomQuery
-	withFKs    bool
+	ctx         *QueryContext
+	order       []character.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.Character
+	withUser    *UserQuery
+	withRoom    *RoomQuery
+	withSkills  *SkillQuery
+	withTalents *TalentQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +105,50 @@ func (_q *CharacterQuery) QueryRoom() *RoomQuery {
 			sqlgraph.From(character.Table, character.FieldID, selector),
 			sqlgraph.To(room.Table, room.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, character.RoomTable, character.RoomColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySkills chains the current query on the "skills" edge.
+func (_q *CharacterQuery) QuerySkills() *SkillQuery {
+	query := (&SkillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.SkillsTable, character.SkillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTalents chains the current query on the "talents" edge.
+func (_q *CharacterQuery) QueryTalents() *TalentQuery {
+	query := (&TalentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(talent.Table, talent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.TalentsTable, character.TalentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +343,15 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		return nil
 	}
 	return &CharacterQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]character.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Character{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
-		withRoom:   _q.withRoom.Clone(),
+		config:      _q.config,
+		ctx:         _q.ctx.Clone(),
+		order:       append([]character.OrderOption{}, _q.order...),
+		inters:      append([]Interceptor{}, _q.inters...),
+		predicates:  append([]predicate.Character{}, _q.predicates...),
+		withUser:    _q.withUser.Clone(),
+		withRoom:    _q.withRoom.Clone(),
+		withSkills:  _q.withSkills.Clone(),
+		withTalents: _q.withTalents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +377,28 @@ func (_q *CharacterQuery) WithRoom(opts ...func(*RoomQuery)) *CharacterQuery {
 		opt(query)
 	}
 	_q.withRoom = query
+	return _q
+}
+
+// WithSkills tells the query-builder to eager-load the nodes that are connected to
+// the "skills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithSkills(opts ...func(*SkillQuery)) *CharacterQuery {
+	query := (&SkillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSkills = query
+	return _q
+}
+
+// WithTalents tells the query-builder to eager-load the nodes that are connected to
+// the "talents" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithTalents(opts ...func(*TalentQuery)) *CharacterQuery {
+	query := (&TalentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTalents = query
 	return _q
 }
 
@@ -408,9 +481,11 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			_q.withUser != nil,
 			_q.withRoom != nil,
+			_q.withSkills != nil,
+			_q.withTalents != nil,
 		}
 	)
 	if _q.withUser != nil {
@@ -446,6 +521,20 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 	if query := _q.withRoom; query != nil {
 		if err := _q.loadRoom(ctx, query, nodes, nil,
 			func(n *Character, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSkills; query != nil {
+		if err := _q.loadSkills(ctx, query, nodes,
+			func(n *Character) { n.Edges.Skills = []*Skill{} },
+			func(n *Character, e *Skill) { n.Edges.Skills = append(n.Edges.Skills, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTalents; query != nil {
+		if err := _q.loadTalents(ctx, query, nodes,
+			func(n *Character) { n.Edges.Talents = []*Talent{} },
+			func(n *Character, e *Talent) { n.Edges.Talents = append(n.Edges.Talents, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -510,6 +599,68 @@ func (_q *CharacterQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes 
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadSkills(ctx context.Context, query *SkillQuery, nodes []*Character, init func(*Character), assign func(*Character, *Skill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.SkillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_skills
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_skills" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_skills" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadTalents(ctx context.Context, query *TalentQuery, nodes []*Character, init func(*Character), assign func(*Character, *Talent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Talent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.TalentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_talents
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_talents" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_talents" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

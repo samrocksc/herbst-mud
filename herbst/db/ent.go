@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"herbst/db/character"
 	"herbst/db/room"
+	"herbst/db/skill"
+	"herbst/db/talent"
 	"herbst/db/user"
 	"reflect"
 	"sync"
@@ -77,6 +79,8 @@ func checkColumn(t, c string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			character.Table: character.ValidColumn,
 			room.Table:      room.ValidColumn,
+			skill.Table:     skill.ValidColumn,
+			talent.Table:    talent.ValidColumn,
 			user.Table:      user.ValidColumn,
 		})
 	})
