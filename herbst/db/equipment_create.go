@@ -80,6 +80,30 @@ func (_c *EquipmentCreate) SetNillableIsEquipped(v *bool) *EquipmentCreate {
 	return _c
 }
 
+// SetIsImmovable sets the "isImmovable" field (GitHub #89).
+func (_c *EquipmentCreate) SetIsImmovable(v bool) *EquipmentCreate {
+	_c.mutation.SetIsImmovable(v)
+	return _c
+}
+
+// SetColor sets the "color" field (GitHub #89).
+func (_c *EquipmentCreate) SetColor(v string) *EquipmentCreate {
+	_c.mutation.SetColor(v)
+	return _c
+}
+
+// SetIsVisible sets the "isVisible" field (GitHub #89).
+func (_c *EquipmentCreate) SetIsVisible(v bool) *EquipmentCreate {
+	_c.mutation.SetIsVisible(v)
+	return _c
+}
+
+// SetItemType sets the "itemType" field (GitHub #89).
+func (_c *EquipmentCreate) SetItemType(v string) *EquipmentCreate {
+	_c.mutation.SetItemType(v)
+	return _c
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_c *EquipmentCreate) SetRoomID(id int) *EquipmentCreate {
 	_c.mutation.SetRoomID(id)
