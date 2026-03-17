@@ -1647,7 +1647,8 @@ func (m *model) View() string {
 			BorderForeground(pink).
 			Padding(0, 1).
 			Width(width - 2).          // Account for border
-			Height(viewportHeight - 2) // Account for border
+			Height(viewportHeight - 2). // Account for border
+			Align(lipgloss.Left, lipgloss.Top) // Fill from top-left, don't center
 
 		// Colorful status bar with mini progress bars
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
@@ -1711,12 +1712,14 @@ func (m *model) View() string {
 	// Center in terminal (optional - can be disabled if causing issues)
 	// Use lipgloss.Width() to correctly handle ANSI escape codes (fixes issue #75)
 	// CRITICAL: Respect terminal width - don't center if content would be truncated
-	if m.width > 0 && m.height > 0 && m.width > 60 {
+	// NOTE: Vertical centering is DISABLED to fix viewport height issues
+	// Only horizontal centering is applied to non-fullscreen screens
+	if m.width > 0 && m.width > 60 {
 		lines := strings.Split(s.String(), "\n")
 		var centered []string
 		for _, line := range lines {
 			visualWidth := lipgloss.Width(line)
-			// Only center if it won't cause truncation - always honor terminal width
+			// Only center horizontally if it won't cause truncation
 			padding := (m.width - visualWidth) / 2
 			if padding > 0 && visualWidth > 0 && visualWidth < m.width {
 				centered = append(centered, fmt.Sprintf("%*s%s", padding, "", line))
