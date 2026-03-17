@@ -6,14 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
-	"herbst-server/db/characterskill"
-	"herbst-server/db/charactertalent"
 	"herbst-server/db/equipment"
+	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
-	"herbst-server/db/skill"
-	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"reflect"
 	"sync"
@@ -81,15 +77,11 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			availabletalent.Table: availabletalent.ValidColumn,
-			character.Table:       character.ValidColumn,
-			characterskill.Table:  characterskill.ValidColumn,
-			charactertalent.Table: charactertalent.ValidColumn,
-			equipment.Table:       equipment.ValidColumn,
-			room.Table:            room.ValidColumn,
-			skill.Table:           skill.ValidColumn,
-			talent.Table:          talent.ValidColumn,
-			user.Table:            user.ValidColumn,
+			character.Table:   character.ValidColumn,
+			equipment.Table:   equipment.ValidColumn,
+			npctemplate.Table: npctemplate.ValidColumn,
+			room.Table:        room.ValidColumn,
+			user.Table:        user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)
