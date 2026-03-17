@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst/db/character"
+	"herbst/db/npctemplate"
 	"herbst/db/predicate"
 	"herbst/db/room"
 	"herbst/db/user"
@@ -40,6 +41,26 @@ func (_u *CharacterUpdate) SetNillableName(v *string) *CharacterUpdate {
 	if v != nil {
 		_u.SetName(*v)
 	}
+	return _u
+}
+
+// SetPassword sets the "password" field.
+func (_u *CharacterUpdate) SetPassword(v string) *CharacterUpdate {
+	_u.mutation.SetPassword(v)
+	return _u
+}
+
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillablePassword(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetPassword(*v)
+	}
+	return _u
+}
+
+// ClearPassword clears the value of the "password" field.
+func (_u *CharacterUpdate) ClearPassword() *CharacterUpdate {
+	_u.mutation.ClearPassword()
 	return _u
 }
 
@@ -106,6 +127,515 @@ func (_u *CharacterUpdate) SetNillableIsAdmin(v *bool) *CharacterUpdate {
 	return _u
 }
 
+// SetHitpoints sets the "hitpoints" field.
+func (_u *CharacterUpdate) SetHitpoints(v int) *CharacterUpdate {
+	_u.mutation.ResetHitpoints()
+	_u.mutation.SetHitpoints(v)
+	return _u
+}
+
+// SetNillableHitpoints sets the "hitpoints" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableHitpoints(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetHitpoints(*v)
+	}
+	return _u
+}
+
+// AddHitpoints adds value to the "hitpoints" field.
+func (_u *CharacterUpdate) AddHitpoints(v int) *CharacterUpdate {
+	_u.mutation.AddHitpoints(v)
+	return _u
+}
+
+// SetMaxHitpoints sets the "max_hitpoints" field.
+func (_u *CharacterUpdate) SetMaxHitpoints(v int) *CharacterUpdate {
+	_u.mutation.ResetMaxHitpoints()
+	_u.mutation.SetMaxHitpoints(v)
+	return _u
+}
+
+// SetNillableMaxHitpoints sets the "max_hitpoints" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableMaxHitpoints(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetMaxHitpoints(*v)
+	}
+	return _u
+}
+
+// AddMaxHitpoints adds value to the "max_hitpoints" field.
+func (_u *CharacterUpdate) AddMaxHitpoints(v int) *CharacterUpdate {
+	_u.mutation.AddMaxHitpoints(v)
+	return _u
+}
+
+// SetStamina sets the "stamina" field.
+func (_u *CharacterUpdate) SetStamina(v int) *CharacterUpdate {
+	_u.mutation.ResetStamina()
+	_u.mutation.SetStamina(v)
+	return _u
+}
+
+// SetNillableStamina sets the "stamina" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableStamina(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetStamina(*v)
+	}
+	return _u
+}
+
+// AddStamina adds value to the "stamina" field.
+func (_u *CharacterUpdate) AddStamina(v int) *CharacterUpdate {
+	_u.mutation.AddStamina(v)
+	return _u
+}
+
+// SetMaxStamina sets the "max_stamina" field.
+func (_u *CharacterUpdate) SetMaxStamina(v int) *CharacterUpdate {
+	_u.mutation.ResetMaxStamina()
+	_u.mutation.SetMaxStamina(v)
+	return _u
+}
+
+// SetNillableMaxStamina sets the "max_stamina" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableMaxStamina(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetMaxStamina(*v)
+	}
+	return _u
+}
+
+// AddMaxStamina adds value to the "max_stamina" field.
+func (_u *CharacterUpdate) AddMaxStamina(v int) *CharacterUpdate {
+	_u.mutation.AddMaxStamina(v)
+	return _u
+}
+
+// SetMana sets the "mana" field.
+func (_u *CharacterUpdate) SetMana(v int) *CharacterUpdate {
+	_u.mutation.ResetMana()
+	_u.mutation.SetMana(v)
+	return _u
+}
+
+// SetNillableMana sets the "mana" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableMana(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetMana(*v)
+	}
+	return _u
+}
+
+// AddMana adds value to the "mana" field.
+func (_u *CharacterUpdate) AddMana(v int) *CharacterUpdate {
+	_u.mutation.AddMana(v)
+	return _u
+}
+
+// SetMaxMana sets the "max_mana" field.
+func (_u *CharacterUpdate) SetMaxMana(v int) *CharacterUpdate {
+	_u.mutation.ResetMaxMana()
+	_u.mutation.SetMaxMana(v)
+	return _u
+}
+
+// SetNillableMaxMana sets the "max_mana" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableMaxMana(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetMaxMana(*v)
+	}
+	return _u
+}
+
+// AddMaxMana adds value to the "max_mana" field.
+func (_u *CharacterUpdate) AddMaxMana(v int) *CharacterUpdate {
+	_u.mutation.AddMaxMana(v)
+	return _u
+}
+
+// SetRace sets the "race" field.
+func (_u *CharacterUpdate) SetRace(v string) *CharacterUpdate {
+	_u.mutation.SetRace(v)
+	return _u
+}
+
+// SetNillableRace sets the "race" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableRace(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetRace(*v)
+	}
+	return _u
+}
+
+// SetClass sets the "class" field.
+func (_u *CharacterUpdate) SetClass(v string) *CharacterUpdate {
+	_u.mutation.SetClass(v)
+	return _u
+}
+
+// SetNillableClass sets the "class" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableClass(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetClass(*v)
+	}
+	return _u
+}
+
+// SetLevel sets the "level" field.
+func (_u *CharacterUpdate) SetLevel(v int) *CharacterUpdate {
+	_u.mutation.ResetLevel()
+	_u.mutation.SetLevel(v)
+	return _u
+}
+
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableLevel(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetLevel(*v)
+	}
+	return _u
+}
+
+// AddLevel adds value to the "level" field.
+func (_u *CharacterUpdate) AddLevel(v int) *CharacterUpdate {
+	_u.mutation.AddLevel(v)
+	return _u
+}
+
+// SetConstitution sets the "constitution" field.
+func (_u *CharacterUpdate) SetConstitution(v int) *CharacterUpdate {
+	_u.mutation.ResetConstitution()
+	_u.mutation.SetConstitution(v)
+	return _u
+}
+
+// SetNillableConstitution sets the "constitution" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableConstitution(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetConstitution(*v)
+	}
+	return _u
+}
+
+// AddConstitution adds value to the "constitution" field.
+func (_u *CharacterUpdate) AddConstitution(v int) *CharacterUpdate {
+	_u.mutation.AddConstitution(v)
+	return _u
+}
+
+// SetGender sets the "gender" field.
+func (_u *CharacterUpdate) SetGender(v string) *CharacterUpdate {
+	_u.mutation.SetGender(v)
+	return _u
+}
+
+// SetNillableGender sets the "gender" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableGender(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetGender(*v)
+	}
+	return _u
+}
+
+// ClearGender clears the value of the "gender" field.
+func (_u *CharacterUpdate) ClearGender() *CharacterUpdate {
+	_u.mutation.ClearGender()
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *CharacterUpdate) SetDescription(v string) *CharacterUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableDescription(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_u *CharacterUpdate) ClearDescription() *CharacterUpdate {
+	_u.mutation.ClearDescription()
+	return _u
+}
+
+// SetStrength sets the "strength" field.
+func (_u *CharacterUpdate) SetStrength(v int) *CharacterUpdate {
+	_u.mutation.ResetStrength()
+	_u.mutation.SetStrength(v)
+	return _u
+}
+
+// SetNillableStrength sets the "strength" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableStrength(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetStrength(*v)
+	}
+	return _u
+}
+
+// AddStrength adds value to the "strength" field.
+func (_u *CharacterUpdate) AddStrength(v int) *CharacterUpdate {
+	_u.mutation.AddStrength(v)
+	return _u
+}
+
+// SetDexterity sets the "dexterity" field.
+func (_u *CharacterUpdate) SetDexterity(v int) *CharacterUpdate {
+	_u.mutation.ResetDexterity()
+	_u.mutation.SetDexterity(v)
+	return _u
+}
+
+// SetNillableDexterity sets the "dexterity" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableDexterity(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetDexterity(*v)
+	}
+	return _u
+}
+
+// AddDexterity adds value to the "dexterity" field.
+func (_u *CharacterUpdate) AddDexterity(v int) *CharacterUpdate {
+	_u.mutation.AddDexterity(v)
+	return _u
+}
+
+// SetIntelligence sets the "intelligence" field.
+func (_u *CharacterUpdate) SetIntelligence(v int) *CharacterUpdate {
+	_u.mutation.ResetIntelligence()
+	_u.mutation.SetIntelligence(v)
+	return _u
+}
+
+// SetNillableIntelligence sets the "intelligence" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableIntelligence(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetIntelligence(*v)
+	}
+	return _u
+}
+
+// AddIntelligence adds value to the "intelligence" field.
+func (_u *CharacterUpdate) AddIntelligence(v int) *CharacterUpdate {
+	_u.mutation.AddIntelligence(v)
+	return _u
+}
+
+// SetWisdom sets the "wisdom" field.
+func (_u *CharacterUpdate) SetWisdom(v int) *CharacterUpdate {
+	_u.mutation.ResetWisdom()
+	_u.mutation.SetWisdom(v)
+	return _u
+}
+
+// SetNillableWisdom sets the "wisdom" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableWisdom(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetWisdom(*v)
+	}
+	return _u
+}
+
+// AddWisdom adds value to the "wisdom" field.
+func (_u *CharacterUpdate) AddWisdom(v int) *CharacterUpdate {
+	_u.mutation.AddWisdom(v)
+	return _u
+}
+
+// SetSkillBlades sets the "skill_blades" field.
+func (_u *CharacterUpdate) SetSkillBlades(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillBlades()
+	_u.mutation.SetSkillBlades(v)
+	return _u
+}
+
+// SetNillableSkillBlades sets the "skill_blades" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillBlades(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillBlades(*v)
+	}
+	return _u
+}
+
+// AddSkillBlades adds value to the "skill_blades" field.
+func (_u *CharacterUpdate) AddSkillBlades(v int) *CharacterUpdate {
+	_u.mutation.AddSkillBlades(v)
+	return _u
+}
+
+// SetSkillStaves sets the "skill_staves" field.
+func (_u *CharacterUpdate) SetSkillStaves(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillStaves()
+	_u.mutation.SetSkillStaves(v)
+	return _u
+}
+
+// SetNillableSkillStaves sets the "skill_staves" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillStaves(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillStaves(*v)
+	}
+	return _u
+}
+
+// AddSkillStaves adds value to the "skill_staves" field.
+func (_u *CharacterUpdate) AddSkillStaves(v int) *CharacterUpdate {
+	_u.mutation.AddSkillStaves(v)
+	return _u
+}
+
+// SetSkillKnives sets the "skill_knives" field.
+func (_u *CharacterUpdate) SetSkillKnives(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillKnives()
+	_u.mutation.SetSkillKnives(v)
+	return _u
+}
+
+// SetNillableSkillKnives sets the "skill_knives" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillKnives(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillKnives(*v)
+	}
+	return _u
+}
+
+// AddSkillKnives adds value to the "skill_knives" field.
+func (_u *CharacterUpdate) AddSkillKnives(v int) *CharacterUpdate {
+	_u.mutation.AddSkillKnives(v)
+	return _u
+}
+
+// SetSkillMartial sets the "skill_martial" field.
+func (_u *CharacterUpdate) SetSkillMartial(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillMartial()
+	_u.mutation.SetSkillMartial(v)
+	return _u
+}
+
+// SetNillableSkillMartial sets the "skill_martial" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillMartial(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillMartial(*v)
+	}
+	return _u
+}
+
+// AddSkillMartial adds value to the "skill_martial" field.
+func (_u *CharacterUpdate) AddSkillMartial(v int) *CharacterUpdate {
+	_u.mutation.AddSkillMartial(v)
+	return _u
+}
+
+// SetSkillBrawling sets the "skill_brawling" field.
+func (_u *CharacterUpdate) SetSkillBrawling(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillBrawling()
+	_u.mutation.SetSkillBrawling(v)
+	return _u
+}
+
+// SetNillableSkillBrawling sets the "skill_brawling" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillBrawling(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillBrawling(*v)
+	}
+	return _u
+}
+
+// AddSkillBrawling adds value to the "skill_brawling" field.
+func (_u *CharacterUpdate) AddSkillBrawling(v int) *CharacterUpdate {
+	_u.mutation.AddSkillBrawling(v)
+	return _u
+}
+
+// SetSkillTech sets the "skill_tech" field.
+func (_u *CharacterUpdate) SetSkillTech(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillTech()
+	_u.mutation.SetSkillTech(v)
+	return _u
+}
+
+// SetNillableSkillTech sets the "skill_tech" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillTech(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillTech(*v)
+	}
+	return _u
+}
+
+// AddSkillTech adds value to the "skill_tech" field.
+func (_u *CharacterUpdate) AddSkillTech(v int) *CharacterUpdate {
+	_u.mutation.AddSkillTech(v)
+	return _u
+}
+
+// SetSkillLightArmor sets the "skill_light_armor" field.
+func (_u *CharacterUpdate) SetSkillLightArmor(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillLightArmor()
+	_u.mutation.SetSkillLightArmor(v)
+	return _u
+}
+
+// SetNillableSkillLightArmor sets the "skill_light_armor" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillLightArmor(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillLightArmor(*v)
+	}
+	return _u
+}
+
+// AddSkillLightArmor adds value to the "skill_light_armor" field.
+func (_u *CharacterUpdate) AddSkillLightArmor(v int) *CharacterUpdate {
+	_u.mutation.AddSkillLightArmor(v)
+	return _u
+}
+
+// SetSkillClothArmor sets the "skill_cloth_armor" field.
+func (_u *CharacterUpdate) SetSkillClothArmor(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillClothArmor()
+	_u.mutation.SetSkillClothArmor(v)
+	return _u
+}
+
+// SetNillableSkillClothArmor sets the "skill_cloth_armor" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillClothArmor(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillClothArmor(*v)
+	}
+	return _u
+}
+
+// AddSkillClothArmor adds value to the "skill_cloth_armor" field.
+func (_u *CharacterUpdate) AddSkillClothArmor(v int) *CharacterUpdate {
+	_u.mutation.AddSkillClothArmor(v)
+	return _u
+}
+
+// SetSkillHeavyArmor sets the "skill_heavy_armor" field.
+func (_u *CharacterUpdate) SetSkillHeavyArmor(v int) *CharacterUpdate {
+	_u.mutation.ResetSkillHeavyArmor()
+	_u.mutation.SetSkillHeavyArmor(v)
+	return _u
+}
+
+// SetNillableSkillHeavyArmor sets the "skill_heavy_armor" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableSkillHeavyArmor(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetSkillHeavyArmor(*v)
+	}
+	return _u
+}
+
+// AddSkillHeavyArmor adds value to the "skill_heavy_armor" field.
+func (_u *CharacterUpdate) AddSkillHeavyArmor(v int) *CharacterUpdate {
+	_u.mutation.AddSkillHeavyArmor(v)
+	return _u
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_u *CharacterUpdate) SetUserID(id int) *CharacterUpdate {
 	_u.mutation.SetUserID(id)
@@ -136,6 +666,25 @@ func (_u *CharacterUpdate) SetRoom(v *Room) *CharacterUpdate {
 	return _u.SetRoomID(v.ID)
 }
 
+// SetNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID.
+func (_u *CharacterUpdate) SetNpcTemplateID(id string) *CharacterUpdate {
+	_u.mutation.SetNpcTemplateID(id)
+	return _u
+}
+
+// SetNillableNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableNpcTemplateID(id *string) *CharacterUpdate {
+	if id != nil {
+		_u = _u.SetNpcTemplateID(*id)
+	}
+	return _u
+}
+
+// SetNpcTemplate sets the "npcTemplate" edge to the NPCTemplate entity.
+func (_u *CharacterUpdate) SetNpcTemplate(v *NPCTemplate) *CharacterUpdate {
+	return _u.SetNpcTemplateID(v.ID)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -150,6 +699,12 @@ func (_u *CharacterUpdate) ClearUser() *CharacterUpdate {
 // ClearRoom clears the "room" edge to the Room entity.
 func (_u *CharacterUpdate) ClearRoom() *CharacterUpdate {
 	_u.mutation.ClearRoom()
+	return _u
+}
+
+// ClearNpcTemplate clears the "npcTemplate" edge to the NPCTemplate entity.
+func (_u *CharacterUpdate) ClearNpcTemplate() *CharacterUpdate {
+	_u.mutation.ClearNpcTemplate()
 	return _u
 }
 
@@ -203,6 +758,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(character.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Password(); ok {
+		_spec.SetField(character.FieldPassword, field.TypeString, value)
+	}
+	if _u.mutation.PasswordCleared() {
+		_spec.ClearField(character.FieldPassword, field.TypeString)
+	}
 	if value, ok := _u.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 	}
@@ -214,6 +775,150 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Hitpoints(); ok {
+		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHitpoints(); ok {
+		_spec.AddField(character.FieldHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxHitpoints(); ok {
+		_spec.SetField(character.FieldMaxHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxHitpoints(); ok {
+		_spec.AddField(character.FieldMaxHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Stamina(); ok {
+		_spec.SetField(character.FieldStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStamina(); ok {
+		_spec.AddField(character.FieldStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxStamina(); ok {
+		_spec.SetField(character.FieldMaxStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxStamina(); ok {
+		_spec.AddField(character.FieldMaxStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Mana(); ok {
+		_spec.SetField(character.FieldMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMana(); ok {
+		_spec.AddField(character.FieldMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxMana(); ok {
+		_spec.SetField(character.FieldMaxMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxMana(); ok {
+		_spec.AddField(character.FieldMaxMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Race(); ok {
+		_spec.SetField(character.FieldRace, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Class(); ok {
+		_spec.SetField(character.FieldClass, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Level(); ok {
+		_spec.SetField(character.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLevel(); ok {
+		_spec.AddField(character.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Constitution(); ok {
+		_spec.SetField(character.FieldConstitution, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedConstitution(); ok {
+		_spec.AddField(character.FieldConstitution, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Gender(); ok {
+		_spec.SetField(character.FieldGender, field.TypeString, value)
+	}
+	if _u.mutation.GenderCleared() {
+		_spec.ClearField(character.FieldGender, field.TypeString)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(character.FieldDescription, field.TypeString, value)
+	}
+	if _u.mutation.DescriptionCleared() {
+		_spec.ClearField(character.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.Strength(); ok {
+		_spec.SetField(character.FieldStrength, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStrength(); ok {
+		_spec.AddField(character.FieldStrength, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Dexterity(); ok {
+		_spec.SetField(character.FieldDexterity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedDexterity(); ok {
+		_spec.AddField(character.FieldDexterity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Intelligence(); ok {
+		_spec.SetField(character.FieldIntelligence, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedIntelligence(); ok {
+		_spec.AddField(character.FieldIntelligence, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Wisdom(); ok {
+		_spec.SetField(character.FieldWisdom, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedWisdom(); ok {
+		_spec.AddField(character.FieldWisdom, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillBlades(); ok {
+		_spec.SetField(character.FieldSkillBlades, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillBlades(); ok {
+		_spec.AddField(character.FieldSkillBlades, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillStaves(); ok {
+		_spec.SetField(character.FieldSkillStaves, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillStaves(); ok {
+		_spec.AddField(character.FieldSkillStaves, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillKnives(); ok {
+		_spec.SetField(character.FieldSkillKnives, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillKnives(); ok {
+		_spec.AddField(character.FieldSkillKnives, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillMartial(); ok {
+		_spec.SetField(character.FieldSkillMartial, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillMartial(); ok {
+		_spec.AddField(character.FieldSkillMartial, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillBrawling(); ok {
+		_spec.SetField(character.FieldSkillBrawling, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillBrawling(); ok {
+		_spec.AddField(character.FieldSkillBrawling, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillTech(); ok {
+		_spec.SetField(character.FieldSkillTech, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillTech(); ok {
+		_spec.AddField(character.FieldSkillTech, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillLightArmor(); ok {
+		_spec.SetField(character.FieldSkillLightArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillLightArmor(); ok {
+		_spec.AddField(character.FieldSkillLightArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillClothArmor(); ok {
+		_spec.SetField(character.FieldSkillClothArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillClothArmor(); ok {
+		_spec.AddField(character.FieldSkillClothArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillHeavyArmor(); ok {
+		_spec.SetField(character.FieldSkillHeavyArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillHeavyArmor(); ok {
+		_spec.AddField(character.FieldSkillHeavyArmor, field.TypeInt, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -273,6 +978,35 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.NpcTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   character.NpcTemplateTable,
+			Columns: []string{character.NpcTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NpcTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   character.NpcTemplateTable,
+			Columns: []string{character.NpcTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{character.Label}
@@ -304,6 +1038,26 @@ func (_u *CharacterUpdateOne) SetNillableName(v *string) *CharacterUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
 	}
+	return _u
+}
+
+// SetPassword sets the "password" field.
+func (_u *CharacterUpdateOne) SetPassword(v string) *CharacterUpdateOne {
+	_u.mutation.SetPassword(v)
+	return _u
+}
+
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillablePassword(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetPassword(*v)
+	}
+	return _u
+}
+
+// ClearPassword clears the value of the "password" field.
+func (_u *CharacterUpdateOne) ClearPassword() *CharacterUpdateOne {
+	_u.mutation.ClearPassword()
 	return _u
 }
 
@@ -370,6 +1124,515 @@ func (_u *CharacterUpdateOne) SetNillableIsAdmin(v *bool) *CharacterUpdateOne {
 	return _u
 }
 
+// SetHitpoints sets the "hitpoints" field.
+func (_u *CharacterUpdateOne) SetHitpoints(v int) *CharacterUpdateOne {
+	_u.mutation.ResetHitpoints()
+	_u.mutation.SetHitpoints(v)
+	return _u
+}
+
+// SetNillableHitpoints sets the "hitpoints" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableHitpoints(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetHitpoints(*v)
+	}
+	return _u
+}
+
+// AddHitpoints adds value to the "hitpoints" field.
+func (_u *CharacterUpdateOne) AddHitpoints(v int) *CharacterUpdateOne {
+	_u.mutation.AddHitpoints(v)
+	return _u
+}
+
+// SetMaxHitpoints sets the "max_hitpoints" field.
+func (_u *CharacterUpdateOne) SetMaxHitpoints(v int) *CharacterUpdateOne {
+	_u.mutation.ResetMaxHitpoints()
+	_u.mutation.SetMaxHitpoints(v)
+	return _u
+}
+
+// SetNillableMaxHitpoints sets the "max_hitpoints" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableMaxHitpoints(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetMaxHitpoints(*v)
+	}
+	return _u
+}
+
+// AddMaxHitpoints adds value to the "max_hitpoints" field.
+func (_u *CharacterUpdateOne) AddMaxHitpoints(v int) *CharacterUpdateOne {
+	_u.mutation.AddMaxHitpoints(v)
+	return _u
+}
+
+// SetStamina sets the "stamina" field.
+func (_u *CharacterUpdateOne) SetStamina(v int) *CharacterUpdateOne {
+	_u.mutation.ResetStamina()
+	_u.mutation.SetStamina(v)
+	return _u
+}
+
+// SetNillableStamina sets the "stamina" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableStamina(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetStamina(*v)
+	}
+	return _u
+}
+
+// AddStamina adds value to the "stamina" field.
+func (_u *CharacterUpdateOne) AddStamina(v int) *CharacterUpdateOne {
+	_u.mutation.AddStamina(v)
+	return _u
+}
+
+// SetMaxStamina sets the "max_stamina" field.
+func (_u *CharacterUpdateOne) SetMaxStamina(v int) *CharacterUpdateOne {
+	_u.mutation.ResetMaxStamina()
+	_u.mutation.SetMaxStamina(v)
+	return _u
+}
+
+// SetNillableMaxStamina sets the "max_stamina" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableMaxStamina(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetMaxStamina(*v)
+	}
+	return _u
+}
+
+// AddMaxStamina adds value to the "max_stamina" field.
+func (_u *CharacterUpdateOne) AddMaxStamina(v int) *CharacterUpdateOne {
+	_u.mutation.AddMaxStamina(v)
+	return _u
+}
+
+// SetMana sets the "mana" field.
+func (_u *CharacterUpdateOne) SetMana(v int) *CharacterUpdateOne {
+	_u.mutation.ResetMana()
+	_u.mutation.SetMana(v)
+	return _u
+}
+
+// SetNillableMana sets the "mana" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableMana(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetMana(*v)
+	}
+	return _u
+}
+
+// AddMana adds value to the "mana" field.
+func (_u *CharacterUpdateOne) AddMana(v int) *CharacterUpdateOne {
+	_u.mutation.AddMana(v)
+	return _u
+}
+
+// SetMaxMana sets the "max_mana" field.
+func (_u *CharacterUpdateOne) SetMaxMana(v int) *CharacterUpdateOne {
+	_u.mutation.ResetMaxMana()
+	_u.mutation.SetMaxMana(v)
+	return _u
+}
+
+// SetNillableMaxMana sets the "max_mana" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableMaxMana(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetMaxMana(*v)
+	}
+	return _u
+}
+
+// AddMaxMana adds value to the "max_mana" field.
+func (_u *CharacterUpdateOne) AddMaxMana(v int) *CharacterUpdateOne {
+	_u.mutation.AddMaxMana(v)
+	return _u
+}
+
+// SetRace sets the "race" field.
+func (_u *CharacterUpdateOne) SetRace(v string) *CharacterUpdateOne {
+	_u.mutation.SetRace(v)
+	return _u
+}
+
+// SetNillableRace sets the "race" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableRace(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetRace(*v)
+	}
+	return _u
+}
+
+// SetClass sets the "class" field.
+func (_u *CharacterUpdateOne) SetClass(v string) *CharacterUpdateOne {
+	_u.mutation.SetClass(v)
+	return _u
+}
+
+// SetNillableClass sets the "class" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableClass(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetClass(*v)
+	}
+	return _u
+}
+
+// SetLevel sets the "level" field.
+func (_u *CharacterUpdateOne) SetLevel(v int) *CharacterUpdateOne {
+	_u.mutation.ResetLevel()
+	_u.mutation.SetLevel(v)
+	return _u
+}
+
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableLevel(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetLevel(*v)
+	}
+	return _u
+}
+
+// AddLevel adds value to the "level" field.
+func (_u *CharacterUpdateOne) AddLevel(v int) *CharacterUpdateOne {
+	_u.mutation.AddLevel(v)
+	return _u
+}
+
+// SetConstitution sets the "constitution" field.
+func (_u *CharacterUpdateOne) SetConstitution(v int) *CharacterUpdateOne {
+	_u.mutation.ResetConstitution()
+	_u.mutation.SetConstitution(v)
+	return _u
+}
+
+// SetNillableConstitution sets the "constitution" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableConstitution(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetConstitution(*v)
+	}
+	return _u
+}
+
+// AddConstitution adds value to the "constitution" field.
+func (_u *CharacterUpdateOne) AddConstitution(v int) *CharacterUpdateOne {
+	_u.mutation.AddConstitution(v)
+	return _u
+}
+
+// SetGender sets the "gender" field.
+func (_u *CharacterUpdateOne) SetGender(v string) *CharacterUpdateOne {
+	_u.mutation.SetGender(v)
+	return _u
+}
+
+// SetNillableGender sets the "gender" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableGender(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetGender(*v)
+	}
+	return _u
+}
+
+// ClearGender clears the value of the "gender" field.
+func (_u *CharacterUpdateOne) ClearGender() *CharacterUpdateOne {
+	_u.mutation.ClearGender()
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *CharacterUpdateOne) SetDescription(v string) *CharacterUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableDescription(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_u *CharacterUpdateOne) ClearDescription() *CharacterUpdateOne {
+	_u.mutation.ClearDescription()
+	return _u
+}
+
+// SetStrength sets the "strength" field.
+func (_u *CharacterUpdateOne) SetStrength(v int) *CharacterUpdateOne {
+	_u.mutation.ResetStrength()
+	_u.mutation.SetStrength(v)
+	return _u
+}
+
+// SetNillableStrength sets the "strength" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableStrength(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetStrength(*v)
+	}
+	return _u
+}
+
+// AddStrength adds value to the "strength" field.
+func (_u *CharacterUpdateOne) AddStrength(v int) *CharacterUpdateOne {
+	_u.mutation.AddStrength(v)
+	return _u
+}
+
+// SetDexterity sets the "dexterity" field.
+func (_u *CharacterUpdateOne) SetDexterity(v int) *CharacterUpdateOne {
+	_u.mutation.ResetDexterity()
+	_u.mutation.SetDexterity(v)
+	return _u
+}
+
+// SetNillableDexterity sets the "dexterity" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableDexterity(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetDexterity(*v)
+	}
+	return _u
+}
+
+// AddDexterity adds value to the "dexterity" field.
+func (_u *CharacterUpdateOne) AddDexterity(v int) *CharacterUpdateOne {
+	_u.mutation.AddDexterity(v)
+	return _u
+}
+
+// SetIntelligence sets the "intelligence" field.
+func (_u *CharacterUpdateOne) SetIntelligence(v int) *CharacterUpdateOne {
+	_u.mutation.ResetIntelligence()
+	_u.mutation.SetIntelligence(v)
+	return _u
+}
+
+// SetNillableIntelligence sets the "intelligence" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableIntelligence(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetIntelligence(*v)
+	}
+	return _u
+}
+
+// AddIntelligence adds value to the "intelligence" field.
+func (_u *CharacterUpdateOne) AddIntelligence(v int) *CharacterUpdateOne {
+	_u.mutation.AddIntelligence(v)
+	return _u
+}
+
+// SetWisdom sets the "wisdom" field.
+func (_u *CharacterUpdateOne) SetWisdom(v int) *CharacterUpdateOne {
+	_u.mutation.ResetWisdom()
+	_u.mutation.SetWisdom(v)
+	return _u
+}
+
+// SetNillableWisdom sets the "wisdom" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableWisdom(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetWisdom(*v)
+	}
+	return _u
+}
+
+// AddWisdom adds value to the "wisdom" field.
+func (_u *CharacterUpdateOne) AddWisdom(v int) *CharacterUpdateOne {
+	_u.mutation.AddWisdom(v)
+	return _u
+}
+
+// SetSkillBlades sets the "skill_blades" field.
+func (_u *CharacterUpdateOne) SetSkillBlades(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillBlades()
+	_u.mutation.SetSkillBlades(v)
+	return _u
+}
+
+// SetNillableSkillBlades sets the "skill_blades" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillBlades(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillBlades(*v)
+	}
+	return _u
+}
+
+// AddSkillBlades adds value to the "skill_blades" field.
+func (_u *CharacterUpdateOne) AddSkillBlades(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillBlades(v)
+	return _u
+}
+
+// SetSkillStaves sets the "skill_staves" field.
+func (_u *CharacterUpdateOne) SetSkillStaves(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillStaves()
+	_u.mutation.SetSkillStaves(v)
+	return _u
+}
+
+// SetNillableSkillStaves sets the "skill_staves" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillStaves(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillStaves(*v)
+	}
+	return _u
+}
+
+// AddSkillStaves adds value to the "skill_staves" field.
+func (_u *CharacterUpdateOne) AddSkillStaves(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillStaves(v)
+	return _u
+}
+
+// SetSkillKnives sets the "skill_knives" field.
+func (_u *CharacterUpdateOne) SetSkillKnives(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillKnives()
+	_u.mutation.SetSkillKnives(v)
+	return _u
+}
+
+// SetNillableSkillKnives sets the "skill_knives" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillKnives(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillKnives(*v)
+	}
+	return _u
+}
+
+// AddSkillKnives adds value to the "skill_knives" field.
+func (_u *CharacterUpdateOne) AddSkillKnives(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillKnives(v)
+	return _u
+}
+
+// SetSkillMartial sets the "skill_martial" field.
+func (_u *CharacterUpdateOne) SetSkillMartial(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillMartial()
+	_u.mutation.SetSkillMartial(v)
+	return _u
+}
+
+// SetNillableSkillMartial sets the "skill_martial" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillMartial(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillMartial(*v)
+	}
+	return _u
+}
+
+// AddSkillMartial adds value to the "skill_martial" field.
+func (_u *CharacterUpdateOne) AddSkillMartial(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillMartial(v)
+	return _u
+}
+
+// SetSkillBrawling sets the "skill_brawling" field.
+func (_u *CharacterUpdateOne) SetSkillBrawling(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillBrawling()
+	_u.mutation.SetSkillBrawling(v)
+	return _u
+}
+
+// SetNillableSkillBrawling sets the "skill_brawling" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillBrawling(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillBrawling(*v)
+	}
+	return _u
+}
+
+// AddSkillBrawling adds value to the "skill_brawling" field.
+func (_u *CharacterUpdateOne) AddSkillBrawling(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillBrawling(v)
+	return _u
+}
+
+// SetSkillTech sets the "skill_tech" field.
+func (_u *CharacterUpdateOne) SetSkillTech(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillTech()
+	_u.mutation.SetSkillTech(v)
+	return _u
+}
+
+// SetNillableSkillTech sets the "skill_tech" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillTech(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillTech(*v)
+	}
+	return _u
+}
+
+// AddSkillTech adds value to the "skill_tech" field.
+func (_u *CharacterUpdateOne) AddSkillTech(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillTech(v)
+	return _u
+}
+
+// SetSkillLightArmor sets the "skill_light_armor" field.
+func (_u *CharacterUpdateOne) SetSkillLightArmor(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillLightArmor()
+	_u.mutation.SetSkillLightArmor(v)
+	return _u
+}
+
+// SetNillableSkillLightArmor sets the "skill_light_armor" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillLightArmor(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillLightArmor(*v)
+	}
+	return _u
+}
+
+// AddSkillLightArmor adds value to the "skill_light_armor" field.
+func (_u *CharacterUpdateOne) AddSkillLightArmor(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillLightArmor(v)
+	return _u
+}
+
+// SetSkillClothArmor sets the "skill_cloth_armor" field.
+func (_u *CharacterUpdateOne) SetSkillClothArmor(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillClothArmor()
+	_u.mutation.SetSkillClothArmor(v)
+	return _u
+}
+
+// SetNillableSkillClothArmor sets the "skill_cloth_armor" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillClothArmor(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillClothArmor(*v)
+	}
+	return _u
+}
+
+// AddSkillClothArmor adds value to the "skill_cloth_armor" field.
+func (_u *CharacterUpdateOne) AddSkillClothArmor(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillClothArmor(v)
+	return _u
+}
+
+// SetSkillHeavyArmor sets the "skill_heavy_armor" field.
+func (_u *CharacterUpdateOne) SetSkillHeavyArmor(v int) *CharacterUpdateOne {
+	_u.mutation.ResetSkillHeavyArmor()
+	_u.mutation.SetSkillHeavyArmor(v)
+	return _u
+}
+
+// SetNillableSkillHeavyArmor sets the "skill_heavy_armor" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableSkillHeavyArmor(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetSkillHeavyArmor(*v)
+	}
+	return _u
+}
+
+// AddSkillHeavyArmor adds value to the "skill_heavy_armor" field.
+func (_u *CharacterUpdateOne) AddSkillHeavyArmor(v int) *CharacterUpdateOne {
+	_u.mutation.AddSkillHeavyArmor(v)
+	return _u
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_u *CharacterUpdateOne) SetUserID(id int) *CharacterUpdateOne {
 	_u.mutation.SetUserID(id)
@@ -400,6 +1663,25 @@ func (_u *CharacterUpdateOne) SetRoom(v *Room) *CharacterUpdateOne {
 	return _u.SetRoomID(v.ID)
 }
 
+// SetNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID.
+func (_u *CharacterUpdateOne) SetNpcTemplateID(id string) *CharacterUpdateOne {
+	_u.mutation.SetNpcTemplateID(id)
+	return _u
+}
+
+// SetNillableNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableNpcTemplateID(id *string) *CharacterUpdateOne {
+	if id != nil {
+		_u = _u.SetNpcTemplateID(*id)
+	}
+	return _u
+}
+
+// SetNpcTemplate sets the "npcTemplate" edge to the NPCTemplate entity.
+func (_u *CharacterUpdateOne) SetNpcTemplate(v *NPCTemplate) *CharacterUpdateOne {
+	return _u.SetNpcTemplateID(v.ID)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -414,6 +1696,12 @@ func (_u *CharacterUpdateOne) ClearUser() *CharacterUpdateOne {
 // ClearRoom clears the "room" edge to the Room entity.
 func (_u *CharacterUpdateOne) ClearRoom() *CharacterUpdateOne {
 	_u.mutation.ClearRoom()
+	return _u
+}
+
+// ClearNpcTemplate clears the "npcTemplate" edge to the NPCTemplate entity.
+func (_u *CharacterUpdateOne) ClearNpcTemplate() *CharacterUpdateOne {
+	_u.mutation.ClearNpcTemplate()
 	return _u
 }
 
@@ -497,6 +1785,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(character.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Password(); ok {
+		_spec.SetField(character.FieldPassword, field.TypeString, value)
+	}
+	if _u.mutation.PasswordCleared() {
+		_spec.ClearField(character.FieldPassword, field.TypeString)
+	}
 	if value, ok := _u.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 	}
@@ -508,6 +1802,150 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Hitpoints(); ok {
+		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHitpoints(); ok {
+		_spec.AddField(character.FieldHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxHitpoints(); ok {
+		_spec.SetField(character.FieldMaxHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxHitpoints(); ok {
+		_spec.AddField(character.FieldMaxHitpoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Stamina(); ok {
+		_spec.SetField(character.FieldStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStamina(); ok {
+		_spec.AddField(character.FieldStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxStamina(); ok {
+		_spec.SetField(character.FieldMaxStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxStamina(); ok {
+		_spec.AddField(character.FieldMaxStamina, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Mana(); ok {
+		_spec.SetField(character.FieldMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMana(); ok {
+		_spec.AddField(character.FieldMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxMana(); ok {
+		_spec.SetField(character.FieldMaxMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxMana(); ok {
+		_spec.AddField(character.FieldMaxMana, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Race(); ok {
+		_spec.SetField(character.FieldRace, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Class(); ok {
+		_spec.SetField(character.FieldClass, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Level(); ok {
+		_spec.SetField(character.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLevel(); ok {
+		_spec.AddField(character.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Constitution(); ok {
+		_spec.SetField(character.FieldConstitution, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedConstitution(); ok {
+		_spec.AddField(character.FieldConstitution, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Gender(); ok {
+		_spec.SetField(character.FieldGender, field.TypeString, value)
+	}
+	if _u.mutation.GenderCleared() {
+		_spec.ClearField(character.FieldGender, field.TypeString)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(character.FieldDescription, field.TypeString, value)
+	}
+	if _u.mutation.DescriptionCleared() {
+		_spec.ClearField(character.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.Strength(); ok {
+		_spec.SetField(character.FieldStrength, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStrength(); ok {
+		_spec.AddField(character.FieldStrength, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Dexterity(); ok {
+		_spec.SetField(character.FieldDexterity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedDexterity(); ok {
+		_spec.AddField(character.FieldDexterity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Intelligence(); ok {
+		_spec.SetField(character.FieldIntelligence, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedIntelligence(); ok {
+		_spec.AddField(character.FieldIntelligence, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Wisdom(); ok {
+		_spec.SetField(character.FieldWisdom, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedWisdom(); ok {
+		_spec.AddField(character.FieldWisdom, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillBlades(); ok {
+		_spec.SetField(character.FieldSkillBlades, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillBlades(); ok {
+		_spec.AddField(character.FieldSkillBlades, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillStaves(); ok {
+		_spec.SetField(character.FieldSkillStaves, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillStaves(); ok {
+		_spec.AddField(character.FieldSkillStaves, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillKnives(); ok {
+		_spec.SetField(character.FieldSkillKnives, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillKnives(); ok {
+		_spec.AddField(character.FieldSkillKnives, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillMartial(); ok {
+		_spec.SetField(character.FieldSkillMartial, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillMartial(); ok {
+		_spec.AddField(character.FieldSkillMartial, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillBrawling(); ok {
+		_spec.SetField(character.FieldSkillBrawling, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillBrawling(); ok {
+		_spec.AddField(character.FieldSkillBrawling, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillTech(); ok {
+		_spec.SetField(character.FieldSkillTech, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillTech(); ok {
+		_spec.AddField(character.FieldSkillTech, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillLightArmor(); ok {
+		_spec.SetField(character.FieldSkillLightArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillLightArmor(); ok {
+		_spec.AddField(character.FieldSkillLightArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillClothArmor(); ok {
+		_spec.SetField(character.FieldSkillClothArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillClothArmor(); ok {
+		_spec.AddField(character.FieldSkillClothArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SkillHeavyArmor(); ok {
+		_spec.SetField(character.FieldSkillHeavyArmor, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillHeavyArmor(); ok {
+		_spec.AddField(character.FieldSkillHeavyArmor, field.TypeInt, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -560,6 +1998,35 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NpcTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   character.NpcTemplateTable,
+			Columns: []string{character.NpcTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NpcTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   character.NpcTemplateTable,
+			Columns: []string{character.NpcTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

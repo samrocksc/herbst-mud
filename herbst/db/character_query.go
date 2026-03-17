@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"herbst/db/character"
+	"herbst/db/npctemplate"
 	"herbst/db/predicate"
 	"herbst/db/room"
 	"herbst/db/user"
@@ -20,13 +21,14 @@ import (
 // CharacterQuery is the builder for querying Character entities.
 type CharacterQuery struct {
 	config
-	ctx        *QueryContext
-	order      []character.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Character
-	withUser   *UserQuery
-	withRoom   *RoomQuery
-	withFKs    bool
+	ctx             *QueryContext
+	order           []character.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.Character
+	withUser        *UserQuery
+	withRoom        *RoomQuery
+	withNpcTemplate *NPCTemplateQuery
+	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (_q *CharacterQuery) QueryRoom() *RoomQuery {
 			sqlgraph.From(character.Table, character.FieldID, selector),
 			sqlgraph.To(room.Table, room.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, character.RoomTable, character.RoomColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNpcTemplate chains the current query on the "npcTemplate" edge.
+func (_q *CharacterQuery) QueryNpcTemplate() *NPCTemplateQuery {
+	query := (&NPCTemplateClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, character.NpcTemplateTable, character.NpcTemplateColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +318,14 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		return nil
 	}
 	return &CharacterQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]character.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Character{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
-		withRoom:   _q.withRoom.Clone(),
+		config:          _q.config,
+		ctx:             _q.ctx.Clone(),
+		order:           append([]character.OrderOption{}, _q.order...),
+		inters:          append([]Interceptor{}, _q.inters...),
+		predicates:      append([]predicate.Character{}, _q.predicates...),
+		withUser:        _q.withUser.Clone(),
+		withRoom:        _q.withRoom.Clone(),
+		withNpcTemplate: _q.withNpcTemplate.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +351,17 @@ func (_q *CharacterQuery) WithRoom(opts ...func(*RoomQuery)) *CharacterQuery {
 		opt(query)
 	}
 	_q.withRoom = query
+	return _q
+}
+
+// WithNpcTemplate tells the query-builder to eager-load the nodes that are connected to
+// the "npcTemplate" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithNpcTemplate(opts ...func(*NPCTemplateQuery)) *CharacterQuery {
+	query := (&NPCTemplateClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNpcTemplate = query
 	return _q
 }
 
@@ -408,12 +444,13 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withUser != nil,
 			_q.withRoom != nil,
+			_q.withNpcTemplate != nil,
 		}
 	)
-	if _q.withUser != nil {
+	if _q.withUser != nil || _q.withNpcTemplate != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -446,6 +483,12 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 	if query := _q.withRoom; query != nil {
 		if err := _q.loadRoom(ctx, query, nodes, nil,
 			func(n *Character, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNpcTemplate; query != nil {
+		if err := _q.loadNpcTemplate(ctx, query, nodes, nil,
+			func(n *Character, e *NPCTemplate) { n.Edges.NpcTemplate = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -506,6 +549,38 @@ func (_q *CharacterQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "currentRoomId" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadNpcTemplate(ctx context.Context, query *NPCTemplateQuery, nodes []*Character, init func(*Character), assign func(*Character, *NPCTemplate)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Character)
+	for i := range nodes {
+		if nodes[i].character_npc_template == nil {
+			continue
+		}
+		fk := *nodes[i].character_npc_template
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(npctemplate.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "character_npc_template" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
