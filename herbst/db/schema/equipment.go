@@ -36,6 +36,25 @@ func (Equipment) Fields() []ent.Field {
 		field.String("itemType").
 			Default("misc").
 			Comment("weapon|armor|consumable|quest|misc"),
+		// Weapon-specific fields (GitHub #92)
+		field.Int("minDamage").
+			Default(1).
+			Comment("Minimum damage for weapons"),
+		field.Int("maxDamage").
+			Default(1).
+			Comment("Maximum damage for weapons"),
+		field.String("weaponType").
+			Default("").
+			Comment("sword|dagger|staff|pipe|brawling - weapon style"),
+		field.String("classRestriction").
+			Default("").
+			Comment("Class that can use this weapon (e.g., warrior, chef)"),
+		field.Bool("isDroppable").
+			Default(true).
+			Comment("Can be dropped by NPCs"),
+		field.Bool("guaranteedDrop").
+			Default(false).
+			Comment("Always drops on first NPC kill"),
 	}
 }
 
@@ -45,5 +64,9 @@ func (Equipment) Edges() []ent.Edge {
 		edge.From("room", Room.Type).
 			Ref("equipment").
 			Unique(),
+		// Character inventory (GitHub #92)
+		edge.To("character", Character.Type).
+			Unique().
+			Comment("Character carrying this item"),
 	}
 }

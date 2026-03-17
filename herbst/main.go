@@ -218,6 +218,16 @@ type model struct {
 	// Room tracking
 	visitedRooms map[int]bool
 	knownExits   map[string]bool // For color-coded exits
+	roomItems    []roomItemDisplay
+}
+
+// roomItemDisplay holds display info for items in a room
+type roomItemDisplay struct {
+	name        string
+	description string
+	color       lipgloss.Color // Display color (gold for immovable, custom otherwise)
+	isImmovable bool
+	isVisible   bool
 }
 
 // ============================================================
@@ -404,6 +414,33 @@ func (m *model) formatExitsWithColor() string {
 	return strings.Join(dirs, ", ")
 }
 
+// formatRoomItemsWithColor returns a formatted string of items in the room
+func (m *model) formatRoomItemsWithColor() string {
+	if len(m.roomItems) == 0 {
+		return ""
+	}
+
+	var items []string
+	for _, item := range m.roomItems {
+		if !item.isVisible {
+			continue
+		}
+		itemStyle := lipgloss.NewStyle().Foreground(item.color)
+		if item.isImmovable {
+			// Immovable items shown in gold with "(fixed)" indicator
+			items = append(items, itemStyle.Render(item.name+" (fixed)")+": "+item.description)
+		} else {
+			items = append(items, itemStyle.Render(item.name)+": "+item.description)
+		}
+	}
+
+	if len(items) == 0 {
+		return ""
+	}
+
+	return lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Items:") + "\n  " + strings.Join(items, "\n  ")
+}
+
 // ============================================================
 // MODEL LIFECYCLE
 // ============================================================
@@ -550,6 +587,7 @@ func (m *model) handleWelcomeInput(input string) {
 		m.loginPassword = ""
 		m.message = "Enter your username:"
 		m.messageType = "info"
+		m.textInput.Placeholder = "Enter your username..."
 		m.textInput.Focus()
 	case "2", "register", "r", "create":
 		m.screen = ScreenRegister
@@ -558,6 +596,7 @@ func (m *model) handleWelcomeInput(input string) {
 		m.loginPassword = ""
 		m.message = "Choose a username:"
 		m.messageType = "info"
+		m.textInput.Placeholder = "Choose a username..."
 		m.textInput.Focus()
 	case "3", "quit", "q":
 		m.message = "Goodbye! Thanks for playing Herbst MUD."
@@ -665,6 +704,45 @@ func (m *model) attemptLogin() {
 		for dir := range m.exits {
 			m.knownExits[dir] = true
 		}
+
+		// Load room items
+		m.loadRoomItems()
+	}
+}
+
+func (m *model) loadRoomItems() {
+	if m.client == nil {
+		return
+	}
+	// Get the room first
+	room, err := m.client.Room.Get(context.Background(), m.currentRoom)
+	if err != nil || room == nil {
+		return // Silently fail - items are optional
+	}
+	items, err := m.client.Room.QueryEquipment(room).All(context.Background())
+	if err != nil {
+		return // Silently fail - items are optional
+	}
+	m.roomItems = make([]roomItemDisplay, 0, len(items))
+	for _, item := range items {
+		if !item.IsVisible {
+			continue
+		}
+		display := roomItemDisplay{
+			name:        item.Name,
+			description: item.Description,
+			isImmovable: item.IsImmovable,
+			isVisible:   item.IsVisible,
+		}
+		// Set color: gold for immovable, custom color if set, white otherwise
+		if item.IsImmovable {
+			display.color = lipgloss.Color("220") // Gold
+		} else if item.Color != "" {
+			display.color = lipgloss.Color(item.Color)
+		} else {
+			display.color = lipgloss.Color("15") // White
+		}
+		m.roomItems = append(m.roomItems, display)
 	}
 }
 
@@ -796,6 +874,9 @@ func (m *model) attemptRegistration(email string) {
 	for dir := range m.exits {
 		m.knownExits[dir] = true
 	}
+
+	// Load room items
+	m.loadRoomItems()
 }
 
 // ============================================================
@@ -828,10 +909,19 @@ func (m *model) processCommand(cmd string) {
   quit - Exit game`
 		m.messageType = "info"
 	case "look", "l":
-		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s",
-			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
-			m.roomDesc,
-			m.formatExitsWithColor())
+		itemStr := m.formatRoomItemsWithColor()
+		if itemStr != "" {
+			m.message = fmt.Sprintf("[%s]\n%s\n\n%s\n\nExits: %s",
+				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+				m.roomDesc,
+				itemStr,
+				m.formatExitsWithColor())
+		} else {
+			m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s",
+				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+				m.roomDesc,
+				m.formatExitsWithColor())
+		}
 		m.messageType = "info"
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
@@ -914,17 +1004,29 @@ func (m *model) handleMovement(cmd string) bool {
 			m.knownExits[dir] = true
 		}
 
+		// Load room items
+		m.loadRoomItems()
+
+		// Format items
+		itemStr := m.formatRoomItemsWithColor()
+		itemPart := ""
+		if itemStr != "" {
+			itemPart = "\n\n" + itemStr
+		}
+
 		if wasVisited {
-			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s\n\nExits: %s",
+			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s\n\nExits: %s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 				m.roomDesc,
+				itemPart,
 				m.formatExitsWithColor())
 		} else {
-			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s\n\nExits: %s",
+			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s\n\nExits: %s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(m.roomName),
 				m.roomDesc,
+				itemPart,
 				m.formatExitsWithColor())
 		}
 		m.messageType = "success"
@@ -1149,24 +1251,34 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
+		// Top: Login box (centered)
 		s.WriteString(loginScreen())
+
+		// Middle: Messages (if any)
 		s.WriteString("\n\n")
 		if m.message != "" {
 			s.WriteString(m.styledMessage(m.message))
 			s.WriteString("\n\n")
 		}
-		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
-		s.WriteString(m.textInput.View())
+
+		// Bottom: Input pane (always visible, consistent location)
+		s.WriteString(strings.Repeat("\n", max(0, m.height-20)))
+		s.WriteString(bottomInputPane("LOGIN", m.textInput.Placeholder, m.textInput.Value()))
 
 	case ScreenRegister:
+		// Top: Register box
 		s.WriteString(registerScreen(m.width, m.height))
+
+		// Middle: Messages (if any)
 		s.WriteString("\n\n")
 		if m.message != "" {
 			s.WriteString(m.styledMessage(m.message))
 			s.WriteString("\n\n")
 		}
-		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
-		s.WriteString(m.textInput.View())
+
+		// Bottom: Input pane (always visible, consistent location)
+		s.WriteString(strings.Repeat("\n", max(0, m.height-20)))
+		s.WriteString(bottomInputPane("REGISTER", m.textInput.Placeholder, m.textInput.Value()))
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
@@ -1248,18 +1360,31 @@ func (m *model) View() string {
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
 
 		// Room info at top with styling (only in output viewport, no stats)
-		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
-			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
-			m.roomDesc,
-			m.formatExitsWithColor())
-
-		// Show message if any
-		if m.message != "" {
-			roomInfo += "\n\n" + m.styledMessage(m.message)
+		itemStr := m.formatRoomItemsWithColor()
+		if itemStr != "" {
+			roomInfo := fmt.Sprintf("[%s]\n%s\n\n%s\n\nExits: %s",
+				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+				m.roomDesc,
+				itemStr,
+				m.formatExitsWithColor())
+			// Show message if any
+			if m.message != "" {
+				roomInfo += "\n\n" + m.styledMessage(m.message)
+			}
+			// Render output viewport with pink border (room info only, no stats)
+			s.WriteString(outputStyle.Render(roomInfo))
+		} else {
+			roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
+				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+				m.roomDesc,
+				m.formatExitsWithColor())
+			// Show message if any
+			if m.message != "" {
+				roomInfo += "\n\n" + m.styledMessage(m.message)
+			}
+			// Render output viewport with pink border (room info only, no stats)
+			s.WriteString(outputStyle.Render(roomInfo))
 		}
-
-		// Render output viewport with pink border (room info only, no stats)
-		s.WriteString(outputStyle.Render(roomInfo))
 		s.WriteString("\n")
 
 		// Full-width status bar separator (middle ~10%)
@@ -1406,4 +1531,25 @@ func registerScreen(width, height int) string {
 		Render("CREATE ACCOUNT - Press ESC to go back to the main menu."))
 
 	return sb.String()
+}
+
+// bottomInputPane renders a consistent input area at the bottom of the screen
+func bottomInputPane(title, placeholder, value string) string {
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("75")).
+		Padding(0, 1).
+		Width(40)
+
+	promptStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("86")). // cyan-ish
+		Bold(true)
+
+	// If there's a value, show it; otherwise show placeholder
+	displayText := value
+	if displayText == "" {
+		displayText = placeholder
+	}
+
+	return promptStyle.Render(title+"> ") + inputStyle.Render(displayText)
 }

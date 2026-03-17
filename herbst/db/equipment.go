@@ -4,6 +4,7 @@ package db
 
 import (
 	"fmt"
+	"herbst/db/character"
 	"herbst/db/equipment"
 	"herbst/db/room"
 	"strings"
@@ -37,20 +38,36 @@ type Equipment struct {
 	IsVisible bool `json:"isVisible,omitempty"`
 	// weapon|armor|consumable|quest|misc
 	ItemType string `json:"itemType,omitempty"`
+	// Minimum damage for weapons
+	MinDamage int `json:"minDamage,omitempty"`
+	// Maximum damage for weapons
+	MaxDamage int `json:"maxDamage,omitempty"`
+	// sword|dagger|staff|pipe|brawling - weapon style
+	WeaponType string `json:"weaponType,omitempty"`
+	// Class that can use this weapon (e.g., warrior, chef)
+	ClassRestriction string `json:"classRestriction,omitempty"`
+	// Can be dropped by NPCs
+	IsDroppable bool `json:"isDroppable,omitempty"`
+	// Always drops on first NPC kill
+	GuaranteedDrop bool `json:"guaranteedDrop,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
-	Edges          EquipmentEdges `json:"edges"`
-	room_equipment *int
-	selectValues   sql.SelectValues
+	Edges               EquipmentEdges `json:"edges"`
+	character_inventory *int
+	equipment_character *int
+	room_equipment      *int
+	selectValues        sql.SelectValues
 }
 
 // EquipmentEdges holds the relations/edges for other nodes in the graph.
 type EquipmentEdges struct {
 	// Room holds the value of the room edge.
 	Room *Room `json:"room,omitempty"`
+	// Character carrying this item
+	Character *Character `json:"character,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // RoomOrErr returns the Room value or an error if the edge
@@ -64,18 +81,33 @@ func (e EquipmentEdges) RoomOrErr() (*Room, error) {
 	return nil, &NotLoadedError{edge: "room"}
 }
 
+// CharacterOrErr returns the Character value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentEdges) CharacterOrErr() (*Character, error) {
+	if e.Character != nil {
+		return e.Character, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: character.Label}
+	}
+	return nil, &NotLoadedError{edge: "character"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible:
+		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsDroppable, equipment.FieldGuaranteedDrop:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldMinDamage, equipment.FieldMaxDamage:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldWeaponType, equipment.FieldClassRestriction:
 			values[i] = new(sql.NullString)
-		case equipment.ForeignKeys[0]: // room_equipment
+		case equipment.ForeignKeys[0]: // character_inventory
+			values[i] = new(sql.NullInt64)
+		case equipment.ForeignKeys[1]: // equipment_character
+			values[i] = new(sql.NullInt64)
+		case equipment.ForeignKeys[2]: // room_equipment
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -158,7 +190,57 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ItemType = value.String
 			}
+		case equipment.FieldMinDamage:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field minDamage", values[i])
+			} else if value.Valid {
+				_m.MinDamage = int(value.Int64)
+			}
+		case equipment.FieldMaxDamage:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field maxDamage", values[i])
+			} else if value.Valid {
+				_m.MaxDamage = int(value.Int64)
+			}
+		case equipment.FieldWeaponType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field weaponType", values[i])
+			} else if value.Valid {
+				_m.WeaponType = value.String
+			}
+		case equipment.FieldClassRestriction:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field classRestriction", values[i])
+			} else if value.Valid {
+				_m.ClassRestriction = value.String
+			}
+		case equipment.FieldIsDroppable:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isDroppable", values[i])
+			} else if value.Valid {
+				_m.IsDroppable = value.Bool
+			}
+		case equipment.FieldGuaranteedDrop:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field guaranteedDrop", values[i])
+			} else if value.Valid {
+				_m.GuaranteedDrop = value.Bool
+			}
 		case equipment.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field character_inventory", value)
+			} else if value.Valid {
+				_m.character_inventory = new(int)
+				*_m.character_inventory = int(value.Int64)
+			}
+		case equipment.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field equipment_character", value)
+			} else if value.Valid {
+				_m.equipment_character = new(int)
+				*_m.equipment_character = int(value.Int64)
+			}
+		case equipment.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_equipment", value)
 			} else if value.Valid {
@@ -181,6 +263,11 @@ func (_m *Equipment) Value(name string) (ent.Value, error) {
 // QueryRoom queries the "room" edge of the Equipment entity.
 func (_m *Equipment) QueryRoom() *RoomQuery {
 	return NewEquipmentClient(_m.config).QueryRoom(_m)
+}
+
+// QueryCharacter queries the "character" edge of the Equipment entity.
+func (_m *Equipment) QueryCharacter() *CharacterQuery {
+	return NewEquipmentClient(_m.config).QueryCharacter(_m)
 }
 
 // Update returns a builder for updating this Equipment.
@@ -235,6 +322,24 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("itemType=")
 	builder.WriteString(_m.ItemType)
+	builder.WriteString(", ")
+	builder.WriteString("minDamage=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MinDamage))
+	builder.WriteString(", ")
+	builder.WriteString("maxDamage=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxDamage))
+	builder.WriteString(", ")
+	builder.WriteString("weaponType=")
+	builder.WriteString(_m.WeaponType)
+	builder.WriteString(", ")
+	builder.WriteString("classRestriction=")
+	builder.WriteString(_m.ClassRestriction)
+	builder.WriteString(", ")
+	builder.WriteString("isDroppable=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsDroppable))
+	builder.WriteString(", ")
+	builder.WriteString("guaranteedDrop=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GuaranteedDrop))
 	builder.WriteByte(')')
 	return builder.String()
 }
