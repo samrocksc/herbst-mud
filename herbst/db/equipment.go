@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"herbst/db/character"
 	"herbst/db/equipment"
@@ -50,10 +51,11 @@ type Equipment struct {
 	IsDroppable bool `json:"isDroppable,omitempty"`
 	// Always drops on first NPC kill
 	GuaranteedDrop bool `json:"guaranteedDrop,omitempty"`
+	// Hidden details revealed through examine skill checks
+	HiddenDetails []map[string]interface{} `json:"hiddenDetails,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges               EquipmentEdges `json:"edges"`
-	character_inventory *int
 	equipment_character *int
 	room_equipment      *int
 	selectValues        sql.SelectValues
@@ -97,17 +99,17 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case equipment.FieldHiddenDetails:
+			values[i] = new([]byte)
 		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsDroppable, equipment.FieldGuaranteedDrop:
 			values[i] = new(sql.NullBool)
 		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldMinDamage, equipment.FieldMaxDamage:
 			values[i] = new(sql.NullInt64)
 		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldWeaponType, equipment.FieldClassRestriction:
 			values[i] = new(sql.NullString)
-		case equipment.ForeignKeys[0]: // character_inventory
+		case equipment.ForeignKeys[0]: // equipment_character
 			values[i] = new(sql.NullInt64)
-		case equipment.ForeignKeys[1]: // equipment_character
-			values[i] = new(sql.NullInt64)
-		case equipment.ForeignKeys[2]: // room_equipment
+		case equipment.ForeignKeys[1]: // room_equipment
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -226,21 +228,22 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.GuaranteedDrop = value.Bool
 			}
-		case equipment.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field character_inventory", value)
-			} else if value.Valid {
-				_m.character_inventory = new(int)
-				*_m.character_inventory = int(value.Int64)
+		case equipment.FieldHiddenDetails:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field hiddenDetails", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.HiddenDetails); err != nil {
+					return fmt.Errorf("unmarshal field hiddenDetails: %w", err)
+				}
 			}
-		case equipment.ForeignKeys[1]:
+		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field equipment_character", value)
 			} else if value.Valid {
 				_m.equipment_character = new(int)
 				*_m.equipment_character = int(value.Int64)
 			}
-		case equipment.ForeignKeys[2]:
+		case equipment.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_equipment", value)
 			} else if value.Valid {
@@ -340,6 +343,9 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("guaranteedDrop=")
 	builder.WriteString(fmt.Sprintf("%v", _m.GuaranteedDrop))
+	builder.WriteString(", ")
+	builder.WriteString("hiddenDetails=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HiddenDetails))
 	builder.WriteByte(')')
 	return builder.String()
 }

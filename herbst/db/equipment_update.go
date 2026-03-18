@@ -6,12 +6,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst/db/character"
 	"herbst/db/equipment"
 	"herbst/db/predicate"
 	"herbst/db/room"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -182,6 +184,122 @@ func (_u *EquipmentUpdate) SetNillableItemType(v *string) *EquipmentUpdate {
 	return _u
 }
 
+// SetMinDamage sets the "minDamage" field.
+func (_u *EquipmentUpdate) SetMinDamage(v int) *EquipmentUpdate {
+	_u.mutation.ResetMinDamage()
+	_u.mutation.SetMinDamage(v)
+	return _u
+}
+
+// SetNillableMinDamage sets the "minDamage" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableMinDamage(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetMinDamage(*v)
+	}
+	return _u
+}
+
+// AddMinDamage adds value to the "minDamage" field.
+func (_u *EquipmentUpdate) AddMinDamage(v int) *EquipmentUpdate {
+	_u.mutation.AddMinDamage(v)
+	return _u
+}
+
+// SetMaxDamage sets the "maxDamage" field.
+func (_u *EquipmentUpdate) SetMaxDamage(v int) *EquipmentUpdate {
+	_u.mutation.ResetMaxDamage()
+	_u.mutation.SetMaxDamage(v)
+	return _u
+}
+
+// SetNillableMaxDamage sets the "maxDamage" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableMaxDamage(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetMaxDamage(*v)
+	}
+	return _u
+}
+
+// AddMaxDamage adds value to the "maxDamage" field.
+func (_u *EquipmentUpdate) AddMaxDamage(v int) *EquipmentUpdate {
+	_u.mutation.AddMaxDamage(v)
+	return _u
+}
+
+// SetWeaponType sets the "weaponType" field.
+func (_u *EquipmentUpdate) SetWeaponType(v string) *EquipmentUpdate {
+	_u.mutation.SetWeaponType(v)
+	return _u
+}
+
+// SetNillableWeaponType sets the "weaponType" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableWeaponType(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetWeaponType(*v)
+	}
+	return _u
+}
+
+// SetClassRestriction sets the "classRestriction" field.
+func (_u *EquipmentUpdate) SetClassRestriction(v string) *EquipmentUpdate {
+	_u.mutation.SetClassRestriction(v)
+	return _u
+}
+
+// SetNillableClassRestriction sets the "classRestriction" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableClassRestriction(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetClassRestriction(*v)
+	}
+	return _u
+}
+
+// SetIsDroppable sets the "isDroppable" field.
+func (_u *EquipmentUpdate) SetIsDroppable(v bool) *EquipmentUpdate {
+	_u.mutation.SetIsDroppable(v)
+	return _u
+}
+
+// SetNillableIsDroppable sets the "isDroppable" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableIsDroppable(v *bool) *EquipmentUpdate {
+	if v != nil {
+		_u.SetIsDroppable(*v)
+	}
+	return _u
+}
+
+// SetGuaranteedDrop sets the "guaranteedDrop" field.
+func (_u *EquipmentUpdate) SetGuaranteedDrop(v bool) *EquipmentUpdate {
+	_u.mutation.SetGuaranteedDrop(v)
+	return _u
+}
+
+// SetNillableGuaranteedDrop sets the "guaranteedDrop" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableGuaranteedDrop(v *bool) *EquipmentUpdate {
+	if v != nil {
+		_u.SetGuaranteedDrop(*v)
+	}
+	return _u
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_u *EquipmentUpdate) SetHiddenDetails(v []map[string]interface{}) *EquipmentUpdate {
+	_u.mutation.SetHiddenDetails(v)
+	return _u
+}
+
+// AppendHiddenDetails appends value to the "hiddenDetails" field.
+func (_u *EquipmentUpdate) AppendHiddenDetails(v []map[string]interface{}) *EquipmentUpdate {
+	_u.mutation.AppendHiddenDetails(v)
+	return _u
+}
+
+// ClearHiddenDetails clears the value of the "hiddenDetails" field.
+func (_u *EquipmentUpdate) ClearHiddenDetails() *EquipmentUpdate {
+	_u.mutation.ClearHiddenDetails()
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdate) SetRoomID(id int) *EquipmentUpdate {
 	_u.mutation.SetRoomID(id)
@@ -201,6 +319,25 @@ func (_u *EquipmentUpdate) SetRoom(v *Room) *EquipmentUpdate {
 	return _u.SetRoomID(v.ID)
 }
 
+// SetCharacterID sets the "character" edge to the Character entity by ID.
+func (_u *EquipmentUpdate) SetCharacterID(id int) *EquipmentUpdate {
+	_u.mutation.SetCharacterID(id)
+	return _u
+}
+
+// SetNillableCharacterID sets the "character" edge to the Character entity by ID if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableCharacterID(id *int) *EquipmentUpdate {
+	if id != nil {
+		_u = _u.SetCharacterID(*id)
+	}
+	return _u
+}
+
+// SetCharacter sets the "character" edge to the Character entity.
+func (_u *EquipmentUpdate) SetCharacter(v *Character) *EquipmentUpdate {
+	return _u.SetCharacterID(v.ID)
+}
+
 // Mutation returns the EquipmentMutation object of the builder.
 func (_u *EquipmentUpdate) Mutation() *EquipmentMutation {
 	return _u.mutation
@@ -209,6 +346,12 @@ func (_u *EquipmentUpdate) Mutation() *EquipmentMutation {
 // ClearRoom clears the "room" edge to the Room entity.
 func (_u *EquipmentUpdate) ClearRoom() *EquipmentUpdate {
 	_u.mutation.ClearRoom()
+	return _u
+}
+
+// ClearCharacter clears the "character" edge to the Character entity.
+func (_u *EquipmentUpdate) ClearCharacter() *EquipmentUpdate {
+	_u.mutation.ClearCharacter()
 	return _u
 }
 
@@ -284,6 +427,41 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.MinDamage(); ok {
+		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMinDamage(); ok {
+		_spec.AddField(equipment.FieldMinDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxDamage(); ok {
+		_spec.SetField(equipment.FieldMaxDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxDamage(); ok {
+		_spec.AddField(equipment.FieldMaxDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.WeaponType(); ok {
+		_spec.SetField(equipment.FieldWeaponType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClassRestriction(); ok {
+		_spec.SetField(equipment.FieldClassRestriction, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsDroppable(); ok {
+		_spec.SetField(equipment.FieldIsDroppable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.GuaranteedDrop(); ok {
+		_spec.SetField(equipment.FieldGuaranteedDrop, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedHiddenDetails(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, equipment.FieldHiddenDetails, value)
+		})
+	}
+	if _u.mutation.HiddenDetailsCleared() {
+		_spec.ClearField(equipment.FieldHiddenDetails, field.TypeJSON)
+	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -306,6 +484,35 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CharacterCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipment.CharacterTable,
+			Columns: []string{equipment.CharacterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CharacterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipment.CharacterTable,
+			Columns: []string{equipment.CharacterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -487,6 +694,122 @@ func (_u *EquipmentUpdateOne) SetNillableItemType(v *string) *EquipmentUpdateOne
 	return _u
 }
 
+// SetMinDamage sets the "minDamage" field.
+func (_u *EquipmentUpdateOne) SetMinDamage(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetMinDamage()
+	_u.mutation.SetMinDamage(v)
+	return _u
+}
+
+// SetNillableMinDamage sets the "minDamage" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableMinDamage(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetMinDamage(*v)
+	}
+	return _u
+}
+
+// AddMinDamage adds value to the "minDamage" field.
+func (_u *EquipmentUpdateOne) AddMinDamage(v int) *EquipmentUpdateOne {
+	_u.mutation.AddMinDamage(v)
+	return _u
+}
+
+// SetMaxDamage sets the "maxDamage" field.
+func (_u *EquipmentUpdateOne) SetMaxDamage(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetMaxDamage()
+	_u.mutation.SetMaxDamage(v)
+	return _u
+}
+
+// SetNillableMaxDamage sets the "maxDamage" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableMaxDamage(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetMaxDamage(*v)
+	}
+	return _u
+}
+
+// AddMaxDamage adds value to the "maxDamage" field.
+func (_u *EquipmentUpdateOne) AddMaxDamage(v int) *EquipmentUpdateOne {
+	_u.mutation.AddMaxDamage(v)
+	return _u
+}
+
+// SetWeaponType sets the "weaponType" field.
+func (_u *EquipmentUpdateOne) SetWeaponType(v string) *EquipmentUpdateOne {
+	_u.mutation.SetWeaponType(v)
+	return _u
+}
+
+// SetNillableWeaponType sets the "weaponType" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableWeaponType(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetWeaponType(*v)
+	}
+	return _u
+}
+
+// SetClassRestriction sets the "classRestriction" field.
+func (_u *EquipmentUpdateOne) SetClassRestriction(v string) *EquipmentUpdateOne {
+	_u.mutation.SetClassRestriction(v)
+	return _u
+}
+
+// SetNillableClassRestriction sets the "classRestriction" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableClassRestriction(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetClassRestriction(*v)
+	}
+	return _u
+}
+
+// SetIsDroppable sets the "isDroppable" field.
+func (_u *EquipmentUpdateOne) SetIsDroppable(v bool) *EquipmentUpdateOne {
+	_u.mutation.SetIsDroppable(v)
+	return _u
+}
+
+// SetNillableIsDroppable sets the "isDroppable" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableIsDroppable(v *bool) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetIsDroppable(*v)
+	}
+	return _u
+}
+
+// SetGuaranteedDrop sets the "guaranteedDrop" field.
+func (_u *EquipmentUpdateOne) SetGuaranteedDrop(v bool) *EquipmentUpdateOne {
+	_u.mutation.SetGuaranteedDrop(v)
+	return _u
+}
+
+// SetNillableGuaranteedDrop sets the "guaranteedDrop" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableGuaranteedDrop(v *bool) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetGuaranteedDrop(*v)
+	}
+	return _u
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_u *EquipmentUpdateOne) SetHiddenDetails(v []map[string]interface{}) *EquipmentUpdateOne {
+	_u.mutation.SetHiddenDetails(v)
+	return _u
+}
+
+// AppendHiddenDetails appends value to the "hiddenDetails" field.
+func (_u *EquipmentUpdateOne) AppendHiddenDetails(v []map[string]interface{}) *EquipmentUpdateOne {
+	_u.mutation.AppendHiddenDetails(v)
+	return _u
+}
+
+// ClearHiddenDetails clears the value of the "hiddenDetails" field.
+func (_u *EquipmentUpdateOne) ClearHiddenDetails() *EquipmentUpdateOne {
+	_u.mutation.ClearHiddenDetails()
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdateOne) SetRoomID(id int) *EquipmentUpdateOne {
 	_u.mutation.SetRoomID(id)
@@ -506,6 +829,25 @@ func (_u *EquipmentUpdateOne) SetRoom(v *Room) *EquipmentUpdateOne {
 	return _u.SetRoomID(v.ID)
 }
 
+// SetCharacterID sets the "character" edge to the Character entity by ID.
+func (_u *EquipmentUpdateOne) SetCharacterID(id int) *EquipmentUpdateOne {
+	_u.mutation.SetCharacterID(id)
+	return _u
+}
+
+// SetNillableCharacterID sets the "character" edge to the Character entity by ID if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableCharacterID(id *int) *EquipmentUpdateOne {
+	if id != nil {
+		_u = _u.SetCharacterID(*id)
+	}
+	return _u
+}
+
+// SetCharacter sets the "character" edge to the Character entity.
+func (_u *EquipmentUpdateOne) SetCharacter(v *Character) *EquipmentUpdateOne {
+	return _u.SetCharacterID(v.ID)
+}
+
 // Mutation returns the EquipmentMutation object of the builder.
 func (_u *EquipmentUpdateOne) Mutation() *EquipmentMutation {
 	return _u.mutation
@@ -514,6 +856,12 @@ func (_u *EquipmentUpdateOne) Mutation() *EquipmentMutation {
 // ClearRoom clears the "room" edge to the Room entity.
 func (_u *EquipmentUpdateOne) ClearRoom() *EquipmentUpdateOne {
 	_u.mutation.ClearRoom()
+	return _u
+}
+
+// ClearCharacter clears the "character" edge to the Character entity.
+func (_u *EquipmentUpdateOne) ClearCharacter() *EquipmentUpdateOne {
+	_u.mutation.ClearCharacter()
 	return _u
 }
 
@@ -619,6 +967,41 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	if value, ok := _u.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.MinDamage(); ok {
+		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMinDamage(); ok {
+		_spec.AddField(equipment.FieldMinDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxDamage(); ok {
+		_spec.SetField(equipment.FieldMaxDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxDamage(); ok {
+		_spec.AddField(equipment.FieldMaxDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.WeaponType(); ok {
+		_spec.SetField(equipment.FieldWeaponType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClassRestriction(); ok {
+		_spec.SetField(equipment.FieldClassRestriction, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsDroppable(); ok {
+		_spec.SetField(equipment.FieldIsDroppable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.GuaranteedDrop(); ok {
+		_spec.SetField(equipment.FieldGuaranteedDrop, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedHiddenDetails(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, equipment.FieldHiddenDetails, value)
+		})
+	}
+	if _u.mutation.HiddenDetailsCleared() {
+		_spec.ClearField(equipment.FieldHiddenDetails, field.TypeJSON)
+	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -641,6 +1024,35 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CharacterCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipment.CharacterTable,
+			Columns: []string{equipment.CharacterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CharacterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipment.CharacterTable,
+			Columns: []string{equipment.CharacterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

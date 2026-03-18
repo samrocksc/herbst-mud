@@ -55,6 +55,10 @@ func (Equipment) Fields() []ent.Field {
 		field.Bool("guaranteedDrop").
 			Default(false).
 			Comment("Always drops on first NPC kill"),
+		// Hidden details for examine skill (GitHub #look-04)
+		field.JSON("hiddenDetails", []map[string]interface{}{}).
+			Optional().
+			Comment("Hidden details revealed through examine skill checks"),
 	}
 }
 

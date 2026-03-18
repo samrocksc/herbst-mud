@@ -32,8 +32,24 @@ const (
 	FieldIsVisible = "is_visible"
 	// FieldItemType holds the string denoting the itemtype field in the database.
 	FieldItemType = "item_type"
+	// FieldMinDamage holds the string denoting the mindamage field in the database.
+	FieldMinDamage = "min_damage"
+	// FieldMaxDamage holds the string denoting the maxdamage field in the database.
+	FieldMaxDamage = "max_damage"
+	// FieldWeaponType holds the string denoting the weapontype field in the database.
+	FieldWeaponType = "weapon_type"
+	// FieldClassRestriction holds the string denoting the classrestriction field in the database.
+	FieldClassRestriction = "class_restriction"
+	// FieldIsDroppable holds the string denoting the isdroppable field in the database.
+	FieldIsDroppable = "is_droppable"
+	// FieldGuaranteedDrop holds the string denoting the guaranteeddrop field in the database.
+	FieldGuaranteedDrop = "guaranteed_drop"
+	// FieldHiddenDetails holds the string denoting the hiddendetails field in the database.
+	FieldHiddenDetails = "hidden_details"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
+	// EdgeCharacter holds the string denoting the character edge name in mutations.
+	EdgeCharacter = "character"
 	// Table holds the table name of the equipment in the database.
 	Table = "equipment"
 	// RoomTable is the table that holds the room relation/edge.
@@ -43,6 +59,13 @@ const (
 	RoomInverseTable = "rooms"
 	// RoomColumn is the table column denoting the room relation/edge.
 	RoomColumn = "room_equipment"
+	// CharacterTable is the table that holds the character relation/edge.
+	CharacterTable = "equipment"
+	// CharacterInverseTable is the table name for the Character entity.
+	// It exists in this package in order to avoid circular dependency with the "character" package.
+	CharacterInverseTable = "characters"
+	// CharacterColumn is the table column denoting the character relation/edge.
+	CharacterColumn = "equipment_character"
 )
 
 // Columns holds all SQL columns for equipment fields.
@@ -58,11 +81,19 @@ var Columns = []string{
 	FieldColor,
 	FieldIsVisible,
 	FieldItemType,
+	FieldMinDamage,
+	FieldMaxDamage,
+	FieldWeaponType,
+	FieldClassRestriction,
+	FieldIsDroppable,
+	FieldGuaranteedDrop,
+	FieldHiddenDetails,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"equipment_character",
 	"room_equipment",
 }
 
@@ -96,6 +127,18 @@ var (
 	DefaultIsVisible bool
 	// DefaultItemType holds the default value on creation for the "itemType" field.
 	DefaultItemType string
+	// DefaultMinDamage holds the default value on creation for the "minDamage" field.
+	DefaultMinDamage int
+	// DefaultMaxDamage holds the default value on creation for the "maxDamage" field.
+	DefaultMaxDamage int
+	// DefaultWeaponType holds the default value on creation for the "weaponType" field.
+	DefaultWeaponType string
+	// DefaultClassRestriction holds the default value on creation for the "classRestriction" field.
+	DefaultClassRestriction string
+	// DefaultIsDroppable holds the default value on creation for the "isDroppable" field.
+	DefaultIsDroppable bool
+	// DefaultGuaranteedDrop holds the default value on creation for the "guaranteedDrop" field.
+	DefaultGuaranteedDrop bool
 )
 
 // OrderOption defines the ordering options for the Equipment queries.
@@ -156,10 +199,47 @@ func ByItemType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldItemType, opts...).ToFunc()
 }
 
+// ByMinDamage orders the results by the minDamage field.
+func ByMinDamage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMinDamage, opts...).ToFunc()
+}
+
+// ByMaxDamage orders the results by the maxDamage field.
+func ByMaxDamage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxDamage, opts...).ToFunc()
+}
+
+// ByWeaponType orders the results by the weaponType field.
+func ByWeaponType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWeaponType, opts...).ToFunc()
+}
+
+// ByClassRestriction orders the results by the classRestriction field.
+func ByClassRestriction(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClassRestriction, opts...).ToFunc()
+}
+
+// ByIsDroppable orders the results by the isDroppable field.
+func ByIsDroppable(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsDroppable, opts...).ToFunc()
+}
+
+// ByGuaranteedDrop orders the results by the guaranteedDrop field.
+func ByGuaranteedDrop(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGuaranteedDrop, opts...).ToFunc()
+}
+
 // ByRoomField orders the results by room field.
 func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCharacterField orders the results by character field.
+func ByCharacterField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCharacterStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newRoomStep() *sqlgraph.Step {
@@ -167,5 +247,12 @@ func newRoomStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RoomInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+	)
+}
+func newCharacterStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CharacterInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, CharacterTable, CharacterColumn),
 	)
 }

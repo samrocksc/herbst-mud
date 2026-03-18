@@ -7,7 +7,7 @@ import (
 
 	"herbst/db"
 	"herbst/db/character"
-	"herbst/db/ent/equipment"
+	dbequipment "herbst/db/equipment"
 	"herbst/db/npctemplate"
 	"herbst/db/room"
 )

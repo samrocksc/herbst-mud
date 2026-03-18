@@ -21,6 +21,7 @@ import (
 	"github.com/charmbracelet/wish/logging"
 	_ "github.com/lib/pq"
 	"github.com/muesli/termenv"
+	"herbst/combat"
 	"herbst/db"
 	"herbst/db/character"
 	"herbst/db/user"
@@ -1097,6 +1098,8 @@ func (m *model) processCommand(cmd string) {
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
 		m.messageType = "info"
+	case "examine", "ex":
+		m.handleExamineCommand(args)
 	case "whoami":
 		// Show character info including level with progress bars
 		m.message = fmt.Sprintf("=== Character Status ===\nUser: %s (ID: %d)\nRoom: %s\n\n[Level %d - %d XP]\n%s",
@@ -1448,6 +1451,123 @@ func (m *model) handlePickupCommand() {
 
 	// Update character's equipped weapon reference if needed
 	m.message += "\n(Use 'unequip' to remove it)"
+}
+
+// handleExamineCommand handles the examine/ex command to examine items for hidden details
+func (m *model) handleExamineCommand(input string) {
+	ctx := context.Background()
+
+	// Parse the target name from input
+	parts := strings.Fields(input)
+	if len(parts) < 2 {
+		m.message = "Examine what? Usage: examine <target>"
+		m.messageType = "error"
+		return
+	}
+	targetName := strings.ToLower(strings.Join(parts[1:], " "))
+
+	// Get current room's items
+	room, err := m.client.Room.Get(ctx, m.currentRoom)
+	if err != nil {
+		m.message = "Error: Could not find current room."
+		m.messageType = "error"
+		return
+	}
+
+	items, err := m.client.Room.QueryEquipment(room).All(ctx)
+	if err != nil {
+		m.message = "Error: Could not query room items."
+		m.messageType = "error"
+		return
+	}
+
+	// Find the target item
+	var targetItem *db.Equipment
+	for _, item := range items {
+		if strings.ToLower(item.Name) == targetName || strings.Contains(strings.ToLower(item.Name), targetName) {
+			targetItem = item
+			break
+		}
+	}
+
+	if targetItem == nil {
+		m.message = fmt.Sprintf("You don't see any '%s' here to examine.", targetName)
+		m.messageType = "error"
+		return
+	}
+
+	// Build the examine output
+	var output strings.Builder
+
+	// Item name and description
+	output.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render(targetItem.Name))
+	output.WriteString("\n")
+	output.WriteString(targetItem.Description)
+
+	// Check for hidden details
+	if len(targetItem.HiddenDetails) > 0 {
+		// Get character stats for examine
+		char, err := m.client.Character.Get(ctx, m.currentCharacterID)
+		if err != nil {
+			m.message = "Error: Could not load character data."
+			m.messageType = "error"
+			return
+		}
+
+		// Parse hidden details and run examine logic
+		details := combat.ParseHiddenDetails(targetItem.HiddenDetails)
+		opts := combat.ExamineOptions{
+			ExamineSkillLevel: 0, // TODO: Add examine skill to character
+			Intelligence:      char.Intelligence,
+			Wisdom:            char.Wisdom,
+		}
+		result := combat.Examine(details, opts)
+
+		// Format hidden details output
+		if len(result.HiddenDetails) > 0 {
+			var revealedDetails []string
+			for _, detail := range result.HiddenDetails {
+				if detail.Revealed {
+					revealedDetails = append(revealedDetails, "  - "+detail.Text)
+				}
+			}
+
+			if len(revealedDetails) > 0 {
+				output.WriteString("\n\n")
+				output.WriteString(lipgloss.NewStyle().Bold(true).Foreground(purple).Render("You notice:"))
+				output.WriteString("\n")
+				output.WriteString(strings.Join(revealedDetails, "\n"))
+			}
+
+			// Grant XP if any details were revealed
+			if result.ExamineXP > 0 {
+				output.WriteString(fmt.Sprintf("\n\n(%d XP earned)", result.ExamineXP))
+			}
+		}
+	}
+
+	// Add item properties
+	var props []string
+	if targetItem.ItemType != "" {
+		props = append(props, fmt.Sprintf("Type: %s", targetItem.ItemType))
+	}
+	if targetItem.WeaponType != "" {
+		props = append(props, fmt.Sprintf("Weapon: %s", targetItem.WeaponType))
+	}
+	if targetItem.MinDamage > 0 || targetItem.MaxDamage > 0 {
+		props = append(props, fmt.Sprintf("Damage: %d-%d", targetItem.MinDamage, targetItem.MaxDamage))
+	}
+	if targetItem.Weight > 0 {
+		props = append(props, fmt.Sprintf("Weight: %d", targetItem.Weight))
+	}
+
+	if len(props) > 0 {
+		output.WriteString("\n\n")
+		output.WriteString(lipgloss.NewStyle().Foreground(gray).Render(strings.Join(props, " | ")))
+	}
+
+	m.message = output.String()
+	m.messageType = "info"
 }
 
 func (m *model) loadOrCreateCharacter() {

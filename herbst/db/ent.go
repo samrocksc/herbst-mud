@@ -10,6 +10,8 @@ import (
 	"herbst/db/equipment"
 	"herbst/db/npctemplate"
 	"herbst/db/room"
+	"herbst/db/skill"
+	"herbst/db/talent"
 	"herbst/db/user"
 	"reflect"
 	"sync"
@@ -81,6 +83,8 @@ func checkColumn(t, c string) error {
 			equipment.Table:   equipment.ValidColumn,
 			npctemplate.Table: npctemplate.ValidColumn,
 			room.Table:        room.ValidColumn,
+			skill.Table:       skill.ValidColumn,
+			talent.Table:      talent.ValidColumn,
 			user.Table:        user.ValidColumn,
 		})
 	})
