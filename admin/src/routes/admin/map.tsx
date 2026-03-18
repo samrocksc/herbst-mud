@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useCallback, useMemo } from 'react'
 import { MapFlow } from '../../components/MapFlow'
 import { ZLevelSelector } from '../../components/ZLevelSelector'
+import { RoomEditPanel } from '../../components/RoomEditPanel'
 import type { Node, Edge, Connection } from '@xyflow/react'
 
 export const Route = createFileRoute('/admin/map')({
@@ -12,6 +13,7 @@ interface MapRoomData extends Record<string, unknown> {
   name: string
   description: string
   zLevel: number
+  exits?: Record<string, number>
 }
 
 // Sample rooms with different Z-levels for testing
@@ -20,35 +22,35 @@ const initialNodes: Node[] = [
       id: '1', 
       type: 'room',
       position: { x: 250, y: 100 }, 
-      data: { name: 'Town Square', description: 'The central hub', zLevel: 0 },
+      data: { name: 'Town Square', description: 'The central hub', zLevel: 0, exits: { north: 2, east: 4, south: 3, west: 5 } },
       selected: false 
     },
     { 
       id: '2', 
       type: 'room',
       position: { x: 250, y: 250 }, 
-      data: { name: 'Main Street North', description: 'Street heading north', zLevel: 0 },
+      data: { name: 'Main Street North', description: 'Street heading north', zLevel: 0, exits: { south: 1 } },
       selected: false 
     },
     { 
       id: '3', 
       type: 'room',
       position: { x: 250, y: 400 }, 
-      data: { name: 'Main Street South', description: 'Street heading south', zLevel: 0 },
+      data: { name: 'Main Street South', description: 'Street heading south', zLevel: 0, exits: { north: 1 } },
       selected: false 
     },
     { 
       id: '4', 
       type: 'room',
       position: { x: 450, y: 175 }, 
-      data: { name: 'Forest Path', description: 'A path through the woods', zLevel: 0 },
+      data: { name: 'Forest Path', description: 'A path through the woods', zLevel: 0, exits: { west: 1 } },
       selected: false 
     },
     { 
       id: '5', 
       type: 'room',
       position: { x: 50, y: 175 }, 
-      data: { name: 'Shop District', description: 'Where merchants sell goods', zLevel: 0 },
+      data: { name: 'Shop District', description: 'Where merchants sell goods', zLevel: 0, exits: { east: 1 } },
       selected: false 
     },
     // Z-level 1 rooms (upper floor)
@@ -56,14 +58,14 @@ const initialNodes: Node[] = [
       id: '6',
       type: 'room',
       position: { x: 250, y: 150 },
-      data: { name: 'Town Square Upstairs', description: 'Upper level of town square', zLevel: 1 },
+      data: { name: 'Town Square Upstairs', description: 'Upper level of town square', zLevel: 1, exits: { down: 1, east: 7 } },
       selected: false
     },
     {
       id: '7',
       type: 'room',
       position: { x: 400, y: 200 },
-      data: { name: 'Inn Upper Floor', description: 'Guest rooms upstairs', zLevel: 1 },
+      data: { name: 'Inn Upper Floor', description: 'Guest rooms upstairs', zLevel: 1, exits: { west: 6 } },
       selected: false
     },
     // Z-level -1 rooms (underground)
@@ -71,14 +73,14 @@ const initialNodes: Node[] = [
       id: '8',
       type: 'room',
       position: { x: 250, y: 300 },
-      data: { name: 'Town Square Cellar', description: 'Storage basement', zLevel: -1 },
+      data: { name: 'Town Square Cellar', description: 'Storage basement', zLevel: -1, exits: { up: 1, south: 9 } },
       selected: false
     },
     {
       id: '9',
       type: 'room',
       position: { x: 100, y: 400 },
-      data: { name: 'Sewers', description: 'Dark underground tunnels', zLevel: -1 },
+      data: { name: 'Sewers', description: 'Dark underground tunnels', zLevel: -1, exits: { north: 8 } },
       selected: false
     },
   ]
@@ -98,6 +100,7 @@ const initialEdges: Edge[] = [
 
 function MapBuilder() {
   const [nodes, setNodes] = useState<Node[]>(initialNodes)
+  const [edges, setEdges] = useState<Edge[]>(initialEdges)
   const [currentZLevel, setCurrentZLevel] = useState(0)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
 
@@ -138,8 +141,6 @@ function MapBuilder() {
     })
   }, [edges, nodes, currentZLevel])
 
-  const [edges, setEdges] = useState<Edge[]>(initialEdges)
-
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node)
     setNodes(nds => nds.map(n => ({
@@ -168,15 +169,64 @@ function MapBuilder() {
       id: newId,
       type: 'room',
       position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
-      data: { name: `Room ${newId}`, description: 'New room', zLevel: currentZLevel }
+      data: { name: `Room ${newId}`, description: 'New room', zLevel: currentZLevel, exits: {} }
     }
     setNodes(nds => [...nds, newNode])
   }
 
-  const getRoomData = (node: Node | null): MapRoomData => {
-    if (!node) return { name: '', description: '', zLevel: 0 }
-    return node.data as MapRoomData
-  }
+  // Convert nodes to rooms list for RoomEditPanel
+  const roomsList = useMemo(() => {
+    return nodes.map(node => ({
+      id: parseInt(node.id, 10),
+      name: (node.data as MapRoomData).name
+    }))
+  }, [nodes])
+
+  // Handle room update from RoomEditPanel
+  const handleRoomUpdate = useCallback((id: string, data: { name: string; description: string; zLevel: number; exits: Record<string, number> }) => {
+    setNodes(nds => nds.map(n => 
+      n.id === id 
+        ? { ...n, data: { ...n.data, ...data } }
+        : n
+    ))
+    
+    // Update selected node to reflect changes
+    if (selectedNode?.id === id) {
+      setSelectedNode({ ...selectedNode, data: { ...selectedNode.data, ...data } })
+    }
+    
+    // Update edges based on exits
+    setEdges(eds => {
+      // Remove old edges for this room
+      const filtered = eds.filter(e => e.source !== id)
+      
+      // Add new edges from exits
+      const newEdges = Object.entries(data.exits).map(([direction, targetId]) => ({
+        id: `e${id}-${targetId}`,
+        source: id,
+        target: String(targetId),
+        label: direction,
+        type: 'smoothstep' as const
+      }))
+      
+      return [...filtered, ...newEdges]
+    })
+  }, [selectedNode])
+
+  // Handle room delete
+  const handleRoomDelete = useCallback((id: string) => {
+    if (confirm('Are you sure you want to delete this room?')) {
+      setNodes(nds => nds.filter(n => n.id !== id))
+      setEdges(eds => eds.filter(e => e.source !== id && e.target !== id))
+      setSelectedNode(null)
+    }
+  }, [])
+
+  // Handle panel close
+  const handlePanelClose = useCallback(() => {
+    setSelectedNode(null)
+    setNodes(nds => nds.map(n => ({ ...n, selected: false })))
+  }, [])
 
   return (
     <div className="management-page">
@@ -205,74 +255,13 @@ function MapBuilder() {
           />
         </div>
 
-        {selectedNode && (
-          <div className="map-sidebar" style={{ 
-            width: '280px', 
-            padding: '16px', 
-            background: '#222', 
-            borderRadius: '8px',
-            border: '1px solid #444'
-          }}>
-            <h3>Room Details</h3>
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '4px' }}>Name:</label>
-              <input 
-                type="text" 
-                value={getRoomData(selectedNode).name}
-                onChange={(e) => {
-                  const newData = { ...getRoomData(selectedNode), name: e.target.value }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
-                }}
-                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff' }}
-              />
-            </div>
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '4px' }}>Description:</label>
-              <textarea 
-                value={getRoomData(selectedNode).description}
-                onChange={(e) => {
-                  const newData = { ...getRoomData(selectedNode), description: e.target.value }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
-                }}
-                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff', minHeight: '60px' }}
-              />
-            </div>
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '4px' }}>Z-Level:</label>
-              <select 
-                value={getRoomData(selectedNode).zLevel}
-                onChange={(e) => {
-                  const zLevel = parseInt(e.target.value)
-                  const newData = { ...getRoomData(selectedNode), zLevel }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
-                }}
-                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff' }}
-              >
-                <option value={-2}>Z: -2 (Deep Underground)</option>
-                <option value={-1}>Z: -1 (Underground)</option>
-                <option value={0}>Z: 0 (Ground)</option>
-                <option value={1}>Z: 1 (Upper Floor)</option>
-                <option value={2}>Z: 2 (Tower)</option>
-              </select>
-            </div>
-            <p style={{ fontSize: '12px', color: '#888' }}>Node ID: {selectedNode.id}</p>
-          </div>
-        )}
+        <RoomEditPanel
+          selectedNode={selectedNode}
+          rooms={roomsList}
+          onUpdate={handleRoomUpdate}
+          onDelete={handleRoomDelete}
+          onClose={handlePanelClose}
+        />
       </div>
 
       <div className="map-legend" style={{ marginTop: '12px', padding: '8px', background: '#222', borderRadius: '4px' }}>
