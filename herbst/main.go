@@ -1523,10 +1523,57 @@ func (m *model) displayItemDetails(item RoomItem) {
 	m.messageType = "info"
 }
 
+// getItemIcon returns an emoji icon based on item type
+func getItemIcon(itemType string) string {
+	switch itemType {
+	case "weapon":
+		return "⚔️"
+	case "armor":
+		return "🛡️"
+	case "potion":
+		return "🧪"
+	case "food":
+		return "🍖"
+	case "scroll":
+		return "📜"
+	case "key":
+		return "🔑"
+	case "treasure":
+		return "💎"
+	case "quest":
+		return "📋"
+	default:
+		return "📦"
+	}
+}
+
+// getItemRarityColor returns a lipgloss color based on item rarity
+func getItemRarityColor(rarity string) lipgloss.Color {
+	switch rarity {
+	case "rare":
+		return lipgloss.Color("51") // Blue
+	case "epic":
+		return lipgloss.Color("201") // Magenta
+	case "legendary":
+		return lipgloss.Color("220") // Gold
+	default:
+		return lipgloss.Color("white")
+	}
+}
+
+// inventoryItem represents an item in the player's inventory
+type inventoryItem struct {
+	ID          int
+	Name        string
+	Description string
+	ItemType    string
+	IsEquipped  bool
+	Rarity      string
+}
+
 // handleInventoryCommand handles the inventory/i command
 func (m *model) handleInventoryCommand() {
 	// Fetch player's inventory from API
-	// For now, show a placeholder message
 	resp, err := http.Get(fmt.Sprintf("%s/equipment?ownerId=%d", RESTAPIBase, m.currentCharacterID))
 	if err != nil {
 		m.message = fmt.Sprintf("Error fetching inventory: %v", err)
@@ -1536,38 +1583,70 @@ func (m *model) handleInventoryCommand() {
 	defer resp.Body.Close()
 
 	// Parse inventory items
-	var items []struct {
+	var rawItems []struct {
 		ID          int    `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		ItemType    string `json:"itemType"`
 		IsEquipped  bool   `json:"isEquipped"`
+		Rarity      string `json:"rarity"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&items); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&rawItems); err != nil {
 		m.message = "You aren't carrying anything."
 		m.messageType = "info"
 		return
+	}
+
+	// Convert to typed items
+	items := make([]inventoryItem, len(rawItems))
+	for i, raw := range rawItems {
+		items[i] = inventoryItem(raw)
 	}
 
 	if len(items) == 0 {
-		m.message = "You aren't carrying anything."
+		m.message = "Your pockets are empty. Time to loot some stuff!"
 		m.messageType = "info"
 		return
 	}
 
-	// Format inventory display
+	// Format inventory display with icons and styling
 	var inv strings.Builder
-	inv.WriteString("=== INVENTORY ===\n\n")
+	inv.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("🎒 INVENTORY"))
+	inv.WriteString("\n")
+	inv.WriteString(strings.Repeat("─", 30))
+	inv.WriteString("\n\n")
+
+	// Group items by type for better organization
+	typeGroups := make(map[string][]inventoryItem)
+
 	for _, item := range items {
-		equipped := ""
-		if item.IsEquipped {
-			equipped = " [equipped]"
-		}
-		inv.WriteString(fmt.Sprintf("  %s%s\n", item.Name, equipped))
-		if item.Description != "" {
-			inv.WriteString(fmt.Sprintf("    %s\n", item.Description))
-		}
+		typeGroups[item.ItemType] = append(typeGroups[item.ItemType], item)
 	}
+
+	// Display items grouped by type with icons
+	for itemType, groupItems := range typeGroups {
+		icon := getItemIcon(itemType)
+		typeLabel := strings.ToUpper(itemType)
+		inv.WriteString(lipgloss.NewStyle().Bold(true).Foreground(cyan).Render(fmt.Sprintf("%s %s", icon, typeLabel)))
+		inv.WriteString("\n")
+
+		for _, invItem := range groupItems {
+			rarityColor := getItemRarityColor(invItem.Rarity)
+			itemStyle := lipgloss.NewStyle().Foreground(rarityColor)
+
+			equipped := ""
+			if invItem.IsEquipped {
+				equipped = " " + lipgloss.NewStyle().Bold(true).Foreground(green).Render("⚡ equipped")
+			}
+
+			inv.WriteString(fmt.Sprintf("  %s %s%s\n", icon, itemStyle.Render(invItem.Name), equipped))
+			if invItem.Description != "" {
+				inv.WriteString(fmt.Sprintf("     %s\n", invItem.Description))
+			}
+		}
+		inv.WriteString("\n")
+	}
+
 	m.message = inv.String()
 	m.messageType = "info"
 }
