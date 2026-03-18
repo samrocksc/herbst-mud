@@ -185,8 +185,9 @@ type model struct {
 	roomName    string
 	roomDesc    string
 	exits       map[string]int
-	roomItems   []string // Items in the current room
-	roomNPCs    []string // NPCs in the current room
+	roomItems      []string    // Items in the current room
+	roomEquipment  []*db.Equipment // Full equipment objects for reading
+	roomNPCs       []string // NPCs in the current room
 	inputBuffer string
 	message     string
 	messageType string // "success", "error", "info" for styling
@@ -208,6 +209,9 @@ type model struct {
 	characterMaxMana     int
 	characterLevel       int
 	characterExperience  int
+
+	// Character skills (for skill checks like reading)
+	characterSkills map[string]int
 
 	// Profile editing state
 	editField string // "gender" or "description"
@@ -236,6 +240,8 @@ var (
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
 	pink   = lipgloss.Color("219")
+	cyan   = lipgloss.Color("51")   // Cyan for room items
+	magenta = lipgloss.Color("201")  // Magenta for NPCs
 
 	// Raw ANSI for direct terminal output (when lipgloss fails)
 	pinkAnsi  = "\033[38;5;219m"
@@ -410,9 +416,10 @@ func (m *model) formatExitsWithColor() string {
 func (m *model) loadRoomItemsAndNPCs(room *db.Room) {
 	m.roomItems = []string{}
 	m.roomNPCs = []string{}
+	m.roomEquipment = nil
 
-	// Load characters in the room ( NPCs)
-	if chars, err := room.Characters(); err == nil {
+	// Load characters in the room (NPCs)
+	if chars, err := room.QueryCharacters().All(context.Background()); err == nil {
 		for _, char := range chars {
 			if char.IsNPC {
 				m.roomNPCs = append(m.roomNPCs, char.Name)
@@ -421,9 +428,10 @@ func (m *model) loadRoomItemsAndNPCs(room *db.Room) {
 	}
 
 	// Load equipment in the room
-	if items, err := room.Equipment(); err == nil {
+	if items, err := room.QueryEquipment().All(context.Background()); err == nil {
 		for _, item := range items {
 			m.roomItems = append(m.roomItems, item.Name)
+			m.roomEquipment = append(m.roomEquipment, item)
 		}
 	}
 }
@@ -483,6 +491,61 @@ func (m *model) handleLookAt(target string) {
 	}
 
 	m.message = fmt.Sprintf("You don't see any '%s' here.", target)
+	m.messageType = "error"
+}
+
+// handleReadCommand handles "read <item>" command for readable items
+func (m *model) handleReadCommand(target string) {
+	targetLower := strings.ToLower(target)
+
+	// Find the item in room equipment
+	for _, item := range m.roomEquipment {
+		if !strings.Contains(strings.ToLower(item.Name), targetLower) {
+			continue
+		}
+
+		// Found the item - check if readable
+		if !item.IsReadable {
+			m.message = fmt.Sprintf("You can't read the %s.", item.Name)
+			m.messageType = "error"
+			return
+		}
+
+		// Check if skill is required
+		if item.ReadSkill != "" && item.ReadSkillLevel > 0 {
+			// Get player's skill level
+			playerSkillLevel := 0
+			if m.characterSkills != nil {
+				playerSkillLevel = m.characterSkills[strings.ToLower(item.ReadSkill)]
+			}
+
+			if playerSkillLevel < item.ReadSkillLevel {
+				m.message = fmt.Sprintf("You need %s level %d to understand this.\nThe text appears as incomprehensible symbols.", item.ReadSkill, item.ReadSkillLevel)
+				m.messageType = "error"
+				return
+			}
+
+			// Player has required skill - show decrypted content
+			if item.DecryptedContent != "" {
+				m.message = fmt.Sprintf("[%s]\n%s", item.Name, item.DecryptedContent)
+			} else {
+				m.message = fmt.Sprintf("[%s]\n%s", item.Name, item.Content)
+			}
+			m.messageType = "info"
+			return
+		}
+
+		// No skill required - show regular content
+		if item.Content != "" {
+			m.message = fmt.Sprintf("[%s]\n%s", item.Name, item.Content)
+		} else {
+			m.message = fmt.Sprintf("The %s appears to be blank.", item.Name)
+		}
+		m.messageType = "info"
+		return
+	}
+
+	m.message = fmt.Sprintf("You don't see any '%s' here to read.", target)
 	m.messageType = "error"
 }
 
@@ -905,7 +968,9 @@ func (m *model) processCommand(cmd string) {
 		m.message = `Commands:
   n/north, s/south, e/east, w/west - Move
   look/l - Look around
-  exits/x - Show exits  
+  look at <thing> - Look at an item or NPC
+  read <item> - Read a readable item
+  exits/x - Show exits
   peer <dir> - Peek at adjacent room
   whoami - Show your info
   profile/p - Edit character profile
@@ -1190,6 +1255,18 @@ func (m *model) loadOrCreateCharacter() {
 		m.characterMaxMana = 25
 		m.characterLevel = 1
 		m.characterExperience = 0
+		// Initialize skills with defaults
+		m.characterSkills = map[string]int{
+			"blades":      0,
+			"staves":      0,
+			"knives":      0,
+			"martial":     0,
+			"brawling":    0,
+			"tech":        0,
+			"light armor": 0,
+			"cloth armor": 0,
+			"heavy armor": 0,
+		}
 		return
 	}
 
@@ -1214,6 +1291,19 @@ func (m *model) loadOrCreateCharacter() {
 // 	// Level/Experience - defaults since stats not available
 	m.characterLevel = 1
 	m.characterExperience = 0
+
+	// Load character skills
+	m.characterSkills = map[string]int{
+		"blades":      char.SkillBlades,
+		"staves":      char.SkillStaves,
+		"knives":      char.SkillKnives,
+		"martial":     char.SkillMartial,
+		"brawling":    char.SkillBrawling,
+		"tech":        char.SkillTech,
+		"light armor": char.SkillLightArmor,
+		"cloth armor": char.SkillClothArmor,
+		"heavy armor": char.SkillHeavyArmor,
+	}
 }
 
 // ============================================================

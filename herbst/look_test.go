@@ -9,11 +9,13 @@ import (
 func TestLookCommandDisplay(t *testing.T) {
 	// Create a minimal model to test formatting
 	m := &model{
-		roomName:  "Test Room",
-		roomDesc:  "This is a test room description.",
-		exits:     map[string]int{"north": 2, "south": 3},
-		roomItems: []string{"rusty sword", "shield"},
-		roomNPCs:  []string{"Guard Marco"},
+		roomName:     "Test Room",
+		roomDesc:     "This is a test room description.",
+		exits:        map[string]int{"north": 2, "south": 3},
+		roomItems:    []string{"rusty sword", "shield"},
+		roomNPCs:     []string{"Guard Marco"},
+		visitedRooms: make(map[int]bool),
+		knownExits:   make(map[string]bool),
 	}
 
 	// Test formatRoomContent
@@ -44,17 +46,19 @@ func TestLookCommandDisplay(t *testing.T) {
 // TestLookAtCommand tests the "look at <target>" functionality
 func TestLookAtCommand(t *testing.T) {
 	m := &model{
-		currentUserName: "TestPlayer",
-		characterLevel:  5,
-		roomName:        "Test Room",
-		characterHP:     50,
-		characterMaxHP:  100,
-		characterStamina: 30,
+		currentUserName:    "TestPlayer",
+		characterLevel:    5,
+		roomName:           "Test Room",
+		characterHP:        50,
+		characterMaxHP:     100,
+		characterStamina:   30,
 		characterMaxStamina: 50,
-		characterMana:   20,
-		characterMaxMana: 50,
-		roomItems:       []string{"rusty sword", "gold coin"},
-		roomNPCs:        []string{"Guard Marco", "Merchant Joe"},
+		characterMana:      20,
+		characterMaxMana:   50,
+		roomItems:          []string{"rusty sword", "gold coin"},
+		roomNPCs:           []string{"Guard Marco", "Merchant Joe"},
+		visitedRooms:       make(map[int]bool),
+		knownExits:         make(map[string]bool),
 	}
 
 	// Test "look at me"

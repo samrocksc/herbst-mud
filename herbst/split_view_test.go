@@ -8,7 +8,7 @@ import (
 // Issue #72: UI: Full-width split windows with proportional heights
 func TestProportionalHeights(t *testing.T) {
 	t.Run("Calculates correct proportional heights at 80x24", func(t *testing.T) {
-		width, height := 80, 24
+		_, height := 80, 24
 
 		// Input: ~20% = 4
 		inputHeight := height * 20 / 100
@@ -44,7 +44,7 @@ func TestProportionalHeights(t *testing.T) {
 	})
 
 	t.Run("Calculates correct proportional heights at 120x40", func(t *testing.T) {
-		width, height := 120, 40
+		_, height := 120, 40
 
 		// Input: ~20% = 8
 		inputHeight := height * 20 / 100
@@ -79,7 +79,7 @@ func TestProportionalHeights(t *testing.T) {
 	})
 
 	t.Run("Uses minimum heights for small terminals", func(t *testing.T) {
-		width, height := 40, 10
+		_, height := 40, 10
 
 		// Input: ~20% = 2, but min is 3
 		inputHeight := height * 20 / 100
