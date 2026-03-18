@@ -1828,6 +1828,16 @@ func (m *model) View() string {
 // STATIC SCREENS
 // ============================================================
 
+// asciiLogo is the ASCII art logo for Herbst MUD
+const asciiLogo = `
+    _    _                        _   _
+   / \  | |__  _ __   __ _  ___ | | | |___
+  / _ \ | '_ \| '_ \ / _` + "`" + ` |/ _ \| | / / __|
+ / ___ \| | | | |_) | (_| | (_) | || \__ \
+/_/   \_\_| |_| .__/ \__,_|\___/|_|| |___/
+               |_|              |___/
+`
+
 func welcomeScreen(width, height int, inputView string) string {
 	// Calculate proportional heights matching game screen
 	// Output: ~70%, Input: ~30%
@@ -1851,17 +1861,19 @@ func welcomeScreen(width, height int, inputView string) string {
 	// Build output content - lipgloss adds the border, so just content here
 	var outputContent strings.Builder
 	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
+	outputContent.WriteString(asciiLogo)
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Underline(true).Render("        Welcome Adventurer!        "))
 	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        Welcome Adventurer!        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  1. Login"))
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(yellow).Render("  Commands:"))
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ login"))
 	outputContent.WriteString("      - Log in to your existing account\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  2. Register"))
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ register"))
 	outputContent.WriteString("   - Create a new character\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  3. Quit"))
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ quit"))
 	outputContent.WriteString("       - Exit the game\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("  Use arrow keys or type number/command"))
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Italic(true).Render("  Tip: Use arrow keys or type a command"))
 
 	// Input pane (bottom)
 	inputStyle := lipgloss.NewStyle().
