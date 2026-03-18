@@ -2961,43 +2961,50 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 // EquipmentMutation represents an operation that mutates the Equipment nodes in the graph.
 type EquipmentMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	name              *string
-	description       *string
-	slot              *string
-	level             *int
-	addlevel          *int
-	weight            *int
-	addweight         *int
-	isEquipped        *bool
-	isImmovable       *bool
-	color             *string
-	isVisible         *bool
-	itemType          *string
-	minDamage         *int
-	addminDamage      *int
-	maxDamage         *int
-	addmaxDamage      *int
-	weaponType        *string
-	classRestriction  *string
-	isDroppable       *bool
-	guaranteedDrop    *bool
-	isReadable        *bool
-	content           *string
-	readSkill         *string
-	readSkillLevel    *int
-	addreadSkillLevel *int
-	decryptedContent  *string
-	clearedFields     map[string]struct{}
-	room              *int
-	clearedroom       bool
-	character         *int
-	clearedcharacter  bool
-	done              bool
-	oldValue          func(context.Context) (*Equipment, error)
-	predicates        []predicate.Equipment
+	op                  Op
+	typ                 string
+	id                  *int
+	name                *string
+	description         *string
+	shortDesc           *string
+	examineDesc         *string
+	hiddenDetails       *[]map[string]interface{}
+	appendhiddenDetails []map[string]interface{}
+	onExamine           *[]map[string]interface{}
+	appendonExamine     []map[string]interface{}
+	slot                *string
+	level               *int
+	addlevel            *int
+	weight              *int
+	addweight           *int
+	isEquipped          *bool
+	isImmovable         *bool
+	color               *string
+	isVisible           *bool
+	isContainer         *bool
+	itemType            *string
+	minDamage           *int
+	addminDamage        *int
+	maxDamage           *int
+	addmaxDamage        *int
+	weaponType          *string
+	classRestriction    *string
+	isDroppable         *bool
+	guaranteedDrop      *bool
+	isReadable          *bool
+	content             *string
+	readSkill           *string
+	readSkillLevel      *int
+	addreadSkillLevel   *int
+	decryptedContent    *string
+	clearedFields       map[string]struct{}
+	room                *int
+	clearedroom         bool
+	character           *int
+	clearedcharacter    bool
+	done                bool
+	oldValue            func(context.Context) (*Equipment, error)
+	predicates          []predicate.Equipment
 }
 
 var _ ent.Mutation = (*EquipmentMutation)(nil)
@@ -3168,6 +3175,208 @@ func (m *EquipmentMutation) OldDescription(ctx context.Context) (v string, err e
 // ResetDescription resets all changes to the "description" field.
 func (m *EquipmentMutation) ResetDescription() {
 	m.description = nil
+}
+
+// SetShortDesc sets the "shortDesc" field.
+func (m *EquipmentMutation) SetShortDesc(s string) {
+	m.shortDesc = &s
+}
+
+// ShortDesc returns the value of the "shortDesc" field in the mutation.
+func (m *EquipmentMutation) ShortDesc() (r string, exists bool) {
+	v := m.shortDesc
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShortDesc returns the old "shortDesc" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldShortDesc(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShortDesc is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShortDesc requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShortDesc: %w", err)
+	}
+	return oldValue.ShortDesc, nil
+}
+
+// ResetShortDesc resets all changes to the "shortDesc" field.
+func (m *EquipmentMutation) ResetShortDesc() {
+	m.shortDesc = nil
+}
+
+// SetExamineDesc sets the "examineDesc" field.
+func (m *EquipmentMutation) SetExamineDesc(s string) {
+	m.examineDesc = &s
+}
+
+// ExamineDesc returns the value of the "examineDesc" field in the mutation.
+func (m *EquipmentMutation) ExamineDesc() (r string, exists bool) {
+	v := m.examineDesc
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExamineDesc returns the old "examineDesc" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldExamineDesc(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExamineDesc is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExamineDesc requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExamineDesc: %w", err)
+	}
+	return oldValue.ExamineDesc, nil
+}
+
+// ResetExamineDesc resets all changes to the "examineDesc" field.
+func (m *EquipmentMutation) ResetExamineDesc() {
+	m.examineDesc = nil
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (m *EquipmentMutation) SetHiddenDetails(value []map[string]interface{}) {
+	m.hiddenDetails = &value
+	m.appendhiddenDetails = nil
+}
+
+// HiddenDetails returns the value of the "hiddenDetails" field in the mutation.
+func (m *EquipmentMutation) HiddenDetails() (r []map[string]interface{}, exists bool) {
+	v := m.hiddenDetails
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHiddenDetails returns the old "hiddenDetails" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldHiddenDetails(ctx context.Context) (v []map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHiddenDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHiddenDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHiddenDetails: %w", err)
+	}
+	return oldValue.HiddenDetails, nil
+}
+
+// AppendHiddenDetails adds value to the "hiddenDetails" field.
+func (m *EquipmentMutation) AppendHiddenDetails(value []map[string]interface{}) {
+	m.appendhiddenDetails = append(m.appendhiddenDetails, value...)
+}
+
+// AppendedHiddenDetails returns the list of values that were appended to the "hiddenDetails" field in this mutation.
+func (m *EquipmentMutation) AppendedHiddenDetails() ([]map[string]interface{}, bool) {
+	if len(m.appendhiddenDetails) == 0 {
+		return nil, false
+	}
+	return m.appendhiddenDetails, true
+}
+
+// ClearHiddenDetails clears the value of the "hiddenDetails" field.
+func (m *EquipmentMutation) ClearHiddenDetails() {
+	m.hiddenDetails = nil
+	m.appendhiddenDetails = nil
+	m.clearedFields[equipment.FieldHiddenDetails] = struct{}{}
+}
+
+// HiddenDetailsCleared returns if the "hiddenDetails" field was cleared in this mutation.
+func (m *EquipmentMutation) HiddenDetailsCleared() bool {
+	_, ok := m.clearedFields[equipment.FieldHiddenDetails]
+	return ok
+}
+
+// ResetHiddenDetails resets all changes to the "hiddenDetails" field.
+func (m *EquipmentMutation) ResetHiddenDetails() {
+	m.hiddenDetails = nil
+	m.appendhiddenDetails = nil
+	delete(m.clearedFields, equipment.FieldHiddenDetails)
+}
+
+// SetOnExamine sets the "onExamine" field.
+func (m *EquipmentMutation) SetOnExamine(value []map[string]interface{}) {
+	m.onExamine = &value
+	m.appendonExamine = nil
+}
+
+// OnExamine returns the value of the "onExamine" field in the mutation.
+func (m *EquipmentMutation) OnExamine() (r []map[string]interface{}, exists bool) {
+	v := m.onExamine
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnExamine returns the old "onExamine" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldOnExamine(ctx context.Context) (v []map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnExamine is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnExamine requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnExamine: %w", err)
+	}
+	return oldValue.OnExamine, nil
+}
+
+// AppendOnExamine adds value to the "onExamine" field.
+func (m *EquipmentMutation) AppendOnExamine(value []map[string]interface{}) {
+	m.appendonExamine = append(m.appendonExamine, value...)
+}
+
+// AppendedOnExamine returns the list of values that were appended to the "onExamine" field in this mutation.
+func (m *EquipmentMutation) AppendedOnExamine() ([]map[string]interface{}, bool) {
+	if len(m.appendonExamine) == 0 {
+		return nil, false
+	}
+	return m.appendonExamine, true
+}
+
+// ClearOnExamine clears the value of the "onExamine" field.
+func (m *EquipmentMutation) ClearOnExamine() {
+	m.onExamine = nil
+	m.appendonExamine = nil
+	m.clearedFields[equipment.FieldOnExamine] = struct{}{}
+}
+
+// OnExamineCleared returns if the "onExamine" field was cleared in this mutation.
+func (m *EquipmentMutation) OnExamineCleared() bool {
+	_, ok := m.clearedFields[equipment.FieldOnExamine]
+	return ok
+}
+
+// ResetOnExamine resets all changes to the "onExamine" field.
+func (m *EquipmentMutation) ResetOnExamine() {
+	m.onExamine = nil
+	m.appendonExamine = nil
+	delete(m.clearedFields, equipment.FieldOnExamine)
 }
 
 // SetSlot sets the "slot" field.
@@ -3460,6 +3669,42 @@ func (m *EquipmentMutation) OldIsVisible(ctx context.Context) (v bool, err error
 // ResetIsVisible resets all changes to the "isVisible" field.
 func (m *EquipmentMutation) ResetIsVisible() {
 	m.isVisible = nil
+}
+
+// SetIsContainer sets the "isContainer" field.
+func (m *EquipmentMutation) SetIsContainer(b bool) {
+	m.isContainer = &b
+}
+
+// IsContainer returns the value of the "isContainer" field in the mutation.
+func (m *EquipmentMutation) IsContainer() (r bool, exists bool) {
+	v := m.isContainer
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsContainer returns the old "isContainer" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldIsContainer(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsContainer is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsContainer requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsContainer: %w", err)
+	}
+	return oldValue.IsContainer, nil
+}
+
+// ResetIsContainer resets all changes to the "isContainer" field.
+func (m *EquipmentMutation) ResetIsContainer() {
+	m.isContainer = nil
 }
 
 // SetItemType sets the "itemType" field.
@@ -4066,12 +4311,24 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 26)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
 	if m.description != nil {
 		fields = append(fields, equipment.FieldDescription)
+	}
+	if m.shortDesc != nil {
+		fields = append(fields, equipment.FieldShortDesc)
+	}
+	if m.examineDesc != nil {
+		fields = append(fields, equipment.FieldExamineDesc)
+	}
+	if m.hiddenDetails != nil {
+		fields = append(fields, equipment.FieldHiddenDetails)
+	}
+	if m.onExamine != nil {
+		fields = append(fields, equipment.FieldOnExamine)
 	}
 	if m.slot != nil {
 		fields = append(fields, equipment.FieldSlot)
@@ -4093,6 +4350,9 @@ func (m *EquipmentMutation) Fields() []string {
 	}
 	if m.isVisible != nil {
 		fields = append(fields, equipment.FieldIsVisible)
+	}
+	if m.isContainer != nil {
+		fields = append(fields, equipment.FieldIsContainer)
 	}
 	if m.itemType != nil {
 		fields = append(fields, equipment.FieldItemType)
@@ -4142,6 +4402,14 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case equipment.FieldDescription:
 		return m.Description()
+	case equipment.FieldShortDesc:
+		return m.ShortDesc()
+	case equipment.FieldExamineDesc:
+		return m.ExamineDesc()
+	case equipment.FieldHiddenDetails:
+		return m.HiddenDetails()
+	case equipment.FieldOnExamine:
+		return m.OnExamine()
 	case equipment.FieldSlot:
 		return m.Slot()
 	case equipment.FieldLevel:
@@ -4156,6 +4424,8 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.Color()
 	case equipment.FieldIsVisible:
 		return m.IsVisible()
+	case equipment.FieldIsContainer:
+		return m.IsContainer()
 	case equipment.FieldItemType:
 		return m.ItemType()
 	case equipment.FieldMinDamage:
@@ -4193,6 +4463,14 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldName(ctx)
 	case equipment.FieldDescription:
 		return m.OldDescription(ctx)
+	case equipment.FieldShortDesc:
+		return m.OldShortDesc(ctx)
+	case equipment.FieldExamineDesc:
+		return m.OldExamineDesc(ctx)
+	case equipment.FieldHiddenDetails:
+		return m.OldHiddenDetails(ctx)
+	case equipment.FieldOnExamine:
+		return m.OldOnExamine(ctx)
 	case equipment.FieldSlot:
 		return m.OldSlot(ctx)
 	case equipment.FieldLevel:
@@ -4207,6 +4485,8 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldColor(ctx)
 	case equipment.FieldIsVisible:
 		return m.OldIsVisible(ctx)
+	case equipment.FieldIsContainer:
+		return m.OldIsContainer(ctx)
 	case equipment.FieldItemType:
 		return m.OldItemType(ctx)
 	case equipment.FieldMinDamage:
@@ -4253,6 +4533,34 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case equipment.FieldShortDesc:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShortDesc(v)
+		return nil
+	case equipment.FieldExamineDesc:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExamineDesc(v)
+		return nil
+	case equipment.FieldHiddenDetails:
+		v, ok := value.([]map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHiddenDetails(v)
+		return nil
+	case equipment.FieldOnExamine:
+		v, ok := value.([]map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnExamine(v)
 		return nil
 	case equipment.FieldSlot:
 		v, ok := value.(string)
@@ -4302,6 +4610,13 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsVisible(v)
+		return nil
+	case equipment.FieldIsContainer:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsContainer(v)
 		return nil
 	case equipment.FieldItemType:
 		v, ok := value.(string)
@@ -4479,7 +4794,14 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *EquipmentMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(equipment.FieldHiddenDetails) {
+		fields = append(fields, equipment.FieldHiddenDetails)
+	}
+	if m.FieldCleared(equipment.FieldOnExamine) {
+		fields = append(fields, equipment.FieldOnExamine)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -4492,6 +4814,14 @@ func (m *EquipmentMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *EquipmentMutation) ClearField(name string) error {
+	switch name {
+	case equipment.FieldHiddenDetails:
+		m.ClearHiddenDetails()
+		return nil
+	case equipment.FieldOnExamine:
+		m.ClearOnExamine()
+		return nil
+	}
 	return fmt.Errorf("unknown Equipment nullable field %s", name)
 }
 
@@ -4504,6 +4834,18 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case equipment.FieldShortDesc:
+		m.ResetShortDesc()
+		return nil
+	case equipment.FieldExamineDesc:
+		m.ResetExamineDesc()
+		return nil
+	case equipment.FieldHiddenDetails:
+		m.ResetHiddenDetails()
+		return nil
+	case equipment.FieldOnExamine:
+		m.ResetOnExamine()
 		return nil
 	case equipment.FieldSlot:
 		m.ResetSlot()
@@ -4525,6 +4867,9 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldIsVisible:
 		m.ResetIsVisible()
+		return nil
+	case equipment.FieldIsContainer:
+		m.ResetIsContainer()
 		return nil
 	case equipment.FieldItemType:
 		m.ResetItemType()

@@ -16,6 +16,14 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldShortDesc holds the string denoting the shortdesc field in the database.
+	FieldShortDesc = "short_desc"
+	// FieldExamineDesc holds the string denoting the examinedesc field in the database.
+	FieldExamineDesc = "examine_desc"
+	// FieldHiddenDetails holds the string denoting the hiddendetails field in the database.
+	FieldHiddenDetails = "hidden_details"
+	// FieldOnExamine holds the string denoting the onexamine field in the database.
+	FieldOnExamine = "on_examine"
 	// FieldSlot holds the string denoting the slot field in the database.
 	FieldSlot = "slot"
 	// FieldLevel holds the string denoting the level field in the database.
@@ -30,6 +38,8 @@ const (
 	FieldColor = "color"
 	// FieldIsVisible holds the string denoting the isvisible field in the database.
 	FieldIsVisible = "is_visible"
+	// FieldIsContainer holds the string denoting the iscontainer field in the database.
+	FieldIsContainer = "is_container"
 	// FieldItemType holds the string denoting the itemtype field in the database.
 	FieldItemType = "item_type"
 	// FieldMinDamage holds the string denoting the mindamage field in the database.
@@ -81,6 +91,10 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldDescription,
+	FieldShortDesc,
+	FieldExamineDesc,
+	FieldHiddenDetails,
+	FieldOnExamine,
 	FieldSlot,
 	FieldLevel,
 	FieldWeight,
@@ -88,6 +102,7 @@ var Columns = []string{
 	FieldIsImmovable,
 	FieldColor,
 	FieldIsVisible,
+	FieldIsContainer,
 	FieldItemType,
 	FieldMinDamage,
 	FieldMaxDamage,
@@ -125,6 +140,12 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultShortDesc holds the default value on creation for the "shortDesc" field.
+	DefaultShortDesc string
+	// DefaultExamineDesc holds the default value on creation for the "examineDesc" field.
+	DefaultExamineDesc string
+	// DefaultSlot holds the default value on creation for the "slot" field.
+	DefaultSlot string
 	// DefaultLevel holds the default value on creation for the "level" field.
 	DefaultLevel int
 	// DefaultWeight holds the default value on creation for the "weight" field.
@@ -137,6 +158,8 @@ var (
 	DefaultColor string
 	// DefaultIsVisible holds the default value on creation for the "isVisible" field.
 	DefaultIsVisible bool
+	// DefaultIsContainer holds the default value on creation for the "isContainer" field.
+	DefaultIsContainer bool
 	// DefaultItemType holds the default value on creation for the "itemType" field.
 	DefaultItemType string
 	// DefaultMinDamage holds the default value on creation for the "minDamage" field.
@@ -181,6 +204,16 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
+// ByShortDesc orders the results by the shortDesc field.
+func ByShortDesc(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShortDesc, opts...).ToFunc()
+}
+
+// ByExamineDesc orders the results by the examineDesc field.
+func ByExamineDesc(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExamineDesc, opts...).ToFunc()
+}
+
 // BySlot orders the results by the slot field.
 func BySlot(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSlot, opts...).ToFunc()
@@ -214,6 +247,11 @@ func ByColor(opts ...sql.OrderTermOption) OrderOption {
 // ByIsVisible orders the results by the isVisible field.
 func ByIsVisible(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsVisible, opts...).ToFunc()
+}
+
+// ByIsContainer orders the results by the isContainer field.
+func ByIsContainer(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsContainer, opts...).ToFunc()
 }
 
 // ByItemType orders the results by the itemType field.

@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"herbst/db/character"
 	"herbst/db/equipment"
@@ -22,6 +23,14 @@ type Equipment struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Short description for look command
+	ShortDesc string `json:"shortDesc,omitempty"`
+	// Detailed description for examine command
+	ExamineDesc string `json:"examineDesc,omitempty"`
+	// Hidden details revealed by examine
+	HiddenDetails []map[string]interface{} `json:"hiddenDetails,omitempty"`
+	// Event triggers on examine
+	OnExamine []map[string]interface{} `json:"onExamine,omitempty"`
 	// Slot holds the value of the "slot" field.
 	Slot string `json:"slot,omitempty"`
 	// Level holds the value of the "level" field.
@@ -36,6 +45,8 @@ type Equipment struct {
 	Color string `json:"color,omitempty"`
 	// Shown in room list
 	IsVisible bool `json:"isVisible,omitempty"`
+	// Can hold other items
+	IsContainer bool `json:"isContainer,omitempty"`
 	// weapon|armor|consumable|quest|misc
 	ItemType string `json:"itemType,omitempty"`
 	// Minimum damage for weapons
@@ -106,11 +117,13 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsDroppable, equipment.FieldGuaranteedDrop, equipment.FieldIsReadable:
+		case equipment.FieldHiddenDetails, equipment.FieldOnExamine:
+			values[i] = new([]byte)
+		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsContainer, equipment.FieldIsDroppable, equipment.FieldGuaranteedDrop, equipment.FieldIsReadable:
 			values[i] = new(sql.NullBool)
 		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldMinDamage, equipment.FieldMaxDamage, equipment.FieldReadSkillLevel:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldWeaponType, equipment.FieldClassRestriction, equipment.FieldContent, equipment.FieldReadSkill, equipment.FieldDecryptedContent:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldShortDesc, equipment.FieldExamineDesc, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldWeaponType, equipment.FieldClassRestriction, equipment.FieldContent, equipment.FieldReadSkill, equipment.FieldDecryptedContent:
 			values[i] = new(sql.NullString)
 		case equipment.ForeignKeys[0]: // equipment_character
 			values[i] = new(sql.NullInt64)
@@ -148,6 +161,34 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				_m.Description = value.String
+			}
+		case equipment.FieldShortDesc:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field shortDesc", values[i])
+			} else if value.Valid {
+				_m.ShortDesc = value.String
+			}
+		case equipment.FieldExamineDesc:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field examineDesc", values[i])
+			} else if value.Valid {
+				_m.ExamineDesc = value.String
+			}
+		case equipment.FieldHiddenDetails:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field hiddenDetails", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.HiddenDetails); err != nil {
+					return fmt.Errorf("unmarshal field hiddenDetails: %w", err)
+				}
+			}
+		case equipment.FieldOnExamine:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field onExamine", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.OnExamine); err != nil {
+					return fmt.Errorf("unmarshal field onExamine: %w", err)
+				}
 			}
 		case equipment.FieldSlot:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -190,6 +231,12 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field isVisible", values[i])
 			} else if value.Valid {
 				_m.IsVisible = value.Bool
+			}
+		case equipment.FieldIsContainer:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isContainer", values[i])
+			} else if value.Valid {
+				_m.IsContainer = value.Bool
 			}
 		case equipment.FieldItemType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -329,6 +376,18 @@ func (_m *Equipment) String() string {
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
+	builder.WriteString("shortDesc=")
+	builder.WriteString(_m.ShortDesc)
+	builder.WriteString(", ")
+	builder.WriteString("examineDesc=")
+	builder.WriteString(_m.ExamineDesc)
+	builder.WriteString(", ")
+	builder.WriteString("hiddenDetails=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HiddenDetails))
+	builder.WriteString(", ")
+	builder.WriteString("onExamine=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OnExamine))
+	builder.WriteString(", ")
 	builder.WriteString("slot=")
 	builder.WriteString(_m.Slot)
 	builder.WriteString(", ")
@@ -349,6 +408,9 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("isVisible=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsVisible))
+	builder.WriteString(", ")
+	builder.WriteString("isContainer=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsContainer))
 	builder.WriteString(", ")
 	builder.WriteString("itemType=")
 	builder.WriteString(_m.ItemType)

@@ -33,9 +33,57 @@ func (_c *EquipmentCreate) SetDescription(v string) *EquipmentCreate {
 	return _c
 }
 
+// SetShortDesc sets the "shortDesc" field.
+func (_c *EquipmentCreate) SetShortDesc(v string) *EquipmentCreate {
+	_c.mutation.SetShortDesc(v)
+	return _c
+}
+
+// SetNillableShortDesc sets the "shortDesc" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableShortDesc(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetShortDesc(*v)
+	}
+	return _c
+}
+
+// SetExamineDesc sets the "examineDesc" field.
+func (_c *EquipmentCreate) SetExamineDesc(v string) *EquipmentCreate {
+	_c.mutation.SetExamineDesc(v)
+	return _c
+}
+
+// SetNillableExamineDesc sets the "examineDesc" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableExamineDesc(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetExamineDesc(*v)
+	}
+	return _c
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_c *EquipmentCreate) SetHiddenDetails(v []map[string]interface{}) *EquipmentCreate {
+	_c.mutation.SetHiddenDetails(v)
+	return _c
+}
+
+// SetOnExamine sets the "onExamine" field.
+func (_c *EquipmentCreate) SetOnExamine(v []map[string]interface{}) *EquipmentCreate {
+	_c.mutation.SetOnExamine(v)
+	return _c
+}
+
 // SetSlot sets the "slot" field.
 func (_c *EquipmentCreate) SetSlot(v string) *EquipmentCreate {
 	_c.mutation.SetSlot(v)
+	return _c
+}
+
+// SetNillableSlot sets the "slot" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableSlot(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetSlot(*v)
+	}
 	return _c
 }
 
@@ -119,6 +167,20 @@ func (_c *EquipmentCreate) SetIsVisible(v bool) *EquipmentCreate {
 func (_c *EquipmentCreate) SetNillableIsVisible(v *bool) *EquipmentCreate {
 	if v != nil {
 		_c.SetIsVisible(*v)
+	}
+	return _c
+}
+
+// SetIsContainer sets the "isContainer" field.
+func (_c *EquipmentCreate) SetIsContainer(v bool) *EquipmentCreate {
+	_c.mutation.SetIsContainer(v)
+	return _c
+}
+
+// SetNillableIsContainer sets the "isContainer" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableIsContainer(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetIsContainer(*v)
 	}
 	return _c
 }
@@ -364,6 +426,18 @@ func (_c *EquipmentCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *EquipmentCreate) defaults() {
+	if _, ok := _c.mutation.ShortDesc(); !ok {
+		v := equipment.DefaultShortDesc
+		_c.mutation.SetShortDesc(v)
+	}
+	if _, ok := _c.mutation.ExamineDesc(); !ok {
+		v := equipment.DefaultExamineDesc
+		_c.mutation.SetExamineDesc(v)
+	}
+	if _, ok := _c.mutation.Slot(); !ok {
+		v := equipment.DefaultSlot
+		_c.mutation.SetSlot(v)
+	}
 	if _, ok := _c.mutation.Level(); !ok {
 		v := equipment.DefaultLevel
 		_c.mutation.SetLevel(v)
@@ -387,6 +461,10 @@ func (_c *EquipmentCreate) defaults() {
 	if _, ok := _c.mutation.IsVisible(); !ok {
 		v := equipment.DefaultIsVisible
 		_c.mutation.SetIsVisible(v)
+	}
+	if _, ok := _c.mutation.IsContainer(); !ok {
+		v := equipment.DefaultIsContainer
+		_c.mutation.SetIsContainer(v)
 	}
 	if _, ok := _c.mutation.ItemType(); !ok {
 		v := equipment.DefaultItemType
@@ -446,6 +524,12 @@ func (_c *EquipmentCreate) check() error {
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Equipment.description"`)}
 	}
+	if _, ok := _c.mutation.ShortDesc(); !ok {
+		return &ValidationError{Name: "shortDesc", err: errors.New(`db: missing required field "Equipment.shortDesc"`)}
+	}
+	if _, ok := _c.mutation.ExamineDesc(); !ok {
+		return &ValidationError{Name: "examineDesc", err: errors.New(`db: missing required field "Equipment.examineDesc"`)}
+	}
 	if _, ok := _c.mutation.Slot(); !ok {
 		return &ValidationError{Name: "slot", err: errors.New(`db: missing required field "Equipment.slot"`)}
 	}
@@ -466,6 +550,9 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsVisible(); !ok {
 		return &ValidationError{Name: "isVisible", err: errors.New(`db: missing required field "Equipment.isVisible"`)}
+	}
+	if _, ok := _c.mutation.IsContainer(); !ok {
+		return &ValidationError{Name: "isContainer", err: errors.New(`db: missing required field "Equipment.isContainer"`)}
 	}
 	if _, ok := _c.mutation.ItemType(); !ok {
 		return &ValidationError{Name: "itemType", err: errors.New(`db: missing required field "Equipment.itemType"`)}
@@ -537,6 +624,22 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 		_spec.SetField(equipment.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
+	if value, ok := _c.mutation.ShortDesc(); ok {
+		_spec.SetField(equipment.FieldShortDesc, field.TypeString, value)
+		_node.ShortDesc = value
+	}
+	if value, ok := _c.mutation.ExamineDesc(); ok {
+		_spec.SetField(equipment.FieldExamineDesc, field.TypeString, value)
+		_node.ExamineDesc = value
+	}
+	if value, ok := _c.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+		_node.HiddenDetails = value
+	}
+	if value, ok := _c.mutation.OnExamine(); ok {
+		_spec.SetField(equipment.FieldOnExamine, field.TypeJSON, value)
+		_node.OnExamine = value
+	}
 	if value, ok := _c.mutation.Slot(); ok {
 		_spec.SetField(equipment.FieldSlot, field.TypeString, value)
 		_node.Slot = value
@@ -564,6 +667,10 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsVisible(); ok {
 		_spec.SetField(equipment.FieldIsVisible, field.TypeBool, value)
 		_node.IsVisible = value
+	}
+	if value, ok := _c.mutation.IsContainer(); ok {
+		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
+		_node.IsContainer = value
 	}
 	if value, ok := _c.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
