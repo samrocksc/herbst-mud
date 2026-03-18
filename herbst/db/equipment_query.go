@@ -5,6 +5,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"herbst/db/character"
 	"herbst/db/equipment"
 	"herbst/db/predicate"
 	"herbst/db/room"
@@ -19,12 +20,13 @@ import (
 // EquipmentQuery is the builder for querying Equipment entities.
 type EquipmentQuery struct {
 	config
-	ctx        *QueryContext
-	order      []equipment.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Equipment
-	withRoom   *RoomQuery
-	withFKs    bool
+	ctx           *QueryContext
+	order         []equipment.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.Equipment
+	withRoom      *RoomQuery
+	withCharacter *CharacterQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (_q *EquipmentQuery) QueryRoom() *RoomQuery {
 			sqlgraph.From(equipment.Table, equipment.FieldID, selector),
 			sqlgraph.To(room.Table, room.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, equipment.RoomTable, equipment.RoomColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCharacter chains the current query on the "character" edge.
+func (_q *EquipmentQuery) QueryCharacter() *CharacterQuery {
+	query := (&CharacterClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, selector),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, equipment.CharacterTable, equipment.CharacterColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +294,13 @@ func (_q *EquipmentQuery) Clone() *EquipmentQuery {
 		return nil
 	}
 	return &EquipmentQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]equipment.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Equipment{}, _q.predicates...),
-		withRoom:   _q.withRoom.Clone(),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]equipment.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.Equipment{}, _q.predicates...),
+		withRoom:      _q.withRoom.Clone(),
+		withCharacter: _q.withCharacter.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +315,17 @@ func (_q *EquipmentQuery) WithRoom(opts ...func(*RoomQuery)) *EquipmentQuery {
 		opt(query)
 	}
 	_q.withRoom = query
+	return _q
+}
+
+// WithCharacter tells the query-builder to eager-load the nodes that are connected to
+// the "character" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EquipmentQuery) WithCharacter(opts ...func(*CharacterQuery)) *EquipmentQuery {
+	query := (&CharacterClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCharacter = query
 	return _q
 }
 
@@ -372,11 +408,12 @@ func (_q *EquipmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Eq
 		nodes       = []*Equipment{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withRoom != nil,
+			_q.withCharacter != nil,
 		}
 	)
-	if _q.withRoom != nil {
+	if _q.withRoom != nil || _q.withCharacter != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -403,6 +440,12 @@ func (_q *EquipmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Eq
 	if query := _q.withRoom; query != nil {
 		if err := _q.loadRoom(ctx, query, nodes, nil,
 			func(n *Equipment, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCharacter; query != nil {
+		if err := _q.loadCharacter(ctx, query, nodes, nil,
+			func(n *Equipment, e *Character) { n.Edges.Character = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -434,6 +477,38 @@ func (_q *EquipmentQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "room_equipment" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *EquipmentQuery) loadCharacter(ctx context.Context, query *CharacterQuery, nodes []*Equipment, init func(*Equipment), assign func(*Equipment, *Character)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Equipment)
+	for i := range nodes {
+		if nodes[i].equipment_character == nil {
+			continue
+		}
+		fk := *nodes[i].equipment_character
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(character.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "equipment_character" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

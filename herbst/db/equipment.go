@@ -63,7 +63,6 @@ type Equipment struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges               EquipmentEdges `json:"edges"`
-	character_inventory *int
 	equipment_character *int
 	room_equipment      *int
 	selectValues        sql.SelectValues
@@ -107,17 +106,15 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsDroppable, equipment.FieldGuaranteedDrop:
+		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsDroppable, equipment.FieldGuaranteedDrop, equipment.FieldIsReadable:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldMinDamage, equipment.FieldMaxDamage:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldMinDamage, equipment.FieldMaxDamage, equipment.FieldReadSkillLevel:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldWeaponType, equipment.FieldClassRestriction:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldWeaponType, equipment.FieldClassRestriction, equipment.FieldContent, equipment.FieldReadSkill, equipment.FieldDecryptedContent:
 			values[i] = new(sql.NullString)
-		case equipment.ForeignKeys[0]: // character_inventory
+		case equipment.ForeignKeys[0]: // equipment_character
 			values[i] = new(sql.NullInt64)
-		case equipment.ForeignKeys[1]: // equipment_character
-			values[i] = new(sql.NullInt64)
-		case equipment.ForeignKeys[2]: // room_equipment
+		case equipment.ForeignKeys[1]: // room_equipment
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -236,21 +233,44 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.GuaranteedDrop = value.Bool
 			}
-		case equipment.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field character_inventory", value)
+		case equipment.FieldIsReadable:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isReadable", values[i])
 			} else if value.Valid {
-				_m.character_inventory = new(int)
-				*_m.character_inventory = int(value.Int64)
+				_m.IsReadable = value.Bool
 			}
-		case equipment.ForeignKeys[1]:
+		case equipment.FieldContent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content", values[i])
+			} else if value.Valid {
+				_m.Content = value.String
+			}
+		case equipment.FieldReadSkill:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field readSkill", values[i])
+			} else if value.Valid {
+				_m.ReadSkill = value.String
+			}
+		case equipment.FieldReadSkillLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field readSkillLevel", values[i])
+			} else if value.Valid {
+				_m.ReadSkillLevel = int(value.Int64)
+			}
+		case equipment.FieldDecryptedContent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field decryptedContent", values[i])
+			} else if value.Valid {
+				_m.DecryptedContent = value.String
+			}
+		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field equipment_character", value)
 			} else if value.Valid {
 				_m.equipment_character = new(int)
 				*_m.equipment_character = int(value.Int64)
 			}
-		case equipment.ForeignKeys[2]:
+		case equipment.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_equipment", value)
 			} else if value.Valid {
@@ -350,6 +370,21 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("guaranteedDrop=")
 	builder.WriteString(fmt.Sprintf("%v", _m.GuaranteedDrop))
+	builder.WriteString(", ")
+	builder.WriteString("isReadable=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsReadable))
+	builder.WriteString(", ")
+	builder.WriteString("content=")
+	builder.WriteString(_m.Content)
+	builder.WriteString(", ")
+	builder.WriteString("readSkill=")
+	builder.WriteString(_m.ReadSkill)
+	builder.WriteString(", ")
+	builder.WriteString("readSkillLevel=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ReadSkillLevel))
+	builder.WriteString(", ")
+	builder.WriteString("decryptedContent=")
+	builder.WriteString(_m.DecryptedContent)
 	builder.WriteByte(')')
 	return builder.String()
 }

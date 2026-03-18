@@ -86,6 +86,8 @@ type Character struct {
 	Edges                  CharacterEdges `json:"edges"`
 	character_npc_template *string
 	room_characters        *int
+	skill_characters       *int
+	talent_characters      *int
 	user_characters        *int
 	selectValues           sql.SelectValues
 }
@@ -151,7 +153,11 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case character.ForeignKeys[1]: // room_characters
 			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[2]: // user_characters
+		case character.ForeignKeys[2]: // skill_characters
+			values[i] = new(sql.NullInt64)
+		case character.ForeignKeys[3]: // talent_characters
+			values[i] = new(sql.NullInt64)
+		case character.ForeignKeys[4]: // user_characters
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -375,6 +381,20 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				*_m.room_characters = int(value.Int64)
 			}
 		case character.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field skill_characters", value)
+			} else if value.Valid {
+				_m.skill_characters = new(int)
+				*_m.skill_characters = int(value.Int64)
+			}
+		case character.ForeignKeys[3]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field talent_characters", value)
+			} else if value.Valid {
+				_m.talent_characters = new(int)
+				*_m.talent_characters = int(value.Int64)
+			}
+		case character.ForeignKeys[4]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_characters", value)
 			} else if value.Valid {

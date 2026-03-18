@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst/db/character"
 	"herbst/db/equipment"
 	"herbst/db/room"
 
@@ -136,6 +137,160 @@ func (_c *EquipmentCreate) SetNillableItemType(v *string) *EquipmentCreate {
 	return _c
 }
 
+// SetMinDamage sets the "minDamage" field.
+func (_c *EquipmentCreate) SetMinDamage(v int) *EquipmentCreate {
+	_c.mutation.SetMinDamage(v)
+	return _c
+}
+
+// SetNillableMinDamage sets the "minDamage" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableMinDamage(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetMinDamage(*v)
+	}
+	return _c
+}
+
+// SetMaxDamage sets the "maxDamage" field.
+func (_c *EquipmentCreate) SetMaxDamage(v int) *EquipmentCreate {
+	_c.mutation.SetMaxDamage(v)
+	return _c
+}
+
+// SetNillableMaxDamage sets the "maxDamage" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableMaxDamage(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetMaxDamage(*v)
+	}
+	return _c
+}
+
+// SetWeaponType sets the "weaponType" field.
+func (_c *EquipmentCreate) SetWeaponType(v string) *EquipmentCreate {
+	_c.mutation.SetWeaponType(v)
+	return _c
+}
+
+// SetNillableWeaponType sets the "weaponType" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableWeaponType(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetWeaponType(*v)
+	}
+	return _c
+}
+
+// SetClassRestriction sets the "classRestriction" field.
+func (_c *EquipmentCreate) SetClassRestriction(v string) *EquipmentCreate {
+	_c.mutation.SetClassRestriction(v)
+	return _c
+}
+
+// SetNillableClassRestriction sets the "classRestriction" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableClassRestriction(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetClassRestriction(*v)
+	}
+	return _c
+}
+
+// SetIsDroppable sets the "isDroppable" field.
+func (_c *EquipmentCreate) SetIsDroppable(v bool) *EquipmentCreate {
+	_c.mutation.SetIsDroppable(v)
+	return _c
+}
+
+// SetNillableIsDroppable sets the "isDroppable" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableIsDroppable(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetIsDroppable(*v)
+	}
+	return _c
+}
+
+// SetGuaranteedDrop sets the "guaranteedDrop" field.
+func (_c *EquipmentCreate) SetGuaranteedDrop(v bool) *EquipmentCreate {
+	_c.mutation.SetGuaranteedDrop(v)
+	return _c
+}
+
+// SetNillableGuaranteedDrop sets the "guaranteedDrop" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableGuaranteedDrop(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetGuaranteedDrop(*v)
+	}
+	return _c
+}
+
+// SetIsReadable sets the "isReadable" field.
+func (_c *EquipmentCreate) SetIsReadable(v bool) *EquipmentCreate {
+	_c.mutation.SetIsReadable(v)
+	return _c
+}
+
+// SetNillableIsReadable sets the "isReadable" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableIsReadable(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetIsReadable(*v)
+	}
+	return _c
+}
+
+// SetContent sets the "content" field.
+func (_c *EquipmentCreate) SetContent(v string) *EquipmentCreate {
+	_c.mutation.SetContent(v)
+	return _c
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableContent(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetContent(*v)
+	}
+	return _c
+}
+
+// SetReadSkill sets the "readSkill" field.
+func (_c *EquipmentCreate) SetReadSkill(v string) *EquipmentCreate {
+	_c.mutation.SetReadSkill(v)
+	return _c
+}
+
+// SetNillableReadSkill sets the "readSkill" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableReadSkill(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetReadSkill(*v)
+	}
+	return _c
+}
+
+// SetReadSkillLevel sets the "readSkillLevel" field.
+func (_c *EquipmentCreate) SetReadSkillLevel(v int) *EquipmentCreate {
+	_c.mutation.SetReadSkillLevel(v)
+	return _c
+}
+
+// SetNillableReadSkillLevel sets the "readSkillLevel" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableReadSkillLevel(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetReadSkillLevel(*v)
+	}
+	return _c
+}
+
+// SetDecryptedContent sets the "decryptedContent" field.
+func (_c *EquipmentCreate) SetDecryptedContent(v string) *EquipmentCreate {
+	_c.mutation.SetDecryptedContent(v)
+	return _c
+}
+
+// SetNillableDecryptedContent sets the "decryptedContent" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableDecryptedContent(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetDecryptedContent(*v)
+	}
+	return _c
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_c *EquipmentCreate) SetRoomID(id int) *EquipmentCreate {
 	_c.mutation.SetRoomID(id)
@@ -153,6 +308,25 @@ func (_c *EquipmentCreate) SetNillableRoomID(id *int) *EquipmentCreate {
 // SetRoom sets the "room" edge to the Room entity.
 func (_c *EquipmentCreate) SetRoom(v *Room) *EquipmentCreate {
 	return _c.SetRoomID(v.ID)
+}
+
+// SetCharacterID sets the "character" edge to the Character entity by ID.
+func (_c *EquipmentCreate) SetCharacterID(id int) *EquipmentCreate {
+	_c.mutation.SetCharacterID(id)
+	return _c
+}
+
+// SetNillableCharacterID sets the "character" edge to the Character entity by ID if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableCharacterID(id *int) *EquipmentCreate {
+	if id != nil {
+		_c = _c.SetCharacterID(*id)
+	}
+	return _c
+}
+
+// SetCharacter sets the "character" edge to the Character entity.
+func (_c *EquipmentCreate) SetCharacter(v *Character) *EquipmentCreate {
+	return _c.SetCharacterID(v.ID)
 }
 
 // Mutation returns the EquipmentMutation object of the builder.
@@ -218,6 +392,50 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultItemType
 		_c.mutation.SetItemType(v)
 	}
+	if _, ok := _c.mutation.MinDamage(); !ok {
+		v := equipment.DefaultMinDamage
+		_c.mutation.SetMinDamage(v)
+	}
+	if _, ok := _c.mutation.MaxDamage(); !ok {
+		v := equipment.DefaultMaxDamage
+		_c.mutation.SetMaxDamage(v)
+	}
+	if _, ok := _c.mutation.WeaponType(); !ok {
+		v := equipment.DefaultWeaponType
+		_c.mutation.SetWeaponType(v)
+	}
+	if _, ok := _c.mutation.ClassRestriction(); !ok {
+		v := equipment.DefaultClassRestriction
+		_c.mutation.SetClassRestriction(v)
+	}
+	if _, ok := _c.mutation.IsDroppable(); !ok {
+		v := equipment.DefaultIsDroppable
+		_c.mutation.SetIsDroppable(v)
+	}
+	if _, ok := _c.mutation.GuaranteedDrop(); !ok {
+		v := equipment.DefaultGuaranteedDrop
+		_c.mutation.SetGuaranteedDrop(v)
+	}
+	if _, ok := _c.mutation.IsReadable(); !ok {
+		v := equipment.DefaultIsReadable
+		_c.mutation.SetIsReadable(v)
+	}
+	if _, ok := _c.mutation.Content(); !ok {
+		v := equipment.DefaultContent
+		_c.mutation.SetContent(v)
+	}
+	if _, ok := _c.mutation.ReadSkill(); !ok {
+		v := equipment.DefaultReadSkill
+		_c.mutation.SetReadSkill(v)
+	}
+	if _, ok := _c.mutation.ReadSkillLevel(); !ok {
+		v := equipment.DefaultReadSkillLevel
+		_c.mutation.SetReadSkillLevel(v)
+	}
+	if _, ok := _c.mutation.DecryptedContent(); !ok {
+		v := equipment.DefaultDecryptedContent
+		_c.mutation.SetDecryptedContent(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -251,6 +469,39 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.ItemType(); !ok {
 		return &ValidationError{Name: "itemType", err: errors.New(`db: missing required field "Equipment.itemType"`)}
+	}
+	if _, ok := _c.mutation.MinDamage(); !ok {
+		return &ValidationError{Name: "minDamage", err: errors.New(`db: missing required field "Equipment.minDamage"`)}
+	}
+	if _, ok := _c.mutation.MaxDamage(); !ok {
+		return &ValidationError{Name: "maxDamage", err: errors.New(`db: missing required field "Equipment.maxDamage"`)}
+	}
+	if _, ok := _c.mutation.WeaponType(); !ok {
+		return &ValidationError{Name: "weaponType", err: errors.New(`db: missing required field "Equipment.weaponType"`)}
+	}
+	if _, ok := _c.mutation.ClassRestriction(); !ok {
+		return &ValidationError{Name: "classRestriction", err: errors.New(`db: missing required field "Equipment.classRestriction"`)}
+	}
+	if _, ok := _c.mutation.IsDroppable(); !ok {
+		return &ValidationError{Name: "isDroppable", err: errors.New(`db: missing required field "Equipment.isDroppable"`)}
+	}
+	if _, ok := _c.mutation.GuaranteedDrop(); !ok {
+		return &ValidationError{Name: "guaranteedDrop", err: errors.New(`db: missing required field "Equipment.guaranteedDrop"`)}
+	}
+	if _, ok := _c.mutation.IsReadable(); !ok {
+		return &ValidationError{Name: "isReadable", err: errors.New(`db: missing required field "Equipment.isReadable"`)}
+	}
+	if _, ok := _c.mutation.Content(); !ok {
+		return &ValidationError{Name: "content", err: errors.New(`db: missing required field "Equipment.content"`)}
+	}
+	if _, ok := _c.mutation.ReadSkill(); !ok {
+		return &ValidationError{Name: "readSkill", err: errors.New(`db: missing required field "Equipment.readSkill"`)}
+	}
+	if _, ok := _c.mutation.ReadSkillLevel(); !ok {
+		return &ValidationError{Name: "readSkillLevel", err: errors.New(`db: missing required field "Equipment.readSkillLevel"`)}
+	}
+	if _, ok := _c.mutation.DecryptedContent(); !ok {
+		return &ValidationError{Name: "decryptedContent", err: errors.New(`db: missing required field "Equipment.decryptedContent"`)}
 	}
 	return nil
 }
@@ -318,6 +569,50 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 		_node.ItemType = value
 	}
+	if value, ok := _c.mutation.MinDamage(); ok {
+		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)
+		_node.MinDamage = value
+	}
+	if value, ok := _c.mutation.MaxDamage(); ok {
+		_spec.SetField(equipment.FieldMaxDamage, field.TypeInt, value)
+		_node.MaxDamage = value
+	}
+	if value, ok := _c.mutation.WeaponType(); ok {
+		_spec.SetField(equipment.FieldWeaponType, field.TypeString, value)
+		_node.WeaponType = value
+	}
+	if value, ok := _c.mutation.ClassRestriction(); ok {
+		_spec.SetField(equipment.FieldClassRestriction, field.TypeString, value)
+		_node.ClassRestriction = value
+	}
+	if value, ok := _c.mutation.IsDroppable(); ok {
+		_spec.SetField(equipment.FieldIsDroppable, field.TypeBool, value)
+		_node.IsDroppable = value
+	}
+	if value, ok := _c.mutation.GuaranteedDrop(); ok {
+		_spec.SetField(equipment.FieldGuaranteedDrop, field.TypeBool, value)
+		_node.GuaranteedDrop = value
+	}
+	if value, ok := _c.mutation.IsReadable(); ok {
+		_spec.SetField(equipment.FieldIsReadable, field.TypeBool, value)
+		_node.IsReadable = value
+	}
+	if value, ok := _c.mutation.Content(); ok {
+		_spec.SetField(equipment.FieldContent, field.TypeString, value)
+		_node.Content = value
+	}
+	if value, ok := _c.mutation.ReadSkill(); ok {
+		_spec.SetField(equipment.FieldReadSkill, field.TypeString, value)
+		_node.ReadSkill = value
+	}
+	if value, ok := _c.mutation.ReadSkillLevel(); ok {
+		_spec.SetField(equipment.FieldReadSkillLevel, field.TypeInt, value)
+		_node.ReadSkillLevel = value
+	}
+	if value, ok := _c.mutation.DecryptedContent(); ok {
+		_spec.SetField(equipment.FieldDecryptedContent, field.TypeString, value)
+		_node.DecryptedContent = value
+	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -333,6 +628,23 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.room_equipment = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CharacterIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipment.CharacterTable,
+			Columns: []string{equipment.CharacterColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.equipment_character = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

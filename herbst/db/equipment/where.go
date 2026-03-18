@@ -104,6 +104,61 @@ func ItemType(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldItemType, v))
 }
 
+// MinDamage applies equality check predicate on the "minDamage" field. It's identical to MinDamageEQ.
+func MinDamage(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldMinDamage, v))
+}
+
+// MaxDamage applies equality check predicate on the "maxDamage" field. It's identical to MaxDamageEQ.
+func MaxDamage(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldMaxDamage, v))
+}
+
+// WeaponType applies equality check predicate on the "weaponType" field. It's identical to WeaponTypeEQ.
+func WeaponType(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldWeaponType, v))
+}
+
+// ClassRestriction applies equality check predicate on the "classRestriction" field. It's identical to ClassRestrictionEQ.
+func ClassRestriction(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldClassRestriction, v))
+}
+
+// IsDroppable applies equality check predicate on the "isDroppable" field. It's identical to IsDroppableEQ.
+func IsDroppable(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsDroppable, v))
+}
+
+// GuaranteedDrop applies equality check predicate on the "guaranteedDrop" field. It's identical to GuaranteedDropEQ.
+func GuaranteedDrop(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldGuaranteedDrop, v))
+}
+
+// IsReadable applies equality check predicate on the "isReadable" field. It's identical to IsReadableEQ.
+func IsReadable(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsReadable, v))
+}
+
+// Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
+func Content(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldContent, v))
+}
+
+// ReadSkill applies equality check predicate on the "readSkill" field. It's identical to ReadSkillEQ.
+func ReadSkill(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldReadSkill, v))
+}
+
+// ReadSkillLevel applies equality check predicate on the "readSkillLevel" field. It's identical to ReadSkillLevelEQ.
+func ReadSkillLevel(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldReadSkillLevel, v))
+}
+
+// DecryptedContent applies equality check predicate on the "decryptedContent" field. It's identical to DecryptedContentEQ.
+func DecryptedContent(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldDecryptedContent, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldName, v))
@@ -539,6 +594,481 @@ func ItemTypeContainsFold(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldContainsFold(FieldItemType, v))
 }
 
+// MinDamageEQ applies the EQ predicate on the "minDamage" field.
+func MinDamageEQ(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldMinDamage, v))
+}
+
+// MinDamageNEQ applies the NEQ predicate on the "minDamage" field.
+func MinDamageNEQ(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldMinDamage, v))
+}
+
+// MinDamageIn applies the In predicate on the "minDamage" field.
+func MinDamageIn(vs ...int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldMinDamage, vs...))
+}
+
+// MinDamageNotIn applies the NotIn predicate on the "minDamage" field.
+func MinDamageNotIn(vs ...int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldMinDamage, vs...))
+}
+
+// MinDamageGT applies the GT predicate on the "minDamage" field.
+func MinDamageGT(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldMinDamage, v))
+}
+
+// MinDamageGTE applies the GTE predicate on the "minDamage" field.
+func MinDamageGTE(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldMinDamage, v))
+}
+
+// MinDamageLT applies the LT predicate on the "minDamage" field.
+func MinDamageLT(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldMinDamage, v))
+}
+
+// MinDamageLTE applies the LTE predicate on the "minDamage" field.
+func MinDamageLTE(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldMinDamage, v))
+}
+
+// MaxDamageEQ applies the EQ predicate on the "maxDamage" field.
+func MaxDamageEQ(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldMaxDamage, v))
+}
+
+// MaxDamageNEQ applies the NEQ predicate on the "maxDamage" field.
+func MaxDamageNEQ(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldMaxDamage, v))
+}
+
+// MaxDamageIn applies the In predicate on the "maxDamage" field.
+func MaxDamageIn(vs ...int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldMaxDamage, vs...))
+}
+
+// MaxDamageNotIn applies the NotIn predicate on the "maxDamage" field.
+func MaxDamageNotIn(vs ...int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldMaxDamage, vs...))
+}
+
+// MaxDamageGT applies the GT predicate on the "maxDamage" field.
+func MaxDamageGT(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldMaxDamage, v))
+}
+
+// MaxDamageGTE applies the GTE predicate on the "maxDamage" field.
+func MaxDamageGTE(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldMaxDamage, v))
+}
+
+// MaxDamageLT applies the LT predicate on the "maxDamage" field.
+func MaxDamageLT(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldMaxDamage, v))
+}
+
+// MaxDamageLTE applies the LTE predicate on the "maxDamage" field.
+func MaxDamageLTE(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldMaxDamage, v))
+}
+
+// WeaponTypeEQ applies the EQ predicate on the "weaponType" field.
+func WeaponTypeEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldWeaponType, v))
+}
+
+// WeaponTypeNEQ applies the NEQ predicate on the "weaponType" field.
+func WeaponTypeNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldWeaponType, v))
+}
+
+// WeaponTypeIn applies the In predicate on the "weaponType" field.
+func WeaponTypeIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldWeaponType, vs...))
+}
+
+// WeaponTypeNotIn applies the NotIn predicate on the "weaponType" field.
+func WeaponTypeNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldWeaponType, vs...))
+}
+
+// WeaponTypeGT applies the GT predicate on the "weaponType" field.
+func WeaponTypeGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldWeaponType, v))
+}
+
+// WeaponTypeGTE applies the GTE predicate on the "weaponType" field.
+func WeaponTypeGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldWeaponType, v))
+}
+
+// WeaponTypeLT applies the LT predicate on the "weaponType" field.
+func WeaponTypeLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldWeaponType, v))
+}
+
+// WeaponTypeLTE applies the LTE predicate on the "weaponType" field.
+func WeaponTypeLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldWeaponType, v))
+}
+
+// WeaponTypeContains applies the Contains predicate on the "weaponType" field.
+func WeaponTypeContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldWeaponType, v))
+}
+
+// WeaponTypeHasPrefix applies the HasPrefix predicate on the "weaponType" field.
+func WeaponTypeHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldWeaponType, v))
+}
+
+// WeaponTypeHasSuffix applies the HasSuffix predicate on the "weaponType" field.
+func WeaponTypeHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldWeaponType, v))
+}
+
+// WeaponTypeEqualFold applies the EqualFold predicate on the "weaponType" field.
+func WeaponTypeEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldWeaponType, v))
+}
+
+// WeaponTypeContainsFold applies the ContainsFold predicate on the "weaponType" field.
+func WeaponTypeContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldWeaponType, v))
+}
+
+// ClassRestrictionEQ applies the EQ predicate on the "classRestriction" field.
+func ClassRestrictionEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldClassRestriction, v))
+}
+
+// ClassRestrictionNEQ applies the NEQ predicate on the "classRestriction" field.
+func ClassRestrictionNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldClassRestriction, v))
+}
+
+// ClassRestrictionIn applies the In predicate on the "classRestriction" field.
+func ClassRestrictionIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldClassRestriction, vs...))
+}
+
+// ClassRestrictionNotIn applies the NotIn predicate on the "classRestriction" field.
+func ClassRestrictionNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldClassRestriction, vs...))
+}
+
+// ClassRestrictionGT applies the GT predicate on the "classRestriction" field.
+func ClassRestrictionGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldClassRestriction, v))
+}
+
+// ClassRestrictionGTE applies the GTE predicate on the "classRestriction" field.
+func ClassRestrictionGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldClassRestriction, v))
+}
+
+// ClassRestrictionLT applies the LT predicate on the "classRestriction" field.
+func ClassRestrictionLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldClassRestriction, v))
+}
+
+// ClassRestrictionLTE applies the LTE predicate on the "classRestriction" field.
+func ClassRestrictionLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldClassRestriction, v))
+}
+
+// ClassRestrictionContains applies the Contains predicate on the "classRestriction" field.
+func ClassRestrictionContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldClassRestriction, v))
+}
+
+// ClassRestrictionHasPrefix applies the HasPrefix predicate on the "classRestriction" field.
+func ClassRestrictionHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldClassRestriction, v))
+}
+
+// ClassRestrictionHasSuffix applies the HasSuffix predicate on the "classRestriction" field.
+func ClassRestrictionHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldClassRestriction, v))
+}
+
+// ClassRestrictionEqualFold applies the EqualFold predicate on the "classRestriction" field.
+func ClassRestrictionEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldClassRestriction, v))
+}
+
+// ClassRestrictionContainsFold applies the ContainsFold predicate on the "classRestriction" field.
+func ClassRestrictionContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldClassRestriction, v))
+}
+
+// IsDroppableEQ applies the EQ predicate on the "isDroppable" field.
+func IsDroppableEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsDroppable, v))
+}
+
+// IsDroppableNEQ applies the NEQ predicate on the "isDroppable" field.
+func IsDroppableNEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldIsDroppable, v))
+}
+
+// GuaranteedDropEQ applies the EQ predicate on the "guaranteedDrop" field.
+func GuaranteedDropEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldGuaranteedDrop, v))
+}
+
+// GuaranteedDropNEQ applies the NEQ predicate on the "guaranteedDrop" field.
+func GuaranteedDropNEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldGuaranteedDrop, v))
+}
+
+// IsReadableEQ applies the EQ predicate on the "isReadable" field.
+func IsReadableEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsReadable, v))
+}
+
+// IsReadableNEQ applies the NEQ predicate on the "isReadable" field.
+func IsReadableNEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldIsReadable, v))
+}
+
+// ContentEQ applies the EQ predicate on the "content" field.
+func ContentEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldContent, v))
+}
+
+// ContentNEQ applies the NEQ predicate on the "content" field.
+func ContentNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldContent, v))
+}
+
+// ContentIn applies the In predicate on the "content" field.
+func ContentIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldContent, vs...))
+}
+
+// ContentNotIn applies the NotIn predicate on the "content" field.
+func ContentNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldContent, vs...))
+}
+
+// ContentGT applies the GT predicate on the "content" field.
+func ContentGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldContent, v))
+}
+
+// ContentGTE applies the GTE predicate on the "content" field.
+func ContentGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldContent, v))
+}
+
+// ContentLT applies the LT predicate on the "content" field.
+func ContentLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldContent, v))
+}
+
+// ContentLTE applies the LTE predicate on the "content" field.
+func ContentLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldContent, v))
+}
+
+// ContentContains applies the Contains predicate on the "content" field.
+func ContentContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldContent, v))
+}
+
+// ContentHasPrefix applies the HasPrefix predicate on the "content" field.
+func ContentHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldContent, v))
+}
+
+// ContentHasSuffix applies the HasSuffix predicate on the "content" field.
+func ContentHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldContent, v))
+}
+
+// ContentEqualFold applies the EqualFold predicate on the "content" field.
+func ContentEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldContent, v))
+}
+
+// ContentContainsFold applies the ContainsFold predicate on the "content" field.
+func ContentContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldContent, v))
+}
+
+// ReadSkillEQ applies the EQ predicate on the "readSkill" field.
+func ReadSkillEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldReadSkill, v))
+}
+
+// ReadSkillNEQ applies the NEQ predicate on the "readSkill" field.
+func ReadSkillNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldReadSkill, v))
+}
+
+// ReadSkillIn applies the In predicate on the "readSkill" field.
+func ReadSkillIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldReadSkill, vs...))
+}
+
+// ReadSkillNotIn applies the NotIn predicate on the "readSkill" field.
+func ReadSkillNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldReadSkill, vs...))
+}
+
+// ReadSkillGT applies the GT predicate on the "readSkill" field.
+func ReadSkillGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldReadSkill, v))
+}
+
+// ReadSkillGTE applies the GTE predicate on the "readSkill" field.
+func ReadSkillGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldReadSkill, v))
+}
+
+// ReadSkillLT applies the LT predicate on the "readSkill" field.
+func ReadSkillLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldReadSkill, v))
+}
+
+// ReadSkillLTE applies the LTE predicate on the "readSkill" field.
+func ReadSkillLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldReadSkill, v))
+}
+
+// ReadSkillContains applies the Contains predicate on the "readSkill" field.
+func ReadSkillContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldReadSkill, v))
+}
+
+// ReadSkillHasPrefix applies the HasPrefix predicate on the "readSkill" field.
+func ReadSkillHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldReadSkill, v))
+}
+
+// ReadSkillHasSuffix applies the HasSuffix predicate on the "readSkill" field.
+func ReadSkillHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldReadSkill, v))
+}
+
+// ReadSkillEqualFold applies the EqualFold predicate on the "readSkill" field.
+func ReadSkillEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldReadSkill, v))
+}
+
+// ReadSkillContainsFold applies the ContainsFold predicate on the "readSkill" field.
+func ReadSkillContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldReadSkill, v))
+}
+
+// ReadSkillLevelEQ applies the EQ predicate on the "readSkillLevel" field.
+func ReadSkillLevelEQ(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldReadSkillLevel, v))
+}
+
+// ReadSkillLevelNEQ applies the NEQ predicate on the "readSkillLevel" field.
+func ReadSkillLevelNEQ(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldReadSkillLevel, v))
+}
+
+// ReadSkillLevelIn applies the In predicate on the "readSkillLevel" field.
+func ReadSkillLevelIn(vs ...int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldReadSkillLevel, vs...))
+}
+
+// ReadSkillLevelNotIn applies the NotIn predicate on the "readSkillLevel" field.
+func ReadSkillLevelNotIn(vs ...int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldReadSkillLevel, vs...))
+}
+
+// ReadSkillLevelGT applies the GT predicate on the "readSkillLevel" field.
+func ReadSkillLevelGT(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldReadSkillLevel, v))
+}
+
+// ReadSkillLevelGTE applies the GTE predicate on the "readSkillLevel" field.
+func ReadSkillLevelGTE(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldReadSkillLevel, v))
+}
+
+// ReadSkillLevelLT applies the LT predicate on the "readSkillLevel" field.
+func ReadSkillLevelLT(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldReadSkillLevel, v))
+}
+
+// ReadSkillLevelLTE applies the LTE predicate on the "readSkillLevel" field.
+func ReadSkillLevelLTE(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldReadSkillLevel, v))
+}
+
+// DecryptedContentEQ applies the EQ predicate on the "decryptedContent" field.
+func DecryptedContentEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldDecryptedContent, v))
+}
+
+// DecryptedContentNEQ applies the NEQ predicate on the "decryptedContent" field.
+func DecryptedContentNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldDecryptedContent, v))
+}
+
+// DecryptedContentIn applies the In predicate on the "decryptedContent" field.
+func DecryptedContentIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldDecryptedContent, vs...))
+}
+
+// DecryptedContentNotIn applies the NotIn predicate on the "decryptedContent" field.
+func DecryptedContentNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldDecryptedContent, vs...))
+}
+
+// DecryptedContentGT applies the GT predicate on the "decryptedContent" field.
+func DecryptedContentGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldDecryptedContent, v))
+}
+
+// DecryptedContentGTE applies the GTE predicate on the "decryptedContent" field.
+func DecryptedContentGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldDecryptedContent, v))
+}
+
+// DecryptedContentLT applies the LT predicate on the "decryptedContent" field.
+func DecryptedContentLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldDecryptedContent, v))
+}
+
+// DecryptedContentLTE applies the LTE predicate on the "decryptedContent" field.
+func DecryptedContentLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldDecryptedContent, v))
+}
+
+// DecryptedContentContains applies the Contains predicate on the "decryptedContent" field.
+func DecryptedContentContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldDecryptedContent, v))
+}
+
+// DecryptedContentHasPrefix applies the HasPrefix predicate on the "decryptedContent" field.
+func DecryptedContentHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldDecryptedContent, v))
+}
+
+// DecryptedContentHasSuffix applies the HasSuffix predicate on the "decryptedContent" field.
+func DecryptedContentHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldDecryptedContent, v))
+}
+
+// DecryptedContentEqualFold applies the EqualFold predicate on the "decryptedContent" field.
+func DecryptedContentEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldDecryptedContent, v))
+}
+
+// DecryptedContentContainsFold applies the ContainsFold predicate on the "decryptedContent" field.
+func DecryptedContentContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldDecryptedContent, v))
+}
+
 // HasRoom applies the HasEdge predicate on the "room" edge.
 func HasRoom() predicate.Equipment {
 	return predicate.Equipment(func(s *sql.Selector) {
@@ -554,6 +1084,29 @@ func HasRoom() predicate.Equipment {
 func HasRoomWith(preds ...predicate.Room) predicate.Equipment {
 	return predicate.Equipment(func(s *sql.Selector) {
 		step := newRoomStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCharacter applies the HasEdge predicate on the "character" edge.
+func HasCharacter() predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CharacterTable, CharacterColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCharacterWith applies the HasEdge predicate on the "character" edge with a given conditions (other predicates).
+func HasCharacterWith(preds ...predicate.Character) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		step := newCharacterStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
