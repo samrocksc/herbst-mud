@@ -1063,15 +1063,23 @@ func (m *model) processCommand(cmd string) {
 		m.message = `Commands:
   n/north, s/south, e/east, w/west - Move
   look/l - Look around
+  look in <container> - See inside container
   exits/x - Show exits  
   peer <dir> - Peek at adjacent room
   whoami - Show your info
   profile/p - Edit character profile
   pickup/get/take - Pick up a weapon
+  take <item> from <container> - Take item from container
+  open/close <container> - Open or close container
   clear/cls - Clear screen
   quit - Exit game`
 		m.messageType = "info"
 	case "look", "l":
+		// Check for "look in <container>" syntax
+		if len(parts) >= 3 && parts[1] == "in" {
+			m.handleLookInContainer(strings.Join(parts[2:], " "))
+			return
+		}
 		// Format items and characters
 		itemStr := m.formatRoomItemsWithColor()
 		charStr := m.formatRoomCharactersWithColor()
@@ -1110,6 +1118,14 @@ func (m *model) processCommand(cmd string) {
 		m.menuCursor = 0
 		m.message = ""
 		m.messageType = "info"
+	case "skills":
+		m.handleSkillsCommand(cmd)
+	case "skill":
+		m.handleSkillEquipCommand(cmd)
+	case "talents":
+		m.handleTalentsCommand(cmd)
+	case "talent":
+		m.handleTalentEquipCommand(cmd)
 	case "peer":
 		m.handlePeerCommand(cmd)
 	case "clear", "cls":
@@ -1119,7 +1135,40 @@ func (m *model) processCommand(cmd string) {
 		m.inputBuffer = ""
 		return
 	case "pickup", "get", "take":
+		// Check for "take <item> from <container>" syntax
+		if len(parts) >= 4 && parts[len(parts)-2] == "from" {
+			// Find the "from" keyword
+			fromIdx := -1
+			for i, p := range parts {
+				if p == "from" {
+					fromIdx = i
+					break
+				}
+			}
+			if fromIdx > 0 && fromIdx < len(parts)-1 {
+				itemName := strings.Join(parts[:fromIdx], " ")
+				containerName := strings.Join(parts[fromIdx+1:], " ")
+				m.handleTakeFromContainer(containerName, itemName)
+				return
+			}
+		}
 		m.handlePickupCommand()
+		return
+	case "open":
+		if len(parts) < 2 {
+			m.message = "Open what?"
+			m.messageType = "error"
+			return
+		}
+		m.handleOpenContainer(strings.Join(parts[1:], " "))
+		return
+	case "close":
+		if len(parts) < 2 {
+			m.message = "Close what?"
+			m.messageType = "error"
+			return
+		}
+		m.handleCloseContainer(strings.Join(parts[1:], " "))
 		return
 	case "quit", "q":
 		m.message = "Thanks for playing! Goodbye!"
@@ -1348,6 +1397,198 @@ func (m *model) handlePeerCommand(cmd string) {
 			room.Description)
 		m.messageType = "info"
 	}
+
+// handleSkillsCommand shows available skills
+func (m *model) handleSkillsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use skills."
+		m.messageType = "error"
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d/skills", RESTAPIBase, m.currentCharacterID)
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode != 200 {
+		m.message = "Could not load skills."
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Body.Close()
+
+	var result struct {
+		Skills map[string]struct {
+			Level int    `json:"level"`
+			Bonus string `json:"bonus"`
+		} `json:"skills"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.message = "Error reading skills."
+		m.messageType = "error"
+		return
+	}
+
+	msg := "=== Your Skills ===\n"
+	for name, s := range result.Skills {
+		msg += fmt.Sprintf("  %s: %d (%s)\n", name, s.Level, s.Bonus)
+	}
+	m.message = msg
+	m.messageType = "info"
+}
+
+// handleSkillEquipCommand equips a skill
+func (m *model) handleSkillEquipCommand(cmd string) {
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage: skill equip <skill_id>"
+		m.messageType = "error"
+		return
+	}
+	if parts[1] != "equip" || len(parts) < 3 {
+		m.message = "Usage: skill equip <skill_id>"
+		m.messageType = "error"
+		return
+	}
+
+	m.message = "Skills are always active! Use 'talents' to manage ability slots."
+	m.messageType = "info"
+}
+
+// handleTalentsCommand shows equipped talents
+func (m *model) handleTalentsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use talents."
+		m.messageType = "error"
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode != 200 {
+		m.message = "Could not load talents."
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Slots [5]*struct {
+			Slot       int    `json:"slot"`
+			TalentID   int    `json:"talent_id"`
+			Name       string `json:"name"`
+			Description string `json:"description"`
+		} `json:"slots"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.message = "Error reading talents."
+		m.messageType = "error"
+		return
+	}
+
+	msg := "=== Your Talents ===\n"
+	for i := 1; i <= 4; i++ {
+		if result.Slots[i] != nil {
+			msg += fmt.Sprintf("  Slot %d: %s - %s\n", i, result.Slots[i].Name, result.Slots[i].Description)
+		} else {
+			msg += fmt.Sprintf("  Slot %d: (empty)\n", i)
+		}
+	}
+	msg += "\nUsage: talent equip <talent_id> <slot>\n       talent unequip <slot>"
+	m.message = msg
+	m.messageType = "info"
+}
+
+// handleTalentEquipCommand equips/unequips talents
+func (m *model) handleTalentEquipCommand(cmd string) {
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage: talent equip <talent_id> <slot>\n       talent unequip <slot>"
+		m.messageType = "error"
+		return
+	}
+
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use talents."
+		m.messageType = "error"
+		return
+	}
+
+	action := parts[1]
+
+	if action == "unequip" && len(parts) >= 3 {
+		slot := parts[2]
+		slotNum := 0
+		fmt.Sscanf(slot, "%d", &slotNum)
+		if slotNum < 1 || slotNum > 4 {
+			m.message = "Slot must be 1-4"
+			m.messageType = "error"
+			return
+		}
+
+		// Equip with talent_id = 0 to unequip
+		url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+		reqBody := fmt.Sprintf(`{"slot": %d, "talent_id": 0}`, slotNum)
+		resp, err := http.NewRequest("PUT", url, strings.NewReader(reqBody))
+		if err != nil {
+			m.message = "Error unequipping talent."
+			m.messageType = "error"
+			return
+		}
+		resp.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		_, err = client.Do(resp)
+		if err != nil {
+			m.message = "Error unequipping talent."
+			m.messageType = "error"
+			return
+		}
+		m.message = fmt.Sprintf("Unequipped talent from slot %d", slotNum)
+		m.messageType = "success"
+		return
+	}
+
+	if action == "equip" && len(parts) >= 4 {
+		talentID := parts[2]
+		slot := parts[3]
+		talentNum := 0
+		slotNum := 0
+		fmt.Sscanf(talentID, "%d", &talentNum)
+		fmt.Sscanf(slot, "%d", &slotNum)
+
+		if talentNum < 1 {
+			m.message = "Invalid talent ID"
+			m.messageType = "error"
+			return
+		}
+		if slotNum < 1 || slotNum > 4 {
+			m.message = "Slot must be 1-4"
+			m.messageType = "error"
+			return
+		}
+
+		url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+		reqBody := fmt.Sprintf(`{"slot": %d, "talent_id": %d}`, slotNum, talentNum)
+		resp, err := http.NewRequest("PUT", url, strings.NewReader(reqBody))
+		if err != nil {
+			m.message = "Error equipping talent."
+			m.messageType = "error"
+			return
+		}
+		resp.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		_, err = client.Do(resp)
+		if err != nil {
+			m.message = "Error equipping talent."
+			m.messageType = "error"
+			return
+		}
+		m.message = fmt.Sprintf("Equipped talent %d to slot %d", talentNum, slotNum)
+		m.messageType = "success"
+		return
+	}
+
+	m.message = "Usage: talent equip <talent_id> <slot>\n       talent unequip <slot>"
+	m.messageType = "error"
+}
 }
 
 func (m *model) handleDebugCommand(cmd string) {
