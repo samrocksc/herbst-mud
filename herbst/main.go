@@ -1643,7 +1643,7 @@ func (m *model) View() string {
 		inputContent.WriteString(m.textInput.View())
 		inputContent.WriteString("\n\n")
 		inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Press 1/2/3 or type login/register/quit"))
-		s.WriteString(welcomeScreen(m.width, m.height, inputContent.String()))
+		return welcomeScreen(m.width, m.height, inputContent.String())
 
 	case ScreenLogin:
 		// Build input prompt
@@ -1654,7 +1654,7 @@ func (m *model) View() string {
 			promptText = "Password: "
 		}
 		inputContent := promptStyle.Render(promptText) + m.textInput.View()
-		s.WriteString(loginScreen(m.width, m.height, m.message, m.messageType, inputContent))
+		return loginScreen(m.width, m.height, m.message, m.messageType, inputContent)
 
 	case ScreenRegister:
 		// Build input prompt
@@ -1665,7 +1665,7 @@ func (m *model) View() string {
 			promptText = "Password: "
 		}
 		inputContent := promptStyle.Render(promptText) + m.textInput.View()
-		s.WriteString(registerScreen(m.width, m.height, m.message, m.messageType, inputContent))
+		return registerScreen(m.width, m.height, m.message, m.messageType, inputContent)
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
