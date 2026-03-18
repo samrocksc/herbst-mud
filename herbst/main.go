@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sort"
 	"strings"
 	"time"
 
@@ -21,7 +20,6 @@ import (
 	"github.com/charmbracelet/wish/logging"
 	_ "github.com/lib/pq"
 	"github.com/muesli/termenv"
-	"herbst/combat"
 	"herbst/db"
 	"herbst/db/character"
 	"herbst/db/user"
@@ -229,12 +227,6 @@ type model struct {
 
 	// Debug mode - shows room ID in status bar
 	debugMode bool
-}
-
-// HiddenDetail represents detail revealed by examine skill
-type HiddenDetail struct {
-	Description string `json:"description"`
-	Threshold  int    `json:"threshold"`
 }
 
 // RoomItem represents an item in a room for display
@@ -1512,12 +1504,12 @@ func (m *model) displayItemDetails(item RoomItem) {
 		// TODO: Fetch player's examine skill and compare to threshold
 		details.WriteString("\n--- You Notice ---\n")
 		for _, hd := range item.HiddenDetails {
-			details.WriteString(fmt.Sprintf("  %s\n", hd.Description))
+			details.WriteString(fmt.Sprintf("  %s\n", hd.Text))
 		}
 	} else if len(item.HiddenDetails) > 0 {
 		details.WriteString("\n--- You Notice ---\n")
 		for _, hd := range item.HiddenDetails {
-			details.WriteString(fmt.Sprintf("  %s\n", hd.Description))
+			details.WriteString(fmt.Sprintf("  %s\n", hd.Text))
 		}
 	}
 
