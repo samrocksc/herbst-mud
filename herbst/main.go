@@ -226,6 +226,9 @@ type model struct {
 
 	// Room characters (GitHub #145 - Look command room display)
 	roomCharacters []roomCharacter
+
+	// Debug mode - shows room ID in status bar
+	debugMode bool
 }
 
 // HiddenDetail represents detail revealed by examine skill
@@ -1047,6 +1050,9 @@ func (m *model) processCommand(cmd string) {
 		m.messageType = "info"
 	case "peer":
 		m.handlePeerCommand(cmd)
+	case "debug":
+		m.handleDebugCommand(cmd)
+		return
 	case "clear", "cls":
 		// Clear the terminal screen - reset message buffer
 		m.message = ""
@@ -1278,6 +1284,35 @@ func (m *model) handlePeerCommand(cmd string) {
 			lipgloss.NewStyle().Bold(true).Foreground(blue).Render(room.Name),
 			room.Description)
 		m.messageType = "info"
+	}
+}
+
+func (m *model) handleDebugCommand(cmd string) {
+	parts := strings.Fields(strings.ToLower(cmd))
+	if len(parts) < 2 {
+		// Show current debug status
+		if m.debugMode {
+			m.message = "Debug mode: ON (Room ID visible in status bar)"
+		} else {
+			m.message = "Debug mode: OFF\nUsage: debug on | debug off"
+		}
+		m.messageType = "info"
+		return
+	}
+
+	subCmd := parts[1]
+	switch subCmd {
+	case "on", "true", "1", "yes":
+		m.debugMode = true
+		m.message = "Debug mode: ON (Room ID will show in status bar)"
+		m.messageType = "success"
+	case "off", "false", "0", "no":
+		m.debugMode = false
+		m.message = "Debug mode: OFF"
+		m.messageType = "info"
+	default:
+		m.message = "Usage: debug on | debug off"
+		m.messageType = "error"
 	}
 }
 
@@ -1726,6 +1761,12 @@ func (m *model) View() string {
 		// Colorful status bar with mini progress bars
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
 
+		// Debug mode - show room ID when enabled
+		debugInfo := ""
+		if m.debugMode {
+			debugInfo = " " + lipgloss.NewStyle().Foreground(yellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))
+		}
+
 		// Room info at top with styling (only in output viewport, no stats)
 		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
@@ -1750,7 +1791,7 @@ func (m *model) View() string {
 		s.WriteString(separatorLine)
 		s.WriteString("\n")
 		// Stats go in the actual status bar (middle panel)
-		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLine))
+		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLine + debugInfo))
 		s.WriteString("\n")
 		s.WriteString(separatorLine)
 		s.WriteString("\n")
