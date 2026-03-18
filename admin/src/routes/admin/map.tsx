@@ -4,6 +4,7 @@ import { MapFlow } from '../../components/MapFlow'
 import { ZLevelSelector } from '../../components/ZLevelSelector'
 import { DirectionPickerModal } from '../../components/DirectionPickerModal'
 import type { Node, Edge, Connection } from '@xyflow/react'
+import type { ExitEdgeData } from '../../components/ExitEdge'
 
 export const Route = createFileRoute('/admin/map')({
   component: MapBuilder,
@@ -84,22 +85,30 @@ const initialNodes: Node[] = [
     },
   ]
 
-// Z-exits between levels
-const initialEdges: Edge[] = [
-    { id: 'e1-2', source: '1', target: '2', label: 'north', type: 'smoothstep' },
-    { id: 'e1-3', source: '1', target: '3', label: 'south', type: 'smoothstep' },
-    { id: 'e1-4', source: '1', target: '4', label: 'east', type: 'smoothstep' },
-    { id: 'e1-5', source: '1', target: '5', label: 'west', type: 'smoothstep' },
+// Exit edges between rooms using ExitEdge component
+const initialEdges: Edge<ExitEdgeData>[] = [
+    { id: 'e1-2', source: '1', target: '2', type: 'exit', data: { direction: 'south' } },
+    { id: 'e2-1', source: '2', target: '1', type: 'exit', data: { direction: 'north' } },
+    { id: 'e1-3', source: '1', target: '3', type: 'exit', data: { direction: 'north' } },
+    { id: 'e3-1', source: '3', target: '1', type: 'exit', data: { direction: 'south' } },
+    { id: 'e1-4', source: '1', target: '4', type: 'exit', data: { direction: 'east' } },
+    { id: 'e4-1', source: '4', target: '1', type: 'exit', data: { direction: 'west' } },
+    { id: 'e1-5', source: '1', target: '5', type: 'exit', data: { direction: 'west' } },
+    { id: 'e5-1', source: '5', target: '1', type: 'exit', data: { direction: 'east' } },
     // Z-exits (up/down connections between levels)
-    { id: 'e1-6', source: '1', target: '6', label: 'up', data: { isZExit: true, direction: 'up' }, type: 'smoothstep', animated: true, style: { stroke: '#e17055', strokeWidth: 2 } },
-    { id: 'e1-8', source: '1', target: '8', label: 'down', data: { isZExit: true, direction: 'down' }, type: 'smoothstep', animated: true, style: { stroke: '#74b9ff', strokeWidth: 2 } },
-    { id: 'e8-9', source: '8', target: '9', label: 'south', type: 'smoothstep' },
-    { id: 'e6-7', source: '6', target: '7', label: 'east', type: 'smoothstep' },
+    { id: 'e1-6', source: '1', target: '6', type: 'exit', data: { direction: 'up', isZExit: true } },
+    { id: 'e6-1', source: '6', target: '1', type: 'exit', data: { direction: 'down', isZExit: true } },
+    { id: 'e1-8', source: '1', target: '8', type: 'exit', data: { direction: 'down', isZExit: true } },
+    { id: 'e8-1', source: '8', target: '1', type: 'exit', data: { direction: 'up', isZExit: true } },
+    { id: 'e8-9', source: '8', target: '9', type: 'exit', data: { direction: 'south' } },
+    { id: 'e9-8', source: '9', target: '8', type: 'exit', data: { direction: 'north' } },
+    { id: 'e6-7', source: '6', target: '7', type: 'exit', data: { direction: 'east' } },
+    { id: 'e7-6', source: '7', target: '6', type: 'exit', data: { direction: 'west' } },
   ]
 
 function MapBuilder() {
   const [nodes, setNodes] = useState<Node[]>(initialNodes)
-  const [edges, setEdges] = useState<Edge[]>(initialEdges)
+  const [edges, setEdges] = useState<Edge<ExitEdgeData>[]>(initialEdges)
   const [currentZLevel, setCurrentZLevel] = useState(0)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   
@@ -170,30 +179,28 @@ function MapBuilder() {
   const handleDirectionSelect = useCallback((sourceDirection: string, targetDirection: string) => {
     if (!pendingConnection) return
     
-    const newEdges: Edge[] = [
+    const isZExit = sourceDirection === 'up' || sourceDirection === 'down'
+    
+    const newEdges: Edge<ExitEdgeData>[] = [
       {
         id: `e${pendingConnection.source}-${pendingConnection.target}-${sourceDirection}`,
         source: pendingConnection.source,
         target: pendingConnection.target,
-        label: sourceDirection,
-        type: 'smoothstep',
-        animated: true,
-        style: sourceDirection === 'up' || sourceDirection === 'down' 
-          ? { stroke: sourceDirection === 'up' ? '#e17055' : '#74b9ff', strokeWidth: 2 }
-          : { stroke: '#666' },
-        data: { isZExit: sourceDirection === 'up' || sourceDirection === 'down', direction: sourceDirection },
+        type: 'exit',
+        data: { 
+          direction: sourceDirection as ExitEdgeData['direction'],
+          isZExit: isZExit,
+        },
       },
       {
         id: `e${pendingConnection.target}-${pendingConnection.source}-${targetDirection}`,
         source: pendingConnection.target,
         target: pendingConnection.source,
-        label: targetDirection,
-        type: 'smoothstep',
-        animated: true,
-        style: targetDirection === 'up' || targetDirection === 'down' 
-          ? { stroke: targetDirection === 'up' ? '#e17055' : '#74b9ff', strokeWidth: 2 }
-          : { stroke: '#666' },
-        data: { isZExit: targetDirection === 'up' || targetDirection === 'down', direction: targetDirection },
+        type: 'exit',
+        data: { 
+          direction: targetDirection as ExitEdgeData['direction'],
+          isZExit: targetDirection === 'up' || targetDirection === 'down',
+        },
       },
     ]
     
