@@ -64,6 +64,16 @@ func Description(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldDescription, v))
 }
 
+// ShortDesc applies equality check predicate on the "shortDesc" field. It's identical to ShortDescEQ.
+func ShortDesc(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldShortDesc, v))
+}
+
+// ExamineDesc applies equality check predicate on the "examineDesc" field. It's identical to ExamineDescEQ.
+func ExamineDesc(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldExamineDesc, v))
+}
+
 // Slot applies equality check predicate on the "slot" field. It's identical to SlotEQ.
 func Slot(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldSlot, v))
@@ -97,6 +107,11 @@ func Color(v string) predicate.Equipment {
 // IsVisible applies equality check predicate on the "isVisible" field. It's identical to IsVisibleEQ.
 func IsVisible(v bool) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldIsVisible, v))
+}
+
+// IsContainer applies equality check predicate on the "isContainer" field. It's identical to IsContainerEQ.
+func IsContainer(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsContainer, v))
 }
 
 // ItemType applies equality check predicate on the "itemType" field. It's identical to ItemTypeEQ.
@@ -287,6 +302,156 @@ func DescriptionEqualFold(v string) predicate.Equipment {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// ShortDescEQ applies the EQ predicate on the "shortDesc" field.
+func ShortDescEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldShortDesc, v))
+}
+
+// ShortDescNEQ applies the NEQ predicate on the "shortDesc" field.
+func ShortDescNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldShortDesc, v))
+}
+
+// ShortDescIn applies the In predicate on the "shortDesc" field.
+func ShortDescIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldShortDesc, vs...))
+}
+
+// ShortDescNotIn applies the NotIn predicate on the "shortDesc" field.
+func ShortDescNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldShortDesc, vs...))
+}
+
+// ShortDescGT applies the GT predicate on the "shortDesc" field.
+func ShortDescGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldShortDesc, v))
+}
+
+// ShortDescGTE applies the GTE predicate on the "shortDesc" field.
+func ShortDescGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldShortDesc, v))
+}
+
+// ShortDescLT applies the LT predicate on the "shortDesc" field.
+func ShortDescLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldShortDesc, v))
+}
+
+// ShortDescLTE applies the LTE predicate on the "shortDesc" field.
+func ShortDescLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldShortDesc, v))
+}
+
+// ShortDescContains applies the Contains predicate on the "shortDesc" field.
+func ShortDescContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldShortDesc, v))
+}
+
+// ShortDescHasPrefix applies the HasPrefix predicate on the "shortDesc" field.
+func ShortDescHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldShortDesc, v))
+}
+
+// ShortDescHasSuffix applies the HasSuffix predicate on the "shortDesc" field.
+func ShortDescHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldShortDesc, v))
+}
+
+// ShortDescEqualFold applies the EqualFold predicate on the "shortDesc" field.
+func ShortDescEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldShortDesc, v))
+}
+
+// ShortDescContainsFold applies the ContainsFold predicate on the "shortDesc" field.
+func ShortDescContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldShortDesc, v))
+}
+
+// ExamineDescEQ applies the EQ predicate on the "examineDesc" field.
+func ExamineDescEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldExamineDesc, v))
+}
+
+// ExamineDescNEQ applies the NEQ predicate on the "examineDesc" field.
+func ExamineDescNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldExamineDesc, v))
+}
+
+// ExamineDescIn applies the In predicate on the "examineDesc" field.
+func ExamineDescIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldExamineDesc, vs...))
+}
+
+// ExamineDescNotIn applies the NotIn predicate on the "examineDesc" field.
+func ExamineDescNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldExamineDesc, vs...))
+}
+
+// ExamineDescGT applies the GT predicate on the "examineDesc" field.
+func ExamineDescGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldExamineDesc, v))
+}
+
+// ExamineDescGTE applies the GTE predicate on the "examineDesc" field.
+func ExamineDescGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldExamineDesc, v))
+}
+
+// ExamineDescLT applies the LT predicate on the "examineDesc" field.
+func ExamineDescLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldExamineDesc, v))
+}
+
+// ExamineDescLTE applies the LTE predicate on the "examineDesc" field.
+func ExamineDescLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldExamineDesc, v))
+}
+
+// ExamineDescContains applies the Contains predicate on the "examineDesc" field.
+func ExamineDescContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldExamineDesc, v))
+}
+
+// ExamineDescHasPrefix applies the HasPrefix predicate on the "examineDesc" field.
+func ExamineDescHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldExamineDesc, v))
+}
+
+// ExamineDescHasSuffix applies the HasSuffix predicate on the "examineDesc" field.
+func ExamineDescHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldExamineDesc, v))
+}
+
+// ExamineDescEqualFold applies the EqualFold predicate on the "examineDesc" field.
+func ExamineDescEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldExamineDesc, v))
+}
+
+// ExamineDescContainsFold applies the ContainsFold predicate on the "examineDesc" field.
+func ExamineDescContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldExamineDesc, v))
+}
+
+// HiddenDetailsIsNil applies the IsNil predicate on the "hiddenDetails" field.
+func HiddenDetailsIsNil() predicate.Equipment {
+	return predicate.Equipment(sql.FieldIsNull(FieldHiddenDetails))
+}
+
+// HiddenDetailsNotNil applies the NotNil predicate on the "hiddenDetails" field.
+func HiddenDetailsNotNil() predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotNull(FieldHiddenDetails))
+}
+
+// OnExamineIsNil applies the IsNil predicate on the "onExamine" field.
+func OnExamineIsNil() predicate.Equipment {
+	return predicate.Equipment(sql.FieldIsNull(FieldOnExamine))
+}
+
+// OnExamineNotNil applies the NotNil predicate on the "onExamine" field.
+func OnExamineNotNil() predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotNull(FieldOnExamine))
 }
 
 // SlotEQ applies the EQ predicate on the "slot" field.
@@ -527,6 +692,16 @@ func IsVisibleEQ(v bool) predicate.Equipment {
 // IsVisibleNEQ applies the NEQ predicate on the "isVisible" field.
 func IsVisibleNEQ(v bool) predicate.Equipment {
 	return predicate.Equipment(sql.FieldNEQ(FieldIsVisible, v))
+}
+
+// IsContainerEQ applies the EQ predicate on the "isContainer" field.
+func IsContainerEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsContainer, v))
+}
+
+// IsContainerNEQ applies the NEQ predicate on the "isContainer" field.
+func IsContainerNEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldIsContainer, v))
 }
 
 // ItemTypeEQ applies the EQ predicate on the "itemType" field.

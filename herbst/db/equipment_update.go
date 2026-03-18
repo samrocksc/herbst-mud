@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -54,6 +55,70 @@ func (_u *EquipmentUpdate) SetNillableDescription(v *string) *EquipmentUpdate {
 	if v != nil {
 		_u.SetDescription(*v)
 	}
+	return _u
+}
+
+// SetShortDesc sets the "shortDesc" field.
+func (_u *EquipmentUpdate) SetShortDesc(v string) *EquipmentUpdate {
+	_u.mutation.SetShortDesc(v)
+	return _u
+}
+
+// SetNillableShortDesc sets the "shortDesc" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableShortDesc(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetShortDesc(*v)
+	}
+	return _u
+}
+
+// SetExamineDesc sets the "examineDesc" field.
+func (_u *EquipmentUpdate) SetExamineDesc(v string) *EquipmentUpdate {
+	_u.mutation.SetExamineDesc(v)
+	return _u
+}
+
+// SetNillableExamineDesc sets the "examineDesc" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableExamineDesc(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetExamineDesc(*v)
+	}
+	return _u
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_u *EquipmentUpdate) SetHiddenDetails(v []map[string]interface{}) *EquipmentUpdate {
+	_u.mutation.SetHiddenDetails(v)
+	return _u
+}
+
+// AppendHiddenDetails appends value to the "hiddenDetails" field.
+func (_u *EquipmentUpdate) AppendHiddenDetails(v []map[string]interface{}) *EquipmentUpdate {
+	_u.mutation.AppendHiddenDetails(v)
+	return _u
+}
+
+// ClearHiddenDetails clears the value of the "hiddenDetails" field.
+func (_u *EquipmentUpdate) ClearHiddenDetails() *EquipmentUpdate {
+	_u.mutation.ClearHiddenDetails()
+	return _u
+}
+
+// SetOnExamine sets the "onExamine" field.
+func (_u *EquipmentUpdate) SetOnExamine(v []map[string]interface{}) *EquipmentUpdate {
+	_u.mutation.SetOnExamine(v)
+	return _u
+}
+
+// AppendOnExamine appends value to the "onExamine" field.
+func (_u *EquipmentUpdate) AppendOnExamine(v []map[string]interface{}) *EquipmentUpdate {
+	_u.mutation.AppendOnExamine(v)
+	return _u
+}
+
+// ClearOnExamine clears the value of the "onExamine" field.
+func (_u *EquipmentUpdate) ClearOnExamine() *EquipmentUpdate {
+	_u.mutation.ClearOnExamine()
 	return _u
 }
 
@@ -165,6 +230,20 @@ func (_u *EquipmentUpdate) SetIsVisible(v bool) *EquipmentUpdate {
 func (_u *EquipmentUpdate) SetNillableIsVisible(v *bool) *EquipmentUpdate {
 	if v != nil {
 		_u.SetIsVisible(*v)
+	}
+	return _u
+}
+
+// SetIsContainer sets the "isContainer" field.
+func (_u *EquipmentUpdate) SetIsContainer(v bool) *EquipmentUpdate {
+	_u.mutation.SetIsContainer(v)
+	return _u
+}
+
+// SetNillableIsContainer sets the "isContainer" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableIsContainer(v *bool) *EquipmentUpdate {
+	if v != nil {
+		_u.SetIsContainer(*v)
 	}
 	return _u
 }
@@ -455,6 +534,34 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(equipment.FieldDescription, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ShortDesc(); ok {
+		_spec.SetField(equipment.FieldShortDesc, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExamineDesc(); ok {
+		_spec.SetField(equipment.FieldExamineDesc, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedHiddenDetails(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, equipment.FieldHiddenDetails, value)
+		})
+	}
+	if _u.mutation.HiddenDetailsCleared() {
+		_spec.ClearField(equipment.FieldHiddenDetails, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.OnExamine(); ok {
+		_spec.SetField(equipment.FieldOnExamine, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedOnExamine(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, equipment.FieldOnExamine, value)
+		})
+	}
+	if _u.mutation.OnExamineCleared() {
+		_spec.ClearField(equipment.FieldOnExamine, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.Slot(); ok {
 		_spec.SetField(equipment.FieldSlot, field.TypeString, value)
 	}
@@ -481,6 +588,9 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsVisible(); ok {
 		_spec.SetField(equipment.FieldIsVisible, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsContainer(); ok {
+		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
@@ -633,6 +743,70 @@ func (_u *EquipmentUpdateOne) SetNillableDescription(v *string) *EquipmentUpdate
 	return _u
 }
 
+// SetShortDesc sets the "shortDesc" field.
+func (_u *EquipmentUpdateOne) SetShortDesc(v string) *EquipmentUpdateOne {
+	_u.mutation.SetShortDesc(v)
+	return _u
+}
+
+// SetNillableShortDesc sets the "shortDesc" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableShortDesc(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetShortDesc(*v)
+	}
+	return _u
+}
+
+// SetExamineDesc sets the "examineDesc" field.
+func (_u *EquipmentUpdateOne) SetExamineDesc(v string) *EquipmentUpdateOne {
+	_u.mutation.SetExamineDesc(v)
+	return _u
+}
+
+// SetNillableExamineDesc sets the "examineDesc" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableExamineDesc(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetExamineDesc(*v)
+	}
+	return _u
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_u *EquipmentUpdateOne) SetHiddenDetails(v []map[string]interface{}) *EquipmentUpdateOne {
+	_u.mutation.SetHiddenDetails(v)
+	return _u
+}
+
+// AppendHiddenDetails appends value to the "hiddenDetails" field.
+func (_u *EquipmentUpdateOne) AppendHiddenDetails(v []map[string]interface{}) *EquipmentUpdateOne {
+	_u.mutation.AppendHiddenDetails(v)
+	return _u
+}
+
+// ClearHiddenDetails clears the value of the "hiddenDetails" field.
+func (_u *EquipmentUpdateOne) ClearHiddenDetails() *EquipmentUpdateOne {
+	_u.mutation.ClearHiddenDetails()
+	return _u
+}
+
+// SetOnExamine sets the "onExamine" field.
+func (_u *EquipmentUpdateOne) SetOnExamine(v []map[string]interface{}) *EquipmentUpdateOne {
+	_u.mutation.SetOnExamine(v)
+	return _u
+}
+
+// AppendOnExamine appends value to the "onExamine" field.
+func (_u *EquipmentUpdateOne) AppendOnExamine(v []map[string]interface{}) *EquipmentUpdateOne {
+	_u.mutation.AppendOnExamine(v)
+	return _u
+}
+
+// ClearOnExamine clears the value of the "onExamine" field.
+func (_u *EquipmentUpdateOne) ClearOnExamine() *EquipmentUpdateOne {
+	_u.mutation.ClearOnExamine()
+	return _u
+}
+
 // SetSlot sets the "slot" field.
 func (_u *EquipmentUpdateOne) SetSlot(v string) *EquipmentUpdateOne {
 	_u.mutation.SetSlot(v)
@@ -741,6 +915,20 @@ func (_u *EquipmentUpdateOne) SetIsVisible(v bool) *EquipmentUpdateOne {
 func (_u *EquipmentUpdateOne) SetNillableIsVisible(v *bool) *EquipmentUpdateOne {
 	if v != nil {
 		_u.SetIsVisible(*v)
+	}
+	return _u
+}
+
+// SetIsContainer sets the "isContainer" field.
+func (_u *EquipmentUpdateOne) SetIsContainer(v bool) *EquipmentUpdateOne {
+	_u.mutation.SetIsContainer(v)
+	return _u
+}
+
+// SetNillableIsContainer sets the "isContainer" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableIsContainer(v *bool) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetIsContainer(*v)
 	}
 	return _u
 }
@@ -1061,6 +1249,34 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(equipment.FieldDescription, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ShortDesc(); ok {
+		_spec.SetField(equipment.FieldShortDesc, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExamineDesc(); ok {
+		_spec.SetField(equipment.FieldExamineDesc, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedHiddenDetails(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, equipment.FieldHiddenDetails, value)
+		})
+	}
+	if _u.mutation.HiddenDetailsCleared() {
+		_spec.ClearField(equipment.FieldHiddenDetails, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.OnExamine(); ok {
+		_spec.SetField(equipment.FieldOnExamine, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedOnExamine(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, equipment.FieldOnExamine, value)
+		})
+	}
+	if _u.mutation.OnExamineCleared() {
+		_spec.ClearField(equipment.FieldOnExamine, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.Slot(); ok {
 		_spec.SetField(equipment.FieldSlot, field.TypeString, value)
 	}
@@ -1087,6 +1303,9 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if value, ok := _u.mutation.IsVisible(); ok {
 		_spec.SetField(equipment.FieldIsVisible, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsContainer(); ok {
+		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
