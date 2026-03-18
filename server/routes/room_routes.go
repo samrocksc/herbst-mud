@@ -65,7 +65,37 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		c.JSON(http.StatusOK, room)
+		// Include items in the room
+		items, _ := client.Equipment.Query().
+			Where(db.HasRoomWith(db.Room.ID(id))).
+			All(c.Request.Context())
+
+		// Include NPCs (characters with isNPC=true) in the room
+		npchars, _ := client.Character.Query().
+			Where(
+				db.Character.IsNPC(true),
+				db.Character.CurrentRoomID(id),
+			).
+			All(c.Request.Context())
+
+		// Include players in the room (optional, for admin views)
+		players, _ := client.Character.Query().
+			Where(
+				db.Character.IsNPC(false),
+				db.Character.CurrentRoomID(id),
+			).
+			All(c.Request.Context())
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":            room.ID,
+			"name":          room.Name,
+			"description":   room.Description,
+			"isStartingRoom": room.IsStartingRoom,
+			"exits":         room.Exits,
+			"items":         items,
+			"npcs":          npchars,
+			"players":       players,
+		})
 	})
 
 	// Update a room by ID

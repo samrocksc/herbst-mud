@@ -87,6 +87,12 @@ func main() {
 	// Register character routes
 	routes.RegisterCharacterRoutes(router, client)
 
+	// Register item/equipment routes (Look/Examine API)
+	routes.RegisterItemRoutes(router, client)
+
+	// Register NPC routes (Look/Examine API)
+	routes.RegisterNPCRoutes(router, client)
+
 	// Healthz endpoint
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
