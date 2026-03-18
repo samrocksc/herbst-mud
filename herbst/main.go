@@ -221,6 +221,9 @@ type model struct {
 
 	// Room items (GitHub #89 - Item system)
 	roomItems []RoomItem
+
+	// Room characters (GitHub #145 - Look command room display)
+	roomCharacters []roomCharacter
 }
 
 // HiddenDetail represents detail revealed by examine skill
@@ -244,6 +247,17 @@ type RoomItem struct {
 	Weight         int            `json:"weight"`
 	ItemDamage     int            `json:"itemDamage"`
 	ItemDurability int            `json:"itemDurability"`
+}
+
+// roomCharacter represents a character (NPC or player) in a room for display
+type roomCharacter struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	IsNPC    bool   `json:"isNPC"`
+	Level    int    `json:"level"`
+	Class    string `json:"class"`
+	Race     string `json:"race"`
+	UserID   int    `json:"userId"`
 }
 
 // ============================================================
@@ -908,6 +922,67 @@ func (m *model) loadRoomItems() {
 	m.roomItems = items
 }
 
+// loadRoomCharacters fetches characters (NPCs and players) in the current room from the API
+func (m *model) loadRoomCharacters() {
+	if m.currentRoom == 0 {
+		return
+	}
+
+	resp, err := http.Get(fmt.Sprintf("%s/rooms/%d/characters", RESTAPIBase, m.currentRoom))
+	if err != nil {
+		log.Printf("Error fetching room characters: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return
+	}
+
+	var characters []roomCharacter
+	if err := json.NewDecoder(resp.Body).Decode(&characters); err != nil {
+		log.Printf("Error decoding room characters: %v", err)
+		return
+	}
+
+	m.roomCharacters = characters
+}
+
+// formatRoomCharacters returns a formatted string of characters (NPCs and players) in the room
+func (m *model) formatRoomCharacters() string {
+	if len(m.roomCharacters) == 0 {
+		return ""
+	}
+
+	var npcs []string
+	var players []string
+
+	for _, char := range m.roomCharacters {
+		if char.IsNPC {
+			// NPCs in red
+			style := lipgloss.NewStyle().Foreground(red)
+			npcs = append(npcs, style.Render(char.Name))
+		} else {
+			// Players in green
+			style := lipgloss.NewStyle().Foreground(green)
+			players = append(players, style.Render(char.Name))
+		}
+	}
+
+	var parts []string
+	if len(npcs) > 0 {
+		parts = append(parts, "NPCs: "+strings.Join(npcs, ", "))
+	}
+	if len(players) > 0 {
+		parts = append(parts, "Players: "+strings.Join(players, ", "))
+	}
+
+	if len(parts) == 0 {
+		return ""
+	}
+	return "\n\n" + strings.Join(parts, " | ")
+}
+
 // ============================================================
 // GAME COMMAND PROCESSING
 // ============================================================
@@ -942,11 +1017,13 @@ func (m *model) processCommand(cmd string) {
 		m.messageType = "info"
 	case "look", "l":
 		m.loadRoomItems()
-		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s%s",
+		m.loadRoomCharacters()
+		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s%s%s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
 			m.formatExitsWithColor(),
-			m.formatRoomItems())
+			m.formatRoomItems(),
+			m.formatRoomCharacters())
 		m.messageType = "info"
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
@@ -1037,6 +1114,10 @@ func (m *model) handleMovement(cmd string) bool {
 		m.roomDesc = room.Description
 		m.exits = room.Exits
 
+		// Load items and characters for the new room
+		m.loadRoomItems()
+		m.loadRoomCharacters()
+
 		// Mark new room as visited
 		wasVisited := m.visitedRooms[m.currentRoom]
 		m.visitedRooms[m.currentRoom] = true
@@ -1046,18 +1127,24 @@ func (m *model) handleMovement(cmd string) bool {
 			m.knownExits[dir] = true
 		}
 
+		// Format room display with items and characters
+		roomDisplay := fmt.Sprintf("\n\nExits: %s%s%s",
+			m.formatExitsWithColor(),
+			m.formatRoomItems(),
+			m.formatRoomCharacters())
+
 		if wasVisited {
-			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s\n\nExits: %s",
+			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 				m.roomDesc,
-				m.formatExitsWithColor())
+				roomDisplay)
 		} else {
-			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s\n\nExits: %s",
+			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(m.roomName),
 				m.roomDesc,
-				m.formatExitsWithColor())
+				roomDisplay)
 		}
 		m.messageType = "success"
 	}
