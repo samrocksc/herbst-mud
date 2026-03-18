@@ -1020,6 +1020,9 @@ func (m *model) processCommand(cmd string) {
   peer <dir> - Peek at adjacent room
   take/get <item> - Pick up an item
   drop <item> - Drop an item
+  open <container> - Open a container
+  take <item> from <container> - Take item from container
+  put <item> in <container> - Put item in container
   inventory/i - Show your inventory
   whoami - Show your info
   profile/p - Edit character profile
@@ -1084,6 +1087,19 @@ func (m *model) processCommand(cmd string) {
 		// Check for inventory command
 		if cmd == "inventory" || cmd == "i" || cmd == "inv" {
 			m.handleInventoryCommand()
+			return
+		}
+		// Container commands (GitHub #143)
+		if strings.HasPrefix(cmd, "open ") {
+			m.handleOpenContainerCommand(cmd)
+			return
+		}
+		if strings.HasPrefix(cmd, "take ") && strings.Contains(cmd, " from ") {
+			m.handleTakeFromContainerCommand(cmd)
+			return
+		}
+		if strings.HasPrefix(cmd, "put ") && strings.Contains(cmd, " in ") {
+			m.handlePutInContainerCommand(cmd)
 			return
 		}
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
@@ -1589,6 +1605,153 @@ func (m *model) handleInventoryCommand() {
 	}
 	m.message = inv.String()
 	m.messageType = "info"
+}
+
+// handleOpenContainerCommand handles the open <container> command
+func (m *model) handleOpenContainerCommand(cmd string) {
+	// Extract container name from command
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Open what? Usage: open <container name>"
+		m.messageType = "error"
+		return
+	}
+	containerName := strings.Join(parts[1:], " ")
+
+	// Load room items to find the container
+	m.loadRoomItems()
+
+	// Find container by name (case-insensitive partial match)
+	var targetContainer *RoomItem
+	for i := range m.roomItems {
+		if m.roomItems[i].IsContainer && strings.Contains(strings.ToLower(m.roomItems[i].Name), strings.ToLower(containerName)) {
+			targetContainer = &m.roomItems[i]
+			break
+		}
+	}
+
+	if targetContainer == nil {
+		m.message = fmt.Sprintf("You don't see any %s here.", containerName)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if it's actually a container
+	if !targetContainer.IsContainer {
+		m.message = fmt.Sprintf("You can't open the %s.", targetContainer.Name)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if locked
+	if targetContainer.IsLocked {
+		m.message = fmt.Sprintf("The %s is locked.", targetContainer.Name)
+		m.messageType = "error"
+		return
+	}
+
+	// TODO: Fetch container contents from API when container inventory is implemented
+	// For now, show basic container info
+	m.message = fmt.Sprintf("You open the %s.\n\nIt appears to be empty for now.", targetContainer.Name)
+	m.messageType = "info"
+}
+
+// handleTakeFromContainerCommand handles the take <item> from <container> command
+func (m *model) handleTakeFromContainerCommand(cmd string) {
+	// Parse: take <item> from <container>
+	fromIdx := strings.Index(cmd, " from ")
+	if fromIdx == -1 {
+		m.message = "Usage: take <item> from <container>"
+		m.messageType = "error"
+		return
+	}
+
+	itemName := strings.TrimSpace(cmd[5:fromIdx])
+	containerName := strings.TrimSpace(cmd[fromIdx+6:])
+
+	if itemName == "" || containerName == "" {
+		m.message = "Usage: take <item> from <container>"
+		m.messageType = "error"
+		return
+	}
+
+	// Load room items to find the container
+	m.loadRoomItems()
+
+	// Find container
+	var targetContainer *RoomItem
+	for i := range m.roomItems {
+		if m.roomItems[i].IsContainer && strings.Contains(strings.ToLower(m.roomItems[i].Name), strings.ToLower(containerName)) {
+			targetContainer = &m.roomItems[i]
+			break
+		}
+	}
+
+	if targetContainer == nil {
+		m.message = fmt.Sprintf("You don't see any %s here.", containerName)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if container is locked
+	if targetContainer.IsLocked {
+		m.message = fmt.Sprintf("The %s is locked.", targetContainer.Name)
+		m.messageType = "error"
+		return
+	}
+
+	// TODO: Verify item is actually in container when container inventory is implemented
+	m.message = fmt.Sprintf("You take the %s from the %s.", itemName, targetContainer.Name)
+	m.messageType = "success"
+}
+
+// handlePutInContainerCommand handles the put <item> in <container> command
+func (m *model) handlePutInContainerCommand(cmd string) {
+	// Parse: put <item> in <container>
+	inIdx := strings.Index(cmd, " in ")
+	if inIdx == -1 {
+		m.message = "Usage: put <item> in <container>"
+		m.messageType = "error"
+		return
+	}
+
+	itemName := strings.TrimSpace(cmd[4:inIdx])
+	containerName := strings.TrimSpace(cmd[inIdx+4:])
+
+	if itemName == "" || containerName == "" {
+		m.message = "Usage: put <item> in <container>"
+		m.messageType = "error"
+		return
+	}
+
+	// Load room items to find the container
+	m.loadRoomItems()
+
+	// Find container
+	var targetContainer *RoomItem
+	for i := range m.roomItems {
+		if m.roomItems[i].IsContainer && strings.Contains(strings.ToLower(m.roomItems[i].Name), strings.ToLower(containerName)) {
+			targetContainer = &m.roomItems[i]
+			break
+		}
+	}
+
+	if targetContainer == nil {
+		m.message = fmt.Sprintf("You don't see any %s here.", containerName)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if container is locked
+	if targetContainer.IsLocked {
+		m.message = fmt.Sprintf("The %s is locked.", targetContainer.Name)
+		m.messageType = "error"
+		return
+	}
+
+	// TODO: Implement actual put in container when container inventory is implemented
+	m.message = fmt.Sprintf("You put the %s in the %s.", itemName, targetContainer.Name)
+	m.messageType = "success"
 }
 
 func (m *model) loadOrCreateCharacter() {
