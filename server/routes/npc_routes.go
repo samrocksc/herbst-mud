@@ -90,6 +90,7 @@ func RegisterNPCRoutes(router *gin.Engine, client *db.Client) {
 				"hitpoints":     npc.Hitpoints,
 				"maxHitpoints":  npc.MaxHitpoints,
 				"examineLevel":  examineLevel,
+				"examineXP":     1, // XP awarded for examining
 				"disposition":   getNPCDisposition(npc),
 				"trades":        getNPCCredits(npc),
 			})

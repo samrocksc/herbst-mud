@@ -97,6 +97,7 @@ func RegisterItemRoutes(router *gin.Engine, client *db.Client) {
 				"isReadable":    item.IsReadable,
 				"readContent":   readableContent,
 				"examineLevel":  examineLevel,
+				"examineXP":     1, // XP awarded for examining
 				"type":          item.Slot,
 				"weight":        item.Weight,
 				"level":         item.Level,
