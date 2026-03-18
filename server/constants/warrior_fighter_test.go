@@ -24,7 +24,7 @@ func TestWarriorFighterStartingConfig(t *testing.T) {
 	}
 
 	// Test starting talents
-	expectedTalents := []string{"slash", "parry", "smash", "crash"}
+	expectedTalents := []string{"slash", "parry", "shield_bash", "heavy_strike"}
 	if len(config.StartingTalents) != len(expectedTalents) {
 		t.Errorf("Expected %d talents, got %d", len(expectedTalents), len(config.StartingTalents))
 	}

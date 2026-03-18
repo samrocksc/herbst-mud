@@ -12,8 +12,8 @@ Feature: Talents and Proficiencies System
     When I view my starting talents
     Then I should have "slash" talent
     And I should have "parry" talent
-    And I should have "smash" talent
-    And I should have "crash" talent
+    And I should have "shield_bash" talent
+    And I should have "heavy_strike" talent
     And my talents should be stored in the CharacterTalent table
 
   Scenario: View talent bar

@@ -64,7 +64,7 @@ var StartingConfigs = map[string]ClassConfig{
 			"blades":   1,
 			"brawling": 1,
 		},
-		StartingTalents: []string{"slash", "parry", "smash", "crash"},
+		StartingTalents: []string{"slash", "parry", "shield_bash", "heavy_strike"},
 		StatBonuses: struct {
 			Strength     int
 			Dexterity    int

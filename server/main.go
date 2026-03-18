@@ -78,6 +78,11 @@ func main() {
 		log.Printf("Warning: failed to initialize Junkyard: %v", err)
 	}
 
+	// Initialize talents (combat skills/talents)
+	if err := dbinit.InitTalents(client); err != nil {
+		log.Printf("Warning: failed to initialize talents: %v", err)
+	}
+
 	// Set up Gin router
 	router := gin.Default()
 	
@@ -104,6 +109,9 @@ func main() {
 
 	// Register equipment routes (GitHub #89 - Item system)
 	routes.RegisterEquipmentRoutes(router, client)
+
+	// Register container routes (GitHub #143 - Container System)
+	routes.RegisterContainerRoutes(router, client)
 
 	// Healthz endpoint
 	router.GET("/healthz", func(c *gin.Context) {

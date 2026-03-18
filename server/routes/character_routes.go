@@ -14,6 +14,7 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
+	"entgo.io/ent/dialect/sql"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -322,13 +323,40 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 		hashedPassword := string(hash)
 
-		// Set default stats based on class (if provided)
-		hitpoints := 100
-		maxHitpoints := 100
-		stamina := 50
-		maxStamina := 50
-		mana := 50
-		maxMana := 50
+		// Get class configuration with specialty
+		classConfig := constants.GetClassConfig(class, "")
+
+		// Calculate base stats with class bonuses
+		baseConstitution := constants.DefaultStats.Constitution + classConfig.StatBonuses.Constitution
+		baseStrength := constants.DefaultStats.Strength + classConfig.StatBonuses.Strength
+		baseDexterity := constants.DefaultStats.Dexterity + classConfig.StatBonuses.Dexterity
+		baseIntelligence := constants.DefaultStats.Intelligence + classConfig.StatBonuses.Intelligence
+		baseWisdom := constants.DefaultStats.Wisdom + classConfig.StatBonuses.Wisdom
+
+		// Calculate base stats from character (before creation, use defaults)
+		// HP scales with CON: 10 base + (CON - 10) * 10 per point
+		baseCONForHP := baseConstitution
+		if baseCONForHP < 10 {
+			baseCONForHP = 10
+		}
+		hitpoints := 10 + (baseCONForHP-10)*10 + (baseConstitution * 5)
+		maxHitpoints := hitpoints
+
+		// Stamina scales with DEX: 10 base + (DEX - 10) * 5
+		baseDEXForStamina := baseDexterity
+		if baseDEXForStamina < 10 {
+			baseDEXForStamina = 10
+		}
+		stamina := 10 + (baseDEXForStamina-10)*5 + (baseDexterity * 2)
+		maxStamina := stamina
+
+		// Mana scales with INT/WIS: 10 base + (primary stat - 10) * 5
+		basePrimaryForMana := baseIntelligence
+		if basePrimaryForMana < 10 {
+			basePrimaryForMana = 10
+		}
+		mana := 10 + (basePrimaryForMana-10)*5 + (baseIntelligence * 2)
+		maxMana := mana
 
 		// Get starting room (first room by default)
 		startingRooms, err := client.Room.Query().Where(room.IsStartingRoom(true)).All(c.Request.Context())
@@ -351,16 +379,6 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		if req.Class != "" {
 			class = req.Class
 		}
-
-		// Get class configuration with specialty
-		classConfig := constants.GetClassConfig(class, "")
-
-		// Calculate base stats with class bonuses
-		baseStrength := constants.DefaultStats.Strength + classConfig.StatBonuses.Strength
-		baseDexterity := constants.DefaultStats.Dexterity + classConfig.StatBonuses.Dexterity
-		baseConstitution := constants.DefaultStats.Constitution + classConfig.StatBonuses.Constitution
-		baseIntelligence := constants.DefaultStats.Intelligence + classConfig.StatBonuses.Intelligence
-		baseWisdom := constants.DefaultStats.Wisdom + classConfig.StatBonuses.Wisdom
 
 		// Create the character builder
 		builder := client.Character.
@@ -411,7 +429,34 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{
+		// Initialize starting talents (skill book - max 4 equipped)
+		for slot, talentName := range classConfig.StartingTalents {
+			if slot >= 4 {
+				break // Max 4 slots
+			}
+			// Look up talent by name
+			talent, err := client.Talent.Query().Where(
+				func(s *sql.Selector) {
+					s.Where(sql.EQ("name", talentName))
+				},
+			).Only(c.Request.Context())
+			if err != nil {
+				log.Printf("Warning: talent '%s' not found, skipping: %v", talentName, err)
+				continue
+			}
+			// Create character talent with slot assignment
+			_, err = client.CharacterTalent.Create().
+				SetCharacter(char).
+				SetTalent(talent).
+				SetSlot(slot).
+				Save(c.Request.Context())
+			if err != nil {
+				log.Printf("Warning: failed to assign talent '%s' to character: %v", talentName, err)
+			}
+		}
+
+		// Return the created character response
+		response := gin.H{
 			"id":              char.ID,
 			"name":            char.Name,
 			"isNPC":           char.IsNPC,
@@ -432,7 +477,9 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			"constitution":    char.Constitution,
 			"intelligence":    char.Intelligence,
 			"wisdom":          char.Wisdom,
-		})
+			"equipped_talents": classConfig.StartingTalents,
+		}
+		c.JSON(http.StatusCreated, response)
 	})
 
 	// Get character class

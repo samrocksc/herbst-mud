@@ -10,6 +10,7 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -44,6 +45,58 @@ func InitAdminUser(client *db.Client) error {
 	}
 
 	log.Printf("Default admin user created: %s / %s", DefaultAdminEmail, DefaultAdminPassword)
+	return nil
+}
+
+// InitTalents seeds the database with available talents if they don't exist
+func InitTalents(client *db.Client) error {
+	ctx := context.Background()
+
+	// Define all available talents with their requirements
+	talents := []struct {
+		name        string
+		description string
+		requirements string
+	}{
+		// Warrior talents
+		{"slash", "Basic sword/blade attack. Requires blades or knives skill.", "blades >= 1 OR knives >= 1"},
+		{"parry", "Deflect incoming attacks. No skill requirement.", ""},
+		{"shield_bash", "Bash with shield, chance to stun the enemy.", ""},
+		{"heavy_strike", "Strong but slow attack. Requires blades or staves skill.", "blades >= 1 OR staves >= 1"},
+		{"smash", "Powerful blunt attack. Requires staves or martial skill.", "staves >= 1 OR martial >= 1"},
+		{"crash", "Damage based on weight and STR. No weapon required.", ""},
+		{"battle_cry", "Demoralize enemies, reducing their accuracy.", ""},
+		{"second_wind", "Recover HP when below 30% health.", ""},
+		{"hail_storm", "Double attacks for 2 cycles.", ""},
+		{"iron_will", "Passive: resist stun and blind effects.", ""},
+		// More talents can be added here as needed
+	}
+
+	for _, t := range talents {
+		// Check if talent already exists
+		existing, err := client.Talent.Query().Where(
+			func(s *sql.Selector) {
+				s.Where(sql.EQ("name", t.name))
+			},
+		).Only(ctx)
+		if err == nil && existing != nil {
+			continue // Already exists
+		}
+
+		// Create the talent
+		_, err = client.Talent.Create().
+			SetName(t.name).
+			SetDescription(t.description).
+			SetRequirements(t.requirements).
+			Save(ctx)
+		if err != nil {
+			log.Printf("Warning: failed to create talent '%s': %v", t.name, err)
+			continue
+		}
+		log.Printf("Created talent: %s", t.name)
+	}
+
+	log.Println("Talent seeding complete")
 	return nil
 }
 
