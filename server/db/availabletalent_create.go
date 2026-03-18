@@ -55,14 +55,6 @@ func (_c *AvailableTalentCreate) SetCharacterID(id int) *AvailableTalentCreate {
 	return _c
 }
 
-// SetNillableCharacterID sets the "character" edge to the Character entity by ID if the given value is not nil.
-func (_c *AvailableTalentCreate) SetNillableCharacterID(id *int) *AvailableTalentCreate {
-	if id != nil {
-		_c = _c.SetCharacterID(*id)
-	}
-	return _c
-}
-
 // SetCharacter sets the "character" edge to the Character entity.
 func (_c *AvailableTalentCreate) SetCharacter(v *Character) *AvailableTalentCreate {
 	return _c.SetCharacterID(v.ID)
@@ -71,14 +63,6 @@ func (_c *AvailableTalentCreate) SetCharacter(v *Character) *AvailableTalentCrea
 // SetTalentID sets the "talent" edge to the Talent entity by ID.
 func (_c *AvailableTalentCreate) SetTalentID(id int) *AvailableTalentCreate {
 	_c.mutation.SetTalentID(id)
-	return _c
-}
-
-// SetNillableTalentID sets the "talent" edge to the Talent entity by ID if the given value is not nil.
-func (_c *AvailableTalentCreate) SetNillableTalentID(id *int) *AvailableTalentCreate {
-	if id != nil {
-		_c = _c.SetTalentID(*id)
-	}
 	return _c
 }
 
@@ -136,6 +120,12 @@ func (_c *AvailableTalentCreate) defaults() {
 func (_c *AvailableTalentCreate) check() error {
 	if _, ok := _c.mutation.UnlockedAtLevel(); !ok {
 		return &ValidationError{Name: "unlocked_at_level", err: errors.New(`db: missing required field "AvailableTalent.unlocked_at_level"`)}
+	}
+	if len(_c.mutation.CharacterIDs()) == 0 {
+		return &ValidationError{Name: "character", err: errors.New(`db: missing required edge "AvailableTalent.character"`)}
+	}
+	if len(_c.mutation.TalentIDs()) == 0 {
+		return &ValidationError{Name: "talent", err: errors.New(`db: missing required edge "AvailableTalent.talent"`)}
 	}
 	return nil
 }

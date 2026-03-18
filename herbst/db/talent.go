@@ -25,8 +25,9 @@ type Talent struct {
 	Requirements map[string]int `json:"requirements,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TalentQuery when eager-loading is set.
-	Edges        TalentEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges             TalentEdges `json:"edges"`
+	character_talents *int
+	selectValues      sql.SelectValues
 }
 
 // TalentEdges holds the relations/edges for other nodes in the graph.
@@ -58,6 +59,8 @@ func (*Talent) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case talent.FieldName, talent.FieldDescription:
 			values[i] = new(sql.NullString)
+		case talent.ForeignKeys[0]: // character_talents
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -98,6 +101,13 @@ func (_m *Talent) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.Requirements); err != nil {
 					return fmt.Errorf("unmarshal field requirements: %w", err)
 				}
+			}
+		case talent.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field character_talents", value)
+			} else if value.Valid {
+				_m.character_talents = new(int)
+				*_m.character_talents = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])

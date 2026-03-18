@@ -25,6 +25,7 @@ type TalentQuery struct {
 	inters         []Interceptor
 	predicates     []predicate.Talent
 	withCharacters *CharacterQuery
+	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -370,11 +371,15 @@ func (_q *TalentQuery) prepareQuery(ctx context.Context) error {
 func (_q *TalentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Talent, error) {
 	var (
 		nodes       = []*Talent{}
+		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
 			_q.withCharacters != nil,
 		}
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, talent.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Talent).scanValues(nil, columns)
 	}

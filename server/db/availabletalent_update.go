@@ -76,14 +76,6 @@ func (_u *AvailableTalentUpdate) SetCharacterID(id int) *AvailableTalentUpdate {
 	return _u
 }
 
-// SetNillableCharacterID sets the "character" edge to the Character entity by ID if the given value is not nil.
-func (_u *AvailableTalentUpdate) SetNillableCharacterID(id *int) *AvailableTalentUpdate {
-	if id != nil {
-		_u = _u.SetCharacterID(*id)
-	}
-	return _u
-}
-
 // SetCharacter sets the "character" edge to the Character entity.
 func (_u *AvailableTalentUpdate) SetCharacter(v *Character) *AvailableTalentUpdate {
 	return _u.SetCharacterID(v.ID)
@@ -92,14 +84,6 @@ func (_u *AvailableTalentUpdate) SetCharacter(v *Character) *AvailableTalentUpda
 // SetTalentID sets the "talent" edge to the Talent entity by ID.
 func (_u *AvailableTalentUpdate) SetTalentID(id int) *AvailableTalentUpdate {
 	_u.mutation.SetTalentID(id)
-	return _u
-}
-
-// SetNillableTalentID sets the "talent" edge to the Talent entity by ID if the given value is not nil.
-func (_u *AvailableTalentUpdate) SetNillableTalentID(id *int) *AvailableTalentUpdate {
-	if id != nil {
-		_u = _u.SetTalentID(*id)
-	}
 	return _u
 }
 
@@ -152,7 +136,21 @@ func (_u *AvailableTalentUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *AvailableTalentUpdate) check() error {
+	if _u.mutation.CharacterCleared() && len(_u.mutation.CharacterIDs()) > 0 {
+		return errors.New(`db: clearing a required unique edge "AvailableTalent.character"`)
+	}
+	if _u.mutation.TalentCleared() && len(_u.mutation.TalentIDs()) > 0 {
+		return errors.New(`db: clearing a required unique edge "AvailableTalent.talent"`)
+	}
+	return nil
+}
+
 func (_u *AvailableTalentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(availabletalent.Table, availabletalent.Columns, sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -298,14 +296,6 @@ func (_u *AvailableTalentUpdateOne) SetCharacterID(id int) *AvailableTalentUpdat
 	return _u
 }
 
-// SetNillableCharacterID sets the "character" edge to the Character entity by ID if the given value is not nil.
-func (_u *AvailableTalentUpdateOne) SetNillableCharacterID(id *int) *AvailableTalentUpdateOne {
-	if id != nil {
-		_u = _u.SetCharacterID(*id)
-	}
-	return _u
-}
-
 // SetCharacter sets the "character" edge to the Character entity.
 func (_u *AvailableTalentUpdateOne) SetCharacter(v *Character) *AvailableTalentUpdateOne {
 	return _u.SetCharacterID(v.ID)
@@ -314,14 +304,6 @@ func (_u *AvailableTalentUpdateOne) SetCharacter(v *Character) *AvailableTalentU
 // SetTalentID sets the "talent" edge to the Talent entity by ID.
 func (_u *AvailableTalentUpdateOne) SetTalentID(id int) *AvailableTalentUpdateOne {
 	_u.mutation.SetTalentID(id)
-	return _u
-}
-
-// SetNillableTalentID sets the "talent" edge to the Talent entity by ID if the given value is not nil.
-func (_u *AvailableTalentUpdateOne) SetNillableTalentID(id *int) *AvailableTalentUpdateOne {
-	if id != nil {
-		_u = _u.SetTalentID(*id)
-	}
 	return _u
 }
 
@@ -387,7 +369,21 @@ func (_u *AvailableTalentUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *AvailableTalentUpdateOne) check() error {
+	if _u.mutation.CharacterCleared() && len(_u.mutation.CharacterIDs()) > 0 {
+		return errors.New(`db: clearing a required unique edge "AvailableTalent.character"`)
+	}
+	if _u.mutation.TalentCleared() && len(_u.mutation.TalentIDs()) > 0 {
+		return errors.New(`db: clearing a required unique edge "AvailableTalent.talent"`)
+	}
+	return nil
+}
+
 func (_u *AvailableTalentUpdateOne) sqlSave(ctx context.Context) (_node *AvailableTalent, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(availabletalent.Table, availabletalent.Columns, sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt))
 	id, ok := _u.mutation.ID()
 	if !ok {
