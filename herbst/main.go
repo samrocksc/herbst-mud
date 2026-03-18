@@ -140,16 +140,16 @@ func main() {
 					// Create program with shared client
 					p := tea.NewProgram(
 						&model{
-							connectedAt:     time.Now(),
-							session:         s,
-							client:          client,
-							screen:          ScreenWelcome,
-							currentRoom:     StartingRoomID,
-							textInput:       ti,
-							spinner:         sp,
-							visitedRooms:    make(map[int]bool),
-							knownExits:      make(map[string]bool),
-							roomCharacters:  make([]roomCharacter, 0),
+							connectedAt:    time.Now(),
+							session:        s,
+							client:         client,
+							screen:         ScreenWelcome,
+							currentRoom:    StartingRoomID,
+							textInput:      ti,
+							spinner:        sp,
+							visitedRooms:   make(map[int]bool),
+							knownExits:     make(map[string]bool),
+							roomCharacters: make([]roomCharacter, 0),
 						},
 						tea.WithInput(s),
 						tea.WithOutput(s),
@@ -626,7 +626,7 @@ func (m *model) handleEscape() {
 		m.message = ""
 		m.messageType = "info"
 		m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
-		m.textInput.EchoCharacter = 0 // Reset echo character
+		m.textInput.EchoCharacter = 0               // Reset echo character
 		// Re-initialize menu items for welcome screen
 		m.menuItems = []string{"Login", "Register", "Quit"}
 		m.menuCursor = 0
@@ -683,7 +683,7 @@ func (m *model) handleWelcomeInput(input string) {
 		m.textInput.SetValue("") // Clear any previous input
 		m.textInput.Placeholder = "Enter your username..."
 		m.textInput.EchoMode = textinput.EchoNormal // Ensure normal echo for username
-		m.textInput.EchoCharacter = 0 // Reset echo character
+		m.textInput.EchoCharacter = 0               // Reset echo character
 		m.textInput.Focus()
 	case "2", "register", "r", "create":
 		m.screen = ScreenRegister
@@ -695,7 +695,7 @@ func (m *model) handleWelcomeInput(input string) {
 		m.textInput.SetValue("") // Clear any previous input
 		m.textInput.Placeholder = "Choose a username..."
 		m.textInput.EchoMode = textinput.EchoNormal // Ensure normal echo for username
-		m.textInput.EchoCharacter = 0 // Reset echo character
+		m.textInput.EchoCharacter = 0               // Reset echo character
 		m.textInput.Focus()
 	case "3", "quit", "q":
 		m.message = "Goodbye! Thanks for playing Herbst MUD."
@@ -786,7 +786,7 @@ func (m *model) attemptLogin() {
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
 	m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
-	m.textInput.EchoCharacter = 0 // Reset echo character
+	m.textInput.EchoCharacter = 0               // Reset echo character
 	m.inputBuffer = ""
 	m.message = fmt.Sprintf("Welcome back, %s!", m.currentUserName)
 	m.messageType = "success"
@@ -1009,7 +1009,7 @@ func (m *model) attemptRegistration(email string) {
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
 	m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
-	m.textInput.EchoCharacter = 0 // Reset echo character
+	m.textInput.EchoCharacter = 0               // Reset echo character
 	m.inputBuffer = ""
 	m.message = fmt.Sprintf("Account created! Welcome to Herbst MUD, %s!", m.currentUserName)
 	m.messageType = "success"
@@ -1128,6 +1128,8 @@ func (m *model) processCommand(cmd string) {
 		m.handleTalentEquipCommand(cmd)
 	case "peer":
 		m.handlePeerCommand(cmd)
+	case "examine", "ex", "inspect":
+		m.handleExamineCommand(cmd)
 	case "clear", "cls":
 		// Clear the terminal screen - reset message buffer
 		m.message = ""
@@ -1397,6 +1399,128 @@ func (m *model) handlePeerCommand(cmd string) {
 			room.Description)
 		m.messageType = "info"
 	}
+}
+
+// handleExamineCommand handles the examine/ex/inspect command
+func (m *model) handleExamineCommand(cmd string) {
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage: examine <item|npc|object>\n\nExamine something in detail to reveal hidden details."
+		m.messageType = "error"
+		return
+	}
+
+	target := strings.Join(parts[1:], " ")
+
+	// First check if it's a direction (peer into adjacent room)
+	validDirs := map[string]string{"north": "north", "south": "south", "east": "east", "west": "west", "up": "up", "down": "down"}
+	if dir, ok := validDirs[strings.ToLower(target)]; ok {
+		m.handlePeerCommand("peer " + dir)
+		return
+	}
+
+	// Check if the target is an item in the current room
+	if m.client != nil {
+		// Get current room with items
+		char, err := m.client.Character.Get(context.Background(), m.currentCharacterID)
+		if err != nil {
+			m.message = fmt.Sprintf("Error: %v", err)
+			m.messageType = "error"
+			return
+		}
+
+		// Search in room items
+		roomItems, err := m.client.RoomItems.List(context.Background(), char.CurrentRoomID)
+		if err == nil && roomItems != nil {
+			for _, item := range roomItems.Items {
+				if strings.Contains(strings.ToLower(item.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(item.ExamineDesc), strings.ToLower(target)) {
+					m.displayItemExamine(item)
+					return
+				}
+			}
+		}
+
+		// Search in character's inventory
+		invItems, err := m.client.Inventory.List(context.Background(), m.currentCharacterID)
+		if err == nil && invItems != nil {
+			for _, item := range invItems.Items {
+				if strings.Contains(strings.ToLower(item.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(item.ExamineDesc), strings.ToLower(target)) {
+					m.displayItemExamine(item)
+					return
+				}
+			}
+		}
+
+		// Search NPCs in the room
+		characters, err := m.client.RoomCharacters.List(context.Background(), char.CurrentRoomID)
+		if err == nil && characters != nil {
+			for _, npc := range characters.Characters {
+				if npc.IsNPC && (strings.Contains(strings.ToLower(npc.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(npc.Description), strings.ToLower(target))) {
+					m.displayNPCExamine(npc)
+					return
+				}
+			}
+		}
+	}
+
+	m.message = fmt.Sprintf("You don't see '%s' here.", target)
+	m.messageType = "error"
+}
+
+// displayItemExamine displays detailed item information
+func (m *model) displayItemExamine(item *dbclient.Item) {
+	var output strings.Builder
+
+	output.WriteString(lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(item.Name))
+	output.WriteString("\n\n")
+
+	if item.Description != "" {
+		output.WriteString(item.Description)
+		output.WriteString("\n\n")
+	}
+
+	if item.ExamineDesc != "" {
+		output.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("Examination reveals: "))
+		output.WriteString(item.ExamineDesc)
+		output.WriteString("\n")
+	}
+
+	// Show stats if it's equipment
+	if item.Weight > 0 || item.Damage > 0 || item.Durability > 0 {
+		output.WriteString("\n--- Stats ---\n")
+		if item.Weight > 0 {
+			output.WriteString(fmt.Sprintf("Weight: %d\n", item.Weight))
+		}
+		if item.Damage > 0 {
+			output.WriteString(fmt.Sprintf("Damage: %d\n", item.Damage))
+		}
+		if item.Durability > 0 {
+			output.WriteString(fmt.Sprintf("Durability: %d/%d\n", item.Durability, item.Durability))
+		}
+	}
+
+	m.message = output.String()
+	m.messageType = "info"
+}
+
+// displayNPCExamine displays detailed NPC information
+func (m *model) displayNPCExamine(npc *dbclient.Character) {
+	var output strings.Builder
+
+	output.WriteString(lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(npc.Name))
+	output.WriteString("\n\n")
+
+	if npc.Description != "" {
+		output.WriteString(npc.Description)
+		output.WriteString("\n")
+	}
+
+	m.message = output.String()
+	m.messageType = "info"
+}
 
 // handleSkillsCommand shows available skills
 func (m *model) handleSkillsCommand(cmd string) {
@@ -1472,9 +1596,9 @@ func (m *model) handleTalentsCommand(cmd string) {
 
 	var result struct {
 		Slots [5]*struct {
-			Slot       int    `json:"slot"`
-			TalentID   int    `json:"talent_id"`
-			Name       string `json:"name"`
+			Slot        int    `json:"slot"`
+			TalentID    int    `json:"talent_id"`
+			Name        string `json:"name"`
 			Description string `json:"description"`
 		} `json:"slots"`
 	}
@@ -1588,7 +1712,6 @@ func (m *model) handleTalentEquipCommand(cmd string) {
 
 	m.message = "Usage: talent equip <talent_id> <slot>\n       talent unequip <slot>"
 	m.messageType = "error"
-}
 }
 
 func (m *model) handleDebugCommand(cmd string) {
@@ -1717,20 +1840,20 @@ func (m *model) loadOrCreateCharacter() {
 	m.currentCharacterID = char.ID
 	m.currentCharacterName = char.Name
 	// Gender/Description - use from DB if available, else defaults
-// 	m.characterGender = char.Gender
-// 	m.characterDescription = char.Description
-// 
-// 	// Calculate HP/Stamina/Mana from stats (constitution → HP, dexterity → stamina, intelligence → mana)
-// 	// Base: 50 + (stat * 5)
-// 	m.characterMaxHP = 50 + (char.Constitution * 5)
-// 	m.characterMaxStamina = 50 + (char.Dexterity * 5)
-// 	m.characterMaxMana = 50 + (char.Intelligence * 5)
-// 	m.characterHP = m.characterMaxHP
-// 	m.characterStamina = m.characterMaxStamina
-// 	m.characterMana = m.characterMaxMana
-// 
-// 	// Level/Experience - based on total stats for now
-// 	// Level/Experience - defaults since stats not available
+	// 	m.characterGender = char.Gender
+	// 	m.characterDescription = char.Description
+	//
+	// 	// Calculate HP/Stamina/Mana from stats (constitution → HP, dexterity → stamina, intelligence → mana)
+	// 	// Base: 50 + (stat * 5)
+	// 	m.characterMaxHP = 50 + (char.Constitution * 5)
+	// 	m.characterMaxStamina = 50 + (char.Dexterity * 5)
+	// 	m.characterMaxMana = 50 + (char.Intelligence * 5)
+	// 	m.characterHP = m.characterMaxHP
+	// 	m.characterStamina = m.characterMaxStamina
+	// 	m.characterMana = m.characterMaxMana
+	//
+	// 	// Level/Experience - based on total stats for now
+	// 	// Level/Experience - defaults since stats not available
 	m.characterLevel = 1
 	m.characterExperience = 0
 }
@@ -2013,8 +2136,8 @@ func (m *model) View() string {
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(pink).
 			Padding(0, 1).
-			Width(width - 2).          // Account for border
-			Height(viewportHeight - 2). // Account for border
+			Width(width-2).                    // Account for border
+			Height(viewportHeight-2).          // Account for border
 			Align(lipgloss.Left, lipgloss.Top) // Fill from top-left, don't center
 
 		// Colorful status bar with mini progress bars
@@ -2181,5 +2304,3 @@ func registerScreenContent() string {
         ╚════════════════════════════════════════╝
 `
 }
-
-
