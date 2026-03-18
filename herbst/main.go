@@ -107,6 +107,11 @@ func main() {
 		if err := dbinit.InitWeapons(client); err != nil {
 			log.Printf("Warning: failed to initialize starter weapons: %v", err)
 		}
+
+		// Initialize Junkyard area (newbie zone)
+		if err := dbinit.InitJunkyardArea(client); err != nil {
+			log.Printf("Warning: failed to initialize junkyard area: %v", err)
+		}
 	}
 
 	// Pass client to server options
