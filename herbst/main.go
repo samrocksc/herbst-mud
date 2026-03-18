@@ -45,6 +45,7 @@ const (
 	ScreenPlaying   = "playing"
 	ScreenProfile   = "profile"
 	ScreenEditField = "edit_field"
+	ScreenCombat    = "combat"
 )
 
 // Menu selection constants for vim-style navigation
@@ -224,6 +225,20 @@ type model struct {
 	// Room tracking
 	visitedRooms map[int]bool
 	knownExits   map[string]bool // For color-coded exits
+
+	// Combat state
+	inCombat            bool
+	enemyName           string
+	enemyType           string
+	enemyHP             int
+	enemyMaxHP          int
+	currentTick         int
+	channeledTalent     string
+	channelingTicksLeft int
+	combatLog           []string
+	equippedTalents     []string
+	talentCosts         map[string]int
+	characterName       string // For combat display
 }
 
 // ============================================================
@@ -677,6 +692,8 @@ func (m *model) processInput(input string) {
 		m.handleProfileInput(input)
 	case ScreenEditField:
 		m.handleEditFieldInput(input)
+	case ScreenCombat:
+		m.handleCombatInput(input)
 	case ScreenPlaying:
 		m.processCommand(input)
 	}
@@ -1158,6 +1175,57 @@ func (m *model) handleEditFieldInput(input string) {
 	m.inputBuffer = ""
 }
 
+// handleCombatInput processes combat commands
+func (m *model) handleCombatInput(input string) {
+	input = strings.ToLower(strings.TrimSpace(input))
+
+	if input == "escape" || input == "flee" {
+		m.ExitCombat()
+		m.message = "You fled from combat!"
+		m.messageType = "info"
+		return
+	}
+
+	// Number keys 1-4 for talent selection
+	if len(input) == 1 && input >= "1" && input <= "4" {
+		index := int(input[0] - '1')
+		m.selectTalent(index)
+		return
+	}
+
+	// Talent names
+	if input == "slash" {
+		m.selectTalent(0)
+		return
+	}
+	if input == "parry" {
+		m.selectTalent(1)
+		return
+	}
+	if input == "heavy_strike" || input == "heavystrike" {
+		m.selectTalent(2)
+		return
+	}
+	if input == "second_wind" || input == "secondwind" {
+		m.selectTalent(3)
+		return
+	}
+
+	// Advance tick (for testing/demo)
+	if input == "tick" || input == "next" {
+		m.AdvanceCombatTick()
+		return
+	}
+
+	// Help
+	if input == "help" || input == "?" {
+		m.AddCombatLog("Commands: 1-4 (or talent name) to use talent, tick/next to advance, flee to escape")
+		return
+	}
+
+	m.AddCombatLog("Unknown command. Type 1-4 or talent name to attack, 'help' for commands.")
+}
+
 // saveProfileToDB sends profile updates (gender, description) to the server
 func (m *model) saveProfileToDB() {
 	if m.currentCharacterID == 0 {
@@ -1307,6 +1375,277 @@ func (m *model) loadOrCreateCharacter() {
 }
 
 // ============================================================
+// COMBAT UI FUNCTIONS
+// ============================================================
+
+// Max combat log size
+const maxCombatLogSize = 10
+
+// EnterCombat transitions to combat mode
+func (m *model) EnterCombat(name, npcType string, maxHP, currentHP int) {
+	m.inCombat = true
+	m.screen = ScreenCombat
+	m.enemyName = name
+	m.enemyType = npcType
+	m.enemyMaxHP = maxHP
+	m.enemyHP = currentHP
+	m.currentTick = 1
+	m.channeledTalent = ""
+	m.channelingTicksLeft = 0
+	m.combatLog = []string{}
+	m.equippedTalents = []string{"slash", "parry", "heavy_strike", "second_wind"}
+	m.talentCosts = map[string]int{
+		"slash":        0,
+		"parry":        0,
+		"heavy_strike": 2,
+		"second_wind":  2,
+	}
+	m.AddCombatLog(fmt.Sprintf("⚔️ Combat started with %s (%s)!", name, npcType))
+}
+
+// ExitCombat transitions back to playing mode
+func (m *model) ExitCombat() {
+	m.inCombat = false
+	m.screen = ScreenPlaying
+	m.enemyName = ""
+	m.enemyType = ""
+	m.enemyHP = 0
+	m.enemyMaxHP = 0
+	m.currentTick = 0
+	m.channeledTalent = ""
+	m.channelingTicksLeft = 0
+	m.combatLog = []string{}
+}
+
+// combatView renders the combat screen
+func (m *model) combatView() string {
+	var s strings.Builder
+
+	width := m.width
+	height := m.height
+	if width < 40 {
+		width = 80
+	}
+	if height < 10 {
+		height = 24
+	}
+
+	// Header with combat title
+	headerStyle := lipgloss.NewStyle().
+		Foreground(red).
+		Bold(true).
+		Width(width - 2).
+		Align(lipgloss.Center)
+	s.WriteString(headerStyle.Render("⚔️ COMBAT — " + m.roomName + " ⚔️"))
+	s.WriteString("\n\n")
+
+	// Enemy status
+	enemyStyle := lipgloss.NewStyle().
+		Foreground(red).
+		Bold(true)
+	s.WriteString(enemyStyle.Render("Enemy: "+m.enemyName+" ("+m.enemyType+")"))
+	s.WriteString("        HP: "+m.enemyHPBar(m.enemyHP, m.enemyMaxHP))
+	s.WriteString("\n\n")
+
+	// Status bar separator
+	separatorStyle := lipgloss.NewStyle().
+		Foreground(pink).
+		Bold(true).
+		Width(width)
+	separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
+	s.WriteString(separatorLine)
+	s.WriteString("\n")
+
+	// Channeling status
+	if m.channeledTalent != "" {
+		channelingStyle := lipgloss.NewStyle().
+			Foreground(yellow).
+			Bold(true)
+		s.WriteString(channelingStyle.Render(fmt.Sprintf("STATUS: You are channeling %s (%d tick left)",
+			m.channeledTalent, m.channelingTicksLeft)))
+		s.WriteString("\n")
+	}
+
+	// Player status bar (same as playing but with combat styling)
+	s.WriteString(m.combatStatusBar())
+	s.WriteString("\n")
+
+	s.WriteString(separatorLine)
+	s.WriteString("\n")
+
+	// Tick counter
+	tickStyle := lipgloss.NewStyle().
+		Foreground(green).
+		Bold(true)
+	nextAction := "Waiting for input"
+	if m.channeledTalent != "" {
+		nextAction = m.channeledTalent + " resolves"
+	}
+	s.WriteString(tickStyle.Render(fmt.Sprintf("TICK: %d    │    NEXT ACTION: %s", m.currentTick, nextAction)))
+	s.WriteString("\n\n")
+
+	// Action bar
+	s.WriteString(m.combatActionBar())
+	s.WriteString("\n")
+
+	s.WriteString(separatorLine)
+	s.WriteString("\n")
+
+	// Combat log (last few messages)
+	logStyle := lipgloss.NewStyle().
+		Foreground(white)
+	for i := len(m.combatLog) - 1; i >= 0 && i >= len(m.combatLog)-3; i-- {
+		s.WriteString(logStyle.Render("> " + m.combatLog[i]))
+		s.WriteString("\n")
+	}
+
+	// Input prompt for combat commands
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width - 2)
+	s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+
+	return s.String()
+}
+
+// enemyHPBar renders the enemy HP bar with percentage
+func (m *model) enemyHPBar(current, max int) string {
+	if max == 0 {
+		return "0%"
+	}
+	percentage := (current * 100) / max
+	barWidth := 15
+	filled := (barWidth * current) / max
+	empty := barWidth - filled
+
+	hpBar := strings.Repeat("█", filled) + strings.Repeat("░", empty)
+	barStyle := lipgloss.NewStyle().Foreground(red)
+	return barStyle.Render(fmt.Sprintf("%s %d%%", hpBar, percentage))
+}
+
+// combatStatusBar renders player status in combat
+func (m *model) combatStatusBar() string {
+	hpPercent := 0
+	if m.characterMaxHP > 0 {
+		hpPercent = (m.characterHP * 100) / m.characterMaxHP
+	}
+	staminaPercent := 0
+	if m.characterMaxStamina > 0 {
+		staminaPercent = (m.characterStamina * 100) / m.characterMaxStamina
+	}
+	manaPercent := 0
+	if m.characterMaxMana > 0 {
+		manaPercent = (m.characterMana * 100) / m.characterMaxMana
+	}
+
+	channeling := ""
+	if m.channeledTalent != "" {
+		channeling = fmt.Sprintf(" | Channeling: %s (%d)", m.channeledTalent, m.channelingTicksLeft)
+	}
+
+	return fmt.Sprintf("Your HP: %d/%d (%d%%)  |  Stamina: %d/%d (%d%%)  |  Mana: %d/%d (%d%%)%s",
+		m.characterHP, m.characterMaxHP, hpPercent,
+		m.characterStamina, m.characterMaxStamina, staminaPercent,
+		m.characterMana, m.characterMaxMana, manaPercent,
+		channeling)
+}
+
+// combatActionBar renders the action bar with numbered talents
+func (m *model) combatActionBar() string {
+	var s strings.Builder
+
+	for i, talent := range m.equippedTalents {
+		cost := m.talentCosts[talent]
+		costStr := fmt.Sprintf("(%dt)", cost)
+
+		// Check if affordable
+		canUse := m.characterStamina >= cost
+		key := fmt.Sprintf("[%d]", i+1)
+
+		if canUse {
+			s.WriteString(lipgloss.NewStyle().Foreground(green).Bold(true).Render(key+" "+talent+" "+costStr))
+		} else {
+			s.WriteString(lipgloss.NewStyle().Foreground(red).Render(key+" "+talent+" "+costStr))
+		}
+
+		if i < len(m.equippedTalents)-1 {
+			s.WriteString("        ")
+		}
+	}
+
+	return s.String()
+}
+
+// selectTalent attempts to select a talent by index
+func (m *model) selectTalent(index int) string {
+	if index < 0 || index >= len(m.equippedTalents) {
+		return ""
+	}
+
+	talent := m.equippedTalents[index]
+	cost := m.talentCosts[talent]
+
+	if m.characterStamina < cost {
+		m.AddCombatLog(fmt.Sprintf("Not enough stamina for %s (need %d, have %d)", talent, cost, m.characterStamina))
+		return ""
+	}
+
+	m.characterStamina -= cost
+	m.channeledTalent = talent
+	m.channelingTicksLeft = cost
+	m.AddCombatLog(fmt.Sprintf("You begin channeling %s!", talent))
+	return talent
+}
+
+// AdvanceCombatTick advances the combat tick and resolves channeling talents
+func (m *model) AdvanceCombatTick() {
+	m.currentTick++
+
+	if m.channelingTicksLeft > 0 {
+		m.channelingTicksLeft--
+		if m.channelingTicksLeft == 0 {
+			// Talent resolves - deal damage to enemy (simplified)
+			damage := 5 + (m.characterLevel * 2)
+			m.enemyHP -= damage
+			m.AddCombatLog(fmt.Sprintf("Your %s hits %s for %d damage!", m.channeledTalent, m.enemyName, damage))
+
+			// Check if enemy defeated
+			if m.enemyHP <= 0 {
+				m.AddCombatLog(fmt.Sprintf("🎉 You defeated %s!", m.enemyName))
+				// Award XP and exit combat
+				m.characterExperience += 50
+				m.ExitCombat()
+				return
+			}
+
+			m.channeledTalent = ""
+		}
+	}
+
+	// Enemy AI (simplified) - enemy attacks back
+	enemyDamage := 3 + m.currentTick
+	m.characterHP -= enemyDamage
+	m.AddCombatLog(fmt.Sprintf("%s attacks you for %d damage!", m.enemyName, enemyDamage))
+
+	// Check if player defeated
+	if m.characterHP <= 0 {
+		m.characterHP = 1 // Barely survived
+		m.AddCombatLog("You are critically wounded!")
+	}
+}
+
+// AddCombatLog adds a message to the combat log
+func (m *model) AddCombatLog(message string) {
+	m.combatLog = append(m.combatLog, message)
+	// Keep log size capped
+	if len(m.combatLog) > maxCombatLogSize {
+		m.combatLog = m.combatLog[len(m.combatLog)-maxCombatLogSize:]
+	}
+}
+
+// ============================================================
 // VIEW RENDERING
 // ============================================================
 
@@ -1411,6 +1750,11 @@ func (m *model) View() string {
 		}
 		s.WriteString(promptStyle.Render("> "))
 		s.WriteString(m.textInput.View())
+
+	case ScreenCombat:
+		s.WriteString(m.combatView())
+		m.message = ""
+		m.messageType = ""
 
 	case ScreenPlaying:
 		// Ensure we have valid dimensions - if not, use defaults
