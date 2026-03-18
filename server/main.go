@@ -68,6 +68,11 @@ func main() {
 		log.Printf("Warning: failed to initialize fountain: %v", err)
 	}
 
+	// Initialize Gizmo NPC
+	if err := dbinit.InitGizmoNPC(client); err != nil {
+		log.Printf("Warning: failed to initialize Gizmo NPC: %v", err)
+	}
+
 	// Set up Gin router
 	router := gin.Default()
 	

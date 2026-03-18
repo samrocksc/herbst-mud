@@ -54,9 +54,11 @@ type AvailableTalentMutation struct {
 	unlocked_at_level    *int
 	addunlocked_at_level *int
 	clearedFields        map[string]struct{}
-	character            *int
+	character            map[int]struct{}
+	removedcharacter     map[int]struct{}
 	clearedcharacter     bool
-	talent               *int
+	talent               map[int]struct{}
+	removedtalent        map[int]struct{}
 	clearedtalent        bool
 	done                 bool
 	oldValue             func(context.Context) (*AvailableTalent, error)
@@ -266,9 +268,14 @@ func (m *AvailableTalentMutation) ResetUnlockedAtLevel() {
 	m.addunlocked_at_level = nil
 }
 
-// SetCharacterID sets the "character" edge to the Character entity by id.
-func (m *AvailableTalentMutation) SetCharacterID(id int) {
-	m.character = &id
+// AddCharacterIDs adds the "character" edge to the Character entity by ids.
+func (m *AvailableTalentMutation) AddCharacterIDs(ids ...int) {
+	if m.character == nil {
+		m.character = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.character[ids[i]] = struct{}{}
+	}
 }
 
 // ClearCharacter clears the "character" edge to the Character entity.
@@ -281,20 +288,29 @@ func (m *AvailableTalentMutation) CharacterCleared() bool {
 	return m.clearedcharacter
 }
 
-// CharacterID returns the "character" edge ID in the mutation.
-func (m *AvailableTalentMutation) CharacterID() (id int, exists bool) {
-	if m.character != nil {
-		return *m.character, true
+// RemoveCharacterIDs removes the "character" edge to the Character entity by IDs.
+func (m *AvailableTalentMutation) RemoveCharacterIDs(ids ...int) {
+	if m.removedcharacter == nil {
+		m.removedcharacter = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.character, ids[i])
+		m.removedcharacter[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCharacter returns the removed IDs of the "character" edge to the Character entity.
+func (m *AvailableTalentMutation) RemovedCharacterIDs() (ids []int) {
+	for id := range m.removedcharacter {
+		ids = append(ids, id)
 	}
 	return
 }
 
 // CharacterIDs returns the "character" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CharacterID instead. It exists only for internal usage by the builders.
 func (m *AvailableTalentMutation) CharacterIDs() (ids []int) {
-	if id := m.character; id != nil {
-		ids = append(ids, *id)
+	for id := range m.character {
+		ids = append(ids, id)
 	}
 	return
 }
@@ -303,11 +319,17 @@ func (m *AvailableTalentMutation) CharacterIDs() (ids []int) {
 func (m *AvailableTalentMutation) ResetCharacter() {
 	m.character = nil
 	m.clearedcharacter = false
+	m.removedcharacter = nil
 }
 
-// SetTalentID sets the "talent" edge to the Talent entity by id.
-func (m *AvailableTalentMutation) SetTalentID(id int) {
-	m.talent = &id
+// AddTalentIDs adds the "talent" edge to the Talent entity by ids.
+func (m *AvailableTalentMutation) AddTalentIDs(ids ...int) {
+	if m.talent == nil {
+		m.talent = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.talent[ids[i]] = struct{}{}
+	}
 }
 
 // ClearTalent clears the "talent" edge to the Talent entity.
@@ -320,20 +342,29 @@ func (m *AvailableTalentMutation) TalentCleared() bool {
 	return m.clearedtalent
 }
 
-// TalentID returns the "talent" edge ID in the mutation.
-func (m *AvailableTalentMutation) TalentID() (id int, exists bool) {
-	if m.talent != nil {
-		return *m.talent, true
+// RemoveTalentIDs removes the "talent" edge to the Talent entity by IDs.
+func (m *AvailableTalentMutation) RemoveTalentIDs(ids ...int) {
+	if m.removedtalent == nil {
+		m.removedtalent = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.talent, ids[i])
+		m.removedtalent[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTalent returns the removed IDs of the "talent" edge to the Talent entity.
+func (m *AvailableTalentMutation) RemovedTalentIDs() (ids []int) {
+	for id := range m.removedtalent {
+		ids = append(ids, id)
 	}
 	return
 }
 
 // TalentIDs returns the "talent" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// TalentID instead. It exists only for internal usage by the builders.
 func (m *AvailableTalentMutation) TalentIDs() (ids []int) {
-	if id := m.talent; id != nil {
-		ids = append(ids, *id)
+	for id := range m.talent {
+		ids = append(ids, id)
 	}
 	return
 }
@@ -342,6 +373,7 @@ func (m *AvailableTalentMutation) TalentIDs() (ids []int) {
 func (m *AvailableTalentMutation) ResetTalent() {
 	m.talent = nil
 	m.clearedtalent = false
+	m.removedtalent = nil
 }
 
 // Where appends a list predicates to the AvailableTalentMutation builder.
@@ -533,13 +565,17 @@ func (m *AvailableTalentMutation) AddedEdges() []string {
 func (m *AvailableTalentMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case availabletalent.EdgeCharacter:
-		if id := m.character; id != nil {
-			return []ent.Value{*id}
+		ids := make([]ent.Value, 0, len(m.character))
+		for id := range m.character {
+			ids = append(ids, id)
 		}
+		return ids
 	case availabletalent.EdgeTalent:
-		if id := m.talent; id != nil {
-			return []ent.Value{*id}
+		ids := make([]ent.Value, 0, len(m.talent))
+		for id := range m.talent {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
@@ -547,12 +583,32 @@ func (m *AvailableTalentMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AvailableTalentMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
+	if m.removedcharacter != nil {
+		edges = append(edges, availabletalent.EdgeCharacter)
+	}
+	if m.removedtalent != nil {
+		edges = append(edges, availabletalent.EdgeTalent)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *AvailableTalentMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case availabletalent.EdgeCharacter:
+		ids := make([]ent.Value, 0, len(m.removedcharacter))
+		for id := range m.removedcharacter {
+			ids = append(ids, id)
+		}
+		return ids
+	case availabletalent.EdgeTalent:
+		ids := make([]ent.Value, 0, len(m.removedtalent))
+		for id := range m.removedtalent {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
@@ -584,12 +640,6 @@ func (m *AvailableTalentMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *AvailableTalentMutation) ClearEdge(name string) error {
 	switch name {
-	case availabletalent.EdgeCharacter:
-		m.ClearCharacter()
-		return nil
-	case availabletalent.EdgeTalent:
-		m.ClearTalent()
-		return nil
 	}
 	return fmt.Errorf("unknown AvailableTalent unique edge %s", name)
 }
@@ -634,6 +684,7 @@ type CharacterMutation struct {
 	addmax_mana              *int
 	race                     *string
 	class                    *string
+	specialty                *string
 	level                    *int
 	addlevel                 *int
 	constitution             *int
@@ -673,15 +724,15 @@ type CharacterMutation struct {
 	clearedroom              bool
 	npcTemplate              *string
 	clearednpcTemplate       bool
+	available_talents        map[int]struct{}
+	removedavailable_talents map[int]struct{}
+	clearedavailable_talents bool
 	skills                   map[int]struct{}
 	removedskills            map[int]struct{}
 	clearedskills            bool
 	talents                  map[int]struct{}
 	removedtalents           map[int]struct{}
 	clearedtalents           bool
-	available_talents        map[int]struct{}
-	removedavailable_talents map[int]struct{}
-	clearedavailable_talents bool
 	done                     bool
 	oldValue                 func(context.Context) (*Character, error)
 	predicates               []predicate.Character
@@ -1440,6 +1491,55 @@ func (m *CharacterMutation) OldClass(ctx context.Context) (v string, err error) 
 // ResetClass resets all changes to the "class" field.
 func (m *CharacterMutation) ResetClass() {
 	m.class = nil
+}
+
+// SetSpecialty sets the "specialty" field.
+func (m *CharacterMutation) SetSpecialty(s string) {
+	m.specialty = &s
+}
+
+// Specialty returns the value of the "specialty" field in the mutation.
+func (m *CharacterMutation) Specialty() (r string, exists bool) {
+	v := m.specialty
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpecialty returns the old "specialty" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldSpecialty(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpecialty is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpecialty requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpecialty: %w", err)
+	}
+	return oldValue.Specialty, nil
+}
+
+// ClearSpecialty clears the value of the "specialty" field.
+func (m *CharacterMutation) ClearSpecialty() {
+	m.specialty = nil
+	m.clearedFields[character.FieldSpecialty] = struct{}{}
+}
+
+// SpecialtyCleared returns if the "specialty" field was cleared in this mutation.
+func (m *CharacterMutation) SpecialtyCleared() bool {
+	_, ok := m.clearedFields[character.FieldSpecialty]
+	return ok
+}
+
+// ResetSpecialty resets all changes to the "specialty" field.
+func (m *CharacterMutation) ResetSpecialty() {
+	m.specialty = nil
+	delete(m.clearedFields, character.FieldSpecialty)
 }
 
 // SetLevel sets the "level" field.
@@ -2498,6 +2598,60 @@ func (m *CharacterMutation) ResetNpcTemplate() {
 	m.clearednpcTemplate = false
 }
 
+// AddAvailableTalentIDs adds the "available_talents" edge to the AvailableTalent entity by ids.
+func (m *CharacterMutation) AddAvailableTalentIDs(ids ...int) {
+	if m.available_talents == nil {
+		m.available_talents = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.available_talents[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAvailableTalents clears the "available_talents" edge to the AvailableTalent entity.
+func (m *CharacterMutation) ClearAvailableTalents() {
+	m.clearedavailable_talents = true
+}
+
+// AvailableTalentsCleared reports if the "available_talents" edge to the AvailableTalent entity was cleared.
+func (m *CharacterMutation) AvailableTalentsCleared() bool {
+	return m.clearedavailable_talents
+}
+
+// RemoveAvailableTalentIDs removes the "available_talents" edge to the AvailableTalent entity by IDs.
+func (m *CharacterMutation) RemoveAvailableTalentIDs(ids ...int) {
+	if m.removedavailable_talents == nil {
+		m.removedavailable_talents = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.available_talents, ids[i])
+		m.removedavailable_talents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAvailableTalents returns the removed IDs of the "available_talents" edge to the AvailableTalent entity.
+func (m *CharacterMutation) RemovedAvailableTalentsIDs() (ids []int) {
+	for id := range m.removedavailable_talents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AvailableTalentsIDs returns the "available_talents" edge IDs in the mutation.
+func (m *CharacterMutation) AvailableTalentsIDs() (ids []int) {
+	for id := range m.available_talents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAvailableTalents resets all changes to the "available_talents" edge.
+func (m *CharacterMutation) ResetAvailableTalents() {
+	m.available_talents = nil
+	m.clearedavailable_talents = false
+	m.removedavailable_talents = nil
+}
+
 // AddSkillIDs adds the "skills" edge to the CharacterSkill entity by ids.
 func (m *CharacterMutation) AddSkillIDs(ids ...int) {
 	if m.skills == nil {
@@ -2606,60 +2760,6 @@ func (m *CharacterMutation) ResetTalents() {
 	m.removedtalents = nil
 }
 
-// AddAvailableTalentIDs adds the "available_talents" edge to the AvailableTalent entity by ids.
-func (m *CharacterMutation) AddAvailableTalentIDs(ids ...int) {
-	if m.available_talents == nil {
-		m.available_talents = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.available_talents[ids[i]] = struct{}{}
-	}
-}
-
-// ClearAvailableTalents clears the "available_talents" edge to the AvailableTalent entity.
-func (m *CharacterMutation) ClearAvailableTalents() {
-	m.clearedavailable_talents = true
-}
-
-// AvailableTalentsCleared reports if the "available_talents" edge to the AvailableTalent entity was cleared.
-func (m *CharacterMutation) AvailableTalentsCleared() bool {
-	return m.clearedavailable_talents
-}
-
-// RemoveAvailableTalentIDs removes the "available_talents" edge to the AvailableTalent entity by IDs.
-func (m *CharacterMutation) RemoveAvailableTalentIDs(ids ...int) {
-	if m.removedavailable_talents == nil {
-		m.removedavailable_talents = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.available_talents, ids[i])
-		m.removedavailable_talents[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedAvailableTalents returns the removed IDs of the "available_talents" edge to the AvailableTalent entity.
-func (m *CharacterMutation) RemovedAvailableTalentsIDs() (ids []int) {
-	for id := range m.removedavailable_talents {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// AvailableTalentsIDs returns the "available_talents" edge IDs in the mutation.
-func (m *CharacterMutation) AvailableTalentsIDs() (ids []int) {
-	for id := range m.available_talents {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetAvailableTalents resets all changes to the "available_talents" edge.
-func (m *CharacterMutation) ResetAvailableTalents() {
-	m.available_talents = nil
-	m.clearedavailable_talents = false
-	m.removedavailable_talents = nil
-}
-
 // Where appends a list predicates to the CharacterMutation builder.
 func (m *CharacterMutation) Where(ps ...predicate.Character) {
 	m.predicates = append(m.predicates, ps...)
@@ -2694,7 +2794,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 31)
+	fields := make([]string, 0, 32)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -2736,6 +2836,9 @@ func (m *CharacterMutation) Fields() []string {
 	}
 	if m.class != nil {
 		fields = append(fields, character.FieldClass)
+	}
+	if m.specialty != nil {
+		fields = append(fields, character.FieldSpecialty)
 	}
 	if m.level != nil {
 		fields = append(fields, character.FieldLevel)
@@ -2824,6 +2927,8 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.Race()
 	case character.FieldClass:
 		return m.Class()
+	case character.FieldSpecialty:
+		return m.Specialty()
 	case character.FieldLevel:
 		return m.Level()
 	case character.FieldConstitution:
@@ -2895,6 +3000,8 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldRace(ctx)
 	case character.FieldClass:
 		return m.OldClass(ctx)
+	case character.FieldSpecialty:
+		return m.OldSpecialty(ctx)
 	case character.FieldLevel:
 		return m.OldLevel(ctx)
 	case character.FieldConstitution:
@@ -3035,6 +3142,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetClass(v)
+		return nil
+	case character.FieldSpecialty:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpecialty(v)
 		return nil
 	case character.FieldLevel:
 		v, ok := value.(int)
@@ -3455,6 +3569,9 @@ func (m *CharacterMutation) ClearedFields() []string {
 	if m.FieldCleared(character.FieldPassword) {
 		fields = append(fields, character.FieldPassword)
 	}
+	if m.FieldCleared(character.FieldSpecialty) {
+		fields = append(fields, character.FieldSpecialty)
+	}
 	if m.FieldCleared(character.FieldGender) {
 		fields = append(fields, character.FieldGender)
 	}
@@ -3477,6 +3594,9 @@ func (m *CharacterMutation) ClearField(name string) error {
 	switch name {
 	case character.FieldPassword:
 		m.ClearPassword()
+		return nil
+	case character.FieldSpecialty:
+		m.ClearSpecialty()
 		return nil
 	case character.FieldGender:
 		m.ClearGender()
@@ -3533,6 +3653,9 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldClass:
 		m.ResetClass()
+		return nil
+	case character.FieldSpecialty:
+		m.ResetSpecialty()
 		return nil
 	case character.FieldLevel:
 		m.ResetLevel()
@@ -3601,14 +3724,14 @@ func (m *CharacterMutation) AddedEdges() []string {
 	if m.npcTemplate != nil {
 		edges = append(edges, character.EdgeNpcTemplate)
 	}
+	if m.available_talents != nil {
+		edges = append(edges, character.EdgeAvailableTalents)
+	}
 	if m.skills != nil {
 		edges = append(edges, character.EdgeSkills)
 	}
 	if m.talents != nil {
 		edges = append(edges, character.EdgeTalents)
-	}
-	if m.available_talents != nil {
-		edges = append(edges, character.EdgeAvailableTalents)
 	}
 	return edges
 }
@@ -3629,6 +3752,12 @@ func (m *CharacterMutation) AddedIDs(name string) []ent.Value {
 		if id := m.npcTemplate; id != nil {
 			return []ent.Value{*id}
 		}
+	case character.EdgeAvailableTalents:
+		ids := make([]ent.Value, 0, len(m.available_talents))
+		for id := range m.available_talents {
+			ids = append(ids, id)
+		}
+		return ids
 	case character.EdgeSkills:
 		ids := make([]ent.Value, 0, len(m.skills))
 		for id := range m.skills {
@@ -3641,12 +3770,6 @@ func (m *CharacterMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case character.EdgeAvailableTalents:
-		ids := make([]ent.Value, 0, len(m.available_talents))
-		for id := range m.available_talents {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
@@ -3654,14 +3777,14 @@ func (m *CharacterMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CharacterMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 6)
+	if m.removedavailable_talents != nil {
+		edges = append(edges, character.EdgeAvailableTalents)
+	}
 	if m.removedskills != nil {
 		edges = append(edges, character.EdgeSkills)
 	}
 	if m.removedtalents != nil {
 		edges = append(edges, character.EdgeTalents)
-	}
-	if m.removedavailable_talents != nil {
-		edges = append(edges, character.EdgeAvailableTalents)
 	}
 	return edges
 }
@@ -3670,6 +3793,12 @@ func (m *CharacterMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *CharacterMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case character.EdgeAvailableTalents:
+		ids := make([]ent.Value, 0, len(m.removedavailable_talents))
+		for id := range m.removedavailable_talents {
+			ids = append(ids, id)
+		}
+		return ids
 	case character.EdgeSkills:
 		ids := make([]ent.Value, 0, len(m.removedskills))
 		for id := range m.removedskills {
@@ -3679,12 +3808,6 @@ func (m *CharacterMutation) RemovedIDs(name string) []ent.Value {
 	case character.EdgeTalents:
 		ids := make([]ent.Value, 0, len(m.removedtalents))
 		for id := range m.removedtalents {
-			ids = append(ids, id)
-		}
-		return ids
-	case character.EdgeAvailableTalents:
-		ids := make([]ent.Value, 0, len(m.removedavailable_talents))
-		for id := range m.removedavailable_talents {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3704,14 +3827,14 @@ func (m *CharacterMutation) ClearedEdges() []string {
 	if m.clearednpcTemplate {
 		edges = append(edges, character.EdgeNpcTemplate)
 	}
+	if m.clearedavailable_talents {
+		edges = append(edges, character.EdgeAvailableTalents)
+	}
 	if m.clearedskills {
 		edges = append(edges, character.EdgeSkills)
 	}
 	if m.clearedtalents {
 		edges = append(edges, character.EdgeTalents)
-	}
-	if m.clearedavailable_talents {
-		edges = append(edges, character.EdgeAvailableTalents)
 	}
 	return edges
 }
@@ -3726,12 +3849,12 @@ func (m *CharacterMutation) EdgeCleared(name string) bool {
 		return m.clearedroom
 	case character.EdgeNpcTemplate:
 		return m.clearednpcTemplate
+	case character.EdgeAvailableTalents:
+		return m.clearedavailable_talents
 	case character.EdgeSkills:
 		return m.clearedskills
 	case character.EdgeTalents:
 		return m.clearedtalents
-	case character.EdgeAvailableTalents:
-		return m.clearedavailable_talents
 	}
 	return false
 }
@@ -3766,14 +3889,14 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 	case character.EdgeNpcTemplate:
 		m.ResetNpcTemplate()
 		return nil
+	case character.EdgeAvailableTalents:
+		m.ResetAvailableTalents()
+		return nil
 	case character.EdgeSkills:
 		m.ResetSkills()
 		return nil
 	case character.EdgeTalents:
 		m.ResetTalents()
-		return nil
-	case character.EdgeAvailableTalents:
-		m.ResetAvailableTalents()
 		return nil
 	}
 	return fmt.Errorf("unknown Character edge %s", name)
@@ -4856,10 +4979,6 @@ type EquipmentMutation struct {
 	weight        *int
 	addweight     *int
 	isEquipped    *bool
-	isImmovable   *bool
-	color         *string
-	isVisible     *bool
-	itemType      *string
 	clearedFields map[string]struct{}
 	room          *int
 	clearedroom   bool
@@ -5222,150 +5341,6 @@ func (m *EquipmentMutation) ResetIsEquipped() {
 	m.isEquipped = nil
 }
 
-// SetIsImmovable sets the "isImmovable" field.
-func (m *EquipmentMutation) SetIsImmovable(b bool) {
-	m.isImmovable = &b
-}
-
-// IsImmovable returns the value of the "isImmovable" field in the mutation.
-func (m *EquipmentMutation) IsImmovable() (r bool, exists bool) {
-	v := m.isImmovable
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsImmovable returns the old "isImmovable" field's value of the Equipment entity.
-// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentMutation) OldIsImmovable(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsImmovable is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsImmovable requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsImmovable: %w", err)
-	}
-	return oldValue.IsImmovable, nil
-}
-
-// ResetIsImmovable resets all changes to the "isImmovable" field.
-func (m *EquipmentMutation) ResetIsImmovable() {
-	m.isImmovable = nil
-}
-
-// SetColor sets the "color" field.
-func (m *EquipmentMutation) SetColor(s string) {
-	m.color = &s
-}
-
-// Color returns the value of the "color" field in the mutation.
-func (m *EquipmentMutation) Color() (r string, exists bool) {
-	v := m.color
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldColor returns the old "color" field's value of the Equipment entity.
-// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentMutation) OldColor(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldColor is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldColor requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldColor: %w", err)
-	}
-	return oldValue.Color, nil
-}
-
-// ResetColor resets all changes to the "color" field.
-func (m *EquipmentMutation) ResetColor() {
-	m.color = nil
-}
-
-// SetIsVisible sets the "isVisible" field.
-func (m *EquipmentMutation) SetIsVisible(b bool) {
-	m.isVisible = &b
-}
-
-// IsVisible returns the value of the "isVisible" field in the mutation.
-func (m *EquipmentMutation) IsVisible() (r bool, exists bool) {
-	v := m.isVisible
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsVisible returns the old "isVisible" field's value of the Equipment entity.
-// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentMutation) OldIsVisible(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsVisible is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsVisible requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsVisible: %w", err)
-	}
-	return oldValue.IsVisible, nil
-}
-
-// ResetIsVisible resets all changes to the "isVisible" field.
-func (m *EquipmentMutation) ResetIsVisible() {
-	m.isVisible = nil
-}
-
-// SetItemType sets the "itemType" field.
-func (m *EquipmentMutation) SetItemType(s string) {
-	m.itemType = &s
-}
-
-// ItemType returns the value of the "itemType" field in the mutation.
-func (m *EquipmentMutation) ItemType() (r string, exists bool) {
-	v := m.itemType
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldItemType returns the old "itemType" field's value of the Equipment entity.
-// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentMutation) OldItemType(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldItemType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldItemType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldItemType: %w", err)
-	}
-	return oldValue.ItemType, nil
-}
-
-// ResetItemType resets all changes to the "itemType" field.
-func (m *EquipmentMutation) ResetItemType() {
-	m.itemType = nil
-}
-
 // SetRoomID sets the "room" edge to the Room entity by id.
 func (m *EquipmentMutation) SetRoomID(id int) {
 	m.room = &id
@@ -5439,7 +5414,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -5457,18 +5432,6 @@ func (m *EquipmentMutation) Fields() []string {
 	}
 	if m.isEquipped != nil {
 		fields = append(fields, equipment.FieldIsEquipped)
-	}
-	if m.isImmovable != nil {
-		fields = append(fields, equipment.FieldIsImmovable)
-	}
-	if m.color != nil {
-		fields = append(fields, equipment.FieldColor)
-	}
-	if m.isVisible != nil {
-		fields = append(fields, equipment.FieldIsVisible)
-	}
-	if m.itemType != nil {
-		fields = append(fields, equipment.FieldItemType)
 	}
 	return fields
 }
@@ -5490,14 +5453,6 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.Weight()
 	case equipment.FieldIsEquipped:
 		return m.IsEquipped()
-	case equipment.FieldIsImmovable:
-		return m.IsImmovable()
-	case equipment.FieldColor:
-		return m.Color()
-	case equipment.FieldIsVisible:
-		return m.IsVisible()
-	case equipment.FieldItemType:
-		return m.ItemType()
 	}
 	return nil, false
 }
@@ -5519,14 +5474,6 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldWeight(ctx)
 	case equipment.FieldIsEquipped:
 		return m.OldIsEquipped(ctx)
-	case equipment.FieldIsImmovable:
-		return m.OldIsImmovable(ctx)
-	case equipment.FieldColor:
-		return m.OldColor(ctx)
-	case equipment.FieldIsVisible:
-		return m.OldIsVisible(ctx)
-	case equipment.FieldItemType:
-		return m.OldItemType(ctx)
 	}
 	return nil, fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -5577,34 +5524,6 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsEquipped(v)
-		return nil
-	case equipment.FieldIsImmovable:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsImmovable(v)
-		return nil
-	case equipment.FieldColor:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetColor(v)
-		return nil
-	case equipment.FieldIsVisible:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsVisible(v)
-		return nil
-	case equipment.FieldItemType:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetItemType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
@@ -5699,18 +5618,6 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldIsEquipped:
 		m.ResetIsEquipped()
-		return nil
-	case equipment.FieldIsImmovable:
-		m.ResetIsImmovable()
-		return nil
-	case equipment.FieldColor:
-		m.ResetColor()
-		return nil
-	case equipment.FieldIsVisible:
-		m.ResetIsVisible()
-		return nil
-	case equipment.FieldItemType:
-		m.ResetItemType()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)

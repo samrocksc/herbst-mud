@@ -124,6 +124,11 @@ func Class(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldClass, v))
 }
 
+// Specialty applies equality check predicate on the "specialty" field. It's identical to SpecialtyEQ.
+func Specialty(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSpecialty, v))
+}
+
 // Level applies equality check predicate on the "level" field. It's identical to LevelEQ.
 func Level(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldLevel, v))
@@ -797,6 +802,81 @@ func ClassEqualFold(v string) predicate.Character {
 // ClassContainsFold applies the ContainsFold predicate on the "class" field.
 func ClassContainsFold(v string) predicate.Character {
 	return predicate.Character(sql.FieldContainsFold(FieldClass, v))
+}
+
+// SpecialtyEQ applies the EQ predicate on the "specialty" field.
+func SpecialtyEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldSpecialty, v))
+}
+
+// SpecialtyNEQ applies the NEQ predicate on the "specialty" field.
+func SpecialtyNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldSpecialty, v))
+}
+
+// SpecialtyIn applies the In predicate on the "specialty" field.
+func SpecialtyIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldSpecialty, vs...))
+}
+
+// SpecialtyNotIn applies the NotIn predicate on the "specialty" field.
+func SpecialtyNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldSpecialty, vs...))
+}
+
+// SpecialtyGT applies the GT predicate on the "specialty" field.
+func SpecialtyGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldSpecialty, v))
+}
+
+// SpecialtyGTE applies the GTE predicate on the "specialty" field.
+func SpecialtyGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldSpecialty, v))
+}
+
+// SpecialtyLT applies the LT predicate on the "specialty" field.
+func SpecialtyLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldSpecialty, v))
+}
+
+// SpecialtyLTE applies the LTE predicate on the "specialty" field.
+func SpecialtyLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldSpecialty, v))
+}
+
+// SpecialtyContains applies the Contains predicate on the "specialty" field.
+func SpecialtyContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldSpecialty, v))
+}
+
+// SpecialtyHasPrefix applies the HasPrefix predicate on the "specialty" field.
+func SpecialtyHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldSpecialty, v))
+}
+
+// SpecialtyHasSuffix applies the HasSuffix predicate on the "specialty" field.
+func SpecialtyHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldSpecialty, v))
+}
+
+// SpecialtyIsNil applies the IsNil predicate on the "specialty" field.
+func SpecialtyIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldSpecialty))
+}
+
+// SpecialtyNotNil applies the NotNil predicate on the "specialty" field.
+func SpecialtyNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldSpecialty))
+}
+
+// SpecialtyEqualFold applies the EqualFold predicate on the "specialty" field.
+func SpecialtyEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldSpecialty, v))
+}
+
+// SpecialtyContainsFold applies the ContainsFold predicate on the "specialty" field.
+func SpecialtyContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldSpecialty, v))
 }
 
 // LevelEQ applies the EQ predicate on the "level" field.
@@ -1618,6 +1698,29 @@ func HasNpcTemplateWith(preds ...predicate.NPCTemplate) predicate.Character {
 	})
 }
 
+// HasAvailableTalents applies the HasEdge predicate on the "available_talents" edge.
+func HasAvailableTalents() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, AvailableTalentsTable, AvailableTalentsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAvailableTalentsWith applies the HasEdge predicate on the "available_talents" edge with a given conditions (other predicates).
+func HasAvailableTalentsWith(preds ...predicate.AvailableTalent) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newAvailableTalentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasSkills applies the HasEdge predicate on the "skills" edge.
 func HasSkills() predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
@@ -1656,29 +1759,6 @@ func HasTalents() predicate.Character {
 func HasTalentsWith(preds ...predicate.CharacterTalent) predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
 		step := newTalentsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasAvailableTalents applies the HasEdge predicate on the "available_talents" edge.
-func HasAvailableTalents() predicate.Character {
-	return predicate.Character(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AvailableTalentsTable, AvailableTalentsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAvailableTalentsWith applies the HasEdge predicate on the "available_talents" edge with a given conditions (other predicates).
-func HasAvailableTalentsWith(preds ...predicate.AvailableTalent) predicate.Character {
-	return predicate.Character(func(s *sql.Selector) {
-		step := newAvailableTalentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
