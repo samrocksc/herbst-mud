@@ -972,10 +972,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	}
 	if nodes := _c.mutation.AvailableTalentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   character.AvailableTalentsTable,
-			Columns: character.AvailableTalentsPrimaryKey,
+			Columns: []string{character.AvailableTalentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),

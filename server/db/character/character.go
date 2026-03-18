@@ -111,11 +111,13 @@ const (
 	NpcTemplateInverseTable = "npc_templates"
 	// NpcTemplateColumn is the table column denoting the npcTemplate relation/edge.
 	NpcTemplateColumn = "character_npc_template"
-	// AvailableTalentsTable is the table that holds the available_talents relation/edge. The primary key declared below.
-	AvailableTalentsTable = "character_available_talents"
+	// AvailableTalentsTable is the table that holds the available_talents relation/edge.
+	AvailableTalentsTable = "available_talents"
 	// AvailableTalentsInverseTable is the table name for the AvailableTalent entity.
 	// It exists in this package in order to avoid circular dependency with the "availabletalent" package.
 	AvailableTalentsInverseTable = "available_talents"
+	// AvailableTalentsColumn is the table column denoting the available_talents relation/edge.
+	AvailableTalentsColumn = "character_available_talents"
 	// SkillsTable is the table that holds the skills relation/edge.
 	SkillsTable = "character_skills"
 	// SkillsInverseTable is the table name for the CharacterSkill entity.
@@ -176,12 +178,6 @@ var ForeignKeys = []string{
 	"room_characters",
 	"user_characters",
 }
-
-var (
-	// AvailableTalentsPrimaryKey and AvailableTalentsColumn2 are the table columns denoting the
-	// primary key for the available_talents relation (M2M).
-	AvailableTalentsPrimaryKey = []string{"character_id", "available_talent_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -506,7 +502,7 @@ func newAvailableTalentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AvailableTalentsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, AvailableTalentsTable, AvailableTalentsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.O2M, false, AvailableTalentsTable, AvailableTalentsColumn),
 	)
 }
 func newSkillsStep() *sqlgraph.Step {

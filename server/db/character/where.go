@@ -1703,7 +1703,7 @@ func HasAvailableTalents() predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, AvailableTalentsTable, AvailableTalentsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, AvailableTalentsTable, AvailableTalentsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

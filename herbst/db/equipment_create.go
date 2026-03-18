@@ -136,6 +136,40 @@ func (_c *EquipmentCreate) SetNillableItemType(v *string) *EquipmentCreate {
 	return _c
 }
 
+// SetExamineDesc sets the "examineDesc" field.
+func (_c *EquipmentCreate) SetExamineDesc(v string) *EquipmentCreate {
+	_c.mutation.SetExamineDesc(v)
+	return _c
+}
+
+// SetNillableExamineDesc sets the "examineDesc" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableExamineDesc(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetExamineDesc(*v)
+	}
+	return _c
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_c *EquipmentCreate) SetHiddenDetails(v []map[string]interface{}) *EquipmentCreate {
+	_c.mutation.SetHiddenDetails(v)
+	return _c
+}
+
+// SetHiddenThreshold sets the "hiddenThreshold" field.
+func (_c *EquipmentCreate) SetHiddenThreshold(v int) *EquipmentCreate {
+	_c.mutation.SetHiddenThreshold(v)
+	return _c
+}
+
+// SetNillableHiddenThreshold sets the "hiddenThreshold" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableHiddenThreshold(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetHiddenThreshold(*v)
+	}
+	return _c
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_c *EquipmentCreate) SetRoomID(id int) *EquipmentCreate {
 	_c.mutation.SetRoomID(id)
@@ -218,6 +252,18 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultItemType
 		_c.mutation.SetItemType(v)
 	}
+	if _, ok := _c.mutation.ExamineDesc(); !ok {
+		v := equipment.DefaultExamineDesc
+		_c.mutation.SetExamineDesc(v)
+	}
+	if _, ok := _c.mutation.HiddenDetails(); !ok {
+		v := equipment.DefaultHiddenDetails
+		_c.mutation.SetHiddenDetails(v)
+	}
+	if _, ok := _c.mutation.HiddenThreshold(); !ok {
+		v := equipment.DefaultHiddenThreshold
+		_c.mutation.SetHiddenThreshold(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -251,6 +297,15 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.ItemType(); !ok {
 		return &ValidationError{Name: "itemType", err: errors.New(`db: missing required field "Equipment.itemType"`)}
+	}
+	if _, ok := _c.mutation.ExamineDesc(); !ok {
+		return &ValidationError{Name: "examineDesc", err: errors.New(`db: missing required field "Equipment.examineDesc"`)}
+	}
+	if _, ok := _c.mutation.HiddenDetails(); !ok {
+		return &ValidationError{Name: "hiddenDetails", err: errors.New(`db: missing required field "Equipment.hiddenDetails"`)}
+	}
+	if _, ok := _c.mutation.HiddenThreshold(); !ok {
+		return &ValidationError{Name: "hiddenThreshold", err: errors.New(`db: missing required field "Equipment.hiddenThreshold"`)}
 	}
 	return nil
 }
@@ -317,6 +372,18 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 		_node.ItemType = value
+	}
+	if value, ok := _c.mutation.ExamineDesc(); ok {
+		_spec.SetField(equipment.FieldExamineDesc, field.TypeString, value)
+		_node.ExamineDesc = value
+	}
+	if value, ok := _c.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+		_node.HiddenDetails = value
+	}
+	if value, ok := _c.mutation.HiddenThreshold(); ok {
+		_spec.SetField(equipment.FieldHiddenThreshold, field.TypeInt, value)
+		_node.HiddenThreshold = value
 	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
