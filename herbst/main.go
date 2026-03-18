@@ -1848,22 +1848,12 @@ func welcomeScreen(width, height int, inputView string) string {
 		Width(width - 2).
 		Height(outputHeight - 2)
 
-	// Build output content
+	// Build output content - lipgloss adds the border, so just content here
 	var outputContent strings.Builder
 	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================╗"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("                    🐢 HERBST MUD 🐢                       "))
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================╣"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("                    Welcome Adventurer!                    ")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================╝"))
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        Welcome Adventurer!        "))
 	outputContent.WriteString("\n\n")
 	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  1. Login"))
 	outputContent.WriteString("      - Log in to your existing account\n")
@@ -1909,22 +1899,12 @@ func loginScreen(width, height int, message, messageType string, inputView strin
 		Width(width - 2).
 		Height(outputHeight - 2)
 
-	// Build output content
+	// Build output content - lipgloss adds the border, so just content here
 	var outputContent strings.Builder
 	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================╗"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("                    🐢 HERBST MUD 🐢                       "))
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================╣"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("                        LOGIN                              ")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================╝"))
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("            LOGIN            "))
 	outputContent.WriteString("\n\n")
 
 	// Show message/prompt
@@ -1969,22 +1949,12 @@ func registerScreen(width, height int, message, messageType string, inputView st
 		Width(width - 2).
 		Height(outputHeight - 2)
 
-	// Build output content
+	// Build output content - lipgloss adds the border, so just content here
 	var outputContent strings.Builder
 	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================+"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("                    HERBST MUD                             "))
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================+"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("                    CREATE ACCOUNT                          ")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("|"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("+============================================================+"))
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        CREATE ACCOUNT        "))
 	outputContent.WriteString("\n\n")
 
 	// Show message/prompt
