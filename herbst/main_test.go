@@ -367,3 +367,150 @@ func TestNoDebugOutput(t *testing.T) {
 		t.Log("All screens render without debug log output")
 	})
 }
+
+// TestLookCommand tests the look command functionality
+// This test covers issue #145: Look: Room Display Command
+func TestLookCommand(t *testing.T) {
+	t.Run("Look command displays room name in green", func(t *testing.T) {
+		m := &model{
+			screen:       ScreenPlaying,
+			roomName:     "The Tavern",
+			roomDesc:     "A cozy room with wooden tables.",
+			exits:        map[string]int{"north": 2, "east": 3},
+			knownExits:   map[string]bool{"north": true, "east": true},
+			visitedRooms: make(map[int]bool),
+			roomNPCs:     []RoomNPC{},
+			roomItems:    []RoomItem{},
+			message:      "",
+			messageType:  "",
+			width:        80,
+			height:       24,
+		}
+		m.Init()
+
+		// Simulate look command by calling processCommand
+		m.processCommand("look")
+
+		// Should have set a message
+		if m.message == "" {
+			t.Error("Expected message to be set after look command")
+		}
+
+		// Message should contain room name
+		if !strings.Contains(m.message, "The Tavern") {
+			t.Errorf("Expected message to contain room name 'The Tavern', got: %s", m.message)
+		}
+
+		// Message should contain room description
+		if !strings.Contains(m.message, "cozy room") {
+			t.Errorf("Expected message to contain room description, got: %s", m.message)
+		}
+
+		// Message should contain exits
+		if !strings.Contains(m.message, "Exits:") {
+			t.Errorf("Expected message to contain exits, got: %s", m.message)
+		}
+
+		// Message type should be info
+		if m.messageType != "info" {
+			t.Errorf("Expected messageType to be 'info', got: %s", m.messageType)
+		}
+
+		t.Log("Look command displays room info correctly")
+	})
+
+	t.Run("Look command displays NPCs in room", func(t *testing.T) {
+		m := &model{
+			screen:       ScreenPlaying,
+			roomName:     "The Tavern",
+			roomDesc:     "A cozy room.",
+			exits:        map[string]int{"north": 2},
+			knownExits:   map[string]bool{"north": true},
+			visitedRooms: make(map[int]bool),
+			roomNPCs: []RoomNPC{
+				{Name: "Gandalf", Level: 50, IsNPC: true},
+				{Name: "Guard", Level: 10, IsNPC: true},
+			},
+			roomItems:   []RoomItem{},
+			message:     "",
+			messageType: "",
+			width:       80,
+			height:      24,
+		}
+		m.Init()
+
+		m.processCommand("look")
+
+		// Should display NPCs
+		if !strings.Contains(m.message, "Gandalf") {
+			t.Errorf("Expected message to contain NPC 'Gandalf', got: %s", m.message)
+		}
+
+		t.Log("Look command displays NPCs correctly")
+	})
+
+	t.Run("Look command displays items in room", func(t *testing.T) {
+		m := &model{
+			screen:       ScreenPlaying,
+			roomName:     "The Tavern",
+			roomDesc:     "A cozy room.",
+			exits:        map[string]int{"north": 2},
+			knownExits:   map[string]bool{"north": true},
+			visitedRooms: make(map[int]bool),
+			roomNPCs:     []RoomNPC{},
+			roomItems: []RoomItem{
+				{Name: "Sword", IsImmovable: false},
+				{Name: "Ancient Chest", IsImmovable: true},
+			},
+			message:     "",
+			messageType: "",
+			width:       80,
+			height:      24,
+		}
+		m.Init()
+
+		m.processCommand("look")
+
+		// Should display items
+		if !strings.Contains(m.message, "Sword") {
+			t.Errorf("Expected message to contain item 'Sword', got: %s", m.message)
+		}
+
+		// Immovable items should be marked
+		if !strings.Contains(m.message, "immovable") {
+			t.Errorf("Expected immovable items to be marked, got: %s", m.message)
+		}
+
+		t.Log("Look command displays items correctly")
+	})
+
+	t.Run("Short form 'l' works same as 'look'", func(t *testing.T) {
+		m := &model{
+			screen:       ScreenPlaying,
+			roomName:     "Forest",
+			roomDesc:     "Green trees everywhere.",
+			exits:        map[string]int{"south": 1},
+			knownExits:   map[string]bool{"south": true},
+			visitedRooms: make(map[int]bool),
+			roomNPCs:     []RoomNPC{},
+			roomItems:    []RoomItem{},
+			message:      "",
+			messageType:  "",
+			width:        80,
+			height:       24,
+		}
+		m.Init()
+
+		m.processCommand("l")
+
+		if m.message == "" {
+			t.Error("Expected message to be set after 'l' command")
+		}
+
+		if !strings.Contains(m.message, "Forest") {
+			t.Errorf("Expected message to contain room name, got: %s", m.message)
+		}
+
+		t.Log("Short form 'l' works correctly")
+	})
+}

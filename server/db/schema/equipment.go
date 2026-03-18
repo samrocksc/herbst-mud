@@ -16,23 +16,35 @@ func (Equipment) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
 		field.String("description"),
-		field.String("shortDesc"), // Short description for look command
-		field.String("examineDesc"), // Detailed description for examine command
-		field.JSON("hiddenDetails", []map[string]interface{}{}), // Hidden details revealed by examine
-		field.JSON("onExamine", []map[string]interface{}{}), // Event triggers on examine
-		field.String("slot"), // e.g., "head", "chest", "weapon", "legs"
+		// Look/examine description fields (look-11)
+		field.String("shortDesc").
+			Default("").
+			Comment("Short description for look command"),
+		field.Text("examineDesc").
+			Default("").
+			Comment("Detailed description for examine command"),
+		field.JSON("hiddenDetails", []map[string]interface{}{}).
+			Optional().
+			Comment("Hidden details revealed by examine"),
+		field.JSON("onExamine", []map[string]interface{}{}).
+			Optional().
+			Comment("Event triggers on examine"),
+		field.String("slot"). // e.g., "head", "chest", "weapon", "legs"
+			Default(""),
 		field.Int("level").
 			Default(1),
 		field.Int("weight").
 			Default(0),
 		field.Bool("isEquipped").
 			Default(false),
-		field.Bool("isImmovable").Default(false), // Cannot be picked up
-		field.Bool("isContainer").Default(false), // Can hold other items
-		field.Bool("isReadable").Default(false), // Has text content
-		field.Text("content"), // Text content if readable
-		field.String("readSkill"), // Skill required to read (e.g., "tech", "lore")
-		field.Int("readSkillLevel").Default(0), // Required skill level
+		field.Bool("isImmovable").Default(false).Comment("Cannot be picked up"),
+		field.Bool("isContainer").Default(false).Comment("Can hold other items"),
+		field.Bool("isVisible").Default(true).Comment("Shown in room list"),
+		field.Bool("isReadable").Default(false).Comment("Has text content"),
+		field.Text("content").Default("").Comment("Text content if readable"),
+		field.String("readSkill").Default("").Comment("Skill required to read (e.g., tech, lore)"),
+		field.Int("readSkillLevel").Default(0).Comment("Required skill level"),
+		field.String("itemType").Default("misc").Comment("weapon|armor|consumable|quest|misc"),
 	}
 }
 
