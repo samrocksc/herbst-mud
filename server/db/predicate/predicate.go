@@ -6,14 +6,32 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AvailableTalent is the predicate function for availabletalent builders.
+type AvailableTalent func(*sql.Selector)
+
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
+
+// CharacterSkill is the predicate function for characterskill builders.
+type CharacterSkill func(*sql.Selector)
+
+// CharacterTalent is the predicate function for charactertalent builders.
+type CharacterTalent func(*sql.Selector)
 
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)
 
+// NPCTemplate is the predicate function for npctemplate builders.
+type NPCTemplate func(*sql.Selector)
+
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
+
+// Skill is the predicate function for skill builders.
+type Skill func(*sql.Selector)
+
+// Talent is the predicate function for talent builders.
+type Talent func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

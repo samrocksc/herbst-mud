@@ -24,6 +24,14 @@ const (
 	FieldWeight = "weight"
 	// FieldIsEquipped holds the string denoting the isequipped field in the database.
 	FieldIsEquipped = "is_equipped"
+	// FieldIsImmovable holds the string denoting the isimmovable field in the database.
+	FieldIsImmovable = "is_immovable"
+	// FieldColor holds the string denoting the color field in the database.
+	FieldColor = "color"
+	// FieldIsVisible holds the string denoting the isvisible field in the database.
+	FieldIsVisible = "is_visible"
+	// FieldItemType holds the string denoting the itemtype field in the database.
+	FieldItemType = "item_type"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// Table holds the table name of the equipment in the database.
@@ -46,6 +54,10 @@ var Columns = []string{
 	FieldLevel,
 	FieldWeight,
 	FieldIsEquipped,
+	FieldIsImmovable,
+	FieldColor,
+	FieldIsVisible,
+	FieldItemType,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
@@ -76,6 +88,14 @@ var (
 	DefaultWeight int
 	// DefaultIsEquipped holds the default value on creation for the "isEquipped" field.
 	DefaultIsEquipped bool
+	// DefaultIsImmovable holds the default value on creation for the "isImmovable" field.
+	DefaultIsImmovable bool
+	// DefaultColor holds the default value on creation for the "color" field.
+	DefaultColor string
+	// DefaultIsVisible holds the default value on creation for the "isVisible" field.
+	DefaultIsVisible bool
+	// DefaultItemType holds the default value on creation for the "itemType" field.
+	DefaultItemType string
 )
 
 // OrderOption defines the ordering options for the Equipment queries.
@@ -114,6 +134,26 @@ func ByWeight(opts ...sql.OrderTermOption) OrderOption {
 // ByIsEquipped orders the results by the isEquipped field.
 func ByIsEquipped(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsEquipped, opts...).ToFunc()
+}
+
+// ByIsImmovable orders the results by the isImmovable field.
+func ByIsImmovable(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsImmovable, opts...).ToFunc()
+}
+
+// ByColor orders the results by the color field.
+func ByColor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldColor, opts...).ToFunc()
+}
+
+// ByIsVisible orders the results by the isVisible field.
+func ByIsVisible(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsVisible, opts...).ToFunc()
+}
+
+// ByItemType orders the results by the itemType field.
+func ByItemType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldItemType, opts...).ToFunc()
 }
 
 // ByRoomField orders the results by room field.

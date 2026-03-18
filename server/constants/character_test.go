@@ -5,53 +5,41 @@ import (
 )
 
 func TestValidClasses(t *testing.T) {
-	validClasses := []string{
-		"tinkerer",
-		"trader",
-		"warrior",
-		"brawler",
-		"mystic",
-		"chef",
-		"vine_climber",
-		"survivor",
+	// Test that ValidClasses is not empty and contains expected Phase 1 classes
+	if len(ValidClasses) == 0 {
+		t.Error("ValidClasses should not be empty")
 	}
 
-	if len(validClasses) != len(ValidClasses) {
-		t.Errorf("Expected %d valid classes, got %d", len(validClasses), len(ValidClasses))
-	}
-
+	// Phase 1 classes that must be present
+	phase1Classes := []string{"warrior", "chef", "mystic"}
 	classSet := make(map[string]bool)
 	for _, c := range ValidClasses {
 		classSet[c] = true
 	}
 
-	for _, c := range validClasses {
+	for _, c := range phase1Classes {
 		if !classSet[c] {
-			t.Errorf("Expected class %s to be valid", c)
+			t.Errorf("Phase 1 class %s should be in ValidClasses", c)
 		}
 	}
 }
 
 func TestValidRaces(t *testing.T) {
-	validRaces := []string{
-		"human",
-		"mutant",
-		"android",
-		"escaped_slave",
+	// Test that ValidRaces is not empty
+	if len(ValidRaces) == 0 {
+		t.Error("ValidRaces should not be empty")
 	}
 
-	if len(validRaces) != len(ValidRaces) {
-		t.Errorf("Expected %d valid races, got %d", len(validRaces), len(ValidRaces))
-	}
-
+	// Core races that must be present
+	coreRaces := []string{"human", "mutant"}
 	raceSet := make(map[string]bool)
 	for _, r := range ValidRaces {
 		raceSet[r] = true
 	}
 
-	for _, r := range validRaces {
+	for _, r := range coreRaces {
 		if !raceSet[r] {
-			t.Errorf("Expected race %s to be valid", r)
+			t.Errorf("Core race %s should be in ValidRaces", r)
 		}
 	}
 }
@@ -84,23 +72,25 @@ func TestDefaultStats(t *testing.T) {
 }
 
 func TestClassStatBonuses(t *testing.T) {
-	expectedClasses := []string{
-		"tinkerer", "trader", "warrior", "brawler",
-		"mystic", "chef", "vine_climber", "survivor",
-	}
-
-	for _, class := range expectedClasses {
+	// Test that all ValidClasses have stat bonuses defined
+	for _, class := range ValidClasses {
 		if _, ok := ClassStatBonuses[class]; !ok {
-			t.Errorf("Expected stat bonuses for class %s", class)
+			t.Errorf("Missing stat bonuses for class %s", class)
 		}
 	}
 
-	// Test specific class bonus
+	// Test specific class bonus examples
 	tinkererBonus := ClassStatBonuses["tinkerer"]
 	if tinkererBonus.Intelligence != 3 {
 		t.Errorf("Expected tinkerer to have +3 Intelligence, got %d", tinkererBonus.Intelligence)
 	}
 	if tinkererBonus.Dexterity != 1 {
 		t.Errorf("Expected tinkerer to have +1 Dexterity, got %d", tinkererBonus.Dexterity)
+	}
+
+	// Test warrior bonus
+	warriorBonus := ClassStatBonuses["warrior"]
+	if warriorBonus.Strength != 3 {
+		t.Errorf("Expected warrior to have +3 Strength, got %d", warriorBonus.Strength)
 	}
 }

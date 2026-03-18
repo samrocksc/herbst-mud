@@ -126,6 +126,62 @@ func (_u *EquipmentUpdate) SetNillableIsEquipped(v *bool) *EquipmentUpdate {
 	return _u
 }
 
+// SetIsImmovable sets the "isImmovable" field.
+func (_u *EquipmentUpdate) SetIsImmovable(v bool) *EquipmentUpdate {
+	_u.mutation.SetIsImmovable(v)
+	return _u
+}
+
+// SetNillableIsImmovable sets the "isImmovable" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableIsImmovable(v *bool) *EquipmentUpdate {
+	if v != nil {
+		_u.SetIsImmovable(*v)
+	}
+	return _u
+}
+
+// SetColor sets the "color" field.
+func (_u *EquipmentUpdate) SetColor(v string) *EquipmentUpdate {
+	_u.mutation.SetColor(v)
+	return _u
+}
+
+// SetNillableColor sets the "color" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableColor(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetColor(*v)
+	}
+	return _u
+}
+
+// SetIsVisible sets the "isVisible" field.
+func (_u *EquipmentUpdate) SetIsVisible(v bool) *EquipmentUpdate {
+	_u.mutation.SetIsVisible(v)
+	return _u
+}
+
+// SetNillableIsVisible sets the "isVisible" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableIsVisible(v *bool) *EquipmentUpdate {
+	if v != nil {
+		_u.SetIsVisible(*v)
+	}
+	return _u
+}
+
+// SetItemType sets the "itemType" field.
+func (_u *EquipmentUpdate) SetItemType(v string) *EquipmentUpdate {
+	_u.mutation.SetItemType(v)
+	return _u
+}
+
+// SetNillableItemType sets the "itemType" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableItemType(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetItemType(*v)
+	}
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdate) SetRoomID(id int) *EquipmentUpdate {
 	_u.mutation.SetRoomID(id)
@@ -215,6 +271,18 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsEquipped(); ok {
 		_spec.SetField(equipment.FieldIsEquipped, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsImmovable(); ok {
+		_spec.SetField(equipment.FieldIsImmovable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Color(); ok {
+		_spec.SetField(equipment.FieldColor, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsVisible(); ok {
+		_spec.SetField(equipment.FieldIsVisible, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.ItemType(); ok {
+		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -363,6 +431,62 @@ func (_u *EquipmentUpdateOne) SetNillableIsEquipped(v *bool) *EquipmentUpdateOne
 	return _u
 }
 
+// SetIsImmovable sets the "isImmovable" field.
+func (_u *EquipmentUpdateOne) SetIsImmovable(v bool) *EquipmentUpdateOne {
+	_u.mutation.SetIsImmovable(v)
+	return _u
+}
+
+// SetNillableIsImmovable sets the "isImmovable" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableIsImmovable(v *bool) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetIsImmovable(*v)
+	}
+	return _u
+}
+
+// SetColor sets the "color" field.
+func (_u *EquipmentUpdateOne) SetColor(v string) *EquipmentUpdateOne {
+	_u.mutation.SetColor(v)
+	return _u
+}
+
+// SetNillableColor sets the "color" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableColor(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetColor(*v)
+	}
+	return _u
+}
+
+// SetIsVisible sets the "isVisible" field.
+func (_u *EquipmentUpdateOne) SetIsVisible(v bool) *EquipmentUpdateOne {
+	_u.mutation.SetIsVisible(v)
+	return _u
+}
+
+// SetNillableIsVisible sets the "isVisible" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableIsVisible(v *bool) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetIsVisible(*v)
+	}
+	return _u
+}
+
+// SetItemType sets the "itemType" field.
+func (_u *EquipmentUpdateOne) SetItemType(v string) *EquipmentUpdateOne {
+	_u.mutation.SetItemType(v)
+	return _u
+}
+
+// SetNillableItemType sets the "itemType" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableItemType(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetItemType(*v)
+	}
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdateOne) SetRoomID(id int) *EquipmentUpdateOne {
 	_u.mutation.SetRoomID(id)
@@ -482,6 +606,18 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if value, ok := _u.mutation.IsEquipped(); ok {
 		_spec.SetField(equipment.FieldIsEquipped, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsImmovable(); ok {
+		_spec.SetField(equipment.FieldIsImmovable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Color(); ok {
+		_spec.SetField(equipment.FieldColor, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsVisible(); ok {
+		_spec.SetField(equipment.FieldIsVisible, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.ItemType(); ok {
+		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{

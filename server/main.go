@@ -58,9 +58,34 @@ func main() {
 		log.Printf("Warning: failed to initialize admin user: %v", err)
 	}
 
+	// Initialize skills and talents master data
+	if err := dbinit.InitSkillsAndTalents(client); err != nil {
+		log.Printf("Warning: failed to initialize skills and talents: %v", err)
+	}
+
 	// Initialize characters (test characters + Gandalf)
 	if err := dbinit.InitCharacters(client); err != nil {
 		log.Printf("Warning: failed to initialize characters: %v", err)
+	}
+
+	// Initialize fountain for new character creation flow
+	if err := dbinit.InitFountain(client); err != nil {
+		log.Printf("Warning: failed to initialize fountain: %v", err)
+	}
+
+	// Initialize NPC templates and spawn NPCs
+	if err := dbinit.InitNPCTemplates(client); err != nil {
+		log.Printf("Warning: failed to initialize NPC templates: %v", err)
+	}
+
+	// Initialize fountain item in starting room
+	if err := dbinit.InitFountainItem(client); err != nil {
+		log.Printf("Warning: failed to initialize fountain item: %v", err)
+	}
+
+	// Initialize Junkyard area (newbie zone)
+	if err := dbinit.InitJunkyard(client); err != nil {
+		log.Printf("Warning: failed to initialize junkyard area: %v", err)
 	}
 
 	// Set up Gin router

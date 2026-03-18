@@ -84,6 +84,26 @@ func IsEquipped(v bool) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldIsEquipped, v))
 }
 
+// IsImmovable applies equality check predicate on the "isImmovable" field. It's identical to IsImmovableEQ.
+func IsImmovable(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsImmovable, v))
+}
+
+// Color applies equality check predicate on the "color" field. It's identical to ColorEQ.
+func Color(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldColor, v))
+}
+
+// IsVisible applies equality check predicate on the "isVisible" field. It's identical to IsVisibleEQ.
+func IsVisible(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsVisible, v))
+}
+
+// ItemType applies equality check predicate on the "itemType" field. It's identical to ItemTypeEQ.
+func ItemType(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldItemType, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldName, v))
@@ -367,6 +387,156 @@ func IsEquippedEQ(v bool) predicate.Equipment {
 // IsEquippedNEQ applies the NEQ predicate on the "isEquipped" field.
 func IsEquippedNEQ(v bool) predicate.Equipment {
 	return predicate.Equipment(sql.FieldNEQ(FieldIsEquipped, v))
+}
+
+// IsImmovableEQ applies the EQ predicate on the "isImmovable" field.
+func IsImmovableEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsImmovable, v))
+}
+
+// IsImmovableNEQ applies the NEQ predicate on the "isImmovable" field.
+func IsImmovableNEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldIsImmovable, v))
+}
+
+// ColorEQ applies the EQ predicate on the "color" field.
+func ColorEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldColor, v))
+}
+
+// ColorNEQ applies the NEQ predicate on the "color" field.
+func ColorNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldColor, v))
+}
+
+// ColorIn applies the In predicate on the "color" field.
+func ColorIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldColor, vs...))
+}
+
+// ColorNotIn applies the NotIn predicate on the "color" field.
+func ColorNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldColor, vs...))
+}
+
+// ColorGT applies the GT predicate on the "color" field.
+func ColorGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldColor, v))
+}
+
+// ColorGTE applies the GTE predicate on the "color" field.
+func ColorGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldColor, v))
+}
+
+// ColorLT applies the LT predicate on the "color" field.
+func ColorLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldColor, v))
+}
+
+// ColorLTE applies the LTE predicate on the "color" field.
+func ColorLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldColor, v))
+}
+
+// ColorContains applies the Contains predicate on the "color" field.
+func ColorContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldColor, v))
+}
+
+// ColorHasPrefix applies the HasPrefix predicate on the "color" field.
+func ColorHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldColor, v))
+}
+
+// ColorHasSuffix applies the HasSuffix predicate on the "color" field.
+func ColorHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldColor, v))
+}
+
+// ColorEqualFold applies the EqualFold predicate on the "color" field.
+func ColorEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldColor, v))
+}
+
+// ColorContainsFold applies the ContainsFold predicate on the "color" field.
+func ColorContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldColor, v))
+}
+
+// IsVisibleEQ applies the EQ predicate on the "isVisible" field.
+func IsVisibleEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldIsVisible, v))
+}
+
+// IsVisibleNEQ applies the NEQ predicate on the "isVisible" field.
+func IsVisibleNEQ(v bool) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldIsVisible, v))
+}
+
+// ItemTypeEQ applies the EQ predicate on the "itemType" field.
+func ItemTypeEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldItemType, v))
+}
+
+// ItemTypeNEQ applies the NEQ predicate on the "itemType" field.
+func ItemTypeNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldItemType, v))
+}
+
+// ItemTypeIn applies the In predicate on the "itemType" field.
+func ItemTypeIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldItemType, vs...))
+}
+
+// ItemTypeNotIn applies the NotIn predicate on the "itemType" field.
+func ItemTypeNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldItemType, vs...))
+}
+
+// ItemTypeGT applies the GT predicate on the "itemType" field.
+func ItemTypeGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldItemType, v))
+}
+
+// ItemTypeGTE applies the GTE predicate on the "itemType" field.
+func ItemTypeGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldItemType, v))
+}
+
+// ItemTypeLT applies the LT predicate on the "itemType" field.
+func ItemTypeLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldItemType, v))
+}
+
+// ItemTypeLTE applies the LTE predicate on the "itemType" field.
+func ItemTypeLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldItemType, v))
+}
+
+// ItemTypeContains applies the Contains predicate on the "itemType" field.
+func ItemTypeContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldItemType, v))
+}
+
+// ItemTypeHasPrefix applies the HasPrefix predicate on the "itemType" field.
+func ItemTypeHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldItemType, v))
+}
+
+// ItemTypeHasSuffix applies the HasSuffix predicate on the "itemType" field.
+func ItemTypeHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldItemType, v))
+}
+
+// ItemTypeEqualFold applies the EqualFold predicate on the "itemType" field.
+func ItemTypeEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldItemType, v))
+}
+
+// ItemTypeContainsFold applies the ContainsFold predicate on the "itemType" field.
+func ItemTypeContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldItemType, v))
 }
 
 // HasRoom applies the HasEdge predicate on the "room" edge.

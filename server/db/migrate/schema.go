@@ -22,7 +22,27 @@ var (
 		{Name: "max_stamina", Type: field.TypeInt, Default: 50},
 		{Name: "mana", Type: field.TypeInt, Default: 25},
 		{Name: "max_mana", Type: field.TypeInt, Default: 25},
+		{Name: "race", Type: field.TypeString, Default: "human"},
+		{Name: "class", Type: field.TypeString, Default: "adventurer"},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "constitution", Type: field.TypeInt, Default: 10},
+		{Name: "gender", Type: field.TypeString, Nullable: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "strength", Type: field.TypeInt, Default: 10},
+		{Name: "dexterity", Type: field.TypeInt, Default: 10},
+		{Name: "intelligence", Type: field.TypeInt, Default: 10},
+		{Name: "wisdom", Type: field.TypeInt, Default: 10},
+		{Name: "skill_blades", Type: field.TypeInt, Default: 0},
+		{Name: "skill_staves", Type: field.TypeInt, Default: 0},
+		{Name: "skill_knives", Type: field.TypeInt, Default: 0},
+		{Name: "skill_martial", Type: field.TypeInt, Default: 0},
+		{Name: "skill_brawling", Type: field.TypeInt, Default: 0},
+		{Name: "skill_tech", Type: field.TypeInt, Default: 0},
+		{Name: "skill_light_armor", Type: field.TypeInt, Default: 0},
+		{Name: "skill_cloth_armor", Type: field.TypeInt, Default: 0},
+		{Name: "skill_heavy_armor", Type: field.TypeInt, Default: 0},
 		{Name: "current_room_id", Type: field.TypeInt},
+		{Name: "character_npc_template", Type: field.TypeString, Nullable: true},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
 		{Name: "user_characters", Type: field.TypeInt, Nullable: true},
 	}
@@ -34,19 +54,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[12]},
+				Columns:    []*schema.Column{CharactersColumns[31]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "characters_npc_templates_npcTemplate",
+				Columns:    []*schema.Column{CharactersColumns[32]},
+				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[13]},
+				Columns:    []*schema.Column{CharactersColumns[33]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[14]},
+				Columns:    []*schema.Column{CharactersColumns[34]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -76,6 +102,24 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// NpcTemplatesColumns holds the columns for the "npc_templates" table.
+	NpcTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
+		{Name: "race", Type: field.TypeString},
+		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral"}, Default: "neutral"},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "skills", Type: field.TypeJSON},
+		{Name: "trades_with", Type: field.TypeJSON},
+		{Name: "greeting", Type: field.TypeString, Size: 2147483647},
+	}
+	// NpcTemplatesTable holds the schema information for the "npc_templates" table.
+	NpcTemplatesTable = &schema.Table{
+		Name:       "npc_templates",
+		Columns:    NpcTemplatesColumns,
+		PrimaryKey: []*schema.Column{NpcTemplatesColumns[0]},
 	}
 	// RoomsColumns holds the columns for the "rooms" table.
 	RoomsColumns = []*schema.Column{
@@ -110,6 +154,7 @@ var (
 	Tables = []*schema.Table{
 		CharactersTable,
 		EquipmentTable,
+		NpcTemplatesTable,
 		RoomsTable,
 		UsersTable,
 	}
@@ -117,7 +162,8 @@ var (
 
 func init() {
 	CharactersTable.ForeignKeys[0].RefTable = RoomsTable
-	CharactersTable.ForeignKeys[1].RefTable = RoomsTable
-	CharactersTable.ForeignKeys[2].RefTable = UsersTable
+	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
+	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
+	CharactersTable.ForeignKeys[3].RefTable = UsersTable
 	EquipmentTable.ForeignKeys[0].RefTable = RoomsTable
 }

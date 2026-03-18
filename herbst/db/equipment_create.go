@@ -80,27 +80,59 @@ func (_c *EquipmentCreate) SetNillableIsEquipped(v *bool) *EquipmentCreate {
 	return _c
 }
 
-// SetIsImmovable sets the "isImmovable" field (GitHub #89).
+// SetIsImmovable sets the "isImmovable" field.
 func (_c *EquipmentCreate) SetIsImmovable(v bool) *EquipmentCreate {
 	_c.mutation.SetIsImmovable(v)
 	return _c
 }
 
-// SetColor sets the "color" field (GitHub #89).
+// SetNillableIsImmovable sets the "isImmovable" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableIsImmovable(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetIsImmovable(*v)
+	}
+	return _c
+}
+
+// SetColor sets the "color" field.
 func (_c *EquipmentCreate) SetColor(v string) *EquipmentCreate {
 	_c.mutation.SetColor(v)
 	return _c
 }
 
-// SetIsVisible sets the "isVisible" field (GitHub #89).
+// SetNillableColor sets the "color" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableColor(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetColor(*v)
+	}
+	return _c
+}
+
+// SetIsVisible sets the "isVisible" field.
 func (_c *EquipmentCreate) SetIsVisible(v bool) *EquipmentCreate {
 	_c.mutation.SetIsVisible(v)
 	return _c
 }
 
-// SetItemType sets the "itemType" field (GitHub #89).
+// SetNillableIsVisible sets the "isVisible" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableIsVisible(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetIsVisible(*v)
+	}
+	return _c
+}
+
+// SetItemType sets the "itemType" field.
 func (_c *EquipmentCreate) SetItemType(v string) *EquipmentCreate {
 	_c.mutation.SetItemType(v)
+	return _c
+}
+
+// SetNillableItemType sets the "itemType" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableItemType(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetItemType(*v)
+	}
 	return _c
 }
 
@@ -170,6 +202,22 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultIsEquipped
 		_c.mutation.SetIsEquipped(v)
 	}
+	if _, ok := _c.mutation.IsImmovable(); !ok {
+		v := equipment.DefaultIsImmovable
+		_c.mutation.SetIsImmovable(v)
+	}
+	if _, ok := _c.mutation.Color(); !ok {
+		v := equipment.DefaultColor
+		_c.mutation.SetColor(v)
+	}
+	if _, ok := _c.mutation.IsVisible(); !ok {
+		v := equipment.DefaultIsVisible
+		_c.mutation.SetIsVisible(v)
+	}
+	if _, ok := _c.mutation.ItemType(); !ok {
+		v := equipment.DefaultItemType
+		_c.mutation.SetItemType(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -191,6 +239,18 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsEquipped(); !ok {
 		return &ValidationError{Name: "isEquipped", err: errors.New(`db: missing required field "Equipment.isEquipped"`)}
+	}
+	if _, ok := _c.mutation.IsImmovable(); !ok {
+		return &ValidationError{Name: "isImmovable", err: errors.New(`db: missing required field "Equipment.isImmovable"`)}
+	}
+	if _, ok := _c.mutation.Color(); !ok {
+		return &ValidationError{Name: "color", err: errors.New(`db: missing required field "Equipment.color"`)}
+	}
+	if _, ok := _c.mutation.IsVisible(); !ok {
+		return &ValidationError{Name: "isVisible", err: errors.New(`db: missing required field "Equipment.isVisible"`)}
+	}
+	if _, ok := _c.mutation.ItemType(); !ok {
+		return &ValidationError{Name: "itemType", err: errors.New(`db: missing required field "Equipment.itemType"`)}
 	}
 	return nil
 }
@@ -241,6 +301,22 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsEquipped(); ok {
 		_spec.SetField(equipment.FieldIsEquipped, field.TypeBool, value)
 		_node.IsEquipped = value
+	}
+	if value, ok := _c.mutation.IsImmovable(); ok {
+		_spec.SetField(equipment.FieldIsImmovable, field.TypeBool, value)
+		_node.IsImmovable = value
+	}
+	if value, ok := _c.mutation.Color(); ok {
+		_spec.SetField(equipment.FieldColor, field.TypeString, value)
+		_node.Color = value
+	}
+	if value, ok := _c.mutation.IsVisible(); ok {
+		_spec.SetField(equipment.FieldIsVisible, field.TypeBool, value)
+		_node.IsVisible = value
+	}
+	if value, ok := _c.mutation.ItemType(); ok {
+		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
+		_node.ItemType = value
 	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

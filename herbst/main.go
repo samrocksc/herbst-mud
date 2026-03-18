@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -91,6 +92,26 @@ func main() {
 		if err := dbinit.InitAdminUser(client); err != nil {
 			log.Printf("Warning: failed to initialize admin user: %v", err)
 		}
+
+		// Initialize Gizmo NPC and fountain room
+		if err := dbinit.InitGizmo(client); err != nil {
+			log.Printf("Warning: failed to initialize Gizmo: %v", err)
+		}
+
+		// Initialize fountain item in starting room
+		if err := dbinit.InitFountainItem(client); err != nil {
+			log.Printf("Warning: failed to initialize fountain item: %v", err)
+		}
+
+		// Initialize starter weapons in the Junkyard
+		if err := dbinit.InitWeapons(client); err != nil {
+			log.Printf("Warning: failed to initialize starter weapons: %v", err)
+		}
+
+		// Initialize Junkyard area (newbie zone)
+		if err := dbinit.InitJunkyardArea(client); err != nil {
+			log.Printf("Warning: failed to initialize junkyard area: %v", err)
+		}
 	}
 
 	// Pass client to server options
@@ -119,15 +140,16 @@ func main() {
 					// Create program with shared client
 					p := tea.NewProgram(
 						&model{
-							connectedAt:  time.Now(),
-							session:      s,
-							client:       client,
-							screen:       ScreenWelcome,
-							currentRoom:  StartingRoomID,
-							textInput:    ti,
-							spinner:      sp,
-							visitedRooms: make(map[int]bool),
-							knownExits:   make(map[string]bool),
+							connectedAt:    time.Now(),
+							session:        s,
+							client:         client,
+							screen:         ScreenWelcome,
+							currentRoom:    StartingRoomID,
+							textInput:      ti,
+							spinner:        sp,
+							visitedRooms:   make(map[int]bool),
+							knownExits:     make(map[string]bool),
+							roomCharacters: make([]roomCharacter, 0),
 						},
 						tea.WithInput(s),
 						tea.WithOutput(s),
@@ -211,8 +233,33 @@ type model struct {
 	loadingMessage string
 
 	// Room tracking
-	visitedRooms map[int]bool
-	knownExits   map[string]bool // For color-coded exits
+	visitedRooms   map[int]bool
+	knownExits     map[string]bool // For color-coded exits
+	roomItems      []roomItemDisplay
+	roomCharacters []roomCharacter // Characters in current room (NPCs + players)
+
+	// Debug mode - shows room ID in status bar
+	debugMode bool
+}
+
+// roomCharacter holds info about characters in a room for display
+type roomCharacter struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	IsNPC  bool   `json:"isNPC"`
+	Level  int    `json:"level"`
+	Class  string `json:"class"`
+	Race   string `json:"race"`
+	UserID int    `json:"userId,omitempty"`
+}
+
+// roomItemDisplay holds display info for items in a room
+type roomItemDisplay struct {
+	name        string
+	description string
+	color       lipgloss.Color // Display color (gold for immovable, custom otherwise)
+	isImmovable bool
+	isVisible   bool
 }
 
 // ============================================================
@@ -225,7 +272,6 @@ var (
 	green  = lipgloss.Color("46")
 	yellow = lipgloss.Color("226")
 	blue   = lipgloss.Color("75")
-	cyan   = lipgloss.Color("81")  // Lighter blue for login
 	purple = lipgloss.Color("141")
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
@@ -375,13 +421,24 @@ func (m *model) styledMessage(msg string) string {
 }
 
 // formatExitsWithColor returns color-coded exits
+// IMPORTANT: This function must be PURE - it should NOT modify model state
+// State changes (like marking exits as known) should happen in Update(), not View()
 func (m *model) formatExitsWithColor() string {
 	if len(m.exits) == 0 {
 		return lipgloss.NewStyle().Foreground(gray).Render("none")
 	}
 
+	// Sort exits for consistent order (Go maps are unordered)
 	var dirs []string
-	for dir, roomID := range m.exits {
+	for dir := range m.exits {
+		dirs = append(dirs, dir)
+	}
+	// Sort alphabetically for consistent display
+	sort.Strings(dirs)
+
+	var result []string
+	for _, dir := range dirs {
+		roomID := m.exits[dir]
 		var exitStyle lipgloss.Style
 		if m.visitedRooms[roomID] {
 			// Green = visited
@@ -390,14 +447,89 @@ func (m *model) formatExitsWithColor() string {
 			// Yellow = known but not visited
 			exitStyle = lipgloss.NewStyle().Foreground(exitKnownColor)
 		} else {
-			// White = new
-			m.knownExits[dir] = true
+			// White = new (never seen before)
+			// NOTE: We do NOT mark as known here - that's done in Update()
 			exitStyle = lipgloss.NewStyle().Foreground(exitNewColor)
 		}
-		dirs = append(dirs, exitStyle.Render(dir))
+		result = append(result, exitStyle.Render(dir))
 	}
 
-	return strings.Join(dirs, ", ")
+	return strings.Join(result, ", ")
+}
+
+// formatRoomItemsWithColor returns a formatted string of items in the room
+func (m *model) formatRoomItemsWithColor() string {
+	if len(m.roomItems) == 0 {
+		return ""
+	}
+
+	var items []string
+	for _, item := range m.roomItems {
+		if !item.isVisible {
+			continue
+		}
+		itemStyle := lipgloss.NewStyle().Foreground(item.color)
+		if item.isImmovable {
+			// Immovable items shown in gold with "(fixed)" indicator
+			items = append(items, itemStyle.Render(item.name+" (fixed)")+": "+item.description)
+		} else {
+			items = append(items, itemStyle.Render(item.name)+": "+item.description)
+		}
+	}
+
+	if len(items) == 0 {
+		return ""
+	}
+
+	return lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Items:") + "\n  " + strings.Join(items, "\n  ")
+}
+
+// formatRoomCharactersWithColor returns a formatted string of characters in the room
+// NPCs are shown in RED, players are shown in GREEN
+func (m *model) formatRoomCharactersWithColor() string {
+	if len(m.roomCharacters) == 0 {
+		return ""
+	}
+
+	var chars []string
+	for _, rc := range m.roomCharacters {
+		var charStyle lipgloss.Style
+		var typeLabel string
+		if rc.IsNPC {
+			// NPCs in RED
+			charStyle = lipgloss.NewStyle().Foreground(red).Bold(true)
+			typeLabel = "NPC"
+		} else {
+			// Players in GREEN
+			charStyle = lipgloss.NewStyle().Foreground(green).Bold(true)
+			typeLabel = "Player"
+		}
+
+		// Format: "Name (NPC) - Level 5 Orc Warrior" or just "Name (Player)"
+		var details []string
+		if rc.Level > 0 {
+			details = append(details, fmt.Sprintf("Level %d", rc.Level))
+		}
+		if rc.Race != "" {
+			details = append(details, rc.Race)
+		}
+		if rc.Class != "" {
+			details = append(details, rc.Class)
+		}
+
+		var detailStr string
+		if len(details) > 0 {
+			detailStr = " - " + strings.Join(details, " ")
+		}
+
+		chars = append(chars, charStyle.Render(rc.Name)+fmt.Sprintf(" (%s)%s", typeLabel, detailStr))
+	}
+
+	if len(chars) == 0 {
+		return ""
+	}
+
+	return lipgloss.NewStyle().Bold(true).Foreground(yellow).Render("You see:") + "\n  • " + strings.Join(chars, "\n  • ")
 }
 
 // ============================================================
@@ -493,6 +625,8 @@ func (m *model) handleEscape() {
 		m.inputField = "username"
 		m.message = ""
 		m.messageType = "info"
+		m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
+		m.textInput.EchoCharacter = 0               // Reset echo character
 		// Re-initialize menu items for welcome screen
 		m.menuItems = []string{"Login", "Register", "Quit"}
 		m.menuCursor = 0
@@ -544,16 +678,24 @@ func (m *model) handleWelcomeInput(input string) {
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
-		m.message = "Enter your username:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear any previous input
+		m.textInput.Placeholder = "Enter your username..."
+		m.textInput.EchoMode = textinput.EchoNormal // Ensure normal echo for username
+		m.textInput.EchoCharacter = 0               // Reset echo character
 		m.textInput.Focus()
 	case "2", "register", "r", "create":
 		m.screen = ScreenRegister
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
-		m.message = "Choose a username:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear any previous input
+		m.textInput.Placeholder = "Choose a username..."
+		m.textInput.EchoMode = textinput.EchoNormal // Ensure normal echo for username
+		m.textInput.EchoCharacter = 0               // Reset echo character
 		m.textInput.Focus()
 	case "3", "quit", "q":
 		m.message = "Goodbye! Thanks for playing Herbst MUD."
@@ -572,13 +714,18 @@ func (m *model) handleLoginInput(input string) {
 	if m.inputField == "username" {
 		m.loginUsername = input
 		m.inputField = "password"
-		m.message = "Enter your password:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear previous input
+		m.textInput.Placeholder = "Enter your password..."
 		m.textInput.EchoMode = textinput.EchoPassword
+		m.textInput.EchoCharacter = '•' // Use bullet character for masking
 		m.textInput.Focus()
 	} else if m.inputField == "password" {
 		m.loginPassword = input
+		m.textInput.SetValue("")
 		m.textInput.EchoMode = textinput.EchoNormal
+		m.textInput.EchoCharacter = 0 // Reset to default
 		m.attemptLogin()
 	}
 }
@@ -615,7 +762,10 @@ func (m *model) attemptLogin() {
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
+		m.textInput.SetValue("")
 		m.textInput.EchoMode = textinput.EchoNormal
+		m.textInput.EchoCharacter = 0
+		m.textInput.Placeholder = "Enter your username..."
 		return
 	}
 
@@ -635,6 +785,8 @@ func (m *model) attemptLogin() {
 	}
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
+	m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
+	m.textInput.EchoCharacter = 0               // Reset echo character
 	m.inputBuffer = ""
 	m.message = fmt.Sprintf("Welcome back, %s!", m.currentUserName)
 	m.messageType = "success"
@@ -661,6 +813,81 @@ func (m *model) attemptLogin() {
 		for dir := range m.exits {
 			m.knownExits[dir] = true
 		}
+
+		// Load room items
+		m.loadRoomItems()
+		// Load room characters
+		m.loadRoomCharacters()
+	}
+}
+
+func (m *model) loadRoomItems() {
+	if m.client == nil {
+		return
+	}
+	// Get the room first
+	room, err := m.client.Room.Get(context.Background(), m.currentRoom)
+	if err != nil || room == nil {
+		return // Silently fail - items are optional
+	}
+	items, err := m.client.Room.QueryEquipment(room).All(context.Background())
+	if err != nil {
+		return // Silently fail - items are optional
+	}
+	m.roomItems = make([]roomItemDisplay, 0, len(items))
+	for _, item := range items {
+		if !item.IsVisible {
+			continue
+		}
+		display := roomItemDisplay{
+			name:        item.Name,
+			description: item.Description,
+			isImmovable: item.IsImmovable,
+			isVisible:   item.IsVisible,
+		}
+		// Set color: gold for immovable, custom color if set, white otherwise
+		if item.IsImmovable {
+			display.color = lipgloss.Color("220") // Gold
+		} else if item.Color != "" {
+			display.color = lipgloss.Color(item.Color)
+		} else {
+			display.color = lipgloss.Color("15") // White
+		}
+		m.roomItems = append(m.roomItems, display)
+	}
+}
+
+// loadRoomCharacters fetches characters from the server for the current room
+func (m *model) loadRoomCharacters() {
+	if m.currentRoom == 0 {
+		return
+	}
+
+	url := fmt.Sprintf("%s/rooms/%d/characters", RESTAPIBase, m.currentRoom)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Error loading room characters: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Failed to load room characters: status %d", resp.StatusCode)
+		return
+	}
+
+	var chars []roomCharacter
+	if err := json.NewDecoder(resp.Body).Decode(&chars); err != nil {
+		log.Printf("Error decoding room characters: %v", err)
+		return
+	}
+
+	// Filter out current player
+	m.roomCharacters = make([]roomCharacter, 0, len(chars))
+	for _, rc := range chars {
+		if rc.ID != m.currentCharacterID {
+			m.roomCharacters = append(m.roomCharacters, rc)
+		}
 	}
 }
 
@@ -673,9 +900,12 @@ func (m *model) handleRegisterInput(input string) {
 		}
 		m.loginUsername = input
 		m.inputField = "password"
-		m.message = "Choose a password:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear previous input
+		m.textInput.Placeholder = "Choose a password..."
 		m.textInput.EchoMode = textinput.EchoPassword
+		m.textInput.EchoCharacter = '•' // Use bullet character for masking
 		m.textInput.Focus()
 	} else if m.inputField == "password" {
 		if input == "" {
@@ -685,8 +915,10 @@ func (m *model) handleRegisterInput(input string) {
 		}
 		m.loginPassword = input
 		m.inputField = "confirm_password"
-		m.message = "Confirm your password:"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("") // Clear previous input
+		m.textInput.Placeholder = "Confirm your password..."
 		m.textInput.Focus()
 	} else if m.inputField == "confirm_password" {
 		if input != m.loginPassword {
@@ -694,14 +926,20 @@ func (m *model) handleRegisterInput(input string) {
 			m.messageType = "error"
 			m.inputField = "password"
 			m.loginPassword = ""
+			m.textInput.SetValue("")
+			m.textInput.Placeholder = "Choose a password..."
 			m.textInput.EchoMode = textinput.EchoPassword
+			m.textInput.EchoCharacter = '•'
 			m.textInput.Focus()
 			return
 		}
 		m.inputField = "email"
-		m.message = "Enter your email (optional, press enter to skip):"
-		m.messageType = "info"
+		m.message = "" // Clear message - View() will show field label
+		m.messageType = ""
+		m.textInput.SetValue("")
+		m.textInput.Placeholder = "Enter your email..."
 		m.textInput.EchoMode = textinput.EchoNormal
+		m.textInput.EchoCharacter = 0 // Reset to default
 		m.textInput.Focus()
 	} else if m.inputField == "email" {
 		// Email is optional - use username if not provided
@@ -737,7 +975,10 @@ func (m *model) attemptRegistration(email string) {
 			m.inputField = "username"
 			m.loginUsername = ""
 			m.loginPassword = ""
+			m.textInput.SetValue("")
 			m.textInput.EchoMode = textinput.EchoNormal
+			m.textInput.EchoCharacter = 0
+			m.textInput.Placeholder = "Choose a username..."
 			return
 		}
 		m.message = "Failed to create account. Please try again."
@@ -767,6 +1008,8 @@ func (m *model) attemptRegistration(email string) {
 	}
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
+	m.textInput.EchoMode = textinput.EchoNormal // Reset to normal echo
+	m.textInput.EchoCharacter = 0               // Reset echo character
 	m.inputBuffer = ""
 	m.message = fmt.Sprintf("Account created! Welcome to Herbst MUD, %s!", m.currentUserName)
 	m.messageType = "success"
@@ -792,6 +1035,9 @@ func (m *model) attemptRegistration(email string) {
 	for dir := range m.exits {
 		m.knownExits[dir] = true
 	}
+
+	// Load room items
+	m.loadRoomItems()
 }
 
 // ============================================================
@@ -800,6 +1046,7 @@ func (m *model) attemptRegistration(email string) {
 
 func (m *model) processCommand(cmd string) {
 	cmd = strings.TrimSpace(strings.ToLower(cmd))
+	args := cmd // For commands that need the full string with args
 
 	if cmd == "" {
 		return
@@ -811,22 +1058,56 @@ func (m *model) processCommand(cmd string) {
 	}
 
 	// Handle other commands
+	parts := strings.Fields(cmd)
 	switch cmd {
 	case "help", "?":
 		m.message = `Commands:
   n/north, s/south, e/east, w/west - Move
   look/l - Look around
+  look at <target> - Look at item/NPC/person
+  look in <container> - See inside container
   exits/x - Show exits  
   peer <dir> - Peek at adjacent room
   whoami - Show your info
   profile/p - Edit character profile
+  pickup/get/take - Pick up a weapon
+  take <item> from <container> - Take item from container
+  read <item> - Read text content
+  open/close <container> - Open or close container
   clear/cls - Clear screen
   quit - Exit game`
 		m.messageType = "info"
 	case "look", "l":
-		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s",
+		// Check for "look at <target>" syntax - delegate to examine
+		if len(parts) >= 3 && parts[1] == "at" {
+			m.handleLookAtCommand(strings.Join(parts[2:], " "))
+			return
+		}
+		// Check for "look in <container>" syntax
+		if len(parts) >= 3 && parts[1] == "in" {
+			m.handleLookInContainer(strings.Join(parts[2:], " "))
+			return
+		}
+		// Format items and characters
+		itemStr := m.formatRoomItemsWithColor()
+		charStr := m.formatRoomCharactersWithColor()
+
+		var extraParts []string
+		if itemStr != "" {
+			extraParts = append(extraParts, itemStr)
+		}
+		if charStr != "" {
+			extraParts = append(extraParts, charStr)
+		}
+		extraPart := ""
+		if len(extraParts) > 0 {
+			extraPart = "\n\n" + strings.Join(extraParts, "\n\n")
+		}
+
+		m.message = fmt.Sprintf("[%s]\n%s%s\n\nExits: %s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
+			extraPart,
 			m.formatExitsWithColor())
 		m.messageType = "info"
 	case "exits", "x":
@@ -845,18 +1126,75 @@ func (m *model) processCommand(cmd string) {
 		m.menuCursor = 0
 		m.message = ""
 		m.messageType = "info"
+	case "skills":
+		m.handleSkillsCommand(cmd)
+	case "skill":
+		m.handleSkillEquipCommand(cmd)
+	case "talents":
+		m.handleTalentsCommand(cmd)
+	case "talent":
+		m.handleTalentEquipCommand(cmd)
 	case "peer":
 		m.handlePeerCommand(cmd)
+	case "examine", "ex", "inspect":
+		m.handleExamineCommand(cmd)
 	case "clear", "cls":
 		// Clear the terminal screen - reset message buffer
 		m.message = ""
 		m.messageType = ""
 		m.inputBuffer = ""
 		return
+	case "pickup", "get", "take":
+		// Check for "take <item> from <container>" syntax
+		if len(parts) >= 4 && parts[len(parts)-2] == "from" {
+			// Find the "from" keyword
+			fromIdx := -1
+			for i, p := range parts {
+				if p == "from" {
+					fromIdx = i
+					break
+				}
+			}
+			if fromIdx > 0 && fromIdx < len(parts)-1 {
+				itemName := strings.Join(parts[:fromIdx], " ")
+				containerName := strings.Join(parts[fromIdx+1:], " ")
+				m.handleTakeFromContainer(containerName, itemName)
+				return
+			}
+		}
+		m.handlePickupCommand()
+		return
+	case "read":
+		if len(parts) < 2 {
+			m.message = "Read what?"
+			m.messageType = "error"
+			return
+		}
+		m.handleReadCommand(strings.Join(parts[1:], " "))
+		return
+	case "open":
+		if len(parts) < 2 {
+			m.message = "Open what?"
+			m.messageType = "error"
+			return
+		}
+		m.handleOpenContainer(strings.Join(parts[1:], " "))
+		return
+	case "close":
+		if len(parts) < 2 {
+			m.message = "Close what?"
+			m.messageType = "error"
+			return
+		}
+		m.handleCloseContainer(strings.Join(parts[1:], " "))
+		return
 	case "quit", "q":
 		m.message = "Thanks for playing! Goodbye!"
 		m.messageType = "success"
 		m.inputBuffer = ""
+		return
+	case "debug":
+		m.handleDebugCommand(args)
 		return
 	default:
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
@@ -910,17 +1248,40 @@ func (m *model) handleMovement(cmd string) bool {
 			m.knownExits[dir] = true
 		}
 
+		// Load room items
+		m.loadRoomItems()
+		// Load room characters
+		m.loadRoomCharacters()
+
+		// Format items and characters
+		itemStr := m.formatRoomItemsWithColor()
+		charStr := m.formatRoomCharactersWithColor()
+
+		var extraParts []string
+		if itemStr != "" {
+			extraParts = append(extraParts, itemStr)
+		}
+		if charStr != "" {
+			extraParts = append(extraParts, charStr)
+		}
+		extraPart := ""
+		if len(extraParts) > 0 {
+			extraPart = "\n\n" + strings.Join(extraParts, "\n\n")
+		}
+
 		if wasVisited {
-			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s\n\nExits: %s",
+			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s\n\nExits: %s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 				m.roomDesc,
+				extraPart,
 				m.formatExitsWithColor())
 		} else {
-			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s\n\nExits: %s",
+			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s\n\nExits: %s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(m.roomName),
 				m.roomDesc,
+				extraPart,
 				m.formatExitsWithColor())
 		}
 		m.messageType = "success"
@@ -975,59 +1336,6 @@ func (m *model) handleEditFieldInput(input string) {
 	m.screen = ScreenProfile
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
-}
-
-// createCharacterInDB creates a character in the database via the API
-func (m *model) createCharacterInDB() {
-	if m.currentUserID == 0 {
-		log.Printf("Cannot create character: no user logged in")
-		return
-	}
-
-	// Use the REST API to create the character
-	jsonData, err := json.Marshal(map[string]interface{}{
-		"name":    m.currentUserName,
-		"userId":  m.currentUserID,
-		"isNPC":   false,
-	})
-	if err != nil {
-		log.Printf("Error marshaling character data: %v", err)
-		return
-	}
-
-	resp, err := http.Post(RESTAPIBase+"/characters", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		log.Printf("Error creating character: %v", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		log.Printf("Failed to create character, status: %d", resp.StatusCode)
-		return
-	}
-
-	var result map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		log.Printf("Error decoding character response: %v", err)
-		return
-	}
-	if _, ok := result["id"]; !ok {
-		log.Printf("Character created but no ID returned")
-		return
-	}
-
-	if id, ok := result["id"].(float64); ok {
-		m.currentCharacterID = int(id)
-		log.Printf("Character created successfully with ID: %d", m.currentCharacterID)
-	}
-
-	// Set gender/description to default values that will be saved to DB
-	m.characterGender = "unspecified"
-	m.characterDescription = "A mysterious figure."
-
-	// Now save these defaults to the DB
-	m.saveProfileToDB()
 }
 
 // saveProfileToDB sends profile updates (gender, description) to the server
@@ -1109,14 +1417,625 @@ func (m *model) handlePeerCommand(cmd string) {
 	}
 }
 
+// handleExamineCommand handles the examine/ex/inspect command
+func (m *model) handleExamineCommand(cmd string) {
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage: examine <item|npc|object>\n\nExamine something in detail to reveal hidden details."
+		m.messageType = "error"
+		return
+	}
+
+	target := strings.Join(parts[1:], " ")
+
+	// First check if it's a direction (peer into adjacent room)
+	validDirs := map[string]string{"north": "north", "south": "south", "east": "east", "west": "west", "up": "up", "down": "down"}
+	if dir, ok := validDirs[strings.ToLower(target)]; ok {
+		m.handlePeerCommand("peer " + dir)
+		return
+	}
+
+	// Check if the target is an item in the current room
+	if m.client != nil {
+		// Get current room with items
+		char, err := m.client.Character.Get(context.Background(), m.currentCharacterID)
+		if err != nil {
+			m.message = fmt.Sprintf("Error: %v", err)
+			m.messageType = "error"
+			return
+		}
+
+		// Search in room items
+		roomItems, err := m.client.RoomItems.List(context.Background(), char.CurrentRoomID)
+		if err == nil && roomItems != nil {
+			for _, item := range roomItems.Items {
+				if strings.Contains(strings.ToLower(item.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(item.ExamineDesc), strings.ToLower(target)) {
+					m.displayItemExamine(item)
+					return
+				}
+			}
+		}
+
+		// Search in character's inventory
+		invItems, err := m.client.Inventory.List(context.Background(), m.currentCharacterID)
+		if err == nil && invItems != nil {
+			for _, item := range invItems.Items {
+				if strings.Contains(strings.ToLower(item.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(item.ExamineDesc), strings.ToLower(target)) {
+					m.displayItemExamine(item)
+					return
+				}
+			}
+		}
+
+		// Search NPCs in the room
+		characters, err := m.client.RoomCharacters.List(context.Background(), char.CurrentRoomID)
+		if err == nil && characters != nil {
+			for _, npc := range characters.Characters {
+				if npc.IsNPC && (strings.Contains(strings.ToLower(npc.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(npc.Description), strings.ToLower(target))) {
+					m.displayNPCExamine(npc)
+					return
+				}
+			}
+		}
+	}
+
+	m.message = fmt.Sprintf("You don't see '%s' here.", target)
+	m.messageType = "error"
+}
+
+// handleLookAtCommand handles "look at <target>" - same as examine
+func (m *model) handleLookAtCommand(target string) {
+	if target == "" {
+		m.message = "Look at what?"
+		m.messageType = "error"
+		return
+	}
+
+	// Handle "look at me" - show character info
+	if target == "me" || target == "myself" {
+		m.message = fmt.Sprintf("=== Your Character ===\nName: %s\nDescription: %s",
+			m.currentUserName, m.characterDescription)
+		if m.characterGender != "" {
+			m.message += fmt.Sprintf("\nGender: %s", m.characterGender)
+		}
+		m.messageType = "info"
+		return
+	}
+
+	// Check if the target is an item in the current room
+	if m.client != nil {
+		// Get current room with items
+		char, err := m.client.Character.Get(context.Background(), m.currentCharacterID)
+		if err != nil {
+			m.message = fmt.Sprintf("Error: %v", err)
+			m.messageType = "error"
+			return
+		}
+
+		// Search in room items
+		roomItems, err := m.client.RoomItems.List(context.Background(), char.CurrentRoomID)
+		if err == nil && roomItems != nil {
+			for _, item := range roomItems.Items {
+				if strings.Contains(strings.ToLower(item.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(item.ExamineDesc), strings.ToLower(target)) {
+					m.displayItemExamine(item)
+					return
+				}
+			}
+		}
+
+		// Search in character's inventory
+		invItems, err := m.client.Inventory.List(context.Background(), m.currentCharacterID)
+		if err == nil && invItems != nil {
+			for _, item := range invItems.Items {
+				if strings.Contains(strings.ToLower(item.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(item.ExamineDesc), strings.ToLower(target)) {
+					m.displayItemExamine(item)
+					return
+				}
+			}
+		}
+
+		// Search NPCs in the room
+		characters, err := m.client.RoomCharacters.List(context.Background(), char.CurrentRoomID)
+		if err == nil && characters != nil {
+			for _, npc := range characters.Characters {
+				if npc.IsNPC && (strings.Contains(strings.ToLower(npc.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(npc.Description), strings.ToLower(target))) {
+					m.displayNPCExamine(npc)
+					return
+				}
+			}
+		}
+	}
+
+	m.message = fmt.Sprintf("You don't see '%s' here.", target)
+	m.messageType = "error"
+}
+
+// displayItemExamine displays detailed item information
+func (m *model) displayItemExamine(item *dbclient.Item) {
+	var output strings.Builder
+
+	output.WriteString(lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(item.Name))
+	output.WriteString("\n\n")
+
+	if item.Description != "" {
+		output.WriteString(item.Description)
+		output.WriteString("\n\n")
+	}
+
+	if item.ExamineDesc != "" {
+		output.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("Examination reveals: "))
+		output.WriteString(item.ExamineDesc)
+		output.WriteString("\n")
+	}
+
+	// Show stats if it's equipment
+	if item.Weight > 0 || item.Damage > 0 || item.Durability > 0 {
+		output.WriteString("\n--- Stats ---\n")
+		if item.Weight > 0 {
+			output.WriteString(fmt.Sprintf("Weight: %d\n", item.Weight))
+		}
+		if item.Damage > 0 {
+			output.WriteString(fmt.Sprintf("Damage: %d\n", item.Damage))
+		}
+		if item.Durability > 0 {
+			output.WriteString(fmt.Sprintf("Durability: %d/%d\n", item.Durability, item.Durability))
+		}
+	}
+
+	m.message = output.String()
+	m.messageType = "info"
+}
+
+// displayNPCExamine displays detailed NPC information
+func (m *model) displayNPCExamine(npc *dbclient.Character) {
+	var output strings.Builder
+
+	output.WriteString(lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(npc.Name))
+	output.WriteString("\n\n")
+
+	if npc.Description != "" {
+		output.WriteString(npc.Description)
+		output.WriteString("\n")
+	}
+
+	m.message = output.String()
+	m.messageType = "info"
+}
+
+// handleSkillsCommand shows available skills
+func (m *model) handleSkillsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use skills."
+		m.messageType = "error"
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d/skills", RESTAPIBase, m.currentCharacterID)
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode != 200 {
+		m.message = "Could not load skills."
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Body.Close()
+
+	var result struct {
+		Skills map[string]struct {
+			Level int    `json:"level"`
+			Bonus string `json:"bonus"`
+		} `json:"skills"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.message = "Error reading skills."
+		m.messageType = "error"
+		return
+	}
+
+	msg := "=== Your Skills ===\n"
+	for name, s := range result.Skills {
+		msg += fmt.Sprintf("  %s: %d (%s)\n", name, s.Level, s.Bonus)
+	}
+	m.message = msg
+	m.messageType = "info"
+}
+
+// handleSkillEquipCommand equips a skill
+func (m *model) handleSkillEquipCommand(cmd string) {
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage: skill equip <skill_id>"
+		m.messageType = "error"
+		return
+	}
+	if parts[1] != "equip" || len(parts) < 3 {
+		m.message = "Usage: skill equip <skill_id>"
+		m.messageType = "error"
+		return
+	}
+
+	m.message = "Skills are always active! Use 'talents' to manage ability slots."
+	m.messageType = "info"
+}
+
+// handleTalentsCommand shows equipped talents
+func (m *model) handleTalentsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use talents."
+		m.messageType = "error"
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode != 200 {
+		m.message = "Could not load talents."
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Slots [5]*struct {
+			Slot        int    `json:"slot"`
+			TalentID    int    `json:"talent_id"`
+			Name        string `json:"name"`
+			Description string `json:"description"`
+		} `json:"slots"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.message = "Error reading talents."
+		m.messageType = "error"
+		return
+	}
+
+	msg := "=== Your Talents ===\n"
+	for i := 1; i <= 4; i++ {
+		if result.Slots[i] != nil {
+			msg += fmt.Sprintf("  Slot %d: %s - %s\n", i, result.Slots[i].Name, result.Slots[i].Description)
+		} else {
+			msg += fmt.Sprintf("  Slot %d: (empty)\n", i)
+		}
+	}
+	msg += "\nUsage: talent equip <talent_id> <slot>\n       talent unequip <slot>"
+	m.message = msg
+	m.messageType = "info"
+}
+
+// handleTalentEquipCommand equips/unequips talents
+func (m *model) handleTalentEquipCommand(cmd string) {
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage: talent equip <talent_id> <slot>\n       talent unequip <slot>"
+		m.messageType = "error"
+		return
+	}
+
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use talents."
+		m.messageType = "error"
+		return
+	}
+
+	action := parts[1]
+
+	if action == "unequip" && len(parts) >= 3 {
+		slot := parts[2]
+		slotNum := 0
+		fmt.Sscanf(slot, "%d", &slotNum)
+		if slotNum < 1 || slotNum > 4 {
+			m.message = "Slot must be 1-4"
+			m.messageType = "error"
+			return
+		}
+
+		// Equip with talent_id = 0 to unequip
+		url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+		reqBody := fmt.Sprintf(`{"slot": %d, "talent_id": 0}`, slotNum)
+		resp, err := http.NewRequest("PUT", url, strings.NewReader(reqBody))
+		if err != nil {
+			m.message = "Error unequipping talent."
+			m.messageType = "error"
+			return
+		}
+		resp.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		_, err = client.Do(resp)
+		if err != nil {
+			m.message = "Error unequipping talent."
+			m.messageType = "error"
+			return
+		}
+		m.message = fmt.Sprintf("Unequipped talent from slot %d", slotNum)
+		m.messageType = "success"
+		return
+	}
+
+	if action == "equip" && len(parts) >= 4 {
+		talentID := parts[2]
+		slot := parts[3]
+		talentNum := 0
+		slotNum := 0
+		fmt.Sscanf(talentID, "%d", &talentNum)
+		fmt.Sscanf(slot, "%d", &slotNum)
+
+		if talentNum < 1 {
+			m.message = "Invalid talent ID"
+			m.messageType = "error"
+			return
+		}
+		if slotNum < 1 || slotNum > 4 {
+			m.message = "Slot must be 1-4"
+			m.messageType = "error"
+			return
+		}
+
+		url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+		reqBody := fmt.Sprintf(`{"slot": %d, "talent_id": %d}`, slotNum, talentNum)
+		resp, err := http.NewRequest("PUT", url, strings.NewReader(reqBody))
+		if err != nil {
+			m.message = "Error equipping talent."
+			m.messageType = "error"
+			return
+		}
+		resp.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		_, err = client.Do(resp)
+		if err != nil {
+			m.message = "Error equipping talent."
+			m.messageType = "error"
+			return
+		}
+		m.message = fmt.Sprintf("Equipped talent %d to slot %d", talentNum, slotNum)
+		m.messageType = "success"
+		return
+	}
+
+	m.message = "Usage: talent equip <talent_id> <slot>\n       talent unequip <slot>"
+	m.messageType = "error"
+}
+
+func (m *model) handleDebugCommand(cmd string) {
+	parts := strings.Fields(strings.ToLower(cmd))
+	if len(parts) < 2 {
+		// Show current debug status
+		if m.debugMode {
+			m.message = "Debug mode: ON (Room ID visible in status bar)"
+		} else {
+			m.message = "Debug mode: OFF\nUsage: debug on | debug off"
+		}
+		m.messageType = "info"
+		return
+	}
+
+	subCmd := parts[1]
+	switch subCmd {
+	case "on", "true", "1", "yes":
+		m.debugMode = true
+		m.message = "Debug mode: ON (Room ID will show in status bar)"
+		m.messageType = "success"
+	case "off", "false", "0", "no":
+		m.debugMode = false
+		m.message = "Debug mode: OFF"
+		m.messageType = "info"
+	default:
+		m.message = "Usage: debug on | debug off"
+		m.messageType = "error"
+	}
+}
+
+// handlePickupCommand handles the pickup/get/take command to pick up items from the room
+func (m *model) handlePickupCommand() {
+	ctx := context.Background()
+
+	// Get current room's items
+	room, err := m.client.Room.Get(ctx, m.currentRoomID)
+	if err != nil {
+		m.message = "Error: Could not find current room."
+		m.messageType = "error"
+		return
+	}
+
+	items, err := m.client.Room.QueryEquipment(room).All(ctx)
+	if err != nil {
+		m.message = "Error: Could not query room items."
+		m.messageType = "error"
+		return
+	}
+
+	// Filter for pickable items (not immovable, visible, weapon type)
+	var pickableItems []*db.Equipment
+	for _, item := range items {
+		if !item.IsImmovable && item.IsVisible && item.ItemType == "weapon" && item.IsDroppable {
+			pickableItems = append(pickableItems, item)
+		}
+	}
+
+	if len(pickableItems) == 0 {
+		m.message = "There are no weapons here to pick up."
+		m.messageType = "info"
+		return
+	}
+
+	// Get the first pickable weapon
+	weapon := pickableItems[0]
+
+	// Check character class restriction
+	char, err := m.client.Character.Get(ctx, m.currentCharacterID)
+	if err != nil {
+		m.message = "Error: Could not find your character."
+		m.messageType = "error"
+		return
+	}
+
+	if weapon.ClassRestriction != "" && weapon.ClassRestriction != "all" && weapon.ClassRestriction != char.Class {
+		m.message = fmt.Sprintf("You cannot use the %s - it's restricted to %s class.", weapon.Name, weapon.ClassRestriction)
+		m.messageType = "error"
+		return
+	}
+
+	// Move weapon from room to character inventory
+	err = m.client.Equipment.UpdateOne(weapon).
+		SetRoom(nil).
+		SetCharacter(char).
+		SetIsEquipped(true).
+		Exec(ctx)
+	if err != nil {
+		m.message = fmt.Sprintf("Error: Could not pick up %s: %v", weapon.Name, err)
+		m.messageType = "error"
+		return
+	}
+
+	// Format success message with weapon details
+	m.message = fmt.Sprintf("You pick up the %s!\n  Damage: %d-%d\n  Type: %s\n\nIt glows faintly in your hand as you equip it.",
+		weapon.Name, weapon.MinDamage, weapon.MaxDamage, weapon.WeaponType)
+	m.messageType = "success"
+
+	// Update character's equipped weapon reference if needed
+	m.message += "\n(Use 'unequip' to remove it)"
+}
+
+// handleReadCommand handles the read command to read text content from items
+func (m *model) handleReadCommand(itemName string) {
+	ctx := context.Background()
+
+	// First, check items in the room
+	room, err := m.client.Room.Get(ctx, m.currentRoomID)
+	if err != nil {
+		m.message = "Error: Could not find current room."
+		m.messageType = "error"
+		return
+	}
+
+	roomItems, err := m.client.Room.QueryEquipment(room).All(ctx)
+	if err != nil {
+		m.message = "Error: Could not query room items."
+		m.messageType = "error"
+		return
+	}
+
+	// Then check character's inventory
+	char, err := m.client.Character.Get(ctx, m.currentCharacterID)
+	if err != nil {
+		m.message = "Error: Could not find your character."
+		m.messageType = "error"
+		return
+	}
+
+	charItems, err := m.client.Character.QueryEquipment(char).All(ctx)
+	if err != nil {
+		m.message = "Error: Could not query inventory."
+		m.messageType = "error"
+		return
+	}
+
+	// Search for the item in room and inventory
+	var targetItem *db.Equipment
+	for _, item := range roomItems {
+		if strings.Contains(strings.ToLower(item.Name), strings.ToLower(itemName)) {
+			targetItem = item
+			break
+		}
+	}
+	if targetItem == nil {
+		for _, item := range charItems {
+			if strings.Contains(strings.ToLower(item.Name), strings.ToLower(itemName)) {
+				targetItem = item
+				break
+			}
+		}
+	}
+
+	if targetItem == nil {
+		m.message = fmt.Sprintf("You don't see a '%s' here.", itemName)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if item is readable
+	if !targetItem.IsReadable {
+		m.message = fmt.Sprintf("You can't read the %s.", targetItem.Name)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if skill check is required
+	if targetItem.ReadSkill != "" && targetItem.ReadSkillLevel > 0 {
+		// Get character's skill level
+		skillLevel := m.getCharacterSkillLevel(targetItem.ReadSkill)
+		if skillLevel < targetItem.ReadSkillLevel {
+			m.message = fmt.Sprintf("[Requires %s skill level %d to decode]\n(You have %s skill level %d. Cannot read.)",
+				targetItem.ReadSkill, targetItem.ReadSkillLevel, targetItem.ReadSkill, skillLevel)
+			m.messageType = "info"
+			return
+		}
+		// Skill check passed - show decrypted content if available
+		if targetItem.DecryptedContent != "" {
+			m.message = fmt.Sprintf("%s\n\n%s", targetItem.Name, targetItem.DecryptedContent)
+			m.messageType = "info"
+			return
+		}
+	}
+
+	// Show regular content
+	if targetItem.Content == "" {
+		m.message = fmt.Sprintf("The %s is blank.", targetItem.Name)
+		m.messageType = "info"
+		return
+	}
+
+	m.message = fmt.Sprintf("%s\n\n%s", targetItem.Name, targetItem.Content)
+	m.messageType = "info"
+}
+
+// getCharacterSkillLevel returns the character's level in a given skill
+func (m *model) getCharacterSkillLevel(skillName string) int {
+	ctx := context.Background()
+
+	// Get all skills for the character
+	char, err := m.client.Character.Get(ctx, m.currentCharacterID)
+	if err != nil {
+		return 0
+	}
+
+	skills, err := m.client.Character.QuerySkills(char).All(ctx)
+	if err != nil {
+		return 0
+	}
+
+	// Find matching skill (case-insensitive)
+	for _, skill := range skills {
+		if strings.Contains(strings.ToLower(skill.Name), strings.ToLower(skillName)) {
+			return skill.Level
+		}
+	}
+
+	return 0
+}
+
 func (m *model) loadOrCreateCharacter() {
 	// Query for existing character for this user
 	ctx := context.Background()
 	chars, err := m.client.Character.Query().Where(character.HasUserWith(user.IDEQ(m.currentUserID))).All(ctx)
 	if err != nil || len(chars) == 0 {
-		// No character in DB yet - try to create one via API
-		log.Printf("No character found for user %d, attempting to create...", m.currentUserID)
-		m.createCharacterInDB()
+		// No character yet - use defaults
+		m.currentCharacterName = m.currentUserName
+		m.characterGender = "unspecified"
+		m.characterDescription = "A mysterious figure."
+		// Default stats for new characters (Level 1)
+		m.characterHP = 100
+		m.characterMaxHP = 100
+		m.characterStamina = 50
+		m.characterMaxStamina = 50
+		m.characterMana = 25
+		m.characterMaxMana = 25
+		m.characterLevel = 1
+		m.characterExperience = 0
 		return
 	}
 
@@ -1125,20 +2044,20 @@ func (m *model) loadOrCreateCharacter() {
 	m.currentCharacterID = char.ID
 	m.currentCharacterName = char.Name
 	// Gender/Description - use from DB if available, else defaults
-// 	m.characterGender = char.Gender
-// 	m.characterDescription = char.Description
-// 
-// 	// Calculate HP/Stamina/Mana from stats (constitution → HP, dexterity → stamina, intelligence → mana)
-// 	// Base: 50 + (stat * 5)
-// 	m.characterMaxHP = 50 + (char.Constitution * 5)
-// 	m.characterMaxStamina = 50 + (char.Dexterity * 5)
-// 	m.characterMaxMana = 50 + (char.Intelligence * 5)
-// 	m.characterHP = m.characterMaxHP
-// 	m.characterStamina = m.characterMaxStamina
-// 	m.characterMana = m.characterMaxMana
-// 
-// 	// Level/Experience - based on total stats for now
-// 	// Level/Experience - defaults since stats not available
+	// 	m.characterGender = char.Gender
+	// 	m.characterDescription = char.Description
+	//
+	// 	// Calculate HP/Stamina/Mana from stats (constitution → HP, dexterity → stamina, intelligence → mana)
+	// 	// Base: 50 + (stat * 5)
+	// 	m.characterMaxHP = 50 + (char.Constitution * 5)
+	// 	m.characterMaxStamina = 50 + (char.Dexterity * 5)
+	// 	m.characterMaxMana = 50 + (char.Intelligence * 5)
+	// 	m.characterHP = m.characterMaxHP
+	// 	m.characterStamina = m.characterMaxStamina
+	// 	m.characterMana = m.characterMaxMana
+	//
+	// 	// Level/Experience - based on total stats for now
+	// 	// Level/Experience - defaults since stats not available
 	m.characterLevel = 1
 	m.characterExperience = 0
 }
@@ -1151,10 +2070,6 @@ func (m *model) View() string {
 	var s strings.Builder
 
 	// Debug: log.Printf("View() called, screen: %s, inputBuffer: %q", m.screen, m.inputBuffer)
-
-	// Clear screen before each render to prevent previous state showing below new content
-	// This fixes the "output re-rendering glitch" where previous state appears below new content
-	s.WriteString("\033[2J\033[H")
 
 	// Show loading spinner if loading
 	if m.isLoading {
@@ -1192,62 +2107,160 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
-		// Use split-screen layout like ScreenPlaying
-		outputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(cyan).
-			Padding(0, 1)
-
-		loginContent := loginScreen(m.width, m.height)
-		if m.message != "" {
-			loginContent += "\n\n" + m.styledMessage(m.message)
+		// Split-screen layout matching ScreenPlaying
+		width := m.width
+		height := m.height
+		if width < 40 {
+			width = 40
+		}
+		if height < 10 {
+			height = 10
 		}
 
-		s.WriteString(outputStyle.Render(loginContent))
-		s.WriteString("\n\n")
+		// Calculate proportional heights (same as ScreenPlaying)
+		inputHeight := height * 20 / 100
+		if inputHeight < 3 {
+			inputHeight = 3
+		}
+		statusHeight := height * 10 / 100
+		if statusHeight < 3 {
+			statusHeight = 3
+		}
+		viewportHeight := height - inputHeight - statusHeight
+		if viewportHeight < 5 {
+			viewportHeight = 5
+		}
 
-		// Separator
-		separatorStyle := lipgloss.NewStyle().
-			Foreground(cyan).
-			Bold(true)
-		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
+		// Output viewport (top ~70%)
+		outputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("75")).
+			Padding(1, 1).
+			Width(width - 2).
+			Height(viewportHeight - 2)
+
+		content := loginScreenContent()
+		s.WriteString(outputStyle.Render(content))
 		s.WriteString("\n")
 
-		// Input area
+		// Status bar separator (middle ~10%)
+		separatorStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("75")).
+			Bold(true).
+			Width(width)
+		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
+		s.WriteString(separatorLine)
+		s.WriteString("\n")
+
+		// Status line showing current prompt
+		fieldLabel := "Username:"
+		if m.inputField == "password" {
+			fieldLabel = "Password:"
+		}
+		var statusText string
+		if m.messageType != "" && m.message != "" {
+			// Show error/success messages
+			statusText = lipgloss.NewStyle().Foreground(lipgloss.Color("86")).Bold(true).Render("LOGIN: ") + m.styledMessage(m.message)
+		} else {
+			// Show current field label
+			statusText = lipgloss.NewStyle().Foreground(lipgloss.Color("86")).Bold(true).Render("LOGIN: ") + fieldLabel
+		}
+		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statusText))
+		s.WriteString("\n")
+		s.WriteString(separatorLine)
+		s.WriteString("\n")
+
+		// Input area (bottom ~20%)
 		inputStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(cyan).
-			Padding(0, 1)
+			BorderForeground(lipgloss.Color("75")).
+			Padding(0, 1).
+			Width(width - 2).
+			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+
+		// Don't center - return directly like ScreenPlaying
+		return s.String()
 
 	case ScreenRegister:
-		// Use split-screen layout like ScreenPlaying
-		outputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
-			Padding(0, 1)
-
-		registerContent := registerScreen(m.width, m.height)
-		if m.message != "" {
-			registerContent += "\n\n" + m.styledMessage(m.message)
+		// Split-screen layout matching ScreenPlaying
+		width := m.width
+		height := m.height
+		if width < 40 {
+			width = 40
+		}
+		if height < 10 {
+			height = 10
 		}
 
-		s.WriteString(outputStyle.Render(registerContent))
-		s.WriteString("\n\n")
+		// Calculate proportional heights (same as ScreenPlaying)
+		inputHeight := height * 20 / 100
+		if inputHeight < 3 {
+			inputHeight = 3
+		}
+		statusHeight := height * 10 / 100
+		if statusHeight < 3 {
+			statusHeight = 3
+		}
+		viewportHeight := height - inputHeight - statusHeight
+		if viewportHeight < 5 {
+			viewportHeight = 5
+		}
 
-		// Separator
-		separatorStyle := lipgloss.NewStyle().
-			Foreground(purple).
-			Bold(true)
-		s.WriteString(separatorStyle.Render(strings.Repeat("─", int(math.Max(0, float64(m.width-4))))))
+		// Output viewport (top ~70%)
+		outputStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("147")).
+			Padding(1, 1).
+			Width(width - 2).
+			Height(viewportHeight - 2)
+
+		content := registerScreenContent()
+		s.WriteString(outputStyle.Render(content))
 		s.WriteString("\n")
 
-		// Input area
+		// Status bar separator (middle ~10%)
+		separatorStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("147")).
+			Bold(true).
+			Width(width)
+		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
+		s.WriteString(separatorLine)
+		s.WriteString("\n")
+
+		// Status line showing current prompt
+		fieldLabel := "Username:"
+		if m.inputField == "password" {
+			fieldLabel = "Password:"
+		} else if m.inputField == "confirm_password" {
+			fieldLabel = "Confirm password:"
+		} else if m.inputField == "email" {
+			fieldLabel = "Email (optional):"
+		}
+		var statusText string
+		if m.messageType != "" && m.message != "" {
+			// Show error/success messages
+			statusText = lipgloss.NewStyle().Foreground(lipgloss.Color("86")).Bold(true).Render("REGISTER: ") + m.styledMessage(m.message)
+		} else {
+			// Show current field label
+			statusText = lipgloss.NewStyle().Foreground(lipgloss.Color("86")).Bold(true).Render("REGISTER: ") + fieldLabel
+		}
+		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statusText))
+		s.WriteString("\n")
+		s.WriteString(separatorLine)
+		s.WriteString("\n")
+
+		// Input area (bottom ~20%)
 		inputStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
-			Padding(0, 1)
+			BorderForeground(lipgloss.Color("147")).
+			Padding(0, 1).
+			Width(width - 2).
+			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
+
+		// Don't center - return directly like ScreenPlaying
+		return s.String()
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
@@ -1292,6 +2305,11 @@ func (m *model) View() string {
 		s.WriteString(m.textInput.View())
 
 	case ScreenPlaying:
+		// CRITICAL: Clear message BEFORE rendering to prevent previous state from showing
+		// This fixes the "output re-rendering glitch" bug where old content briefly appears
+		m.message = ""
+		m.messageType = ""
+
 		// Ensure we have valid dimensions - if not, use defaults
 		width := m.width
 		height := m.height
@@ -1322,23 +2340,44 @@ func (m *model) View() string {
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(pink).
 			Padding(0, 1).
-			Width(width - 2).          // Account for border
-			Height(viewportHeight - 2) // Account for border
+			Width(width-2).                    // Account for border
+			Height(viewportHeight-2).          // Account for border
+			Align(lipgloss.Left, lipgloss.Top) // Fill from top-left, don't center
 
 		// Colorful status bar with mini progress bars
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
 
+		// Debug mode - show room ID when enabled
+		debugInfo := ""
+		if m.debugMode {
+			debugInfo = " " + lipgloss.NewStyle().Foreground(yellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))
+		}
+
 		// Room info at top with styling (only in output viewport, no stats)
-		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
+		itemStr := m.formatRoomItemsWithColor()
+		charStr := m.formatRoomCharactersWithColor()
+
+		var extraParts []string
+		if itemStr != "" {
+			extraParts = append(extraParts, itemStr)
+		}
+		if charStr != "" {
+			extraParts = append(extraParts, charStr)
+		}
+		extraPart := ""
+		if len(extraParts) > 0 {
+			extraPart = "\n\n" + strings.Join(extraParts, "\n\n")
+		}
+
+		roomInfo := fmt.Sprintf("[%s]\n%s%s\n\nExits: %s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
+			extraPart,
 			m.formatExitsWithColor())
-
 		// Show message if any
 		if m.message != "" {
 			roomInfo += "\n\n" + m.styledMessage(m.message)
 		}
-
 		// Render output viewport with pink border (room info only, no stats)
 		s.WriteString(outputStyle.Render(roomInfo))
 		s.WriteString("\n")
@@ -1351,8 +2390,9 @@ func (m *model) View() string {
 		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
 		s.WriteString(separatorLine)
 		s.WriteString("\n")
-		// Stats go in the actual status bar (middle panel)
-		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLine))
+		// Stats go in the actual status bar (middle panel) - include debug info if enabled
+		statsLineWithDebug := statsLine + debugInfo
+		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLineWithDebug))
 		s.WriteString("\n")
 		s.WriteString(separatorLine)
 		s.WriteString("\n")
@@ -1366,34 +2406,31 @@ func (m *model) View() string {
 			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
-		// ScreenPlaying uses full-width panels - don't center, just clear message and return
-		m.message = ""
-		m.messageType = ""
+		// ScreenPlaying uses full-width panels - don't center, return directly
 		return s.String()
 	}
 
 	// Center in terminal (optional - can be disabled if causing issues)
-	if m.width > 0 && m.height > 0 && m.width > 60 {
+	// Use lipgloss.Width() to correctly handle ANSI escape codes (fixes issue #75)
+	// CRITICAL: Respect terminal width - don't center if content would be truncated
+	// NOTE: Vertical centering is DISABLED to fix viewport height issues
+	// Only horizontal centering is applied to non-fullscreen screens
+	if m.width > 0 && m.width > 60 {
 		lines := strings.Split(s.String(), "\n")
 		var centered []string
 		for _, line := range lines {
-			padding := (m.width - len(line)) / 2
-			if padding > 0 && len(line) < m.width-10 {
+			visualWidth := lipgloss.Width(line)
+			// Only center horizontally if it won't cause truncation
+			padding := (m.width - visualWidth) / 2
+			if padding > 0 && visualWidth > 0 && visualWidth < m.width {
 				centered = append(centered, fmt.Sprintf("%*s%s", padding, "", line))
 			} else {
+				// Content exceeds or matches terminal width - don't pad, let it flow
 				centered = append(centered, line)
 			}
 		}
-		// Clear message after rendering to prevent accumulation
-		m.message = ""
-		m.messageType = ""
 		return strings.Join(centered, "\n")
 	}
-
-	// Clear message after rendering to prevent accumulation on next tick
-	// This fixes the "jumbled text" issue during combat and other rapid updates
-	m.message = ""
-	m.messageType = ""
 
 	return s.String()
 }
@@ -1440,90 +2477,34 @@ func welcomeScreen() string {
 `)
 }
 
-func loginScreen(width, height int) string {
-	// Calculate dynamic dimensions
-	boxWidth := 60
-	if width > 70 {
-		boxWidth = width - 20
-	}
-	if boxWidth > 100 {
-		boxWidth = 100
-	}
-
-	verticalPadding := 2
-	if height > 20 {
-		verticalPadding = (height - 16) / 2
-	}
-	if verticalPadding > 10 {
-		verticalPadding = 10
-	}
-
-	// Build dynamic login screen
-	horizontalBorder := strings.Repeat("═", boxWidth-2)
-
-	var sb strings.Builder
-	// Top padding for vertical centering
-	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	// Box
-	sb.WriteString(lipgloss.NewStyle().
-		Width(boxWidth).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("75")).
-		Padding(1, 2).
-		Render(fmt.Sprintf(`
-╔%s╗
-║%s║
-║%s║
-║%s║
-╚%s╝
-`, horizontalBorder,
-			strings.Repeat(" ", boxWidth-2),
-			"                      LOGIN                          ",
-			"  Enter your credentials to continue your adventure.  ",
-			horizontalBorder)))
-
-	return sb.String()
+// loginScreenContent returns the content for the login screen (layout handled in View())
+func loginScreenContent() string {
+	return `
+        ╔════════════════════════════════════════╗
+        ║                                        ║
+        ║              === LOGIN ===             ║
+        ║                                        ║
+        ║    Enter your credentials to           ║
+        ║    continue your adventure.            ║
+        ║                                        ║
+        ║    Press ESC to go back to menu        ║
+        ║                                        ║
+        ╚════════════════════════════════════════╝
+`
 }
 
-func registerScreen(width, height int) string {
-	// Calculate dynamic dimensions
-	boxWidth := 60
-	if width > 70 {
-		boxWidth = width - 20
-	}
-	if boxWidth > 100 {
-		boxWidth = 100
-	}
-
-	verticalPadding := 2
-	if height > 20 {
-		verticalPadding = (height - 16) / 2
-	}
-	if verticalPadding > 10 {
-		verticalPadding = 10
-	}
-
-	// Build dynamic register screen
-	horizontalBorder := strings.Repeat("═", boxWidth-2)
-
-	var sb strings.Builder
-	// Top padding for vertical centering
-	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	// Box - split screen style with purple border
-	sb.WriteString(lipgloss.NewStyle().
-		Width(boxWidth).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(purple).
-		Padding(1, 2).
-		Render(`
-╔════════════════════════════════════════════════════════════╗
-║                      CREATE ACCOUNT                          ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   Create a new account to begin your adventure!            ║
-║   Press ESC to go back to the main menu.                    ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`)
+// registerScreenContent returns the content for the register screen (layout handled in View())
+func registerScreenContent() string {
+	return `
+        ╔════════════════════════════════════════╗
+        ║                                        ║
+        ║           === CREATE ACCOUNT ===        ║
+        ║                                        ║
+        ║    Choose a username and password      ║
+        ║    to begin your adventure.            ║
+        ║                                        ║
+        ║    Press ESC to go back to menu        ║
+        ║                                        ║
+        ╚════════════════════════════════════════╝
+`
 }
->>>>>>> main
