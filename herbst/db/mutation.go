@@ -2961,27 +2961,32 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 // EquipmentMutation represents an operation that mutates the Equipment nodes in the graph.
 type EquipmentMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	name          *string
-	description   *string
-	slot          *string
-	level         *int
-	addlevel      *int
-	weight        *int
-	addweight     *int
-	isEquipped    *bool
-	isImmovable   *bool
-	color         *string
-	isVisible     *bool
-	itemType      *string
-	clearedFields map[string]struct{}
-	room          *int
-	clearedroom   bool
-	done          bool
-	oldValue      func(context.Context) (*Equipment, error)
-	predicates    []predicate.Equipment
+	op                  Op
+	typ                 string
+	id                  *int
+	name                *string
+	description         *string
+	slot                *string
+	level               *int
+	addlevel            *int
+	weight              *int
+	addweight           *int
+	isEquipped          *bool
+	isImmovable         *bool
+	color               *string
+	isVisible           *bool
+	itemType            *string
+	examineDesc         *string
+	hiddenDetails       *[]map[string]interface{}
+	appendhiddenDetails []map[string]interface{}
+	hiddenThreshold     *int
+	addhiddenThreshold  *int
+	clearedFields       map[string]struct{}
+	room                *int
+	clearedroom         bool
+	done                bool
+	oldValue            func(context.Context) (*Equipment, error)
+	predicates          []predicate.Equipment
 }
 
 var _ ent.Mutation = (*EquipmentMutation)(nil)
@@ -3482,6 +3487,149 @@ func (m *EquipmentMutation) ResetItemType() {
 	m.itemType = nil
 }
 
+// SetExamineDesc sets the "examineDesc" field.
+func (m *EquipmentMutation) SetExamineDesc(s string) {
+	m.examineDesc = &s
+}
+
+// ExamineDesc returns the value of the "examineDesc" field in the mutation.
+func (m *EquipmentMutation) ExamineDesc() (r string, exists bool) {
+	v := m.examineDesc
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExamineDesc returns the old "examineDesc" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldExamineDesc(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExamineDesc is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExamineDesc requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExamineDesc: %w", err)
+	}
+	return oldValue.ExamineDesc, nil
+}
+
+// ResetExamineDesc resets all changes to the "examineDesc" field.
+func (m *EquipmentMutation) ResetExamineDesc() {
+	m.examineDesc = nil
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (m *EquipmentMutation) SetHiddenDetails(value []map[string]interface{}) {
+	m.hiddenDetails = &value
+	m.appendhiddenDetails = nil
+}
+
+// HiddenDetails returns the value of the "hiddenDetails" field in the mutation.
+func (m *EquipmentMutation) HiddenDetails() (r []map[string]interface{}, exists bool) {
+	v := m.hiddenDetails
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHiddenDetails returns the old "hiddenDetails" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldHiddenDetails(ctx context.Context) (v []map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHiddenDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHiddenDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHiddenDetails: %w", err)
+	}
+	return oldValue.HiddenDetails, nil
+}
+
+// AppendHiddenDetails adds value to the "hiddenDetails" field.
+func (m *EquipmentMutation) AppendHiddenDetails(value []map[string]interface{}) {
+	m.appendhiddenDetails = append(m.appendhiddenDetails, value...)
+}
+
+// AppendedHiddenDetails returns the list of values that were appended to the "hiddenDetails" field in this mutation.
+func (m *EquipmentMutation) AppendedHiddenDetails() ([]map[string]interface{}, bool) {
+	if len(m.appendhiddenDetails) == 0 {
+		return nil, false
+	}
+	return m.appendhiddenDetails, true
+}
+
+// ResetHiddenDetails resets all changes to the "hiddenDetails" field.
+func (m *EquipmentMutation) ResetHiddenDetails() {
+	m.hiddenDetails = nil
+	m.appendhiddenDetails = nil
+}
+
+// SetHiddenThreshold sets the "hiddenThreshold" field.
+func (m *EquipmentMutation) SetHiddenThreshold(i int) {
+	m.hiddenThreshold = &i
+	m.addhiddenThreshold = nil
+}
+
+// HiddenThreshold returns the value of the "hiddenThreshold" field in the mutation.
+func (m *EquipmentMutation) HiddenThreshold() (r int, exists bool) {
+	v := m.hiddenThreshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHiddenThreshold returns the old "hiddenThreshold" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldHiddenThreshold(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHiddenThreshold is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHiddenThreshold requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHiddenThreshold: %w", err)
+	}
+	return oldValue.HiddenThreshold, nil
+}
+
+// AddHiddenThreshold adds i to the "hiddenThreshold" field.
+func (m *EquipmentMutation) AddHiddenThreshold(i int) {
+	if m.addhiddenThreshold != nil {
+		*m.addhiddenThreshold += i
+	} else {
+		m.addhiddenThreshold = &i
+	}
+}
+
+// AddedHiddenThreshold returns the value that was added to the "hiddenThreshold" field in this mutation.
+func (m *EquipmentMutation) AddedHiddenThreshold() (r int, exists bool) {
+	v := m.addhiddenThreshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHiddenThreshold resets all changes to the "hiddenThreshold" field.
+func (m *EquipmentMutation) ResetHiddenThreshold() {
+	m.hiddenThreshold = nil
+	m.addhiddenThreshold = nil
+}
+
 // SetRoomID sets the "room" edge to the Room entity by id.
 func (m *EquipmentMutation) SetRoomID(id int) {
 	m.room = &id
@@ -3555,7 +3703,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 13)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -3586,6 +3734,15 @@ func (m *EquipmentMutation) Fields() []string {
 	if m.itemType != nil {
 		fields = append(fields, equipment.FieldItemType)
 	}
+	if m.examineDesc != nil {
+		fields = append(fields, equipment.FieldExamineDesc)
+	}
+	if m.hiddenDetails != nil {
+		fields = append(fields, equipment.FieldHiddenDetails)
+	}
+	if m.hiddenThreshold != nil {
+		fields = append(fields, equipment.FieldHiddenThreshold)
+	}
 	return fields
 }
 
@@ -3614,6 +3771,12 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.IsVisible()
 	case equipment.FieldItemType:
 		return m.ItemType()
+	case equipment.FieldExamineDesc:
+		return m.ExamineDesc()
+	case equipment.FieldHiddenDetails:
+		return m.HiddenDetails()
+	case equipment.FieldHiddenThreshold:
+		return m.HiddenThreshold()
 	}
 	return nil, false
 }
@@ -3643,6 +3806,12 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldIsVisible(ctx)
 	case equipment.FieldItemType:
 		return m.OldItemType(ctx)
+	case equipment.FieldExamineDesc:
+		return m.OldExamineDesc(ctx)
+	case equipment.FieldHiddenDetails:
+		return m.OldHiddenDetails(ctx)
+	case equipment.FieldHiddenThreshold:
+		return m.OldHiddenThreshold(ctx)
 	}
 	return nil, fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -3722,6 +3891,27 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetItemType(v)
 		return nil
+	case equipment.FieldExamineDesc:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExamineDesc(v)
+		return nil
+	case equipment.FieldHiddenDetails:
+		v, ok := value.([]map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHiddenDetails(v)
+		return nil
+	case equipment.FieldHiddenThreshold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHiddenThreshold(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -3736,6 +3926,9 @@ func (m *EquipmentMutation) AddedFields() []string {
 	if m.addweight != nil {
 		fields = append(fields, equipment.FieldWeight)
 	}
+	if m.addhiddenThreshold != nil {
+		fields = append(fields, equipment.FieldHiddenThreshold)
+	}
 	return fields
 }
 
@@ -3748,6 +3941,8 @@ func (m *EquipmentMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedLevel()
 	case equipment.FieldWeight:
 		return m.AddedWeight()
+	case equipment.FieldHiddenThreshold:
+		return m.AddedHiddenThreshold()
 	}
 	return nil, false
 }
@@ -3770,6 +3965,13 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddWeight(v)
+		return nil
+	case equipment.FieldHiddenThreshold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHiddenThreshold(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment numeric field %s", name)
@@ -3827,6 +4029,15 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldItemType:
 		m.ResetItemType()
+		return nil
+	case equipment.FieldExamineDesc:
+		m.ResetExamineDesc()
+		return nil
+	case equipment.FieldHiddenDetails:
+		m.ResetHiddenDetails()
+		return nil
+	case equipment.FieldHiddenThreshold:
+		m.ResetHiddenThreshold()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)

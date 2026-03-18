@@ -147,6 +147,18 @@ func init() {
 	equipmentDescItemType := equipmentFields[9].Descriptor()
 	// equipment.DefaultItemType holds the default value on creation for the itemType field.
 	equipment.DefaultItemType = equipmentDescItemType.Default.(string)
+	// equipmentDescExamineDesc is the schema descriptor for examineDesc field.
+	equipmentDescExamineDesc := equipmentFields[10].Descriptor()
+	// equipment.DefaultExamineDesc holds the default value on creation for the examineDesc field.
+	equipment.DefaultExamineDesc = equipmentDescExamineDesc.Default.(string)
+	// equipmentDescHiddenDetails is the schema descriptor for hiddenDetails field.
+	equipmentDescHiddenDetails := equipmentFields[11].Descriptor()
+	// equipment.DefaultHiddenDetails holds the default value on creation for the hiddenDetails field.
+	equipment.DefaultHiddenDetails = equipmentDescHiddenDetails.Default.([]map[string]interface{})
+	// equipmentDescHiddenThreshold is the schema descriptor for hiddenThreshold field.
+	equipmentDescHiddenThreshold := equipmentFields[12].Descriptor()
+	// equipment.DefaultHiddenThreshold holds the default value on creation for the hiddenThreshold field.
+	equipment.DefaultHiddenThreshold = equipmentDescHiddenThreshold.Default.(int)
 	npctemplateFields := schema.NPCTemplate{}.Fields()
 	_ = npctemplateFields
 	// npctemplateDescLevel is the schema descriptor for level field.

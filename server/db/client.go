@@ -396,7 +396,7 @@ func (c *AvailableTalentClient) QueryCharacter(_m *AvailableTalent) *CharacterQu
 		step := sqlgraph.NewStep(
 			sqlgraph.From(availabletalent.Table, availabletalent.FieldID, id),
 			sqlgraph.To(character.Table, character.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, availabletalent.CharacterTable, availabletalent.CharacterPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, availabletalent.CharacterTable, availabletalent.CharacterColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -412,7 +412,7 @@ func (c *AvailableTalentClient) QueryTalent(_m *AvailableTalent) *TalentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(availabletalent.Table, availabletalent.FieldID, id),
 			sqlgraph.To(talent.Table, talent.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, availabletalent.TalentTable, availabletalent.TalentPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, availabletalent.TalentTable, availabletalent.TalentColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -609,7 +609,7 @@ func (c *CharacterClient) QueryAvailableTalents(_m *Character) *AvailableTalentQ
 		step := sqlgraph.NewStep(
 			sqlgraph.From(character.Table, character.FieldID, id),
 			sqlgraph.To(availabletalent.Table, availabletalent.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, character.AvailableTalentsTable, character.AvailableTalentsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.AvailableTalentsTable, character.AvailableTalentsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1732,7 +1732,7 @@ func (c *TalentClient) QueryAvailableToCharacters(_m *Talent) *AvailableTalentQu
 		step := sqlgraph.NewStep(
 			sqlgraph.From(talent.Table, talent.FieldID, id),
 			sqlgraph.To(availabletalent.Table, availabletalent.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, talent.AvailableToCharactersTable, talent.AvailableToCharactersPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, talent.AvailableToCharactersTable, talent.AvailableToCharactersColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

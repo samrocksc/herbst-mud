@@ -104,6 +104,16 @@ func ItemType(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldItemType, v))
 }
 
+// ExamineDesc applies equality check predicate on the "examineDesc" field. It's identical to ExamineDescEQ.
+func ExamineDesc(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldExamineDesc, v))
+}
+
+// HiddenThreshold applies equality check predicate on the "hiddenThreshold" field. It's identical to HiddenThresholdEQ.
+func HiddenThreshold(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldHiddenThreshold, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldName, v))
@@ -537,6 +547,111 @@ func ItemTypeEqualFold(v string) predicate.Equipment {
 // ItemTypeContainsFold applies the ContainsFold predicate on the "itemType" field.
 func ItemTypeContainsFold(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldContainsFold(FieldItemType, v))
+}
+
+// ExamineDescEQ applies the EQ predicate on the "examineDesc" field.
+func ExamineDescEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldExamineDesc, v))
+}
+
+// ExamineDescNEQ applies the NEQ predicate on the "examineDesc" field.
+func ExamineDescNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldExamineDesc, v))
+}
+
+// ExamineDescIn applies the In predicate on the "examineDesc" field.
+func ExamineDescIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldExamineDesc, vs...))
+}
+
+// ExamineDescNotIn applies the NotIn predicate on the "examineDesc" field.
+func ExamineDescNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldExamineDesc, vs...))
+}
+
+// ExamineDescGT applies the GT predicate on the "examineDesc" field.
+func ExamineDescGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldExamineDesc, v))
+}
+
+// ExamineDescGTE applies the GTE predicate on the "examineDesc" field.
+func ExamineDescGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldExamineDesc, v))
+}
+
+// ExamineDescLT applies the LT predicate on the "examineDesc" field.
+func ExamineDescLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldExamineDesc, v))
+}
+
+// ExamineDescLTE applies the LTE predicate on the "examineDesc" field.
+func ExamineDescLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldExamineDesc, v))
+}
+
+// ExamineDescContains applies the Contains predicate on the "examineDesc" field.
+func ExamineDescContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldExamineDesc, v))
+}
+
+// ExamineDescHasPrefix applies the HasPrefix predicate on the "examineDesc" field.
+func ExamineDescHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldExamineDesc, v))
+}
+
+// ExamineDescHasSuffix applies the HasSuffix predicate on the "examineDesc" field.
+func ExamineDescHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldExamineDesc, v))
+}
+
+// ExamineDescEqualFold applies the EqualFold predicate on the "examineDesc" field.
+func ExamineDescEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldExamineDesc, v))
+}
+
+// ExamineDescContainsFold applies the ContainsFold predicate on the "examineDesc" field.
+func ExamineDescContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldExamineDesc, v))
+}
+
+// HiddenThresholdEQ applies the EQ predicate on the "hiddenThreshold" field.
+func HiddenThresholdEQ(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldHiddenThreshold, v))
+}
+
+// HiddenThresholdNEQ applies the NEQ predicate on the "hiddenThreshold" field.
+func HiddenThresholdNEQ(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldHiddenThreshold, v))
+}
+
+// HiddenThresholdIn applies the In predicate on the "hiddenThreshold" field.
+func HiddenThresholdIn(vs ...int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldHiddenThreshold, vs...))
+}
+
+// HiddenThresholdNotIn applies the NotIn predicate on the "hiddenThreshold" field.
+func HiddenThresholdNotIn(vs ...int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldHiddenThreshold, vs...))
+}
+
+// HiddenThresholdGT applies the GT predicate on the "hiddenThreshold" field.
+func HiddenThresholdGT(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldHiddenThreshold, v))
+}
+
+// HiddenThresholdGTE applies the GTE predicate on the "hiddenThreshold" field.
+func HiddenThresholdGTE(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldHiddenThreshold, v))
+}
+
+// HiddenThresholdLT applies the LT predicate on the "hiddenThreshold" field.
+func HiddenThresholdLT(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldHiddenThreshold, v))
+}
+
+// HiddenThresholdLTE applies the LTE predicate on the "hiddenThreshold" field.
+func HiddenThresholdLTE(v int) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldHiddenThreshold, v))
 }
 
 // HasRoom applies the HasEdge predicate on the "room" edge.
