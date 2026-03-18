@@ -1058,11 +1058,13 @@ func (m *model) processCommand(cmd string) {
 	}
 
 	// Handle other commands
+	parts := strings.Fields(cmd)
 	switch cmd {
 	case "help", "?":
 		m.message = `Commands:
   n/north, s/south, e/east, w/west - Move
   look/l - Look around
+  look at <target> - Look at item/NPC/person
   look in <container> - See inside container
   exits/x - Show exits  
   peer <dir> - Peek at adjacent room
@@ -1075,6 +1077,11 @@ func (m *model) processCommand(cmd string) {
   quit - Exit game`
 		m.messageType = "info"
 	case "look", "l":
+		// Check for "look at <target>" syntax - delegate to examine
+		if len(parts) >= 3 && parts[1] == "at" {
+			m.handleLookAtCommand(strings.Join(parts[2:], " "))
+			return
+		}
 		// Check for "look in <container>" syntax
 		if len(parts) >= 3 && parts[1] == "in" {
 			m.handleLookInContainer(strings.Join(parts[2:], " "))
@@ -1155,6 +1162,14 @@ func (m *model) processCommand(cmd string) {
 			}
 		}
 		m.handlePickupCommand()
+		return
+	case "read":
+		if len(parts) < 2 {
+			m.message = "Read what?"
+			m.messageType = "error"
+			return
+		}
+		m.handleReadCommand(strings.Join(parts[1:], " "))
 		return
 	case "open":
 		if len(parts) < 2 {
@@ -1416,6 +1431,76 @@ func (m *model) handleExamineCommand(cmd string) {
 	validDirs := map[string]string{"north": "north", "south": "south", "east": "east", "west": "west", "up": "up", "down": "down"}
 	if dir, ok := validDirs[strings.ToLower(target)]; ok {
 		m.handlePeerCommand("peer " + dir)
+		return
+	}
+
+	// Check if the target is an item in the current room
+	if m.client != nil {
+		// Get current room with items
+		char, err := m.client.Character.Get(context.Background(), m.currentCharacterID)
+		if err != nil {
+			m.message = fmt.Sprintf("Error: %v", err)
+			m.messageType = "error"
+			return
+		}
+
+		// Search in room items
+		roomItems, err := m.client.RoomItems.List(context.Background(), char.CurrentRoomID)
+		if err == nil && roomItems != nil {
+			for _, item := range roomItems.Items {
+				if strings.Contains(strings.ToLower(item.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(item.ExamineDesc), strings.ToLower(target)) {
+					m.displayItemExamine(item)
+					return
+				}
+			}
+		}
+
+		// Search in character's inventory
+		invItems, err := m.client.Inventory.List(context.Background(), m.currentCharacterID)
+		if err == nil && invItems != nil {
+			for _, item := range invItems.Items {
+				if strings.Contains(strings.ToLower(item.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(item.ExamineDesc), strings.ToLower(target)) {
+					m.displayItemExamine(item)
+					return
+				}
+			}
+		}
+
+		// Search NPCs in the room
+		characters, err := m.client.RoomCharacters.List(context.Background(), char.CurrentRoomID)
+		if err == nil && characters != nil {
+			for _, npc := range characters.Characters {
+				if npc.IsNPC && (strings.Contains(strings.ToLower(npc.Name), strings.ToLower(target)) ||
+					strings.Contains(strings.ToLower(npc.Description), strings.ToLower(target))) {
+					m.displayNPCExamine(npc)
+					return
+				}
+			}
+		}
+	}
+
+	m.message = fmt.Sprintf("You don't see '%s' here.", target)
+	m.messageType = "error"
+}
+
+// handleLookAtCommand handles "look at <target>" - same as examine
+func (m *model) handleLookAtCommand(target string) {
+	if target == "" {
+		m.message = "Look at what?"
+		m.messageType = "error"
+		return
+	}
+
+	// Handle "look at me" - show character info
+	if target == "me" || target == "myself" {
+		m.message = fmt.Sprintf("=== Your Character ===\nName: %s\nDescription: %s",
+			m.currentUserName, m.characterDescription)
+		if m.characterGender != "" {
+			m.message += fmt.Sprintf("\nGender: %s", m.characterGender)
+		}
+		m.messageType = "info"
 		return
 	}
 
@@ -1812,6 +1897,124 @@ func (m *model) handlePickupCommand() {
 
 	// Update character's equipped weapon reference if needed
 	m.message += "\n(Use 'unequip' to remove it)"
+}
+
+// handleReadCommand handles the read command to read text content from items
+func (m *model) handleReadCommand(itemName string) {
+	ctx := context.Background()
+
+	// First, check items in the room
+	room, err := m.client.Room.Get(ctx, m.currentRoomID)
+	if err != nil {
+		m.message = "Error: Could not find current room."
+		m.messageType = "error"
+		return
+	}
+
+	roomItems, err := m.client.Room.QueryEquipment(room).All(ctx)
+	if err != nil {
+		m.message = "Error: Could not query room items."
+		m.messageType = "error"
+		return
+	}
+
+	// Then check character's inventory
+	char, err := m.client.Character.Get(ctx, m.currentCharacterID)
+	if err != nil {
+		m.message = "Error: Could not find your character."
+		m.messageType = "error"
+		return
+	}
+
+	charItems, err := m.client.Character.QueryEquipment(char).All(ctx)
+	if err != nil {
+		m.message = "Error: Could not query inventory."
+		m.messageType = "error"
+		return
+	}
+
+	// Search for the item in room and inventory
+	var targetItem *db.Equipment
+	for _, item := range roomItems {
+		if strings.Contains(strings.ToLower(item.Name), strings.ToLower(itemName)) {
+			targetItem = item
+			break
+		}
+	}
+	if targetItem == nil {
+		for _, item := range charItems {
+			if strings.Contains(strings.ToLower(item.Name), strings.ToLower(itemName)) {
+				targetItem = item
+				break
+			}
+		}
+	}
+
+	if targetItem == nil {
+		m.message = fmt.Sprintf("You don't see a '%s' here.", itemName)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if item is readable
+	if !targetItem.IsReadable {
+		m.message = fmt.Sprintf("You can't read the %s.", targetItem.Name)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if skill check is required
+	if targetItem.ReadSkill != "" && targetItem.ReadSkillLevel > 0 {
+		// Get character's skill level
+		skillLevel := m.getCharacterSkillLevel(targetItem.ReadSkill)
+		if skillLevel < targetItem.ReadSkillLevel {
+			m.message = fmt.Sprintf("[Requires %s skill level %d to decode]\n(You have %s skill level %d. Cannot read.)",
+				targetItem.ReadSkill, targetItem.ReadSkillLevel, targetItem.ReadSkill, skillLevel)
+			m.messageType = "info"
+			return
+		}
+		// Skill check passed - show decrypted content if available
+		if targetItem.DecryptedContent != "" {
+			m.message = fmt.Sprintf("%s\n\n%s", targetItem.Name, targetItem.DecryptedContent)
+			m.messageType = "info"
+			return
+		}
+	}
+
+	// Show regular content
+	if targetItem.Content == "" {
+		m.message = fmt.Sprintf("The %s is blank.", targetItem.Name)
+		m.messageType = "info"
+		return
+	}
+
+	m.message = fmt.Sprintf("%s\n\n%s", targetItem.Name, targetItem.Content)
+	m.messageType = "info"
+}
+
+// getCharacterSkillLevel returns the character's level in a given skill
+func (m *model) getCharacterSkillLevel(skillName string) int {
+	ctx := context.Background()
+
+	// Get all skills for the character
+	char, err := m.client.Character.Get(ctx, m.currentCharacterID)
+	if err != nil {
+		return 0
+	}
+
+	skills, err := m.client.Character.QuerySkills(char).All(ctx)
+	if err != nil {
+		return 0
+	}
+
+	// Find matching skill (case-insensitive)
+	for _, skill := range skills {
+		if strings.Contains(strings.ToLower(skill.Name), strings.ToLower(skillName)) {
+			return skill.Level
+		}
+	}
+
+	return 0
 }
 
 func (m *model) loadOrCreateCharacter() {
