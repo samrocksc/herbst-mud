@@ -96,6 +96,11 @@ func main() {
 		if err := dbinit.InitGizmo(client); err != nil {
 			log.Printf("Warning: failed to initialize Gizmo: %v", err)
 		}
+
+		// Initialize starter weapons
+		if err := dbinit.InitWeapons(client); err != nil {
+			log.Printf("Warning: failed to initialize weapons: %v", err)
+		}
 	}
 
 	// Pass client to server options
@@ -244,6 +249,15 @@ type RoomItem struct {
 	Weight         int            `json:"weight"`
 	ItemDamage     int            `json:"itemDamage"`
 	ItemDurability int            `json:"itemDurability"`
+	// Container fields
+	IsContainer bool   `json:"isContainer,omitempty"`
+	Capacity    int    `json:"capacity,omitempty"`
+	IsLocked    bool   `json:"isLocked,omitempty"`
+	// Weapon fields
+	MinDamage        int    `json:"minDamage,omitempty"`
+	MaxDamage        int    `json:"maxDamage,omitempty"`
+	WeaponType       string `json:"weaponType,omitempty"`
+	ClassRestriction string `json:"classRestriction,omitempty"`
 }
 
 // roomCharacter represents a character (NPC or player) in a room for display
@@ -1482,6 +1496,17 @@ func (m *model) displayItemDetails(item RoomItem) {
 		desc = item.Description
 	}
 	details.WriteString(desc + "\n")
+
+	// Show container info if applicable (GitHub #143)
+	if item.IsContainer {
+		details.WriteString("\n--- Container ---\n")
+		details.WriteString(fmt.Sprintf("  Capacity: %d items\n", item.Capacity))
+		if item.IsLocked {
+			details.WriteString("  Status: 🔒 Locked\n")
+		} else {
+			details.WriteString("  Status: 🔓 Unlocked\n")
+		}
+	}
 
 	// Show stats if it's equipment
 	if item.ItemType == "weapon" || item.ItemType == "armor" {
