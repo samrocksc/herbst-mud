@@ -50,6 +50,16 @@ type Equipment struct {
 	IsDroppable bool `json:"isDroppable,omitempty"`
 	// Always drops on first NPC kill
 	GuaranteedDrop bool `json:"guaranteedDrop,omitempty"`
+	// Can be read if true
+	IsReadable bool `json:"isReadable,omitempty"`
+	// Text content for readable items
+	Content string `json:"content,omitempty"`
+	// Skill required to read (e.g., tech, lore)
+	ReadSkill string `json:"readSkill,omitempty"`
+	// Required skill level to read
+	ReadSkillLevel int `json:"readSkillLevel,omitempty"`
+	// Content shown when skill check passes
+	DecryptedContent string `json:"decryptedContent,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges               EquipmentEdges `json:"edges"`

@@ -55,6 +55,22 @@ func (Equipment) Fields() []ent.Field {
 		field.Bool("guaranteedDrop").
 			Default(false).
 			Comment("Always drops on first NPC kill"),
+		// Readable items (GitHub #look-07)
+		field.Bool("isReadable").
+			Default(false).
+			Comment("Can be read if true"),
+		field.Text("content").
+			Default("").
+			Comment("Text content for readable items"),
+		field.String("readSkill").
+			Default("").
+			Comment("Skill required to read (e.g., tech, lore)"),
+		field.Int("readSkillLevel").
+			Default(0).
+			Comment("Required skill level to read"),
+		field.Text("decryptedContent").
+			Default("").
+			Comment("Content shown when skill check passes"),
 	}
 }
 

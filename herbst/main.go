@@ -1072,6 +1072,7 @@ func (m *model) processCommand(cmd string) {
   profile/p - Edit character profile
   pickup/get/take - Pick up a weapon
   take <item> from <container> - Take item from container
+  read <item> - Read text content
   open/close <container> - Open or close container
   clear/cls - Clear screen
   quit - Exit game`
