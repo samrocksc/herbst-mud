@@ -185,6 +185,8 @@ type model struct {
 	roomName    string
 	roomDesc    string
 	exits       map[string]int
+	roomItems   []string // Items in the current room
+	roomNPCs    []string // NPCs in the current room
 	inputBuffer string
 	message     string
 	messageType string // "success", "error", "info" for styling
@@ -402,6 +404,86 @@ func (m *model) formatExitsWithColor() string {
 	}
 
 	return strings.Join(dirs, ", ")
+}
+
+// loadRoomItemsAndNPCs loads items and NPCs in the current room
+func (m *model) loadRoomItemsAndNPCs(room *db.Room) {
+	m.roomItems = []string{}
+	m.roomNPCs = []string{}
+
+	// Load characters in the room ( NPCs)
+	if chars, err := room.Characters(); err == nil {
+		for _, char := range chars {
+			if char.IsNPC {
+				m.roomNPCs = append(m.roomNPCs, char.Name)
+			}
+		}
+	}
+
+	// Load equipment in the room
+	if items, err := room.Equipment(); err == nil {
+		for _, item := range items {
+			m.roomItems = append(m.roomItems, item.Name)
+		}
+	}
+}
+
+// formatRoomContent returns a formatted string of items and NPCs in the room
+func (m *model) formatRoomContent() string {
+	var parts []string
+
+	if len(m.roomItems) > 0 {
+		itemsStr := lipgloss.NewStyle().Foreground(cyan).Render(strings.Join(m.roomItems, ", "))
+		parts = append(parts, fmt.Sprintf("Items: %s", itemsStr))
+	}
+
+	if len(m.roomNPCs) > 0 {
+		npcsStr := lipgloss.NewStyle().Foreground(magenta).Render(strings.Join(m.roomNPCs, ", "))
+		parts = append(parts, fmt.Sprintf("NPCs: %s", npcsStr))
+	}
+
+	if len(parts) == 0 {
+		return ""
+	}
+
+	return strings.Join(parts, "\n")
+}
+
+// handleLookAt handles "look at <thing>" command
+func (m *model) handleLookAt(target string) {
+	targetLower := strings.ToLower(target)
+
+	// Check "look at me"
+	if targetLower == "me" || targetLower == "myself" {
+		m.message = fmt.Sprintf("=== Your Character ===\nName: %s\nLevel: %d\nRoom: %s\n\n%s",
+			m.currentUserName,
+			m.characterLevel,
+			m.roomName,
+			StatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana))
+		m.messageType = "info"
+		return
+	}
+
+	// Check room items
+	for _, item := range m.roomItems {
+		if strings.Contains(strings.ToLower(item), targetLower) {
+			m.message = fmt.Sprintf("You see a %s here.", item)
+			m.messageType = "info"
+			return
+		}
+	}
+
+	// Check NPCs
+	for _, npc := range m.roomNPCs {
+		if strings.Contains(strings.ToLower(npc), targetLower) {
+			m.message = fmt.Sprintf("%s is here.", npc)
+			m.messageType = "info"
+			return
+		}
+	}
+
+	m.message = fmt.Sprintf("You don't see any '%s' here.", target)
+	m.messageType = "error"
 }
 
 // ============================================================
@@ -661,6 +743,9 @@ func (m *model) attemptLogin() {
 		m.roomDesc = room.Description
 		m.exits = room.Exits
 
+		// Load room items and NPCs
+		m.loadRoomItemsAndNPCs(room)
+
 		// Mark exits as known
 		for dir := range m.exits {
 			m.knownExits[dir] = true
@@ -828,11 +913,35 @@ func (m *model) processCommand(cmd string) {
   quit - Exit game`
 		m.messageType = "info"
 	case "look", "l":
-		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s",
-			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
-			m.roomDesc,
-			m.formatExitsWithColor())
-		m.messageType = "info"
+		// Get parts from original command for "look at <target>" support
+		// We need to parse the raw command since cmd is lowercased
+		rawCmd := strings.TrimSpace(cmd)
+		lookParts := strings.Fields(rawCmd)
+
+		// Check for "look at <thing>" syntax
+		if len(lookParts) > 2 && strings.ToLower(lookParts[1]) == "at" {
+			target := strings.Join(lookParts[2:], " ")
+			m.handleLookAt(target)
+		} else if len(lookParts) > 1 && strings.ToLower(lookParts[1]) == "at" {
+			m.message = "Look at what? Usage: look at <item/npc/me>"
+			m.messageType = "error"
+		} else {
+			// Simple look - display room with items and NPCs
+			roomContent := m.formatRoomContent()
+			if roomContent != "" {
+				m.message = fmt.Sprintf("[%s]\n%s\n\n%s\n\nExits: %s",
+					lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+					m.roomDesc,
+					roomContent,
+					m.formatExitsWithColor())
+			} else {
+				m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s",
+					lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+					m.roomDesc,
+					m.formatExitsWithColor())
+			}
+			m.messageType = "info"
+		}
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
 		m.messageType = "info"
@@ -904,6 +1013,9 @@ func (m *model) handleMovement(cmd string) bool {
 		m.roomName = room.Name
 		m.roomDesc = room.Description
 		m.exits = room.Exits
+
+		// Load room items and NPCs
+		m.loadRoomItemsAndNPCs(room)
 
 		// Mark new room as visited
 		wasVisited := m.visitedRooms[m.currentRoom]
