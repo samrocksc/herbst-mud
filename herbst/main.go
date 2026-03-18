@@ -223,15 +223,27 @@ type model struct {
 	roomItems []RoomItem
 }
 
+// HiddenDetail represents detail revealed by examine skill
+type HiddenDetail struct {
+	Description string `json:"description"`
+	Threshold  int    `json:"threshold"`
+}
+
 // RoomItem represents an item in a room for display
 type RoomItem struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	IsImmovable bool   `json:"isImmovable"`
-	Color       string `json:"color"`
-	IsVisible   bool   `json:"isVisible"`
-	ItemType    string `json:"itemType"`
+	ID             int            `json:"id"`
+	Name           string         `json:"name"`
+	Description    string         `json:"description"`
+	ExamineDesc    string         `json:"examineDesc"`
+	HiddenDetails  []HiddenDetail `json:"hiddenDetails"`
+	HiddenThreshold int           `json:"hiddenThreshold"`
+	IsImmovable    bool           `json:"isImmovable"`
+	Color          string         `json:"color"`
+	IsVisible      bool           `json:"isVisible"`
+	ItemType       string         `json:"itemType"`
+	Weight         int            `json:"weight"`
+	ItemDamage     int            `json:"itemDamage"`
+	ItemDurability int            `json:"itemDurability"`
 }
 
 // ============================================================
@@ -939,6 +951,8 @@ func (m *model) processCommand(cmd string) {
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
 		m.messageType = "info"
+	case "examine", "ex", "inspect":
+		m.handleExamineCommand(cmd)
 	case "whoami":
 		// Show character info including level with progress bars
 		m.message = fmt.Sprintf("=== Character Status ===\nUser: %s (ID: %d)\nRoom: %s\n\n[Level %d - %d XP]\n%s",
@@ -1269,6 +1283,122 @@ func (m *model) handleDropCommand(cmd string) {
 	// This would need player inventory tracking
 	m.message = fmt.Sprintf("You don't have any %s to drop.", itemName)
 	m.messageType = "error"
+}
+
+// handleExamineCommand handles the examine/ex/inspect/i command
+func (m *model) handleExamineCommand(cmd string) {
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Examine what? Usage: examine <item>"
+		m.messageType = "error"
+		return
+	}
+
+	target := strings.Join(parts[1:], " ")
+	target = strings.ToLower(target)
+
+	// First check room items
+	for _, item := range m.roomItems {
+		if strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
+			m.displayItemDetails(item)
+			return
+		}
+	}
+
+	// Then check inventory
+	resp, err := http.Get(fmt.Sprintf("%s/equipment?ownerId=%d", RESTAPIBase, m.currentCharacterID))
+	if err == nil {
+		defer resp.Body.Close()
+		var items []RoomItem
+		if json.NewDecoder(resp.Body).Decode(&items) == nil {
+			for _, item := range items {
+				if strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
+					m.displayItemDetails(item)
+					return
+				}
+			}
+		}
+	}
+
+	// Check if it's an NPC
+	if m.currentRoom > 0 {
+		resp, err := http.Get(fmt.Sprintf("%s/npc?roomId=%d", RESTAPIBase, m.currentRoom))
+		if err == nil {
+			defer resp.Body.Close()
+			var npcs []struct {
+				ID          int    `json:"id"`
+				Name        string `json:"name"`
+				Description string `json:"description"`
+				Level       int    `json:"level"`
+				Disposition string `json:"disposition"`
+			}
+			if json.NewDecoder(resp.Body).Decode(&npcs) == nil {
+				for _, npc := range npcs {
+					if strings.Contains(strings.ToLower(npc.Name), target) || strings.ToLower(npc.Name) == target {
+						m.message = fmt.Sprintf("[%s]\n%s\n\nLevel: %d\nDisposition: %s",
+							npc.Name, npc.Description, npc.Level, npc.Disposition)
+						m.messageType = "info"
+						return
+					}
+				}
+			}
+		}
+	}
+
+	m.message = fmt.Sprintf("You don't see '%s' here.", target)
+	m.messageType = "error"
+}
+
+// displayItemDetails shows detailed info about an item
+func (m *model) displayItemDetails(item RoomItem) {
+	var details strings.Builder
+
+	// Title with color if applicable
+	if item.Color != "" {
+		details.WriteString(fmt.Sprintf("[%s]\n", item.Name))
+	} else {
+		details.WriteString(fmt.Sprintf("[%s]\n", item.Name))
+	}
+
+	// Use examine description if available, otherwise fall back to description
+	desc := item.ExamineDesc
+	if desc == "" {
+		desc = item.Description
+	}
+	details.WriteString(desc + "\n")
+
+	// Show stats if it's equipment
+	if item.ItemType == "weapon" || item.ItemType == "armor" {
+		details.WriteString("\n--- Stats ---\n")
+		if item.Weight > 0 {
+			details.WriteString(fmt.Sprintf("  Weight: %d\n", item.Weight))
+		}
+		if item.ItemDamage > 0 {
+			details.WriteString(fmt.Sprintf("  Damage: %d\n", item.ItemDamage))
+		}
+		if item.ItemDurability > 0 {
+			details.WriteString(fmt.Sprintf("  Durability: %d\n", item.ItemDurability))
+		}
+		details.WriteString(fmt.Sprintf("  Type: %s\n", item.ItemType))
+	}
+
+	// Show hidden details if player has high enough examine skill
+	// For now, we'll show all hidden details (skill check deferred)
+	if len(item.HiddenDetails) > 0 && item.HiddenThreshold > 0 {
+		// TODO: Fetch player's examine skill and compare to threshold
+		details.WriteString("\n--- You Notice ---\n")
+		for _, hd := range item.HiddenDetails {
+			details.WriteString(fmt.Sprintf("  %s\n", hd.Description))
+		}
+	} else if len(item.HiddenDetails) > 0 {
+		details.WriteString("\n--- You Notice ---\n")
+		for _, hd := range item.HiddenDetails {
+			details.WriteString(fmt.Sprintf("  %s\n", hd.Description))
+		}
+	}
+
+	m.message = details.String()
+	m.messageType = "info"
 }
 
 // handleInventoryCommand handles the inventory/i command

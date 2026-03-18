@@ -36,6 +36,15 @@ func (Equipment) Fields() []ent.Field {
 		field.String("itemType").
 			Default("misc").
 			Comment("weapon|armor|consumable|quest|misc"),
+		field.String("examineDesc").
+			Default("").
+			Comment("Detailed description shown with examine command"),
+		field.JSON("hiddenDetails", []map[string]any{}).
+			Default([]map[string]any{}).
+			Comment("Details revealed based on examine skill"),
+		field.Int("hiddenThreshold").
+			Default(0).
+			Comment("Examine skill required to reveal hidden details"),
 	}
 }
 
