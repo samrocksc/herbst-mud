@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useCallback } from 'react'
 import { MapFlow } from '../../components/MapFlow'
+import { DirectionPicker } from '../../components/DirectionPicker'
 import type { Node, Edge, Connection } from '@xyflow/react'
 
 export const Route = createFileRoute('/admin/map')({
@@ -11,6 +12,13 @@ interface MapRoomData extends Record<string, unknown> {
   name: string
   description: string
   zLevel: number
+}
+
+interface PendingConnection {
+  source: string
+  target: string
+  sourceName: string
+  targetName: string
 }
 
 function MapBuilder() {
@@ -60,6 +68,7 @@ function MapBuilder() {
   ])
 
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
+  const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null)
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node)
@@ -71,17 +80,56 @@ function MapBuilder() {
 
   const onConnect = useCallback((connection: Connection) => {
     if (connection.source && connection.target) {
-      const direction = connection.sourceHandle || 'connected'
-      setEdges(eds => [...eds, {
-        id: `e${connection.source}-${connection.target}`,
-        source: connection.source!,
-        target: connection.target!,
+      // Find the source and target node names
+      const sourceNode = nodes.find(n => n.id === connection.source)
+      const targetNode = nodes.find(n => n.id === connection.target)
+      
+      if (sourceNode && targetNode) {
+        // Store pending connection and show direction picker
+        const sourceData = sourceNode.data as MapRoomData
+        const targetData = targetNode.data as MapRoomData
+        setPendingConnection({
+          source: connection.source,
+          target: connection.target,
+          sourceName: sourceData.name || 'Unknown',
+          targetName: targetData.name || 'Unknown',
+        })
+      }
+    }
+  }, [nodes])
+
+  const handleDirectionSelect = (direction: string, reverseDirection: string) => {
+    if (!pendingConnection) return
+    
+    // Create bidirectional exits
+    const newEdges: Edge[] = [
+      {
+        id: `e${pendingConnection.source}-${pendingConnection.target}-${direction}`,
+        source: pendingConnection.source,
+        target: pendingConnection.target,
         label: direction,
         type: 'smoothstep',
-        animated: true
-      }])
-    }
-  }, [])
+        animated: true,
+        style: { stroke: '#6c5ce7', strokeWidth: 2 },
+      },
+      {
+        id: `e${pendingConnection.target}-${pendingConnection.source}-${reverseDirection}`,
+        source: pendingConnection.target,
+        target: pendingConnection.source,
+        label: reverseDirection,
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: '#6c5ce7', strokeWidth: 2 },
+      },
+    ]
+    
+    setEdges(eds => [...eds, ...newEdges])
+    setPendingConnection(null)
+  }
+
+  const handleConnectionCancel = () => {
+    setPendingConnection(null)
+  }
 
   const addNewRoom = () => {
     const newId = String(nodes.length + 1)
@@ -196,6 +244,17 @@ function MapBuilder() {
         <span style={{ marginLeft: '16px' }}>➡️ Exit Connection</span>
         <span style={{ marginLeft: '16px' }}>🟦 Selected</span>
       </div>
+
+      {/* Direction Picker Modal */}
+      <DirectionPicker
+        isOpen={pendingConnection !== null}
+        sourceId={pendingConnection?.source || ''}
+        targetId={pendingConnection?.target || ''}
+        sourceName={pendingConnection?.sourceName || ''}
+        targetName={pendingConnection?.targetName || ''}
+        onSelect={handleDirectionSelect}
+        onCancel={handleConnectionCancel}
+      />
     </div>
   )
 }
