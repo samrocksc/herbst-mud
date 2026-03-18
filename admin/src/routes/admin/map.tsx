@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { MapFlow } from '../../components/MapFlow'
+import { ZLevelSelector, useZLevelFilter } from '../../components/ZLevelSelector'
 import type { Node, Edge, Connection } from '@xyflow/react'
 
 export const Route = createFileRoute('/admin/map')({
@@ -60,6 +61,34 @@ function MapBuilder() {
   ])
 
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
+  const [currentZLevel, setCurrentZLevel] = useState(0)
+
+  // Filter nodes by Z-level (show current + adjacent for preview)
+  const filteredNodes = useMemo(() => {
+    return nodes.filter(node => {
+      const zLevel = (node.data as MapRoomData).zLevel ?? 0
+      return zLevel === currentZLevel || Math.abs(zLevel - currentZLevel) === 1
+    })
+  }, [nodes, currentZLevel])
+
+  // Filter edges - hide edges between different Z-levels unless they're Z-exits
+  const filteredEdges = useMemo(() => {
+    return edges.filter(edge => {
+      const sourceNode = nodes.find(n => n.id === edge.source)
+      const targetNode = nodes.find(n => n.id === edge.target)
+      if (!sourceNode || !targetNode) return false
+      
+      const sourceZ = (sourceNode.data as MapRoomData).zLevel ?? 0
+      const targetZ = (targetNode.data as MapRoomData).zLevel ?? 0
+      
+      // Show if same Z-level, or show as Z-exit indicator
+      if (sourceZ === targetZ) return true
+      
+      // Show Z-exit connections (different Z-levels)
+      const label = (edge.label as string || '').toLowerCase()
+      return label === 'up' || label === 'down'
+    })
+  }, [edges, nodes, currentZLevel])
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node)
@@ -110,11 +139,13 @@ function MapBuilder() {
         </div>
       </div>
 
+      <ZLevelSelector currentLevel={currentZLevel} onChange={setCurrentZLevel} />
+
       <div className="map-container" style={{ display: 'flex', gap: '16px' }}>
         <div className="map-flow" style={{ flex: 1 }}>
           <MapFlow
-            nodes={nodes}
-            edges={edges}
+            nodes={filteredNodes}
+            edges={filteredEdges}
             onConnect={onConnect}
             onNodeClick={onNodeClick}
           />
