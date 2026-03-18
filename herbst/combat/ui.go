@@ -525,3 +525,196 @@ func FormatTimeRemaining(d time.Duration) string {
 	return fmt.Sprintf("%.1f", seconds)
 }
 
+// VictoryScreenStyle for victory display
+var (
+	victoryTitleStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(yellow).
+				Background(darkRed).
+				Padding(1, 4).
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(yellow)
+
+	victoryBoxStyle = lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(green).
+				Padding(1, 2)
+
+	lootHeaderStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(yellow).
+				MarginTop(1)
+
+	lootItemStyle = lipgloss.NewStyle().
+				Foreground(white)
+
+	xpStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(green)
+
+	skillUpStyle = lipgloss.NewStyle().
+			Foreground(cyan)
+
+	defeatTitleStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(white).
+				Background(darkRed).
+				Padding(1, 4).
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(red)
+
+	defeatBoxStyle = lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(red).
+				Padding(1, 2)
+
+	consequenceStyle = lipgloss.NewStyle().
+				Foreground(yellow)
+
+	respawnStyle = lipgloss.NewStyle().
+			Foreground(cyan)
+)
+
+// RenderVictoryScreen renders the victory screen UI
+func (ui *CombatUI) RenderVictoryScreen(result *VictoryResult, width int) string {
+	var b strings.Builder
+
+	// Title
+	title := victoryTitleStyle.Render("⚔️  VICTORY!  ⚔️")
+	b.WriteString(title)
+	b.WriteString("\n\n")
+
+	// Victory message
+	b.WriteString(victoryBoxStyle.Render("All enemies have been defeated!"))
+	b.WriteString("\n\n")
+
+	// Loot section
+	if len(result.Loot) > 0 {
+		b.WriteString(lootHeaderStyle.Render("LOOT:"))
+		b.WriteString("\n")
+		for _, item := range result.Loot {
+			rarityColor := white
+			switch item.Rarity {
+			case "uncommon":
+				rarityColor = green
+			case "rare":
+				rarityColor = purple
+			case "legendary":
+				rarityColor = yellow
+			}
+
+			itemStyle := lipgloss.NewStyle().Foreground(rarityColor)
+			b.WriteString(fmt.Sprintf("  • %s", itemStyle.Render(item.Name)))
+			if item.Quantity > 1 {
+				b.WriteString(fmt.Sprintf(" x%d", item.Quantity))
+			}
+			b.WriteString("\n")
+		}
+		b.WriteString("\n")
+	}
+
+	// Coins
+	if result.Coins > 0 {
+		b.WriteString(xpStyle.Render(fmt.Sprintf("  💰 %d coins", result.Coins)))
+		b.WriteString("\n")
+	}
+
+	// XP
+	if result.XP > 0 {
+		b.WriteString(xpStyle.Render(fmt.Sprintf("  ⭐ %d XP", result.XP)))
+		b.WriteString("\n\n")
+	}
+
+	// Weapon drops
+	if len(result.WeaponDrops) > 0 {
+		b.WriteString(lootHeaderStyle.Render("WEAPONS:"))
+		b.WriteString("\n")
+		for _, drop := range result.WeaponDrops {
+			classText := ""
+			if drop.ClassRestriction != "" {
+				classText = fmt.Sprintf(" (%s only)", drop.ClassRestriction)
+			}
+			b.WriteString(fmt.Sprintf("  ⚔️  %s%s\n", drop.Name, classText))
+			b.WriteString(fmt.Sprintf("      Damage: %d-%d\n", drop.MinDamage, drop.MaxDamage))
+		}
+		b.WriteString("\n")
+	}
+
+	// Skill ups
+	if len(result.SkillUps) > 0 {
+		b.WriteString(skillUpStyle.Render("SKILL UP:"))
+		b.WriteString("\n")
+		for _, su := range result.SkillUps {
+			b.WriteString(fmt.Sprintf("  • %s +%d\n", su.SkillName, su.Amount))
+		}
+	}
+
+	return b.String()
+}
+
+// RenderDefeatScreen renders the defeat screen UI
+func (ui *CombatUI) RenderDefeatScreen(result *DefeatResult, enemyName string, width int) string {
+	var b strings.Builder
+
+	// Title
+	title := defeatTitleStyle.Render("💀  DEFEAT  💀")
+	b.WriteString(title)
+	b.WriteString("\n\n")
+
+	// Defeat message
+	defeatMsg := fmt.Sprintf("You have fallen to %s...", enemyName)
+	b.WriteString(defeatBoxStyle.Render(defeatMsg))
+	b.WriteString("\n\n")
+
+	// Consequences
+	b.WriteString(consequenceStyle.Render("CONSEQUENCES:"))
+	b.WriteString("\n")
+	for _, c := range result.Consequences {
+		b.WriteString(fmt.Sprintf("  • %s\n", c))
+	}
+	b.WriteString("\n")
+
+	// Respawn info
+	b.WriteString(respawnStyle.Render("You will respawn at the last save point."))
+	b.WriteString("\n")
+
+	// Corpse timer
+	if !result.CorpseExpiry.IsZero() {
+		timeRemaining := time.Until(result.CorpseExpiry)
+		if timeRemaining > 0 {
+			b.WriteString(respawnStyle.Render(fmt.Sprintf("Equipment reclaimable for: %.0f seconds", timeRemaining.Seconds())))
+			b.WriteString("\n")
+		}
+	}
+
+	return b.String()
+}
+
+// RenderCombatEnd renders either victory or defeat screen based on result
+func RenderCombatEnd(combat *Combat, playerID, respawnRoom int, width int) string {
+	ui := NewCombatUI(width, 20)
+
+	// Check if player won or lost
+	if combat.AllEnemiesDefeated() {
+		result := combat.HandleVictory()
+		return ui.RenderVictoryScreen(result, width)
+	}
+
+	if combat.AllPlayersDefeated() {
+		// Find the enemy that delivered the killing blow
+		enemyName := "an enemy"
+		for _, p := range combat.Participants {
+			if p.IsNPC && p.IsAlive && p.Team == 1 {
+				enemyName = p.Name
+				break
+			}
+		}
+
+		result := combat.HandleDefeat(respawnRoom)
+		return ui.RenderDefeatScreen(result, enemyName, width)
+	}
+
+	// Combat still ongoing
+	return ""
+}
+
