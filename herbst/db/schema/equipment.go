@@ -45,6 +45,10 @@ func (Equipment) Fields() []ent.Field {
 		field.Int("hiddenThreshold").
 			Default(0).
 			Comment("Examine skill required to reveal hidden details"),
+		// Hidden items and reveal conditions (GitHub #12 - Look System)
+		field.String("revealCondition").
+			Default("").
+			Comment("JSON: {type: examine|perception_check|use_item|event, target, minLevel}"),
 	}
 }
 
