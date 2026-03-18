@@ -350,7 +350,7 @@ func InitGizmoNPC(client *db.Client) error {
 		SetLevel(1).
 		SetRace("half-dog").
 		SetClass("adventurer").
-		SetNPCTemplate(gizmoTemplate).
+		SetNpcTemplate(gizmoTemplate).
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create Gizmo character: %w", err)
@@ -358,5 +358,174 @@ func InitGizmoNPC(client *db.Client) error {
 
 	log.Printf("Gizmo NPC spawned in fountain room (ID: %d)", fountainRoom.ID)
 	log.Println("Gizmo NPC initialization complete")
+	return nil
+}
+
+// InitJunkyard creates the Junkyard area - a newbie-friendly zone east of the Fountain
+func InitJunkyard(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if junkyard already exists (check for "Junkyard Entrance" room)
+	existingRooms, err := client.Room.Query().Where(room.NameEQ("Junkyard Entrance")).Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for junkyard rooms: %w", err)
+	}
+
+	if existingRooms > 0 {
+		log.Println("Junkyard already initialized, skipping...")
+		return nil
+	}
+
+	// Get the Fountain Plaza room to connect the exit
+	fountainPlaza, err := client.Room.Query().Where(room.NameEQ("Fountain Plaza")).Only(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to find Fountain Plaza: %w", err)
+	}
+
+	// Room type descriptions for randomization
+	roomTypes := []struct {
+		name        string
+		description string
+	 атмосфера   string
+	}{
+		{
+			name:        "Scrap Heap",
+			description: "Piles of rusted metal and twisted machinery rise like mountains. Old wires hang from the ceiling.",
+			атмосфера:   "The air smells of oil and decay. You hear the creak of metal in the wind.",
+		},
+		{
+			name:        "Golem Nest",
+			description: "A dark cavern filled with glowing red eyes. Scrap metal lines the walls like strange art.",
+			атмосфера:   "Heat radiates from dormant Rust Bucket Golems. Sparks occasionally fly from their joints.",
+		},
+		{
+			name:        "Broken Equipment Graveyard",
+			description: "Rows of defunct machines stretch into the darkness. A graveyard of pre-Ooze technology.",
+			атмосфера:   "Echoes bounce off the metallic surfaces. Dripping water echoes from somewhere nearby.",
+		},
+		{
+			name:        "Hidden Cache",
+			description: "A small, cramped space tucked behind collapsed shelving. Someone stored supplies here once.",
+			атмосфера:   "Dust motes dance in the dim light. The walls are covered in faded warning signs.",
+		},
+		{
+			name:        "Exit Corridor",
+			description: "A passage leading back toward the entrance. Faint light filters in from the east.",
+			атмосфера:   "A cool breeze carries the scent of fresh air. You're getting close to the exit.",
+		},
+	}
+
+	// Create 5x5 = 25 rooms in a grid
+	// Layout: rows 0-4, columns 0-4
+	// Entrance is at (2, 0) - middle of west wall, connects to Fountain Plaza
+	type gridRoom struct {
+		id       int
+		row      int
+		col      int
+		name     string
+		desc     string
+		atmosphere string
+	}
+
+	grid := make([][]*gridRoom, 5)
+	for i := range grid {
+		grid[i] = make([]*gridRoom, 5)
+	}
+
+	// Create all rooms in the grid
+	for row := 0; row < 5; row++ {
+		for col := 0; col < 5; col++ {
+			roomType := roomTypes[rand.Intn(len(roomTypes))]
+			
+			// Customize based on position
+			name := roomType.name
+			desc := roomType.description
+			atmosphere := roomType.атмосфера
+
+			// Make the entrance room distinct
+			if row == 2 && col == 0 {
+				name = "Junkyard Entrance"
+				desc = "The mouth of the Junkyard gapes before you. Twisted pipes and rusted metal form an archway. Old signs warning of 'DANGER' hang at odd angles. To the EAST, the Junkyard stretches on. The Fountain Plaza lies to the WEST."
+				atmosphere = "The smell of rust and old oil fills your nostrils. Distant clanks and groans echo from deep within."
+			}
+
+			// Make the exit corridor distinctive
+			if row == 2 && col == 4 {
+				name = "Junkyard Exit"
+				desc = "The eastern edge of the Junkyard. Faint daylight filters down from above. A ladder leads UP to the surface sewers. WEST leads deeper into the Junkyard."
+				atmosphere = "A cool breeze flows from above. You can almost breathe freely here."
+			}
+
+			room, err := client.Room.
+				Create().
+				SetName(name).
+				SetDescription(desc).
+				SetAtmosphere(room.AtmosphereWind).
+				SetIsStartingRoom(false).
+				SetExits(map[string]int{}).
+				Save(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to create room at (%d,%d): %w", row, col, err)
+			}
+
+			grid[row][col] = &gridRoom{
+				id:       room.ID,
+				row:      row,
+				col:      col,
+				name:     name,
+				desc:     desc,
+				atmosphere: atmosphere,
+			}
+		}
+	}
+
+	// Connect rooms with exits
+	directions := []struct {
+		dx, dy     int
+		dir        string
+		opp        string
+	}{
+		{0, -1, "north", "south"},
+		{0, 1, "south", "north"},
+		{-1, 0, "west", "east"},
+		{1, 0, "east", "west"},
+	}
+
+	for row := 0; row < 5; row++ {
+		for col := 0; col < 5; col++ {
+			if grid[row][col] == nil {
+				continue
+			}
+
+			exits := make(map[string]int)
+
+			for _, d := range directions {
+				newRow, newCol := row+d.dx, col+d.dy
+				if newRow >= 0 && newRow < 5 && newCol >= 0 && newCol < 5 && grid[newRow][newCol] != nil {
+					exits[d.dir] = grid[newRow][newCol].id
+				}
+			}
+
+			// Entrance room (2,0) also connects to Fountain Plaza to the west
+			if row == 2 && col == 0 {
+				exits["west"] = fountainPlaza.ID
+			}
+
+			// Exit room (2,4) has an up exit to surface
+			if row == 2 && col == 4 {
+				// "up" will be handled as a special case in navigation
+			}
+
+			err = client.Room.UpdateOneID(grid[row][col].id).
+				SetExits(exits).
+				Exec(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to set exits for room at (%d,%d): %w", row, col, err)
+			}
+		}
+	}
+
+	log.Printf("Junkyard area created: 25 rooms (5x5 grid)")
+	log.Println("Junkyard initialization complete")
 	return nil
 }

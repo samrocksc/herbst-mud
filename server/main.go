@@ -73,6 +73,11 @@ func main() {
 		log.Printf("Warning: failed to initialize Gizmo NPC: %v", err)
 	}
 
+	// Initialize the Junkyard newbie zone
+	if err := dbinit.InitJunkyard(client); err != nil {
+		log.Printf("Warning: failed to initialize Junkyard: %v", err)
+	}
+
 	// Set up Gin router
 	router := gin.Default()
 	
