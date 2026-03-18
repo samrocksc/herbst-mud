@@ -810,14 +810,30 @@ func (m *model) processCommand(cmd string) {
 		return
 	}
 
+	// Handle commands that start with examine/look at
+	parts := strings.Fields(cmd)
+	if len(parts) >= 2 {
+		switch {
+		case parts[0] == "examine" || parts[0] == "ex" || parts[0] == "inspect":
+			m.handleExamineCommand(cmd)
+			return
+		case parts[0] == "look" && parts[1] == "at":
+			m.handleLookAtCommand(strings.Join(parts[2:], " "))
+			return
+		}
+	}
+
 	// Handle other commands
 	switch cmd {
 	case "help", "?":
 		m.message = `Commands:
   n/north, s/south, e/east, w/west - Move
   look/l - Look around
-  exits/x - Show exits  
+  examine <item>/ex <item> - Examine something in detail
+  look at <target> - Look at something specific
+  exits/x - Show exits
   peer <dir> - Peek at adjacent room
+  quests - View your quest log
   whoami - Show your info
   profile/p - Edit character profile
   clear/cls - Clear screen
@@ -830,6 +846,9 @@ func (m *model) processCommand(cmd string) {
 			m.formatExitsWithColor())
 		m.messageType = "info"
 	case "exits", "x":
+		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
+		m.messageType = "info"
+	case "quests":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
 		m.messageType = "info"
 	case "whoami":
@@ -1526,4 +1545,3 @@ func registerScreen(width, height int) string {
 ╚════════════════════════════════════════════════════════════╝
 `)
 }
->>>>>>> main
