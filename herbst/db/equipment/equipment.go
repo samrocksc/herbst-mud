@@ -32,6 +32,12 @@ const (
 	FieldIsVisible = "is_visible"
 	// FieldItemType holds the string denoting the itemtype field in the database.
 	FieldItemType = "item_type"
+	// FieldExamineDesc holds the string denoting the examinedesc field in the database.
+	FieldExamineDesc = "examine_desc"
+	// FieldHiddenDetails holds the string denoting the hiddendetails field in the database.
+	FieldHiddenDetails = "hidden_details"
+	// FieldHiddenThreshold holds the string denoting the hiddenthreshold field in the database.
+	FieldHiddenThreshold = "hidden_threshold"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// Table holds the table name of the equipment in the database.
@@ -58,6 +64,9 @@ var Columns = []string{
 	FieldColor,
 	FieldIsVisible,
 	FieldItemType,
+	FieldExamineDesc,
+	FieldHiddenDetails,
+	FieldHiddenThreshold,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
@@ -96,6 +105,12 @@ var (
 	DefaultIsVisible bool
 	// DefaultItemType holds the default value on creation for the "itemType" field.
 	DefaultItemType string
+	// DefaultExamineDesc holds the default value on creation for the "examineDesc" field.
+	DefaultExamineDesc string
+	// DefaultHiddenDetails holds the default value on creation for the "hiddenDetails" field.
+	DefaultHiddenDetails []map[string]interface{}
+	// DefaultHiddenThreshold holds the default value on creation for the "hiddenThreshold" field.
+	DefaultHiddenThreshold int
 )
 
 // OrderOption defines the ordering options for the Equipment queries.
@@ -154,6 +169,16 @@ func ByIsVisible(opts ...sql.OrderTermOption) OrderOption {
 // ByItemType orders the results by the itemType field.
 func ByItemType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldItemType, opts...).ToFunc()
+}
+
+// ByExamineDesc orders the results by the examineDesc field.
+func ByExamineDesc(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExamineDesc, opts...).ToFunc()
+}
+
+// ByHiddenThreshold orders the results by the hiddenThreshold field.
+func ByHiddenThreshold(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHiddenThreshold, opts...).ToFunc()
 }
 
 // ByRoomField orders the results by room field.

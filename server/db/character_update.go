@@ -1146,10 +1146,10 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.AvailableTalentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   character.AvailableTalentsTable,
-			Columns: character.AvailableTalentsPrimaryKey,
+			Columns: []string{character.AvailableTalentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
@@ -1159,10 +1159,10 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if nodes := _u.mutation.RemovedAvailableTalentsIDs(); len(nodes) > 0 && !_u.mutation.AvailableTalentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   character.AvailableTalentsTable,
-			Columns: character.AvailableTalentsPrimaryKey,
+			Columns: []string{character.AvailableTalentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
@@ -1175,10 +1175,10 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if nodes := _u.mutation.AvailableTalentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   character.AvailableTalentsTable,
-			Columns: character.AvailableTalentsPrimaryKey,
+			Columns: []string{character.AvailableTalentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
@@ -2442,10 +2442,10 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if _u.mutation.AvailableTalentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   character.AvailableTalentsTable,
-			Columns: character.AvailableTalentsPrimaryKey,
+			Columns: []string{character.AvailableTalentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
@@ -2455,10 +2455,10 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if nodes := _u.mutation.RemovedAvailableTalentsIDs(); len(nodes) > 0 && !_u.mutation.AvailableTalentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   character.AvailableTalentsTable,
-			Columns: character.AvailableTalentsPrimaryKey,
+			Columns: []string{character.AvailableTalentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),
@@ -2471,10 +2471,10 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if nodes := _u.mutation.AvailableTalentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   character.AvailableTalentsTable,
-			Columns: character.AvailableTalentsPrimaryKey,
+			Columns: []string{character.AvailableTalentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(availabletalent.FieldID, field.TypeInt),

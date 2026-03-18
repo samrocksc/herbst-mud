@@ -105,6 +105,9 @@ var (
 		{Name: "color", Type: field.TypeString, Default: ""},
 		{Name: "is_visible", Type: field.TypeBool, Default: true},
 		{Name: "item_type", Type: field.TypeString, Default: "misc"},
+		{Name: "examine_desc", Type: field.TypeString, Default: ""},
+		{Name: "hidden_details", Type: field.TypeJSON},
+		{Name: "hidden_threshold", Type: field.TypeInt, Default: 0},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -115,7 +118,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[11]},
+				Columns:    []*schema.Column{EquipmentColumns[14]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

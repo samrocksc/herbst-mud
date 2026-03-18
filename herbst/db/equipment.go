@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"herbst/db/equipment"
 	"herbst/db/room"
@@ -37,6 +38,12 @@ type Equipment struct {
 	IsVisible bool `json:"isVisible,omitempty"`
 	// weapon|armor|consumable|quest|misc
 	ItemType string `json:"itemType,omitempty"`
+	// Detailed description shown with examine command
+	ExamineDesc string `json:"examineDesc,omitempty"`
+	// Details revealed based on examine skill
+	HiddenDetails []map[string]interface{} `json:"hiddenDetails,omitempty"`
+	// Examine skill required to reveal hidden details
+	HiddenThreshold int `json:"hiddenThreshold,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges          EquipmentEdges `json:"edges"`
@@ -69,11 +76,13 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case equipment.FieldHiddenDetails:
+			values[i] = new([]byte)
 		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldHiddenThreshold:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldExamineDesc:
 			values[i] = new(sql.NullString)
 		case equipment.ForeignKeys[0]: // room_equipment
 			values[i] = new(sql.NullInt64)
@@ -158,6 +167,26 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ItemType = value.String
 			}
+		case equipment.FieldExamineDesc:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field examineDesc", values[i])
+			} else if value.Valid {
+				_m.ExamineDesc = value.String
+			}
+		case equipment.FieldHiddenDetails:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field hiddenDetails", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.HiddenDetails); err != nil {
+					return fmt.Errorf("unmarshal field hiddenDetails: %w", err)
+				}
+			}
+		case equipment.FieldHiddenThreshold:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field hiddenThreshold", values[i])
+			} else if value.Valid {
+				_m.HiddenThreshold = int(value.Int64)
+			}
 		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_equipment", value)
@@ -235,6 +264,15 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("itemType=")
 	builder.WriteString(_m.ItemType)
+	builder.WriteString(", ")
+	builder.WriteString("examineDesc=")
+	builder.WriteString(_m.ExamineDesc)
+	builder.WriteString(", ")
+	builder.WriteString("hiddenDetails=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HiddenDetails))
+	builder.WriteString(", ")
+	builder.WriteString("hiddenThreshold=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HiddenThreshold))
 	builder.WriteByte(')')
 	return builder.String()
 }
