@@ -1,122 +1,199 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Node, Edge } from '@xyflow/react'
+
+import MapFlow from '../../components/MapFlow'
+import { RoomNode, RoomNodeType } from '../../components/RoomNode'
 
 export const Route = createFileRoute('/_auth/map')({
   component: MapBuilder,
 })
 
-interface MapRoom {
+// Demo rooms for initial state
+const initialDemoNodes: Node[] = [
+  {
+    id: '1',
+    type: 'roomNode',
+    position: { x: 100, y: 100 },
+    data: { label: 'Town Square', roomId: '1', exits: ['n', 'e', 's', 'w'] },
+  },
+  {
+    id: '2',
+    type: 'roomNode',
+    position: { x: 100, y: 250 },
+    data: { label: 'Main Street', roomId: '2', exits: ['n', 's'] },
+  },
+  {
+    id: '3',
+    type: 'roomNode',
+    position: { x: 250, y: 100 },
+    data: { label: 'Shop District', roomId: '3', exits: ['w'] },
+  },
+  {
+    id: '4',
+    type: 'roomNode',
+    position: { x: 400, y: 100 },
+    data: { label: 'Forest Path', roomId: '4', exits: ['e'] },
+  },
+  {
+    id: '5',
+    type: 'roomNode',
+    position: { x: 250, y: 300 },
+    data: { label: 'Tavern', roomId: '5', exits: ['n'] },
+  },
+]
+
+const initialDemoEdges: Edge[] = [
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'exit',
+    data: { direction: 'south' },
+  },
+  {
+    id: 'e1-3',
+    source: '1',
+    target: '3',
+    type: 'exit',
+    data: { direction: 'east' },
+  },
+]
+
+interface RoomData {
   id: string
   name: string
-  x: number
-  y: number
+  description?: string
+  x?: number
+  y?: number
+  z?: number
+  exits?: Array<{
+    direction: string
+    roomId: string
+  }>
 }
 
 function MapBuilder() {
-  const [rooms] = useState<MapRoom[]>([
-    { id: '1', name: 'Town Square', x: 3, y: 3 },
-    { id: '2', name: 'Main Street North', x: 3, y: 2 },
-    { id: '3', name: 'Main Street South', x: 3, y: 4 },
-    { id: '4', name: 'Forest Path', x: 5, y: 3 },
-    { id: '5', name: 'Shop District', x: 1, y: 3 },
-  ])
+  const [nodes, setNodes] = useState<Node[]>(initialDemoNodes)
+  const [edges, setEdges] = useState<Edge[]>(initialDemoEdges)
+  const [isLoading, setIsLoading] = useState(false)
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
 
-  const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
-  const gridSize = 8
+  // TODO: Replace with actual API call when backend is ready
+  // const { data: rooms } = useQuery({ queryKey: ['rooms'], queryFn: fetchRooms })
 
-  const getRoomAt = (x: number, y: number) => rooms.find(r => r.x === x && r.y === y)
+  const handleAddRoom = () => {
+    const newId = String(Date.now())
+    const newNode: Node = {
+      id: newId,
+      type: 'roomNode',
+      position: { x: 200 + Math.random() * 100, y: 200 + Math.random() * 100 },
+      data: {
+        label: 'New Room',
+        roomId: newId,
+        exits: [],
+      },
+    }
+    setNodes((nds) => [...nds, newNode])
+  }
+
+  const handleSaveMap = async () => {
+    setIsLoading(true)
+    try {
+      // TODO: Implement actual save to API
+      console.log('Saving map:', { nodes, edges })
+      
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      alert('Map saved successfully!')
+    } catch (error) {
+      console.error('Failed to save map:', error)
+      alert('Failed to save map')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const selectedRoom = nodes.find((n) => n.id === selectedRoomId)
 
   return (
     <div className="management-page">
       <div className="page-header">
-        <h2>Map Builder</h2>
+        <h2>🗺️ Map Builder</h2>
         <div className="map-actions">
-          <button>Add Room</button>
-          <button>Connect Rooms</button>
-          <button>Save Map</button>
+          <button onClick={handleAddRoom} className="btn-primary">
+            + Add Room
+          </button>
+          <button onClick={handleSaveMap} disabled={isLoading} className="btn-success">
+            {isLoading ? 'Saving...' : '💾 Save Map'}
+          </button>
         </div>
       </div>
 
-      <div className="map-container">
-        <div className="map-grid" style={{ 
-          display: 'grid', 
-          gridTemplateColumns: `repeat(${gridSize}, 60px)`,
-          gap: '4px'
-        }}>
-          {Array.from({ length: gridSize * gridSize }, (_, i) => {
-            const x = i % gridSize
-            const y = Math.floor(i / gridSize)
-            const room = getRoomAt(x, y)
-            const isSelected = room?.id === selectedRoom
-            
-            return (
-              <div 
-                key={i}
-                className={`map-cell ${room ? 'has-room' : ''} ${isSelected ? 'selected' : ''}`}
-                onClick={() => room && setSelectedRoom(room.id === selectedRoom ? null : room.id)}
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  border: '1px solid #444',
-                  backgroundColor: room ? '#2d5a27' : '#1a1a1a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '10px',
-                  cursor: room ? 'pointer' : 'default',
-                  position: 'relative'
-                }}
-              >
-                {room && (
-                  <>
-                    <span style={{ textAlign: 'center', color: '#fff' }}>
-                      {room.name.length > 8 ? room.name.slice(0, 6) + '..' : room.name}
-                    </span>
-                    {/* Exit indicators */}
-                    {rooms.some(r => r.x === x - 1 && r.y === y) && (
-                      <span style={{ position: 'absolute', left: 2, color: '#666' }}>◀</span>
-                    )}
-                    {rooms.some(r => r.x === x + 1 && r.y === y) && (
-                      <span style={{ position: 'absolute', right: 2, color: '#666' }}>▶</span>
-                    )}
-                    {rooms.some(r => r.x === x && r.y === y - 1) && (
-                      <span style={{ position: 'absolute', top: 2, color: '#666' }}>▲</span>
-                    )}
-                    {rooms.some(r => r.x === x && r.y === y + 1) && (
-                      <span style={{ position: 'absolute', bottom: 2, color: '#666' }}>▼</span>
-                    )}
-                  </>
-                )}
-              </div>
-            )
-          })}
+      <div className="map-layout">
+        <div className="map-main">
+          <MapFlow initialNodes={nodes} initialEdges={edges} />
         </div>
 
         {selectedRoom && (
           <div className="map-sidebar">
             <h3>Room Details</h3>
-            {rooms.filter(r => r.id === selectedRoom).map(room => (
-              <div key={room.id}>
-                <p><strong>Name:</strong> {room.name}</p>
-                <p><strong>Position:</strong> ({room.x}, {room.y})</p>
-                <div className="room-actions">
-                  <button>Edit Room</button>
-                  <button>Set Exits</button>
-                  <button>Add Items</button>
-                  <button>Add NPCs</button>
+            <div className="room-form">
+              <label>
+                Name:
+                <input
+                  type="text"
+                  value={selectedRoom.data.label}
+                  onChange={(e) => {
+                    setNodes((nds) =>
+                      nds.map((n) =>
+                        n.id === selectedRoom.id
+                          ? { ...n, data: { ...n.data, label: e.target.value } }
+                          : n
+                      )
+                    )
+                  }}
+                />
+              </label>
+              <div className="room-exits">
+                <strong>Exits:</strong>
+                <div className="exit-tags">
+                  {edges
+                    .filter((e) => e.source === selectedRoom.id)
+                    .map((e) => (
+                      <span key={e.id} className="exit-tag">
+                        {(e.data as { direction?: string })?.direction || 'unknown'}
+                      </span>
+                    ))}
                 </div>
               </div>
-            ))}
+              <div className="room-actions">
+                <button className="btn-small">Edit Details</button>
+                <button className="btn-small">Add Items</button>
+                <button className="btn-small">Add NPCs</button>
+              </div>
+              <button
+                className="btn-danger"
+                onClick={() => setSelectedRoomId(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="map-legend">
-        <span><strong>Legend:</strong></span>
-        <span>🟩 Room</span>
-        <span>⬅️➡️⬆️⬇️ Exits</span>
-        <span>🟦 Selected</span>
+      <div className="map-instructions">
+        <h4>📝 Instructions</h4>
+        <ul>
+          <li><strong>Drag rooms</strong> to reposition them on the canvas</li>
+          <li><strong>Drag from a handle</strong> (colored dots) to another room to create an exit</li>
+          <li><strong>Click a room</strong> to edit its details</li>
+          <li><strong>Scroll/zoom</strong> to navigate the map</li>
+        </ul>
       </div>
     </div>
   )
 }
+
+export default MapBuilder
