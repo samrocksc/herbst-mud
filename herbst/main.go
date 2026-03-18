@@ -239,19 +239,23 @@ type HiddenDetail struct {
 
 // RoomItem represents an item in a room for display
 type RoomItem struct {
-	ID             int            `json:"id"`
-	Name           string         `json:"name"`
-	Description    string         `json:"description"`
-	ExamineDesc    string         `json:"examineDesc"`
-	HiddenDetails  []HiddenDetail `json:"hiddenDetails"`
-	HiddenThreshold int           `json:"hiddenThreshold"`
-	IsImmovable    bool           `json:"isImmovable"`
-	Color          string         `json:"color"`
-	IsVisible      bool           `json:"isVisible"`
-	ItemType       string         `json:"itemType"`
-	Weight         int            `json:"weight"`
-	ItemDamage     int            `json:"itemDamage"`
-	ItemDurability int            `json:"itemDurability"`
+	ID              int            `json:"id"`
+	Name            string         `json:"name"`
+	Description     string         `json:"description"`
+	ExamineDesc     string         `json:"examineDesc"`
+	HiddenDetails   []HiddenDetail `json:"hiddenDetails"`
+	HiddenThreshold int            `json:"hiddenThreshold"`
+	IsImmovable     bool           `json:"isImmovable"`
+	Color           string         `json:"color"`
+	IsVisible       bool           `json:"isVisible"`
+	ItemType        string         `json:"itemType"`
+	Weight          int            `json:"weight"`
+	ItemDamage      int            `json:"itemDamage"`
+	ItemDurability  int            `json:"itemDurability"`
+	// Hidden item reveal conditions
+	RevealThreshold int    `json:"revealThreshold"` // Min examine level to reveal
+	RevealDC        int    `json:"revealDC"`      // Difficulty class for check mode
+	Stat            string `json:"stat"`           // "INT" or "WIS" for check mode
 }
 
 // roomCharacter represents a character (NPC or player) in a room for display
