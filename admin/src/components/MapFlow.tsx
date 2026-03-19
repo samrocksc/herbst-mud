@@ -1,11 +1,19 @@
 import { ReactFlow, Background, Controls, MiniMap } from '@xyflow/react'
 import type { Node, Edge, Connection } from '@xyflow/react'
 import { RoomNode } from './RoomNode'
+import { ExitEdge, type ExitEdgeType } from './ExitEdge'
 import '@xyflow/react/dist/style.css'
 
 const nodeTypes = {
   room: RoomNode,
 }
+
+const edgeTypes = {
+  exit: ExitEdge,
+}
+
+// Type assertion for edges that might be ExitEdgeType
+export type { ExitEdgeType }
 
 export interface MapFlowProps {
   nodes: Node[]
@@ -30,6 +38,8 @@ export function MapFlow({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeType="exit"
         onNodesChange={onNodesChange as never}
         onEdgesChange={onEdgesChange as never}
         onConnect={onConnect as never}
