@@ -32,7 +32,7 @@ func init() {
 }
 
 // RESTAPIBase is the base URL for the REST API
-const RESTAPIBase = "http://localhost:8080"
+var RESTAPIBase = "http://localhost:8080"
 
 // StartingRoomID is the ID of the room players start in
 const StartingRoomID = 5
@@ -282,6 +282,32 @@ var (
 	exitKnownColor   = lipgloss.Color("226") // Yellow
 	exitNewColor     = lipgloss.Color("15")  // White
 
+	// Quest tracker panel colors
+	questTitleColor     = lipgloss.Color("75")    // Blue
+	questProgressColor  = lipgloss.Color("226")  // Yellow
+	questCompletedColor = lipgloss.Color("46")   // Green
+	questAvailableColor = lipgloss.Color("141")  // Purple
+
+	// Quest tracker panel styles
+	questTitleStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(questTitleColor)
+
+	questBoxStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(purple).
+			Padding(1, 2)
+
+	questProgressStyle = lipgloss.NewStyle().
+				Foreground(questProgressColor)
+
+	questCompletedStyle = lipgloss.NewStyle().
+				Foreground(questCompletedColor).
+				Strikethrough(true)
+
+	questAvailableStyle = lipgloss.NewStyle().
+				Foreground(questAvailableColor)
+
 	// Styles
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
@@ -404,16 +430,6 @@ func (m *model) styledMessage(msg string) string {
 }
 
 // styleMessage returns a styled message based on message type (standalone helper)
-// combatDamageStyle for damage messages (red)
-var combatDamageStyle = lipgloss.NewStyle().
-	Foreground(red).
-	Bold(true)
-
-// combatHealStyle for healing messages (green)
-var combatHealStyle = lipgloss.NewStyle().
-	Foreground(green).
-	Bold(true)
-
 func styleMessage(msg string, msgType string) string {
 	if msg == "" {
 		return ""
@@ -426,12 +442,6 @@ func styleMessage(msg string, msgType string) string {
 		return errorStyle.Render("✗ ") + msg
 	case "info":
 		return infoStyle.Render("ℹ ") + msg
-	case "damage":
-		// Combat damage: red text with ⚔ prefix
-		return combatDamageStyle.Render("⚔ ") + msg
-	case "heal":
-		// Combat healing: green text with ♥ prefix
-		return combatHealStyle.Render("♥ ") + msg
 	default:
 		return msg
 	}
@@ -1029,6 +1039,11 @@ func (m *model) processCommand(cmd string) {
   take/get <item> - Pick up an item
   drop <item> - Drop an item
   inventory/i - Show your inventory
+  skills - View your skills
+  talents - View equipped talents
+  talent equip <id> <slot> - Equip talent
+  talent unequip <slot> - Unequip talent
+  quests/q - Show your quest log
   whoami - Show your info
   profile/p - Edit character profile
   clear/cls - Clear screen
@@ -1092,6 +1107,31 @@ func (m *model) processCommand(cmd string) {
 		// Check for inventory command
 		if cmd == "inventory" || cmd == "i" || cmd == "inv" {
 			m.handleInventoryCommand()
+			return
+		}
+		// Check for quests command
+		if cmd == "quests" || cmd == "q" || cmd == "quest" {
+			m.handleQuestsCommand(cmd)
+			return
+		}
+		// Check for skills command
+		if cmd == "skills" {
+			m.handleSkillsCommand(cmd)
+			return
+		}
+		// Check for talents command
+		if cmd == "talents" || cmd == "talent" {
+			m.handleTalentsCommand(cmd)
+			return
+		}
+		// Check for talent equip/unequip command
+		if strings.HasPrefix(cmd, "talent ") {
+			m.handleTalentEquipCommand(cmd)
+			return
+		}
+		// Check for skill equip command
+		if strings.HasPrefix(cmd, "skill ") {
+			m.handleSkillEquipCommand(cmd)
 			return
 		}
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
@@ -1585,6 +1625,444 @@ func (m *model) handleInventoryCommand() {
 		}
 	}
 	m.message = inv.String()
+	m.messageType = "info"
+}
+
+// handleQuestsCommand handles the quests/q command to display quest tracker
+func (m *model) handleQuestsCommand(cmd string) {
+	// Fetch quests from API
+	// For now, we'll return mock data until the full quest system is implemented
+	// In production, this would call: GET /characters/:id/quests
+	resp, err := http.Get(fmt.Sprintf("%s/characters/%d/quests", RESTAPIBase, m.currentCharacterID))
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching quests: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check for error response
+	if resp.StatusCode != http.StatusOK {
+		// If no quests endpoint exists yet, show placeholder message
+		// This allows the feature to work before the full quest system is built
+		m.displayQuestTrackerPlaceholder()
+		return
+	}
+
+	// Parse quest response
+	var questResp struct {
+		Quests []struct {
+			ID          string `json:"id"`
+			Name        string `json:"name"`
+			Description string `json:"description"`
+			Status      string `json:"status"`
+			Objectives  []struct {
+				Description string `json:"description"`
+				Current     int    `json:"current"`
+				Total       int    `json:"total"`
+			} `json:"objectives"`
+			Giver  string `json:"giver"`
+			Rewards string `json:"rewards"`
+		} `json:"quests"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&questResp); err != nil || len(questResp.Quests) == 0 {
+		// No quests available - show placeholder
+		m.displayQuestTrackerPlaceholder()
+		return
+	}
+
+	// Format quest tracker display with Lip Gloss styling
+	var quests strings.Builder
+
+	// Title
+	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n")
+	quests.WriteString(questTitleStyle.Render("  🤺  QUEST LOG  🤺") + "\n")
+	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n\n")
+
+	activeCount := 0
+	availableCount := 0
+	completedCount := 0
+
+	for _, quest := range questResp.Quests {
+		status := quest.Status
+		switch status {
+		case "in_progress":
+			activeCount++
+		case "available":
+			availableCount++
+		case "completed":
+			completedCount++
+		}
+
+		// Quest box with styled border
+		quests.WriteString(questBoxStyle.Render("") + "\n")
+
+		// Quest name with status color
+		statusColor := questAvailableStyle
+		statusText := "Available"
+		if status == "in_progress" {
+			statusColor = questProgressStyle
+			statusText = "In Progress"
+		} else if status == "completed" {
+			statusColor = questCompletedStyle
+			statusText = "Completed"
+		}
+
+		quests.WriteString(fmt.Sprintf("  %s [%s]\n", questTitleStyle.Render(quest.Name), statusColor.Render(statusText)))
+
+		// Description
+		if quest.Description != "" {
+			quests.WriteString(fmt.Sprintf("    %s\n", quest.Description))
+		}
+
+		// Objectives with progress
+		if len(quest.Objectives) > 0 {
+			quests.WriteString("\n  Objectives:\n")
+			for _, obj := range quest.Objectives {
+				progress := fmt.Sprintf("%d/%d", obj.Current, obj.Total)
+				if obj.Current >= obj.Total {
+					quests.WriteString(fmt.Sprintf("    ✓ %s %s\n", obj.Description, questCompletedStyle.Render("("+progress+")")))
+				} else {
+					quests.WriteString(fmt.Sprintf("    ○ %s %s\n", obj.Description, questProgressStyle.Render("("+progress+")")))
+				}
+			}
+		}
+
+		// Giver
+		if quest.Giver != "" {
+			quests.WriteString(fmt.Sprintf("\n  Giver: %s\n", quest.Giver))
+		}
+
+		// Rewards
+		if quest.Rewards != "" {
+			quests.WriteString(fmt.Sprintf("  Reward: %s\n", quest.Rewards))
+		}
+
+		quests.WriteString("\n")
+	}
+
+	// Summary footer
+	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+	quests.WriteString(fmt.Sprintf("  Active: %d  |  Available: %d  |  Completed: %d\n",
+		activeCount, availableCount, completedCount))
+	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+
+	m.message = quests.String()
+	m.messageType = "info"
+}
+
+// handleSkillsCommand displays character skills
+func (m *model) handleSkillsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing a character to view skills."
+		m.messageType = "error"
+		return
+	}
+
+	// Fetch skills from API
+	resp, err := http.Get(fmt.Sprintf("%s/characters/%d/skills", RESTAPIBase, m.currentCharacterID))
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching skills: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	// If no skills endpoint, show placeholder with known skills from design
+	if resp.StatusCode != http.StatusOK {
+		m.displaySkillsPlaceholder()
+		return
+	}
+
+	// Parse skills response
+	var skillsResp struct {
+		Skills map[string]struct {
+			Level int    `json:"level"`
+			Bonus string `json:"bonus"`
+		} `json:"skills"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&skillsResp); err != nil {
+		m.displaySkillsPlaceholder()
+		return
+	}
+
+	// Format skills display
+	var skills strings.Builder
+	skills.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("═══ SKILLS ═══") + "\n\n")
+
+	// Weapon Skills
+	skills.WriteString(lipgloss.NewStyle().Bold(true).Render("Weapon Skills:") + "\n")
+	for skill, data := range skillsResp.Skills {
+		skills.WriteString(fmt.Sprintf("  %s: Level %d %s\n", skill, data.Level, data.Bonus))
+	}
+
+	m.message = skills.String()
+	m.messageType = "info"
+}
+
+// displaySkillsPlaceholder shows skill information before API is ready
+func (m *model) displaySkillsPlaceholder() {
+	var skills strings.Builder
+	skills.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("═══ SKILLS ═══") + "\n\n")
+
+	// Weapon Skills from design spec
+	skills.WriteString(lipgloss.NewStyle().Bold(true).Render("Weapon Skills:") + "\n")
+	skills.WriteString("  blades   - Sword proficiency (STR)\n")
+	skills.WriteString("  staves   - Staff proficiency (DEX)\n")
+	skills.WriteString("  knives   - Dagger proficiency (DEX)\n")
+	skills.WriteString("  martial  - Unarmed combat (DEX)\n")
+	skills.WriteString("  brawling - Hand-to-hand (STR)\n")
+	skills.WriteString("  tech     - Technology (INT)\n")
+	skills.WriteString("  fire_magic  - Fire magic (INT)\n")
+	skills.WriteString("  water_magic - Water magic (INT)\n")
+	skills.WriteString("  wind_magic  - Wind magic (WIS)\n")
+
+	skills.WriteString("\n" + lipgloss.NewStyle().Bold(true).Render("Skill Progression:") + "\n")
+	skills.WriteString("  Use weapons in combat to gain skill XP.\n")
+	skills.WriteString("  Higher skill levels increase damage and accuracy.\n")
+
+	m.message = skills.String()
+	m.messageType = "info"
+}
+
+// handleTalentsCommand displays character talents
+func (m *model) handleTalentsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing a character to view talents."
+		m.messageType = "error"
+		return
+	}
+
+	// Fetch talents from API
+	resp, err := http.Get(fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID))
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching talents: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	// If no talents endpoint, show placeholder
+	if resp.StatusCode != http.StatusOK {
+		m.displayTalentsPlaceholder()
+		return
+	}
+
+	// Parse talents response
+	var talentsResp struct {
+		Slots [5]*struct {
+			Slot       int    `json:"slot"`
+			TalentID   int    `json:"talent_id"`
+			Name       string `json:"name"`
+			Description string `json:"description"`
+		} `json:"slots"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&talentsResp); err != nil {
+		m.displayTalentsPlaceholder()
+		return
+	}
+
+	// Format talents display
+	var talents strings.Builder
+	talents.WriteString(lipgloss.NewStyle().Bold(true).Foreground(cyan).Render("═══ TALENTS ═══") + "\n\n")
+	talents.WriteString("Equipped Talents (Keys 1-4):\n\n")
+
+	for i := 1; i <= 4; i++ {
+		slot := talentsResp.Slots[i]
+		if slot != nil && slot.Name != "" {
+			talents.WriteString(fmt.Sprintf("  [%d] %s - %s\n", i, slot.Name, slot.Description))
+		} else {
+			talents.WriteString(fmt.Sprintf("  [%d] (empty)\n", i))
+		}
+	}
+
+	talents.WriteString("\n" + lipgloss.NewStyle().Bold(true).Render("Command:") + "\n")
+	talents.WriteString("  talent equip <id> <slot> - Equip talent\n")
+	talents.WriteString("  talent unequip <slot>   - Unequip talent\n")
+
+	m.message = talents.String()
+	m.messageType = "info"
+}
+
+// displayTalentsPlaceholder shows talent information before API is ready
+func (m *model) displayTalentsPlaceholder() {
+	var talents strings.Builder
+	talents.WriteString(lipgloss.NewStyle().Bold(true).Foreground(cyan).Render("═══ TALENTS ═══") + "\n\n")
+	talents.WriteString("Available Talents:\n\n")
+
+	// From design spec
+	talents.WriteString("Attack Talents:\n")
+	talents.WriteString("  slash      - Basic sword attack\n")
+	talents.WriteString("  smash      - Strong staff attack\n")
+	talents.WriteString("  shield_bash - Shield attack\n")
+
+	talents.WriteString("\nDefense Talents:\n")
+	talents.WriteString("  parry      - Block incoming attacks\n")
+	talents.WriteString("  iron_will  - Mental defense\n")
+
+	talents.WriteString("\nUtility Talents:\n")
+	talents.WriteString("  battle_cry - Buff attack power\n")
+	talents.WriteString("  second_wind - Restore stamina\n")
+	talents.WriteString("  crash      - Body attack (unarmed)\n")
+
+	talents.WriteString("\n" + lipgloss.NewStyle().Bold(true).Render("Commands:") + "\n")
+	talents.WriteString("  talents     - View equipped talents\n")
+	talents.WriteString("  talent equip <id> <slot> - Equip to slot 1-4\n")
+	talents.WriteString("  talent unequip <slot>    - Remove from slot\n")
+	talents.WriteString("  skills      - View your skills\n")
+
+	m.message = talents.String()
+	m.messageType = "info"
+}
+
+// handleTalentEquipCommand handles equipping/unequipping talents
+func (m *model) handleTalentEquipCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing a character to manage talents."
+		m.messageType = "error"
+		return
+	}
+
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage: talent equip <talent_id> <slot> | talent unequip <slot>"
+		m.messageType = "error"
+		return
+	}
+
+	// Parse subcommand
+	subCmd := parts[1]
+	var url string
+	var method string
+
+	if subCmd == "unequip" {
+		if len(parts) < 3 {
+			m.message = "Usage: talent unequip <slot>"
+			m.messageType = "error"
+			return
+		}
+		slot := parts[2]
+		// Validate slot
+		if slot < "1" || slot > "4" {
+			m.message = "Invalid slot. Use 1, 2, 3, or 4."
+			m.messageType = "error"
+			return
+		}
+		url = fmt.Sprintf("%s/characters/%d/talents/unequip?slot=%s", RESTAPIBase, m.currentCharacterID, slot)
+		method = "POST"
+	} else if subCmd == "equip" {
+		if len(parts) < 4 {
+			m.message = "Usage: talent equip <talent_id> <slot>"
+			m.messageType = "error"
+			return
+		}
+		talentID := parts[2]
+		slot := parts[3]
+		// Validate slot
+		if slot < "1" || slot > "4" {
+			m.message = "Invalid slot. Use 1, 2, 3, or 4."
+			m.messageType = "error"
+			return
+		}
+		url = fmt.Sprintf("%s/characters/%d/talents/equip?talent=%s&slot=%s", RESTAPIBase, m.currentCharacterID, talentID, slot)
+		method = "POST"
+	} else {
+		m.message = "Unknown subcommand. Use: equip <talent_id> <slot> or unequip <slot>"
+		m.messageType = "error"
+		return
+	}
+
+	// Make API request
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		m.message = fmt.Sprintf("Error: %v", err)
+		m.messageType = "error"
+		return
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		m.message = fmt.Sprintf("Error: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.message = "Failed to update talent slot. Check that the talent ID is valid."
+		m.messageType = "error"
+		return
+	}
+
+	m.message = fmt.Sprintf("Talent %s in slot %s!", subCmd, parts[len(parts)-1])
+	m.messageType = "success"
+}
+
+// handleSkillEquipCommand handles skill selection (skills are passive/always active)
+func (m *model) handleSkillEquipCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing a character to manage skills."
+		m.messageType = "error"
+		return
+	}
+
+	// Skills are passive - no equip needed
+	m.message = "Skills are always active! Use weapons in combat to improve your skill levels.\n\nUse 'skills' to view your current skill levels."
+	m.messageType = "info"
+}
+
+// displayQuestTrackerPlaceholder shows a placeholder quest tracker
+// when no quests are available (before full quest system is implemented)
+func (m *model) displayQuestTrackerPlaceholder() {
+	var quests strings.Builder
+
+	// Title with Lip Gloss styling
+	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n")
+	quests.WriteString(questTitleStyle.Render("  🤺  QUEST LOG  🤺") + "\n")
+	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n\n")
+
+	// Placeholder quests from the quest system spec
+	quests.WriteString(questBoxStyle.Render("") + "\n")
+	quests.WriteString(fmt.Sprintf("  %s [%s]\n",
+		questTitleStyle.Render("Prove Yourself"),
+		questProgressStyle.Render("In Progress")))
+
+	quests.WriteString("    The Scrapyard ain't for the weak. Kill 3 Scrap Rats\n")
+	quests.WriteString("    and I'll let you into New Venice proper.\n\n")
+
+	quests.WriteString("  Objectives:\n")
+	quests.WriteString(fmt.Sprintf("    ○ %s %s\n", "Kill Scrap Rat", questProgressStyle.Render("(2/3)")))
+	quests.WriteString(fmt.Sprintf("    ✓ %s %s\n", "Find Guard Marco at Foggy Gate", questCompletedStyle.Render("(done)")))
+
+	quests.WriteString("\n  Giver: Guard Marco\n")
+	quests.WriteString("  Reward: 10 coins\n\n")
+
+	// Second placeholder quest
+	quests.WriteString(questBoxStyle.Render("") + "\n")
+	quests.WriteString(fmt.Sprintf("  %s [%s]\n",
+		questTitleStyle.Render("Ooze Samples"),
+		questAvailableStyle.Render("Available")))
+
+	quests.WriteString("    Jane needs Ooze samples for her research.\n")
+	quests.WriteString("    The Leaking Pipes have plenty.\n\n")
+
+	quests.WriteString("  Objectives:\n")
+	quests.WriteString(fmt.Sprintf("    ○ %s %s\n", "Collect glowing goo", questProgressStyle.Render("(0/5)")))
+
+	quests.WriteString("\n  Giver: Scavenger Jane\n")
+	quests.WriteString("  Reward: repair_kit, scavenge skill\n\n")
+
+	// Summary footer
+	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+	quests.WriteString("  Active: 1  |  Available: 1  |  Completed: 0\n")
+	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+
+	quests.WriteString("\n" + infoStyle.Render("  Use 'quest <name>' for details, 'accept <quest>' to begin."))
+
+	m.message = quests.String()
 	m.messageType = "info"
 }
 
