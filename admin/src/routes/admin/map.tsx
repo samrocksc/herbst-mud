@@ -3,7 +3,6 @@ import { useState, useCallback, useMemo } from 'react'
 import { MapFlow } from '../../components/MapFlow'
 import { ZLevelSelector } from '../../components/ZLevelSelector'
 import { DirectionPickerModal } from '../../components/DirectionPickerModal'
-import { RoomEditPanel } from '../../components/RoomEditPanel'
 import type { Node, Edge, Connection } from '@xyflow/react'
 
 export const Route = createFileRoute('/admin/map')({
@@ -225,26 +224,34 @@ function MapBuilder() {
     setNodes(nds => [...nds, newNode])
   }
 
-  // Handle updating node from RoomEditPanel
-  const handleUpdateNode = useCallback((nodeId: string, data: Record<string, unknown>) => {
-    setNodes(nds => nds.map(n => 
-      n.id === nodeId 
-        ? { ...n, data: { ...n.data, ...data } }
-        : n
-    ))
-    setSelectedNode(prev => prev ? { ...prev, data: { ...prev.data, ...data } } : null)
-  }, [])
+  // Get exits for selected node
+  const getRoomExits = useCallback((nodeId: string) => {
+    const outgoingEdges = edges.filter(e => e.source === nodeId)
+    return outgoingEdges.map(edge => ({
+      id: edge.id,
+      direction: edge.label as string,
+      targetId: edge.target,
+      targetName: nodes.find(n => n.id === edge.target)?.data.name || 'Unknown'
+    }))
+  }, [edges, nodes])
 
-  // Handle deleting node from RoomEditPanel
-  const handleDeleteNode = useCallback((nodeId: string) => {
+  // Delete a room
+  const deleteRoom = useCallback((nodeId: string) => {
     setNodes(nds => nds.filter(n => n.id !== nodeId))
     setEdges(eds => eds.filter(e => e.source !== nodeId && e.target !== nodeId))
     setSelectedNode(null)
   }, [])
 
-  const handleClosePanel = useCallback(() => {
-    setSelectedNode(null)
+  // Save room changes (logs to console - would call API in production)
+  const saveRoom = useCallback((node: Node) => {
+    console.log('Saving room:', node.data)
+    alert(`Room "${(node.data as MapRoomData).name}" saved!`)
   }, [])
+
+  const getRoomData = (node: Node | null): MapRoomData => {
+    if (!node) return { name: '', description: '', zLevel: 0 }
+    return node.data as MapRoomData
+  }
 
   return (
     <div className="management-page">
@@ -253,7 +260,7 @@ function MapBuilder() {
         <div className="map-actions">
           <button onClick={addNewRoom}>Add Room</button>
           <button>Connect Rooms</button>
-          <button>Save Map</button>
+          <button onClick={() => nodes.forEach(n => console.log('Room:', n.data))}>Save Map</button>
         </div>
       </div>
 
@@ -273,15 +280,172 @@ function MapBuilder() {
           />
         </div>
 
-        {/* Room Edit Panel - Using the new component */}
         {selectedNode && (
-          <RoomEditPanel
-            selectedNode={selectedNode}
-            onUpdateNode={handleUpdateNode}
-            onDeleteNode={handleDeleteNode}
-            onClose={handleClosePanel}
-            edges={edges as { id: string; source: string; target: string; label?: string }[]}
-          />
+          <div className="map-sidebar" style={{ 
+            width: '280px', 
+            padding: '16px', 
+            background: '#222', 
+            borderRadius: '8px',
+            border: '1px solid #444'
+          }}>
+            <h3>Room Details</h3>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '4px' }}>Name:</label>
+              <input 
+                type="text" 
+                value={getRoomData(selectedNode).name}
+                onChange={(e) => {
+                  const newData = { ...getRoomData(selectedNode), name: e.target.value }
+                  setNodes(nds => nds.map(n => 
+                    n.id === selectedNode.id 
+                      ? { ...n, data: newData }
+                      : n
+                  ))
+                  setSelectedNode({ ...selectedNode, data: newData })
+                }}
+                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff' }}
+              />
+            </div>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '4px' }}>Description:</label>
+              <textarea 
+                value={getRoomData(selectedNode).description}
+                onChange={(e) => {
+                  const newData = { ...getRoomData(selectedNode), description: e.target.value }
+                  setNodes(nds => nds.map(n => 
+                    n.id === selectedNode.id 
+                      ? { ...n, data: newData }
+                      : n
+                  ))
+                  setSelectedNode({ ...selectedNode, data: newData })
+                }}
+                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff', minHeight: '60px' }}
+              />
+            </div>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '4px' }}>Z-Level:</label>
+              <select 
+                value={getRoomData(selectedNode).zLevel}
+                onChange={(e) => {
+                  const zLevel = parseInt(e.target.value)
+                  const newData = { ...getRoomData(selectedNode), zLevel }
+                  setNodes(nds => nds.map(n => 
+                    n.id === selectedNode.id 
+                      ? { ...n, data: newData }
+                      : n
+                  ))
+                  setSelectedNode({ ...selectedNode, data: newData })
+                }}
+                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff' }}
+              >
+                <option value={-2}>Z: -2 (Deep Underground)</option>
+                <option value={-1}>Z: -1 (Underground)</option>
+                <option value={0}>Z: 0 (Ground)</option>
+                <option value={1}>Z: 1 (Upper Floor)</option>
+                <option value={2}>Z: 2 (Tower)</option>
+              </select>
+            </div>
+            
+            {/* Exits List */}
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Exits:</label>
+              {(() => {
+                const exits = getRoomExits(selectedNode.id)
+                if (exits.length === 0) {
+                  return <p style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>No exits defined</p>
+                }
+                return (
+                  <ul style={{ 
+                    listStyle: 'none', 
+                    padding: 0, 
+                    margin: 0,
+                    fontSize: '12px'
+                  }}>
+                    {exits.map(exit => (
+                      <li key={exit.id} style={{ 
+                        padding: '4px 8px', 
+                        marginBottom: '4px',
+                        background: '#2a2a2a',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span>
+                          <span style={{ 
+                            color: exit.direction === 'up' ? '#e17055' : 
+                                   exit.direction === 'down' ? '#74b9ff' : '#6c5ce7',
+                            fontWeight: 'bold'
+                          }}>
+                            {exit.direction === 'up' ? '↑' : exit.direction === 'down' ? '↓' : '→'}
+                          </span>
+                          {' '}{exit.direction}
+                        </span>
+                        <span style={{ color: '#888' }}>→ {exit.targetName}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              })()}
+            </div>
+            
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>Node ID: {selectedNode.id}</p>
+            
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+              <button 
+                onClick={() => saveRoom(selectedNode)}
+                style={{ 
+                  flex: 1, 
+                  padding: '8px', 
+                  background: '#27ae60', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                💾 Save
+              </button>
+              <button 
+                onClick={() => {
+                  if (confirm(`Delete room "${getRoomData(selectedNode).name}"?`)) {
+                    deleteRoom(selectedNode.id)
+                  }
+                }}
+                style={{ 
+                  flex: 1, 
+                  padding: '8px', 
+                  background: '#e74c3c', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                🗑️ Delete
+              </button>
+            </div>
+            
+            {/* Close button */}
+            <button 
+              onClick={() => setSelectedNode(null)}
+              style={{ 
+                width: '100%', 
+                marginTop: '8px',
+                padding: '6px', 
+                background: 'transparent', 
+                color: '#888', 
+                border: '1px solid #444', 
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              ✕ Close Panel
+            </button>
+          </div>
         )}
       </div>
 

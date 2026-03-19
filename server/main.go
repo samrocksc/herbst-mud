@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 	_ "github.com/lib/pq"
 
 	"github.com/gin-gonic/gin"
@@ -80,16 +79,6 @@ func main() {
 		log.Printf("Warning: failed to initialize Junkyard: %v", err)
 	}
 
-	// Initialize master skills table
-	if err := dbinit.InitSkills(client); err != nil {
-		log.Printf("Warning: failed to initialize skills: %v", err)
-	}
-
-	// Initialize master talents table
-	if err := dbinit.InitTalents(client); err != nil {
-		log.Printf("Warning: failed to initialize talents: %v", err)
-	}
-
 	// Set up Gin router
 	router := gin.Default()
 	
@@ -105,69 +94,39 @@ func main() {
 		c.Next()
 	})
 
-	// Get JWT secret from environment or use default (for dev)
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		jwtSecret = "herbst-mud-secret-key-change-in-production"
-	}
-	authConfig := &middleware.AuthConfig{
-		JWTSecret: jwtSecret,
-		TokenExpiry: 24 * time.Hour,
-	}
+	// Register room routes
+	routes.RegisterRoomRoutes(router, client)
 
-	// Create router groups
-	// Public routes (no auth required)
-	public := router.Group("")
-	{
-		// Healthz endpoint (public)
-		public.GET("/healthz", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"status": "ok",
-				"ssh":    "running",
-				"db":     "connected",
-			})
-		})
-
-		// OpenAPI specification endpoint (public)
-		public.GET("/openapi.json", func(c *gin.Context) {
-			c.JSON(http.StatusOK, getOpenAPISpec())
-		})
-	}
-
-	// Protected routes (auth required)
-	protected := router.Group("")
-	protected.Use(middleware.Auth(authConfig))
-	{
-		// Register protected room routes
-		routes.RegisterRoomRoutes(protected, client)
-
-		// Register protected character routes
-		routes.RegisterCharacterRoutes(protected, client)
-
-		// Register protected equipment routes
-		routes.RegisterEquipmentRoutes(protected, client)
-	}
-
-	// User routes are special - register separately to handle auth flow
+	// Register user routes
 	routes.RegisterUserRoutes(router, client)
 
-	// Admin routes (admin only)
-	admin := router.Group("/admin")
-	admin.Use(middleware.Auth(authConfig), func(c *gin.Context) {
-		// Additional check for admin role
-		isAdmin, exists := c.Get("isAdmin")
-		if !exists || !isAdmin.(bool) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"error": "Admin access required",
-			})
-			return
-		}
-		c.Next()
-	})
+	// Register character routes (public endpoints)
+	routes.RegisterCharacterRoutes(router, client)
+
+	// Protected routes - require authentication
+	protected := router.Group("/api")
+	protected.Use(middleware.AuthMiddleware())
 	{
-		// Admin routes can be registered here
-		// Example: admin.GET("/users", ...)
+		// Add protected character routes here
+		// Example: protected.PUT("/characters/:id", ...)
 	}
+
+	// Register equipment routes (GitHub #89 - Item system)
+	routes.RegisterEquipmentRoutes(router, client)
+
+	// Healthz endpoint
+	router.GET("/healthz", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+			"ssh":    "running",
+			"db":     "connected",
+		})
+	})
+
+	// OpenAPI specification endpoint
+	router.GET("/openapi.json", func(c *gin.Context) {
+		c.JSON(http.StatusOK, getOpenAPISpec())
+	})
 
 	// Start the server
 	router.Run("0.0.0.0:8080")

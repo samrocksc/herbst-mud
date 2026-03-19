@@ -274,61 +274,74 @@ func ensureGizmoCharacter(client *db.Client, ctx context.Context) error {
 	return nil
 }
 
-// InitWeapons creates starter weapons for characters
+// InitWeapons seeds the database with starter weapons
 func InitWeapons(client *db.Client) error {
 	ctx := context.Background()
 
-	// Check if weapons already exist
+	// Check if weapons already exist (by guaranteed drop flag)
 	existingWeapons, err := client.Equipment.Query().
-		Where(equipment.ItemTypeEQ("weapon")).
+		Where(equipment.GuaranteedDropEQ(true)).
 		Count(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to count existing weapons: %w", err)
+		return fmt.Errorf("failed to query existing weapons: %w", err)
 	}
 
 	if existingWeapons > 0 {
-		log.Println("Weapons already initialized, skipping...")
+		log.Println("Starter weapons already exist, skipping...")
 		return nil
 	}
 
-	// Create Rusty Sword (Warrior starter)
+	// Create Rusty Sword (Warrior starter weapon)
 	_, err = client.Equipment.
 		Create().
 		SetName("Rusty Sword").
-		SetDescription("An old, weathered sword with a jagged edge. It's seen better days but still has some fight left in it.").
+		SetDescription("An old, worn sword with a dull blade. It's seen better days but will still do the job.").
 		SetSlot("weapon").
+		SetItemType("weapon").
 		SetLevel(1).
 		SetWeight(3).
-		SetItemType("weapon").
 		SetMinDamage(1).
 		SetMaxDamage(3).
 		SetWeaponType("sword").
-		SetClassRestriction("warrior").
 		SetGuaranteedDrop(true).
+		SetClassRestriction("warrior").
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create Rusty Sword: %w", err)
 	}
 
-	// Create Twisted Pipe (Chef starter)
+	// Create Twisted Pipe (Chef starter weapon)
 	_, err = client.Equipment.
 		Create().
 		SetName("Twisted Pipe").
-		SetDescription("A corroded metal pipe, twisted and bent. Looks painful to be hit with.").
+		SetDescription("A crude weapon made from a twisted junkyard pipe. Dangerous in the right hands.").
 		SetSlot("weapon").
+		SetItemType("weapon").
 		SetLevel(1).
 		SetWeight(2).
-		SetItemType("weapon").
 		SetMinDamage(1).
 		SetMaxDamage(2).
 		SetWeaponType("pipe").
-		SetClassRestriction("chef").
 		SetGuaranteedDrop(true).
+		SetClassRestriction("chef").
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create Twisted Pipe: %w", err)
 	}
 
-	log.Println("Starter weapons initialized: Rusty Sword (warrior), Twisted Pipe (chef)")
+	log.Println("Starter weapons seeded: Rusty Sword (warrior), Twisted Pipe (chef)")
 	return nil
+}
+
+// SelectWeaponForClass returns the weapon that should drop for a given character class
+func SelectWeaponForClass(class string) string {
+	weaponMap := map[string]string{
+		"warrior": "Rusty Sword",
+		"chef":    "Twisted Pipe",
+	}
+	if weapon, ok := weaponMap[class]; ok {
+		return weapon
+	}
+	// Default to Rusty Sword for unknown classes
+	return "Rusty Sword"
 }
