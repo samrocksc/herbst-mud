@@ -282,6 +282,32 @@ var (
 	exitKnownColor   = lipgloss.Color("226") // Yellow
 	exitNewColor     = lipgloss.Color("15")  // White
 
+	// Quest tracker panel colors
+	questTitleColor     = lipgloss.Color("75")    // Blue
+	questProgressColor  = lipgloss.Color("226")  // Yellow
+	questCompletedColor = lipgloss.Color("46")   // Green
+	questAvailableColor = lipgloss.Color("141")  // Purple
+
+	// Quest tracker panel styles
+	questTitleStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(questTitleColor)
+
+	questBoxStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(purple).
+			Padding(1, 2)
+
+	questProgressStyle = lipgloss.NewStyle().
+				Foreground(questProgressColor)
+
+	questCompletedStyle = lipgloss.NewStyle().
+				Foreground(questCompletedColor).
+				Strikethrough(true)
+
+	questAvailableStyle = lipgloss.NewStyle().
+				Foreground(questAvailableColor)
+
 	// Styles
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
@@ -1013,6 +1039,7 @@ func (m *model) processCommand(cmd string) {
   take/get <item> - Pick up an item
   drop <item> - Drop an item
   inventory/i - Show your inventory
+  quests/q - Show your quest log
   whoami - Show your info
   profile/p - Edit character profile
   clear/cls - Clear screen
@@ -1076,6 +1103,11 @@ func (m *model) processCommand(cmd string) {
 		// Check for inventory command
 		if cmd == "inventory" || cmd == "i" || cmd == "inv" {
 			m.handleInventoryCommand()
+			return
+		}
+		// Check for quests command
+		if cmd == "quests" || cmd == "q" || cmd == "quest" {
+			m.handleQuestsCommand(cmd)
 			return
 		}
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
@@ -1569,6 +1601,182 @@ func (m *model) handleInventoryCommand() {
 		}
 	}
 	m.message = inv.String()
+	m.messageType = "info"
+}
+
+// handleQuestsCommand handles the quests/q command to display quest tracker
+func (m *model) handleQuestsCommand(cmd string) {
+	// Fetch quests from API
+	// For now, we'll return mock data until the full quest system is implemented
+	// In production, this would call: GET /characters/:id/quests
+	resp, err := http.Get(fmt.Sprintf("%s/characters/%d/quests", RESTAPIBase, m.currentCharacterID))
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching quests: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check for error response
+	if resp.StatusCode != http.StatusOK {
+		// If no quests endpoint exists yet, show placeholder message
+		// This allows the feature to work before the full quest system is built
+		m.displayQuestTrackerPlaceholder()
+		return
+	}
+
+	// Parse quest response
+	var questResp struct {
+		Quests []struct {
+			ID          string `json:"id"`
+			Name        string `json:"name"`
+			Description string `json:"description"`
+			Status      string `json:"status"`
+			Objectives  []struct {
+				Description string `json:"description"`
+				Current     int    `json:"current"`
+				Total       int    `json:"total"`
+			} `json:"objectives"`
+			Giver  string `json:"giver"`
+			Rewards string `json:"rewards"`
+		} `json:"quests"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&questResp); err != nil || len(questResp.Quests) == 0 {
+		// No quests available - show placeholder
+		m.displayQuestTrackerPlaceholder()
+		return
+	}
+
+	// Format quest tracker display with Lip Gloss styling
+	var quests strings.Builder
+
+	// Title
+	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n")
+	quests.WriteString(questTitleStyle.Render("  🤺  QUEST LOG  🤺") + "\n")
+	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n\n")
+
+	activeCount := 0
+	availableCount := 0
+	completedCount := 0
+
+	for _, quest := range questResp.Quests {
+		status := quest.Status
+		switch status {
+		case "in_progress":
+			activeCount++
+		case "available":
+			availableCount++
+		case "completed":
+			completedCount++
+		}
+
+		// Quest box with styled border
+		quests.WriteString(questBoxStyle.Render("") + "\n")
+
+		// Quest name with status color
+		statusColor := questAvailableStyle
+		statusText := "Available"
+		if status == "in_progress" {
+			statusColor = questProgressStyle
+			statusText = "In Progress"
+		} else if status == "completed" {
+			statusColor = questCompletedStyle
+			statusText = "Completed"
+		}
+
+		quests.WriteString(fmt.Sprintf("  %s [%s]\n", questTitleStyle.Render(quest.Name), statusColor.Render(statusText)))
+
+		// Description
+		if quest.Description != "" {
+			quests.WriteString(fmt.Sprintf("    %s\n", quest.Description))
+		}
+
+		// Objectives with progress
+		if len(quest.Objectives) > 0 {
+			quests.WriteString("\n  Objectives:\n")
+			for _, obj := range quest.Objectives {
+				progress := fmt.Sprintf("%d/%d", obj.Current, obj.Total)
+				if obj.Current >= obj.Total {
+					quests.WriteString(fmt.Sprintf("    ✓ %s %s\n", obj.Description, questCompletedStyle.Render("("+progress+")")))
+				} else {
+					quests.WriteString(fmt.Sprintf("    ○ %s %s\n", obj.Description, questProgressStyle.Render("("+progress+")")))
+				}
+			}
+		}
+
+		// Giver
+		if quest.Giver != "" {
+			quests.WriteString(fmt.Sprintf("\n  Giver: %s\n", quest.Giver))
+		}
+
+		// Rewards
+		if quest.Rewards != "" {
+			quests.WriteString(fmt.Sprintf("  Reward: %s\n", quest.Rewards))
+		}
+
+		quests.WriteString("\n")
+	}
+
+	// Summary footer
+	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+	quests.WriteString(fmt.Sprintf("  Active: %d  |  Available: %d  |  Completed: %d\n",
+		activeCount, availableCount, completedCount))
+	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+
+	m.message = quests.String()
+	m.messageType = "info"
+}
+
+// displayQuestTrackerPlaceholder shows a placeholder quest tracker
+// when no quests are available (before full quest system is implemented)
+func (m *model) displayQuestTrackerPlaceholder() {
+	var quests strings.Builder
+
+	// Title with Lip Gloss styling
+	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n")
+	quests.WriteString(questTitleStyle.Render("  🤺  QUEST LOG  🤺") + "\n")
+	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n\n")
+
+	// Placeholder quests from the quest system spec
+	quests.WriteString(questBoxStyle.Render("") + "\n")
+	quests.WriteString(fmt.Sprintf("  %s [%s]\n",
+		questTitleStyle.Render("Prove Yourself"),
+		questProgressStyle.Render("In Progress")))
+
+	quests.WriteString("    The Scrapyard ain't for the weak. Kill 3 Scrap Rats\n")
+	quests.WriteString("    and I'll let you into New Venice proper.\n\n")
+
+	quests.WriteString("  Objectives:\n")
+	quests.WriteString(fmt.Sprintf("    ○ %s %s\n", "Kill Scrap Rat", questProgressStyle.Render("(2/3)")))
+	quests.WriteString(fmt.Sprintf("    ✓ %s %s\n", "Find Guard Marco at Foggy Gate", questCompletedStyle.Render("(done)")))
+
+	quests.WriteString("\n  Giver: Guard Marco\n")
+	quests.WriteString("  Reward: 10 coins\n\n")
+
+	// Second placeholder quest
+	quests.WriteString(questBoxStyle.Render("") + "\n")
+	quests.WriteString(fmt.Sprintf("  %s [%s]\n",
+		questTitleStyle.Render("Ooze Samples"),
+		questAvailableStyle.Render("Available")))
+
+	quests.WriteString("    Jane needs Ooze samples for her research.\n")
+	quests.WriteString("    The Leaking Pipes have plenty.\n\n")
+
+	quests.WriteString("  Objectives:\n")
+	quests.WriteString(fmt.Sprintf("    ○ %s %s\n", "Collect glowing goo", questProgressStyle.Render("(0/5)")))
+
+	quests.WriteString("\n  Giver: Scavenger Jane\n")
+	quests.WriteString("  Reward: repair_kit, scavenge skill\n\n")
+
+	// Summary footer
+	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+	quests.WriteString("  Active: 1  |  Available: 1  |  Completed: 0\n")
+	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+
+	quests.WriteString("\n" + infoStyle.Render("  Use 'quest <name>' for details, 'accept <quest>' to begin."))
+
+	m.message = quests.String()
 	m.messageType = "info"
 }
 
