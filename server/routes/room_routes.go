@@ -161,4 +161,73 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 
 		c.JSON(http.StatusOK, result)
 	})
+
+	// Get room with items and NPCs (look-10)
+	router.GET("/rooms/:id/look", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+			return
+		}
+
+		room, err := client.Room.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+			return
+		}
+
+		// Get characters in room (NPCs)
+		characters, _ := client.Character.Query().
+			Where(character.CurrentRoomId(id)).
+			All(c.Request.Context())
+
+		// Separate NPCs from players
+		npcs := []gin.H{}
+		players := []gin.H{}
+		for _, char := range characters {
+			charData := gin.H{
+				"id":    char.ID,
+				"name":  char.Name,
+				"level": char.Level,
+				"class": char.Class,
+				"race":  char.Race,
+			}
+			if char.IsNPC {
+				npcs = append(npcs, charData)
+			} else {
+				players = append(players, charData)
+			}
+		}
+
+		// Get visible items in room using edge query
+		items, _ := client.Equipment.Query().
+			All(c.Request.Context())
+
+		// Filter to items in this room using edge
+		visibleItems := []gin.H{}
+		for _, item := range items {
+			if item.IsVisible && item.Edges.Room != nil && item.Edges.Room.ID == id {
+				visibleItems = append(visibleItems, gin.H{
+					"id":           item.ID,
+					"name":         item.Name,
+					"description":  item.Description,
+					"type":         item.ItemType,
+					"is_immovable": item.IsImmovable,
+					"color":        item.Color,
+				})
+			}
+		}
+
+		// Build look response
+		c.JSON(http.StatusOK, gin.H{
+			"id":           room.ID,
+			"name":         room.Name,
+			"description":  room.Description,
+			"exits":        room.Exits,
+			"z_level":      0, // Default z-level
+			"items":        visibleItems,
+			"npcs":         npcs,
+			"players":      players,
+		})
+	})
 }

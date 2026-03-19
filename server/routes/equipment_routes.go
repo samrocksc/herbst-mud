@@ -15,7 +15,7 @@ import (
 // In production, this would be in the database
 var (
 	revealConditions = make(map[int]map[string]any)
-	revealMutex       sync.RWMutex
+	revealMutex      sync.RWMutex
 )
 
 // RegisterEquipmentRoutes registers all equipment-related routes
@@ -99,18 +99,18 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 
 		// Add reveal conditions to response
 		type EqWithReveal struct {
-			ID              int             `json:"id"`
-			Name            string          `json:"name"`
-			Description     string          `json:"description"`
-			Slot            string          `json:"slot"`
-			Level           int             `json:"level"`
-			Weight          int             `json:"weight"`
-			IsEquipped      bool            `json:"isEquipped"`
-			IsImmovable     bool            `json:"isImmovable"`
-			Color           string          `json:"color"`
-			IsVisible       bool            `json:"isVisible"`
-			ItemType        string          `json:"itemType"`
-			RevealCondition map[string]any  `json:"revealCondition,omitempty"`
+			ID              int            `json:"id"`
+			Name            string         `json:"name"`
+			Description     string         `json:"description"`
+			Slot            string         `json:"slot"`
+			Level           int            `json:"level"`
+			Weight          int            `json:"weight"`
+			IsEquipped      bool           `json:"isEquipped"`
+			IsImmovable     bool           `json:"isImmovable"`
+			Color           string         `json:"color"`
+			IsVisible       bool           `json:"isVisible"`
+			ItemType        string         `json:"itemType"`
+			RevealCondition map[string]any `json:"revealCondition,omitempty"`
 		}
 
 		result := make([]EqWithReveal, len(items))
@@ -165,18 +165,18 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 
 		// Add reveal conditions to response
 		type EqWithReveal struct {
-			ID              int             `json:"id"`
-			Name            string          `json:"name"`
-			Description     string          `json:"description"`
-			Slot            string          `json:"slot"`
-			Level           int             `json:"level"`
-			Weight          int             `json:"weight"`
-			IsEquipped      bool            `json:"isEquipped"`
-			IsImmovable     bool            `json:"isImmovable"`
-			Color           string          `json:"color"`
-			IsVisible       bool            `json:"isVisible"`
-			ItemType        string          `json:"itemType"`
-			RevealCondition map[string]any  `json:"revealCondition,omitempty"`
+			ID              int            `json:"id"`
+			Name            string         `json:"name"`
+			Description     string         `json:"description"`
+			Slot            string         `json:"slot"`
+			Level           int            `json:"level"`
+			Weight          int            `json:"weight"`
+			IsEquipped      bool           `json:"isEquipped"`
+			IsImmovable     bool           `json:"isImmovable"`
+			Color           string         `json:"color"`
+			IsVisible       bool           `json:"isVisible"`
+			ItemType        string         `json:"itemType"`
+			RevealCondition map[string]any `json:"revealCondition,omitempty"`
 		}
 
 		result := make([]EqWithReveal, len(items))
@@ -220,18 +220,18 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 
 		// Add reveal condition to response
 		type EqWithReveal struct {
-			ID              int             `json:"id"`
-			Name            string          `json:"name"`
-			Description     string          `json:"description"`
-			Slot            string          `json:"slot"`
-			Level           int             `json:"level"`
-			Weight          int             `json:"weight"`
-			IsEquipped      bool            `json:"isEquipped"`
-			IsImmovable     bool            `json:"isImmovable"`
-			Color           string          `json:"color"`
-			IsVisible       bool            `json:"isVisible"`
-			ItemType        string          `json:"itemType"`
-			RevealCondition map[string]any  `json:"revealCondition,omitempty"`
+			ID              int            `json:"id"`
+			Name            string         `json:"name"`
+			Description     string         `json:"description"`
+			Slot            string         `json:"slot"`
+			Level           int            `json:"level"`
+			Weight          int            `json:"weight"`
+			IsEquipped      bool           `json:"isEquipped"`
+			IsImmovable     bool           `json:"isImmovable"`
+			Color           string         `json:"color"`
+			IsVisible       bool           `json:"isVisible"`
+			ItemType        string         `json:"itemType"`
+			RevealCondition map[string]any `json:"revealCondition,omitempty"`
 		}
 
 		result := EqWithReveal{
@@ -365,6 +365,55 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 		revealMutex.Unlock()
 
 		c.JSON(http.StatusNoContent, nil)
+	})
+
+	// Examine equipment endpoint (look-10)
+	router.GET("/equipment/:id/examine", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID"})
+			return
+		}
+
+		eq, err := client.Equipment.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Equipment not found"})
+			return
+		}
+
+		// Build examine response
+		examineLevel := 1 // Default examine level
+		if level := c.Query("examineLevel"); level != "" {
+			if lvl, err := strconv.Atoi(level); err == nil {
+				examineLevel = lvl
+			}
+		}
+
+		// Build examine response with hidden details logic
+		hiddenDetails := []map[string]interface{}{}
+
+		// For immovable items like fountain, show hidden details at higher examine levels
+		if eq.IsImmovable && examineLevel >= 50 {
+			hiddenDetails = append(hiddenDetails, map[string]interface{}{
+				"text":         "The item appears worn with age",
+				"revealed":     true,
+				"reveal_level": 50,
+			})
+		}
+
+		// Return examine response
+		c.JSON(http.StatusOK, gin.H{
+			"id":             eq.ID,
+			"name":           eq.Name,
+			"description":    eq.Description,
+			"type":           eq.ItemType,
+			"is_immovable":   eq.IsImmovable,
+			"is_visible":     eq.IsVisible,
+			"color":          eq.Color,
+			"examine_level":  examineLevel,
+			"hidden_details": hiddenDetails,
+			"examine_xp":      1, // Grant XP for examining
+		})
 	})
 
 	// Reveal hidden item (GitHub #12 - Look System)
