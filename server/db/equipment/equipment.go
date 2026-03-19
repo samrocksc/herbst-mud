@@ -32,6 +32,16 @@ const (
 	FieldIsVisible = "is_visible"
 	// FieldItemType holds the string denoting the itemtype field in the database.
 	FieldItemType = "item_type"
+	// FieldIsContainer holds the string denoting the iscontainer field in the database.
+	FieldIsContainer = "is_container"
+	// FieldContainerCapacity holds the string denoting the containercapacity field in the database.
+	FieldContainerCapacity = "container_capacity"
+	// FieldIsLocked holds the string denoting the islocked field in the database.
+	FieldIsLocked = "is_locked"
+	// FieldKeyItemID holds the string denoting the keyitemid field in the database.
+	FieldKeyItemID = "key_item_id"
+	// FieldContainedItems holds the string denoting the containeditems field in the database.
+	FieldContainedItems = "contained_items"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// Table holds the table name of the equipment in the database.
@@ -58,6 +68,11 @@ var Columns = []string{
 	FieldColor,
 	FieldIsVisible,
 	FieldItemType,
+	FieldIsContainer,
+	FieldContainerCapacity,
+	FieldIsLocked,
+	FieldKeyItemID,
+	FieldContainedItems,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
@@ -96,6 +111,14 @@ var (
 	DefaultIsVisible bool
 	// DefaultItemType holds the default value on creation for the "itemType" field.
 	DefaultItemType string
+	// DefaultIsContainer holds the default value on creation for the "isContainer" field.
+	DefaultIsContainer bool
+	// DefaultContainerCapacity holds the default value on creation for the "containerCapacity" field.
+	DefaultContainerCapacity int
+	// DefaultIsLocked holds the default value on creation for the "isLocked" field.
+	DefaultIsLocked bool
+	// DefaultContainedItems holds the default value on creation for the "containedItems" field.
+	DefaultContainedItems string
 )
 
 // OrderOption defines the ordering options for the Equipment queries.
@@ -154,6 +177,31 @@ func ByIsVisible(opts ...sql.OrderTermOption) OrderOption {
 // ByItemType orders the results by the itemType field.
 func ByItemType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldItemType, opts...).ToFunc()
+}
+
+// ByIsContainer orders the results by the isContainer field.
+func ByIsContainer(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsContainer, opts...).ToFunc()
+}
+
+// ByContainerCapacity orders the results by the containerCapacity field.
+func ByContainerCapacity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContainerCapacity, opts...).ToFunc()
+}
+
+// ByIsLocked orders the results by the isLocked field.
+func ByIsLocked(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsLocked, opts...).ToFunc()
+}
+
+// ByKeyItemID orders the results by the keyItemID field.
+func ByKeyItemID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKeyItemID, opts...).ToFunc()
+}
+
+// ByContainedItems orders the results by the containedItems field.
+func ByContainedItems(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContainedItems, opts...).ToFunc()
 }
 
 // ByRoomField orders the results by room field.

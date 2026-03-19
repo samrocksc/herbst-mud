@@ -175,6 +175,11 @@ var (
 		{Name: "color", Type: field.TypeString, Default: ""},
 		{Name: "is_visible", Type: field.TypeBool, Default: true},
 		{Name: "item_type", Type: field.TypeString, Default: "misc"},
+		{Name: "is_container", Type: field.TypeBool, Default: false},
+		{Name: "container_capacity", Type: field.TypeInt, Default: 0},
+		{Name: "is_locked", Type: field.TypeBool, Default: false},
+		{Name: "key_item_id", Type: field.TypeString, Nullable: true},
+		{Name: "contained_items", Type: field.TypeString, Default: ""},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -185,7 +190,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[11]},
+				Columns:    []*schema.Column{EquipmentColumns[16]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

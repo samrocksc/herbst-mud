@@ -48,7 +48,7 @@ func TestHandleSkillsCommand(t *testing.T) {
 	// Verify skills are displayed
 	expectedSubstrings := []string{"blades", "15", "+10%"}
 	for _, substr := range expectedSubstrings {
-		if !contains(m.message, substr) {
+		if !containsSubstring(m.message, substr) {
 			t.Errorf("Expected message to contain '%s', got: %s", substr, m.message)
 		}
 	}
@@ -68,7 +68,7 @@ func TestHandleSkillsCommandNoCharacter(t *testing.T) {
 		t.Errorf("Expected messageType 'error', got '%s'", m.messageType)
 	}
 
-	if !contains(m.message, "need to be playing") {
+	if !containsSubstring(m.message, "need to be playing") {
 		t.Errorf("Expected error about playing, got: %s", m.message)
 	}
 }
@@ -119,12 +119,12 @@ func TestHandleTalentsCommand(t *testing.T) {
 	}
 
 	// Verify talent display
-	if !contains(m.message, "Warrior's Might") {
+	if !containsSubstring(m.message, "Warrior's Might") {
 		t.Errorf("Expected message to contain talent name, got: %s", m.message)
 	}
 
 	// Verify empty slots shown
-	if !contains(m.message, "empty") {
+	if !containsSubstring(m.message, "empty") {
 		t.Errorf("Expected message to show empty slots, got: %s", m.message)
 	}
 }
@@ -255,12 +255,12 @@ func TestHandleSkillEquipCommand(t *testing.T) {
 		t.Errorf("Expected messageType 'info', got '%s'", m.messageType)
 	}
 
-	if !contains(m.message, "always active") {
+	if !containsSubstring(m.message, "always active") {
 		t.Errorf("Expected message about skills being active, got: %s", m.message)
 	}
 }
 
 // Helper function
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && (s[:len(substr)] == substr || contains(s[1:], substr)))
+func containsSubstring(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > 0 && (s[:len(substr)] == substr || containsSubstring(s[1:], substr)))
 }

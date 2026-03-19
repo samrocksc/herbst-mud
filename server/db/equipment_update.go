@@ -182,6 +182,89 @@ func (_u *EquipmentUpdate) SetNillableItemType(v *string) *EquipmentUpdate {
 	return _u
 }
 
+// SetIsContainer sets the "isContainer" field.
+func (_u *EquipmentUpdate) SetIsContainer(v bool) *EquipmentUpdate {
+	_u.mutation.SetIsContainer(v)
+	return _u
+}
+
+// SetNillableIsContainer sets the "isContainer" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableIsContainer(v *bool) *EquipmentUpdate {
+	if v != nil {
+		_u.SetIsContainer(*v)
+	}
+	return _u
+}
+
+// SetContainerCapacity sets the "containerCapacity" field.
+func (_u *EquipmentUpdate) SetContainerCapacity(v int) *EquipmentUpdate {
+	_u.mutation.ResetContainerCapacity()
+	_u.mutation.SetContainerCapacity(v)
+	return _u
+}
+
+// SetNillableContainerCapacity sets the "containerCapacity" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableContainerCapacity(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetContainerCapacity(*v)
+	}
+	return _u
+}
+
+// AddContainerCapacity adds value to the "containerCapacity" field.
+func (_u *EquipmentUpdate) AddContainerCapacity(v int) *EquipmentUpdate {
+	_u.mutation.AddContainerCapacity(v)
+	return _u
+}
+
+// SetIsLocked sets the "isLocked" field.
+func (_u *EquipmentUpdate) SetIsLocked(v bool) *EquipmentUpdate {
+	_u.mutation.SetIsLocked(v)
+	return _u
+}
+
+// SetNillableIsLocked sets the "isLocked" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableIsLocked(v *bool) *EquipmentUpdate {
+	if v != nil {
+		_u.SetIsLocked(*v)
+	}
+	return _u
+}
+
+// SetKeyItemID sets the "keyItemID" field.
+func (_u *EquipmentUpdate) SetKeyItemID(v string) *EquipmentUpdate {
+	_u.mutation.SetKeyItemID(v)
+	return _u
+}
+
+// SetNillableKeyItemID sets the "keyItemID" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableKeyItemID(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetKeyItemID(*v)
+	}
+	return _u
+}
+
+// ClearKeyItemID clears the value of the "keyItemID" field.
+func (_u *EquipmentUpdate) ClearKeyItemID() *EquipmentUpdate {
+	_u.mutation.ClearKeyItemID()
+	return _u
+}
+
+// SetContainedItems sets the "containedItems" field.
+func (_u *EquipmentUpdate) SetContainedItems(v string) *EquipmentUpdate {
+	_u.mutation.SetContainedItems(v)
+	return _u
+}
+
+// SetNillableContainedItems sets the "containedItems" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableContainedItems(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetContainedItems(*v)
+	}
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdate) SetRoomID(id int) *EquipmentUpdate {
 	_u.mutation.SetRoomID(id)
@@ -283,6 +366,27 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsContainer(); ok {
+		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.ContainerCapacity(); ok {
+		_spec.SetField(equipment.FieldContainerCapacity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedContainerCapacity(); ok {
+		_spec.AddField(equipment.FieldContainerCapacity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.IsLocked(); ok {
+		_spec.SetField(equipment.FieldIsLocked, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.KeyItemID(); ok {
+		_spec.SetField(equipment.FieldKeyItemID, field.TypeString, value)
+	}
+	if _u.mutation.KeyItemIDCleared() {
+		_spec.ClearField(equipment.FieldKeyItemID, field.TypeString)
+	}
+	if value, ok := _u.mutation.ContainedItems(); ok {
+		_spec.SetField(equipment.FieldContainedItems, field.TypeString, value)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -487,6 +591,89 @@ func (_u *EquipmentUpdateOne) SetNillableItemType(v *string) *EquipmentUpdateOne
 	return _u
 }
 
+// SetIsContainer sets the "isContainer" field.
+func (_u *EquipmentUpdateOne) SetIsContainer(v bool) *EquipmentUpdateOne {
+	_u.mutation.SetIsContainer(v)
+	return _u
+}
+
+// SetNillableIsContainer sets the "isContainer" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableIsContainer(v *bool) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetIsContainer(*v)
+	}
+	return _u
+}
+
+// SetContainerCapacity sets the "containerCapacity" field.
+func (_u *EquipmentUpdateOne) SetContainerCapacity(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetContainerCapacity()
+	_u.mutation.SetContainerCapacity(v)
+	return _u
+}
+
+// SetNillableContainerCapacity sets the "containerCapacity" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableContainerCapacity(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetContainerCapacity(*v)
+	}
+	return _u
+}
+
+// AddContainerCapacity adds value to the "containerCapacity" field.
+func (_u *EquipmentUpdateOne) AddContainerCapacity(v int) *EquipmentUpdateOne {
+	_u.mutation.AddContainerCapacity(v)
+	return _u
+}
+
+// SetIsLocked sets the "isLocked" field.
+func (_u *EquipmentUpdateOne) SetIsLocked(v bool) *EquipmentUpdateOne {
+	_u.mutation.SetIsLocked(v)
+	return _u
+}
+
+// SetNillableIsLocked sets the "isLocked" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableIsLocked(v *bool) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetIsLocked(*v)
+	}
+	return _u
+}
+
+// SetKeyItemID sets the "keyItemID" field.
+func (_u *EquipmentUpdateOne) SetKeyItemID(v string) *EquipmentUpdateOne {
+	_u.mutation.SetKeyItemID(v)
+	return _u
+}
+
+// SetNillableKeyItemID sets the "keyItemID" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableKeyItemID(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetKeyItemID(*v)
+	}
+	return _u
+}
+
+// ClearKeyItemID clears the value of the "keyItemID" field.
+func (_u *EquipmentUpdateOne) ClearKeyItemID() *EquipmentUpdateOne {
+	_u.mutation.ClearKeyItemID()
+	return _u
+}
+
+// SetContainedItems sets the "containedItems" field.
+func (_u *EquipmentUpdateOne) SetContainedItems(v string) *EquipmentUpdateOne {
+	_u.mutation.SetContainedItems(v)
+	return _u
+}
+
+// SetNillableContainedItems sets the "containedItems" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableContainedItems(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetContainedItems(*v)
+	}
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdateOne) SetRoomID(id int) *EquipmentUpdateOne {
 	_u.mutation.SetRoomID(id)
@@ -618,6 +805,27 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if value, ok := _u.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsContainer(); ok {
+		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.ContainerCapacity(); ok {
+		_spec.SetField(equipment.FieldContainerCapacity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedContainerCapacity(); ok {
+		_spec.AddField(equipment.FieldContainerCapacity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.IsLocked(); ok {
+		_spec.SetField(equipment.FieldIsLocked, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.KeyItemID(); ok {
+		_spec.SetField(equipment.FieldKeyItemID, field.TypeString, value)
+	}
+	if _u.mutation.KeyItemIDCleared() {
+		_spec.ClearField(equipment.FieldKeyItemID, field.TypeString)
+	}
+	if value, ok := _u.mutation.ContainedItems(); ok {
+		_spec.SetField(equipment.FieldContainedItems, field.TypeString, value)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
