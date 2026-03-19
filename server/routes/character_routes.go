@@ -11,7 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/constants"
 	"herbst-server/db"
+	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/charactertalent"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
 	"golang.org/x/crypto/bcrypt"
@@ -954,5 +956,480 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			"cloth_armor":  char.SkillClothArmor,
 			"heavy_armor":  char.SkillHeavyArmor,
 		})
+	})
+
+	// Get NPCs in a specific room
+	router.GET("/rooms/:roomId/npcs", func(c *gin.Context) {
+		roomId, err := strconv.Atoi(c.Param("roomId"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+			return
+		}
+
+		// Query for NPCs in this room
+		npcs, err := client.Character.Query().
+			Where(
+				character.IsNPC(true),
+				character.CurrentRoomId(roomId),
+			).
+			All(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Build response with NPC info
+		result := make([]gin.H, len(npcs))
+		for i, npc := range npcs {
+			result[i] = gin.H{
+				"id":              npc.ID,
+				"name":            npc.Name,
+				"isNPC":           npc.IsNPC,
+				"currentRoomId":   npc.CurrentRoomId,
+				"race":            npc.Race,
+				"class":           npc.Class,
+				"level":           npc.Level,
+				"hitpoints":       npc.Hitpoints,
+				"max_hitpoints":   npc.MaxHitpoints,
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"roomId": roomId,
+			"npcs":   result,
+			"count":  len(result),
+		})
+	})
+
+	// Get all NPCs (non-player characters)
+	router.GET("/npcs", func(c *gin.Context) {
+		npcs, err := client.Character.Query().
+			Where(character.IsNPC(true)).
+			All(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		result := make([]gin.H, len(npcs))
+		for i, npc := range npcs {
+			result[i] = gin.H{
+				"id":              npc.ID,
+				"name":            npc.Name,
+				"isNPC":           npc.IsNPC,
+				"currentRoomId":   npc.CurrentRoomId,
+				"race":            npc.Race,
+				"class":           npc.Class,
+				"level":           npc.Level,
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"npcs":  result,
+			"count": len(result),
+		})
+	})
+
+	// Get character talents (equipped talents with slot info)
+	// Get character talents (equipped talents with slot info)
+	router.GET("/characters/:id/talents", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		// Query talents for this character using query chain
+		charTalents, err := client.CharacterTalent.Query().
+			QueryCharacter().
+			Where(character.ID(id)).
+			QueryCharacterTalent().
+			WithTalent().
+			All(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Build slots array (index 0 unused, 1-4 for slots)
+		slots := make([]map[string]interface{}, 5)
+		for i := range slots {
+			slots[i] = nil
+		}
+
+		for _, ct := range charTalents {
+			talentName := ""
+			talentDesc := ""
+			if ct.Edges.Talent != nil {
+				talentName = ct.Edges.Talent.Name
+				talentDesc = ct.Edges.Talent.Description
+			}
+			slots[ct.Slot] = map[string]interface{}{
+				"slot":        ct.Slot,
+				"talent_id":   ct.Edges.Talent.ID,
+				"name":        talentName,
+				"description": talentDesc,
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"character_id": id,
+			"slots":        slots,
+		})
+	})
+
+	// Equip talent to slot
+	router.POST("/characters/:id/talents", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var req struct {
+			TalentID int `json:"talent_id"`
+			Slot     int `json:"slot"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Validate slot 1-4
+		if req.Slot < 1 || req.Slot > 4 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Slot must be between 1 and 4"})
+			return
+		}
+
+		// Verify talent exists
+		_, err = client.Talent.Get(c.Request.Context(), req.TalentID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Talent not found"})
+			return
+		}
+
+		// Remove any existing talent in this slot
+		existing, err := client.CharacterTalent.Query().
+			QueryCharacter().
+			Where(character.ID(id)).
+			QueryCharacterTalent().
+			Where(charactertalent.SlotEQ(req.Slot)).
+			All(c.Request.Context())
+
+		if err == nil && len(existing) > 0 {
+			for _, ct := range existing {
+				client.CharacterTalent.DeleteOne(ct).Exec(c.Request.Context())
+			}
+		}
+
+		// Create new character talent
+		charTalent, err := client.CharacterTalent.Create().
+			SetCharacterID(id).
+			SetTalentID(req.TalentID).
+			SetSlot(req.Slot).
+			Save(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Get the talent name for response
+		talent, _ := client.Talent.Get(c.Request.Context(), req.TalentID)
+		talentName := ""
+		if talent != nil {
+			talentName = talent.Name
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"success":     true,
+			"slot":        charTalent.Slot,
+			"talent_id":   charTalent.TalentID,
+			"talent_name": talentName,
+		})
+	})
+
+	// Unequip talent from slot
+	router.DELETE("/characters/:id/talents/:slot", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		slot, err := strconv.Atoi(c.Param("slot"))
+		if err != nil || slot < 1 || slot > 4 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid slot"})
+			return
+		}
+
+		// Find and delete the talent in this slot
+		charTalents, err := client.CharacterTalent.Query().
+			QueryCharacter().
+			Where(character.ID(id)).
+			QueryCharacterTalent().
+			Where(charactertalent.SlotEQ(slot)).
+			All(c.Request.Context())
+
+		if err != nil || len(charTalents) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "No talent in this slot"})
+			return
+		}
+
+		for _, ct := range charTalents {
+			client.CharacterTalent.DeleteOne(ct).Exec(c.Request.Context())
+		}
+
+		c.JSON(http.StatusOK, gin.H{"success": true, "slot": slot})
+	})
+
+	// Swap two talent slots
+	router.PUT("/characters/:id/talents/swap", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var req struct {
+			Slot1 int `json:"slot1"`
+			Slot2 int `json:"slot2"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Validate slots
+		if req.Slot1 < 1 || req.Slot1 > 4 || req.Slot2 < 1 || req.Slot2 > 4 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Slots must be between 1 and 4"})
+			return
+		}
+
+		// Get talents in both slots using query chain
+		getTalentInSlot := func(slot int) (int, string) {
+			cts, err := client.CharacterTalent.Query().
+				QueryCharacter().
+				Where(character.ID(id)).
+				QueryCharacterTalent().
+				Where(charactertalent.SlotEQ(slot)).
+				WithTalent().
+				All(c.Request.Context())
+
+			if err != nil || len(cts) == 0 {
+				return 0, ""
+			}
+			talentName := ""
+			if cts[0].Edges.Talent != nil {
+				talentName = cts[0].Edges.Talent.Name
+			}
+			return cts[0].Edges.Talent.ID, talentName
+		}
+
+		talent1ID, talent1Name := getTalentInSlot(req.Slot1)
+		talent2ID, talent2Name := getTalentInSlot(req.Slot2)
+
+		// Clear both slots
+		for _, slot := range []int{req.Slot1, req.Slot2} {
+			cts, _ := client.CharacterTalent.Query().
+				QueryCharacter().
+				Where(character.ID(id)).
+				QueryCharacterTalent().
+				Where(charactertalent.SlotEQ(slot)).
+				All(c.Request.Context())
+
+			for _, ct := range cts {
+				client.CharacterTalent.DeleteOne(ct).Exec(c.Request.Context())
+			}
+		}
+
+		// Swap: assign talent1 to slot2 and talent2 to slot1
+		if talent1ID > 0 {
+			client.CharacterTalent.Create().
+				SetCharacterID(id).
+				SetTalentID(talent1ID).
+				SetSlot(req.Slot2).
+				Save(c.Request.Context())
+		}
+
+		if talent2ID > 0 {
+			client.CharacterTalent.Create().
+				SetCharacterID(id).
+				SetTalentID(talent2ID).
+				SetSlot(req.Slot1).
+				Save(c.Request.Context())
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"success":      true,
+			"slot1":        req.Slot1,
+			"slot2":        req.Slot2,
+			"talent1_id":   talent1ID,
+			"talent1_name": talent1Name,
+			"talent2_id":   talent2ID,
+			"talent2_name": talent2Name,
+		})
+	})
+
+	// Get available talents for a character (unlocked talents)
+	router.GET("/characters/:id/available-talents", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		// Verify character exists
+		_, err = client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		// Query available talents for this character
+		availableTalents, err := client.AvailableTalent.Query().
+			Where(availabletalent.HasCharacterWith(character.ID(id))).
+			WithTalent().
+			All(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Build response
+		result := make([]gin.H, len(availableTalents))
+		for i, at := range availableTalents {
+			talentName := ""
+			talentDesc := ""
+			if at.Edges.Talent != nil {
+				talentName = at.Edges.Talent.Name
+				talentDesc = at.Edges.Talent.Description
+			}
+			result[i] = gin.H{
+				"id":              at.ID,
+				"talent_id":       at.TalentID,
+				"name":            talentName,
+				"description":     talentDesc,
+				"unlock_reason":   at.UnlockReason,
+				"unlocked_at_level": at.UnlockedAtLevel,
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"character_id":       id,
+			"available_talents":  result,
+			"count":              len(result),
+		})
+	})
+
+	// Add available talent to character (unlock a new talent)
+	router.POST("/characters/:id/available-talents", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		// Verify character exists
+		char, err := client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		var req struct {
+			TalentID     int    `json:"talent_id" binding:"required"`
+			UnlockReason string `json:"unlock_reason"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Validate unlock reason
+		if req.UnlockReason == "" {
+			req.UnlockReason = "manual_unlock"
+		}
+
+		// Verify talent exists
+		talent, err := client.Talent.Get(c.Request.Context(), req.TalentID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Talent not found"})
+			return
+		}
+
+		// Check if already available
+		existing, err := client.AvailableTalent.Query().
+			Where(availabletalent.HasCharacterWith(character.ID(id))).
+			Where(availabletalent.HasTalentWith(availabletalent.TalentIDEQ(req.TalentID))).
+			Exist(c.Request.Context())
+
+		if err == nil && existing {
+			c.JSON(http.StatusConflict, gin.H{"error": "Talent already available for this character"})
+			return
+		}
+
+		// Create available talent
+		availableTalent, err := client.AvailableTalent.Create().
+			SetCharacterID(id).
+			SetTalentID(req.TalentID).
+			SetUnlockReason(req.UnlockReason).
+			SetUnlockedAtLevel(char.Level).
+			Save(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"success":            true,
+			"id":                 availableTalent.ID,
+			"talent_id":         availableTalent.TalentID,
+			"talent_name":       talent.Name,
+			"unlock_reason":     availableTalent.UnlockReason,
+			"unlocked_at_level": availableTalent.UnlockedAtLevel,
+		})
+	})
+
+	// Remove available talent from character
+	router.DELETE("/characters/:id/available-talents/:talentId", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		talentId, err := strconv.Atoi(c.Param("talentId"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid talent ID"})
+			return
+		}
+
+		// Find and delete the available talent
+		availableTalent, err := client.AvailableTalent.Query().
+			Where(availabletalent.HasCharacterWith(character.ID(id))).
+			Where(availabletalent.TalentIDEQ(talentId)).
+			Only(c.Request.Context())
+
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Available talent not found"})
+			return
+		}
+
+		err = client.AvailableTalent.DeleteOne(availableTalent).Exec(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"success": true, "talent_id": talentId})
 	})
 }
