@@ -44,10 +44,10 @@ const (
 	FieldMaxDamage = "max_damage"
 	// FieldWeaponType holds the string denoting the weapontype field in the database.
 	FieldWeaponType = "weapon_type"
-	// FieldClassRestriction holds the string denoting the classrestriction field in the database.
-	FieldClassRestriction = "class_restriction"
 	// FieldGuaranteedDrop holds the string denoting the guaranteeddrop field in the database.
 	FieldGuaranteedDrop = "guaranteed_drop"
+	// FieldClassRestriction holds the string denoting the classrestriction field in the database.
+	FieldClassRestriction = "class_restriction"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// Table holds the table name of the equipment in the database.
@@ -80,8 +80,8 @@ var Columns = []string{
 	FieldMinDamage,
 	FieldMaxDamage,
 	FieldWeaponType,
-	FieldClassRestriction,
 	FieldGuaranteedDrop,
+	FieldClassRestriction,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
@@ -132,10 +132,10 @@ var (
 	DefaultMaxDamage int
 	// DefaultWeaponType holds the default value on creation for the "weaponType" field.
 	DefaultWeaponType string
-	// DefaultClassRestriction holds the default value on creation for the "classRestriction" field.
-	DefaultClassRestriction string
 	// DefaultGuaranteedDrop holds the default value on creation for the "guaranteedDrop" field.
 	DefaultGuaranteedDrop bool
+	// DefaultClassRestriction holds the default value on creation for the "classRestriction" field.
+	DefaultClassRestriction string
 )
 
 // OrderOption defines the ordering options for the Equipment queries.
@@ -221,14 +221,14 @@ func ByWeaponType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWeaponType, opts...).ToFunc()
 }
 
-// ByClassRestriction orders the results by the classRestriction field.
-func ByClassRestriction(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldClassRestriction, opts...).ToFunc()
-}
-
 // ByGuaranteedDrop orders the results by the guaranteedDrop field.
 func ByGuaranteedDrop(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGuaranteedDrop, opts...).ToFunc()
+}
+
+// ByClassRestriction orders the results by the classRestriction field.
+func ByClassRestriction(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClassRestriction, opts...).ToFunc()
 }
 
 // ByRoomField orders the results by room field.

@@ -48,12 +48,12 @@ type Equipment struct {
 	MinDamage int `json:"minDamage,omitempty"`
 	// Maximum damage for weapons
 	MaxDamage int `json:"maxDamage,omitempty"`
-	// sword|dagger|staff|pipe|bow|etc.
+	// Weapon type: sword, dagger, pipe, staff, etc.
 	WeaponType string `json:"weaponType,omitempty"`
-	// warrior|chef|mage|etc. - empty means any class
-	ClassRestriction string `json:"classRestriction,omitempty"`
-	// NPCs will always drop this weapon
+	// Always drops from certain NPCs
 	GuaranteedDrop bool `json:"guaranteedDrop,omitempty"`
+	// Class that can use this weapon: warrior, chef, etc.
+	ClassRestriction string `json:"classRestriction,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges          EquipmentEdges `json:"edges"`
@@ -215,17 +215,17 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.WeaponType = value.String
 			}
-		case equipment.FieldClassRestriction:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field classRestriction", values[i])
-			} else if value.Valid {
-				_m.ClassRestriction = value.String
-			}
 		case equipment.FieldGuaranteedDrop:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field guaranteedDrop", values[i])
 			} else if value.Valid {
 				_m.GuaranteedDrop = value.Bool
+			}
+		case equipment.FieldClassRestriction:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field classRestriction", values[i])
+			} else if value.Valid {
+				_m.ClassRestriction = value.String
 			}
 		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -323,11 +323,11 @@ func (_m *Equipment) String() string {
 	builder.WriteString("weaponType=")
 	builder.WriteString(_m.WeaponType)
 	builder.WriteString(", ")
-	builder.WriteString("classRestriction=")
-	builder.WriteString(_m.ClassRestriction)
-	builder.WriteString(", ")
 	builder.WriteString("guaranteedDrop=")
 	builder.WriteString(fmt.Sprintf("%v", _m.GuaranteedDrop))
+	builder.WriteString(", ")
+	builder.WriteString("classRestriction=")
+	builder.WriteString(_m.ClassRestriction)
 	builder.WriteByte(')')
 	return builder.String()
 }

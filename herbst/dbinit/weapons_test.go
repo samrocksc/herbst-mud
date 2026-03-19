@@ -1,8 +1,101 @@
 package dbinit
 
 import (
+	"context"
 	"testing"
+
+	"herbst/db"
+	"herbst/db/equipment"
 )
+
+// TestInitWeapons tests that starter weapons can be created
+func TestInitWeapons(t *testing.T) {
+	ctx := context.Background()
+
+	client := db.NewClient()
+	if client == nil {
+		t.Skipf("Skipping test: database not available")
+	}
+	defer client.Close()
+
+	// Clean up any existing weapons before test
+	existingWeapons, err := client.Equipment.Query().
+		Where(equipment.ItemTypeEQ("weapon")).
+		All(ctx)
+	if err == nil {
+		for _, w := range existingWeapons {
+			client.Equipment.DeleteOne(w).Exec(ctx)
+		}
+	}
+
+	// Run the InitWeapons function
+	err = InitWeapons(client)
+	if err != nil {
+		t.Fatalf("InitWeapons failed: %v", err)
+	}
+
+	// Verify weapons were created
+	allEquipment, err := client.Equipment.Query().All(ctx)
+	if err != nil {
+		t.Fatalf("Failed to query equipment: %v", err)
+	}
+
+	// Filter for weapon types with guaranteed drop
+	var weapons []*db.Equipment
+	for _, e := range allEquipment {
+		if e.ItemType == "weapon" && e.GuaranteedDrop {
+			weapons = append(weapons, e)
+		}
+	}
+
+	if len(weapons) != 2 {
+		t.Errorf("Expected 2 guaranteed drop weapons, got %d", len(weapons))
+	}
+
+	// Verify Rusty Sword
+	var rustySword *db.Equipment
+	for _, e := range allEquipment {
+		if e.Name == "Rusty Sword" {
+			rustySword = e
+			break
+		}
+	}
+	if rustySword == nil {
+		t.Fatal("Failed to find Rusty Sword")
+	}
+	if rustySword.MinDamage != 1 || rustySword.MaxDamage != 3 {
+		t.Errorf("Rusty Sword damage: expected 1-3, got %d-%d", rustySword.MinDamage, rustySword.MaxDamage)
+	}
+	if rustySword.ClassRestriction != "warrior" {
+		t.Errorf("Rusty Sword class restriction: expected warrior, got %s", rustySword.ClassRestriction)
+	}
+	if rustySword.WeaponType != "sword" {
+		t.Errorf("Rusty Sword weapon type: expected sword, got %s", rustySword.WeaponType)
+	}
+
+	// Verify Twisted Pipe
+	var twistedPipe *db.Equipment
+	for _, e := range allEquipment {
+		if e.Name == "Twisted Pipe" {
+			twistedPipe = e
+			break
+		}
+	}
+	if twistedPipe == nil {
+		t.Fatal("Failed to find Twisted Pipe")
+	}
+	if twistedPipe.MinDamage != 1 || twistedPipe.MaxDamage != 2 {
+		t.Errorf("Twisted Pipe damage: expected 1-2, got %d-%d", twistedPipe.MinDamage, twistedPipe.MaxDamage)
+	}
+	if twistedPipe.ClassRestriction != "chef" {
+		t.Errorf("Twisted Pipe class restriction: expected chef, got %s", twistedPipe.ClassRestriction)
+	}
+	if twistedPipe.WeaponType != "pipe" {
+		t.Errorf("Twisted Pipe weapon type: expected pipe, got %s", twistedPipe.WeaponType)
+	}
+
+	t.Log("✓ TestInitWeapons: All starter weapons verified")
+}
 
 // TestWeaponDropSelection tests that the correct weapon drops for a character's class
 func TestWeaponDropSelection(t *testing.T) {
@@ -42,29 +135,4 @@ func selectWeaponForClass(class string) string {
 	}
 	// Default to Rusty Sword for unknown classes
 	return "Rusty Sword"
-}
-
-// TestWeaponStats tests weapon damage ranges
-func TestWeaponStats(t *testing.T) {
-	weapons := map[string]struct {
-		minDamage int
-		maxDamage int
-	}{
-		"Rusty Sword":   {minDamage: 1, maxDamage: 3},
-		"Twisted Pipe":  {minDamage: 1, maxDamage: 2},
-	}
-
-	for name, stats := range weapons {
-		if name == "Rusty Sword" {
-			if stats.minDamage != 1 || stats.maxDamage != 3 {
-				t.Errorf("Rusty Sword: expected 1-3, got %d-%d", stats.minDamage, stats.maxDamage)
-			}
-		}
-		if name == "Twisted Pipe" {
-			if stats.minDamage != 1 || stats.maxDamage != 2 {
-				t.Errorf("Twisted Pipe: expected 1-2, got %d-%d", stats.minDamage, stats.maxDamage)
-			}
-		}
-	}
-	t.Log("✓ TestWeaponStats: Weapon damage ranges verified")
 }
