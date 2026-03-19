@@ -39,39 +39,23 @@ func (Equipment) Fields() []ent.Field {
 		// Container system fields (GitHub #143)
 		field.Bool("isContainer").
 			Default(false).
-			Comment("Whether this item can contain other items"),
-		field.Int("capacity").
+			Comment("Can hold items if true"),
+		field.Int("containerCapacity").
 			Default(0).
-			Comment("Maximum number of items this container can hold"),
+			Comment("Max items container can hold"),
 		field.Bool("isLocked").
 			Default(false).
-			Comment("Whether the container is locked"),
-		field.String("lockKey").
-			Default("").
-			Comment("Key ID required to unlock this container"),
-		// Examine system fields
-		field.String("examineDesc").
-			Default("").
-			Comment("Detailed description shown with examine command"),
-		field.JSON("hiddenDetails", []map[string]any{}).
-			Default([]map[string]any{}).
-			Comment("Details revealed based on examine skill"),
-		field.Int("hiddenThreshold").
-			Default(0).
-			Comment("Examine skill required to reveal hidden details"),
-		// Readable item fields (GitHub #141)
-		field.Bool("isReadable").
-			Default(false).
-			Comment("Item has readable content"),
-		field.String("content").
-			Default("").
-			Comment("Text content for readable items"),
-		field.String("readSkill").
+			Comment("Requires key to open"),
+		field.String("keyItemID").
 			Optional().
-			Comment("Skill required to read (e.g., 'tech')"),
-		field.Int("readSkillLevel").
-			Default(0).
-			Comment("Minimum skill level required"),
+			Comment("ID of key item needed to unlock"),
+		field.String("containedItems").
+			Default("").
+			Comment("JSON array of contained item IDs"),
+		// Hidden items and reveal conditions (GitHub #12 - Look System)
+		field.String("revealCondition").
+			Default("").
+			Comment("JSON: {type: examine|perception_check|use_item|event, target, minLevel}"),
 	}
 }
 
@@ -81,11 +65,5 @@ func (Equipment) Edges() []ent.Edge {
 		edge.From("room", Room.Type).
 			Ref("equipment").
 			Unique(),
-		// Container system (GitHub #143) - self-referential edge for container contents
-		edge.From("container", Equipment.Type).
-			Ref("contents").
-			Unique(),
-		edge.To("contents", Equipment.Type).
-			Comment("Items contained within this container"),
 	}
 }

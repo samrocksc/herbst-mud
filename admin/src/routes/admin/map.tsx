@@ -224,6 +224,30 @@ function MapBuilder() {
     setNodes(nds => [...nds, newNode])
   }
 
+  // Get exits for selected node
+  const getRoomExits = useCallback((nodeId: string) => {
+    const outgoingEdges = edges.filter(e => e.source === nodeId)
+    return outgoingEdges.map(edge => ({
+      id: edge.id,
+      direction: edge.label as string,
+      targetId: edge.target,
+      targetName: nodes.find(n => n.id === edge.target)?.data.name || 'Unknown'
+    }))
+  }, [edges, nodes])
+
+  // Delete a room
+  const deleteRoom = useCallback((nodeId: string) => {
+    setNodes(nds => nds.filter(n => n.id !== nodeId))
+    setEdges(eds => eds.filter(e => e.source !== nodeId && e.target !== nodeId))
+    setSelectedNode(null)
+  }, [])
+
+  // Save room changes (logs to console - would call API in production)
+  const saveRoom = useCallback((node: Node) => {
+    console.log('Saving room:', node.data)
+    alert(`Room "${(node.data as MapRoomData).name}" saved!`)
+  }, [])
+
   const getRoomData = (node: Node | null): MapRoomData => {
     if (!node) return { name: '', description: '', zLevel: 0 }
     return node.data as MapRoomData
@@ -236,7 +260,7 @@ function MapBuilder() {
         <div className="map-actions">
           <button onClick={addNewRoom}>Add Room</button>
           <button>Connect Rooms</button>
-          <button>Save Map</button>
+          <button onClick={() => nodes.forEach(n => console.log('Room:', n.data))}>Save Map</button>
         </div>
       </div>
 
@@ -321,7 +345,106 @@ function MapBuilder() {
                 <option value={2}>Z: 2 (Tower)</option>
               </select>
             </div>
-            <p style={{ fontSize: '12px', color: '#888' }}>Node ID: {selectedNode.id}</p>
+            
+            {/* Exits List */}
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Exits:</label>
+              {(() => {
+                const exits = getRoomExits(selectedNode.id)
+                if (exits.length === 0) {
+                  return <p style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>No exits defined</p>
+                }
+                return (
+                  <ul style={{ 
+                    listStyle: 'none', 
+                    padding: 0, 
+                    margin: 0,
+                    fontSize: '12px'
+                  }}>
+                    {exits.map(exit => (
+                      <li key={exit.id} style={{ 
+                        padding: '4px 8px', 
+                        marginBottom: '4px',
+                        background: '#2a2a2a',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span>
+                          <span style={{ 
+                            color: exit.direction === 'up' ? '#e17055' : 
+                                   exit.direction === 'down' ? '#74b9ff' : '#6c5ce7',
+                            fontWeight: 'bold'
+                          }}>
+                            {exit.direction === 'up' ? '↑' : exit.direction === 'down' ? '↓' : '→'}
+                          </span>
+                          {' '}{exit.direction}
+                        </span>
+                        <span style={{ color: '#888' }}>→ {exit.targetName}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              })()}
+            </div>
+            
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>Node ID: {selectedNode.id}</p>
+            
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+              <button 
+                onClick={() => saveRoom(selectedNode)}
+                style={{ 
+                  flex: 1, 
+                  padding: '8px', 
+                  background: '#27ae60', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                💾 Save
+              </button>
+              <button 
+                onClick={() => {
+                  if (confirm(`Delete room "${getRoomData(selectedNode).name}"?`)) {
+                    deleteRoom(selectedNode.id)
+                  }
+                }}
+                style={{ 
+                  flex: 1, 
+                  padding: '8px', 
+                  background: '#e74c3c', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                🗑️ Delete
+              </button>
+            </div>
+            
+            {/* Close button */}
+            <button 
+              onClick={() => setSelectedNode(null)}
+              style={{ 
+                width: '100%', 
+                marginTop: '8px',
+                padding: '6px', 
+                background: 'transparent', 
+                color: '#888', 
+                border: '1px solid #444', 
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              ✕ Close Panel
+            </button>
           </div>
         )}
       </div>

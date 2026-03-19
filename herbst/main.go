@@ -236,19 +236,20 @@ type model struct {
 
 // RoomItem represents an item in a room for display
 type RoomItem struct {
-	ID             int            `json:"id"`
-	Name           string         `json:"name"`
-	Description    string         `json:"description"`
-	ExamineDesc    string         `json:"examineDesc"`
-	HiddenDetails  []HiddenDetail `json:"hiddenDetails"`
-	HiddenThreshold int           `json:"hiddenThreshold"`
-	IsImmovable    bool           `json:"isImmovable"`
-	Color          string         `json:"color"`
-	IsVisible      bool           `json:"isVisible"`
-	ItemType       string         `json:"itemType"`
-	Weight         int            `json:"weight"`
-	ItemDamage     int            `json:"itemDamage"`
-	ItemDurability int            `json:"itemDurability"`
+	ID              int            `json:"id"`
+	Name            string         `json:"name"`
+	Description     string         `json:"description"`
+	ExamineDesc     string         `json:"examineDesc"`
+	HiddenDetails   []HiddenDetail `json:"hiddenDetails"`
+	HiddenThreshold int            `json:"hiddenThreshold"`
+	IsImmovable     bool           `json:"isImmovable"`
+	Color           string         `json:"color"`
+	IsVisible       bool           `json:"isVisible"`
+	ItemType        string         `json:"itemType"`
+	Weight          int            `json:"weight"`
+	ItemDamage      int            `json:"itemDamage"`
+	ItemDurability  int            `json:"itemDurability"`
+	RevealCondition map[string]any `json:"revealCondition"`
 }
 
 // roomCharacter represents a character (NPC or player) in a room for display
@@ -1038,6 +1039,9 @@ func (m *model) processCommand(cmd string) {
 		m.messageType = "info"
 	case "examine", "ex", "inspect":
 		m.handleExamineCommand(cmd)
+	case "search", "perception":
+		// GitHub #12 - Perception check to reveal hidden items
+		m.handleSearchCommand(cmd)
 	case "whoami":
 		// Show character info including level with progress bars
 		m.message = fmt.Sprintf("=== Character Status ===\nUser: %s (ID: %d)\nRoom: %s\n\n[Level %d - %d XP]\n%s",
@@ -1578,6 +1582,81 @@ func (m *model) handlePeerCommand(cmd string) {
 	}
 }
 
+// handleSearchCommand handles the search/perception command to reveal hidden items
+// GitHub #12 - Look System: Hidden Items and Reveal Conditions
+func (m *model) handleSearchCommand(cmd string) {
+	if m.currentRoom == 0 {
+		m.message = "You can't search here."
+		m.messageType = "error"
+		return
+	}
+
+	// Fetch all items (including hidden) for this room
+	resp, err := http.Get(fmt.Sprintf("%s/rooms/%d/equipment?includeHidden=true", RESTAPIBase, m.currentRoom))
+	if err != nil {
+		m.message = fmt.Sprintf("Error searching: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.message = "Error searching the area."
+		m.messageType = "error"
+		return
+	}
+
+	var allItems []RoomItem
+	if err := json.NewDecoder(resp.Body).Decode(&allItems); err != nil {
+		m.message = fmt.Sprintf("Error parsing items: %v", err)
+		m.messageType = "error"
+		return
+	}
+
+	var found []string
+	revealed := 0
+
+	for _, item := range allItems {
+		// Skip already visible items
+		if item.IsVisible {
+			continue
+		}
+
+		// Check if this is a hidden item that can be revealed by perception
+		if item.RevealCondition != nil {
+			revealType, _ := item.RevealCondition["type"].(string)
+			if revealType == "perception_check" {
+				// Try to reveal the item with perception check
+				// Use character level as skill level for now
+				revealResp, err := http.Post(
+					fmt.Sprintf("%s/equipment/%d/reveal", RESTAPIBase, item.ID),
+					"application/json",
+					strings.NewReader(fmt.Sprintf(`{"revealType":"perception_check","skillLevel":%d}`, m.characterLevel)),
+				)
+				if err == nil {
+					defer revealResp.Body.Close()
+					if revealResp.StatusCode == http.StatusOK {
+						revealed++
+						found = append(found, item.Name)
+					}
+				}
+			}
+		}
+	}
+
+	// Reload room items to see the newly revealed
+	m.loadRoomItems()
+
+	if revealed > 0 {
+		m.message = fmt.Sprintf("🔍 You search the area carefully...\n\n✨ You discovered %d hidden item(s): %s",
+			revealed, strings.Join(found, ", "))
+		m.messageType = "success"
+	} else {
+		m.message = "🔍 You search the area carefully...\n\nYou find nothing of interest."
+		m.messageType = "info"
+	}
+}
+
 func (m *model) handleDebugCommand(cmd string) {
 	parts := strings.Fields(strings.ToLower(cmd))
 	if len(parts) < 2 {
@@ -1712,11 +1791,62 @@ func (m *model) handleExamineCommand(cmd string) {
 	target := strings.Join(parts[1:], " ")
 	target = strings.ToLower(target)
 
-	// First check room items
+	// First check room items (only visible ones for display)
 	for _, item := range m.roomItems {
+		if !item.IsVisible {
+			continue // Skip hidden items - they'll be handled separately
+		}
 		if strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
 			m.displayItemDetails(item)
 			return
+		}
+	}
+
+	// Check for hidden items that could be revealed by examining this target
+	// (GitHub #12 - Hidden Items and Reveal Conditions)
+	if m.currentRoom > 0 {
+		// Fetch all items (including hidden) for this room
+		resp, err := http.Get(fmt.Sprintf("%s/rooms/%d/equipment?includeHidden=true", RESTAPIBase, m.currentRoom))
+		if err == nil {
+			defer resp.Body.Close()
+			if resp.StatusCode == http.StatusOK {
+				var allItems []RoomItem
+				if json.NewDecoder(resp.Body).Decode(&allItems) == nil {
+					for _, item := range allItems {
+						// Check if this is a hidden item that reveals on examine
+						if !item.IsVisible && item.RevealCondition != nil {
+							revealType, _ := item.RevealCondition["type"].(string)
+							revealTarget, _ := item.RevealCondition["target"].(string)
+							if revealType == "examine" && strings.ToLower(revealTarget) == target {
+								// Try to reveal the item
+								revealResp, err := http.Post(
+									fmt.Sprintf("%s/equipment/%d/reveal", RESTAPIBase, item.ID),
+									"application/json",
+									strings.NewReader(fmt.Sprintf(`{"revealType":"examine","target":"%s","skillLevel":%d}`, revealTarget, m.characterLevel)),
+								)
+								if err == nil {
+									defer revealResp.Body.Close()
+									if revealResp.StatusCode == http.StatusOK {
+										// Item revealed! Reload room items and try again
+										m.loadRoomItems()
+										// Re-check with now-visible item
+										for _, ri := range m.roomItems {
+											if strings.Contains(strings.ToLower(ri.Name), target) || strings.ToLower(ri.Name) == target {
+												m.message = fmt.Sprintf("✨ You discovered something hidden!\n\n")
+												origMsg := m.message
+												m.displayItemDetails(ri)
+												m.message = origMsg + m.message
+												m.messageType = "info"
+												return
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -1816,10 +1946,57 @@ func (m *model) displayItemDetails(item RoomItem) {
 	m.messageType = "info"
 }
 
+// getItemIcon returns an emoji icon based on item type
+func getItemIcon(itemType string) string {
+	switch itemType {
+	case "weapon":
+		return "⚔️"
+	case "armor":
+		return "🛡️"
+	case "potion":
+		return "🧪"
+	case "food":
+		return "🍖"
+	case "scroll":
+		return "📜"
+	case "key":
+		return "🔑"
+	case "treasure":
+		return "💎"
+	case "quest":
+		return "📋"
+	default:
+		return "📦"
+	}
+}
+
+// getItemRarityColor returns a lipgloss color based on item rarity
+func getItemRarityColor(rarity string) lipgloss.Color {
+	switch rarity {
+	case "rare":
+		return lipgloss.Color("51") // Blue
+	case "epic":
+		return lipgloss.Color("201") // Magenta
+	case "legendary":
+		return lipgloss.Color("220") // Gold
+	default:
+		return lipgloss.Color("white")
+	}
+}
+
+// inventoryItem represents an item in the player's inventory
+type inventoryItem struct {
+	ID          int
+	Name        string
+	Description string
+	ItemType    string
+	IsEquipped  bool
+	Rarity      string
+}
+
 // handleInventoryCommand handles the inventory/i command
 func (m *model) handleInventoryCommand() {
 	// Fetch player's inventory from API
-	// For now, show a placeholder message
 	resp, err := http.Get(fmt.Sprintf("%s/equipment?ownerId=%d", RESTAPIBase, m.currentCharacterID))
 	if err != nil {
 		m.message = fmt.Sprintf("Error fetching inventory: %v", err)
@@ -1829,38 +2006,70 @@ func (m *model) handleInventoryCommand() {
 	defer resp.Body.Close()
 
 	// Parse inventory items
-	var items []struct {
+	var rawItems []struct {
 		ID          int    `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		ItemType    string `json:"itemType"`
 		IsEquipped  bool   `json:"isEquipped"`
+		Rarity      string `json:"rarity"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&items); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&rawItems); err != nil {
 		m.message = "You aren't carrying anything."
 		m.messageType = "info"
 		return
+	}
+
+	// Convert to typed items
+	items := make([]inventoryItem, len(rawItems))
+	for i, raw := range rawItems {
+		items[i] = inventoryItem(raw)
 	}
 
 	if len(items) == 0 {
-		m.message = "You aren't carrying anything."
+		m.message = "Your pockets are empty. Time to loot some stuff!"
 		m.messageType = "info"
 		return
 	}
 
-	// Format inventory display
+	// Format inventory display with icons and styling
 	var inv strings.Builder
-	inv.WriteString("=== INVENTORY ===\n\n")
+	inv.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("🎒 INVENTORY"))
+	inv.WriteString("\n")
+	inv.WriteString(strings.Repeat("─", 30))
+	inv.WriteString("\n\n")
+
+	// Group items by type for better organization
+	typeGroups := make(map[string][]inventoryItem)
+
 	for _, item := range items {
-		equipped := ""
-		if item.IsEquipped {
-			equipped = " [equipped]"
-		}
-		inv.WriteString(fmt.Sprintf("  %s%s\n", item.Name, equipped))
-		if item.Description != "" {
-			inv.WriteString(fmt.Sprintf("    %s\n", item.Description))
-		}
+		typeGroups[item.ItemType] = append(typeGroups[item.ItemType], item)
 	}
+
+	// Display items grouped by type with icons
+	for itemType, groupItems := range typeGroups {
+		icon := getItemIcon(itemType)
+		typeLabel := strings.ToUpper(itemType)
+		inv.WriteString(lipgloss.NewStyle().Bold(true).Foreground(cyan).Render(fmt.Sprintf("%s %s", icon, typeLabel)))
+		inv.WriteString("\n")
+
+		for _, invItem := range groupItems {
+			rarityColor := getItemRarityColor(invItem.Rarity)
+			itemStyle := lipgloss.NewStyle().Foreground(rarityColor)
+
+			equipped := ""
+			if invItem.IsEquipped {
+				equipped = " " + lipgloss.NewStyle().Bold(true).Foreground(green).Render("⚡ equipped")
+			}
+
+			inv.WriteString(fmt.Sprintf("  %s %s%s\n", icon, itemStyle.Render(invItem.Name), equipped))
+			if invItem.Description != "" {
+				inv.WriteString(fmt.Sprintf("     %s\n", invItem.Description))
+			}
+		}
+		inv.WriteString("\n")
+	}
+
 	m.message = inv.String()
 	m.messageType = "info"
 }

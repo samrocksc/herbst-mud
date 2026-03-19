@@ -45,22 +45,10 @@ func (Equipment) Fields() []ent.Field {
 		field.Int("hiddenThreshold").
 			Default(0).
 			Comment("Examine skill required to reveal hidden details"),
-		// Weapon-specific fields (GitHub #92)
-		field.Int("minDamage").
-			Default(1).
-			Comment("Minimum damage for weapons"),
-		field.Int("maxDamage").
-			Default(2).
-			Comment("Maximum damage for weapons"),
-		field.String("weaponType").
-			Default("sword").
-			Comment("Weapon type: sword, dagger, pipe, staff, etc."),
-		field.Bool("guaranteedDrop").
-			Default(false).
-			Comment("Always drops from certain NPCs"),
-		field.String("classRestriction").
+		// Hidden items and reveal conditions (GitHub #12 - Look System)
+		field.String("revealCondition").
 			Default("").
-			Comment("Class that can use this weapon: warrior, chef, etc."),
+			Comment("JSON: {type: examine|perception_check|use_item|event, target, minLevel}"),
 	}
 }
 
