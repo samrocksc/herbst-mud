@@ -230,6 +230,90 @@ func (_u *EquipmentUpdate) AddHiddenThreshold(v int) *EquipmentUpdate {
 	return _u
 }
 
+// SetMinDamage sets the "minDamage" field.
+func (_u *EquipmentUpdate) SetMinDamage(v int) *EquipmentUpdate {
+	_u.mutation.ResetMinDamage()
+	_u.mutation.SetMinDamage(v)
+	return _u
+}
+
+// SetNillableMinDamage sets the "minDamage" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableMinDamage(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetMinDamage(*v)
+	}
+	return _u
+}
+
+// AddMinDamage adds value to the "minDamage" field.
+func (_u *EquipmentUpdate) AddMinDamage(v int) *EquipmentUpdate {
+	_u.mutation.AddMinDamage(v)
+	return _u
+}
+
+// SetMaxDamage sets the "maxDamage" field.
+func (_u *EquipmentUpdate) SetMaxDamage(v int) *EquipmentUpdate {
+	_u.mutation.ResetMaxDamage()
+	_u.mutation.SetMaxDamage(v)
+	return _u
+}
+
+// SetNillableMaxDamage sets the "maxDamage" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableMaxDamage(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetMaxDamage(*v)
+	}
+	return _u
+}
+
+// AddMaxDamage adds value to the "maxDamage" field.
+func (_u *EquipmentUpdate) AddMaxDamage(v int) *EquipmentUpdate {
+	_u.mutation.AddMaxDamage(v)
+	return _u
+}
+
+// SetWeaponType sets the "weaponType" field.
+func (_u *EquipmentUpdate) SetWeaponType(v string) *EquipmentUpdate {
+	_u.mutation.SetWeaponType(v)
+	return _u
+}
+
+// SetNillableWeaponType sets the "weaponType" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableWeaponType(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetWeaponType(*v)
+	}
+	return _u
+}
+
+// SetClassRestriction sets the "classRestriction" field.
+func (_u *EquipmentUpdate) SetClassRestriction(v string) *EquipmentUpdate {
+	_u.mutation.SetClassRestriction(v)
+	return _u
+}
+
+// SetNillableClassRestriction sets the "classRestriction" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableClassRestriction(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetClassRestriction(*v)
+	}
+	return _u
+}
+
+// SetGuaranteedDrop sets the "guaranteedDrop" field.
+func (_u *EquipmentUpdate) SetGuaranteedDrop(v bool) *EquipmentUpdate {
+	_u.mutation.SetGuaranteedDrop(v)
+	return _u
+}
+
+// SetNillableGuaranteedDrop sets the "guaranteedDrop" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableGuaranteedDrop(v *bool) *EquipmentUpdate {
+	if v != nil {
+		_u.SetGuaranteedDrop(*v)
+	}
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdate) SetRoomID(id int) *EquipmentUpdate {
 	_u.mutation.SetRoomID(id)
@@ -348,6 +432,27 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedHiddenThreshold(); ok {
 		_spec.AddField(equipment.FieldHiddenThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MinDamage(); ok {
+		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMinDamage(); ok {
+		_spec.AddField(equipment.FieldMinDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxDamage(); ok {
+		_spec.SetField(equipment.FieldMaxDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxDamage(); ok {
+		_spec.AddField(equipment.FieldMaxDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.WeaponType(); ok {
+		_spec.SetField(equipment.FieldWeaponType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClassRestriction(); ok {
+		_spec.SetField(equipment.FieldClassRestriction, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.GuaranteedDrop(); ok {
+		_spec.SetField(equipment.FieldGuaranteedDrop, field.TypeBool, value)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -599,6 +704,90 @@ func (_u *EquipmentUpdateOne) AddHiddenThreshold(v int) *EquipmentUpdateOne {
 	return _u
 }
 
+// SetMinDamage sets the "minDamage" field.
+func (_u *EquipmentUpdateOne) SetMinDamage(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetMinDamage()
+	_u.mutation.SetMinDamage(v)
+	return _u
+}
+
+// SetNillableMinDamage sets the "minDamage" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableMinDamage(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetMinDamage(*v)
+	}
+	return _u
+}
+
+// AddMinDamage adds value to the "minDamage" field.
+func (_u *EquipmentUpdateOne) AddMinDamage(v int) *EquipmentUpdateOne {
+	_u.mutation.AddMinDamage(v)
+	return _u
+}
+
+// SetMaxDamage sets the "maxDamage" field.
+func (_u *EquipmentUpdateOne) SetMaxDamage(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetMaxDamage()
+	_u.mutation.SetMaxDamage(v)
+	return _u
+}
+
+// SetNillableMaxDamage sets the "maxDamage" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableMaxDamage(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetMaxDamage(*v)
+	}
+	return _u
+}
+
+// AddMaxDamage adds value to the "maxDamage" field.
+func (_u *EquipmentUpdateOne) AddMaxDamage(v int) *EquipmentUpdateOne {
+	_u.mutation.AddMaxDamage(v)
+	return _u
+}
+
+// SetWeaponType sets the "weaponType" field.
+func (_u *EquipmentUpdateOne) SetWeaponType(v string) *EquipmentUpdateOne {
+	_u.mutation.SetWeaponType(v)
+	return _u
+}
+
+// SetNillableWeaponType sets the "weaponType" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableWeaponType(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetWeaponType(*v)
+	}
+	return _u
+}
+
+// SetClassRestriction sets the "classRestriction" field.
+func (_u *EquipmentUpdateOne) SetClassRestriction(v string) *EquipmentUpdateOne {
+	_u.mutation.SetClassRestriction(v)
+	return _u
+}
+
+// SetNillableClassRestriction sets the "classRestriction" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableClassRestriction(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetClassRestriction(*v)
+	}
+	return _u
+}
+
+// SetGuaranteedDrop sets the "guaranteedDrop" field.
+func (_u *EquipmentUpdateOne) SetGuaranteedDrop(v bool) *EquipmentUpdateOne {
+	_u.mutation.SetGuaranteedDrop(v)
+	return _u
+}
+
+// SetNillableGuaranteedDrop sets the "guaranteedDrop" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableGuaranteedDrop(v *bool) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetGuaranteedDrop(*v)
+	}
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdateOne) SetRoomID(id int) *EquipmentUpdateOne {
 	_u.mutation.SetRoomID(id)
@@ -747,6 +936,27 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if value, ok := _u.mutation.AddedHiddenThreshold(); ok {
 		_spec.AddField(equipment.FieldHiddenThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MinDamage(); ok {
+		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMinDamage(); ok {
+		_spec.AddField(equipment.FieldMinDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.MaxDamage(); ok {
+		_spec.SetField(equipment.FieldMaxDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxDamage(); ok {
+		_spec.AddField(equipment.FieldMaxDamage, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.WeaponType(); ok {
+		_spec.SetField(equipment.FieldWeaponType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClassRestriction(); ok {
+		_spec.SetField(equipment.FieldClassRestriction, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.GuaranteedDrop(); ok {
+		_spec.SetField(equipment.FieldGuaranteedDrop, field.TypeBool, value)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{

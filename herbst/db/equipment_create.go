@@ -170,6 +170,76 @@ func (_c *EquipmentCreate) SetNillableHiddenThreshold(v *int) *EquipmentCreate {
 	return _c
 }
 
+// SetMinDamage sets the "minDamage" field.
+func (_c *EquipmentCreate) SetMinDamage(v int) *EquipmentCreate {
+	_c.mutation.SetMinDamage(v)
+	return _c
+}
+
+// SetNillableMinDamage sets the "minDamage" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableMinDamage(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetMinDamage(*v)
+	}
+	return _c
+}
+
+// SetMaxDamage sets the "maxDamage" field.
+func (_c *EquipmentCreate) SetMaxDamage(v int) *EquipmentCreate {
+	_c.mutation.SetMaxDamage(v)
+	return _c
+}
+
+// SetNillableMaxDamage sets the "maxDamage" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableMaxDamage(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetMaxDamage(*v)
+	}
+	return _c
+}
+
+// SetWeaponType sets the "weaponType" field.
+func (_c *EquipmentCreate) SetWeaponType(v string) *EquipmentCreate {
+	_c.mutation.SetWeaponType(v)
+	return _c
+}
+
+// SetNillableWeaponType sets the "weaponType" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableWeaponType(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetWeaponType(*v)
+	}
+	return _c
+}
+
+// SetClassRestriction sets the "classRestriction" field.
+func (_c *EquipmentCreate) SetClassRestriction(v string) *EquipmentCreate {
+	_c.mutation.SetClassRestriction(v)
+	return _c
+}
+
+// SetNillableClassRestriction sets the "classRestriction" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableClassRestriction(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetClassRestriction(*v)
+	}
+	return _c
+}
+
+// SetGuaranteedDrop sets the "guaranteedDrop" field.
+func (_c *EquipmentCreate) SetGuaranteedDrop(v bool) *EquipmentCreate {
+	_c.mutation.SetGuaranteedDrop(v)
+	return _c
+}
+
+// SetNillableGuaranteedDrop sets the "guaranteedDrop" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableGuaranteedDrop(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetGuaranteedDrop(*v)
+	}
+	return _c
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_c *EquipmentCreate) SetRoomID(id int) *EquipmentCreate {
 	_c.mutation.SetRoomID(id)
@@ -264,6 +334,26 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultHiddenThreshold
 		_c.mutation.SetHiddenThreshold(v)
 	}
+	if _, ok := _c.mutation.MinDamage(); !ok {
+		v := equipment.DefaultMinDamage
+		_c.mutation.SetMinDamage(v)
+	}
+	if _, ok := _c.mutation.MaxDamage(); !ok {
+		v := equipment.DefaultMaxDamage
+		_c.mutation.SetMaxDamage(v)
+	}
+	if _, ok := _c.mutation.WeaponType(); !ok {
+		v := equipment.DefaultWeaponType
+		_c.mutation.SetWeaponType(v)
+	}
+	if _, ok := _c.mutation.ClassRestriction(); !ok {
+		v := equipment.DefaultClassRestriction
+		_c.mutation.SetClassRestriction(v)
+	}
+	if _, ok := _c.mutation.GuaranteedDrop(); !ok {
+		v := equipment.DefaultGuaranteedDrop
+		_c.mutation.SetGuaranteedDrop(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -306,6 +396,21 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.HiddenThreshold(); !ok {
 		return &ValidationError{Name: "hiddenThreshold", err: errors.New(`db: missing required field "Equipment.hiddenThreshold"`)}
+	}
+	if _, ok := _c.mutation.MinDamage(); !ok {
+		return &ValidationError{Name: "minDamage", err: errors.New(`db: missing required field "Equipment.minDamage"`)}
+	}
+	if _, ok := _c.mutation.MaxDamage(); !ok {
+		return &ValidationError{Name: "maxDamage", err: errors.New(`db: missing required field "Equipment.maxDamage"`)}
+	}
+	if _, ok := _c.mutation.WeaponType(); !ok {
+		return &ValidationError{Name: "weaponType", err: errors.New(`db: missing required field "Equipment.weaponType"`)}
+	}
+	if _, ok := _c.mutation.ClassRestriction(); !ok {
+		return &ValidationError{Name: "classRestriction", err: errors.New(`db: missing required field "Equipment.classRestriction"`)}
+	}
+	if _, ok := _c.mutation.GuaranteedDrop(); !ok {
+		return &ValidationError{Name: "guaranteedDrop", err: errors.New(`db: missing required field "Equipment.guaranteedDrop"`)}
 	}
 	return nil
 }
@@ -384,6 +489,26 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.HiddenThreshold(); ok {
 		_spec.SetField(equipment.FieldHiddenThreshold, field.TypeInt, value)
 		_node.HiddenThreshold = value
+	}
+	if value, ok := _c.mutation.MinDamage(); ok {
+		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)
+		_node.MinDamage = value
+	}
+	if value, ok := _c.mutation.MaxDamage(); ok {
+		_spec.SetField(equipment.FieldMaxDamage, field.TypeInt, value)
+		_node.MaxDamage = value
+	}
+	if value, ok := _c.mutation.WeaponType(); ok {
+		_spec.SetField(equipment.FieldWeaponType, field.TypeString, value)
+		_node.WeaponType = value
+	}
+	if value, ok := _c.mutation.ClassRestriction(); ok {
+		_spec.SetField(equipment.FieldClassRestriction, field.TypeString, value)
+		_node.ClassRestriction = value
+	}
+	if value, ok := _c.mutation.GuaranteedDrop(); ok {
+		_spec.SetField(equipment.FieldGuaranteedDrop, field.TypeBool, value)
+		_node.GuaranteedDrop = value
 	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
