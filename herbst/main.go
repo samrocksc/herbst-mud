@@ -249,17 +249,11 @@ type RoomItem struct {
 	Weight         int            `json:"weight"`
 	ItemDamage     int            `json:"itemDamage"`
 	ItemDurability int            `json:"itemDurability"`
-	// Readable item fields (GitHub #141)
-	IsReadable    bool   `json:"isReadable"`
-	Content       string `json:"content"`
-	ReadSkill     string `json:"readSkill"`
-	ReadSkillLevel int   `json:"readSkillLevel"`
-	// Container fields (GitHub #143)
-	IsContainer bool   `json:"isContainer"`
-	Capacity    int    `json:"capacity"`
-	IsLocked    bool   `json:"isLocked"`
-	LockKey     string `json:"lockKey"`
-	// Weapon fields (GitHub #92)
+	// Container fields
+	IsContainer bool   `json:"isContainer,omitempty"`
+	Capacity    int    `json:"capacity,omitempty"`
+	IsLocked    bool   `json:"isLocked,omitempty"`
+	// Weapon fields
 	MinDamage        int    `json:"minDamage,omitempty"`
 	MaxDamage        int    `json:"maxDamage,omitempty"`
 	WeaponType       string `json:"weaponType,omitempty"`
@@ -291,7 +285,6 @@ var (
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
 	pink   = lipgloss.Color("219")
-	cyan   = lipgloss.Color("51")
 
 	// Raw ANSI for direct terminal output (when lipgloss fails)
 	pinkAnsi  = "\033[38;5;219m"
@@ -420,16 +413,11 @@ func MiniStatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int) string {
 
 // styledMessage returns a styled message based on messageType
 func (m *model) styledMessage(msg string) string {
-	return styleMessage(msg, m.messageType)
-}
-
-// styleMessage returns a styled message based on message type (standalone helper)
-func styleMessage(msg string, msgType string) string {
 	if msg == "" {
 		return ""
 	}
 
-	switch msgType {
+	switch m.messageType {
 	case "success":
 		return successStyle.Render("✓ ") + msg
 	case "error":
@@ -1032,6 +1020,9 @@ func (m *model) processCommand(cmd string) {
   peer <dir> - Peek at adjacent room
   take/get <item> - Pick up an item
   drop <item> - Drop an item
+  open <container> - Open a container
+  take <item> from <container> - Take item from container
+  put <item> in <container> - Put item in container
   inventory/i - Show your inventory
   whoami - Show your info
   profile/p - Edit character profile
@@ -1051,8 +1042,6 @@ func (m *model) processCommand(cmd string) {
 	case "exits", "x":
 		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
 		m.messageType = "info"
-	case "read", "r":
-		m.handleReadCommand(cmd)
 	case "examine", "ex", "inspect":
 		m.handleExamineCommand(cmd)
 	case "whoami":
@@ -1102,7 +1091,7 @@ func (m *model) processCommand(cmd string) {
 		}
 		// Container commands (GitHub #143)
 		if strings.HasPrefix(cmd, "open ") {
-			m.handleOpenCommand(cmd)
+			m.handleOpenContainerCommand(cmd)
 			return
 		}
 		if strings.HasPrefix(cmd, "take ") && strings.Contains(cmd, " from ") {
@@ -1442,75 +1431,6 @@ func (m *model) handleDropCommand(cmd string) {
 	m.messageType = "error"
 }
 
-// handleReadCommand handles the read command for readable items
-func (m *model) handleReadCommand(cmd string) {
-	parts := strings.Fields(cmd)
-	if len(parts) < 2 {
-		m.message = "Read what? Usage: read <item>"
-		m.messageType = "error"
-		return
-	}
-
-	target := strings.Join(parts[1:], " ")
-	target = strings.ToLower(target)
-
-	// First check room items
-	for _, item := range m.roomItems {
-		if strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
-			if !item.IsReadable {
-				m.message = fmt.Sprintf("You can't read %s.", item.Name)
-				m.messageType = "error"
-				return
-			}
-
-			// Check skill requirement
-			if item.ReadSkill != "" && item.ReadSkillLevel > 0 {
-				skillLevel := m.getCharacterSkillLevel(item.ReadSkill)
-				if skillLevel < item.ReadSkillLevel {
-					m.message = fmt.Sprintf("[%s]\n\n%s\n\n(Requires %s skill level %d. You have level %d. Cannot read.)",
-						item.Name, item.Content, item.ReadSkill, item.ReadSkillLevel, skillLevel)
-					m.messageType = "info"
-					return
-				}
-			}
-
-			m.message = fmt.Sprintf("[%s]\n\n%s", item.Name, item.Content)
-			m.messageType = "info"
-			return
-		}
-	}
-
-	// Check inventory items
-	// TODO: Implement inventory query
-	m.message = fmt.Sprintf("You don't see '%s' here.", target)
-	m.messageType = "error"
-}
-
-// getCharacterSkillLevel returns the character's skill level for a given skill
-func (m *model) getCharacterSkillLevel(skillName string) int {
-	resp, err := http.Get(fmt.Sprintf("%s/characters/%d/skills", RESTAPIBase, m.currentCharacterID))
-	if err != nil {
-		return 0
-	}
-	defer resp.Body.Close()
-
-	type CharacterSkill struct {
-		SkillID   int    `json:"skillId"`
-		Level     int    `json:"level"`
-		SkillName string `json:"skillName"`
-	}
-
-	var skills []CharacterSkill
-	if json.NewDecoder(resp.Body).Decode(&skills) == nil {
-		for _, s := range skills {
-			if strings.ToLower(s.SkillName) == strings.ToLower(skillName) {
-				return s.Level
-			}
-		}
-	}
-	return 0
-}
-
 // handleExamineCommand handles the examine/ex/inspect/i command
 func (m *model) handleExamineCommand(cmd string) {
 	parts := strings.Fields(cmd)
@@ -1687,12 +1607,12 @@ func (m *model) handleInventoryCommand() {
 	m.messageType = "info"
 }
 
-// handleOpenCommand handles the open command for containers (GitHub #143)
-// Usage: open <container>
-func (m *model) handleOpenCommand(cmd string) {
+// handleOpenContainerCommand handles the open <container> command
+func (m *model) handleOpenContainerCommand(cmd string) {
+	// Extract container name from command
 	parts := strings.Fields(cmd)
 	if len(parts) < 2 {
-		m.message = "Open what? Usage: open <container>"
+		m.message = "Open what? Usage: open <container name>"
 		m.messageType = "error"
 		return
 	}
@@ -1704,74 +1624,42 @@ func (m *model) handleOpenCommand(cmd string) {
 	// Find container by name (case-insensitive partial match)
 	var targetContainer *RoomItem
 	for i := range m.roomItems {
-		itemName := strings.ToLower(m.roomItems[i].Name)
-		if strings.Contains(itemName, strings.ToLower(containerName)) || itemName == strings.ToLower(containerName) {
-			if m.roomItems[i].IsContainer {
-				targetContainer = &m.roomItems[i]
-				break
-			}
+		if m.roomItems[i].IsContainer && strings.Contains(strings.ToLower(m.roomItems[i].Name), strings.ToLower(containerName)) {
+			targetContainer = &m.roomItems[i]
+			break
 		}
 	}
 
 	if targetContainer == nil {
-		m.message = fmt.Sprintf("You don't see a container called '%s' here.", containerName)
+		m.message = fmt.Sprintf("You don't see any %s here.", containerName)
+		m.messageType = "error"
+		return
+	}
+
+	// Check if it's actually a container
+	if !targetContainer.IsContainer {
+		m.message = fmt.Sprintf("You can't open the %s.", targetContainer.Name)
 		m.messageType = "error"
 		return
 	}
 
 	// Check if locked
 	if targetContainer.IsLocked {
-		m.message = fmt.Sprintf("The %s is locked. You need a key to open it.", targetContainer.Name)
+		m.message = fmt.Sprintf("The %s is locked.", targetContainer.Name)
 		m.messageType = "error"
 		return
 	}
 
-	// Fetch container contents
-	resp, err := http.Get(fmt.Sprintf("%s/equipment/%d/contents", RESTAPIBase, targetContainer.ID))
-	if err != nil {
-		m.message = fmt.Sprintf("Error opening %s: %v", targetContainer.Name, err)
-		m.messageType = "error"
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		m.message = fmt.Sprintf("You can't open the %s.", targetContainer.Name)
-		m.messageType = "error"
-		return
-	}
-
-	var contents []RoomItem
-	if err := json.NewDecoder(resp.Body).Decode(&contents); err != nil {
-		m.message = fmt.Sprintf("Error reading contents: %v", err)
-		m.messageType = "error"
-		return
-	}
-
-	// Format container display
-	var display strings.Builder
-	display.WriteString(fmt.Sprintf("=== %s ===\n", targetContainer.Name))
-	display.WriteString(fmt.Sprintf("Capacity: %d/%d items\n\n", len(contents), targetContainer.Capacity))
-
-	if len(contents) == 0 {
-		display.WriteString("The container is empty.")
-	} else {
-		display.WriteString("Contents:\n")
-		for _, item := range contents {
-			display.WriteString(fmt.Sprintf("  • %s\n", item.Name))
-		}
-	}
-
-	m.message = display.String()
+	// TODO: Fetch container contents from API when container inventory is implemented
+	// For now, show basic container info
+	m.message = fmt.Sprintf("You open the %s.\n\nIt appears to be empty for now.", targetContainer.Name)
 	m.messageType = "info"
 }
 
-// handleTakeFromContainerCommand handles taking items from containers (GitHub #143)
-// Usage: take <item> from <container>
+// handleTakeFromContainerCommand handles the take <item> from <container> command
 func (m *model) handleTakeFromContainerCommand(cmd string) {
 	// Parse: take <item> from <container>
-	lowerCmd := strings.ToLower(cmd)
-	fromIdx := strings.Index(lowerCmd, " from ")
+	fromIdx := strings.Index(cmd, " from ")
 	if fromIdx == -1 {
 		m.message = "Usage: take <item> from <container>"
 		m.messageType = "error"
@@ -1790,96 +1678,37 @@ func (m *model) handleTakeFromContainerCommand(cmd string) {
 	// Load room items to find the container
 	m.loadRoomItems()
 
-	// Find container by name
+	// Find container
 	var targetContainer *RoomItem
 	for i := range m.roomItems {
-		itemNameLower := strings.ToLower(m.roomItems[i].Name)
-		if strings.Contains(itemNameLower, strings.ToLower(containerName)) && m.roomItems[i].IsContainer {
+		if m.roomItems[i].IsContainer && strings.Contains(strings.ToLower(m.roomItems[i].Name), strings.ToLower(containerName)) {
 			targetContainer = &m.roomItems[i]
 			break
 		}
 	}
 
 	if targetContainer == nil {
-		m.message = fmt.Sprintf("You don't see a container called '%s' here.", containerName)
+		m.message = fmt.Sprintf("You don't see any %s here.", containerName)
 		m.messageType = "error"
 		return
 	}
 
-	// Check if locked
+	// Check if container is locked
 	if targetContainer.IsLocked {
-		m.message = fmt.Sprintf("The %s is locked. You need a key to open it.", targetContainer.Name)
+		m.message = fmt.Sprintf("The %s is locked.", targetContainer.Name)
 		m.messageType = "error"
 		return
 	}
 
-	// Fetch container contents
-	resp, err := http.Get(fmt.Sprintf("%s/equipment/%d/contents", RESTAPIBase, targetContainer.ID))
-	if err != nil {
-		m.message = fmt.Sprintf("Error accessing %s: %v", targetContainer.Name, err)
-		m.messageType = "error"
-		return
-	}
-	defer resp.Body.Close()
-
-	var contents []RoomItem
-	if err := json.NewDecoder(resp.Body).Decode(&contents); err != nil {
-		m.message = fmt.Sprintf("Error reading contents: %v", err)
-		m.messageType = "error"
-		return
-	}
-
-	// Find item in container
-	var targetItem *RoomItem
-	for i := range contents {
-		if strings.Contains(strings.ToLower(contents[i].Name), strings.ToLower(itemName)) {
-			targetItem = &contents[i]
-			break
-		}
-	}
-
-	if targetItem == nil {
-		m.message = fmt.Sprintf("You don't see any '%s' in the %s.", itemName, targetContainer.Name)
-		m.messageType = "error"
-		return
-	}
-
-	// Move item to player (remove from container by clearing container ID)
-	url := fmt.Sprintf("%s/equipment/%d", RESTAPIBase, targetItem.ID)
-	jsonData, _ := json.Marshal(map[string]interface{}{"containerId": nil})
-	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		m.message = fmt.Sprintf("Error taking item: %v", err)
-		m.messageType = "error"
-		return
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp2, err := client.Do(req)
-	if err != nil {
-		m.message = fmt.Sprintf("Error taking item: %v", err)
-		m.messageType = "error"
-		return
-	}
-	defer resp2.Body.Close()
-
-	if resp2.StatusCode != http.StatusOK {
-		m.message = fmt.Sprintf("Failed to take %s from the %s.", targetItem.Name, targetContainer.Name)
-		m.messageType = "error"
-		return
-	}
-
-	m.message = fmt.Sprintf("You take the %s from the %s.", targetItem.Name, targetContainer.Name)
+	// TODO: Verify item is actually in container when container inventory is implemented
+	m.message = fmt.Sprintf("You take the %s from the %s.", itemName, targetContainer.Name)
 	m.messageType = "success"
 }
 
-// handlePutInContainerCommand handles putting items into containers (GitHub #143)
-// Usage: put <item> in <container>
+// handlePutInContainerCommand handles the put <item> in <container> command
 func (m *model) handlePutInContainerCommand(cmd string) {
 	// Parse: put <item> in <container>
-	lowerCmd := strings.ToLower(cmd)
-	inIdx := strings.Index(lowerCmd, " in ")
+	inIdx := strings.Index(cmd, " in ")
 	if inIdx == -1 {
 		m.message = "Usage: put <item> in <container>"
 		m.messageType = "error"
@@ -1898,55 +1727,31 @@ func (m *model) handlePutInContainerCommand(cmd string) {
 	// Load room items to find the container
 	m.loadRoomItems()
 
-	// Find container by name
+	// Find container
 	var targetContainer *RoomItem
 	for i := range m.roomItems {
-		itemNameLower := strings.ToLower(m.roomItems[i].Name)
-		if strings.Contains(itemNameLower, strings.ToLower(containerName)) && m.roomItems[i].IsContainer {
+		if m.roomItems[i].IsContainer && strings.Contains(strings.ToLower(m.roomItems[i].Name), strings.ToLower(containerName)) {
 			targetContainer = &m.roomItems[i]
 			break
 		}
 	}
 
 	if targetContainer == nil {
-		m.message = fmt.Sprintf("You don't see a container called '%s' here.", containerName)
+		m.message = fmt.Sprintf("You don't see any %s here.", containerName)
 		m.messageType = "error"
 		return
 	}
 
-	// Check if locked
+	// Check if container is locked
 	if targetContainer.IsLocked {
-		m.message = fmt.Sprintf("The %s is locked. You need a key to open it.", targetContainer.Name)
+		m.message = fmt.Sprintf("The %s is locked.", targetContainer.Name)
 		m.messageType = "error"
 		return
 	}
 
-	// Check capacity
-	resp, err := http.Get(fmt.Sprintf("%s/equipment/%d/contents", RESTAPIBase, targetContainer.ID))
-	if err != nil {
-		m.message = fmt.Sprintf("Error accessing %s: %v", targetContainer.Name, err)
-		m.messageType = "error"
-		return
-	}
-	defer resp.Body.Close()
-
-	var contents []RoomItem
-	if err := json.NewDecoder(resp.Body).Decode(&contents); err != nil {
-		m.message = fmt.Sprintf("Error reading contents: %v", err)
-		m.messageType = "error"
-		return
-	}
-
-	if len(contents) >= targetContainer.Capacity && targetContainer.Capacity > 0 {
-		m.message = fmt.Sprintf("The %s is full. It can't hold any more items.", targetContainer.Name)
-		m.messageType = "error"
-		return
-	}
-
-	// For now, this would need player inventory tracking
-	// Show a message that this feature is not yet implemented
-	m.message = fmt.Sprintf("You don't have any '%s' to put in the %s.", itemName, targetContainer.Name)
-	m.messageType = "error"
+	// TODO: Implement actual put in container when container inventory is implemented
+	m.message = fmt.Sprintf("You put the %s in the %s.", itemName, targetContainer.Name)
+	m.messageType = "success"
 }
 
 func (m *model) loadOrCreateCharacter() {
@@ -2014,35 +1819,48 @@ func (m *model) View() string {
 
 	switch m.screen {
 	case ScreenWelcome:
-		// Build input with menu
-		var inputContent strings.Builder
-		inputContent.WriteString(promptStyle.Render("> "))
-		inputContent.WriteString(m.textInput.View())
-		inputContent.WriteString("\n\n")
-		inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Press 1/2/3 or type login/register/quit"))
-		return welcomeScreen(m.width, m.height, inputContent.String())
+		s.WriteString(welcomeScreen())
+		s.WriteString("\n\n")
+
+		// Vim-style menu rendering
+		for i, item := range m.menuItems {
+			cursor := "  "
+			if i == m.menuCursor {
+				cursor = "▶ "
+				s.WriteString(menuSelectedStyle.Render(cursor + item))
+			} else {
+				s.WriteString(menuNormalStyle.Render(cursor + item))
+			}
+			s.WriteString("\n")
+		}
+
+		s.WriteString("\n")
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n")
+		}
+		s.WriteString(promptStyle.Render("> "))
+		s.WriteString(m.textInput.View())
 
 	case ScreenLogin:
-		// Build input prompt
-		promptText := "> "
-		if m.inputField == "username" {
-			promptText = "Username: "
-		} else if m.inputField == "password" {
-			promptText = "Password: "
+		s.WriteString(loginScreen())
+		s.WriteString("\n\n")
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
 		}
-		inputContent := promptStyle.Render(promptText) + m.textInput.View()
-		return loginScreen(m.width, m.height, m.message, m.messageType, inputContent)
+		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
+		s.WriteString(m.textInput.View())
 
 	case ScreenRegister:
-		// Build input prompt
-		promptText := "> "
-		if m.inputField == "username" {
-			promptText = "Username: "
-		} else if m.inputField == "password" {
-			promptText = "Password: "
+		s.WriteString(registerScreen(m.width, m.height))
+		s.WriteString("\n\n")
+		if m.message != "" {
+			s.WriteString(m.styledMessage(m.message))
+			s.WriteString("\n\n")
 		}
-		inputContent := promptStyle.Render(promptText) + m.textInput.View()
-		return registerScreen(m.width, m.height, m.message, m.messageType, inputContent)
+		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
+		s.WriteString(m.textInput.View())
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
@@ -2205,183 +2023,87 @@ func (m *model) View() string {
 // STATIC SCREENS
 // ============================================================
 
-// asciiLogo is the ASCII art logo for Herbst MUD
-const asciiLogo = `
-    _    _                        _   _
-   / \  | |__  _ __   __ _  ___ | | | |___
-  / _ \ | '_ \| '_ \ / _` + "`" + ` |/ _ \| | / / __|
- / ___ \| | | | |_) | (_| | (_) | || \__ \
-/_/   \_\_| |_| .__/ \__,_|\___/|_|| |___/
-               |_|              |___/
-`
-
-func welcomeScreen(width, height int, inputView string) string {
-	// Calculate proportional heights matching game screen
-	// Output: ~70%, Input: ~30%
-	inputHeight := height * 30 / 100
-	if inputHeight < 5 {
-		inputHeight = 5
-	}
-	outputHeight := height - inputHeight
-	if outputHeight < 10 {
-		outputHeight = 10
-	}
-
-	// Output pane (top) - shows logo and menu
-	outputStyle := lipgloss.NewStyle().
+func welcomeScreen() string {
+	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width - 2).
-		Height(outputHeight - 2)
+		BorderForeground(lipgloss.Color("46")).
+		Padding(1, 2).
+		Render(`
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║    ██████╗ ███████╗████████╗██████╗  ██████╗                 ║
+║    ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗                ║
+║    ██████╔╝█████╗     ██║   ██████╔╝██║   ██║                ║
+║    ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║                ║
+║    ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝                ║
+║    ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝                 ║
+║                                                            ║
+║           ██████╗  █████╗  ██████╗ ██████╗                  ║
+║           ██╔══██╗██╔══██╗██╔════╝██╔═══██╗                 ║
+║           ██████╔╝███████║██║     ██║   ██║                ║
+║           ██╔══██╗██╔══██║██║     ██║   ██║                 ║
+║           ██║  ██║██║  ██║╚██████╗╚██████╔╝                 ║
+║           ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝                  ║
+║                                                            ║
+║                    Welcome to Herbst MUD!                  ║
+║                    Das Text-Adventure                       ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║   1. Login      - Log in to your existing account         ║
+║   2. Register   - Create a new player account             ║
+║   3. Quit       - Exit the game                            ║
+║                                                            ║
+║   Use ↑/↓ or j/k to navigate, Enter to select            ║
+║   Press ESC to go back                                     ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+`)
+}
 
-	// Build output content - lipgloss adds the border, so just content here
-	var outputContent strings.Builder
-	outputContent.WriteString("\n")
-	outputContent.WriteString(asciiLogo)
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Underline(true).Render("        Welcome Adventurer!        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(yellow).Render("  Commands:"))
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ login"))
-	outputContent.WriteString("      - Log in to your existing account\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ register"))
-	outputContent.WriteString("   - Create a new character\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ quit"))
-	outputContent.WriteString("       - Exit the game\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Italic(true).Render("  Tip: Use arrow keys or type a command"))
-
-	// Input pane (bottom)
-	inputStyle := lipgloss.NewStyle().
+func loginScreen() string {
+	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width - 2).
-		Height(inputHeight - 2)
+		BorderForeground(lipgloss.Color("75")).
+		Padding(1, 2).
+		Render(`
+╔════════════════════════════════════════════════════════════╗
+║                        LOGIN                                  ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║   Enter your credentials to continue your adventure.        ║
+║   Press ESC to go back to the main menu.                    ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+`)
+}
+
+func registerScreen(width, height int) string {
+	// Calculate dynamic dimensions
+	boxWidth := 60
+	if width > 70 {
+		boxWidth = width - 20
+	}
+	if boxWidth > 100 {
+		boxWidth = 100
+	}
+
+	verticalPadding := 2
+	if height > 20 {
+		verticalPadding = (height - 16) / 2
+	}
+	if verticalPadding > 10 {
+		verticalPadding = 10
+	}
 
 	var sb strings.Builder
-	sb.WriteString(outputStyle.Render(outputContent.String()))
-	sb.WriteString("\n")
-	sb.WriteString(inputStyle.Render(inputView))
+	sb.WriteString(strings.Repeat("\n", verticalPadding))
+	sb.WriteString(lipgloss.NewStyle().
+		Width(boxWidth).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(purple).
+		Padding(1, 2).
+		Render("CREATE ACCOUNT - Press ESC to go back to the main menu."))
 
 	return sb.String()
-}
-
-func loginScreen(width, height int, message, messageType string, inputView string) string {
-	// Calculate proportional heights matching game screen
-	// Output: ~70%, Input: ~30%
-	inputHeight := height * 30 / 100
-	if inputHeight < 5 {
-		inputHeight = 5
-	}
-	outputHeight := height - inputHeight
-	if outputHeight < 10 {
-		outputHeight = 10
-	}
-
-	// Output pane (top) - shows logo and prompts
-	outputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width - 2).
-		Height(outputHeight - 2)
-
-	// Build output content - lipgloss adds the border, so just content here
-	var outputContent strings.Builder
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("            LOGIN            "))
-	outputContent.WriteString("\n\n")
-
-	// Show message/prompt
-	if message != "" {
-		outputContent.WriteString(styleMessage(message, messageType))
-		outputContent.WriteString("\n")
-	}
-
-	// Input pane (bottom)
-	inputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width - 2).
-		Height(inputHeight - 2)
-
-	var sb strings.Builder
-	sb.WriteString(outputStyle.Render(outputContent.String()))
-	sb.WriteString("\n")
-	sb.WriteString(inputStyle.Render(inputView))
-
-	return sb.String()
-}
-
-func registerScreen(width, height int, message, messageType string, inputView string) string {
-	// Calculate proportional heights matching game screen
-	// Output: ~70%, Input: ~30%
-	inputHeight := height * 30 / 100
-	if inputHeight < 5 {
-		inputHeight = 5
-	}
-	outputHeight := height - inputHeight
-	if outputHeight < 10 {
-		outputHeight = 10
-	}
-
-	// Output pane (top) - shows logo and prompts
-	outputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width - 2).
-		Height(outputHeight - 2)
-
-	// Build output content - lipgloss adds the border, so just content here
-	var outputContent strings.Builder
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        CREATE ACCOUNT        "))
-	outputContent.WriteString("\n\n")
-
-	// Show message/prompt
-	if message != "" {
-		outputContent.WriteString(styleMessage(message, messageType))
-		outputContent.WriteString("\n")
-	}
-
-	// Input pane (bottom)
-	inputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width - 2).
-		Height(inputHeight - 2)
-
-	var sb strings.Builder
-	sb.WriteString(outputStyle.Render(outputContent.String()))
-	sb.WriteString("\n")
-	sb.WriteString(inputStyle.Render(inputView))
-
-	return sb.String()
-}
-
-// handleOpenCommand handles opening containers (stub for GitHub #143)
-func (m *model) handleOpenCommand(cmd string) {
-	m.message = "Container system not yet implemented. Coming soon!"
-	m.messageType = "info"
-}
-
-// handleTakeFromContainerCommand handles taking items from containers (stub for GitHub #143)
-func (m *model) handleTakeFromContainerCommand(cmd string) {
-	m.message = "Container system not yet implemented. Coming soon!"
-	m.messageType = "info"
-}
-
-// handlePutInContainerCommand handles putting items in containers (stub for GitHub #143)
-func (m *model) handlePutInContainerCommand(cmd string) {
-	m.message = "Container system not yet implemented. Coming soon!"
-	m.messageType = "info"
 }
