@@ -99,6 +99,9 @@ func main() {
 	// Register user routes
 	routes.RegisterUserRoutes(router, client)
 
+	// Register admin-only routes (requires both auth and admin role)
+	routes.RegisterAdminRoutes(router, client)
+
 	// Register character routes
 	routes.RegisterCharacterRoutes(router, client)
 
