@@ -3,203 +3,196 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAuthMiddleware(t *testing.T) {
+func init() {
 	gin.SetMode(gin.TestMode)
-
-	// Test secret
-	testSecret := "test-secret-key"
-	os.Setenv("JWT_SECRET", testSecret)
-
-	t.Run("Missing Authorization Header", func(t *testing.T) {
-		router := gin.New()
-		router.Use(AuthMiddleware())
-		router.GET("/protected", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "success"})
-		})
-
-		req, _ := http.NewRequest("GET", "/protected", nil)
-		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusUnauthorized, resp.Code)
-	})
-
-	t.Run("Invalid Authorization Format", func(t *testing.T) {
-		router := gin.New()
-		router.Use(AuthMiddleware())
-		router.GET("/protected", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "success"})
-		})
-
-		req, _ := http.NewRequest("GET", "/protected", nil)
-		req.Header.Set("Authorization", "InvalidFormat")
-		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusUnauthorized, resp.Code)
-	})
-
-	t.Run("Valid Token", func(t *testing.T) {
-		router := gin.New()
-		router.Use(AuthMiddleware())
-		router.GET("/protected", func(c *gin.Context) {
-			userID, _ := c.Get("user_id")
-			email, _ := c.Get("email")
-			isAdmin, _ := c.Get("is_admin")
-			c.JSON(http.StatusOK, gin.H{
-				"user_id":  userID,
-				"email":    email,
-				"is_admin": isAdmin,
-			})
-		})
-
-		// Generate a valid token
-		token, err := GenerateTokenWithSecret(1, "test@example.com", false, "user", testSecret)
-		assert.NoError(t, err)
-
-		req, _ := http.NewRequest("GET", "/protected", nil)
-		req.Header.Set("Authorization", "Bearer "+token)
-		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusOK, resp.Code)
-	})
-
-	t.Run("Invalid Token", func(t *testing.T) {
-		router := gin.New()
-		router.Use(AuthMiddleware())
-		router.GET("/protected", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "success"})
-		})
-
-		req, _ := http.NewRequest("GET", "/protected", nil)
-		req.Header.Set("Authorization", "Bearer invalid-token")
-		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusUnauthorized, resp.Code)
-	})
-
-	t.Run("Token Signed With Wrong Secret", func(t *testing.T) {
-		router := gin.New()
-		router.Use(AuthMiddleware())
-		router.GET("/protected", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "success"})
-		})
-
-		// Generate token with different secret
-		token, err := GenerateTokenWithSecret(1, "test@example.com", false, "user", "wrong-secret")
-		assert.NoError(t, err)
-
-		req, _ := http.NewRequest("GET", "/protected", nil)
-		req.Header.Set("Authorization", "Bearer "+token)
-		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusUnauthorized, resp.Code)
-	})
 }
 
-func TestAdminMiddleware(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	t.Run("Admin User Can Access", func(t *testing.T) {
-		router := gin.New()
-		router.Use(func(c *gin.Context) {
-			c.Set("is_admin", true)
-			c.Set("user_id", 1)
-			c.Next()
-		})
-		router.Use(AdminMiddleware())
-		router.GET("/admin", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "admin access"})
-		})
-
-		req, _ := http.NewRequest("GET", "/admin", nil)
-		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusOK, resp.Code)
+// Helper to generate a valid JWT token for testing
+func generateTestToken(userID uint, email string, isAdmin bool) string {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id":  userID,
+		"email":    email,
+		"is_admin": isAdmin,
+		"exp":      time.Now().Add(time.Hour).Unix(),
 	})
-
-	t.Run("Non-Admin User Cannot Access", func(t *testing.T) {
-		router := gin.New()
-		router.Use(func(c *gin.Context) {
-			c.Set("is_admin", false)
-			c.Set("user_id", 1)
-			c.Next()
-		})
-		router.Use(AdminMiddleware())
-		router.GET("/admin", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "admin access"})
-		})
-
-		req, _ := http.NewRequest("GET", "/admin", nil)
-		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusForbidden, resp.Code)
-	})
-
-	t.Run("Missing is_admin Context", func(t *testing.T) {
-		router := gin.New()
-		router.Use(AdminMiddleware())
-		router.GET("/admin", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "admin access"})
-		})
-
-		req, _ := http.NewRequest("GET", "/admin", nil)
-		resp := httptest.NewRecorder()
-		router.ServeHTTP(resp, req)
-
-		assert.Equal(t, http.StatusForbidden, resp.Code)
-	})
+	tokenString, _ := token.SignedString(jwtSecret)
+	return tokenString
 }
 
-func TestGenerateToken(t *testing.T) {
-	testSecret := "test-secret-key"
-	os.Setenv("JWT_SECRET", testSecret)
-
-	t.Run("Generate Valid Token", func(t *testing.T) {
-		token, err := GenerateToken(1, "test@example.com", false, "user")
-		assert.NoError(t, err)
-		assert.NotEmpty(t, token)
+// Helper to generate an expired JWT token for testing
+func generateExpiredToken() string {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id":  1,
+		"email":    "test@example.com",
+		"is_admin": false,
+		"exp":      time.Now().Add(-time.Hour).Unix(), // Expired 1 hour ago
 	})
-
-	t.Run("Generate Admin Token", func(t *testing.T) {
-		token, err := GenerateToken(1, "admin@example.com", true, "user")
-		assert.NoError(t, err)
-		assert.NotEmpty(t, token)
-	})
-
-	t.Run("Token Contains Correct Claims", func(t *testing.T) {
-		token, err := GenerateTokenWithSecret(42, "user@example.com", true, "user", testSecret)
-		assert.NoError(t, err)
-
-		// Parse token to verify claims
-		parsedToken, err := ValidateToken(token, testSecret)
-		assert.NoError(t, err)
-		assert.NotNil(t, parsedToken)
-
-		claims := parsedToken.Claims.(*JWTClaims)
-		assert.Equal(t, 42, claims.UserID)
-		assert.Equal(t, "user@example.com", claims.Email)
-		assert.True(t, claims.IsAdmin)
-		assert.Equal(t, "user", claims.TokenType)
-	})
+	tokenString, _ := token.SignedString(jwtSecret)
+	return tokenString
 }
 
-// ValidateToken parses and validates a JWT token
-func ValidateToken(tokenString, secret string) (*jwt.Token, error) {
-	return jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secret), nil
-	})
+func TestAuthMiddleware_NoHeader(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+
+	AuthMiddleware()(c)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Contains(t, w.Body.String(), "Authorization header required")
+}
+
+func TestAuthMiddleware_InvalidFormat(t *testing.T) {
+	tests := []struct {
+		name   string
+		header string
+	}{
+		{"No Bearer prefix", "some-token"},
+		{"Empty after Bearer", "Bearer "},
+		{"Wrong prefix", "Basic some-token"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", "/", nil)
+			c.Request.Header.Set("Authorization", tt.header)
+
+			AuthMiddleware()(c)
+
+			assert.Equal(t, http.StatusUnauthorized, w.Code)
+		})
+	}
+}
+
+func TestAuthMiddleware_ValidToken(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Request.Header.Set("Authorization", "Bearer "+generateTestToken(1, "test@example.com", true))
+
+	AuthMiddleware()(c)
+
+	// Should pass through
+	assert.Equal(t, 0, w.Code)
+	
+	// Check context values
+	userID, exists := c.Get("user_id")
+	assert.True(t, exists)
+	assert.Equal(t, uint(1), userID)
+	
+	email, exists := c.Get("email")
+	assert.True(t, exists)
+	assert.Equal(t, "test@example.com", email)
+	
+	isAdmin, exists := c.Get("is_admin")
+	assert.True(t, exists)
+	assert.Equal(t, true, isAdmin)
+}
+
+func TestAuthMiddleware_ExpiredToken(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Request.Header.Set("Authorization", "Bearer "+generateExpiredToken())
+
+	AuthMiddleware()(c)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestAuthMiddleware_InvalidToken(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Request.Header.Set("Authorization", "Bearer invalid.token.here")
+
+	AuthMiddleware()(c)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestAdminMiddleware_NoUser(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+
+	AdminMiddleware()(c)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Contains(t, w.Body.String(), "Admin access required")
+}
+
+func TestAdminMiddleware_NonAdminUser(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Set("is_admin", false)
+
+	AdminMiddleware()(c)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+}
+
+func TestAdminMiddleware_AdminUser(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Set("is_admin", true)
+
+	AdminMiddleware()(c)
+
+	// Should pass through without writing response
+	assert.Equal(t, 0, w.Code)
+}
+
+func TestOptionalAuthMiddleware_NoHeader(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+
+	OptionalAuthMiddleware()(c)
+
+	// Should pass through without setting user info
+	assert.Equal(t, 0, w.Code)
+}
+
+func TestOptionalAuthMiddleware_InvalidToken(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Request.Header.Set("Authorization", "Bearer invalid")
+
+	OptionalAuthMiddleware()(c)
+
+	// Should pass through (optional auth doesn't fail on invalid token)
+	assert.Equal(t, 0, w.Code)
+}
+
+func TestOptionalAuthMiddleware_ValidToken(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Request.Header.Set("Authorization", "Bearer "+generateTestToken(1, "test@example.com", true))
+
+	OptionalAuthMiddleware()(c)
+
+	// Should pass through and set user info
+	userID, exists := c.Get("user_id")
+	assert.True(t, exists)
+	assert.Equal(t, uint(1), userID)
+}
+
+func TestValidationError(t *testing.T) {
+	err := &ValidationError{Message: "test error"}
+	assert.Equal(t, "test error", err.Error())
 }

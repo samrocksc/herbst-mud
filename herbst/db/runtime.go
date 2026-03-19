@@ -159,6 +159,30 @@ func init() {
 	equipmentDescHiddenThreshold := equipmentFields[12].Descriptor()
 	// equipment.DefaultHiddenThreshold holds the default value on creation for the hiddenThreshold field.
 	equipment.DefaultHiddenThreshold = equipmentDescHiddenThreshold.Default.(int)
+	// equipmentDescRevealCondition is the schema descriptor for revealCondition field.
+	equipmentDescRevealCondition := equipmentFields[13].Descriptor()
+	// equipment.DefaultRevealCondition holds the default value on creation for the revealCondition field.
+	equipment.DefaultRevealCondition = equipmentDescRevealCondition.Default.(string)
+	// equipmentDescMinDamage is the schema descriptor for minDamage field.
+	equipmentDescMinDamage := equipmentFields[14].Descriptor()
+	// equipment.DefaultMinDamage holds the default value on creation for the minDamage field.
+	equipment.DefaultMinDamage = equipmentDescMinDamage.Default.(int)
+	// equipmentDescMaxDamage is the schema descriptor for maxDamage field.
+	equipmentDescMaxDamage := equipmentFields[15].Descriptor()
+	// equipment.DefaultMaxDamage holds the default value on creation for the maxDamage field.
+	equipment.DefaultMaxDamage = equipmentDescMaxDamage.Default.(int)
+	// equipmentDescWeaponType is the schema descriptor for weaponType field.
+	equipmentDescWeaponType := equipmentFields[16].Descriptor()
+	// equipment.DefaultWeaponType holds the default value on creation for the weaponType field.
+	equipment.DefaultWeaponType = equipmentDescWeaponType.Default.(string)
+	// equipmentDescClassRestriction is the schema descriptor for classRestriction field.
+	equipmentDescClassRestriction := equipmentFields[17].Descriptor()
+	// equipment.DefaultClassRestriction holds the default value on creation for the classRestriction field.
+	equipment.DefaultClassRestriction = equipmentDescClassRestriction.Default.(string)
+	// equipmentDescGuaranteedDrop is the schema descriptor for guaranteedDrop field.
+	equipmentDescGuaranteedDrop := equipmentFields[18].Descriptor()
+	// equipment.DefaultGuaranteedDrop holds the default value on creation for the guaranteedDrop field.
+	equipment.DefaultGuaranteedDrop = equipmentDescGuaranteedDrop.Default.(bool)
 	npctemplateFields := schema.NPCTemplate{}.Fields()
 	_ = npctemplateFields
 	// npctemplateDescLevel is the schema descriptor for level field.

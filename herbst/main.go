@@ -96,6 +96,11 @@ func main() {
 		if err := dbinit.InitGizmo(client); err != nil {
 			log.Printf("Warning: failed to initialize Gizmo: %v", err)
 		}
+
+		// Initialize starter weapons
+		if err := dbinit.InitWeapons(client); err != nil {
+			log.Printf("Warning: failed to initialize weapons: %v", err)
+		}
 	}
 
 	// Pass client to server options
@@ -111,6 +116,20 @@ func main() {
 					// Force TrueColor for this session
 					lipgloss.SetColorProfile(termenv.TrueColor)
 
+					// Get terminal size from SSH session
+					pty, winCh, ok := s.Pty()
+					var initialWidth, initialHeight int
+					if ok {
+						initialWidth = pty.Window.Width
+						initialHeight = pty.Window.Height
+						log.Printf("PTY size: %dx%d", initialWidth, initialHeight)
+					} else {
+						// Fallback if no PTY
+						initialWidth = 80
+						initialHeight = 24
+						log.Printf("No PTY, using default size: %dx%d", initialWidth, initialHeight)
+					}
+
 					// Create initial text input for login/register
 					ti := textinput.New()
 					ti.Placeholder = "Enter choice..."
@@ -121,22 +140,37 @@ func main() {
 					sp.Spinner = spinner.Dot
 					sp.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
+					// Create model with initial size
+					m := &model{
+						connectedAt:  time.Now(),
+						session:      s,
+						client:       client,
+						screen:       ScreenWelcome,
+						currentRoom:  StartingRoomID,
+						textInput:    ti,
+						spinner:      sp,
+						visitedRooms: make(map[int]bool),
+						knownExits:   make(map[string]bool),
+						width:        initialWidth,
+						height:       initialHeight,
+					}
+
 					// Create program with shared client
 					p := tea.NewProgram(
-						&model{
-							connectedAt:  time.Now(),
-							session:      s,
-							client:       client,
-							screen:       ScreenWelcome,
-							currentRoom:  StartingRoomID,
-							textInput:    ti,
-							spinner:      sp,
-							visitedRooms: make(map[int]bool),
-							knownExits:   make(map[string]bool),
-						},
+						m,
 						tea.WithInput(s),
 						tea.WithOutput(s),
+						tea.WithAltScreen(), // Full-screen mode
 					)
+
+					// Handle window resize events from SSH (only if PTY was allocated)
+					if ok && winCh != nil {
+						go func() {
+							for win := range winCh {
+								p.Send(tea.WindowSizeMsg{Width: win.Width, Height: win.Height})
+							}
+						}()
+					}
 
 					if _, err := p.Run(); err != nil {
 						log.Printf("Bubbletea error: %v", err)
@@ -231,19 +265,20 @@ type model struct {
 
 // RoomItem represents an item in a room for display
 type RoomItem struct {
-	ID             int            `json:"id"`
-	Name           string         `json:"name"`
-	Description    string         `json:"description"`
-	ExamineDesc    string         `json:"examineDesc"`
-	HiddenDetails  []HiddenDetail `json:"hiddenDetails"`
-	HiddenThreshold int           `json:"hiddenThreshold"`
-	IsImmovable    bool           `json:"isImmovable"`
-	Color          string         `json:"color"`
-	IsVisible      bool           `json:"isVisible"`
-	ItemType       string         `json:"itemType"`
-	Weight         int            `json:"weight"`
-	ItemDamage     int            `json:"itemDamage"`
-	ItemDurability int            `json:"itemDurability"`
+	ID              int            `json:"id"`
+	Name            string         `json:"name"`
+	Description     string         `json:"description"`
+	ExamineDesc     string         `json:"examineDesc"`
+	HiddenDetails   []HiddenDetail `json:"hiddenDetails"`
+	HiddenThreshold int            `json:"hiddenThreshold"`
+	IsImmovable     bool           `json:"isImmovable"`
+	Color           string         `json:"color"`
+	IsVisible       bool           `json:"isVisible"`
+	ItemType        string         `json:"itemType"`
+	Weight          int            `json:"weight"`
+	ItemDamage      int            `json:"itemDamage"`
+	ItemDurability  int            `json:"itemDurability"`
+	RevealCondition map[string]any `json:"revealCondition"`
 }
 
 // roomCharacter represents a character (NPC or player) in a room for display
@@ -430,6 +465,16 @@ func (m *model) styledMessage(msg string) string {
 }
 
 // styleMessage returns a styled message based on message type (standalone helper)
+// combatDamageStyle for damage messages (red)
+var combatDamageStyle = lipgloss.NewStyle().
+	Foreground(red).
+	Bold(true)
+
+// combatHealStyle for healing messages (green)
+var combatHealStyle = lipgloss.NewStyle().
+	Foreground(green).
+	Bold(true)
+
 func styleMessage(msg string, msgType string) string {
 	if msg == "" {
 		return ""
@@ -442,6 +487,12 @@ func styleMessage(msg string, msgType string) string {
 		return errorStyle.Render("✗ ") + msg
 	case "info":
 		return infoStyle.Render("ℹ ") + msg
+	case "damage":
+		// Combat damage: red text with ⚔ prefix
+		return combatDamageStyle.Render("⚔ ") + msg
+	case "heal":
+		// Combat healing: green text with ♥ prefix
+		return combatHealStyle.Render("♥ ") + msg
 	default:
 		return msg
 	}
@@ -489,6 +540,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		// Debug logging only in debug mode to avoid noise
+		if m.debugMode {
+			log.Printf("DEBUG: Window size changed: %dx%d", m.width, m.height)
+		}
 
 	case spinner.TickMsg:
 		// Update spinner if loading
@@ -1060,6 +1115,9 @@ func (m *model) processCommand(cmd string) {
 		m.messageType = "info"
 	case "examine", "ex", "inspect":
 		m.handleExamineCommand(cmd)
+	case "search", "perception":
+		// GitHub #12 - Perception check to reveal hidden items
+		m.handleSearchCommand(cmd)
 	case "whoami":
 		// Show character info including level with progress bars
 		m.message = fmt.Sprintf("=== Character Status ===\nUser: %s (ID: %d)\nRoom: %s\n\n[Level %d - %d XP]\n%s",
@@ -1110,7 +1168,295 @@ func (m *model) processCommand(cmd string) {
 			m.handleQuestsCommand(cmd)
 			return
 		}
+		// Check for skills command
+		if cmd == "skills" {
+			m.handleSkillsCommand(cmd)
+			return
+		}
+		// Check for talents command
+		if cmd == "talents" {
+			m.handleTalentsCommand(cmd)
+			return
+		}
+		// Check for skill equip command
+		if strings.HasPrefix(cmd, "skill ") {
+			m.handleSkillEquipCommand(cmd)
+			return
+		}
+		// Check for talent equip/unequip/swap commands
+		if strings.HasPrefix(cmd, "talent ") {
+			m.handleTalentEquipCommand(cmd)
+			return
+		}
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
+		m.messageType = "error"
+	}
+}
+
+// handleSkillsCommand displays character skills
+func (m *model) handleSkillsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use this command."
+		m.messageType = "error"
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d/skills", RESTAPIBase, m.currentCharacterID)
+	resp, err := http.Get(url)
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching skills: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.message = "Failed to load skills"
+		m.messageType = "error"
+		return
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.message = fmt.Sprintf("Error parsing skills: %v", err)
+		m.messageType = "error"
+		return
+	}
+
+	skills, ok := result["skills"].(map[string]interface{})
+	if !ok {
+		m.message = "Error: skills data not found"
+		m.messageType = "error"
+		return
+	}
+
+	// Format skills display
+	output := "=== Your Skills ===\n\n"
+	for skillName, skillData := range skills {
+		data := skillData.(map[string]interface{})
+		level := int(data["level"].(float64))
+		bonus := data["bonus"].(string)
+		output += fmt.Sprintf("%-15s Lv: %2d  %s\n", skillName+":", level, bonus)
+	}
+
+	output += "\nSkills are always active and provide passive bonuses."
+	m.message = output
+	m.messageType = "info"
+}
+
+// handleTalentsCommand displays equipped talents
+func (m *model) handleTalentsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use this command."
+		m.messageType = "error"
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+	resp, err := http.Get(url)
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching talents: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.message = "Failed to load talents"
+		m.messageType = "error"
+		return
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.message = fmt.Sprintf("Error parsing talents: %v", err)
+		m.messageType = "error"
+		return
+	}
+
+	// Format talents display with slots
+	output := "=== Your Talents ===\n\n"
+	slots, ok := result["slots"].([]interface{})
+	if !ok {
+		// No talents equipped yet
+		output += "No talents equipped.\n\n"
+		output += "Use: talent equip <talent_id> <slot>\n"
+		output += "Slots: 1-4 (quick access keys)\n"
+		m.message = output
+		m.messageType = "info"
+		return
+	}
+
+	emptySlots := 0
+	for i := 1; i <= 4; i++ {
+		if i < len(slots) && slots[i] != nil {
+			slot := slots[i].(map[string]interface{})
+			name := slot["name"].(string)
+			desc := slot["description"].(string)
+			output += fmt.Sprintf("[%d] %s\n     %s\n\n", i, name, desc)
+		} else {
+			output += fmt.Sprintf("[%d] (empty)\n\n", i)
+			emptySlots++
+		}
+	}
+
+	if emptySlots == 4 {
+		output += "No talents equipped. Use 'talent equip <id> <slot>' to equip."
+	}
+
+	m.message = output
+	m.messageType = "info"
+}
+
+// handleSkillEquipCommand handles skill equip command
+func (m *model) handleSkillEquipCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use this command."
+		m.messageType = "error"
+		return
+	}
+
+	// Skills are always active, no equip needed
+	m.message = "Skills are always active and cannot be unequipped.\nThey provide passive bonuses based on your skill level."
+	m.messageType = "info"
+}
+
+// handleTalentEquipCommand handles talent equip/unequip/swap commands
+func (m *model) handleTalentEquipCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use this command."
+		m.messageType = "error"
+		return
+	}
+
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage:\n  talent equip <talent_id> <slot>\n  talent unequip <slot>\n  talent swap <slot1> <slot2>"
+		m.messageType = "error"
+		return
+	}
+
+	action := parts[1]
+
+	switch action {
+	case "equip":
+		if len(parts) != 4 {
+			m.message = "Usage: talent equip <talent_id> <slot>\nExample: talent equip 1 2"
+			m.messageType = "error"
+			return
+		}
+		talentID := parts[2]
+		slot := parts[3]
+
+		// Validate slot is 1-4
+		slotNum := 0
+		fmt.Sscanf(slot, "%d", &slotNum)
+		if slotNum < 1 || slotNum > 4 {
+			m.message = "Slot must be between 1 and 4"
+			m.messageType = "error"
+			return
+		}
+
+		// Call API to equip talent
+		url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+		reqBody := fmt.Sprintf(`{"talent_id":%s,"slot":%s}`, talentID, slot)
+		resp, err := http.Post(url, "application/json", strings.NewReader(reqBody))
+		if err != nil {
+			m.message = fmt.Sprintf("Error equipping talent: %v", err)
+			m.messageType = "error"
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+			m.message = "Failed to equip talent"
+			m.messageType = "error"
+			return
+		}
+
+		m.message = fmt.Sprintf("Talent equipped in slot %s", slot)
+		m.messageType = "success"
+
+	case "unequip":
+		if len(parts) != 3 {
+			m.message = "Usage: talent unequip <slot>\nExample: talent unequip 2"
+			m.messageType = "error"
+			return
+		}
+		slot := parts[2]
+
+		// Validate slot
+		slotNum := 0
+		fmt.Sscanf(slot, "%d", &slotNum)
+		if slotNum < 1 || slotNum > 4 {
+			m.message = "Slot must be between 1 and 4"
+			m.messageType = "error"
+			return
+		}
+
+		// Call API to unequip talent
+		url := fmt.Sprintf("%s/characters/%d/talents/%s", RESTAPIBase, m.currentCharacterID, slot)
+		req, err := http.NewRequest("DELETE", url, nil)
+		if err != nil {
+			m.message = fmt.Sprintf("Error unequipping talent: %v", err)
+			m.messageType = "error"
+			return
+		}
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			m.message = fmt.Sprintf("Error unequipping talent: %v", err)
+			m.messageType = "error"
+			return
+		}
+		defer resp.Body.Close()
+
+		m.message = fmt.Sprintf("Talent unequipped from slot %s", slot)
+		m.messageType = "success"
+
+	case "swap":
+		if len(parts) != 4 {
+			m.message = "Usage: talent swap <slot1> <slot2>\nExample: talent swap 1 2"
+			m.messageType = "error"
+			return
+		}
+		slot1 := parts[2]
+		slot2 := parts[3]
+
+		// Validate slots
+		slot1Num, slot2Num := 0, 0
+		fmt.Sscanf(slot1, "%d", &slot1Num)
+		fmt.Sscanf(slot2, "%d", &slot2Num)
+		if slot1Num < 1 || slot1Num > 4 || slot2Num < 1 || slot2Num > 4 {
+			m.message = "Slots must be between 1 and 4"
+			m.messageType = "error"
+			return
+		}
+
+		// Call API to swap talents
+		url := fmt.Sprintf("%s/characters/%d/talents/swap", RESTAPIBase, m.currentCharacterID)
+		reqBody := fmt.Sprintf(`{"slot1":%s,"slot2":%s}`, slot1, slot2)
+		req, err := http.NewRequest("PUT", url, strings.NewReader(reqBody))
+		if err != nil {
+			m.message = fmt.Sprintf("Error swapping talents: %v", err)
+			m.messageType = "error"
+			return
+		}
+		req.Header.Set("Content-Type", "application/json")
+		httpClient := &http.Client{}
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			m.message = fmt.Sprintf("Error swapping talents: %v", err)
+			m.messageType = "error"
+			return
+		}
+		defer resp.Body.Close()
+
+		m.message = fmt.Sprintf("Talents swapped between slot %s and %s", slot1, slot2)
+		m.messageType = "success"
+
+	default:
+		m.message = "Usage:\n  talent - Show talents\n  talent equip <talent_id> <slot>\n  talent unequip <slot>\n  talent swap <slot1> <slot2>"
 		m.messageType = "error"
 	}
 }
@@ -1317,6 +1663,81 @@ func (m *model) handlePeerCommand(cmd string) {
 	}
 }
 
+// handleSearchCommand handles the search/perception command to reveal hidden items
+// GitHub #12 - Look System: Hidden Items and Reveal Conditions
+func (m *model) handleSearchCommand(cmd string) {
+	if m.currentRoom == 0 {
+		m.message = "You can't search here."
+		m.messageType = "error"
+		return
+	}
+
+	// Fetch all items (including hidden) for this room
+	resp, err := http.Get(fmt.Sprintf("%s/rooms/%d/equipment?includeHidden=true", RESTAPIBase, m.currentRoom))
+	if err != nil {
+		m.message = fmt.Sprintf("Error searching: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.message = "Error searching the area."
+		m.messageType = "error"
+		return
+	}
+
+	var allItems []RoomItem
+	if err := json.NewDecoder(resp.Body).Decode(&allItems); err != nil {
+		m.message = fmt.Sprintf("Error parsing items: %v", err)
+		m.messageType = "error"
+		return
+	}
+
+	var found []string
+	revealed := 0
+
+	for _, item := range allItems {
+		// Skip already visible items
+		if item.IsVisible {
+			continue
+		}
+
+		// Check if this is a hidden item that can be revealed by perception
+		if item.RevealCondition != nil {
+			revealType, _ := item.RevealCondition["type"].(string)
+			if revealType == "perception_check" {
+				// Try to reveal the item with perception check
+				// Use character level as skill level for now
+				revealResp, err := http.Post(
+					fmt.Sprintf("%s/equipment/%d/reveal", RESTAPIBase, item.ID),
+					"application/json",
+					strings.NewReader(fmt.Sprintf(`{"revealType":"perception_check","skillLevel":%d}`, m.characterLevel)),
+				)
+				if err == nil {
+					defer revealResp.Body.Close()
+					if revealResp.StatusCode == http.StatusOK {
+						revealed++
+						found = append(found, item.Name)
+					}
+				}
+			}
+		}
+	}
+
+	// Reload room items to see the newly revealed
+	m.loadRoomItems()
+
+	if revealed > 0 {
+		m.message = fmt.Sprintf("🔍 You search the area carefully...\n\n✨ You discovered %d hidden item(s): %s",
+			revealed, strings.Join(found, ", "))
+		m.messageType = "success"
+	} else {
+		m.message = "🔍 You search the area carefully...\n\nYou find nothing of interest."
+		m.messageType = "info"
+	}
+}
+
 func (m *model) handleDebugCommand(cmd string) {
 	parts := strings.Fields(strings.ToLower(cmd))
 	if len(parts) < 2 {
@@ -1451,11 +1872,62 @@ func (m *model) handleExamineCommand(cmd string) {
 	target := strings.Join(parts[1:], " ")
 	target = strings.ToLower(target)
 
-	// First check room items
+	// First check room items (only visible ones for display)
 	for _, item := range m.roomItems {
+		if !item.IsVisible {
+			continue // Skip hidden items - they'll be handled separately
+		}
 		if strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
 			m.displayItemDetails(item)
 			return
+		}
+	}
+
+	// Check for hidden items that could be revealed by examining this target
+	// (GitHub #12 - Hidden Items and Reveal Conditions)
+	if m.currentRoom > 0 {
+		// Fetch all items (including hidden) for this room
+		resp, err := http.Get(fmt.Sprintf("%s/rooms/%d/equipment?includeHidden=true", RESTAPIBase, m.currentRoom))
+		if err == nil {
+			defer resp.Body.Close()
+			if resp.StatusCode == http.StatusOK {
+				var allItems []RoomItem
+				if json.NewDecoder(resp.Body).Decode(&allItems) == nil {
+					for _, item := range allItems {
+						// Check if this is a hidden item that reveals on examine
+						if !item.IsVisible && item.RevealCondition != nil {
+							revealType, _ := item.RevealCondition["type"].(string)
+							revealTarget, _ := item.RevealCondition["target"].(string)
+							if revealType == "examine" && strings.ToLower(revealTarget) == target {
+								// Try to reveal the item
+								revealResp, err := http.Post(
+									fmt.Sprintf("%s/equipment/%d/reveal", RESTAPIBase, item.ID),
+									"application/json",
+									strings.NewReader(fmt.Sprintf(`{"revealType":"examine","target":"%s","skillLevel":%d}`, revealTarget, m.characterLevel)),
+								)
+								if err == nil {
+									defer revealResp.Body.Close()
+									if revealResp.StatusCode == http.StatusOK {
+										// Item revealed! Reload room items and try again
+										m.loadRoomItems()
+										// Re-check with now-visible item
+										for _, ri := range m.roomItems {
+											if strings.Contains(strings.ToLower(ri.Name), target) || strings.ToLower(ri.Name) == target {
+												m.message = fmt.Sprintf("✨ You discovered something hidden!\n\n")
+												origMsg := m.message
+												m.displayItemDetails(ri)
+												m.message = origMsg + m.message
+												m.messageType = "info"
+												return
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -1555,10 +2027,57 @@ func (m *model) displayItemDetails(item RoomItem) {
 	m.messageType = "info"
 }
 
+// getItemIcon returns an emoji icon based on item type
+func getItemIcon(itemType string) string {
+	switch itemType {
+	case "weapon":
+		return "⚔️"
+	case "armor":
+		return "🛡️"
+	case "potion":
+		return "🧪"
+	case "food":
+		return "🍖"
+	case "scroll":
+		return "📜"
+	case "key":
+		return "🔑"
+	case "treasure":
+		return "💎"
+	case "quest":
+		return "📋"
+	default:
+		return "📦"
+	}
+}
+
+// getItemRarityColor returns a lipgloss color based on item rarity
+func getItemRarityColor(rarity string) lipgloss.Color {
+	switch rarity {
+	case "rare":
+		return lipgloss.Color("51") // Blue
+	case "epic":
+		return lipgloss.Color("201") // Magenta
+	case "legendary":
+		return lipgloss.Color("220") // Gold
+	default:
+		return lipgloss.Color("white")
+	}
+}
+
+// inventoryItem represents an item in the player's inventory
+type inventoryItem struct {
+	ID          int
+	Name        string
+	Description string
+	ItemType    string
+	IsEquipped  bool
+	Rarity      string
+}
+
 // handleInventoryCommand handles the inventory/i command
 func (m *model) handleInventoryCommand() {
 	// Fetch player's inventory from API
-	// For now, show a placeholder message
 	resp, err := http.Get(fmt.Sprintf("%s/equipment?ownerId=%d", RESTAPIBase, m.currentCharacterID))
 	if err != nil {
 		m.message = fmt.Sprintf("Error fetching inventory: %v", err)
@@ -1568,38 +2087,70 @@ func (m *model) handleInventoryCommand() {
 	defer resp.Body.Close()
 
 	// Parse inventory items
-	var items []struct {
+	var rawItems []struct {
 		ID          int    `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		ItemType    string `json:"itemType"`
 		IsEquipped  bool   `json:"isEquipped"`
+		Rarity      string `json:"rarity"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&items); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&rawItems); err != nil {
 		m.message = "You aren't carrying anything."
 		m.messageType = "info"
 		return
+	}
+
+	// Convert to typed items
+	items := make([]inventoryItem, len(rawItems))
+	for i, raw := range rawItems {
+		items[i] = inventoryItem(raw)
 	}
 
 	if len(items) == 0 {
-		m.message = "You aren't carrying anything."
+		m.message = "Your pockets are empty. Time to loot some stuff!"
 		m.messageType = "info"
 		return
 	}
 
-	// Format inventory display
+	// Format inventory display with icons and styling
 	var inv strings.Builder
-	inv.WriteString("=== INVENTORY ===\n\n")
+	inv.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("🎒 INVENTORY"))
+	inv.WriteString("\n")
+	inv.WriteString(strings.Repeat("─", 30))
+	inv.WriteString("\n\n")
+
+	// Group items by type for better organization
+	typeGroups := make(map[string][]inventoryItem)
+
 	for _, item := range items {
-		equipped := ""
-		if item.IsEquipped {
-			equipped = " [equipped]"
-		}
-		inv.WriteString(fmt.Sprintf("  %s%s\n", item.Name, equipped))
-		if item.Description != "" {
-			inv.WriteString(fmt.Sprintf("    %s\n", item.Description))
-		}
+		typeGroups[item.ItemType] = append(typeGroups[item.ItemType], item)
 	}
+
+	// Display items grouped by type with icons
+	for itemType, groupItems := range typeGroups {
+		icon := getItemIcon(itemType)
+		typeLabel := strings.ToUpper(itemType)
+		inv.WriteString(lipgloss.NewStyle().Bold(true).Foreground(cyan).Render(fmt.Sprintf("%s %s", icon, typeLabel)))
+		inv.WriteString("\n")
+
+		for _, invItem := range groupItems {
+			rarityColor := getItemRarityColor(invItem.Rarity)
+			itemStyle := lipgloss.NewStyle().Foreground(rarityColor)
+
+			equipped := ""
+			if invItem.IsEquipped {
+				equipped = " " + lipgloss.NewStyle().Bold(true).Foreground(green).Render("⚡ equipped")
+			}
+
+			inv.WriteString(fmt.Sprintf("  %s %s%s\n", icon, itemStyle.Render(invItem.Name), equipped))
+			if invItem.Description != "" {
+				inv.WriteString(fmt.Sprintf("     %s\n", invItem.Description))
+			}
+		}
+		inv.WriteString("\n")
+	}
+
 	m.message = inv.String()
 	m.messageType = "info"
 }
@@ -1921,10 +2472,18 @@ func (m *model) View() string {
 		// Ensure we have valid dimensions - if not, use defaults
 		width := m.width
 		height := m.height
+		
+		// Debug: log the actual dimensions being used
+		if m.debugMode {
+			log.Printf("ScreenPlaying: terminal dimensions: %dx%d (raw: %dx%d)", width, height, m.width, m.height)
+		}
+		
 		if width < 40 {
+			log.Printf("WARNING: width too small (%d), defaulting to 80", width)
 			width = 80
 		}
 		if height < 10 {
+			log.Printf("WARNING: height too small (%d), defaulting to 24", height)
 			height = 24
 		}
 
@@ -1948,7 +2507,7 @@ func (m *model) View() string {
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(pink).
 			Padding(0, 1).
-			Width(width - 2).          // Account for border
+			Width(width).
 			Height(viewportHeight - 2) // Account for border
 
 		// Colorful status bar with mini progress bars
@@ -1975,18 +2534,14 @@ func (m *model) View() string {
 		s.WriteString(outputStyle.Render(roomInfo))
 		s.WriteString("\n")
 
-		// Full-width status bar separator (middle ~10%)
-		separatorStyle := lipgloss.NewStyle().
+		// Full-width status bar (middle ~10%)
+		statusBarStyle := lipgloss.NewStyle().
 			Foreground(pink).
+			Background(lipgloss.Color("235")).
 			Bold(true).
-			Width(width)
-		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
-		s.WriteString(separatorLine)
-		s.WriteString("\n")
-		// Stats go in the actual status bar (middle panel)
-		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLine + debugInfo))
-		s.WriteString("\n")
-		s.WriteString(separatorLine)
+			Width(width).
+			Padding(0, 1)
+		s.WriteString(statusBarStyle.Render(statsLine + debugInfo))
 		s.WriteString("\n")
 
 		// Full-width input area (bottom ~20%)
@@ -1994,7 +2549,7 @@ func (m *model) View() string {
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(pink).
 			Padding(0, 1).
-			Width(width - 2).
+			Width(width).
 			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 

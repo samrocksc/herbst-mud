@@ -3,28 +3,21 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/user"
-	"herbst-server/middleware"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// RegisterUserRoutes registers all user-related routes
-// Public routes (no auth required):
-//   - POST /users - Create new user
-//   - POST /users/auth - Login (returns JWT token)
-//
-// Protected routes (auth required):
-//   - GET /users - Get all users
-//   - GET /users/:id - Get user by ID
-//   - PUT /users/:id - Update user
-//   - DELETE /users/:id - Delete user
-func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
-	// === PUBLIC ROUTES (no authentication required) ===
+// JWT secret key - in production use environment variable
+var jwtSecret = []byte("your-secret-key-change-in-production")
 
-	// Create a new user (public - for registration)
+// RegisterUserRoutes registers all user-related routes
+func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
+	// Create a new user
 	router.POST("/users", func(c *gin.Context) {
 		var req struct {
 			Email    string `json:"email" binding:"required"`
@@ -56,23 +49,15 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Generate JWT token for the newly registered user
-		token, err := middleware.GenerateToken(user.ID, user.Email, user.IsAdmin, "user")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-			return
-		}
-
-		// Return user with token
+		// Return user without password
 		c.JSON(http.StatusCreated, gin.H{
 			"id":       user.ID,
 			"email":    user.Email,
 			"is_admin": user.IsAdmin,
-			"token":    token,
 		})
 	})
 
-	// Authenticate a user (login) - returns JWT token
+	// Authenticate a user (login)
 	router.POST("/users/auth", func(c *gin.Context) {
 		var req struct {
 			Email    string `json:"email" binding:"required"`
@@ -100,149 +85,136 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Generate JWT token
-		token, err := middleware.GenerateToken(user.ID, user.Email, user.IsAdmin, "user")
+		// Login successful - generate JWT token
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"user_id":  user.ID,
+			"email":    user.Email,
+			"is_admin": user.IsAdmin,
+			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		})
+
+		tokenString, err := token.SignedString(jwtSecret)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return
 		}
 
-		// Login successful with token
+		c.JSON(http.StatusOK, gin.H{
+			"id":        user.ID,
+			"email":     user.Email,
+			"is_admin":  user.IsAdmin,
+			"token":      tokenString,
+			"expires_in": 86400,
+		})
+	})
+
+	// Get all users
+	router.GET("/users", func(c *gin.Context) {
+		users, err := client.User.Query().All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Return users without passwords
+		result := make([]gin.H, len(users))
+		for i, user := range users {
+			result[i] = gin.H{
+				"id":       user.ID,
+				"email":    user.Email,
+				"is_admin": user.IsAdmin,
+			}
+		}
+
+		c.JSON(http.StatusOK, result)
+	})
+
+	// Get a single user by ID
+	router.GET("/users/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
+
+		user, err := client.User.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"id":       user.ID,
 			"email":    user.Email,
 			"is_admin": user.IsAdmin,
-			"token":    token,
 		})
 	})
 
-	// === PROTECTED ROUTES (authentication required) ===
+	// Update a user by ID
+	router.PUT("/users/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
 
-	// Protected user routes group
-	protected := router.Group("/users")
-	protected.Use(middleware.AuthMiddleware())
-	{
-		// Get all users (protected)
-		protected.GET("", func(c *gin.Context) {
-			users, err := client.User.Query().All(c.Request.Context())
+		var req struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+			IsAdmin  *bool  `json:"isAdmin"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		updater := client.User.UpdateOneID(id)
+
+		// Only update fields that are provided
+		if req.Email != "" {
+			updater.SetEmail(req.Email)
+		}
+		if req.Password != "" {
+			// Hash the new password with bcrypt
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 				return
 			}
+			updater.SetPassword(string(hashedPassword))
+		}
+		if req.IsAdmin != nil {
+			updater.SetIsAdmin(*req.IsAdmin)
+		}
 
-			// Return users without passwords
-			result := make([]gin.H, len(users))
-			for i, u := range users {
-				result[i] = gin.H{
-					"id":       u.ID,
-					"email":    u.Email,
-					"is_admin": u.IsAdmin,
-				}
-			}
+		user, err := updater.Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
 
-			c.JSON(http.StatusOK, result)
+		c.JSON(http.StatusOK, gin.H{
+			"id":       user.ID,
+			"email":    user.Email,
+			"is_admin": user.IsAdmin,
 		})
+	})
 
-		// Get a single user by ID (protected)
-		protected.GET("/:id", func(c *gin.Context) {
-			id, err := strconv.Atoi(c.Param("id"))
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-				return
-			}
+	// Delete a user by ID
+	router.DELETE("/users/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
 
-			u, err := client.User.Get(c.Request.Context(), id)
-			if err != nil {
-				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-				return
-			}
+		err = client.User.DeleteOneID(id).Exec(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
 
-			c.JSON(http.StatusOK, gin.H{
-				"id":       u.ID,
-				"email":    u.Email,
-				"is_admin": u.IsAdmin,
-			})
-		})
-
-		// Update a user by ID (protected)
-		protected.PUT("/:id", func(c *gin.Context) {
-			id, err := strconv.Atoi(c.Param("id"))
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-				return
-			}
-
-			var req struct {
-				Email    string `json:"email"`
-				Password string `json:"password"`
-				IsAdmin  *bool  `json:"isAdmin"`
-			}
-
-			if err := c.ShouldBindJSON(&req); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-
-			updater := client.User.UpdateOneID(id)
-
-			// Only update fields that are provided
-			if req.Email != "" {
-				updater.SetEmail(req.Email)
-			}
-			if req.Password != "" {
-				// Hash the new password with bcrypt
-				hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-				if err != nil {
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-					return
-				}
-				updater.SetPassword(string(hashedPassword))
-			}
-			if req.IsAdmin != nil {
-				updater.SetIsAdmin(*req.IsAdmin)
-			}
-
-			u, err := updater.Save(c.Request.Context())
-			if err != nil {
-				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-				return
-			}
-
-			c.JSON(http.StatusOK, gin.H{
-				"id":       u.ID,
-				"email":    u.Email,
-				"is_admin": u.IsAdmin,
-			})
-		})
-
-		// Delete a user by ID (protected)
-		protected.DELETE("/:id", func(c *gin.Context) {
-			id, err := strconv.Atoi(c.Param("id"))
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-				return
-			}
-
-			err = client.User.DeleteOneID(id).Exec(c.Request.Context())
-			if err != nil {
-				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-				return
-			}
-
-			c.JSON(http.StatusNoContent, nil)
-		})
-	}
-}
-
-// RegisterAdminRoutes registers admin-only routes
-// These routes require both authentication and admin privileges
-func RegisterAdminRoutes(router *gin.Engine, client *db.Client) {
-	admin := router.Group("/admin")
-	admin.Use(middleware.AuthMiddleware())
-	admin.Use(middleware.AdminMiddleware())
-	{
-		// Admin-only endpoints can be added here
-		// Example:
-		// admin.GET("/stats", func(c *gin.Context) { ... })
-	}
+		c.JSON(http.StatusNoContent, nil)
+	})
 }

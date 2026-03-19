@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { MapFlow } from '../../components/MapFlow'
 import { ZLevelSelector } from '../../components/ZLevelSelector'
 import { DirectionPickerModal } from '../../components/DirectionPickerModal'
+import { useRooms, useCreateRoom, useUpdateRoom, useDeleteRoom, Room, DIRECTIONS } from '../../hooks/useRooms'
 import type { Node, Edge, Connection } from '@xyflow/react'
 
 export const Route = createFileRoute('/admin/map')({
@@ -13,95 +14,115 @@ interface MapRoomData extends Record<string, unknown> {
   name: string
   description: string
   zLevel: number
+  isStartingRoom?: boolean
+  exits?: Record<string, number>
 }
 
-// Sample rooms with different Z-levels for testing
-const initialNodes: Node[] = [
-    { 
-      id: '1', 
-      type: 'room',
-      position: { x: 250, y: 100 }, 
-      data: { name: 'Town Square', description: 'The central hub', zLevel: 0 },
-      selected: false 
+// Convert API Room to ReactFlow Node
+function roomToNode(room: Room): Node {
+  return {
+    id: String(room.id),
+    type: 'room',
+    position: { 
+      x: room.x ?? Math.random() * 400 + 100, 
+      y: room.y ?? Math.random() * 400 + 100 
     },
-    { 
-      id: '2', 
-      type: 'room',
-      position: { x: 250, y: 250 }, 
-      data: { name: 'Main Street North', description: 'Street heading north', zLevel: 0 },
-      selected: false 
+    data: {
+      name: room.name,
+      description: room.description,
+      zLevel: room.zLevel ?? 0,
+      isStartingRoom: room.isStartingRoom,
+      exits: room.exits ?? {}
     },
-    { 
-      id: '3', 
-      type: 'room',
-      position: { x: 250, y: 400 }, 
-      data: { name: 'Main Street South', description: 'Street heading south', zLevel: 0 },
-      selected: false 
-    },
-    { 
-      id: '4', 
-      type: 'room',
-      position: { x: 450, y: 175 }, 
-      data: { name: 'Forest Path', description: 'A path through the woods', zLevel: 0 },
-      selected: false 
-    },
-    { 
-      id: '5', 
-      type: 'room',
-      position: { x: 50, y: 175 }, 
-      data: { name: 'Shop District', description: 'Where merchants sell goods', zLevel: 0 },
-      selected: false 
-    },
-    // Z-level 1 rooms (upper floor)
-    {
-      id: '6',
-      type: 'room',
-      position: { x: 250, y: 150 },
-      data: { name: 'Town Square Upstairs', description: 'Upper level of town square', zLevel: 1 },
-      selected: false
-    },
-    {
-      id: '7',
-      type: 'room',
-      position: { x: 400, y: 200 },
-      data: { name: 'Inn Upper Floor', description: 'Guest rooms upstairs', zLevel: 1 },
-      selected: false
-    },
-    // Z-level -1 rooms (underground)
-    {
-      id: '8',
-      type: 'room',
-      position: { x: 250, y: 300 },
-      data: { name: 'Town Square Cellar', description: 'Storage basement', zLevel: -1 },
-      selected: false
-    },
-    {
-      id: '9',
-      type: 'room',
-      position: { x: 100, y: 400 },
-      data: { name: 'Sewers', description: 'Dark underground tunnels', zLevel: -1 },
-      selected: false
-    },
-  ]
+    selected: false
+  }
+}
 
-// Z-exits between levels
-const initialEdges: Edge[] = [
-    { id: 'e1-2', source: '1', target: '2', label: 'north', type: 'smoothstep' },
-    { id: 'e1-3', source: '1', target: '3', label: 'south', type: 'smoothstep' },
-    { id: 'e1-4', source: '1', target: '4', label: 'east', type: 'smoothstep' },
-    { id: 'e1-5', source: '1', target: '5', label: 'west', type: 'smoothstep' },
-    // Z-exits (up/down connections between levels)
-    { id: 'e1-6', source: '1', target: '6', label: 'up', data: { isZExit: true, direction: 'up' }, type: 'smoothstep', animated: true, style: { stroke: '#e17055', strokeWidth: 2 } },
-    { id: 'e1-8', source: '1', target: '8', label: 'down', data: { isZExit: true, direction: 'down' }, type: 'smoothstep', animated: true, style: { stroke: '#74b9ff', strokeWidth: 2 } },
-    { id: 'e8-9', source: '8', target: '9', label: 'south', type: 'smoothstep' },
-    { id: 'e6-7', source: '6', target: '7', label: 'east', type: 'smoothstep' },
-  ]
+// Convert Node data back to RoomInput for API
+function nodeToRoomInput(node: Node): Partial<Room> {
+  const data = node.data as MapRoomData
+  return {
+    name: data.name,
+    description: data.description,
+    isStartingRoom: data.isStartingRoom,
+    zLevel: data.zLevel,
+    x: node.position.x,
+    y: node.position.y,
+    exits: data.exits
+  }
+}
+
+// Get edges from nodes (reconstruct exits as edges)
+function getEdgesFromNodes(nodes: Node[]): Edge[] {
+  const edges: Edge[] = []
+  const nodeMap = new Map(nodes.map(n => [n.id, n]))
+  
+  for (const node of nodes) {
+    const data = node.data as MapRoomData
+    const exits = data.exits ?? {}
+    
+    for (const [direction, targetId] of Object.entries(exits)) {
+      const targetNode = nodeMap.get(String(targetId))
+      if (!targetNode) continue
+      
+      const isZExit = direction === 'up' || direction === 'down'
+      
+      edges.push({
+        id: `e${node.id}-${targetNode.id}-${direction}`,
+        source: node.id,
+        target: String(targetId),
+        label: direction,
+        type: 'smoothstep',
+        animated: isZExit,
+        style: isZExit 
+          ? { stroke: direction === 'up' ? '#e17055' : '#74b9ff', strokeWidth: 2 }
+          : { stroke: '#666' },
+        data: { isZExit, direction }
+      })
+    }
+  }
+  
+  return edges
+}
+
+// Sample initial nodes (fallback if API unavailable)
+const initialNodes: Node[] = [
+  { 
+    id: '1', 
+    type: 'room',
+    position: { x: 250, y: 100 }, 
+    data: { name: 'Town Square', description: 'The central hub', zLevel: 0 },
+    selected: false 
+  },
+  { 
+    id: '2', 
+    type: 'room',
+    position: { x: 250, y: 250 }, 
+    data: { name: 'Main Street North', description: 'Street heading north', zLevel: 0 },
+    selected: false 
+  },
+  { 
+    id: '3', 
+    type: 'room',
+    position: { x: 250, y: 400 }, 
+    data: { name: 'Main Street South', description: 'Street heading south', zLevel: 0 },
+    selected: false 
+  },
+]
+
+const initialEdges: Edge[] = []
 
 function MapBuilder() {
+  const { data: rooms, isLoading, error } = useRooms()
+  const createRoom = useCreateRoom()
+  const updateRoom = useUpdateRoom()
+  const deleteRoomApi = useDeleteRoom()
+  
   const [nodes, setNodes] = useState<Node[]>(initialNodes)
   const [edges, setEdges] = useState<Edge[]>(initialEdges)
   const [currentZLevel, setCurrentZLevel] = useState(0)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
   
   // Direction picker modal state
   const [pendingConnection, setPendingConnection] = useState<{
@@ -111,6 +132,17 @@ function MapBuilder() {
     targetName: string
   } | null>(null)
 
+  // Load rooms from API when available
+  useEffect(() => {
+    if (rooms && !isInitialized) {
+      const loadedNodes = rooms.map(roomToNode)
+      const loadedEdges = getEdgesFromNodes(loadedNodes)
+      setNodes(loadedNodes)
+      setEdges(loadedEdges)
+      setIsInitialized(true)
+    }
+  }, [rooms, isInitialized])
+
   // Filter nodes by Z-level (show current level prominently, adjacent faintly)
   const filteredNodes = useMemo(() => {
     return nodes.map(node => {
@@ -118,18 +150,16 @@ function MapBuilder() {
       const isCurrentLevel = zLevel === currentZLevel
       const isAdjacent = Math.abs(zLevel - currentZLevel) === 1
       
-      // Return node with opacity based on level
       return {
         ...node,
         selected: isCurrentLevel && node.selected,
-        // For nodes on other Z-levels, we don't show them unless adjacent
         hidden: !isCurrentLevel && !isAdjacent,
         style: !isCurrentLevel && isAdjacent ? { opacity: 0.4 } : undefined
       }
     })
   }, [nodes, currentZLevel])
 
-  // Filter edges - hide edges between different Z-levels unless they're Z-exits
+  // Filter edges - hide edges between different z-levels unless they're Z-exits
   const filteredEdges = useMemo(() => {
     return edges.filter(edge => {
       const sourceNode = nodes.find(n => n.id === edge.source)
@@ -139,10 +169,8 @@ function MapBuilder() {
       const sourceZ = (sourceNode.data as MapRoomData).zLevel ?? 0
       const targetZ = (targetNode.data as MapRoomData).zLevel ?? 0
       
-      // Show if same Z-level
       if (sourceZ === targetZ) return true
       
-      // Show Z-exit connections (different Z-levels with up/down)
       const label = (edge.label as string || '').toLowerCase()
       return label === 'up' || label === 'down'
     })
@@ -155,7 +183,6 @@ function MapBuilder() {
       const targetNode = nodes.find(n => n.id === connection.target)
       
       if (sourceNode && targetNode) {
-        // Show direction picker
         setPendingConnection({
           source: connection.source,
           target: connection.target,
@@ -166,10 +193,24 @@ function MapBuilder() {
     }
   }, [nodes])
 
-  // Handle direction selection - create bidirectional exits
-  const handleDirectionSelect = useCallback((sourceDirection: string, targetDirection: string) => {
+  // Get opposite direction
+  const getOppositeDirection = (dir: string): string => {
+    const opposites: Record<string, string> = {
+      north: 'south',
+      south: 'north',
+      east: 'west',
+      west: 'east',
+      up: 'down',
+      down: 'up'
+    }
+    return opposites[dir] || dir
+  }
+
+  // Handle direction selection - create bidirectional exits and sync to API
+  const handleDirectionSelect = useCallback(async (sourceDirection: string, targetDirection: string) => {
     if (!pendingConnection) return
     
+    // Add edges locally
     const newEdges: Edge[] = [
       {
         id: `e${pendingConnection.source}-${pendingConnection.target}-${sourceDirection}`,
@@ -177,7 +218,7 @@ function MapBuilder() {
         target: pendingConnection.target,
         label: sourceDirection,
         type: 'smoothstep',
-        animated: true,
+        animated: sourceDirection === 'up' || sourceDirection === 'down',
         style: sourceDirection === 'up' || sourceDirection === 'down' 
           ? { stroke: sourceDirection === 'up' ? '#e17055' : '#74b9ff', strokeWidth: 2 }
           : { stroke: '#666' },
@@ -189,7 +230,7 @@ function MapBuilder() {
         target: pendingConnection.source,
         label: targetDirection,
         type: 'smoothstep',
-        animated: true,
+        animated: targetDirection === 'up' || targetDirection === 'down',
         style: targetDirection === 'up' || targetDirection === 'down' 
           ? { stroke: targetDirection === 'up' ? '#e17055' : '#74b9ff', strokeWidth: 2 }
           : { stroke: '#666' },
@@ -197,9 +238,46 @@ function MapBuilder() {
       },
     ]
     
-    setEdges(eds => [...eds, ...newEdges])
+    // Update both nodes with the new exits
+    const sourceNode = nodes.find(n => n.id === pendingConnection.source)
+    const targetNode = nodes.find(n => n.id === pendingConnection.target)
+    
+    if (sourceNode && targetNode) {
+      const sourceData = { ...(sourceNode.data as MapRoomData) }
+      const targetData = { ...(targetNode.data as MapRoomData) }
+      
+      const sourceExits = sourceData.exits ?? {}
+      const targetExits = targetData.exits ?? {}
+      
+      // Get the target IDs (convert to numbers for API)
+      const targetIdNum = parseInt(pendingConnection.target)
+      const sourceIdNum = parseInt(pendingConnection.source)
+      
+      sourceExits[sourceDirection] = targetIdNum
+      targetExits[targetDirection] = sourceIdNum
+      
+      sourceData.exits = sourceExits
+      targetData.exits = targetExits
+      
+      // Update local state first
+      setNodes(nds => nds.map(n => {
+        if (n.id === pendingConnection.source) return { ...n, data: sourceData }
+        if (n.id === pendingConnection.target) return { ...n, data: targetData }
+        return n
+      }))
+      setEdges(eds => [...eds, ...newEdges])
+      
+      // Sync to API
+      try {
+        await updateRoom.mutateAsync({ id: sourceIdNum, room: nodeToRoomInput({ ...sourceNode, data: sourceData }) })
+        await updateRoom.mutateAsync({ id: targetIdNum, room: nodeToRoomInput({ ...targetNode, data: targetData }) })
+      } catch (err) {
+        console.error('Failed to save exits:', err)
+      }
+    }
+    
     setPendingConnection(null)
-  }, [pendingConnection])
+  }, [pendingConnection, nodes, updateRoom])
 
   const handleConnectionCancel = useCallback(() => {
     setPendingConnection(null)
@@ -213,20 +291,128 @@ function MapBuilder() {
     })))
   }, [])
 
-  const addNewRoom = () => {
-    const newId = String(nodes.length + 1)
-    const newNode: Node = {
-      id: newId,
-      type: 'room',
-      position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
-      data: { name: `Room ${newId}`, description: 'New room', zLevel: currentZLevel }
+  // Add new room - create in API first
+  const addNewRoom = useCallback(async () => {
+    const newRoomData = {
+      name: `New Room ${nodes.length + 1}`,
+      description: 'A new room',
+      zLevel: currentZLevel,
+      x: Math.random() * 400 + 100,
+      y: Math.random() * 400 + 100,
+      exits: {}
     }
-    setNodes(nds => [...nds, newNode])
-  }
+    
+    try {
+      const created = await createRoom.mutateAsync(newRoomData)
+      const newNode = roomToNode(created)
+      setNodes(nds => [...nds, newNode])
+    } catch (err) {
+      console.error('Failed to create room:', err)
+      // Fallback to local-only creation
+      const newId = String(Math.max(...nodes.map(n => parseInt(n.id)), 0) + 1)
+      const newNode: Node = {
+        id: newId,
+        type: 'room',
+        position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
+        data: { name: `Room ${newId}`, description: 'New room', zLevel: currentZLevel, exits: {} }
+      }
+      setNodes(nds => [...nds, newNode])
+    }
+  }, [nodes, currentZLevel, createRoom])
 
+  // Save all changes
+  const saveMap = useCallback(async () => {
+    for (const node of nodes) {
+      const roomId = parseInt(node.id)
+      if (isNaN(roomId)) continue
+      
+      try {
+        await updateRoom.mutateAsync({ 
+          id: roomId, 
+          room: nodeToRoomInput(node) 
+        })
+      } catch (err) {
+        console.error(`Failed to save room ${roomId}:`, err)
+      }
+    }
+    alert('Map saved!')
+  }, [nodes, updateRoom])
+
+  // Delete selected room
+  const handleDeleteRoom = useCallback(async () => {
+    if (!selectedNode) return
+    
+    const roomId = parseInt(selectedNode.id)
+    if (isNaN(roomId)) {
+      // Local-only node, just remove
+      setNodes(nds => nds.filter(n => n.id !== selectedNode.id))
+      setSelectedNode(null)
+      return
+    }
+    
+    try {
+      await deleteRoomApi.mutateAsync(roomId)
+      setNodes(nds => nds.filter(n => n.id !== selectedNode.id))
+      setEdges(eds => eds.filter(e => e.source !== selectedNode.id && e.target !== selectedNode.id))
+      setSelectedNode(null)
+    } catch (err) {
+      console.error('Failed to delete room:', err)
+    }
+  }, [selectedNode, deleteRoomApi])
+
+  // Update node in API when edited
+  const handleNodeUpdate = useCallback(async (updatedNode: Node) => {
+    const roomId = parseInt(updatedNode.id)
+    if (isNaN(roomId)) return
+    
+    setNodes(nds => nds.map(n => 
+      n.id === updatedNode.id ? updatedNode : n
+    ))
+    setSelectedNode(updatedNode)
+    
+    // Debounce API update
+    try {
+      await updateRoom.mutateAsync({ 
+        id: roomId, 
+        room: nodeToRoomInput(updatedNode) 
+      })
+    } catch (err) {
+      console.error('Failed to update room:', err)
+    }
+  }, [updateRoom])
+
+  // Get exits for selected node
+  const getRoomExits = useCallback((nodeId: string) => {
+    const outgoingEdges = edges.filter(e => e.source === nodeId)
+    return outgoingEdges.map(edge => ({
+      id: edge.id,
+      direction: edge.label as string,
+      targetId: edge.target,
+      targetName: nodes.find(n => n.id === edge.target)?.data.name || 'Unknown'
+    }))
+  }, [edges, nodes])
+
+  // Get room data helper
   const getRoomData = (node: Node | null): MapRoomData => {
     if (!node) return { name: '', description: '', zLevel: 0 }
     return node.data as MapRoomData
+  }
+
+  if (isLoading) {
+    return (
+      <div className="management-page">
+        <div className="page-header">
+          <h2>Map Builder</h2>
+        </div>
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <p>Loading rooms from API...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    console.error('Failed to load rooms:', error)
   }
 
   return (
@@ -234,9 +420,12 @@ function MapBuilder() {
       <div className="page-header">
         <h2>Map Builder</h2>
         <div className="map-actions">
-          <button onClick={addNewRoom}>Add Room</button>
-          <button>Connect Rooms</button>
-          <button>Save Map</button>
+          <button onClick={addNewRoom} disabled={createRoom.isPending}>
+            {createRoom.isPending ? 'Creating...' : '+ Add Room'}
+          </button>
+          <button onClick={saveMap} disabled={updateRoom.isPending}>
+            {updateRoom.isPending ? 'Saving...' : '💾 Save Map'}
+          </button>
         </div>
       </div>
 
@@ -272,12 +461,8 @@ function MapBuilder() {
                 value={getRoomData(selectedNode).name}
                 onChange={(e) => {
                   const newData = { ...getRoomData(selectedNode), name: e.target.value }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
+                  const updatedNode = { ...selectedNode, data: newData }
+                  handleNodeUpdate(updatedNode)
                 }}
                 style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff' }}
               />
@@ -288,12 +473,8 @@ function MapBuilder() {
                 value={getRoomData(selectedNode).description}
                 onChange={(e) => {
                   const newData = { ...getRoomData(selectedNode), description: e.target.value }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
+                  const updatedNode = { ...selectedNode, data: newData }
+                  handleNodeUpdate(updatedNode)
                 }}
                 style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff', minHeight: '60px' }}
               />
@@ -305,12 +486,8 @@ function MapBuilder() {
                 onChange={(e) => {
                   const zLevel = parseInt(e.target.value)
                   const newData = { ...getRoomData(selectedNode), zLevel }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
+                  const updatedNode = { ...selectedNode, data: newData }
+                  handleNodeUpdate(updatedNode)
                 }}
                 style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff' }}
               >
@@ -321,7 +498,88 @@ function MapBuilder() {
                 <option value={2}>Z: 2 (Tower)</option>
               </select>
             </div>
-            <p style={{ fontSize: '12px', color: '#888' }}>Node ID: {selectedNode.id}</p>
+            
+            {/* Exits List */}
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Exits:</label>
+              {(() => {
+                const exits = getRoomExits(selectedNode.id)
+                if (exits.length === 0) {
+                  return <p style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>No exits defined</p>
+                }
+                return (
+                  <ul style={{ 
+                    listStyle: 'none', 
+                    padding: 0, 
+                    margin: 0,
+                    fontSize: '12px'
+                  }}>
+                    {exits.map(exit => (
+                      <li key={exit.id} style={{ 
+                        padding: '4px 8px', 
+                        marginBottom: '4px',
+                        background: '#2a2a2a',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span>
+                          <span style={{ 
+                            color: exit.direction === 'up' ? '#e17055' : 
+                                   exit.direction === 'down' ? '#74b9ff' : '#6c5ce7',
+                            fontWeight: 'bold'
+                          }}>
+                            {exit.direction === 'up' ? '↑' : exit.direction === 'down' ? '↓' : '→'}
+                          </span>
+                          {' '}{exit.direction}
+                        </span>
+                        <span style={{ color: '#888' }}>→ {exit.targetName}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              })()}
+            </div>
+            
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>Node ID: {selectedNode.id}</p>
+            
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+              <button 
+                onClick={handleDeleteRoom}
+                disabled={deleteRoomApi.isPending}
+                style={{ 
+                  flex: 1, 
+                  padding: '8px', 
+                  background: '#c0392b', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                {deleteRoomApi.isPending ? 'Deleting...' : '🗑️ Delete Room'}
+              </button>
+            </div>
+            
+            {/* Close button */}
+            <button 
+              onClick={() => setSelectedNode(null)}
+              style={{ 
+                width: '100%', 
+                marginTop: '8px',
+                padding: '6px', 
+                background: 'transparent', 
+                color: '#888', 
+                border: '1px solid #444', 
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              ✕ Close Panel
+            </button>
           </div>
         )}
       </div>

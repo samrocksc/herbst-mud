@@ -2,23 +2,25 @@ package middleware
 
 import (
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// JWTClaims represents the claims stored in the JWT token
-type JWTClaims struct {
-	UserID    int    `json:"user_id"`
-	Email     string `json:"email"`
-	IsAdmin   bool   `json:"is_admin"`
-	TokenType string `json:"token_type"` // "user" or "character"
+// Claims represents JWT claims structure
+type Claims struct {
+	UserID  uint   `json:"user_id"`
+	Email   string `json:"email"`
+	IsAdmin bool   `json:"is_admin"`
 	jwt.RegisteredClaims
 }
 
-// AuthMiddleware validates JWT tokens and sets user info in context
+// JWT secret - should match the one in user_routes.go
+var jwtSecret = []byte("your-secret-key-change-in-production")
+
+// AuthMiddleware creates authentication middleware
+// It validates JWT tokens and extracts user information
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -28,9 +30,9 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Extract token from "Bearer <token>"
+		// Check Bearer token format
 		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
 			c.Abort()
 			return
@@ -38,29 +40,10 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := parts[1]
 
-		// Get JWT secret from environment
-		secret := getJWTSecret()
-
-		// Parse and validate token
-		token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(secret), nil
-		})
-
+		// Validate token
+		claims, err := validateToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
-			c.Abort()
-			return
-		}
-
-		if !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-			c.Abort()
-			return
-		}
-
-		claims, ok := token.Claims.(*JWTClaims)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
 			c.Abort()
 			return
 		}
@@ -69,66 +52,86 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("user_id", claims.UserID)
 		c.Set("email", claims.Email)
 		c.Set("is_admin", claims.IsAdmin)
-		c.Set("token_type", claims.TokenType)
 
 		c.Next()
 	}
 }
 
-// AdminMiddleware ensures the user has admin privileges
+// AdminMiddleware creates admin-only middleware
+// Must be used after AuthMiddleware
 func AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		isAdmin, exists := c.Get("is_admin")
-		if !exists {
+		if !exists || !isAdmin.(bool) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
 			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+// OptionalAuthMiddleware creates optional authentication middleware
+// It attaches user info if a valid token is provided, but doesn't require it
+func OptionalAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			// No token provided - continue without auth
+			c.Next()
 			return
 		}
 
-		if !isAdmin.(bool) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
-			c.Abort()
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			// Invalid format - continue without auth
+			c.Next()
 			return
 		}
+
+		tokenString := parts[1]
+		claims, err := validateToken(tokenString)
+		if err != nil {
+			// Invalid token - continue without auth
+			c.Next()
+			return
+		}
+
+		// Set user info if valid
+		c.Set("user_id", claims.UserID)
+		c.Set("email", claims.Email)
+		c.Set("is_admin", claims.IsAdmin)
 
 		c.Next()
 	}
 }
 
-// getJWTSecret returns the JWT secret from environment or a default
-func getJWTSecret() string {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		// Default secret for development - should be set in production
-		secret = "herbst-mud-dev-secret-change-in-production"
+// validateToken validates JWT token and returns claims
+func validateToken(tokenString string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		// Validate signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, &ValidationError{Message: "invalid signing method"}
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil {
+		return nil, &ValidationError{Message: err.Error()}
 	}
-	return secret
+
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, &ValidationError{Message: "invalid token"}
 }
 
-// GenerateToken generates a JWT token for a user
-func GenerateToken(userID int, email string, isAdmin bool, tokenType string) (string, error) {
-	secret := getJWTSecret()
-
-	claims := JWTClaims{
-		UserID:    userID,
-		Email:     email,
-		IsAdmin:   isAdmin,
-		TokenType: tokenType,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+// ValidationError represents a token validation error
+type ValidationError struct {
+	Message string
 }
 
-// GenerateTokenWithSecret generates a JWT token with a custom secret (for testing)
-func GenerateTokenWithSecret(userID int, email string, isAdmin bool, tokenType string, secret string) (string, error) {
-	claims := JWTClaims{
-		UserID:    userID,
-		Email:     email,
-		IsAdmin:   isAdmin,
-		TokenType: tokenType,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+func (e *ValidationError) Error() string {
+	return e.Message
 }

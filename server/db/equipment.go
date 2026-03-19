@@ -35,8 +35,18 @@ type Equipment struct {
 	Color string `json:"color,omitempty"`
 	// Shown in room list
 	IsVisible bool `json:"isVisible,omitempty"`
-	// weapon|armor|consumable|quest|misc
+	// weapon|armor|consumable|quest|misc|container
 	ItemType string `json:"itemType,omitempty"`
+	// Can hold items if true
+	IsContainer bool `json:"isContainer,omitempty"`
+	// Max items container can hold
+	ContainerCapacity int `json:"containerCapacity,omitempty"`
+	// Requires key to open
+	IsLocked bool `json:"isLocked,omitempty"`
+	// ID of key item needed to unlock
+	KeyItemID string `json:"keyItemID,omitempty"`
+	// JSON array of contained item IDs
+	ContainedItems string `json:"containedItems,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges          EquipmentEdges `json:"edges"`
@@ -69,11 +79,11 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible:
+		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsContainer, equipment.FieldIsLocked:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldContainerCapacity:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldKeyItemID, equipment.FieldContainedItems:
 			values[i] = new(sql.NullString)
 		case equipment.ForeignKeys[0]: // room_equipment
 			values[i] = new(sql.NullInt64)
@@ -158,6 +168,36 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ItemType = value.String
 			}
+		case equipment.FieldIsContainer:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isContainer", values[i])
+			} else if value.Valid {
+				_m.IsContainer = value.Bool
+			}
+		case equipment.FieldContainerCapacity:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field containerCapacity", values[i])
+			} else if value.Valid {
+				_m.ContainerCapacity = int(value.Int64)
+			}
+		case equipment.FieldIsLocked:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isLocked", values[i])
+			} else if value.Valid {
+				_m.IsLocked = value.Bool
+			}
+		case equipment.FieldKeyItemID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field keyItemID", values[i])
+			} else if value.Valid {
+				_m.KeyItemID = value.String
+			}
+		case equipment.FieldContainedItems:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field containedItems", values[i])
+			} else if value.Valid {
+				_m.ContainedItems = value.String
+			}
 		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_equipment", value)
@@ -235,6 +275,21 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("itemType=")
 	builder.WriteString(_m.ItemType)
+	builder.WriteString(", ")
+	builder.WriteString("isContainer=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsContainer))
+	builder.WriteString(", ")
+	builder.WriteString("containerCapacity=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ContainerCapacity))
+	builder.WriteString(", ")
+	builder.WriteString("isLocked=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsLocked))
+	builder.WriteString(", ")
+	builder.WriteString("keyItemID=")
+	builder.WriteString(_m.KeyItemID)
+	builder.WriteString(", ")
+	builder.WriteString("containedItems=")
+	builder.WriteString(_m.ContainedItems)
 	builder.WriteByte(')')
 	return builder.String()
 }

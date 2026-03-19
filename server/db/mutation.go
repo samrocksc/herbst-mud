@@ -4918,27 +4918,33 @@ func (m *CharacterTalentMutation) ResetEdge(name string) error {
 // EquipmentMutation represents an operation that mutates the Equipment nodes in the graph.
 type EquipmentMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	name          *string
-	description   *string
-	slot          *string
-	level         *int
-	addlevel      *int
-	weight        *int
-	addweight     *int
-	isEquipped    *bool
-	isImmovable   *bool
-	color         *string
-	isVisible     *bool
-	itemType      *string
-	clearedFields map[string]struct{}
-	room          *int
-	clearedroom   bool
-	done          bool
-	oldValue      func(context.Context) (*Equipment, error)
-	predicates    []predicate.Equipment
+	op                   Op
+	typ                  string
+	id                   *int
+	name                 *string
+	description          *string
+	slot                 *string
+	level                *int
+	addlevel             *int
+	weight               *int
+	addweight            *int
+	isEquipped           *bool
+	isImmovable          *bool
+	color                *string
+	isVisible            *bool
+	itemType             *string
+	isContainer          *bool
+	containerCapacity    *int
+	addcontainerCapacity *int
+	isLocked             *bool
+	keyItemID            *string
+	containedItems       *string
+	clearedFields        map[string]struct{}
+	room                 *int
+	clearedroom          bool
+	done                 bool
+	oldValue             func(context.Context) (*Equipment, error)
+	predicates           []predicate.Equipment
 }
 
 var _ ent.Mutation = (*EquipmentMutation)(nil)
@@ -5439,6 +5445,219 @@ func (m *EquipmentMutation) ResetItemType() {
 	m.itemType = nil
 }
 
+// SetIsContainer sets the "isContainer" field.
+func (m *EquipmentMutation) SetIsContainer(b bool) {
+	m.isContainer = &b
+}
+
+// IsContainer returns the value of the "isContainer" field in the mutation.
+func (m *EquipmentMutation) IsContainer() (r bool, exists bool) {
+	v := m.isContainer
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsContainer returns the old "isContainer" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldIsContainer(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsContainer is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsContainer requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsContainer: %w", err)
+	}
+	return oldValue.IsContainer, nil
+}
+
+// ResetIsContainer resets all changes to the "isContainer" field.
+func (m *EquipmentMutation) ResetIsContainer() {
+	m.isContainer = nil
+}
+
+// SetContainerCapacity sets the "containerCapacity" field.
+func (m *EquipmentMutation) SetContainerCapacity(i int) {
+	m.containerCapacity = &i
+	m.addcontainerCapacity = nil
+}
+
+// ContainerCapacity returns the value of the "containerCapacity" field in the mutation.
+func (m *EquipmentMutation) ContainerCapacity() (r int, exists bool) {
+	v := m.containerCapacity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContainerCapacity returns the old "containerCapacity" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldContainerCapacity(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContainerCapacity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContainerCapacity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContainerCapacity: %w", err)
+	}
+	return oldValue.ContainerCapacity, nil
+}
+
+// AddContainerCapacity adds i to the "containerCapacity" field.
+func (m *EquipmentMutation) AddContainerCapacity(i int) {
+	if m.addcontainerCapacity != nil {
+		*m.addcontainerCapacity += i
+	} else {
+		m.addcontainerCapacity = &i
+	}
+}
+
+// AddedContainerCapacity returns the value that was added to the "containerCapacity" field in this mutation.
+func (m *EquipmentMutation) AddedContainerCapacity() (r int, exists bool) {
+	v := m.addcontainerCapacity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetContainerCapacity resets all changes to the "containerCapacity" field.
+func (m *EquipmentMutation) ResetContainerCapacity() {
+	m.containerCapacity = nil
+	m.addcontainerCapacity = nil
+}
+
+// SetIsLocked sets the "isLocked" field.
+func (m *EquipmentMutation) SetIsLocked(b bool) {
+	m.isLocked = &b
+}
+
+// IsLocked returns the value of the "isLocked" field in the mutation.
+func (m *EquipmentMutation) IsLocked() (r bool, exists bool) {
+	v := m.isLocked
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsLocked returns the old "isLocked" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldIsLocked(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsLocked is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsLocked requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsLocked: %w", err)
+	}
+	return oldValue.IsLocked, nil
+}
+
+// ResetIsLocked resets all changes to the "isLocked" field.
+func (m *EquipmentMutation) ResetIsLocked() {
+	m.isLocked = nil
+}
+
+// SetKeyItemID sets the "keyItemID" field.
+func (m *EquipmentMutation) SetKeyItemID(s string) {
+	m.keyItemID = &s
+}
+
+// KeyItemID returns the value of the "keyItemID" field in the mutation.
+func (m *EquipmentMutation) KeyItemID() (r string, exists bool) {
+	v := m.keyItemID
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKeyItemID returns the old "keyItemID" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldKeyItemID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKeyItemID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKeyItemID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKeyItemID: %w", err)
+	}
+	return oldValue.KeyItemID, nil
+}
+
+// ClearKeyItemID clears the value of the "keyItemID" field.
+func (m *EquipmentMutation) ClearKeyItemID() {
+	m.keyItemID = nil
+	m.clearedFields[equipment.FieldKeyItemID] = struct{}{}
+}
+
+// KeyItemIDCleared returns if the "keyItemID" field was cleared in this mutation.
+func (m *EquipmentMutation) KeyItemIDCleared() bool {
+	_, ok := m.clearedFields[equipment.FieldKeyItemID]
+	return ok
+}
+
+// ResetKeyItemID resets all changes to the "keyItemID" field.
+func (m *EquipmentMutation) ResetKeyItemID() {
+	m.keyItemID = nil
+	delete(m.clearedFields, equipment.FieldKeyItemID)
+}
+
+// SetContainedItems sets the "containedItems" field.
+func (m *EquipmentMutation) SetContainedItems(s string) {
+	m.containedItems = &s
+}
+
+// ContainedItems returns the value of the "containedItems" field in the mutation.
+func (m *EquipmentMutation) ContainedItems() (r string, exists bool) {
+	v := m.containedItems
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContainedItems returns the old "containedItems" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldContainedItems(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContainedItems is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContainedItems requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContainedItems: %w", err)
+	}
+	return oldValue.ContainedItems, nil
+}
+
+// ResetContainedItems resets all changes to the "containedItems" field.
+func (m *EquipmentMutation) ResetContainedItems() {
+	m.containedItems = nil
+}
+
 // SetRoomID sets the "room" edge to the Room entity by id.
 func (m *EquipmentMutation) SetRoomID(id int) {
 	m.room = &id
@@ -5512,7 +5731,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 15)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -5543,6 +5762,21 @@ func (m *EquipmentMutation) Fields() []string {
 	if m.itemType != nil {
 		fields = append(fields, equipment.FieldItemType)
 	}
+	if m.isContainer != nil {
+		fields = append(fields, equipment.FieldIsContainer)
+	}
+	if m.containerCapacity != nil {
+		fields = append(fields, equipment.FieldContainerCapacity)
+	}
+	if m.isLocked != nil {
+		fields = append(fields, equipment.FieldIsLocked)
+	}
+	if m.keyItemID != nil {
+		fields = append(fields, equipment.FieldKeyItemID)
+	}
+	if m.containedItems != nil {
+		fields = append(fields, equipment.FieldContainedItems)
+	}
 	return fields
 }
 
@@ -5571,6 +5805,16 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.IsVisible()
 	case equipment.FieldItemType:
 		return m.ItemType()
+	case equipment.FieldIsContainer:
+		return m.IsContainer()
+	case equipment.FieldContainerCapacity:
+		return m.ContainerCapacity()
+	case equipment.FieldIsLocked:
+		return m.IsLocked()
+	case equipment.FieldKeyItemID:
+		return m.KeyItemID()
+	case equipment.FieldContainedItems:
+		return m.ContainedItems()
 	}
 	return nil, false
 }
@@ -5600,6 +5844,16 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldIsVisible(ctx)
 	case equipment.FieldItemType:
 		return m.OldItemType(ctx)
+	case equipment.FieldIsContainer:
+		return m.OldIsContainer(ctx)
+	case equipment.FieldContainerCapacity:
+		return m.OldContainerCapacity(ctx)
+	case equipment.FieldIsLocked:
+		return m.OldIsLocked(ctx)
+	case equipment.FieldKeyItemID:
+		return m.OldKeyItemID(ctx)
+	case equipment.FieldContainedItems:
+		return m.OldContainedItems(ctx)
 	}
 	return nil, fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -5679,6 +5933,41 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetItemType(v)
 		return nil
+	case equipment.FieldIsContainer:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsContainer(v)
+		return nil
+	case equipment.FieldContainerCapacity:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContainerCapacity(v)
+		return nil
+	case equipment.FieldIsLocked:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsLocked(v)
+		return nil
+	case equipment.FieldKeyItemID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKeyItemID(v)
+		return nil
+	case equipment.FieldContainedItems:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContainedItems(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -5693,6 +5982,9 @@ func (m *EquipmentMutation) AddedFields() []string {
 	if m.addweight != nil {
 		fields = append(fields, equipment.FieldWeight)
 	}
+	if m.addcontainerCapacity != nil {
+		fields = append(fields, equipment.FieldContainerCapacity)
+	}
 	return fields
 }
 
@@ -5705,6 +5997,8 @@ func (m *EquipmentMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedLevel()
 	case equipment.FieldWeight:
 		return m.AddedWeight()
+	case equipment.FieldContainerCapacity:
+		return m.AddedContainerCapacity()
 	}
 	return nil, false
 }
@@ -5728,6 +6022,13 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddWeight(v)
 		return nil
+	case equipment.FieldContainerCapacity:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddContainerCapacity(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment numeric field %s", name)
 }
@@ -5735,7 +6036,11 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *EquipmentMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(equipment.FieldKeyItemID) {
+		fields = append(fields, equipment.FieldKeyItemID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -5748,6 +6053,11 @@ func (m *EquipmentMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *EquipmentMutation) ClearField(name string) error {
+	switch name {
+	case equipment.FieldKeyItemID:
+		m.ClearKeyItemID()
+		return nil
+	}
 	return fmt.Errorf("unknown Equipment nullable field %s", name)
 }
 
@@ -5784,6 +6094,21 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldItemType:
 		m.ResetItemType()
+		return nil
+	case equipment.FieldIsContainer:
+		m.ResetIsContainer()
+		return nil
+	case equipment.FieldContainerCapacity:
+		m.ResetContainerCapacity()
+		return nil
+	case equipment.FieldIsLocked:
+		m.ResetIsLocked()
+		return nil
+	case equipment.FieldKeyItemID:
+		m.ResetKeyItemID()
+		return nil
+	case equipment.FieldContainedItems:
+		m.ResetContainedItems()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)

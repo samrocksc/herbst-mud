@@ -5,16 +5,16 @@ import (
 	"testing"
 
 	"herbst/db"
-	"herbst/db/ent/equipment"
+	"herbst/db/equipment"
 )
 
 // TestInitWeapons tests that starter weapons can be created
 func TestInitWeapons(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := db.NewClient(ctx)
-	if err != nil {
-		t.Skipf("Skipping test: database not available: %v", err)
+	client := db.NewClient()
+	if client == nil {
+		t.Skipf("Skipping test: database not available")
 	}
 	defer client.Close()
 
@@ -35,14 +35,17 @@ func TestInitWeapons(t *testing.T) {
 	}
 
 	// Verify weapons were created
-	weapons, err := client.Equipment.Query().
-		Where(
-			equipment.ItemTypeEQ("weapon"),
-			equipment.GuaranteedDropEQ(true),
-		).
-		All(ctx)
+	allEquipment, err := client.Equipment.Query().All(ctx)
 	if err != nil {
-		t.Fatalf("Failed to query weapons: %v", err)
+		t.Fatalf("Failed to query equipment: %v", err)
+	}
+
+	// Filter for weapon types with guaranteed drop
+	var weapons []*db.Equipment
+	for _, e := range allEquipment {
+		if e.ItemType == "weapon" && e.GuaranteedDrop {
+			weapons = append(weapons, e)
+		}
 	}
 
 	if len(weapons) != 2 {
@@ -50,11 +53,15 @@ func TestInitWeapons(t *testing.T) {
 	}
 
 	// Verify Rusty Sword
-	rustySword, err := client.Equipment.Query().
-		Where(equipment.NameEQ("Rusty Sword")).
-		Only(ctx)
-	if err != nil {
-		t.Fatalf("Failed to find Rusty Sword: %v", err)
+	var rustySword *db.Equipment
+	for _, e := range allEquipment {
+		if e.Name == "Rusty Sword" {
+			rustySword = e
+			break
+		}
+	}
+	if rustySword == nil {
+		t.Fatal("Failed to find Rusty Sword")
 	}
 	if rustySword.MinDamage != 1 || rustySword.MaxDamage != 3 {
 		t.Errorf("Rusty Sword damage: expected 1-3, got %d-%d", rustySword.MinDamage, rustySword.MaxDamage)
@@ -67,11 +74,15 @@ func TestInitWeapons(t *testing.T) {
 	}
 
 	// Verify Twisted Pipe
-	twistedPipe, err := client.Equipment.Query().
-		Where(equipment.NameEQ("Twisted Pipe")).
-		Only(ctx)
-	if err != nil {
-		t.Fatalf("Failed to find Twisted Pipe: %v", err)
+	var twistedPipe *db.Equipment
+	for _, e := range allEquipment {
+		if e.Name == "Twisted Pipe" {
+			twistedPipe = e
+			break
+		}
+	}
+	if twistedPipe == nil {
+		t.Fatal("Failed to find Twisted Pipe")
 	}
 	if twistedPipe.MinDamage != 1 || twistedPipe.MaxDamage != 2 {
 		t.Errorf("Twisted Pipe damage: expected 1-2, got %d-%d", twistedPipe.MinDamage, twistedPipe.MaxDamage)

@@ -38,6 +38,18 @@ const (
 	FieldHiddenDetails = "hidden_details"
 	// FieldHiddenThreshold holds the string denoting the hiddenthreshold field in the database.
 	FieldHiddenThreshold = "hidden_threshold"
+	// FieldRevealCondition holds the string denoting the revealcondition field in the database.
+	FieldRevealCondition = "reveal_condition"
+	// FieldMinDamage holds the string denoting the mindamage field in the database.
+	FieldMinDamage = "min_damage"
+	// FieldMaxDamage holds the string denoting the maxdamage field in the database.
+	FieldMaxDamage = "max_damage"
+	// FieldWeaponType holds the string denoting the weapontype field in the database.
+	FieldWeaponType = "weapon_type"
+	// FieldClassRestriction holds the string denoting the classrestriction field in the database.
+	FieldClassRestriction = "class_restriction"
+	// FieldGuaranteedDrop holds the string denoting the guaranteeddrop field in the database.
+	FieldGuaranteedDrop = "guaranteed_drop"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// Table holds the table name of the equipment in the database.
@@ -67,6 +79,12 @@ var Columns = []string{
 	FieldExamineDesc,
 	FieldHiddenDetails,
 	FieldHiddenThreshold,
+	FieldRevealCondition,
+	FieldMinDamage,
+	FieldMaxDamage,
+	FieldWeaponType,
+	FieldClassRestriction,
+	FieldGuaranteedDrop,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
@@ -111,6 +129,18 @@ var (
 	DefaultHiddenDetails []map[string]interface{}
 	// DefaultHiddenThreshold holds the default value on creation for the "hiddenThreshold" field.
 	DefaultHiddenThreshold int
+	// DefaultRevealCondition holds the default value on creation for the "revealCondition" field.
+	DefaultRevealCondition string
+	// DefaultMinDamage holds the default value on creation for the "minDamage" field.
+	DefaultMinDamage int
+	// DefaultMaxDamage holds the default value on creation for the "maxDamage" field.
+	DefaultMaxDamage int
+	// DefaultWeaponType holds the default value on creation for the "weaponType" field.
+	DefaultWeaponType string
+	// DefaultClassRestriction holds the default value on creation for the "classRestriction" field.
+	DefaultClassRestriction string
+	// DefaultGuaranteedDrop holds the default value on creation for the "guaranteedDrop" field.
+	DefaultGuaranteedDrop bool
 )
 
 // OrderOption defines the ordering options for the Equipment queries.
@@ -179,6 +209,36 @@ func ByExamineDesc(opts ...sql.OrderTermOption) OrderOption {
 // ByHiddenThreshold orders the results by the hiddenThreshold field.
 func ByHiddenThreshold(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHiddenThreshold, opts...).ToFunc()
+}
+
+// ByRevealCondition orders the results by the revealCondition field.
+func ByRevealCondition(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevealCondition, opts...).ToFunc()
+}
+
+// ByMinDamage orders the results by the minDamage field.
+func ByMinDamage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMinDamage, opts...).ToFunc()
+}
+
+// ByMaxDamage orders the results by the maxDamage field.
+func ByMaxDamage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxDamage, opts...).ToFunc()
+}
+
+// ByWeaponType orders the results by the weaponType field.
+func ByWeaponType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWeaponType, opts...).ToFunc()
+}
+
+// ByClassRestriction orders the results by the classRestriction field.
+func ByClassRestriction(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClassRestriction, opts...).ToFunc()
+}
+
+// ByGuaranteedDrop orders the results by the guaranteedDrop field.
+func ByGuaranteedDrop(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGuaranteedDrop, opts...).ToFunc()
 }
 
 // ByRoomField orders the results by room field.

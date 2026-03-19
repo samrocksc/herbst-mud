@@ -136,6 +136,76 @@ func (_c *EquipmentCreate) SetNillableItemType(v *string) *EquipmentCreate {
 	return _c
 }
 
+// SetIsContainer sets the "isContainer" field.
+func (_c *EquipmentCreate) SetIsContainer(v bool) *EquipmentCreate {
+	_c.mutation.SetIsContainer(v)
+	return _c
+}
+
+// SetNillableIsContainer sets the "isContainer" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableIsContainer(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetIsContainer(*v)
+	}
+	return _c
+}
+
+// SetContainerCapacity sets the "containerCapacity" field.
+func (_c *EquipmentCreate) SetContainerCapacity(v int) *EquipmentCreate {
+	_c.mutation.SetContainerCapacity(v)
+	return _c
+}
+
+// SetNillableContainerCapacity sets the "containerCapacity" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableContainerCapacity(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetContainerCapacity(*v)
+	}
+	return _c
+}
+
+// SetIsLocked sets the "isLocked" field.
+func (_c *EquipmentCreate) SetIsLocked(v bool) *EquipmentCreate {
+	_c.mutation.SetIsLocked(v)
+	return _c
+}
+
+// SetNillableIsLocked sets the "isLocked" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableIsLocked(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetIsLocked(*v)
+	}
+	return _c
+}
+
+// SetKeyItemID sets the "keyItemID" field.
+func (_c *EquipmentCreate) SetKeyItemID(v string) *EquipmentCreate {
+	_c.mutation.SetKeyItemID(v)
+	return _c
+}
+
+// SetNillableKeyItemID sets the "keyItemID" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableKeyItemID(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetKeyItemID(*v)
+	}
+	return _c
+}
+
+// SetContainedItems sets the "containedItems" field.
+func (_c *EquipmentCreate) SetContainedItems(v string) *EquipmentCreate {
+	_c.mutation.SetContainedItems(v)
+	return _c
+}
+
+// SetNillableContainedItems sets the "containedItems" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableContainedItems(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetContainedItems(*v)
+	}
+	return _c
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_c *EquipmentCreate) SetRoomID(id int) *EquipmentCreate {
 	_c.mutation.SetRoomID(id)
@@ -218,6 +288,22 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultItemType
 		_c.mutation.SetItemType(v)
 	}
+	if _, ok := _c.mutation.IsContainer(); !ok {
+		v := equipment.DefaultIsContainer
+		_c.mutation.SetIsContainer(v)
+	}
+	if _, ok := _c.mutation.ContainerCapacity(); !ok {
+		v := equipment.DefaultContainerCapacity
+		_c.mutation.SetContainerCapacity(v)
+	}
+	if _, ok := _c.mutation.IsLocked(); !ok {
+		v := equipment.DefaultIsLocked
+		_c.mutation.SetIsLocked(v)
+	}
+	if _, ok := _c.mutation.ContainedItems(); !ok {
+		v := equipment.DefaultContainedItems
+		_c.mutation.SetContainedItems(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -251,6 +337,18 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.ItemType(); !ok {
 		return &ValidationError{Name: "itemType", err: errors.New(`db: missing required field "Equipment.itemType"`)}
+	}
+	if _, ok := _c.mutation.IsContainer(); !ok {
+		return &ValidationError{Name: "isContainer", err: errors.New(`db: missing required field "Equipment.isContainer"`)}
+	}
+	if _, ok := _c.mutation.ContainerCapacity(); !ok {
+		return &ValidationError{Name: "containerCapacity", err: errors.New(`db: missing required field "Equipment.containerCapacity"`)}
+	}
+	if _, ok := _c.mutation.IsLocked(); !ok {
+		return &ValidationError{Name: "isLocked", err: errors.New(`db: missing required field "Equipment.isLocked"`)}
+	}
+	if _, ok := _c.mutation.ContainedItems(); !ok {
+		return &ValidationError{Name: "containedItems", err: errors.New(`db: missing required field "Equipment.containedItems"`)}
 	}
 	return nil
 }
@@ -317,6 +415,26 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 		_node.ItemType = value
+	}
+	if value, ok := _c.mutation.IsContainer(); ok {
+		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
+		_node.IsContainer = value
+	}
+	if value, ok := _c.mutation.ContainerCapacity(); ok {
+		_spec.SetField(equipment.FieldContainerCapacity, field.TypeInt, value)
+		_node.ContainerCapacity = value
+	}
+	if value, ok := _c.mutation.IsLocked(); ok {
+		_spec.SetField(equipment.FieldIsLocked, field.TypeBool, value)
+		_node.IsLocked = value
+	}
+	if value, ok := _c.mutation.KeyItemID(); ok {
+		_spec.SetField(equipment.FieldKeyItemID, field.TypeString, value)
+		_node.KeyItemID = value
+	}
+	if value, ok := _c.mutation.ContainedItems(); ok {
+		_spec.SetField(equipment.FieldContainedItems, field.TypeString, value)
+		_node.ContainedItems = value
 	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

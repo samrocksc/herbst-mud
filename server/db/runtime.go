@@ -177,6 +177,22 @@ func init() {
 	equipmentDescItemType := equipmentFields[9].Descriptor()
 	// equipment.DefaultItemType holds the default value on creation for the itemType field.
 	equipment.DefaultItemType = equipmentDescItemType.Default.(string)
+	// equipmentDescIsContainer is the schema descriptor for isContainer field.
+	equipmentDescIsContainer := equipmentFields[10].Descriptor()
+	// equipment.DefaultIsContainer holds the default value on creation for the isContainer field.
+	equipment.DefaultIsContainer = equipmentDescIsContainer.Default.(bool)
+	// equipmentDescContainerCapacity is the schema descriptor for containerCapacity field.
+	equipmentDescContainerCapacity := equipmentFields[11].Descriptor()
+	// equipment.DefaultContainerCapacity holds the default value on creation for the containerCapacity field.
+	equipment.DefaultContainerCapacity = equipmentDescContainerCapacity.Default.(int)
+	// equipmentDescIsLocked is the schema descriptor for isLocked field.
+	equipmentDescIsLocked := equipmentFields[12].Descriptor()
+	// equipment.DefaultIsLocked holds the default value on creation for the isLocked field.
+	equipment.DefaultIsLocked = equipmentDescIsLocked.Default.(bool)
+	// equipmentDescContainedItems is the schema descriptor for containedItems field.
+	equipmentDescContainedItems := equipmentFields[14].Descriptor()
+	// equipment.DefaultContainedItems holds the default value on creation for the containedItems field.
+	equipment.DefaultContainedItems = equipmentDescContainedItems.Default.(string)
 	npctemplateFields := schema.NPCTemplate{}.Fields()
 	_ = npctemplateFields
 	// npctemplateDescLevel is the schema descriptor for level field.

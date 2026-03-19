@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 
@@ -17,26 +17,39 @@ const truncateText = (text: string, maxLength: number): string => {
 function RoomNodeComponent({ data, selected }: NodeProps) {
   const roomData = data as unknown as RoomNodeData
   const showZLevel = roomData.zLevel !== 0
+  const [isHovered, setIsHovered] = useState(false)
+  
+  const handleStyle = {
+    background: '#6c5ce7',
+    width: '10px',
+    height: '10px',
+    border: '2px solid #fff',
+    transition: 'all 0.2s ease',
+  }
   
   return (
-    <div style={{
-      padding: '12px 16px',
-      borderRadius: '8px',
-      background: selected ? '#1a3a2f' : '#2d5a27',
-      border: selected ? '2px solid #6c5ce7' : '2px solid #3a7a3a',
-      minWidth: '160px',
-      maxWidth: '200px',
-      boxShadow: selected ? '0 0 12px rgba(108, 92, 231, 0.5)' : '0 2px 8px rgba(0,0,0,0.3)',
-      cursor: 'grab',
-      transition: 'all 0.2s ease',
-    }}>
-      {/* Handles for connections */}
-      <Handle type="target" position={Position.Top} style={{ background: '#555' }} />
-      <Handle type="source" position={Position.Bottom} style={{ background: '#555' }} />
-      <Handle type="target" position={Position.Left} id="left-target" style={{ background: '#555' }} />
-      <Handle type="source" position={Position.Left} id="left-source" style={{ background: '#555' }} />
-      <Handle type="target" position={Position.Right} id="right-target" style={{ background: '#555' }} />
-      <Handle type="source" position={Position.Right} id="right-source" style={{ background: '#555' }} />
+    <div 
+      style={{
+        padding: '12px 16px',
+        borderRadius: '8px',
+        background: selected ? '#1a3a2f' : '#2d5a27',
+        border: selected ? '2px solid #6c5ce7' : '2px solid #3a7a3a',
+        minWidth: '160px',
+        maxWidth: '200px',
+        boxShadow: selected ? '0 0 12px rgba(108, 92, 231, 0.5)' : '0 2px 8px rgba(0,0,0,0.3)',
+        cursor: 'grab',
+        transition: 'all 0.2s ease',
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Handles for connections - shown on hover */}
+      <Handle type="target" position={Position.Top} style={{ ...handleStyle, opacity: isHovered ? 1 : 0.3 }} />
+      <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, opacity: isHovered ? 1 : 0.3 }} />
+      <Handle type="target" position={Position.Left} id="left-target" style={{ ...handleStyle, opacity: isHovered ? 1 : 0.3 }} />
+      <Handle type="source" position={Position.Left} id="left-source" style={{ ...handleStyle, opacity: isHovered ? 1 : 0.3 }} />
+      <Handle type="target" position={Position.Right} id="right-target" style={{ ...handleStyle, opacity: isHovered ? 1 : 0.3 }} />
+      <Handle type="source" position={Position.Right} id="right-source" style={{ ...handleStyle, opacity: isHovered ? 1 : 0.3 }} />
       
       {/* Room name - bold */}
       <div style={{
