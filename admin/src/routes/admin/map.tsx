@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useCallback, useMemo } from 'react'
 import { MapFlow } from '../../components/MapFlow'
 import { ZLevelSelector } from '../../components/ZLevelSelector'
+import { DirectionPickerModal } from '../../components/DirectionPickerModal'
 import type { Node, Edge, Connection } from '@xyflow/react'
 
 export const Route = createFileRoute('/admin/map')({
@@ -98,8 +99,17 @@ const initialEdges: Edge[] = [
 
 function MapBuilder() {
   const [nodes, setNodes] = useState<Node[]>(initialNodes)
+  const [edges, setEdges] = useState<Edge[]>(initialEdges)
   const [currentZLevel, setCurrentZLevel] = useState(0)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
+  
+  // Direction picker modal state
+  const [pendingConnection, setPendingConnection] = useState<{
+    source: string
+    target: string
+    sourceName: string
+    targetName: string
+  } | null>(null)
 
   // Filter nodes by Z-level (show current level prominently, adjacent faintly)
   const filteredNodes = useMemo(() => {
@@ -138,7 +148,62 @@ function MapBuilder() {
     })
   }, [edges, nodes, currentZLevel])
 
-  const [edges, setEdges] = useState<Edge[]>(initialEdges)
+  // Handle connection - show direction picker modal
+  const onConnect = useCallback((connection: Connection) => {
+    if (connection.source && connection.target) {
+      const sourceNode = nodes.find(n => n.id === connection.source)
+      const targetNode = nodes.find(n => n.id === connection.target)
+      
+      if (sourceNode && targetNode) {
+        // Show direction picker
+        setPendingConnection({
+          source: connection.source,
+          target: connection.target,
+          sourceName: (sourceNode.data as MapRoomData).name,
+          targetName: (targetNode.data as MapRoomData).name,
+        })
+      }
+    }
+  }, [nodes])
+
+  // Handle direction selection - create bidirectional exits
+  const handleDirectionSelect = useCallback((sourceDirection: string, targetDirection: string) => {
+    if (!pendingConnection) return
+    
+    const newEdges: Edge[] = [
+      {
+        id: `e${pendingConnection.source}-${pendingConnection.target}-${sourceDirection}`,
+        source: pendingConnection.source,
+        target: pendingConnection.target,
+        label: sourceDirection,
+        type: 'smoothstep',
+        animated: true,
+        style: sourceDirection === 'up' || sourceDirection === 'down' 
+          ? { stroke: sourceDirection === 'up' ? '#e17055' : '#74b9ff', strokeWidth: 2 }
+          : { stroke: '#666' },
+        data: { isZExit: sourceDirection === 'up' || sourceDirection === 'down', direction: sourceDirection },
+      },
+      {
+        id: `e${pendingConnection.target}-${pendingConnection.source}-${targetDirection}`,
+        source: pendingConnection.target,
+        target: pendingConnection.source,
+        label: targetDirection,
+        type: 'smoothstep',
+        animated: true,
+        style: targetDirection === 'up' || targetDirection === 'down' 
+          ? { stroke: targetDirection === 'up' ? '#e17055' : '#74b9ff', strokeWidth: 2 }
+          : { stroke: '#666' },
+        data: { isZExit: targetDirection === 'up' || targetDirection === 'down', direction: targetDirection },
+      },
+    ]
+    
+    setEdges(eds => [...eds, ...newEdges])
+    setPendingConnection(null)
+  }, [pendingConnection])
+
+  const handleConnectionCancel = useCallback(() => {
+    setPendingConnection(null)
+  }, [])
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node)
@@ -146,20 +211,6 @@ function MapBuilder() {
       ...n,
       selected: n.id === node.id
     })))
-  }, [])
-
-  const onConnect = useCallback((connection: Connection) => {
-    if (connection.source && connection.target) {
-      const direction = connection.sourceHandle || 'connected'
-      setEdges(eds => [...eds, {
-        id: `e${connection.source}-${connection.target}`,
-        source: connection.source!,
-        target: connection.target!,
-        label: direction,
-        type: 'smoothstep',
-        animated: true
-      }])
-    }
   }, [])
 
   const addNewRoom = () => {
@@ -283,6 +334,16 @@ function MapBuilder() {
         <span style={{ marginLeft: '16px' }}>🟠 Z: Up</span>
         <span style={{ marginLeft: '16px' }}>🔵 Z: Down</span>
       </div>
+
+      {/* Direction Picker Modal */}
+      {pendingConnection && (
+        <DirectionPickerModal
+          sourceName={pendingConnection.sourceName}
+          targetName={pendingConnection.targetName}
+          onSelect={handleDirectionSelect}
+          onCancel={handleConnectionCancel}
+        />
+      )}
     </div>
   )
 }
