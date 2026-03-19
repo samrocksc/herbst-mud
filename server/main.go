@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/dbinit"
+	"herbst-server/middleware"
 	"herbst-server/routes"
 )
 
@@ -99,8 +100,16 @@ func main() {
 	// Register user routes
 	routes.RegisterUserRoutes(router, client)
 
-	// Register character routes
+	// Register character routes (public endpoints)
 	routes.RegisterCharacterRoutes(router, client)
+
+	// Protected routes - require authentication
+	protected := router.Group("/api")
+	protected.Use(middleware.AuthMiddleware())
+	{
+		// Add protected character routes here
+		// Example: protected.PUT("/characters/:id", ...)
+	}
 
 	// Register equipment routes (GitHub #89 - Item system)
 	routes.RegisterEquipmentRoutes(router, client)
