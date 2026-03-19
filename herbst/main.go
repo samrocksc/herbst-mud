@@ -96,6 +96,11 @@ func main() {
 		if err := dbinit.InitGizmo(client); err != nil {
 			log.Printf("Warning: failed to initialize Gizmo: %v", err)
 		}
+
+		// Initialize starter weapons
+		if err := dbinit.InitWeapons(client); err != nil {
+			log.Printf("Warning: failed to initialize weapons: %v", err)
+		}
 	}
 
 	// Pass client to server options
@@ -246,14 +251,19 @@ type RoomItem struct {
 	ItemDurability int            `json:"itemDurability"`
 	// Readable item fields (GitHub #141)
 	IsReadable    bool   `json:"isReadable"`
-	Content        string `json:"content"`
-	ReadSkill      string `json:"readSkill"`
-	ReadSkillLevel int    `json:"readSkillLevel"`
+	Content       string `json:"content"`
+	ReadSkill     string `json:"readSkill"`
+	ReadSkillLevel int   `json:"readSkillLevel"`
 	// Container fields (GitHub #143)
 	IsContainer bool   `json:"isContainer"`
 	Capacity    int    `json:"capacity"`
 	IsLocked    bool   `json:"isLocked"`
 	LockKey     string `json:"lockKey"`
+	// Weapon fields (GitHub #92)
+	MinDamage        int    `json:"minDamage,omitempty"`
+	MaxDamage        int    `json:"maxDamage,omitempty"`
+	WeaponType       string `json:"weaponType,omitempty"`
+	ClassRestriction string `json:"classRestriction,omitempty"`
 }
 
 // roomCharacter represents a character (NPC or player) in a room for display
@@ -281,6 +291,7 @@ var (
 	white  = lipgloss.Color("15")
 	gray   = lipgloss.Color("8")
 	pink   = lipgloss.Color("219")
+	cyan   = lipgloss.Color("51")
 
 	// Raw ANSI for direct terminal output (when lipgloss fails)
 	pinkAnsi  = "\033[38;5;219m"
@@ -409,11 +420,16 @@ func MiniStatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int) string {
 
 // styledMessage returns a styled message based on messageType
 func (m *model) styledMessage(msg string) string {
+	return styleMessage(msg, m.messageType)
+}
+
+// styleMessage returns a styled message based on message type (standalone helper)
+func styleMessage(msg string, msgType string) string {
 	if msg == "" {
 		return ""
 	}
 
-	switch m.messageType {
+	switch msgType {
 	case "success":
 		return successStyle.Render("✓ ") + msg
 	case "error":
@@ -1577,6 +1593,17 @@ func (m *model) displayItemDetails(item RoomItem) {
 	}
 	details.WriteString(desc + "\n")
 
+	// Show container info if applicable (GitHub #143)
+	if item.IsContainer {
+		details.WriteString("\n--- Container ---\n")
+		details.WriteString(fmt.Sprintf("  Capacity: %d items\n", item.Capacity))
+		if item.IsLocked {
+			details.WriteString("  Status: 🔒 Locked\n")
+		} else {
+			details.WriteString("  Status: 🔓 Unlocked\n")
+		}
+	}
+
 	// Show stats if it's equipment
 	if item.ItemType == "weapon" || item.ItemType == "armor" {
 		details.WriteString("\n--- Stats ---\n")
@@ -1987,48 +2014,35 @@ func (m *model) View() string {
 
 	switch m.screen {
 	case ScreenWelcome:
-		s.WriteString(welcomeScreen())
-		s.WriteString("\n\n")
-
-		// Vim-style menu rendering
-		for i, item := range m.menuItems {
-			cursor := "  "
-			if i == m.menuCursor {
-				cursor = "▶ "
-				s.WriteString(menuSelectedStyle.Render(cursor + item))
-			} else {
-				s.WriteString(menuNormalStyle.Render(cursor + item))
-			}
-			s.WriteString("\n")
-		}
-
-		s.WriteString("\n")
-		if m.message != "" {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n")
-		}
-		s.WriteString(promptStyle.Render("> "))
-		s.WriteString(m.textInput.View())
+		// Build input with menu
+		var inputContent strings.Builder
+		inputContent.WriteString(promptStyle.Render("> "))
+		inputContent.WriteString(m.textInput.View())
+		inputContent.WriteString("\n\n")
+		inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Press 1/2/3 or type login/register/quit"))
+		return welcomeScreen(m.width, m.height, inputContent.String())
 
 	case ScreenLogin:
-		s.WriteString(loginScreen())
-		s.WriteString("\n\n")
-		if m.message != "" {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
+		// Build input prompt
+		promptText := "> "
+		if m.inputField == "username" {
+			promptText = "Username: "
+		} else if m.inputField == "password" {
+			promptText = "Password: "
 		}
-		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
-		s.WriteString(m.textInput.View())
+		inputContent := promptStyle.Render(promptText) + m.textInput.View()
+		return loginScreen(m.width, m.height, m.message, m.messageType, inputContent)
 
 	case ScreenRegister:
-		s.WriteString(registerScreen(m.width, m.height))
-		s.WriteString("\n\n")
-		if m.message != "" {
-			s.WriteString(m.styledMessage(m.message))
-			s.WriteString("\n\n")
+		// Build input prompt
+		promptText := "> "
+		if m.inputField == "username" {
+			promptText = "Username: "
+		} else if m.inputField == "password" {
+			promptText = "Password: "
 		}
-		s.WriteString(promptStyle.Render(m.textInput.Placeholder + "> "))
-		s.WriteString(m.textInput.View())
+		inputContent := promptStyle.Render(promptText) + m.textInput.View()
+		return registerScreen(m.width, m.height, m.message, m.messageType, inputContent)
 
 	case ScreenProfile:
 		s.WriteString("=== CHARACTER PROFILE ===\n\n")
@@ -2191,87 +2205,165 @@ func (m *model) View() string {
 // STATIC SCREENS
 // ============================================================
 
-func welcomeScreen() string {
-	return lipgloss.NewStyle().
+// asciiLogo is the ASCII art logo for Herbst MUD
+const asciiLogo = `
+    _    _                        _   _
+   / \  | |__  _ __   __ _  ___ | | | |___
+  / _ \ | '_ \| '_ \ / _` + "`" + ` |/ _ \| | / / __|
+ / ___ \| | | | |_) | (_| | (_) | || \__ \
+/_/   \_\_| |_| .__/ \__,_|\___/|_|| |___/
+               |_|              |___/
+`
+
+func welcomeScreen(width, height int, inputView string) string {
+	// Calculate proportional heights matching game screen
+	// Output: ~70%, Input: ~30%
+	inputHeight := height * 30 / 100
+	if inputHeight < 5 {
+		inputHeight = 5
+	}
+	outputHeight := height - inputHeight
+	if outputHeight < 10 {
+		outputHeight = 10
+	}
+
+	// Output pane (top) - shows logo and menu
+	outputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("46")).
-		Padding(1, 2).
-		Render(`
-╔════════════════════════════════════════════════════════════╗
-║                                                            ║
-║    ██████╗ ███████╗████████╗██████╗  ██████╗                 ║
-║    ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗                ║
-║    ██████╔╝█████╗     ██║   ██████╔╝██║   ██║                ║
-║    ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║                ║
-║    ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝                ║
-║    ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝                 ║
-║                                                            ║
-║           ██████╗  █████╗  ██████╗ ██████╗                  ║
-║           ██╔══██╗██╔══██╗██╔════╝██╔═══██╗                 ║
-║           ██████╔╝███████║██║     ██║   ██║                ║
-║           ██╔══██╗██╔══██║██║     ██║   ██║                 ║
-║           ██║  ██║██║  ██║╚██████╗╚██████╔╝                 ║
-║           ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝                  ║
-║                                                            ║
-║                    Welcome to Herbst MUD!                  ║
-║                    Das Text-Adventure                       ║
-║                                                            ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   1. Login      - Log in to your existing account         ║
-║   2. Register   - Create a new player account             ║
-║   3. Quit       - Exit the game                            ║
-║                                                            ║
-║   Use ↑/↓ or j/k to navigate, Enter to select            ║
-║   Press ESC to go back                                     ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`)
-}
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width - 2).
+		Height(outputHeight - 2)
 
-func loginScreen() string {
-	return lipgloss.NewStyle().
+	// Build output content - lipgloss adds the border, so just content here
+	var outputContent strings.Builder
+	outputContent.WriteString("\n")
+	outputContent.WriteString(asciiLogo)
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Underline(true).Render("        Welcome Adventurer!        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(yellow).Render("  Commands:"))
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ login"))
+	outputContent.WriteString("      - Log in to your existing account\n")
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ register"))
+	outputContent.WriteString("   - Create a new character\n")
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  ➤ quit"))
+	outputContent.WriteString("       - Exit the game\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Italic(true).Render("  Tip: Use arrow keys or type a command"))
+
+	// Input pane (bottom)
+	inputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("75")).
-		Padding(1, 2).
-		Render(`
-╔════════════════════════════════════════════════════════════╗
-║                        LOGIN                                  ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║   Enter your credentials to continue your adventure.        ║
-║   Press ESC to go back to the main menu.                    ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-`)
-}
-
-func registerScreen(width, height int) string {
-	// Calculate dynamic dimensions
-	boxWidth := 60
-	if width > 70 {
-		boxWidth = width - 20
-	}
-	if boxWidth > 100 {
-		boxWidth = 100
-	}
-
-	verticalPadding := 2
-	if height > 20 {
-		verticalPadding = (height - 16) / 2
-	}
-	if verticalPadding > 10 {
-		verticalPadding = 10
-	}
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width - 2).
+		Height(inputHeight - 2)
 
 	var sb strings.Builder
-	sb.WriteString(strings.Repeat("\n", verticalPadding))
-	sb.WriteString(lipgloss.NewStyle().
-		Width(boxWidth).
+	sb.WriteString(outputStyle.Render(outputContent.String()))
+	sb.WriteString("\n")
+	sb.WriteString(inputStyle.Render(inputView))
+
+	return sb.String()
+}
+
+func loginScreen(width, height int, message, messageType string, inputView string) string {
+	// Calculate proportional heights matching game screen
+	// Output: ~70%, Input: ~30%
+	inputHeight := height * 30 / 100
+	if inputHeight < 5 {
+		inputHeight = 5
+	}
+	outputHeight := height - inputHeight
+	if outputHeight < 10 {
+		outputHeight = 10
+	}
+
+	// Output pane (top) - shows logo and prompts
+	outputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(purple).
-		Padding(1, 2).
-		Render("CREATE ACCOUNT - Press ESC to go back to the main menu."))
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width - 2).
+		Height(outputHeight - 2)
+
+	// Build output content - lipgloss adds the border, so just content here
+	var outputContent strings.Builder
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("            LOGIN            "))
+	outputContent.WriteString("\n\n")
+
+	// Show message/prompt
+	if message != "" {
+		outputContent.WriteString(styleMessage(message, messageType))
+		outputContent.WriteString("\n")
+	}
+
+	// Input pane (bottom)
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width - 2).
+		Height(inputHeight - 2)
+
+	var sb strings.Builder
+	sb.WriteString(outputStyle.Render(outputContent.String()))
+	sb.WriteString("\n")
+	sb.WriteString(inputStyle.Render(inputView))
+
+	return sb.String()
+}
+
+func registerScreen(width, height int, message, messageType string, inputView string) string {
+	// Calculate proportional heights matching game screen
+	// Output: ~70%, Input: ~30%
+	inputHeight := height * 30 / 100
+	if inputHeight < 5 {
+		inputHeight = 5
+	}
+	outputHeight := height - inputHeight
+	if outputHeight < 10 {
+		outputHeight = 10
+	}
+
+	// Output pane (top) - shows logo and prompts
+	outputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width - 2).
+		Height(outputHeight - 2)
+
+	// Build output content - lipgloss adds the border, so just content here
+	var outputContent strings.Builder
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        CREATE ACCOUNT        "))
+	outputContent.WriteString("\n\n")
+
+	// Show message/prompt
+	if message != "" {
+		outputContent.WriteString(styleMessage(message, messageType))
+		outputContent.WriteString("\n")
+	}
+
+	// Input pane (bottom)
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width - 2).
+		Height(inputHeight - 2)
+
+	var sb strings.Builder
+	sb.WriteString(outputStyle.Render(outputContent.String()))
+	sb.WriteString("\n")
+	sb.WriteString(inputStyle.Render(inputView))
 
 	return sb.String()
 }
