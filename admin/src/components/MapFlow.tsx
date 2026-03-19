@@ -2,10 +2,15 @@ import { useCallback, useMemo } from 'react'
 import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ScreenFlowPosition, ReactFlowProvider } from '@xyflow/react'
 import type { Node, Edge, Connection } from '@xyflow/react'
 import { RoomNode } from './RoomNode'
+import { ExitEdge } from './ExitEdge'
 import '@xyflow/react/dist/style.css'
 
 const nodeTypes = {
   room: RoomNode,
+}
+
+const edgeTypes = {
+  exit: ExitEdge,
 }
 
 export interface MapFlowProps {
@@ -61,6 +66,11 @@ function MapFlowInner({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeOptions={{
+          type: 'exit',
+          animated: true,
+        }}
         onNodesChange={onNodesChange as never}
         onEdgesChange={onEdgesChange as never}
         onConnect={onConnect as never}
