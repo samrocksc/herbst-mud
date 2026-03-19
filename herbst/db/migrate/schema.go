@@ -108,6 +108,11 @@ var (
 		{Name: "examine_desc", Type: field.TypeString, Default: ""},
 		{Name: "hidden_details", Type: field.TypeJSON},
 		{Name: "hidden_threshold", Type: field.TypeInt, Default: 0},
+		{Name: "min_damage", Type: field.TypeInt, Default: 0},
+		{Name: "max_damage", Type: field.TypeInt, Default: 0},
+		{Name: "weapon_type", Type: field.TypeString, Default: ""},
+		{Name: "class_restriction", Type: field.TypeString, Default: ""},
+		{Name: "guaranteed_drop", Type: field.TypeBool, Default: false},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -118,7 +123,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[14]},
+				Columns:    []*schema.Column{EquipmentColumns[19]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

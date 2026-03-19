@@ -7,6 +7,7 @@ import (
 
 	"herbst/db"
 	"herbst/db/character"
+	"herbst/db/equipment"
 	"herbst/db/npctemplate"
 	"herbst/db/room"
 )
@@ -270,5 +271,64 @@ func ensureGizmoCharacter(client *db.Client, ctx context.Context) error {
 	}
 
 	log.Println("Gizmo character spawned in the Fountain Courtyard")
+	return nil
+}
+
+// InitWeapons creates starter weapons for characters
+func InitWeapons(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if weapons already exist
+	existingWeapons, err := client.Equipment.Query().
+		Where(equipment.ItemTypeEQ("weapon")).
+		Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to count existing weapons: %w", err)
+	}
+
+	if existingWeapons > 0 {
+		log.Println("Weapons already initialized, skipping...")
+		return nil
+	}
+
+	// Create Rusty Sword (Warrior starter)
+	_, err = client.Equipment.
+		Create().
+		SetName("Rusty Sword").
+		SetDescription("An old, weathered sword with a jagged edge. It's seen better days but still has some fight left in it.").
+		SetSlot("weapon").
+		SetLevel(1).
+		SetWeight(3).
+		SetItemType("weapon").
+		SetMinDamage(1).
+		SetMaxDamage(3).
+		SetWeaponType("sword").
+		SetClassRestriction("warrior").
+		SetGuaranteedDrop(true).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Rusty Sword: %w", err)
+	}
+
+	// Create Twisted Pipe (Chef starter)
+	_, err = client.Equipment.
+		Create().
+		SetName("Twisted Pipe").
+		SetDescription("A corroded metal pipe, twisted and bent. Looks painful to be hit with.").
+		SetSlot("weapon").
+		SetLevel(1).
+		SetWeight(2).
+		SetItemType("weapon").
+		SetMinDamage(1).
+		SetMaxDamage(2).
+		SetWeaponType("pipe").
+		SetClassRestriction("chef").
+		SetGuaranteedDrop(true).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Twisted Pipe: %w", err)
+	}
+
+	log.Println("Starter weapons initialized: Rusty Sword (warrior), Twisted Pipe (chef)")
 	return nil
 }

@@ -2981,6 +2981,13 @@ type EquipmentMutation struct {
 	appendhiddenDetails []map[string]interface{}
 	hiddenThreshold     *int
 	addhiddenThreshold  *int
+	minDamage           *int
+	addminDamage        *int
+	maxDamage           *int
+	addmaxDamage        *int
+	weaponType          *string
+	classRestriction    *string
+	guaranteedDrop      *bool
 	clearedFields       map[string]struct{}
 	room                *int
 	clearedroom         bool
@@ -3630,6 +3637,226 @@ func (m *EquipmentMutation) ResetHiddenThreshold() {
 	m.addhiddenThreshold = nil
 }
 
+// SetMinDamage sets the "minDamage" field.
+func (m *EquipmentMutation) SetMinDamage(i int) {
+	m.minDamage = &i
+	m.addminDamage = nil
+}
+
+// MinDamage returns the value of the "minDamage" field in the mutation.
+func (m *EquipmentMutation) MinDamage() (r int, exists bool) {
+	v := m.minDamage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMinDamage returns the old "minDamage" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldMinDamage(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMinDamage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMinDamage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMinDamage: %w", err)
+	}
+	return oldValue.MinDamage, nil
+}
+
+// AddMinDamage adds i to the "minDamage" field.
+func (m *EquipmentMutation) AddMinDamage(i int) {
+	if m.addminDamage != nil {
+		*m.addminDamage += i
+	} else {
+		m.addminDamage = &i
+	}
+}
+
+// AddedMinDamage returns the value that was added to the "minDamage" field in this mutation.
+func (m *EquipmentMutation) AddedMinDamage() (r int, exists bool) {
+	v := m.addminDamage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMinDamage resets all changes to the "minDamage" field.
+func (m *EquipmentMutation) ResetMinDamage() {
+	m.minDamage = nil
+	m.addminDamage = nil
+}
+
+// SetMaxDamage sets the "maxDamage" field.
+func (m *EquipmentMutation) SetMaxDamage(i int) {
+	m.maxDamage = &i
+	m.addmaxDamage = nil
+}
+
+// MaxDamage returns the value of the "maxDamage" field in the mutation.
+func (m *EquipmentMutation) MaxDamage() (r int, exists bool) {
+	v := m.maxDamage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxDamage returns the old "maxDamage" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldMaxDamage(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxDamage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxDamage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxDamage: %w", err)
+	}
+	return oldValue.MaxDamage, nil
+}
+
+// AddMaxDamage adds i to the "maxDamage" field.
+func (m *EquipmentMutation) AddMaxDamage(i int) {
+	if m.addmaxDamage != nil {
+		*m.addmaxDamage += i
+	} else {
+		m.addmaxDamage = &i
+	}
+}
+
+// AddedMaxDamage returns the value that was added to the "maxDamage" field in this mutation.
+func (m *EquipmentMutation) AddedMaxDamage() (r int, exists bool) {
+	v := m.addmaxDamage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxDamage resets all changes to the "maxDamage" field.
+func (m *EquipmentMutation) ResetMaxDamage() {
+	m.maxDamage = nil
+	m.addmaxDamage = nil
+}
+
+// SetWeaponType sets the "weaponType" field.
+func (m *EquipmentMutation) SetWeaponType(s string) {
+	m.weaponType = &s
+}
+
+// WeaponType returns the value of the "weaponType" field in the mutation.
+func (m *EquipmentMutation) WeaponType() (r string, exists bool) {
+	v := m.weaponType
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWeaponType returns the old "weaponType" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldWeaponType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWeaponType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWeaponType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWeaponType: %w", err)
+	}
+	return oldValue.WeaponType, nil
+}
+
+// ResetWeaponType resets all changes to the "weaponType" field.
+func (m *EquipmentMutation) ResetWeaponType() {
+	m.weaponType = nil
+}
+
+// SetClassRestriction sets the "classRestriction" field.
+func (m *EquipmentMutation) SetClassRestriction(s string) {
+	m.classRestriction = &s
+}
+
+// ClassRestriction returns the value of the "classRestriction" field in the mutation.
+func (m *EquipmentMutation) ClassRestriction() (r string, exists bool) {
+	v := m.classRestriction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClassRestriction returns the old "classRestriction" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldClassRestriction(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClassRestriction is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClassRestriction requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClassRestriction: %w", err)
+	}
+	return oldValue.ClassRestriction, nil
+}
+
+// ResetClassRestriction resets all changes to the "classRestriction" field.
+func (m *EquipmentMutation) ResetClassRestriction() {
+	m.classRestriction = nil
+}
+
+// SetGuaranteedDrop sets the "guaranteedDrop" field.
+func (m *EquipmentMutation) SetGuaranteedDrop(b bool) {
+	m.guaranteedDrop = &b
+}
+
+// GuaranteedDrop returns the value of the "guaranteedDrop" field in the mutation.
+func (m *EquipmentMutation) GuaranteedDrop() (r bool, exists bool) {
+	v := m.guaranteedDrop
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGuaranteedDrop returns the old "guaranteedDrop" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldGuaranteedDrop(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGuaranteedDrop is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGuaranteedDrop requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGuaranteedDrop: %w", err)
+	}
+	return oldValue.GuaranteedDrop, nil
+}
+
+// ResetGuaranteedDrop resets all changes to the "guaranteedDrop" field.
+func (m *EquipmentMutation) ResetGuaranteedDrop() {
+	m.guaranteedDrop = nil
+}
+
 // SetRoomID sets the "room" edge to the Room entity by id.
 func (m *EquipmentMutation) SetRoomID(id int) {
 	m.room = &id
@@ -3703,7 +3930,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 18)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -3743,6 +3970,21 @@ func (m *EquipmentMutation) Fields() []string {
 	if m.hiddenThreshold != nil {
 		fields = append(fields, equipment.FieldHiddenThreshold)
 	}
+	if m.minDamage != nil {
+		fields = append(fields, equipment.FieldMinDamage)
+	}
+	if m.maxDamage != nil {
+		fields = append(fields, equipment.FieldMaxDamage)
+	}
+	if m.weaponType != nil {
+		fields = append(fields, equipment.FieldWeaponType)
+	}
+	if m.classRestriction != nil {
+		fields = append(fields, equipment.FieldClassRestriction)
+	}
+	if m.guaranteedDrop != nil {
+		fields = append(fields, equipment.FieldGuaranteedDrop)
+	}
 	return fields
 }
 
@@ -3777,6 +4019,16 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.HiddenDetails()
 	case equipment.FieldHiddenThreshold:
 		return m.HiddenThreshold()
+	case equipment.FieldMinDamage:
+		return m.MinDamage()
+	case equipment.FieldMaxDamage:
+		return m.MaxDamage()
+	case equipment.FieldWeaponType:
+		return m.WeaponType()
+	case equipment.FieldClassRestriction:
+		return m.ClassRestriction()
+	case equipment.FieldGuaranteedDrop:
+		return m.GuaranteedDrop()
 	}
 	return nil, false
 }
@@ -3812,6 +4064,16 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldHiddenDetails(ctx)
 	case equipment.FieldHiddenThreshold:
 		return m.OldHiddenThreshold(ctx)
+	case equipment.FieldMinDamage:
+		return m.OldMinDamage(ctx)
+	case equipment.FieldMaxDamage:
+		return m.OldMaxDamage(ctx)
+	case equipment.FieldWeaponType:
+		return m.OldWeaponType(ctx)
+	case equipment.FieldClassRestriction:
+		return m.OldClassRestriction(ctx)
+	case equipment.FieldGuaranteedDrop:
+		return m.OldGuaranteedDrop(ctx)
 	}
 	return nil, fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -3912,6 +4174,41 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetHiddenThreshold(v)
 		return nil
+	case equipment.FieldMinDamage:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMinDamage(v)
+		return nil
+	case equipment.FieldMaxDamage:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxDamage(v)
+		return nil
+	case equipment.FieldWeaponType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWeaponType(v)
+		return nil
+	case equipment.FieldClassRestriction:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClassRestriction(v)
+		return nil
+	case equipment.FieldGuaranteedDrop:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGuaranteedDrop(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -3929,6 +4226,12 @@ func (m *EquipmentMutation) AddedFields() []string {
 	if m.addhiddenThreshold != nil {
 		fields = append(fields, equipment.FieldHiddenThreshold)
 	}
+	if m.addminDamage != nil {
+		fields = append(fields, equipment.FieldMinDamage)
+	}
+	if m.addmaxDamage != nil {
+		fields = append(fields, equipment.FieldMaxDamage)
+	}
 	return fields
 }
 
@@ -3943,6 +4246,10 @@ func (m *EquipmentMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedWeight()
 	case equipment.FieldHiddenThreshold:
 		return m.AddedHiddenThreshold()
+	case equipment.FieldMinDamage:
+		return m.AddedMinDamage()
+	case equipment.FieldMaxDamage:
+		return m.AddedMaxDamage()
 	}
 	return nil, false
 }
@@ -3972,6 +4279,20 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddHiddenThreshold(v)
+		return nil
+	case equipment.FieldMinDamage:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMinDamage(v)
+		return nil
+	case equipment.FieldMaxDamage:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxDamage(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment numeric field %s", name)
@@ -4038,6 +4359,21 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldHiddenThreshold:
 		m.ResetHiddenThreshold()
+		return nil
+	case equipment.FieldMinDamage:
+		m.ResetMinDamage()
+		return nil
+	case equipment.FieldMaxDamage:
+		m.ResetMaxDamage()
+		return nil
+	case equipment.FieldWeaponType:
+		m.ResetWeaponType()
+		return nil
+	case equipment.FieldClassRestriction:
+		m.ResetClassRestriction()
+		return nil
+	case equipment.FieldGuaranteedDrop:
+		m.ResetGuaranteedDrop()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)

@@ -45,6 +45,22 @@ func (Equipment) Fields() []ent.Field {
 		field.Int("hiddenThreshold").
 			Default(0).
 			Comment("Examine skill required to reveal hidden details"),
+		// Weapon-specific fields (GitHub #92)
+		field.Int("minDamage").
+			Default(0).
+			Comment("Minimum damage for weapons"),
+		field.Int("maxDamage").
+			Default(0).
+			Comment("Maximum damage for weapons"),
+		field.String("weaponType").
+			Default("").
+			Comment("sword|dagger|staff|pipe|bow|etc."),
+		field.String("classRestriction").
+			Default("").
+			Comment("warrior|chef|mage|etc. - empty means any class"),
+		field.Bool("guaranteedDrop").
+			Default(false).
+			Comment("NPCs will always drop this weapon"),
 	}
 }
 

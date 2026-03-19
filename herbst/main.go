@@ -96,6 +96,11 @@ func main() {
 		if err := dbinit.InitGizmo(client); err != nil {
 			log.Printf("Warning: failed to initialize Gizmo: %v", err)
 		}
+
+		// Initialize starter weapons
+		if err := dbinit.InitWeapons(client); err != nil {
+			log.Printf("Warning: failed to initialize weapons: %v", err)
+		}
 	}
 
 	// Pass client to server options
@@ -1078,7 +1083,295 @@ func (m *model) processCommand(cmd string) {
 			m.handleInventoryCommand()
 			return
 		}
+		// Check for skills command
+		if cmd == "skills" {
+			m.handleSkillsCommand(cmd)
+			return
+		}
+		// Check for talents command
+		if cmd == "talents" {
+			m.handleTalentsCommand(cmd)
+			return
+		}
+		// Check for skill equip command
+		if strings.HasPrefix(cmd, "skill ") {
+			m.handleSkillEquipCommand(cmd)
+			return
+		}
+		// Check for talent equip/unequip/swap commands
+		if strings.HasPrefix(cmd, "talent ") {
+			m.handleTalentEquipCommand(cmd)
+			return
+		}
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
+		m.messageType = "error"
+	}
+}
+
+// handleSkillsCommand displays character skills
+func (m *model) handleSkillsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use this command."
+		m.messageType = "error"
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d/skills", RESTAPIBase, m.currentCharacterID)
+	resp, err := http.Get(url)
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching skills: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.message = "Failed to load skills"
+		m.messageType = "error"
+		return
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.message = fmt.Sprintf("Error parsing skills: %v", err)
+		m.messageType = "error"
+		return
+	}
+
+	skills, ok := result["skills"].(map[string]interface{})
+	if !ok {
+		m.message = "Error: skills data not found"
+		m.messageType = "error"
+		return
+	}
+
+	// Format skills display
+	output := "=== Your Skills ===\n\n"
+	for skillName, skillData := range skills {
+		data := skillData.(map[string]interface{})
+		level := int(data["level"].(float64))
+		bonus := data["bonus"].(string)
+		output += fmt.Sprintf("%-15s Lv: %2d  %s\n", skillName+":", level, bonus)
+	}
+
+	output += "\nSkills are always active and provide passive bonuses."
+	m.message = output
+	m.messageType = "info"
+}
+
+// handleTalentsCommand displays equipped talents
+func (m *model) handleTalentsCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use this command."
+		m.messageType = "error"
+		return
+	}
+
+	url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+	resp, err := http.Get(url)
+	if err != nil {
+		m.message = fmt.Sprintf("Error fetching talents: %v", err)
+		m.messageType = "error"
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.message = "Failed to load talents"
+		m.messageType = "error"
+		return
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.message = fmt.Sprintf("Error parsing talents: %v", err)
+		m.messageType = "error"
+		return
+	}
+
+	// Format talents display with slots
+	output := "=== Your Talents ===\n\n"
+	slots, ok := result["slots"].([]interface{})
+	if !ok {
+		// No talents equipped yet
+		output += "No talents equipped.\n\n"
+		output += "Use: talent equip <talent_id> <slot>\n"
+		output += "Slots: 1-4 (quick access keys)\n"
+		m.message = output
+		m.messageType = "info"
+		return
+	}
+
+	emptySlots := 0
+	for i := 1; i <= 4; i++ {
+		if i < len(slots) && slots[i] != nil {
+			slot := slots[i].(map[string]interface{})
+			name := slot["name"].(string)
+			desc := slot["description"].(string)
+			output += fmt.Sprintf("[%d] %s\n     %s\n\n", i, name, desc)
+		} else {
+			output += fmt.Sprintf("[%d] (empty)\n\n", i)
+			emptySlots++
+		}
+	}
+
+	if emptySlots == 4 {
+		output += "No talents equipped. Use 'talent equip <id> <slot>' to equip."
+	}
+
+	m.message = output
+	m.messageType = "info"
+}
+
+// handleSkillEquipCommand handles skill equip command
+func (m *model) handleSkillEquipCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use this command."
+		m.messageType = "error"
+		return
+	}
+
+	// Skills are always active, no equip needed
+	m.message = "Skills are always active and cannot be unequipped.\nThey provide passive bonuses based on your skill level."
+	m.messageType = "info"
+}
+
+// handleTalentEquipCommand handles talent equip/unequip/swap commands
+func (m *model) handleTalentEquipCommand(cmd string) {
+	if m.currentCharacterID == 0 {
+		m.message = "You need to be playing to use this command."
+		m.messageType = "error"
+		return
+	}
+
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Usage:\n  talent equip <talent_id> <slot>\n  talent unequip <slot>\n  talent swap <slot1> <slot2>"
+		m.messageType = "error"
+		return
+	}
+
+	action := parts[1]
+
+	switch action {
+	case "equip":
+		if len(parts) != 4 {
+			m.message = "Usage: talent equip <talent_id> <slot>\nExample: talent equip 1 2"
+			m.messageType = "error"
+			return
+		}
+		talentID := parts[2]
+		slot := parts[3]
+
+		// Validate slot is 1-4
+		slotNum := 0
+		fmt.Sscanf(slot, "%d", &slotNum)
+		if slotNum < 1 || slotNum > 4 {
+			m.message = "Slot must be between 1 and 4"
+			m.messageType = "error"
+			return
+		}
+
+		// Call API to equip talent
+		url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
+		reqBody := fmt.Sprintf(`{"talent_id":%s,"slot":%s}`, talentID, slot)
+		resp, err := http.Post(url, "application/json", strings.NewReader(reqBody))
+		if err != nil {
+			m.message = fmt.Sprintf("Error equipping talent: %v", err)
+			m.messageType = "error"
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+			m.message = "Failed to equip talent"
+			m.messageType = "error"
+			return
+		}
+
+		m.message = fmt.Sprintf("Talent equipped in slot %s", slot)
+		m.messageType = "success"
+
+	case "unequip":
+		if len(parts) != 3 {
+			m.message = "Usage: talent unequip <slot>\nExample: talent unequip 2"
+			m.messageType = "error"
+			return
+		}
+		slot := parts[2]
+
+		// Validate slot
+		slotNum := 0
+		fmt.Sscanf(slot, "%d", &slotNum)
+		if slotNum < 1 || slotNum > 4 {
+			m.message = "Slot must be between 1 and 4"
+			m.messageType = "error"
+			return
+		}
+
+		// Call API to unequip talent
+		url := fmt.Sprintf("%s/characters/%d/talents/%s", RESTAPIBase, m.currentCharacterID, slot)
+		req, err := http.NewRequest("DELETE", url, nil)
+		if err != nil {
+			m.message = fmt.Sprintf("Error unequipping talent: %v", err)
+			m.messageType = "error"
+			return
+		}
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			m.message = fmt.Sprintf("Error unequipping talent: %v", err)
+			m.messageType = "error"
+			return
+		}
+		defer resp.Body.Close()
+
+		m.message = fmt.Sprintf("Talent unequipped from slot %s", slot)
+		m.messageType = "success"
+
+	case "swap":
+		if len(parts) != 4 {
+			m.message = "Usage: talent swap <slot1> <slot2>\nExample: talent swap 1 2"
+			m.messageType = "error"
+			return
+		}
+		slot1 := parts[2]
+		slot2 := parts[3]
+
+		// Validate slots
+		slot1Num, slot2Num := 0, 0
+		fmt.Sscanf(slot1, "%d", &slot1Num)
+		fmt.Sscanf(slot2, "%d", &slot2Num)
+		if slot1Num < 1 || slot1Num > 4 || slot2Num < 1 || slot2Num > 4 {
+			m.message = "Slots must be between 1 and 4"
+			m.messageType = "error"
+			return
+		}
+
+		// Call API to swap talents
+		url := fmt.Sprintf("%s/characters/%d/talents/swap", RESTAPIBase, m.currentCharacterID)
+		reqBody := fmt.Sprintf(`{"slot1":%s,"slot2":%s}`, slot1, slot2)
+		req, err := http.NewRequest("PUT", url, strings.NewReader(reqBody))
+		if err != nil {
+			m.message = fmt.Sprintf("Error swapping talents: %v", err)
+			m.messageType = "error"
+			return
+		}
+		req.Header.Set("Content-Type", "application/json")
+		httpClient := &http.Client{}
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			m.message = fmt.Sprintf("Error swapping talents: %v", err)
+			m.messageType = "error"
+			return
+		}
+		defer resp.Body.Close()
+
+		m.message = fmt.Sprintf("Talents swapped between slot %s and %s", slot1, slot2)
+		m.messageType = "success"
+
+	default:
+		m.message = "Usage:\n  talent - Show talents\n  talent equip <talent_id> <slot>\n  talent unequip <slot>\n  talent swap <slot1> <slot2>"
 		m.messageType = "error"
 	}
 }
