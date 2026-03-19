@@ -32,7 +32,7 @@ func init() {
 }
 
 // RESTAPIBase is the base URL for the REST API
-var RESTAPIBase = "http://localhost:8080"
+var RESTAPIBase = getEnv("API_BASE_URL", "http://localhost:8080")
 
 // StartingRoomID is the ID of the room players start in
 const StartingRoomID = 5
@@ -1044,6 +1044,7 @@ func (m *model) processCommand(cmd string) {
   talent equip <id> <slot> - Equip talent
   talent unequip <slot> - Unequip talent
   quests/q - Show your quest log
+  attack <target> - Attack a target
   whoami - Show your info
   profile/p - Edit character profile
   clear/cls - Clear screen
@@ -1132,6 +1133,11 @@ func (m *model) processCommand(cmd string) {
 		// Check for skill equip command
 		if strings.HasPrefix(cmd, "skill ") {
 			m.handleSkillEquipCommand(cmd)
+			return
+		}
+		// Check for attack command (GitHub #87 - NPC short names)
+		if strings.HasPrefix(cmd, "attack ") {
+			m.handleAttackCommand(cmd)
 			return
 		}
 		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
@@ -1461,6 +1467,63 @@ func (m *model) handleDropCommand(cmd string) {
 	// This would need player inventory tracking
 	m.message = fmt.Sprintf("You don't have any %s to drop.", itemName)
 	m.messageType = "error"
+}
+
+// handleAttackCommand handles the attack command (GitHub #87 - NPC short names)
+func (m *model) handleAttackCommand(cmd string) {
+	// Extract target name from command
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Attack what? Usage: attack <target name>"
+		m.messageType = "error"
+		return
+	}
+	targetName := strings.Join(parts[1:], " ")
+
+	// Load room characters to find the target
+	m.loadRoomCharacters()
+
+	// Find character in room (exact match first, then partial)
+	var target *roomCharacter
+	for i := range m.roomCharacters {
+		char := &m.roomCharacters[i]
+		// Skip self
+		if char.Name == m.currentCharacterName {
+			continue
+		}
+		// Try exact match first
+		if strings.EqualFold(char.Name, targetName) {
+			target = char
+			break
+		}
+		// If no exact match, try partial match
+		if target == nil && strings.Contains(strings.ToLower(char.Name), strings.ToLower(targetName)) {
+			target = char
+		}
+	}
+
+	if target == nil {
+		m.message = fmt.Sprintf("You don't see any '%s' here to attack.", targetName)
+		m.messageType = "error"
+		return
+	}
+
+	// Format target name with color based on NPC/player
+	var targetDisplay string
+	if target.IsNPC {
+		targetDisplay = lipgloss.NewStyle().Foreground(red).Render(target.Name)
+	} else {
+		targetDisplay = lipgloss.NewStyle().Foreground(green).Render(target.Name)
+	}
+
+	// For now, show a message that combat is coming soon
+	// This is a placeholder - full combat requires the combat system
+	if target.IsNPC {
+		m.message = fmt.Sprintf("You engage %s in combat!\n\n(Combat system coming soon - Damage will be calculated based on your weapon and stats)", targetDisplay)
+	} else {
+		m.message = fmt.Sprintf("You challenge %s to a duel!\n\n(PvP combat coming soon)", targetDisplay)
+	}
+	m.messageType = "combat"
 }
 
 // handleExamineCommand handles the examine/ex/inspect/i command
