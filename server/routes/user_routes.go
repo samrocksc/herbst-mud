@@ -3,12 +3,17 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/user"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// JWT secret key - in production use environment variable
+var jwtSecret = []byte("your-secret-key-change-in-production")
 
 // RegisterUserRoutes registers all user-related routes
 func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
@@ -80,11 +85,26 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Login successful
-		c.JSON(http.StatusOK, gin.H{
-			"id":       user.ID,
+		// Login successful - generate JWT token
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"user_id":  user.ID,
 			"email":    user.Email,
 			"is_admin": user.IsAdmin,
+			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		})
+
+		tokenString, err := token.SignedString(jwtSecret)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":        user.ID,
+			"email":     user.Email,
+			"is_admin":  user.IsAdmin,
+			"token":      tokenString,
+			"expires_in": 86400,
 		})
 	})
 
