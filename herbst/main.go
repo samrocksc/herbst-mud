@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -244,6 +245,11 @@ type RoomItem struct {
 	Weight         int            `json:"weight"`
 	ItemDamage     int            `json:"itemDamage"`
 	ItemDurability int            `json:"itemDurability"`
+	// Readable item fields (GitHub #141 - look-07 readable items)
+	IsReadable   bool   `json:"isReadable"`
+	ReadableText string `json:"readableText"`
+	PageCount    int    `json:"pageCount"`
+	Pages        []string `json:"pages"`
 }
 
 // roomCharacter represents a character (NPC or player) in a room for display
@@ -1038,6 +1044,8 @@ func (m *model) processCommand(cmd string) {
   peer <dir> - Peek at adjacent room
   take/get <item> - Pick up an item
   drop <item> - Drop an item
+  read <item> [page #] - Read a book, sign, or scroll
+  examine/ex <item> - Examine an item closely
   inventory/i - Show your inventory
   quests/q - Show your quest log
   whoami - Show your info
@@ -1060,6 +1068,9 @@ func (m *model) processCommand(cmd string) {
 		m.messageType = "info"
 	case "examine", "ex", "inspect":
 		m.handleExamineCommand(cmd)
+	case "read", "r":
+		// GitHub #141 - Readable items (look-07)
+		m.handleReadCommand(cmd)
 	case "whoami":
 		// Show character info including level with progress bars
 		m.message = fmt.Sprintf("=== Character Status ===\nUser: %s (ID: %d)\nRoom: %s\n\n[Level %d - %d XP]\n%s",
@@ -1552,6 +1563,94 @@ func (m *model) displayItemDetails(item RoomItem) {
 	}
 
 	m.message = details.String()
+	m.messageType = "info"
+}
+
+// handleReadCommand handles the read command (GitHub #141 - look-07)
+func (m *model) handleReadCommand(cmd string) {
+	parts := strings.Fields(cmd)
+	if len(parts) < 2 {
+		m.message = "Read what? Usage: read <item> [page <number>]"
+		m.messageType = "error"
+		return
+	}
+
+	// Parse optional page number
+	targetItem := strings.Join(parts[1:], " ")
+	var pageNum int = 1
+	if len(parts) >= 4 && parts[len(parts)-2] == "page" {
+		pageNum, _ = strconv.Atoi(parts[len(parts)-1])
+		targetItem = strings.Join(parts[1:len(parts)-2], " ")
+	}
+
+	// Check room items
+	for _, item := range m.roomItems {
+		if strings.Contains(strings.ToLower(item.Name), targetItem) || strings.ToLower(item.Name) == targetItem {
+			if !item.IsReadable || item.ReadableText == "" {
+				m.message = fmt.Sprintf("You can't read %s.", item.Name)
+				m.messageType = "error"
+				return
+			}
+			m.displayReadableContent(item, pageNum)
+			return
+		}
+	}
+
+	// Check inventory items
+	resp, err := http.Get(fmt.Sprintf("%s/equipment?ownerId=%d", RESTAPIBase, m.currentCharacterID))
+	if err == nil {
+		defer resp.Body.Close()
+		var items []RoomItem
+		if json.NewDecoder(resp.Body).Decode(&items) == nil {
+			for _, item := range items {
+				if strings.Contains(strings.ToLower(item.Name), targetItem) || strings.ToLower(item.Name) == targetItem {
+					if !item.IsReadable || item.ReadableText == "" {
+						m.message = fmt.Sprintf("You can't read %s.", item.Name)
+						m.messageType = "error"
+						return
+					}
+					m.displayReadableContent(item, pageNum)
+					return
+				}
+			}
+		}
+	}
+
+	m.message = fmt.Sprintf("You don't have '%s' to read.", targetItem)
+	m.messageType = "error"
+}
+
+// displayReadableContent shows readable item content (GitHub #141 - look-07)
+func (m *model) displayReadableContent(item RoomItem, pageNum int) {
+	var content strings.Builder
+
+	content.WriteString(fmt.Sprintf("=== %s ===\n\n", item.Name))
+
+	// Handle multi-page content
+	if len(item.Pages) > 0 {
+		if pageNum < 1 {
+			pageNum = 1
+		}
+		if pageNum > len(item.Pages) {
+			pageNum = len(item.Pages)
+		}
+		content.WriteString(fmt.Sprintf("[Page %d of %d]\n\n", pageNum, len(item.Pages)))
+		content.WriteString(item.Pages[pageNum-1])
+		content.WriteString("\n\n")
+		// Navigation hint
+		if pageNum < len(item.Pages) {
+			content.WriteString(fmt.Sprintf("  (Use 'read %s page %d' for next page)\n", strings.ToLower(item.Name), pageNum+1))
+		}
+		if pageNum > 1 {
+			content.WriteString(fmt.Sprintf("  (Use 'read %s page %d' for previous page)\n", strings.ToLower(item.Name), pageNum-1))
+		}
+	} else {
+		// Single-page content
+		content.WriteString(item.ReadableText)
+		content.WriteString("\n")
+	}
+
+	m.message = content.String()
 	m.messageType = "info"
 }
 
