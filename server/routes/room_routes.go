@@ -7,17 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/character"
+	"herbst-server/middleware"
 )
 
 // RegisterRoomRoutes registers all room-related routes
 func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
-	// Create a new room
-	router.POST("/rooms", func(c *gin.Context) {
+	// Create a new room (protected - requires admin)
+	router.POST("/rooms", middleware.AuthMiddleware(getJWTSecret()), middleware.AdminMiddleware(), func(c *gin.Context) {
 		var req struct {
-			Name        string            `json:"name" binding:"required"`
-			Description string            `json:"description" binding:"required"`
-			IsStartingRoom bool           `json:"isStartingRoom"`
-			Exits       map[string]int    `json:"exits"`
+			Name          string         `json:"name" binding:"required"`
+			Description   string         `json:"description" binding:"required"`
+			IsStartingRoom bool          `json:"isStartingRoom"`
+			Exits         map[string]int `json:"exits"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -41,8 +42,8 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusCreated, room)
 	})
 
-	// Get all rooms
-	router.GET("/rooms", func(c *gin.Context) {
+	// Get all rooms (protected)
+	router.GET("/rooms", middleware.AuthMiddleware(getJWTSecret()), func(c *gin.Context) {
 		rooms, err := client.Room.Query().All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -52,8 +53,8 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusOK, rooms)
 	})
 
-	// Get a single room by ID
-	router.GET("/rooms/:id", func(c *gin.Context) {
+	// Get a single room by ID (protected)
+	router.GET("/rooms/:id", middleware.AuthMiddleware(getJWTSecret()), func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
@@ -69,8 +70,8 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusOK, room)
 	})
 
-	// Update a room by ID
-	router.PUT("/rooms/:id", func(c *gin.Context) {
+	// Update a room by ID (protected - requires admin)
+	router.PUT("/rooms/:id", middleware.AuthMiddleware(getJWTSecret()), middleware.AdminMiddleware(), func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
@@ -78,10 +79,10 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		var req struct {
-			Name        string            `json:"name"`
-			Description string            `json:"description"`
-			IsStartingRoom bool           `json:"isStartingRoom"`
-			Exits       map[string]int    `json:"exits"`
+			Name          string         `json:"name"`
+			Description   string         `json:"description"`
+			IsStartingRoom bool          `json:"isStartingRoom"`
+			Exits         map[string]int `json:"exits"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -113,8 +114,8 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusOK, room)
 	})
 
-	// Delete a room by ID
-	router.DELETE("/rooms/:id", func(c *gin.Context) {
+	// Delete a room by ID (protected - requires admin)
+	router.DELETE("/rooms/:id", middleware.AuthMiddleware(getJWTSecret()), middleware.AdminMiddleware(), func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
@@ -130,8 +131,8 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusNoContent, nil)
 	})
 
-	// Get characters in a room (for displaying NPCs vs players)
-	router.GET("/rooms/:id/characters", func(c *gin.Context) {
+	// Get characters in a room (protected)
+	router.GET("/rooms/:id/characters", middleware.AuthMiddleware(getJWTSecret()), func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
@@ -150,12 +151,12 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		result := make([]gin.H, len(characters))
 		for i, char := range characters {
 			result[i] = gin.H{
-				"id":       char.ID,
-				"name":     char.Name,
-				"isNPC":    char.IsNPC,
-				"level":    char.Level,
-				"class":    char.Class,
-				"race":     char.Race,
+				"id":    char.ID,
+				"name":  char.Name,
+				"isNPC": char.IsNPC,
+				"level": char.Level,
+				"class": char.Class,
+				"race":  char.Race,
 			}
 		}
 

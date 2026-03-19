@@ -3,16 +3,19 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/user"
+	"herbst-server/middleware"
+	"herbst-server/middleware/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterUserRoutes registers all user-related routes
 func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
-	// Create a new user
+	// Create a new user (public - registration)
 	router.POST("/users", func(c *gin.Context) {
 		var req struct {
 			Email    string `json:"email" binding:"required"`
@@ -52,7 +55,7 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 		})
 	})
 
-	// Authenticate a user (login)
+	// Authenticate a user (login) - public route
 	router.POST("/users/auth", func(c *gin.Context) {
 		var req struct {
 			Email    string `json:"email" binding:"required"`
@@ -80,16 +83,24 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Login successful
+		// Login successful - generate JWT token
+		token, err := jwt.GenerateToken(user.ID, user.Email, user.IsAdmin, getJWTSecret(), 24*time.Hour)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			return
+		}
+
+		// Return user and token
 		c.JSON(http.StatusOK, gin.H{
-			"id":       user.ID,
-			"email":    user.Email,
-			"is_admin": user.IsAdmin,
+			"id":        user.ID,
+			"email":     user.Email,
+			"is_admin":  user.IsAdmin,
+			"token":     token,
 		})
 	})
 
-	// Get all users
-	router.GET("/users", func(c *gin.Context) {
+	// Get all users (protected - requires authentication)
+	router.GET("/users", middleware.AuthMiddleware(getJWTSecret()), func(c *gin.Context) {
 		users, err := client.User.Query().All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -109,8 +120,8 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusOK, result)
 	})
 
-	// Get a single user by ID
-	router.GET("/users/:id", func(c *gin.Context) {
+	// Get a single user by ID (protected - requires authentication)
+	router.GET("/users/:id", middleware.AuthMiddleware(getJWTSecret()), func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
@@ -130,8 +141,8 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 		})
 	})
 
-	// Update a user by ID
-	router.PUT("/users/:id", func(c *gin.Context) {
+	// Update a user by ID (protected - requires authentication)
+	router.PUT("/users/:id", middleware.AuthMiddleware(getJWTSecret()), func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
@@ -181,8 +192,8 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 		})
 	})
 
-	// Delete a user by ID
-	router.DELETE("/users/:id", func(c *gin.Context) {
+	// Delete a user by ID (protected - requires admin)
+	router.DELETE("/users/:id", middleware.AuthMiddleware(getJWTSecret()), middleware.AdminMiddleware(), func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
