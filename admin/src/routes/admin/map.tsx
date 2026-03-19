@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { MapFlow } from '../../components/MapFlow'
 import { ZLevelSelector } from '../../components/ZLevelSelector'
 import { DirectionPickerModal } from '../../components/DirectionPickerModal'
+import { RoomEditPanel } from '../../components/RoomEditPanel'
 import type { Node, Edge, Connection } from '@xyflow/react'
 
 export const Route = createFileRoute('/admin/map')({
@@ -224,10 +225,26 @@ function MapBuilder() {
     setNodes(nds => [...nds, newNode])
   }
 
-  const getRoomData = (node: Node | null): MapRoomData => {
-    if (!node) return { name: '', description: '', zLevel: 0 }
-    return node.data as MapRoomData
-  }
+  // Handle updating node from RoomEditPanel
+  const handleUpdateNode = useCallback((nodeId: string, data: Record<string, unknown>) => {
+    setNodes(nds => nds.map(n => 
+      n.id === nodeId 
+        ? { ...n, data: { ...n.data, ...data } }
+        : n
+    ))
+    setSelectedNode(prev => prev ? { ...prev, data: { ...prev.data, ...data } } : null)
+  }, [])
+
+  // Handle deleting node from RoomEditPanel
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    setNodes(nds => nds.filter(n => n.id !== nodeId))
+    setEdges(eds => eds.filter(e => e.source !== nodeId && e.target !== nodeId))
+    setSelectedNode(null)
+  }, [])
+
+  const handleClosePanel = useCallback(() => {
+    setSelectedNode(null)
+  }, [])
 
   return (
     <div className="management-page">
@@ -256,73 +273,15 @@ function MapBuilder() {
           />
         </div>
 
+        {/* Room Edit Panel - Using the new component */}
         {selectedNode && (
-          <div className="map-sidebar" style={{ 
-            width: '280px', 
-            padding: '16px', 
-            background: '#222', 
-            borderRadius: '8px',
-            border: '1px solid #444'
-          }}>
-            <h3>Room Details</h3>
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '4px' }}>Name:</label>
-              <input 
-                type="text" 
-                value={getRoomData(selectedNode).name}
-                onChange={(e) => {
-                  const newData = { ...getRoomData(selectedNode), name: e.target.value }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
-                }}
-                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff' }}
-              />
-            </div>
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '4px' }}>Description:</label>
-              <textarea 
-                value={getRoomData(selectedNode).description}
-                onChange={(e) => {
-                  const newData = { ...getRoomData(selectedNode), description: e.target.value }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
-                }}
-                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff', minHeight: '60px' }}
-              />
-            </div>
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '4px' }}>Z-Level:</label>
-              <select 
-                value={getRoomData(selectedNode).zLevel}
-                onChange={(e) => {
-                  const zLevel = parseInt(e.target.value)
-                  const newData = { ...getRoomData(selectedNode), zLevel }
-                  setNodes(nds => nds.map(n => 
-                    n.id === selectedNode.id 
-                      ? { ...n, data: newData }
-                      : n
-                  ))
-                  setSelectedNode({ ...selectedNode, data: newData })
-                }}
-                style={{ width: '100%', padding: '6px', background: '#333', border: '1px solid #555', color: '#fff' }}
-              >
-                <option value={-2}>Z: -2 (Deep Underground)</option>
-                <option value={-1}>Z: -1 (Underground)</option>
-                <option value={0}>Z: 0 (Ground)</option>
-                <option value={1}>Z: 1 (Upper Floor)</option>
-                <option value={2}>Z: 2 (Tower)</option>
-              </select>
-            </div>
-            <p style={{ fontSize: '12px', color: '#888' }}>Node ID: {selectedNode.id}</p>
-          </div>
+          <RoomEditPanel
+            selectedNode={selectedNode}
+            onUpdateNode={handleUpdateNode}
+            onDeleteNode={handleDeleteNode}
+            onClose={handleClosePanel}
+            edges={edges as { id: string; source: string; target: string; label?: string }[]}
+          />
         )}
       </div>
 
