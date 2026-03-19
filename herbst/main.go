@@ -410,6 +410,16 @@ func (m *model) styledMessage(msg string) string {
 }
 
 // styleMessage returns a styled message based on message type (standalone helper)
+// combatDamageStyle for damage messages (red)
+var combatDamageStyle = lipgloss.NewStyle().
+	Foreground(red).
+	Bold(true)
+
+// combatHealStyle for healing messages (green)
+var combatHealStyle = lipgloss.NewStyle().
+	Foreground(green).
+	Bold(true)
+
 func styleMessage(msg string, msgType string) string {
 	if msg == "" {
 		return ""
@@ -422,6 +432,12 @@ func styleMessage(msg string, msgType string) string {
 		return errorStyle.Render("✗ ") + msg
 	case "info":
 		return infoStyle.Render("ℹ ") + msg
+	case "damage":
+		// Combat damage: red text with ⚔ prefix
+		return combatDamageStyle.Render("⚔ ") + msg
+	case "heal":
+		// Combat healing: green text with ♥ prefix
+		return combatHealStyle.Render("♥ ") + msg
 	default:
 		return msg
 	}
