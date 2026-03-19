@@ -116,6 +116,20 @@ func main() {
 					// Force TrueColor for this session
 					lipgloss.SetColorProfile(termenv.TrueColor)
 
+					// Get terminal size from SSH session
+					pty, winCh, ok := s.Pty()
+					var initialWidth, initialHeight int
+					if ok {
+						initialWidth = pty.Window.Width
+						initialHeight = pty.Window.Height
+						log.Printf("PTY size: %dx%d", initialWidth, initialHeight)
+					} else {
+						// Fallback if no PTY
+						initialWidth = 80
+						initialHeight = 24
+						log.Printf("No PTY, using default size: %dx%d", initialWidth, initialHeight)
+					}
+
 					// Create initial text input for login/register
 					ti := textinput.New()
 					ti.Placeholder = "Enter choice..."
@@ -126,22 +140,37 @@ func main() {
 					sp.Spinner = spinner.Dot
 					sp.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
+					// Create model with initial size
+					m := &model{
+						connectedAt:  time.Now(),
+						session:      s,
+						client:       client,
+						screen:       ScreenWelcome,
+						currentRoom:  StartingRoomID,
+						textInput:    ti,
+						spinner:      sp,
+						visitedRooms: make(map[int]bool),
+						knownExits:   make(map[string]bool),
+						width:        initialWidth,
+						height:       initialHeight,
+					}
+
 					// Create program with shared client
 					p := tea.NewProgram(
-						&model{
-							connectedAt:  time.Now(),
-							session:      s,
-							client:       client,
-							screen:       ScreenWelcome,
-							currentRoom:  StartingRoomID,
-							textInput:    ti,
-							spinner:      sp,
-							visitedRooms: make(map[int]bool),
-							knownExits:   make(map[string]bool),
-						},
+						m,
 						tea.WithInput(s),
 						tea.WithOutput(s),
+						tea.WithAltScreen(), // Full-screen mode
 					)
+
+					// Handle window resize events from SSH (only if PTY was allocated)
+					if ok && winCh != nil {
+						go func() {
+							for win := range winCh {
+								p.Send(tea.WindowSizeMsg{Width: win.Width, Height: win.Height})
+							}
+						}()
+					}
 
 					if _, err := p.Run(); err != nil {
 						log.Printf("Bubbletea error: %v", err)
@@ -485,6 +514,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		// Debug logging only in debug mode to avoid noise
+		if m.debugMode {
+			log.Printf("DEBUG: Window size changed: %dx%d", m.width, m.height)
+		}
 
 	case spinner.TickMsg:
 		// Update spinner if loading
@@ -2231,10 +2264,18 @@ func (m *model) View() string {
 		// Ensure we have valid dimensions - if not, use defaults
 		width := m.width
 		height := m.height
+		
+		// Debug: log the actual dimensions being used
+		if m.debugMode {
+			log.Printf("ScreenPlaying: terminal dimensions: %dx%d (raw: %dx%d)", width, height, m.width, m.height)
+		}
+		
 		if width < 40 {
+			log.Printf("WARNING: width too small (%d), defaulting to 80", width)
 			width = 80
 		}
 		if height < 10 {
+			log.Printf("WARNING: height too small (%d), defaulting to 24", height)
 			height = 24
 		}
 
@@ -2258,7 +2299,7 @@ func (m *model) View() string {
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(pink).
 			Padding(0, 1).
-			Width(width - 2).          // Account for border
+			Width(width).
 			Height(viewportHeight - 2) // Account for border
 
 		// Colorful status bar with mini progress bars
@@ -2285,18 +2326,14 @@ func (m *model) View() string {
 		s.WriteString(outputStyle.Render(roomInfo))
 		s.WriteString("\n")
 
-		// Full-width status bar separator (middle ~10%)
-		separatorStyle := lipgloss.NewStyle().
+		// Full-width status bar (middle ~10%)
+		statusBarStyle := lipgloss.NewStyle().
 			Foreground(pink).
+			Background(lipgloss.Color("235")).
 			Bold(true).
-			Width(width)
-		separatorLine := separatorStyle.Render(strings.Repeat("─", width-2))
-		s.WriteString(separatorLine)
-		s.WriteString("\n")
-		// Stats go in the actual status bar (middle panel)
-		s.WriteString(separatorStyle.Align(lipgloss.Center).Render(statsLine + debugInfo))
-		s.WriteString("\n")
-		s.WriteString(separatorLine)
+			Width(width).
+			Padding(0, 1)
+		s.WriteString(statusBarStyle.Render(statsLine + debugInfo))
 		s.WriteString("\n")
 
 		// Full-width input area (bottom ~20%)
@@ -2304,7 +2341,7 @@ func (m *model) View() string {
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(pink).
 			Padding(0, 1).
-			Width(width - 2).
+			Width(width).
 			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 

@@ -49,6 +49,22 @@ func (Equipment) Fields() []ent.Field {
 		field.String("revealCondition").
 			Default("").
 			Comment("JSON: {type: examine|perception_check|use_item|event, target, minLevel}"),
+		// Weapon fields (GitHub #92)
+		field.Int("minDamage").
+			Default(0).
+			Comment("Minimum damage for weapons"),
+		field.Int("maxDamage").
+			Default(0).
+			Comment("Maximum damage for weapons"),
+		field.String("weaponType").
+			Default("").
+			Comment("Type of weapon: sword, dagger, staff, etc."),
+		field.String("classRestriction").
+			Default("").
+			Comment("Class that can use this weapon"),
+		field.Bool("guaranteedDrop").
+			Default(false).
+			Comment("Always drops from certain NPCs"),
 	}
 }
 

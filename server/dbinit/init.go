@@ -678,7 +678,7 @@ func InitAvailableTalentsForCharacter(client *db.Client, charID int, charClass s
 		// Check if already available
 		existing, err := client.AvailableTalent.Query().
 			Where(availabletalent.HasCharacterWith(character.ID(charID))).
-			Where(availabletalent.HasTalentWith(availabletalent.TalentIDEQ(talentObj.ID))).
+			Where(availabletalent.HasTalentWith(talent.IDEQ(talentObj.ID))).
 			Exist(ctx)
 		if err == nil && existing {
 			continue

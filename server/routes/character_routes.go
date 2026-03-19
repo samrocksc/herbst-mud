@@ -15,6 +15,7 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/room"
+	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -959,8 +960,8 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 	})
 
 	// Get NPCs in a specific room
-	router.GET("/rooms/:roomId/npcs", func(c *gin.Context) {
-		roomId, err := strconv.Atoi(c.Param("roomId"))
+	router.GET("/npcs/room/:id", func(c *gin.Context) {
+		roomId, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 			return
@@ -1041,11 +1042,10 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Query talents for this character using query chain
-		charTalents, err := client.CharacterTalent.Query().
-			QueryCharacter().
+		// Query talents for this character
+		charTalents, err := client.Character.Query().
 			Where(character.ID(id)).
-			QueryCharacterTalent().
+			QueryTalents().
 			WithTalent().
 			All(c.Request.Context())
 
@@ -1113,10 +1113,9 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// Remove any existing talent in this slot
-		existing, err := client.CharacterTalent.Query().
-			QueryCharacter().
+		existing, err := client.Character.Query().
 			Where(character.ID(id)).
-			QueryCharacterTalent().
+			QueryTalents().
 			Where(charactertalent.SlotEQ(req.Slot)).
 			All(c.Request.Context())
 
@@ -1148,7 +1147,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusCreated, gin.H{
 			"success":     true,
 			"slot":        charTalent.Slot,
-			"talent_id":   charTalent.TalentID,
+			"talent_id":   req.TalentID,
 			"talent_name": talentName,
 		})
 	})
@@ -1168,10 +1167,9 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// Find and delete the talent in this slot
-		charTalents, err := client.CharacterTalent.Query().
-			QueryCharacter().
+		charTalents, err := client.Character.Query().
 			Where(character.ID(id)).
-			QueryCharacterTalent().
+			QueryTalents().
 			Where(charactertalent.SlotEQ(slot)).
 			All(c.Request.Context())
 
@@ -1211,12 +1209,11 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Get talents in both slots using query chain
+		// Get talents in both slots
 		getTalentInSlot := func(slot int) (int, string) {
-			cts, err := client.CharacterTalent.Query().
-				QueryCharacter().
+			cts, err := client.Character.Query().
 				Where(character.ID(id)).
-				QueryCharacterTalent().
+				QueryTalents().
 				Where(charactertalent.SlotEQ(slot)).
 				WithTalent().
 				All(c.Request.Context())
@@ -1236,10 +1233,9 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 
 		// Clear both slots
 		for _, slot := range []int{req.Slot1, req.Slot2} {
-			cts, _ := client.CharacterTalent.Query().
-				QueryCharacter().
+			cts, _ := client.Character.Query().
 				Where(character.ID(id)).
-				QueryCharacterTalent().
+				QueryTalents().
 				Where(charactertalent.SlotEQ(slot)).
 				All(c.Request.Context())
 
@@ -1307,13 +1303,15 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		for i, at := range availableTalents {
 			talentName := ""
 			talentDesc := ""
+			talentID := 0
 			if at.Edges.Talent != nil {
+				talentID = at.Edges.Talent.ID
 				talentName = at.Edges.Talent.Name
 				talentDesc = at.Edges.Talent.Description
 			}
 			result[i] = gin.H{
 				"id":              at.ID,
-				"talent_id":       at.TalentID,
+				"talent_id":       talentID,
 				"name":            talentName,
 				"description":     talentDesc,
 				"unlock_reason":   at.UnlockReason,
@@ -1359,7 +1357,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// Verify talent exists
-		talent, err := client.Talent.Get(c.Request.Context(), req.TalentID)
+		talentObj, err := client.Talent.Get(c.Request.Context(), req.TalentID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Talent not found"})
 			return
@@ -1368,7 +1366,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		// Check if already available
 		existing, err := client.AvailableTalent.Query().
 			Where(availabletalent.HasCharacterWith(character.ID(id))).
-			Where(availabletalent.HasTalentWith(availabletalent.TalentIDEQ(req.TalentID))).
+			Where(availabletalent.HasTalentWith(talent.IDEQ(talentObj.ID))).
 			Exist(c.Request.Context())
 
 		if err == nil && existing {
@@ -1392,10 +1390,10 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusCreated, gin.H{
 			"success":            true,
 			"id":                 availableTalent.ID,
-			"talent_id":         availableTalent.TalentID,
-			"talent_name":       talent.Name,
-			"unlock_reason":     availableTalent.UnlockReason,
-			"unlocked_at_level": availableTalent.UnlockedAtLevel,
+			"talent_id":          req.TalentID,
+			"talent_name":        talentObj.Name,
+			"unlock_reason":      availableTalent.UnlockReason,
+			"unlocked_at_level":  availableTalent.UnlockedAtLevel,
 		})
 	})
 
@@ -1416,7 +1414,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		// Find and delete the available talent
 		availableTalent, err := client.AvailableTalent.Query().
 			Where(availabletalent.HasCharacterWith(character.ID(id))).
-			Where(availabletalent.TalentIDEQ(talentId)).
+			Where(availabletalent.HasTalentWith(talent.IDEQ(talentId))).
 			Only(c.Request.Context())
 
 		if err != nil {

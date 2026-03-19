@@ -170,6 +170,20 @@ func (_c *EquipmentCreate) SetNillableHiddenThreshold(v *int) *EquipmentCreate {
 	return _c
 }
 
+// SetRevealCondition sets the "revealCondition" field.
+func (_c *EquipmentCreate) SetRevealCondition(v string) *EquipmentCreate {
+	_c.mutation.SetRevealCondition(v)
+	return _c
+}
+
+// SetNillableRevealCondition sets the "revealCondition" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableRevealCondition(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetRevealCondition(*v)
+	}
+	return _c
+}
+
 // SetMinDamage sets the "minDamage" field.
 func (_c *EquipmentCreate) SetMinDamage(v int) *EquipmentCreate {
 	_c.mutation.SetMinDamage(v)
@@ -334,6 +348,10 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultHiddenThreshold
 		_c.mutation.SetHiddenThreshold(v)
 	}
+	if _, ok := _c.mutation.RevealCondition(); !ok {
+		v := equipment.DefaultRevealCondition
+		_c.mutation.SetRevealCondition(v)
+	}
 	if _, ok := _c.mutation.MinDamage(); !ok {
 		v := equipment.DefaultMinDamage
 		_c.mutation.SetMinDamage(v)
@@ -396,6 +414,9 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.HiddenThreshold(); !ok {
 		return &ValidationError{Name: "hiddenThreshold", err: errors.New(`db: missing required field "Equipment.hiddenThreshold"`)}
+	}
+	if _, ok := _c.mutation.RevealCondition(); !ok {
+		return &ValidationError{Name: "revealCondition", err: errors.New(`db: missing required field "Equipment.revealCondition"`)}
 	}
 	if _, ok := _c.mutation.MinDamage(); !ok {
 		return &ValidationError{Name: "minDamage", err: errors.New(`db: missing required field "Equipment.minDamage"`)}
@@ -489,6 +510,10 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.HiddenThreshold(); ok {
 		_spec.SetField(equipment.FieldHiddenThreshold, field.TypeInt, value)
 		_node.HiddenThreshold = value
+	}
+	if value, ok := _c.mutation.RevealCondition(); ok {
+		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
+		_node.RevealCondition = value
 	}
 	if value, ok := _c.mutation.MinDamage(); ok {
 		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)

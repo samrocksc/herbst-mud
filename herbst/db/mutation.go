@@ -2981,6 +2981,7 @@ type EquipmentMutation struct {
 	appendhiddenDetails []map[string]interface{}
 	hiddenThreshold     *int
 	addhiddenThreshold  *int
+	revealCondition     *string
 	minDamage           *int
 	addminDamage        *int
 	maxDamage           *int
@@ -3637,6 +3638,42 @@ func (m *EquipmentMutation) ResetHiddenThreshold() {
 	m.addhiddenThreshold = nil
 }
 
+// SetRevealCondition sets the "revealCondition" field.
+func (m *EquipmentMutation) SetRevealCondition(s string) {
+	m.revealCondition = &s
+}
+
+// RevealCondition returns the value of the "revealCondition" field in the mutation.
+func (m *EquipmentMutation) RevealCondition() (r string, exists bool) {
+	v := m.revealCondition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevealCondition returns the old "revealCondition" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldRevealCondition(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevealCondition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevealCondition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevealCondition: %w", err)
+	}
+	return oldValue.RevealCondition, nil
+}
+
+// ResetRevealCondition resets all changes to the "revealCondition" field.
+func (m *EquipmentMutation) ResetRevealCondition() {
+	m.revealCondition = nil
+}
+
 // SetMinDamage sets the "minDamage" field.
 func (m *EquipmentMutation) SetMinDamage(i int) {
 	m.minDamage = &i
@@ -3930,7 +3967,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -3969,6 +4006,9 @@ func (m *EquipmentMutation) Fields() []string {
 	}
 	if m.hiddenThreshold != nil {
 		fields = append(fields, equipment.FieldHiddenThreshold)
+	}
+	if m.revealCondition != nil {
+		fields = append(fields, equipment.FieldRevealCondition)
 	}
 	if m.minDamage != nil {
 		fields = append(fields, equipment.FieldMinDamage)
@@ -4019,6 +4059,8 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.HiddenDetails()
 	case equipment.FieldHiddenThreshold:
 		return m.HiddenThreshold()
+	case equipment.FieldRevealCondition:
+		return m.RevealCondition()
 	case equipment.FieldMinDamage:
 		return m.MinDamage()
 	case equipment.FieldMaxDamage:
@@ -4064,6 +4106,8 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldHiddenDetails(ctx)
 	case equipment.FieldHiddenThreshold:
 		return m.OldHiddenThreshold(ctx)
+	case equipment.FieldRevealCondition:
+		return m.OldRevealCondition(ctx)
 	case equipment.FieldMinDamage:
 		return m.OldMinDamage(ctx)
 	case equipment.FieldMaxDamage:
@@ -4173,6 +4217,13 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHiddenThreshold(v)
+		return nil
+	case equipment.FieldRevealCondition:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevealCondition(v)
 		return nil
 	case equipment.FieldMinDamage:
 		v, ok := value.(int)
@@ -4359,6 +4410,9 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldHiddenThreshold:
 		m.ResetHiddenThreshold()
+		return nil
+	case equipment.FieldRevealCondition:
+		m.ResetRevealCondition()
 		return nil
 	case equipment.FieldMinDamage:
 		m.ResetMinDamage()

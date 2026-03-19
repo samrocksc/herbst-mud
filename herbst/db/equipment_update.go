@@ -230,6 +230,20 @@ func (_u *EquipmentUpdate) AddHiddenThreshold(v int) *EquipmentUpdate {
 	return _u
 }
 
+// SetRevealCondition sets the "revealCondition" field.
+func (_u *EquipmentUpdate) SetRevealCondition(v string) *EquipmentUpdate {
+	_u.mutation.SetRevealCondition(v)
+	return _u
+}
+
+// SetNillableRevealCondition sets the "revealCondition" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableRevealCondition(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetRevealCondition(*v)
+	}
+	return _u
+}
+
 // SetMinDamage sets the "minDamage" field.
 func (_u *EquipmentUpdate) SetMinDamage(v int) *EquipmentUpdate {
 	_u.mutation.ResetMinDamage()
@@ -432,6 +446,9 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedHiddenThreshold(); ok {
 		_spec.AddField(equipment.FieldHiddenThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RevealCondition(); ok {
+		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.MinDamage(); ok {
 		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)
@@ -704,6 +721,20 @@ func (_u *EquipmentUpdateOne) AddHiddenThreshold(v int) *EquipmentUpdateOne {
 	return _u
 }
 
+// SetRevealCondition sets the "revealCondition" field.
+func (_u *EquipmentUpdateOne) SetRevealCondition(v string) *EquipmentUpdateOne {
+	_u.mutation.SetRevealCondition(v)
+	return _u
+}
+
+// SetNillableRevealCondition sets the "revealCondition" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableRevealCondition(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetRevealCondition(*v)
+	}
+	return _u
+}
+
 // SetMinDamage sets the "minDamage" field.
 func (_u *EquipmentUpdateOne) SetMinDamage(v int) *EquipmentUpdateOne {
 	_u.mutation.ResetMinDamage()
@@ -936,6 +967,9 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if value, ok := _u.mutation.AddedHiddenThreshold(); ok {
 		_spec.AddField(equipment.FieldHiddenThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RevealCondition(); ok {
+		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.MinDamage(); ok {
 		_spec.SetField(equipment.FieldMinDamage, field.TypeInt, value)

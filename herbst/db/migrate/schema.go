@@ -108,6 +108,7 @@ var (
 		{Name: "examine_desc", Type: field.TypeString, Default: ""},
 		{Name: "hidden_details", Type: field.TypeJSON},
 		{Name: "hidden_threshold", Type: field.TypeInt, Default: 0},
+		{Name: "reveal_condition", Type: field.TypeString, Default: ""},
 		{Name: "min_damage", Type: field.TypeInt, Default: 0},
 		{Name: "max_damage", Type: field.TypeInt, Default: 0},
 		{Name: "weapon_type", Type: field.TypeString, Default: ""},
@@ -123,7 +124,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[19]},
+				Columns:    []*schema.Column{EquipmentColumns[20]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

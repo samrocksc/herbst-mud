@@ -114,6 +114,11 @@ func HiddenThreshold(v int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldHiddenThreshold, v))
 }
 
+// RevealCondition applies equality check predicate on the "revealCondition" field. It's identical to RevealConditionEQ.
+func RevealCondition(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldRevealCondition, v))
+}
+
 // MinDamage applies equality check predicate on the "minDamage" field. It's identical to MinDamageEQ.
 func MinDamage(v int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldMinDamage, v))
@@ -677,6 +682,71 @@ func HiddenThresholdLT(v int) predicate.Equipment {
 // HiddenThresholdLTE applies the LTE predicate on the "hiddenThreshold" field.
 func HiddenThresholdLTE(v int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldLTE(FieldHiddenThreshold, v))
+}
+
+// RevealConditionEQ applies the EQ predicate on the "revealCondition" field.
+func RevealConditionEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldRevealCondition, v))
+}
+
+// RevealConditionNEQ applies the NEQ predicate on the "revealCondition" field.
+func RevealConditionNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldRevealCondition, v))
+}
+
+// RevealConditionIn applies the In predicate on the "revealCondition" field.
+func RevealConditionIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldRevealCondition, vs...))
+}
+
+// RevealConditionNotIn applies the NotIn predicate on the "revealCondition" field.
+func RevealConditionNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldRevealCondition, vs...))
+}
+
+// RevealConditionGT applies the GT predicate on the "revealCondition" field.
+func RevealConditionGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldRevealCondition, v))
+}
+
+// RevealConditionGTE applies the GTE predicate on the "revealCondition" field.
+func RevealConditionGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldRevealCondition, v))
+}
+
+// RevealConditionLT applies the LT predicate on the "revealCondition" field.
+func RevealConditionLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldRevealCondition, v))
+}
+
+// RevealConditionLTE applies the LTE predicate on the "revealCondition" field.
+func RevealConditionLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldRevealCondition, v))
+}
+
+// RevealConditionContains applies the Contains predicate on the "revealCondition" field.
+func RevealConditionContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldRevealCondition, v))
+}
+
+// RevealConditionHasPrefix applies the HasPrefix predicate on the "revealCondition" field.
+func RevealConditionHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldRevealCondition, v))
+}
+
+// RevealConditionHasSuffix applies the HasSuffix predicate on the "revealCondition" field.
+func RevealConditionHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldRevealCondition, v))
+}
+
+// RevealConditionEqualFold applies the EqualFold predicate on the "revealCondition" field.
+func RevealConditionEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldRevealCondition, v))
+}
+
+// RevealConditionContainsFold applies the ContainsFold predicate on the "revealCondition" field.
+func RevealConditionContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldRevealCondition, v))
 }
 
 // MinDamageEQ applies the EQ predicate on the "minDamage" field.

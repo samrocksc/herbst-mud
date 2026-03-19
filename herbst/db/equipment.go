@@ -44,16 +44,18 @@ type Equipment struct {
 	HiddenDetails []map[string]interface{} `json:"hiddenDetails,omitempty"`
 	// Examine skill required to reveal hidden details
 	HiddenThreshold int `json:"hiddenThreshold,omitempty"`
+	// JSON: {type: examine|perception_check|use_item|event, target, minLevel}
+	RevealCondition string `json:"revealCondition,omitempty"`
 	// Minimum damage for weapons
 	MinDamage int `json:"minDamage,omitempty"`
 	// Maximum damage for weapons
 	MaxDamage int `json:"maxDamage,omitempty"`
-	// Weapon type: sword, dagger, pipe, staff, etc.
+	// Type of weapon: sword, dagger, staff, etc.
 	WeaponType string `json:"weaponType,omitempty"`
+	// Class that can use this weapon
+	ClassRestriction string `json:"classRestriction,omitempty"`
 	// Always drops from certain NPCs
 	GuaranteedDrop bool `json:"guaranteedDrop,omitempty"`
-	// Class that can use this weapon: warrior, chef, etc.
-	ClassRestriction string `json:"classRestriction,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges          EquipmentEdges `json:"edges"`
@@ -92,7 +94,7 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldHiddenThreshold, equipment.FieldMinDamage, equipment.FieldMaxDamage:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldExamineDesc, equipment.FieldWeaponType, equipment.FieldClassRestriction:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldExamineDesc, equipment.FieldRevealCondition, equipment.FieldWeaponType, equipment.FieldClassRestriction:
 			values[i] = new(sql.NullString)
 		case equipment.ForeignKeys[0]: // room_equipment
 			values[i] = new(sql.NullInt64)
@@ -197,6 +199,12 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.HiddenThreshold = int(value.Int64)
 			}
+		case equipment.FieldRevealCondition:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field revealCondition", values[i])
+			} else if value.Valid {
+				_m.RevealCondition = value.String
+			}
 		case equipment.FieldMinDamage:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field minDamage", values[i])
@@ -215,17 +223,17 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.WeaponType = value.String
 			}
-		case equipment.FieldGuaranteedDrop:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field guaranteedDrop", values[i])
-			} else if value.Valid {
-				_m.GuaranteedDrop = value.Bool
-			}
 		case equipment.FieldClassRestriction:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field classRestriction", values[i])
 			} else if value.Valid {
 				_m.ClassRestriction = value.String
+			}
+		case equipment.FieldGuaranteedDrop:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field guaranteedDrop", values[i])
+			} else if value.Valid {
+				_m.GuaranteedDrop = value.Bool
 			}
 		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -314,6 +322,9 @@ func (_m *Equipment) String() string {
 	builder.WriteString("hiddenThreshold=")
 	builder.WriteString(fmt.Sprintf("%v", _m.HiddenThreshold))
 	builder.WriteString(", ")
+	builder.WriteString("revealCondition=")
+	builder.WriteString(_m.RevealCondition)
+	builder.WriteString(", ")
 	builder.WriteString("minDamage=")
 	builder.WriteString(fmt.Sprintf("%v", _m.MinDamage))
 	builder.WriteString(", ")
@@ -323,11 +334,11 @@ func (_m *Equipment) String() string {
 	builder.WriteString("weaponType=")
 	builder.WriteString(_m.WeaponType)
 	builder.WriteString(", ")
-	builder.WriteString("guaranteedDrop=")
-	builder.WriteString(fmt.Sprintf("%v", _m.GuaranteedDrop))
-	builder.WriteString(", ")
 	builder.WriteString("classRestriction=")
 	builder.WriteString(_m.ClassRestriction)
+	builder.WriteString(", ")
+	builder.WriteString("guaranteedDrop=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GuaranteedDrop))
 	builder.WriteByte(')')
 	return builder.String()
 }
