@@ -30,7 +30,7 @@ const directionEmoji: Record<string, string> = {
   down: '⬇',
 }
 
-const directionColor = (direction: string, isZExit?: boolean): string => {
+export const directionColor = (direction: string, isZExit?: boolean): string => {
   if (isZExit) {
     return '#ff6b6b' // Red for Z-axis exits
   }
