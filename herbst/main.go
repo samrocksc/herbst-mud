@@ -154,6 +154,7 @@ func main() {
 						knownExits:   make(map[string]bool),
 						width:        initialWidth,
 						height:       initialHeight,
+						maxHistory:   50,
 					}
 
 					// Create program with shared client
@@ -265,6 +266,13 @@ type model struct {
 
 	// Debug mode - shows room ID in status bar
 	debugMode bool
+
+	// Message history buffer for output pane (UI-21)
+	messageHistory  []string // all messages (oldest → newest)
+	messageTypes    []string // parallel array with message types
+	historyOffset   int      // 0 = at latest (pinned), scrolls up into history
+	maxHistory      int      // max messages to keep
+	isScrolling     bool     // true when user has scrolled away from bottom
 }
 
 // RoomItem represents an item in a room for display
@@ -502,6 +510,49 @@ func styleMessage(msg string, msgType string) string {
 	}
 }
 
+// AppendMessage adds a message to the history buffer (UI-21 message history)
+func (m *model) AppendMessage(text, msgType string) {
+	m.messageHistory = append(m.messageHistory, text)
+	m.messageTypes = append(m.messageTypes, msgType)
+	if len(m.messageHistory) > m.maxHistory {
+		m.messageHistory = m.messageHistory[len(m.messageHistory)-m.maxHistory:]
+		m.messageTypes = m.messageTypes[len(m.messageTypes)-m.maxHistory:]
+	}
+	m.historyOffset = 0
+	m.isScrolling = false
+}
+
+// buildOutputContent constructs the message history content for display
+func (m *model) buildOutputContent() string {
+	total := len(m.messageHistory)
+	if total == 0 {
+		return ""
+	}
+
+	var lines []string
+
+	if !m.isScrolling {
+		// Show last 3 messages (or fewer)
+		start := 0
+		if total > 3 {
+			start = total - 3
+		}
+		for i := start; i < total; i++ {
+			lines = append(lines, styleMessage(m.messageHistory[i], m.messageTypes[i]))
+		}
+	} else {
+		// Scrolled up: show from historyOffset toward newest (excluding latest, which is pinned)
+		for i := m.historyOffset; i < total-1; i++ {
+			lines = append(lines, styleMessage(m.messageHistory[i], m.messageTypes[i]))
+		}
+		// Latest pinned at bottom with ─── NEWEST ─── marker
+		lines = append(lines, "─── NEWEST ───")
+		lines = append(lines, styleMessage(m.messageHistory[total-1], m.messageTypes[total-1]))
+	}
+
+	return strings.Join(lines, "\n\n")
+}
+
 // formatExitsWithColor returns color-coded exits
 func (m *model) formatExitsWithColor() string {
 	if len(m.exits) == 0 {
@@ -596,6 +647,36 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// continue so textinput and other screen-specific handlers also get the event.
 		}
 
+		// Message history scrolling (ctrl+k up, ctrl+j down) - must intercept BEFORE Enter
+		if m.screen == ScreenPlaying {
+			switch key {
+			case "ctrl+k":
+				// Scroll up (older messages)
+				if !m.isScrolling {
+					m.isScrolling = true
+					m.historyOffset = 1
+				} else {
+					m.historyOffset++
+				}
+				maxOffset := len(m.messageHistory) - 1
+				if m.historyOffset > maxOffset {
+					m.historyOffset = maxOffset
+				}
+				return m, nil
+			case "ctrl+j":
+				// Scroll down (newer messages) - DO NOT process as Enter here
+				if !m.isScrolling {
+					return m, nil
+				}
+				m.historyOffset--
+				if m.historyOffset < 0 {
+					m.historyOffset = 0
+					m.isScrolling = false
+				}
+				return m, nil
+			}
+		}
+
 		// Vim-style navigation and arrow keys for menu selection
 		if m.screen == ScreenWelcome || m.screen == ScreenProfile {
 			if key == "j" || key == "down" {
@@ -615,7 +696,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Handle Enter key - process command based on screen
-		if key == "enter" || key == "ctrl+j" || key == "ctrl+m" {
+		if key == "enter" || key == "ctrl+m" {
 			input := m.textInput.Value()
 			m.textInput.SetValue("")
 			// Debug: log.Printf("Enter pressed, calling processInput with: %q", input)
@@ -649,8 +730,7 @@ func (m *model) handleEscape() {
 		m.loginUsername = ""
 		m.loginPassword = ""
 		m.inputField = "username"
-		m.message = ""
-		m.messageType = "info"
+		m.AppendMessage("", "")
 		// Re-initialize menu items for welcome screen
 		m.menuItems = []string{"Login", "Register", "Quit"}
 		m.menuCursor = 0
@@ -658,12 +738,10 @@ func (m *model) handleEscape() {
 		m.screen = ScreenPlaying
 		m.textInput.SetValue("")
 		m.inputBuffer = ""
-		m.message = ""
-		m.messageType = "info"
+		m.AppendMessage("", "")
 	case ScreenPlaying:
 		// Could add a "really quit?" confirmation
-		m.message = "Type 'quit' or press Ctrl+C to exit"
-		m.messageType = "info"
+		m.AppendMessage("Type 'quit' or press Ctrl+C to exit", "info")
 	}
 }
 
@@ -702,26 +780,22 @@ func (m *model) handleWelcomeInput(input string) {
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
-		m.message = "Enter your username:"
-		m.messageType = "info"
+		m.AppendMessage("Enter your username:", "info")
 		m.textInput.Focus()
 	case "2", "register", "r", "create":
 		m.screen = ScreenRegister
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
-		m.message = "Choose a username:"
-		m.messageType = "info"
+		m.AppendMessage("Choose a username:", "info")
 		m.textInput.Focus()
 	case "3", "quit", "q":
-		m.message = "Goodbye! Thanks for playing Herbst MUD."
-		m.messageType = "success"
+		m.AppendMessage("Goodbye! Thanks for playing Herbst MUD.", "success")
 		m.inputBuffer = ""
 		return
 	default:
 		if input != "" {
-			m.message = "Invalid choice. Type 1, 2, or 3"
-			m.messageType = "error"
+			m.AppendMessage("Invalid choice. Type 1, 2, or 3", "error")
 		}
 	}
 }
@@ -730,8 +804,7 @@ func (m *model) handleLoginInput(input string) {
 	if m.inputField == "username" {
 		m.loginUsername = input
 		m.inputField = "password"
-		m.message = "Enter your password:"
-		m.messageType = "info"
+		m.AppendMessage("Enter your password:", "info")
 		m.textInput.EchoMode = textinput.EchoPassword
 		m.textInput.Focus()
 	} else if m.inputField == "password" {
@@ -760,16 +833,14 @@ func (m *model) attemptLogin() {
 
 	if err != nil {
 		// Debug: log.Printf("Connection error: %v", err)
-		m.message = fmt.Sprintf("Connection error: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Connection error: %v", err), "error")
 		return
 	}
 	defer resp.Body.Close()
 
 	// Debug: log.Printf("Auth response status: %d", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK {
-		m.message = "Invalid username or password. Try again."
-		m.messageType = "error"
+		m.AppendMessage("Invalid username or password. Try again.", "error")
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
@@ -779,8 +850,7 @@ func (m *model) attemptLogin() {
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		m.message = fmt.Sprintf("Login error: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Login error: %v", err), "error")
 		return
 	}
 
@@ -794,8 +864,7 @@ func (m *model) attemptLogin() {
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
-	m.message = fmt.Sprintf("Welcome back, %s!", m.currentUserName)
-	m.messageType = "success"
+	m.AppendMessage(fmt.Sprintf("Welcome back, %s!", m.currentUserName), "success")
 
 	// Load or create character for this user
 	m.loadOrCreateCharacter()
@@ -825,31 +894,26 @@ func (m *model) attemptLogin() {
 func (m *model) handleRegisterInput(input string) {
 	if m.inputField == "username" {
 		if input == "" {
-			m.message = "Username cannot be empty. Try again:"
-			m.messageType = "error"
+			m.AppendMessage("Username cannot be empty. Try again:", "error")
 			return
 		}
 		m.loginUsername = input
 		m.inputField = "password"
-		m.message = "Choose a password:"
-		m.messageType = "info"
+		m.AppendMessage("Choose a password:", "info")
 		m.textInput.EchoMode = textinput.EchoPassword
 		m.textInput.Focus()
 	} else if m.inputField == "password" {
 		if input == "" {
-			m.message = "Password cannot be empty. Try again:"
-			m.messageType = "error"
+			m.AppendMessage("Password cannot be empty. Try again:", "error")
 			return
 		}
 		m.loginPassword = input
 		m.inputField = "confirm_password"
-		m.message = "Confirm your password:"
-		m.messageType = "info"
+		m.AppendMessage("Confirm your password:", "info")
 		m.textInput.Focus()
 	} else if m.inputField == "confirm_password" {
 		if input != m.loginPassword {
-			m.message = "Passwords do not match. Try again:"
-			m.messageType = "error"
+			m.AppendMessage("Passwords do not match. Try again:", "error")
 			m.inputField = "password"
 			m.loginPassword = ""
 			m.textInput.EchoMode = textinput.EchoPassword
@@ -857,8 +921,7 @@ func (m *model) handleRegisterInput(input string) {
 			return
 		}
 		m.inputField = "email"
-		m.message = "Enter your email (optional, press enter to skip):"
-		m.messageType = "info"
+		m.AppendMessage("Enter your email (optional, press enter to skip):", "info")
 		m.textInput.EchoMode = textinput.EchoNormal
 		m.textInput.Focus()
 	} else if m.inputField == "email" {
@@ -880,8 +943,7 @@ func (m *model) attemptRegistration(email string) {
 
 	resp, err := http.Post(RESTAPIBase+"/users", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		m.message = fmt.Sprintf("Connection error: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Connection error: %v", err), "error")
 		return
 	}
 	defer resp.Body.Close()
@@ -890,29 +952,25 @@ func (m *model) attemptRegistration(email string) {
 		var errResp map[string]interface{}
 		json.NewDecoder(resp.Body).Decode(&errResp)
 		if errMsg, ok := errResp["error"].(string); ok && (strings.Contains(errMsg, "unique") || strings.Contains(errMsg, "already exists")) {
-			m.message = "Username already taken. Choose a different one."
-			m.messageType = "error"
+			m.AppendMessage("Username already taken. Choose a different one.", "error")
 			m.inputField = "username"
 			m.loginUsername = ""
 			m.loginPassword = ""
 			m.textInput.EchoMode = textinput.EchoNormal
 			return
 		}
-		m.message = "Failed to create account. Please try again."
-		m.messageType = "error"
+		m.AppendMessage("Failed to create account. Please try again.", "error")
 		return
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		m.message = "Failed to create account. Please try again."
-		m.messageType = "error"
+		m.AppendMessage("Failed to create account. Please try again.", "error")
 		return
 	}
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		m.message = fmt.Sprintf("Error processing response: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error processing response: %v", err), "error")
 		return
 	}
 
@@ -926,8 +984,7 @@ func (m *model) attemptRegistration(email string) {
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
-	m.message = fmt.Sprintf("Account created! Welcome to Herbst MUD, %s!", m.currentUserName)
-	m.messageType = "success"
+	m.AppendMessage(fmt.Sprintf("Account created! Welcome to Herbst MUD, %s!", m.currentUserName), "success")
 
 	// Load or create character for this user
 	m.loadOrCreateCharacter()
@@ -1116,7 +1173,7 @@ func (m *model) processCommand(cmd string) {
 	// Handle other commands
 	switch cmd {
 	case "help", "?":
-		m.message = `Commands:
+		m.AppendMessage(`Commands:
   n/north, s/south, e/east, w/west - Move
   look/l - Look around (shows items)
   exits/x - Show exits  
@@ -1128,21 +1185,18 @@ func (m *model) processCommand(cmd string) {
   whoami - Show your info
   profile/p - Edit character profile
   clear/cls - Clear screen
-  quit - Exit game`
-		m.messageType = "info"
+  quit - Exit game`, "info")
 	case "look", "l":
 		m.loadRoomItems()
 		m.loadRoomCharacters()
-		m.message = fmt.Sprintf("[%s]\n%s\n\nExits: %s%s%s",
+		m.AppendMessage(fmt.Sprintf("[%s]\n%s\n\nExits: %s%s%s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
 			m.formatExitsWithColor(),
 			m.formatRoomItems(),
-			m.formatRoomCharacters())
-		m.messageType = "info"
+			m.formatRoomCharacters()), "info")
 	case "exits", "x":
-		m.message = fmt.Sprintf("Exits: %s", m.formatExitsWithColor())
-		m.messageType = "info"
+		m.AppendMessage(fmt.Sprintf("Exits: %s", m.formatExitsWithColor()), "info")
 	case "examine", "ex", "inspect":
 		m.handleExamineCommand(cmd)
 	case "search", "perception":
@@ -1150,31 +1204,30 @@ func (m *model) processCommand(cmd string) {
 		m.handleSearchCommand(cmd)
 	case "whoami":
 		// Show character info including level with progress bars
-		m.message = fmt.Sprintf("=== Character Status ===\nUser: %s (ID: %d)\nRoom: %s\n\n[Level %d - %d XP]\n%s",
+		m.AppendMessage(fmt.Sprintf("=== Character Status ===\nUser: %s (ID: %d)\nRoom: %s\n\n[Level %d - %d XP]\n%s",
 			m.currentUserName, m.currentUserID, m.roomName,
 			m.characterLevel, m.characterExperience,
-			StatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana))
-		m.messageType = "info"
+			StatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)), "info")
 	case "profile", "p":
 		m.screen = ScreenProfile
 		m.menuItems = []string{"Edit Gender", "Edit Description", "Back to Game"}
 		m.menuCursor = 0
-		m.message = ""
-		m.messageType = "info"
+		m.AppendMessage("", "")
 	case "peer":
 		m.handlePeerCommand(cmd)
 	case "debug":
 		m.handleDebugCommand(cmd)
 		return
 	case "clear", "cls":
-		// Clear the terminal screen - reset message buffer
-		m.message = ""
-		m.messageType = ""
+		// Clear message history (UI-21)
+		m.messageHistory = nil
+		m.messageTypes = nil
+		m.historyOffset = 0
+		m.isScrolling = false
 		m.inputBuffer = ""
 		return
 	case "quit", "q":
-		m.message = "Thanks for playing! Goodbye!"
-		m.messageType = "success"
+		m.AppendMessage("Thanks for playing! Goodbye!", "success")
 		m.inputBuffer = ""
 		return
 	default:
@@ -1218,45 +1271,39 @@ func (m *model) processCommand(cmd string) {
 			m.handleTalentEquipCommand(cmd)
 			return
 		}
-		m.message = fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Unknown command: %s\nType 'help' for commands", cmd), "error")
 	}
 }
 
 // handleSkillsCommand displays character skills
 func (m *model) handleSkillsCommand(cmd string) {
 	if m.currentCharacterID == 0 {
-		m.message = "You need to be playing to use this command."
-		m.messageType = "error"
+		m.AppendMessage("You need to be playing to use this command.", "error")
 		return
 	}
 
 	url := fmt.Sprintf("%s/characters/%d/skills", RESTAPIBase, m.currentCharacterID)
 	resp, err := http.Get(url)
 	if err != nil {
-		m.message = fmt.Sprintf("Error fetching skills: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error fetching skills: %v", err), "error")
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		m.message = "Failed to load skills"
-		m.messageType = "error"
+		m.AppendMessage("Failed to load skills", "error")
 		return
 	}
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		m.message = fmt.Sprintf("Error parsing skills: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error parsing skills: %v", err), "error")
 		return
 	}
 
 	skills, ok := result["skills"].(map[string]interface{})
 	if !ok {
-		m.message = "Error: skills data not found"
-		m.messageType = "error"
+		m.AppendMessage("Error: skills data not found", "error")
 		return
 	}
 
@@ -1270,37 +1317,32 @@ func (m *model) handleSkillsCommand(cmd string) {
 	}
 
 	output += "\nSkills are always active and provide passive bonuses."
-	m.message = output
-	m.messageType = "info"
+	m.AppendMessage(output, "info")
 }
 
 // handleTalentsCommand displays equipped talents
 func (m *model) handleTalentsCommand(cmd string) {
 	if m.currentCharacterID == 0 {
-		m.message = "You need to be playing to use this command."
-		m.messageType = "error"
+		m.AppendMessage("You need to be playing to use this command.", "error")
 		return
 	}
 
 	url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
 	resp, err := http.Get(url)
 	if err != nil {
-		m.message = fmt.Sprintf("Error fetching talents: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error fetching talents: %v", err), "error")
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		m.message = "Failed to load talents"
-		m.messageType = "error"
+		m.AppendMessage("Failed to load talents", "error")
 		return
 	}
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		m.message = fmt.Sprintf("Error parsing talents: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error parsing talents: %v", err), "error")
 		return
 	}
 
@@ -1312,8 +1354,7 @@ func (m *model) handleTalentsCommand(cmd string) {
 		output += "No talents equipped.\n\n"
 		output += "Use: talent equip <talent_id> <slot>\n"
 		output += "Slots: 1-4 (quick access keys)\n"
-		m.message = output
-		m.messageType = "info"
+		m.AppendMessage(output, "info")
 		return
 	}
 
@@ -1334,35 +1375,30 @@ func (m *model) handleTalentsCommand(cmd string) {
 		output += "No talents equipped. Use 'talent equip <id> <slot>' to equip."
 	}
 
-	m.message = output
-	m.messageType = "info"
+	m.AppendMessage(output, "info")
 }
 
 // handleSkillEquipCommand handles skill equip command
 func (m *model) handleSkillEquipCommand(cmd string) {
 	if m.currentCharacterID == 0 {
-		m.message = "You need to be playing to use this command."
-		m.messageType = "error"
+		m.AppendMessage("You need to be playing to use this command.", "error")
 		return
 	}
 
 	// Skills are always active, no equip needed
-	m.message = "Skills are always active and cannot be unequipped.\nThey provide passive bonuses based on your skill level."
-	m.messageType = "info"
+	m.AppendMessage("Skills are always active and cannot be unequipped.\nThey provide passive bonuses based on your skill level.", "info")
 }
 
 // handleTalentEquipCommand handles talent equip/unequip/swap commands
 func (m *model) handleTalentEquipCommand(cmd string) {
 	if m.currentCharacterID == 0 {
-		m.message = "You need to be playing to use this command."
-		m.messageType = "error"
+		m.AppendMessage("You need to be playing to use this command.", "error")
 		return
 	}
 
 	parts := strings.Fields(cmd)
 	if len(parts) < 2 {
-		m.message = "Usage:\n  talent equip <talent_id> <slot>\n  talent unequip <slot>\n  talent swap <slot1> <slot2>"
-		m.messageType = "error"
+		m.AppendMessage("Usage:\n  talent equip <talent_id> <slot>\n  talent unequip <slot>\n  talent swap <slot1> <slot2>", "error")
 		return
 	}
 
@@ -1371,8 +1407,7 @@ func (m *model) handleTalentEquipCommand(cmd string) {
 	switch action {
 	case "equip":
 		if len(parts) != 4 {
-			m.message = "Usage: talent equip <talent_id> <slot>\nExample: talent equip 1 2"
-			m.messageType = "error"
+			m.AppendMessage("Usage: talent equip <talent_id> <slot>\nExample: talent equip 1 2", "error")
 			return
 		}
 		talentID := parts[2]
@@ -1382,8 +1417,7 @@ func (m *model) handleTalentEquipCommand(cmd string) {
 		slotNum := 0
 		fmt.Sscanf(slot, "%d", &slotNum)
 		if slotNum < 1 || slotNum > 4 {
-			m.message = "Slot must be between 1 and 4"
-			m.messageType = "error"
+			m.AppendMessage("Slot must be between 1 and 4", "error")
 			return
 		}
 
@@ -1392,25 +1426,21 @@ func (m *model) handleTalentEquipCommand(cmd string) {
 		reqBody := fmt.Sprintf(`{"talent_id":%s,"slot":%s}`, talentID, slot)
 		resp, err := http.Post(url, "application/json", strings.NewReader(reqBody))
 		if err != nil {
-			m.message = fmt.Sprintf("Error equipping talent: %v", err)
-			m.messageType = "error"
+			m.AppendMessage(fmt.Sprintf("Error equipping talent: %v", err), "error")
 			return
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-			m.message = "Failed to equip talent"
-			m.messageType = "error"
+			m.AppendMessage("Failed to equip talent", "error")
 			return
 		}
 
-		m.message = fmt.Sprintf("Talent equipped in slot %s", slot)
-		m.messageType = "success"
+		m.AppendMessage(fmt.Sprintf("Talent equipped in slot %s", slot), "success")
 
 	case "unequip":
 		if len(parts) != 3 {
-			m.message = "Usage: talent unequip <slot>\nExample: talent unequip 2"
-			m.messageType = "error"
+			m.AppendMessage("Usage: talent unequip <slot>\nExample: talent unequip 2", "error")
 			return
 		}
 		slot := parts[2]
@@ -1419,8 +1449,7 @@ func (m *model) handleTalentEquipCommand(cmd string) {
 		slotNum := 0
 		fmt.Sscanf(slot, "%d", &slotNum)
 		if slotNum < 1 || slotNum > 4 {
-			m.message = "Slot must be between 1 and 4"
-			m.messageType = "error"
+			m.AppendMessage("Slot must be between 1 and 4", "error")
 			return
 		}
 
@@ -1428,26 +1457,22 @@ func (m *model) handleTalentEquipCommand(cmd string) {
 		url := fmt.Sprintf("%s/characters/%d/talents/%s", RESTAPIBase, m.currentCharacterID, slot)
 		req, err := http.NewRequest("DELETE", url, nil)
 		if err != nil {
-			m.message = fmt.Sprintf("Error unequipping talent: %v", err)
-			m.messageType = "error"
+			m.AppendMessage(fmt.Sprintf("Error unequipping talent: %v", err), "error")
 			return
 		}
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			m.message = fmt.Sprintf("Error unequipping talent: %v", err)
-			m.messageType = "error"
+			m.AppendMessage(fmt.Sprintf("Error unequipping talent: %v", err), "error")
 			return
 		}
 		defer resp.Body.Close()
 
-		m.message = fmt.Sprintf("Talent unequipped from slot %s", slot)
-		m.messageType = "success"
+		m.AppendMessage(fmt.Sprintf("Talent unequipped from slot %s", slot), "success")
 
 	case "swap":
 		if len(parts) != 4 {
-			m.message = "Usage: talent swap <slot1> <slot2>\nExample: talent swap 1 2"
-			m.messageType = "error"
+			m.AppendMessage("Usage: talent swap <slot1> <slot2>\nExample: talent swap 1 2", "error")
 			return
 		}
 		slot1 := parts[2]
@@ -1458,8 +1483,7 @@ func (m *model) handleTalentEquipCommand(cmd string) {
 		fmt.Sscanf(slot1, "%d", &slot1Num)
 		fmt.Sscanf(slot2, "%d", &slot2Num)
 		if slot1Num < 1 || slot1Num > 4 || slot2Num < 1 || slot2Num > 4 {
-			m.message = "Slots must be between 1 and 4"
-			m.messageType = "error"
+			m.AppendMessage("Slots must be between 1 and 4", "error")
 			return
 		}
 
@@ -1468,26 +1492,22 @@ func (m *model) handleTalentEquipCommand(cmd string) {
 		reqBody := fmt.Sprintf(`{"slot1":%s,"slot2":%s}`, slot1, slot2)
 		req, err := http.NewRequest("PUT", url, strings.NewReader(reqBody))
 		if err != nil {
-			m.message = fmt.Sprintf("Error swapping talents: %v", err)
-			m.messageType = "error"
+			m.AppendMessage(fmt.Sprintf("Error swapping talents: %v", err), "error")
 			return
 		}
 		req.Header.Set("Content-Type", "application/json")
 		httpClient := &http.Client{}
 		resp, err := httpClient.Do(req)
 		if err != nil {
-			m.message = fmt.Sprintf("Error swapping talents: %v", err)
-			m.messageType = "error"
+			m.AppendMessage(fmt.Sprintf("Error swapping talents: %v", err), "error")
 			return
 		}
 		defer resp.Body.Close()
 
-		m.message = fmt.Sprintf("Talents swapped between slot %s and %s", slot1, slot2)
-		m.messageType = "success"
+		m.AppendMessage(fmt.Sprintf("Talents swapped between slot %s and %s", slot1, slot2), "success")
 
 	default:
-		m.message = "Usage:\n  talent - Show talents\n  talent equip <talent_id> <slot>\n  talent unequip <slot>\n  talent swap <slot1> <slot2>"
-		m.messageType = "error"
+		m.AppendMessage("Usage:\n  talent - Show talents\n  talent equip <talent_id> <slot>\n  talent unequip <slot>\n  talent swap <slot1> <slot2>", "error")
 	}
 }
 
@@ -1507,8 +1527,7 @@ func (m *model) handleMovement(cmd string) bool {
 	// Check if exit exists
 	nextRoomID, ok := m.exits[direction]
 	if !ok {
-		m.message = "You can't go that way."
-		m.messageType = "error"
+		m.AppendMessage("You can't go that way.", "error")
 		return true
 	}
 
@@ -1519,8 +1538,7 @@ func (m *model) handleMovement(cmd string) bool {
 	if m.client != nil {
 		room, err := m.client.Room.Get(context.Background(), nextRoomID)
 		if err != nil {
-			m.message = fmt.Sprintf("Error moving: %v", err)
-			m.messageType = "error"
+			m.AppendMessage(fmt.Sprintf("Error moving: %v", err), "error")
 			return true
 		}
 		m.currentRoom = room.ID
@@ -1548,19 +1566,18 @@ func (m *model) handleMovement(cmd string) bool {
 			m.formatRoomCharacters())
 
 		if wasVisited {
-			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s",
+			m.AppendMessage(fmt.Sprintf("You go %s.\n\n[%s]\n%s%s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 				m.roomDesc,
-				roomDisplay)
+				roomDisplay), "success")
 		} else {
-			m.message = fmt.Sprintf("You go %s.\n\n[%s]\n%s%s",
+			m.AppendMessage(fmt.Sprintf("You go %s.\n\n[%s]\n%s%s",
 				direction,
 				lipgloss.NewStyle().Bold(true).Foreground(yellow).Render(m.roomName),
 				m.roomDesc,
-				roomDisplay)
+				roomDisplay), "success")
 		}
-		m.messageType = "success"
 	}
 
 	return true
@@ -1575,18 +1592,18 @@ func (m *model) handleProfileInput(input string) {
 		m.textInput.SetValue("")
 		m.inputBuffer = ""
 		m.message = ""
-		m.messageType = "info"
+		m.messageType = ""
 	case "2":
 		m.editField = "description"
 		m.screen = ScreenEditField
 		m.textInput.SetValue("")
 		m.inputBuffer = ""
 		m.message = ""
-		m.messageType = "info"
+		m.messageType = ""
 	case "3", "back", "b", "esc":
 		m.screen = ScreenPlaying
 		m.message = ""
-		m.messageType = "info"
+		m.messageType = ""
 		m.menuItems = []string{}
 		// Vim-style selection for welcome screen
 		m.menuItems = []string{"Login", "Register", "Quit"}
@@ -1653,8 +1670,7 @@ func (m *model) saveProfileToDB() {
 func (m *model) handlePeerCommand(cmd string) {
 	parts := strings.Fields(cmd)
 	if len(parts) < 2 {
-		m.message = "Usage: peer <direction>\nDirections: north, south, east, west, up, down"
-		m.messageType = "error"
+		m.AppendMessage("Usage: peer <direction>\nDirections: north, south, east, west, up, down", "error")
 		return
 	}
 	direction := strings.ToLower(parts[1])
@@ -1663,16 +1679,14 @@ func (m *model) handlePeerCommand(cmd string) {
 	validDirs := map[string]string{"north": "north", "south": "south", "east": "east", "west": "west", "up": "up", "down": "down"}
 	dir, ok := validDirs[direction]
 	if !ok {
-		m.message = "Invalid direction. Use: north, south, east, west, up, down"
-		m.messageType = "error"
+		m.AppendMessage("Invalid direction. Use: north, south, east, west, up, down", "error")
 		return
 	}
 
 	// Check if exit exists
 	nextRoomID, ok := m.exits[dir]
 	if !ok {
-		m.message = "You can't peer that way — there's no exit."
-		m.messageType = "error"
+		m.AppendMessage("You can't peer that way — there's no exit.", "error")
 		return
 	}
 
@@ -1680,16 +1694,14 @@ func (m *model) handlePeerCommand(cmd string) {
 	if m.client != nil {
 		room, err := m.client.Room.Get(context.Background(), nextRoomID)
 		if err != nil {
-			m.message = fmt.Sprintf("Error looking: %v", err)
-			m.messageType = "error"
+			m.AppendMessage(fmt.Sprintf("Error looking: %v", err), "error")
 			return
 		}
 
-		m.message = fmt.Sprintf("You peer %s...\n\n[%s]\n%s",
+		m.AppendMessage(fmt.Sprintf("You peer %s...\n\n[%s]\n%s",
 			dir,
 			lipgloss.NewStyle().Bold(true).Foreground(blue).Render(room.Name),
-			room.Description)
-		m.messageType = "info"
+			room.Description), "info")
 	}
 }
 
@@ -1697,30 +1709,26 @@ func (m *model) handlePeerCommand(cmd string) {
 // GitHub #12 - Look System: Hidden Items and Reveal Conditions
 func (m *model) handleSearchCommand(cmd string) {
 	if m.currentRoom == 0 {
-		m.message = "You can't search here."
-		m.messageType = "error"
+		m.AppendMessage("You can't search here.", "error")
 		return
 	}
 
 	// Fetch all items (including hidden) for this room
 	resp, err := http.Get(fmt.Sprintf("%s/rooms/%d/equipment?includeHidden=true", RESTAPIBase, m.currentRoom))
 	if err != nil {
-		m.message = fmt.Sprintf("Error searching: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error searching: %v", err), "error")
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		m.message = "Error searching the area."
-		m.messageType = "error"
+		m.AppendMessage("Error searching the area.", "error")
 		return
 	}
 
 	var allItems []RoomItem
 	if err := json.NewDecoder(resp.Body).Decode(&allItems); err != nil {
-		m.message = fmt.Sprintf("Error parsing items: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error parsing items: %v", err), "error")
 		return
 	}
 
@@ -1759,12 +1767,10 @@ func (m *model) handleSearchCommand(cmd string) {
 	m.loadRoomItems()
 
 	if revealed > 0 {
-		m.message = fmt.Sprintf("🔍 You search the area carefully...\n\n✨ You discovered %d hidden item(s): %s",
-			revealed, strings.Join(found, ", "))
-		m.messageType = "success"
+		m.AppendMessage(fmt.Sprintf("🔍 You search the area carefully...\n\n✨ You discovered %d hidden item(s): %s",
+			revealed, strings.Join(found, ", ")), "success")
 	} else {
-		m.message = "🔍 You search the area carefully...\n\nYou find nothing of interest."
-		m.messageType = "info"
+		m.AppendMessage("🔍 You search the area carefully...\n\nYou find nothing of interest.", "info")
 	}
 }
 
@@ -1773,11 +1779,10 @@ func (m *model) handleDebugCommand(cmd string) {
 	if len(parts) < 2 {
 		// Show current debug status
 		if m.debugMode {
-			m.message = "Debug mode: ON (Room ID visible in status bar)"
+			m.AppendMessage("Debug mode: ON (Room ID visible in status bar)", "info")
 		} else {
-			m.message = "Debug mode: OFF\nUsage: debug on | debug off"
+			m.AppendMessage("Debug mode: OFF\nUsage: debug on | debug off", "info")
 		}
-		m.messageType = "info"
 		return
 	}
 
@@ -1785,15 +1790,12 @@ func (m *model) handleDebugCommand(cmd string) {
 	switch subCmd {
 	case "on", "true", "1", "yes":
 		m.debugMode = true
-		m.message = "Debug mode: ON (Room ID will show in status bar)"
-		m.messageType = "success"
+		m.AppendMessage("Debug mode: ON (Room ID will show in status bar)", "success")
 	case "off", "false", "0", "no":
 		m.debugMode = false
-		m.message = "Debug mode: OFF"
-		m.messageType = "info"
+		m.AppendMessage("Debug mode: OFF", "info")
 	default:
-		m.message = "Usage: debug on | debug off"
-		m.messageType = "error"
+		m.AppendMessage("Usage: debug on | debug off", "error")
 	}
 }
 
@@ -1806,8 +1808,7 @@ func (m *model) handleTakeCommand(cmd string) {
 	// Extract item name from command
 	parts := strings.Fields(cmd)
 	if len(parts) < 2 {
-		m.message = "Take what? Usage: take <item name>"
-		m.messageType = "error"
+		m.AppendMessage("Take what? Usage: take <item name>", "error")
 		return
 	}
 	itemName := strings.Join(parts[1:], " ")
@@ -1825,8 +1826,7 @@ func (m *model) handleTakeCommand(cmd string) {
 	}
 
 	if targetItem == nil {
-		m.message = fmt.Sprintf("You don't see any %s here.", itemName)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("You don't see any %s here.", itemName), "error")
 		return
 	}
 
@@ -1838,8 +1838,7 @@ func (m *model) handleTakeCommand(cmd string) {
 		} else {
 			colorStyle = lipgloss.NewStyle().Foreground(itemColorGold)
 		}
-		m.message = fmt.Sprintf("You can't take the %s. It's firmly fixed in place.", colorStyle.Render(targetItem.Name))
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("You can't take the %s. It's firmly fixed in place.", colorStyle.Render(targetItem.Name)), "error")
 		return
 	}
 
@@ -1848,8 +1847,7 @@ func (m *model) handleTakeCommand(cmd string) {
 	jsonData, _ := json.Marshal(map[string]interface{}{"roomId": nil})
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		m.message = fmt.Sprintf("Error picking up item: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error picking up item: %v", err), "error")
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -1857,20 +1855,17 @@ func (m *model) handleTakeCommand(cmd string) {
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		m.message = fmt.Sprintf("Error picking up item: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error picking up item: %v", err), "error")
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		m.message = fmt.Sprintf("Failed to pick up %s.", targetItem.Name)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Failed to pick up %s.", targetItem.Name), "error")
 		return
 	}
 
-	m.message = fmt.Sprintf("You pick up the %s.", targetItem.Name)
-	m.messageType = "success"
+	m.AppendMessage(fmt.Sprintf("You pick up the %s.", targetItem.Name), "success")
 }
 
 // handleDropCommand handles the drop command
@@ -1878,24 +1873,21 @@ func (m *model) handleDropCommand(cmd string) {
 	// Extract item name from command
 	parts := strings.Fields(cmd)
 	if len(parts) < 2 {
-		m.message = "Drop what? Usage: drop <item name>"
-		m.messageType = "error"
+		m.AppendMessage("Drop what? Usage: drop <item name>", "error")
 		return
 	}
 	itemName := strings.Join(parts[1:], " ")
 
 	// For now, show a message that inventory is not fully implemented
 	// This would need player inventory tracking
-	m.message = fmt.Sprintf("You don't have any %s to drop.", itemName)
-	m.messageType = "error"
+	m.AppendMessage(fmt.Sprintf("You don't have any %s to drop.", itemName), "error")
 }
 
 // handleExamineCommand handles the examine/ex/inspect/i command
 func (m *model) handleExamineCommand(cmd string) {
 	parts := strings.Fields(cmd)
 	if len(parts) < 2 {
-		m.message = "Examine what? Usage: examine <item>"
-		m.messageType = "error"
+		m.AppendMessage("Examine what? Usage: examine <item>", "error")
 		return
 	}
 
@@ -1943,11 +1935,8 @@ func (m *model) handleExamineCommand(cmd string) {
 										// Re-check with now-visible item
 										for _, ri := range m.roomItems {
 											if strings.Contains(strings.ToLower(ri.Name), target) || strings.ToLower(ri.Name) == target {
-												m.message = fmt.Sprintf("✨ You discovered something hidden!\n\n")
-												origMsg := m.message
+												m.AppendMessage("✨ You discovered something hidden!\n\n", "info")
 												m.displayItemDetails(ri)
-												m.message = origMsg + m.message
-												m.messageType = "info"
 												return
 											}
 										}
@@ -1991,9 +1980,8 @@ func (m *model) handleExamineCommand(cmd string) {
 			if json.NewDecoder(resp.Body).Decode(&npcs) == nil {
 				for _, npc := range npcs {
 					if strings.Contains(strings.ToLower(npc.Name), target) || strings.ToLower(npc.Name) == target {
-						m.message = fmt.Sprintf("[%s]\n%s\n\nLevel: %d\nDisposition: %s",
-							npc.Name, npc.Description, npc.Level, npc.Disposition)
-						m.messageType = "info"
+						m.AppendMessage(fmt.Sprintf("[%s]\n%s\n\nLevel: %d\nDisposition: %s",
+							npc.Name, npc.Description, npc.Level, npc.Disposition), "info")
 						return
 					}
 				}
@@ -2001,8 +1989,7 @@ func (m *model) handleExamineCommand(cmd string) {
 		}
 	}
 
-	m.message = fmt.Sprintf("You don't see '%s' here.", target)
-	m.messageType = "error"
+	m.AppendMessage(fmt.Sprintf("You don't see '%s' here.", target), "error")
 }
 
 // displayItemDetails shows detailed info about an item
@@ -2053,8 +2040,7 @@ func (m *model) displayItemDetails(item RoomItem) {
 		}
 	}
 
-	m.message = details.String()
-	m.messageType = "info"
+	m.AppendMessage(details.String(), "info")
 }
 
 // getItemIcon returns an emoji icon based on item type
@@ -2110,8 +2096,7 @@ func (m *model) handleInventoryCommand() {
 	// Fetch player's inventory from API
 	resp, err := http.Get(fmt.Sprintf("%s/equipment?ownerId=%d", RESTAPIBase, m.currentCharacterID))
 	if err != nil {
-		m.message = fmt.Sprintf("Error fetching inventory: %v", err)
-		m.messageType = "error"
+		m.AppendMessage(fmt.Sprintf("Error fetching inventory: %v", err), "error")
 		return
 	}
 	defer resp.Body.Close()
@@ -2126,8 +2111,7 @@ func (m *model) handleInventoryCommand() {
 		Rarity      string `json:"rarity"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&rawItems); err != nil {
-		m.message = "You aren't carrying anything."
-		m.messageType = "info"
+		m.AppendMessage("You aren't carrying anything.", "info")
 		return
 	}
 
@@ -2138,8 +2122,7 @@ func (m *model) handleInventoryCommand() {
 	}
 
 	if len(items) == 0 {
-		m.message = "Your pockets are empty. Time to loot some stuff!"
-		m.messageType = "info"
+		m.AppendMessage("Your pockets are empty. Time to loot some stuff!", "info")
 		return
 	}
 
@@ -2181,19 +2164,24 @@ func (m *model) handleInventoryCommand() {
 		inv.WriteString("\n")
 	}
 
-	m.message = inv.String()
-	m.messageType = "info"
+	m.AppendMessage(inv.String(), "info")
 }
 
 // handleQuestsCommand handles the quests/q command to display quest tracker
 func (m *model) handleQuestsCommand(cmd string) {
+	// Show placeholder when no character is selected
+	if m.currentCharacterID == 0 {
+		m.displayQuestTrackerPlaceholder()
+		return
+	}
+
 	// Fetch quests from API
 	// For now, we'll return mock data until the full quest system is implemented
 	// In production, this would call: GET /characters/:id/quests
 	resp, err := http.Get(fmt.Sprintf("%s/characters/%d/quests", RESTAPIBase, m.currentCharacterID))
 	if err != nil {
-		m.message = fmt.Sprintf("Error fetching quests: %v", err)
-		m.messageType = "error"
+		// Network error - show placeholder (expected in dev mode without server)
+		m.displayQuestTrackerPlaceholder()
 		return
 	}
 	defer resp.Body.Close()
@@ -2305,8 +2293,7 @@ func (m *model) handleQuestsCommand(cmd string) {
 		activeCount, availableCount, completedCount))
 	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
 
-	m.message = quests.String()
-	m.messageType = "info"
+	m.AppendMessage(quests.String(), "info")
 }
 
 // displayQuestTrackerPlaceholder shows a placeholder quest tracker
@@ -2357,8 +2344,7 @@ func (m *model) displayQuestTrackerPlaceholder() {
 
 	quests.WriteString("\n" + infoStyle.Render("  Use 'quest <name>' for details, 'accept <quest>' to begin."))
 
-	m.message = quests.String()
-	m.messageType = "info"
+	m.AppendMessage(quests.String(), "info")
 }
 
 func (m *model) loadOrCreateCharacter() {
@@ -2528,15 +2514,18 @@ func (m *model) View() string {
 			statusHeight = 3
 		}
 
-		// Build viewport content (room info + message)
+		// Build viewport content (room info + message history)
 		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
 			m.formatExitsWithColor())
 
-		// Show message if any
-		if m.message != "" {
-			roomInfo += "\n\n" + m.styledMessage(m.message)
+		// Append message history if any
+		if len(m.messageHistory) > 0 {
+			msgContent := m.buildOutputContent()
+			if msgContent != "" {
+				roomInfo += "\n\n" + msgContent
+			}
 		}
 
 		// Update viewport content and size
@@ -2580,9 +2569,6 @@ func (m *model) View() string {
 			Height(inputHeight - 2) // Subtract 2 for border top/bottom
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
-		// Clear message after rendering
-		m.message = ""
-		m.messageType = ""
 		return s.String()
 	}
 
@@ -2600,16 +2586,8 @@ func (m *model) View() string {
 				centered = append(centered, line)
 			}
 		}
-		// Clear message after rendering to prevent accumulation
-		m.message = ""
-		m.messageType = ""
 		return strings.Join(centered, "\n")
 	}
-
-	// Clear message after rendering to prevent accumulation on next tick
-	// This fixes the "jumbled text" issue during combat and other rapid updates
-	m.message = ""
-	m.messageType = ""
 
 	return s.String()
 }
