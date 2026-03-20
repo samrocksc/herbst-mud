@@ -13,6 +13,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
@@ -248,6 +249,9 @@ type model struct {
 	spinner        spinner.Model
 	isLoading      bool
 	loadingMessage string
+
+	// Scrollable viewport for game output (ScreenPlaying)
+	viewport viewport.Model
 
 	// Room tracking
 	visitedRooms map[int]bool
@@ -540,6 +544,21 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		// Initialize or resize the viewport for scrollable output
+		inputHeight := m.height * 20 / 100
+		if inputHeight < 3 {
+			inputHeight = 3
+		}
+		statusHeight := m.height * 10 / 100
+		if statusHeight < 3 {
+			statusHeight = 3
+		}
+		vpHeight := m.height - inputHeight - statusHeight
+		if vpHeight < 5 {
+			vpHeight = 5
+		}
+		// vpWidth includes the border chars (2), so use full width
+		m.viewport = viewport.New(msg.Width, vpHeight)
 		// Debug logging only in debug mode to avoid noise
 		if m.debugMode {
 			log.Printf("DEBUG: Window size changed: %dx%d", m.width, m.height)
@@ -564,6 +583,17 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Handle loading state - block most input
 		if m.isLoading {
 			return m, nil
+		}
+
+		// Let viewport handle scrolling keys first (before vim/enter/escape)
+		if m.screen == ScreenPlaying {
+			vp, vpCmd := m.viewport.Update(msg)
+			m.viewport = vp
+			if cmd == nil {
+				cmd = vpCmd
+			}
+			// Viewport handles up/down/pgup/pgdn for scrolling; don't return here —
+			// continue so textinput and other screen-specific handlers also get the event.
 		}
 
 		// Vim-style navigation and arrow keys for menu selection
@@ -2472,12 +2502,12 @@ func (m *model) View() string {
 		// Ensure we have valid dimensions - if not, use defaults
 		width := m.width
 		height := m.height
-		
+
 		// Debug: log the actual dimensions being used
 		if m.debugMode {
 			log.Printf("ScreenPlaying: terminal dimensions: %dx%d (raw: %dx%d)", width, height, m.width, m.height)
 		}
-		
+
 		if width < 40 {
 			log.Printf("WARNING: width too small (%d), defaulting to 80", width)
 			width = 80
@@ -2497,29 +2527,8 @@ func (m *model) View() string {
 		if statusHeight < 3 {
 			statusHeight = 3
 		}
-		viewportHeight := height - inputHeight - statusHeight
-		if viewportHeight < 5 {
-			viewportHeight = 5
-		}
 
-		// Full-width output viewport (top ~70%)
-		outputStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(pink).
-			Padding(0, 1).
-			Width(width).
-			Height(viewportHeight - 2) // Subtract 2 for border top/bottom
-
-		// Colorful status bar with mini progress bars
-		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
-
-		// Debug mode - show room ID when enabled
-		debugInfo := ""
-		if m.debugMode {
-			debugInfo = " " + lipgloss.NewStyle().Foreground(yellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))
-		}
-
-		// Room info at top with styling (only in output viewport, no stats)
+		// Build viewport content (room info + message)
 		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
 			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
 			m.roomDesc,
@@ -2530,11 +2539,21 @@ func (m *model) View() string {
 			roomInfo += "\n\n" + m.styledMessage(m.message)
 		}
 
-		// Render output viewport with pink border (room info only, no stats)
-		s.WriteString(outputStyle.Render(roomInfo))
-		s.WriteString("\n")
+		// Update viewport content and size
+		if m.viewport.Width != width {
+			m.viewport.Width = width
+		}
+		if m.viewport.Height != height-statusHeight-inputHeight {
+			m.viewport.Height = height - statusHeight - inputHeight
+		}
+		m.viewport.SetContent(roomInfo)
 
 		// Full-width status bar (middle ~10%)
+		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
+		debugInfo := ""
+		if m.debugMode {
+			debugInfo = " " + lipgloss.NewStyle().Foreground(yellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))
+		}
 		statusBarStyle := lipgloss.NewStyle().
 			Foreground(pink).
 			Background(lipgloss.Color("235")).
@@ -2542,6 +2561,10 @@ func (m *model) View() string {
 			Width(width).
 			Padding(0, 1)
 		s.WriteString(statusBarStyle.Render(statsLine + debugInfo))
+		s.WriteString("\n")
+
+		// Scrollable viewport (top ~70%)
+		s.WriteString(m.viewport.View())
 		s.WriteString("\n")
 
 		// Full-width input area (bottom ~20%)
@@ -2553,7 +2576,7 @@ func (m *model) View() string {
 			Height(inputHeight - 2) // Subtract 2 for border top/bottom
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
-		// ScreenPlaying uses full-width panels - don't center, just clear message and return
+		// Clear message after rendering
 		m.message = ""
 		m.messageType = ""
 		return s.String()
