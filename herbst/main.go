@@ -2548,6 +2548,14 @@ func (m *model) View() string {
 		}
 		m.viewport.SetContent(roomInfo)
 
+		// Scrollable viewport (top ~70%) - with pink border
+		viewportStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(pink).
+			Width(width)
+		s.WriteString(viewportStyle.Render(m.viewport.View()))
+		s.WriteString("\n")
+
 		// Full-width status bar (middle ~10%)
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
 		debugInfo := ""
@@ -2561,10 +2569,6 @@ func (m *model) View() string {
 			Width(width).
 			Padding(0, 1)
 		s.WriteString(statusBarStyle.Render(statsLine + debugInfo))
-		s.WriteString("\n")
-
-		// Scrollable viewport (top ~70%)
-		s.WriteString(m.viewport.View())
 		s.WriteString("\n")
 
 		// Full-width input area (bottom ~20%)
