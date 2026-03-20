@@ -647,10 +647,12 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// continue so textinput and other screen-specific handlers also get the event.
 		}
 
-		// Message history scrolling (ctrl+k up, ctrl+j down) - must intercept BEFORE Enter
+		// Message history scrolling (ctrl+p up, ctrl+n down)
+		// Note: ctrl+j is LF (ASCII 10) which many SSH clients send as plain newline,
+		// so we use ctrl+p (previous) and ctrl+n (next) instead — same vim/bash convention
 		if m.screen == ScreenPlaying {
 			switch key {
-			case "ctrl+k":
+			case "ctrl+p":
 				// Scroll up (older messages)
 				if !m.isScrolling {
 					m.isScrolling = true
@@ -663,8 +665,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.historyOffset = maxOffset
 				}
 				return m, nil
-			case "ctrl+j":
-				// Scroll down (newer messages) - DO NOT process as Enter here
+			case "ctrl+n":
+				// Scroll down (newer messages)
 				if !m.isScrolling {
 					return m, nil
 				}
@@ -776,7 +778,7 @@ func (m *model) handleWelcomeInput(input string) {
 
 	// Vim-style selection with numbers or j/k navigation
 	switch input {
-	case "1", "login", "l":
+	case "1", "login":
 		m.screen = ScreenLogin
 		m.inputField = "username"
 		m.loginUsername = ""
@@ -1176,7 +1178,9 @@ func (m *model) processCommand(cmd string) {
 	case "help", "?":
 		m.AppendMessage(`Commands:
   n/north, s/south, e/east, w/west - Move
-  look/l - Look around (shows items)
+  look/l [target] - Look around (or examine: look <target>, look at <target>)
+  ctrl+p - Scroll output up (older messages)
+  ctrl+n - Scroll output down (newer messages)
   exits/x - Show exits  
   peer <dir> - Peek at adjacent room
   take/get <item> - Pick up an item
@@ -1904,23 +1908,35 @@ func (m *model) handleDropCommand(cmd string) {
 	m.AppendMessage(fmt.Sprintf("You don't have any %s to drop.", itemName), "error")
 }
 
+// fuzzyWordMatch returns true if all words in target appear as substrings in name.
+// "grand man" matches "Grand Ol' Man". "man" also matches. Case-insensitive.
+func fuzzyWordMatch(name, target string) bool {
+	nameLower := strings.ToLower(name)
+	for _, word := range strings.Fields(strings.ToLower(target)) {
+		if !strings.Contains(nameLower, word) {
+			return false
+		}
+	}
+	return true
+}
+
 // handleLookAt handles "look <target>" and "look at <target>" — examines items or characters
 func (m *model) handleLookAt(target string) {
-	// Check room items first
+	// Check room items first (exact or fuzzy word match)
 	for _, item := range m.roomItems {
 		if !item.IsVisible {
 			continue
 		}
-		if strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
+		if fuzzyWordMatch(item.Name, target) || strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
 			m.displayItemDetails(item)
 			return
 		}
 	}
 
-	// Check room characters (NPCs and players)
+	// Check room characters (NPCs and players) — fuzzy word match
 	for _, char := range m.roomCharacters {
 		charNameLower := strings.ToLower(char.Name)
-		if strings.Contains(charNameLower, target) || charNameLower == target {
+		if fuzzyWordMatch(char.Name, target) || strings.Contains(charNameLower, target) || charNameLower == target {
 			if char.IsNPC {
 				// Fetch NPC details from API
 				resp, err := http.Get(fmt.Sprintf("%s/npc?roomId=%d", RESTAPIBase, m.currentRoom))
@@ -1935,7 +1951,7 @@ func (m *model) handleLookAt(target string) {
 					}
 					if json.NewDecoder(resp.Body).Decode(&npcs) == nil {
 						for _, npc := range npcs {
-							if strings.ToLower(npc.Name) == charNameLower || strings.Contains(strings.ToLower(npc.Name), target) {
+							if fuzzyWordMatch(npc.Name, target) || strings.ToLower(npc.Name) == charNameLower || strings.Contains(strings.ToLower(npc.Name), target) {
 								m.AppendMessage(fmt.Sprintf("[%s]\n%s\n\nLevel: %d\nDisposition: %s",
 									npc.Name, npc.Description, npc.Level, npc.Disposition), "info")
 								return
