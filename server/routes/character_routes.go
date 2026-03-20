@@ -3,6 +3,7 @@ package routes
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -1106,10 +1107,55 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// Verify talent exists
-		_, err = client.Talent.Get(c.Request.Context(), req.TalentID)
+		talentObj, err := client.Talent.Get(c.Request.Context(), req.TalentID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Talent not found"})
 			return
+		}
+
+		// Check if character already has 4 talents equipped (excluding the slot we're replacing)
+		existingTalents, err := client.Character.Query().
+			Where(character.ID(id)).
+			QueryTalents().
+			All(c.Request.Context())
+		if err == nil {
+			// Count unique slots in use (not counting the slot we're about to replace)
+			slotsUsed := make(map[int]bool)
+			for _, ct := range existingTalents {
+				if ct.Slot != req.Slot {
+					slotsUsed[ct.Slot] = true
+				}
+			}
+			if len(slotsUsed) >= 4 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot equip more than 4 talents"})
+				return
+			}
+		}
+
+		// Validate talent requirements (skill levels)
+		if talentObj.Requirements != "" {
+			requirements := map[string]int{}
+			if err := json.Unmarshal([]byte(talentObj.Requirements), &requirements); err == nil {
+				// Get character's skills
+				charSkills, err := client.Character.Query().
+					Where(character.ID(id)).
+					QuerySkills().
+					All(c.Request.Context())
+				if err == nil {
+					skillLevels := make(map[string]int)
+					for _, cs := range charSkills {
+						if cs.Edges.Skill != nil {
+							skillLevels[cs.Edges.Skill.Name] = cs.Level
+						}
+					}
+					for skillName, requiredLevel := range requirements {
+						if skillLevels[skillName] < requiredLevel {
+							c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot equip talent: requires " + skillName + " level " + strconv.Itoa(requiredLevel)})
+							return
+						}
+					}
+				}
+			}
 		}
 
 		// Remove any existing talent in this slot
