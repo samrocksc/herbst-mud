@@ -677,6 +677,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+
 		// Vim-style navigation and arrow keys for menu selection
 		if m.screen == ScreenWelcome || m.screen == ScreenProfile {
 			if key == "j" || key == "down" {
