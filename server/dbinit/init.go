@@ -568,6 +568,12 @@ func InitSkills(client *db.Client) error {
 		{"light_armor", "Proficiency with light armor - affects dodge bonus while wearing light armor", "armor"},
 		{"cloth_armor", "Proficiency with cloth armor - minimal protection but wide availability", "armor"},
 		{"heavy_armor", "Proficiency with heavy armor - affects defense while reducing mobility", "armor"},
+		// Chef/Cooking skills
+		{"cooking", "Proficiency with cooking and food preparation - required for culinary skills", "cooking"},
+		{"foraging", "Ability to find ingredients in the wild - increases yield and quality", "survival"},
+		{"brewing", "Skill in brewing potions and mutant elixirs", "alchemy"},
+		// Pizzaiolo skills
+		{"pizza_combat", "Mastery of pizza-based combat techniques - powers pizza attacks", "combat"},
 	}
 
 	for _, s := range skills {
@@ -621,6 +627,23 @@ func InitTalents(client *db.Client) error {
 		{"quick_slash", "Fast attack with lower damage", `{"skills":["knives"]}`},
 		{"shield_wall", "Increase defense for one round", "[]"},
 		{"focus", "Increase critical chance for next attack", "[]"},
+		// Chef - Cooking talents (Potions & Buffs)
+		{"recipe_book", "Learn new dishes and recipes - unlocks cooking options", `{"skills":["cooking"]}`},
+		{"mutant_seasoning", "Use ooze-tinged ingredients for bonus effects", `{"skills":["cooking","foraging"]}`},
+		{"serving_size", "Buff multiple allies with one serving", `{"skills":["cooking"]}`},
+		// Chef - Pizzaiolo talents (Pizza Combat)
+		{"dough_ball", "Flour-based ranged attack - throw dough at enemies", `{"skills":["pizza_combat"]}`},
+		{"sauce_splash", "Hot sauce blinds enemies - reduces their accuracy", `{"skills":["pizza_combat"]}`},
+		{"pizza_cutter_dash", "Spin attack with pizza cutter - hits all adjacent enemies", `{"skills":["pizza_combat"]}`},
+		{"pizza_meteor", "Ultimate giant pizza slam - massive damage to one target", `{"skills":["pizza_combat"]}`},
+		// Chef - Foraging & Brewing
+		{"forage", "Search the area for mutant ingredients", `{"skills":["foraging"]}`},
+		{"brew", "Brew mutant potions and elixirs", `{"skills":["brewing"]}`},
+		{"food_preservation", "Keep supplies fresh longer - reduces spoilage", `{"skills":["cooking"]}`},
+		// Chef - The Pizzeria
+		{"open_pizza_stall", "Set up a pizza stall to sell slices for profit", `{"skills":["cooking"]}`},
+		{"signature_pie", "Create a unique signature dish with bonus effects", `{"skills":["cooking","pizza_combat"]}`},
+		{"food_fight", "AoE attack - throw food at all enemies in the room", `{"skills":["cooking","pizza_combat"]}`},
 	}
 
 	for _, t := range talents {
@@ -645,7 +668,7 @@ func InitAvailableTalentsForCharacter(client *db.Client, charID int, charClass s
 	// Map of class -> default available talents
 	classTalents := map[string][]string{
 		"warrior":    {"slash", "parry", "smash", "crash"},
-		"chef":       {"slash", "second_wind", "battle_cry", "dodge"},
+		"chef":       {"dough_ball", "sauce_splash", "pizza_cutter_dash", "pizza_meteor", "recipe_book", "forage", "second_wind", "dodge"},
 		"mystic":     {"parry", "second_wind", "iron_will", "focus"},
 		"survivor":   {"slash", "parry", "crash", "dodge"},
 		"brawler":    {"crash", "parry", "dodge", "heavy_strike"},

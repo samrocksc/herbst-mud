@@ -139,3 +139,89 @@ func TestStartingConfigs_WarriorFighterStatBonuses(t *testing.T) {
 		t.Errorf("Expected Wisdom bonus 0, got %d", config.StatBonuses.Wisdom)
 	}
 }
+
+func TestGetClassConfig_ChefPizzaiolo(t *testing.T) {
+	config := GetClassConfig("chef", "pizzaiolo")
+
+	if config.Class != "chef" {
+		t.Errorf("Expected class 'chef', got '%s'", config.Class)
+	}
+	if config.Specialty != "pizzaiolo" {
+		t.Errorf("Expected specialty 'pizzaiolo', got '%s'", config.Specialty)
+	}
+
+	// Check starting skills - Chef should have cooking, pizza_combat, foraging
+	if config.StartingSkills["cooking"] != 1 {
+		t.Errorf("Expected cooking level 1, got %d", config.StartingSkills["cooking"])
+	}
+	if config.StartingSkills["pizza_combat"] != 1 {
+		t.Errorf("Expected pizza_combat level 1, got %d", config.StartingSkills["pizza_combat"])
+	}
+	if config.StartingSkills["foraging"] != 1 {
+		t.Errorf("Expected foraging level 1, got %d", config.StartingSkills["foraging"])
+	}
+
+	// Check starting talents - should have pizza combat talents
+	foundDoughBall := false
+	foundSauceSplash := false
+	foundPizzaCutter := false
+	foundRecipeBook := false
+	for _, talent := range config.StartingTalents {
+		if talent == "dough_ball" {
+			foundDoughBall = true
+		}
+		if talent == "sauce_splash" {
+			foundSauceSplash = true
+		}
+		if talent == "pizza_cutter_dash" {
+			foundPizzaCutter = true
+		}
+		if talent == "recipe_book" {
+			foundRecipeBook = true
+		}
+	}
+	if !foundDoughBall {
+		t.Error("Expected dough_ball in Chef starting talents")
+	}
+	if !foundSauceSplash {
+		t.Error("Expected sauce_splash in Chef starting talents")
+	}
+	if !foundPizzaCutter {
+		t.Error("Expected pizza_cutter_dash in Chef starting talents")
+	}
+	if !foundRecipeBook {
+		t.Error("Expected recipe_book in Chef starting talents")
+	}
+
+	// Check stat bonuses - Chef should have DEX+2, INT+2
+	if config.StatBonuses.Dexterity != 2 {
+		t.Errorf("Expected Dexterity bonus 2, got %d", config.StatBonuses.Dexterity)
+	}
+	if config.StatBonuses.Intelligence != 2 {
+		t.Errorf("Expected Intelligence bonus 2, got %d", config.StatBonuses.Intelligence)
+	}
+}
+
+func TestClassSpecialties_ChefHasPizzaiolo(t *testing.T) {
+	specialties, ok := ClassSpecialties["chef"]
+	if !ok {
+		t.Fatal("Expected chef class to have specialties")
+	}
+
+	found := false
+	for _, s := range specialties {
+		if s.ID == "pizzaiolo" {
+			found = true
+			if s.Name != "Pizzaiolo" {
+				t.Errorf("Expected Pizzaiolo name, got '%s'", s.Name)
+			}
+			if s.Description == "" {
+				t.Error("Expected non-empty description for Pizzaiolo")
+			}
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected pizzaiolo specialty in chef class")
+	}
+}

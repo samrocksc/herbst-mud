@@ -76,6 +76,27 @@ var StartingConfigs = map[string]ClassConfig{
 			Constitution: 1,
 		},
 	},
+	"chef:pizzaiolo": {
+		Class:        "chef",
+		Specialty:    "pizzaiolo",
+		Description:  "Master of pizza combat and mutant cuisine. Cooks up buffs and dishes out pain!",
+		StartingSkills: map[string]int{
+			"cooking":      1,
+			"pizza_combat": 1,
+			"foraging":    1,
+		},
+		StartingTalents: []string{"dough_ball", "sauce_splash", "pizza_cutter_dash", "recipe_book"},
+		StatBonuses: struct {
+			Strength     int
+			Dexterity    int
+			Constitution int
+			Intelligence int
+			Wisdom       int
+		}{
+			Dexterity:    2,
+			Intelligence: 2,
+		},
+	},
 	"survivor:generalist": {
 		Class:        "survivor",
 		Specialty:    "generalist",
