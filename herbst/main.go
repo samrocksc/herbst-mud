@@ -1190,12 +1190,32 @@ func (m *model) processCommand(cmd string) {
 	case "look", "l":
 		m.loadRoomItems()
 		m.loadRoomCharacters()
-		m.AppendMessage(fmt.Sprintf("[%s]\n%s\n\nExits: %s%s%s",
-			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
-			m.roomDesc,
-			m.formatExitsWithColor(),
-			m.formatRoomItems(),
-			m.formatRoomCharacters()), "info")
+
+		// Parse look arguments: "look", "l", "look <target>", "look at <target>", "l at <target>"
+		parts := strings.Fields(cmd)
+		var target string
+		if len(parts) == 1 {
+			// Plain "look" or "l" — show room
+			m.AppendMessage(fmt.Sprintf("[%s]\n%s\n\nExits: %s%s%s",
+				lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+				m.roomDesc,
+				m.formatExitsWithColor(),
+				m.formatRoomItems(),
+				m.formatRoomCharacters()), "info")
+			return
+		}
+
+		// Has arguments — could be "look Frodo" or "look at Gandalf"
+		// Strip "at" if present: "look at Gandalf" → target = "Gandalf"
+		if len(parts) >= 3 && strings.ToLower(parts[2]) == "at" {
+			target = strings.Join(parts[3:], " ")
+		} else {
+			target = strings.Join(parts[1:], " ")
+		}
+		target = strings.ToLower(strings.TrimSpace(target))
+
+		// Forward to examine handler with parsed target
+		m.handleLookAt(target)
 	case "exits", "x":
 		m.AppendMessage(fmt.Sprintf("Exits: %s", m.formatExitsWithColor()), "info")
 	case "examine", "ex", "inspect":
@@ -1882,6 +1902,99 @@ func (m *model) handleDropCommand(cmd string) {
 	// For now, show a message that inventory is not fully implemented
 	// This would need player inventory tracking
 	m.AppendMessage(fmt.Sprintf("You don't have any %s to drop.", itemName), "error")
+}
+
+// handleLookAt handles "look <target>" and "look at <target>" — examines items or characters
+func (m *model) handleLookAt(target string) {
+	// Check room items first
+	for _, item := range m.roomItems {
+		if !item.IsVisible {
+			continue
+		}
+		if strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
+			m.displayItemDetails(item)
+			return
+		}
+	}
+
+	// Check room characters (NPCs and players)
+	for _, char := range m.roomCharacters {
+		charNameLower := strings.ToLower(char.Name)
+		if strings.Contains(charNameLower, target) || charNameLower == target {
+			if char.IsNPC {
+				// Fetch NPC details from API
+				resp, err := http.Get(fmt.Sprintf("%s/npc?roomId=%d", RESTAPIBase, m.currentRoom))
+				if err == nil {
+					defer resp.Body.Close()
+					var npcs []struct {
+						ID          int    `json:"id"`
+						Name        string `json:"name"`
+						Description string `json:"description"`
+						Level       int    `json:"level"`
+						Disposition string `json:"disposition"`
+					}
+					if json.NewDecoder(resp.Body).Decode(&npcs) == nil {
+						for _, npc := range npcs {
+							if strings.ToLower(npc.Name) == charNameLower || strings.Contains(strings.ToLower(npc.Name), target) {
+								m.AppendMessage(fmt.Sprintf("[%s]\n%s\n\nLevel: %d\nDisposition: %s",
+									npc.Name, npc.Description, npc.Level, npc.Disposition), "info")
+								return
+							}
+						}
+					}
+				}
+				// Fallback if API fails
+				m.AppendMessage(fmt.Sprintf("[%s]\nAn NPC you can see here.\n\nLevel: %d", char.Name, char.Level), "info")
+				return
+			} else {
+				// Player character
+				m.AppendMessage(fmt.Sprintf("[%s]\nA player adventurer.\n\nLevel: %d", char.Name, char.Level), "info")
+				return
+			}
+		}
+	}
+
+	// Try hidden items reveal on examine (GitHub #12)
+	if m.currentRoom > 0 {
+		resp, err := http.Get(fmt.Sprintf("%s/rooms/%d/equipment?includeHidden=true", RESTAPIBase, m.currentRoom))
+		if err == nil {
+			defer resp.Body.Close()
+			if resp.StatusCode == http.StatusOK {
+				var allItems []RoomItem
+				if json.NewDecoder(resp.Body).Decode(&allItems) == nil {
+					for _, item := range allItems {
+						if !item.IsVisible && item.RevealCondition != nil {
+							revealType, _ := item.RevealCondition["type"].(string)
+							revealTarget, _ := item.RevealCondition["target"].(string)
+							if revealType == "examine" && strings.ToLower(revealTarget) == target {
+								revealResp, err := http.Post(
+									fmt.Sprintf("%s/equipment/%d/reveal", RESTAPIBase, item.ID),
+									"application/json",
+									strings.NewReader(fmt.Sprintf(`{"revealType":"examine","target":"%s","skillLevel":%d}`, revealTarget, m.characterLevel)),
+								)
+								if err == nil {
+									defer revealResp.Body.Close()
+									if revealResp.StatusCode == http.StatusOK {
+										m.loadRoomItems()
+										for _, ri := range m.roomItems {
+											if strings.Contains(strings.ToLower(ri.Name), target) || strings.ToLower(ri.Name) == target {
+												m.AppendMessage("✨ You discovered something hidden!\n\n", "info")
+												m.displayItemDetails(ri)
+												return
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Not found
+	m.AppendMessage(fmt.Sprintf("You don't see any '%s' here.", target), "error")
 }
 
 // handleExamineCommand handles the examine/ex/inspect/i command
