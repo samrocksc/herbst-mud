@@ -1,4 +1,7 @@
-.PHONY: help start stop run start-web stop-web dev start-admin stop-admin dev-all test test-bdd test-server-bdd
+.PHONY: help start stop run start-web stop-web dev start-admin stop-admin dev-all test test-bdd test-server-bdd logs-ssh logs-web build build-all reload
+
+PATH := $(PATH):/usr/local/go/bin
+export PATH
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -6,97 +9,97 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-start: ## Start the SSH server in the background
+build: ## Build SSH server binary
+	@echo "Building SSH server..."
+	@cd herbst && go build -o herbst . && echo "SSH binary built"
+
+build-web: ## Build web server binary
+	@echo "Building web server..."
+	@cd server && go build -o herbst-web . && echo "Web binary built"
+
+build-all: ## Build all server binaries
+	@$(MAKE) build
+	@$(MAKE) build-web
+
+start: ## Start the SSH server in the background (uses pre-built binary)
 	@echo "Starting SSH server on port 4444..."
-	@cd herbst && go run main.go &
-	@echo $$! > .herbst.pid
-	@echo "SSH server started with PID $$(cat .herbst.pid)"
+	@[ -f herbst/herbst ] || $(MAKE) build
+	@fuser -k 4444/tcp 2>/dev/null; \
+	herbst/herbst > /tmp/herbst-ssh.log 2>&1 & \
+	echo $$! > .herbst.pid && echo "SSH server started with PID $$(cat .herbst.pid)"
 
 stop: ## Stop both SSH and web servers
-	@if [ -f .herbst.pid ]; then \
-		echo "Stopping SSH server with PID $$(cat .herbst.pid)..."; \
-		kill $$(cat .herbst.pid) 2>/dev/null || true; \
-		rm -f .herbst.pid; \
-		echo "SSH server stopped."; \
-	else \
-		echo "No running SSH server found."; \
-	fi
-	@if [ -f .web.pid ]; then \
-		echo "Stopping web server with PID $$(cat .web.pid)..."; \
-		kill $$(cat .web.pid) 2>/dev/null || true; \
-		rm -f .web.pid; \
-		echo "Web server stopped."; \
-	else \
-		echo "No running web server found."; \
-	fi
+	@fuser -k 4444/tcp 2>/dev/null; \
+	rm -f .herbst.pid; \
+	echo "SSH server stopped."
+	@fuser -k 8080/tcp 2>/dev/null; \
+	rm -f .web.pid; \
+	echo "Web server stopped."
 
-run: ## Start the SSH server in the foreground
-	@cd herbst && go run main.go
+run: ## Start the SSH server in the foreground (uses pre-built binary)
+	@[ -f herbst/herbst ] || $(MAKE) build
+	@herbst/herbst
 
-start-web: ## Start the web server in the background
+start-web: ## Start the web server in the background (uses pre-built binary)
 	@echo "Starting web server on port 8080..."
-	@cd server && go run main.go &
-	@echo $$! > .web.pid
-	@echo "Web server started with PID $$(cat .web.pid)"
+	@[ -f server/herbst-web ] || $(MAKE) build-web
+	@fuser -k 8080/tcp 2>/dev/null; \
+	server/herbst-web > /tmp/herbst-web.log 2>&1 & \
+	echo $$! > .web.pid && echo "Web server started with PID $$(cat .web.pid)"
 
 stop-web: ## Stop the web server
-	@if [ -f .web.pid ]; then \
-		echo "Stopping web server with PID $$(cat .web.pid)..."; \
-		kill $$(cat .web.pid) 2>/dev/null || true; \
-		rm -f .web.pid; \
-		echo "Web server stopped."; \
-	else \
-		echo "No running web server found."; \
-	fi
+	@fuser -k 8080/tcp 2>/dev/null; \
+	rm -f .web.pid; \
+	echo "Web server stopped."
 
 start-admin: ## Start the admin frontend in the background
 	@echo "Starting admin frontend..."
 	@cd admin && npm run dev &
-	@echo $$! > .admin.pid
-	@echo "Admin frontend started with PID $$(cat .admin.pid)"
+	@echo $$! > .admin.pid && echo "Admin frontend started with PID $$(cat .admin.pid)"
 
 stop-admin: ## Stop the admin frontend
-	@if [ -f .admin.pid ]; then \
-		echo "Stopping admin frontend with PID $$(cat .admin.pid)..."; \
-		kill $$(cat .admin.pid) 2>/dev/null || true; \
-		rm -f .admin.pid; \
-		echo "Admin frontend stopped."; \
-	else \
-		echo "No running admin frontend found."; \
-	fi
+	@[ -f .admin.pid ] && kill $$(cat .admin.pid) 2>/dev/null; \
+	rm -f .admin.pid; \
+	echo "Admin frontend stopped."
 
-dev: ## Start both SSH and web servers in the background
-	@echo "Starting both SSH and web servers..."
-	@cd herbst && go run main.go &
-	@echo $$! > .herbst.pid
-	@cd server && go run main.go &
-	@echo $$! > .web.pid
-	@echo "SSH server started with PID $$(cat .herbst.pid)"
-	@echo "Web server started with PID $$(cat .web.pid)"
+dev: ## Build and start both SSH + web servers (uses pre-built binaries)
+	@echo "Building..."
+	@$(MAKE) build-all
+	@echo "Starting services..."
+	@fuser -k 4444/tcp 8080/tcp 2>/dev/null; sleep 1
+	@herbst/herbst > /tmp/herbst-ssh.log 2>&1 & echo $$! > .herbst.pid
+	@server/herbst-web > /tmp/herbst-web.log 2>&1 & echo $$! > .web.pid
+	@sleep 2
+	@echo "SSH: $$(cat .herbst.pid) | Web: $$(cat .web.pid)"
+	@echo "Logs: make logs-ssh / make logs-web"
 
-dev-frontend: ## Start frontend with OpenAPI client generation
-	@echo "Starting backend server..."
-	@cd server && go run main.go & \
-	BACKEND_PID=$$! && \
-	echo "Backend started with PID $$BACKEND_PID" && \
-	sleep 5 && \
-	echo "Generating frontend types from API..." && \
-	cd admin && npx @hey-api/openapi-ts -i http://localhost:8080/openapi.json -o src/client && \
-	echo "Generated frontend types" && \
-	echo "Starting frontend development server..." && \
-	cd ../admin && npm run dev
-
-dev-all: ## Start all services including admin frontend
+dev-all: ## Build and start all services (SSH + web + admin)
+	@echo "Building..."
+	@$(MAKE) build-all
 	@echo "Starting all services..."
-	@cd herbst && go run main.go &
-	@echo $$! > .herbst.pid
-	@cd server && go run main.go &
-	@echo $$! > .web.pid
+	@fuser -k 4444/tcp 8080/tcp 2>/dev/null; sleep 1
+	@herbst/herbst > /tmp/herbst-ssh.log 2>&1 & echo $$! > .herbst.pid
+	@server/herbst-web > /tmp/herbst-web.log 2>&1 & echo $$! > .web.pid
 	@cd admin && npm run dev &
 	@echo $$! > .admin.pid
-	@echo "SSH server started with PID $$(cat .herbst.pid)"
-	@echo "Web server started with PID $$(cat .web.pid)"
-	@echo "Admin frontend started with PID $$(cat .admin.pid)"
+	@sleep 2
+	@echo "SSH: $$(cat .herbst.pid) | Web: $$(cat .web.pid) | Admin: $$(cat .admin.pid)"
+
+reload: ## Rebuild SSH binary and restart (hot reload)
+	@echo "Building..."
+	@$(MAKE) build
+	@echo "Restarting SSH server..."
+	@fuser -k 4444/tcp 2>/dev/null; sleep 1
+	@herbst/herbst > /tmp/herbst-ssh.log 2>&1 & echo $$! > .herbst.pid
+	@sleep 2 && tail -2 /tmp/herbst-ssh.log
+
+reload-web: ## Rebuild web binary and restart
+	@echo "Building..."
+	@$(MAKE) build-web
+	@echo "Restarting web server..."
+	@fuser -k 8080/tcp 2>/dev/null; sleep 1
+	@server/herbst-web > /tmp/herbst-web.log 2>&1 & echo $$! > .web.pid
+	@sleep 2 && curl -s http://localhost:8080/healthz
 
 test: ## Run tests
 	@cd herbst && go test ./...
@@ -109,3 +112,9 @@ test-server: ## Run server tests
 
 test-server-bdd: ## Run server Gherkin BDD tests
 	@cd server && go test -v -run TestFeatures
+
+logs-ssh: ## Tail SSH server logs
+	@tail -f /tmp/herbst-ssh.log
+
+logs-web: ## Tail web server logs
+	@tail -f /tmp/herbst-web.log
