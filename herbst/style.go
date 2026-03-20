@@ -315,3 +315,38 @@ func StyleQuestStatus(status string) lipgloss.Style {
 		return lipgloss.NewStyle().Foreground(TextGray)
 	}
 }
+
+// Backward-compatibility aliases for code that uses lowercase names
+var (
+	pink                = AccentPink
+	cyan                = PrimaryTeal
+	gray                = TextGray
+	green               = StatusGreen
+	yellow              = StatusYellow
+	blue                = StatusBlue
+	red                 = StatusRed
+	white               = TextWhite
+	purple              = AccentPurple
+	exitVisitedColor    = ExitVisited
+	exitKnownColor      = ExitKnown
+	exitNewColor        = ExitNew
+	questTitleStyle     = TitleStyle
+	questBoxStyle       = BoxStyle
+	questProgressStyle  = WarningStyle
+	questCompletedStyle = SuccessStyle
+	questAvailableStyle = InfoStyle
+	titleStyle          = TitleStyle
+	boxStyle            = BoxStyle
+	successStyle        = SuccessStyle
+	errorStyle          = ErrorStyle
+	infoStyle           = InfoStyle
+	menuSelectedStyle   = MenuSelectedStyle
+	menuNormalStyle     = MenuNormalStyle
+	promptStyle         = PromptStyle
+	combatDamageStyle   = DamageStyle
+	combatHealStyle     = HealStyle
+	itemColorGold       = PrimaryOrange
+	itemColorWeapon     = StatusRed
+	itemColorArmor      = StatusBlue
+	itemColorMisc       = TextGray
+)
