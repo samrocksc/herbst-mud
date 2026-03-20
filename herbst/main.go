@@ -2508,7 +2508,7 @@ func (m *model) View() string {
 			BorderForeground(pink).
 			Padding(0, 1).
 			Width(width).
-			Height(viewportHeight - 2) // Account for border
+			Height(0) // Auto-expand to fill available space
 
 		// Colorful status bar with mini progress bars
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
@@ -2550,7 +2550,7 @@ func (m *model) View() string {
 			BorderForeground(pink).
 			Padding(0, 1).
 			Width(width).
-			Height(inputHeight - 2)
+			Height(0) // Auto-expand to fill available space
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
 
 		// ScreenPlaying uses full-width panels - don't center, just clear message and return
@@ -2608,8 +2608,8 @@ func welcomeScreen(width, height int, inputView string) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(pink).
 		Padding(0, 1).
-		Width(width - 2).
-		Height(outputHeight - 2)
+		Width(width).
+		Height(0)
 
 	// Build output content - lipgloss adds the border, so just content here
 	var outputContent strings.Builder
@@ -2631,8 +2631,8 @@ func welcomeScreen(width, height int, inputView string) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(pink).
 		Padding(0, 1).
-		Width(width - 2).
-		Height(inputHeight - 2)
+		Width(width).
+		Height(0)
 
 	var sb strings.Builder
 	sb.WriteString(outputStyle.Render(outputContent.String()))
@@ -2659,8 +2659,8 @@ func loginScreen(width, height int, message, messageType string, inputView strin
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(pink).
 		Padding(0, 1).
-		Width(width - 2).
-		Height(outputHeight - 2)
+		Width(width).
+		Height(0)
 
 	// Build output content - lipgloss adds the border, so just content here
 	var outputContent strings.Builder
@@ -2681,8 +2681,8 @@ func loginScreen(width, height int, message, messageType string, inputView strin
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(pink).
 		Padding(0, 1).
-		Width(width - 2).
-		Height(inputHeight - 2)
+		Width(width).
+		Height(0)
 
 	var sb strings.Builder
 	sb.WriteString(outputStyle.Render(outputContent.String()))
@@ -2709,8 +2709,8 @@ func registerScreen(width, height int, message, messageType string, inputView st
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(pink).
 		Padding(0, 1).
-		Width(width - 2).
-		Height(outputHeight - 2)
+		Width(width).
+		Height(0)
 
 	// Build output content - lipgloss adds the border, so just content here
 	var outputContent strings.Builder
@@ -2731,8 +2731,8 @@ func registerScreen(width, height int, message, messageType string, inputView st
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(pink).
 		Padding(0, 1).
-		Width(width - 2).
-		Height(inputHeight - 2)
+		Width(width).
+		Height(0)
 
 	var sb strings.Builder
 	sb.WriteString(outputStyle.Render(outputContent.String()))
@@ -2741,3 +2741,4 @@ func registerScreen(width, height int, message, messageType string, inputView st
 
 	return sb.String()
 }
+
