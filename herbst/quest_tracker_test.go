@@ -9,25 +9,26 @@ import (
 func TestHandleQuestsCommand(t *testing.T) {
 	m := &model{
 		currentCharacterID: 0,
-		message:            "",
-		messageType:        "",
+		messageHistory:     []string{},
+		messageTypes:       []string{},
+		maxHistory:         100, // Initialize maxHistory to avoid truncation bug
 	}
 
 	// Test with character ID 0 - triggers placeholder display
 	m.handleQuestsCommand("quests")
 
 	// Should show placeholder when no character
-	if m.message == "" {
+	if len(m.messageHistory) == 0 {
 		t.Error("Expected non-empty message from placeholder")
 	}
 
 	// Verify placeholder contains expected content
-	if !strings.Contains(m.message, "QUEST LOG") {
+	if len(m.messageHistory) > 0 && !strings.Contains(m.messageHistory[0], "QUEST LOG") {
 		t.Error("Expected 'QUEST LOG' to be displayed in placeholder")
 	}
 
 	// Verify at least one quest is shown in placeholder
-	if !strings.Contains(m.message, "Prove Yourself") {
+	if len(m.messageHistory) > 0 && !strings.Contains(m.messageHistory[0], "Prove Yourself") {
 		t.Error("Expected 'Prove Yourself' placeholder quest to be displayed")
 	}
 }
@@ -37,14 +38,15 @@ func TestHandleQuestsCommandWithNoQuests(t *testing.T) {
 	// When currentCharacterID is 0, should show placeholder
 	m := &model{
 		currentCharacterID: 0,
-		message:            "",
-		messageType:        "",
+		messageHistory:     []string{},
+		messageTypes:       []string{},
+		maxHistory:         100,
 	}
 
 	m.handleQuestsCommand("quests")
 
 	// Should show placeholder with some message
-	if m.message == "" {
+	if len(m.messageHistory) == 0 {
 		t.Error("Expected non-empty message")
 	}
 }
@@ -54,14 +56,15 @@ func TestHandleQuestsCommandAPIError(t *testing.T) {
 	// When currentCharacterID is 0, should not call API but show placeholder
 	m := &model{
 		currentCharacterID: 0,
-		message:            "",
-		messageType:        "",
+		messageHistory:     []string{},
+		messageTypes:       []string{},
+		maxHistory:         100,
 	}
 
 	m.handleQuestsCommand("quests")
 
 	// Should work without error even without character
-	if m.message == "" {
+	if len(m.messageHistory) == 0 {
 		t.Error("Expected non-empty message")
 	}
 }
@@ -94,29 +97,30 @@ func TestQuestPanelStyles(t *testing.T) {
 func TestDisplayQuestTrackerPlaceholder(t *testing.T) {
 	m := &model{
 		currentCharacterID: 0,
-		message:            "",
-		messageType:        "",
+		messageHistory:     []string{},
+		messageTypes:       []string{},
+		maxHistory:         100,
 	}
 
 	m.handleQuestsCommand("quests")
 
 	// Verify placeholder displays correctly
-	if m.message == "" {
+	if len(m.messageHistory) == 0 {
 		t.Error("Expected non-empty message from placeholder")
 	}
 
 	// Verify header is present
-	if !strings.Contains(m.message, "QUEST LOG") {
+	if len(m.messageHistory) > 0 && !strings.Contains(m.messageHistory[0], "QUEST LOG") {
 		t.Error("Expected 'QUEST LOG' in placeholder")
 	}
 
 	// Verify at least one quest is shown
-	if !strings.Contains(m.message, "Prove Yourself") && !strings.Contains(m.message, "Ooze Samples") {
+	if len(m.messageHistory) > 0 && !strings.Contains(m.messageHistory[0], "Prove Yourself") && !strings.Contains(m.messageHistory[0], "Ooze Samples") {
 		t.Error("Expected placeholder quests to be displayed")
 	}
 
 	// Verify message type is info
-	if m.messageType != "info" {
-		t.Errorf("Expected messageType 'info', got '%s'", m.messageType)
+	if len(m.messageTypes) > 0 && m.messageTypes[0] != "info" {
+		t.Errorf("Expected messageType 'info', got '%s'", m.messageTypes[0])
 	}
 }
