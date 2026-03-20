@@ -88,3 +88,26 @@ Feature: Combat End (Victory/Defeat Screens)
     Given the player dies and leaves equipment
     When 5 minutes pass without reclaim
     Then the equipment is permanently lost
+
+  Scenario: Victory shows combat duration
+    Given the combat lasted 8 ticks
+    When combat ends in victory
+    Then the summary shows "Combat time: 8 ticks"
+
+  Scenario: Defeat penalty reduces level progress
+    Given player has 450/1000 XP in current level
+    When player is defeated
+    Then 10% of current level progress is lost
+    And player loses 45 XP
+
+  Scenario: Quest progress saves on victory
+    Given the enemy is a quest target
+    When combat ends in victory
+    Then the quest progress is updated
+    And any quest items are awarded
+
+  Scenario: Loot auto-pickup option
+    Given the player has auto-loot enabled
+    When combat ends in victory
+    Then all loot is automatically added to inventory
+    And the loot summary is still shown

@@ -1,317 +1,227 @@
 package main
 
-// ============================================================
-// COMPREHENSIVE STYLING SYSTEM - Post-Apocalyptic MUD Theme
-// ============================================================
-// Following the style guide from charm-ui-tickets.md:
-// - Dark theme with neon accents
-// - Color scheme: teal (#00AAAA), orange (#FF6600), white text
-// - Use borders to separate panels
-// - Progress bars for HP/Stamina/Mana
+import (
+	"fmt"
+	"strings"
 
-import "github.com/charmbracelet/lipgloss"
-
-// ============================================================
-// COLOR PALETTE - Post-apocalyptic neon theme
-// ============================================================
-
-var (
-	// Primary colors (neon accents for dark background)
-	PrimaryTeal    = lipgloss.Color("51")   // #00CCCC - Teal/Cyan
-	PrimaryOrange  = lipgloss.Color("202")  // #FF6600 - Orange
-	AccentPink     = lipgloss.Color("219")  // #FF99CC - Neon pink
-	AccentPurple   = lipgloss.Color("141")  // #CC99FF - Purple
-
-	// Status colors
-	StatusRed     = lipgloss.Color("196") // Red - danger/low HP
-	StatusGreen   = lipgloss.Color("46")  // Green - healthy/good
-	StatusYellow  = lipgloss.Color("226") // Yellow - warning
-	StatusBlue    = lipgloss.Color("75")  // Blue - mana/magic
-
-	// Neutral colors
-	TextWhite    = lipgloss.Color("15")  // Primary text
-	TextGray     = lipgloss.Color("8")   // Secondary text
-	TextDarkGray = lipgloss.Color("236") // Backgrounds
-	BorderColor  = lipgloss.Color("240") // Borders
-
-	// Exit colors (for navigation)
-	ExitVisited = lipgloss.Color("46") // Green - visited
-	ExitKnown   = lipgloss.Color("226") // Yellow - known
-	ExitNew     = lipgloss.Color("15") // White - new
+	"github.com/charmbracelet/lipgloss"
 )
 
 // ============================================================
-// TYPOGRAPHY STYLES
+// STYLING - Lipgloss styles for UI elements
 // ============================================================
 
 var (
-	// Title style - bold, teal on dark
-	TitleStyle = lipgloss.NewStyle().
-			Foreground(PrimaryTeal).
-			Background(TextDarkGray).
-			Bold(true).
-			Padding(0, 1).
-			Width(60).
-			Align(lipgloss.Center)
+	// Colors
+	red    = lipgloss.Color("196")
+	green  = lipgloss.Color("46")
+	yellow = lipgloss.Color("226")
+	blue   = lipgloss.Color("75")
+	purple = lipgloss.Color("141")
+	white  = lipgloss.Color("15")
+	gray   = lipgloss.Color("8")
+	pink   = lipgloss.Color("219")
+	cyan   = lipgloss.Color("51")
 
-	// Subtitle style - orange
-	SubtitleStyle = lipgloss.NewStyle().
-			Foreground(PrimaryOrange).
-			Padding(0, 1).
-			Width(60).
-			Align(lipgloss.Center)
+	// Raw ANSI for direct terminal output (when lipgloss fails)
+	pinkAnsi  = "\033[38;5;219m"
+	pinkReset = "\033[0m"
 
-	// Header style - bold blue
-	HeaderStyle = lipgloss.NewStyle().
-			Foreground(StatusBlue).
+	// Exit colors for visited/known/new
+	exitVisitedColor = lipgloss.Color("46")  // Green
+	exitKnownColor   = lipgloss.Color("226") // Yellow
+	exitNewColor     = lipgloss.Color("15")  // White
+
+	// Quest tracker panel colors
+	questTitleColor     = lipgloss.Color("75")    // Blue
+	questProgressColor  = lipgloss.Color("226")   // Yellow
+	questCompletedColor = lipgloss.Color("46")    // Green
+	questAvailableColor = lipgloss.Color("141")  // Purple
+
+	// Quest tracker panel styles
+	questTitleStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(questTitleColor)
+
+	questBoxStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(purple).
+			Padding(1, 2)
+
+	questProgressStyle = lipgloss.NewStyle().
+				Foreground(questProgressColor)
+
+	questCompletedStyle = lipgloss.NewStyle().
+				Foreground(questCompletedColor).
+				Strikethrough(true)
+
+	questAvailableStyle = lipgloss.NewStyle().
+				Foreground(questAvailableColor)
+
+	// Styles
+	titleStyle = lipgloss.NewStyle().
 			Bold(true).
+			Foreground(green).
+			Background(lipgloss.Color("236")).
 			Padding(0, 1)
 
-	// Body text - white
-	BodyStyle = lipgloss.NewStyle().
-			Foreground(TextWhite).
-			Padding(0, 1)
-
-	// Secondary text - gray
-	SecondaryStyle = lipgloss.NewStyle().
-			Foreground(TextGray).
-			Padding(0, 1)
-
-	// Bold text
-	BoldStyle = lipgloss.NewStyle().
+	headerStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(TextWhite)
+			Foreground(blue).
+			Padding(0, 1)
 
-	// Italic text
-	ItalicStyle = lipgloss.NewStyle().
-			Foreground(TextGray).
-			Italic(true)
-)
-
-// ============================================================
-// BORDER STYLES
-// ============================================================
-
-var (
-	// Rounded border box - for main panels
-	BoxStyle = lipgloss.NewStyle().
+	boxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(BorderColor).
-			Padding(1, 2).
-			Width(58).
-			Align(lipgloss.Left)
+			BorderForeground(purple).
+			Padding(1, 2)
 
-	// Double border - for important sections
-	DoubleBoxStyle = lipgloss.NewStyle().
-			Border(lipgloss.DoubleBorder()).
-			BorderForeground(PrimaryTeal).
-			Padding(1, 2).
-			Width(58)
-
-	// Thick border - for headers
-	ThickBoxStyle = lipgloss.NewStyle().
-			Border(lipgloss.ThickBorder()).
-			BorderForeground(PrimaryOrange).
-			Padding(1, 2).
-			Width(58)
-
-	// Left border highlight - for highlighted items
-	HighlightBoxStyle = lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(PrimaryTeal).
-			Padding(0, 0, 0, 1)
-
-	// Error/warning box
-	ErrorBoxStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(StatusRed).
-			Padding(1, 2).
-			Width(58)
-
-	// Success box
-	SuccessBoxStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(StatusGreen).
-			Padding(1, 2).
-			Width(58)
-)
-
-// ============================================================
-// STATUS STYLES - For messages and feedback
-// ============================================================
-
-var (
-	// Success messages
-	SuccessStyle = lipgloss.NewStyle().
-			Foreground(StatusGreen).
+	successStyle = lipgloss.NewStyle().
+			Foreground(green).
 			Bold(true)
 
-	// Error messages
-	ErrorStyle = lipgloss.NewStyle().
-			Foreground(StatusRed).
+	errorStyle = lipgloss.NewStyle().
+			Foreground(red).
 			Bold(true)
 
-	// Warning messages
-	WarningStyle = lipgloss.NewStyle().
-			Foreground(StatusYellow).
-			Bold(true)
+	infoStyle = lipgloss.NewStyle().
+			Foreground(yellow)
 
-	// Info messages
-	InfoStyle = lipgloss.NewStyle().
-			Foreground(StatusBlue)
-
-	// Combat damage - red
-	DamageStyle = lipgloss.NewStyle().
-			Foreground(StatusRed)
-
-	// Combat heal - green
-	HealStyle = lipgloss.NewStyle().
-			Foreground(StatusGreen)
-
-	// Magic/mana - blue
-	MagicStyle = lipgloss.NewStyle().
-			Foreground(StatusBlue)
-)
-
-// ============================================================
-// MENU STYLES
-// ============================================================
-
-var (
-	// Selected menu item - teal background
-	MenuSelectedStyle = lipgloss.NewStyle().
-				Foreground(PrimaryTeal).
+	menuSelectedStyle = lipgloss.NewStyle().
+				Foreground(green).
 				Bold(true).
 				Padding(0, 0, 0, 2)
 
-	// Normal menu item - gray
-	MenuNormalStyle = lipgloss.NewStyle().
-			Foreground(TextGray).
+	menuNormalStyle = lipgloss.NewStyle().
+			Foreground(gray).
 			Padding(0, 0, 0, 2)
 
-	// Disabled menu item - dark gray
-	MenuDisabledStyle = lipgloss.NewStyle().
-			Foreground(TextDarkGray).
-			Padding(0, 0, 0, 2)
-)
-
-// ============================================================
-// PROGRESS BAR STYLES
-// ============================================================
-
-var (
-	// Health bar - red filled
-	HealthBarStyle = lipgloss.NewStyle().
-			Foreground(StatusRed).
-			Background(lipgloss.Color("52"))
-
-	// Stamina bar - yellow filled
-	StaminaBarStyle = lipgloss.NewStyle().
-			Foreground(StatusYellow).
-			Background(lipgloss.Color("58"))
-
-	// Mana bar - blue filled
-	ManaBarStyle = lipgloss.NewStyle().
-			Foreground(StatusBlue).
-			Background(lipgloss.Color("24"))
-
-	// Experience bar - purple filled
-	XPBarStyle = lipgloss.NewStyle().
-			Foreground(AccentPurple).
-			Background(lipgloss.Color("56"))
-)
-
-// ============================================================
-// INPUT/OUTPUT STYLES
-// ============================================================
-
-var (
-	// Prompt style - teal
-	PromptStyle = lipgloss.NewStyle().
-			Foreground(PrimaryTeal).
+	promptStyle = lipgloss.NewStyle().
+			Foreground(blue).
 			Bold(true)
-
-	// Input field
-	InputStyle = lipgloss.NewStyle().
-			Foreground(TextWhite).
-			Background(TextDarkGray).
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(BorderColor).
-			Padding(0, 1)
-
-	// Input field focused
-	InputFocusedStyle = lipgloss.NewStyle().
-				Foreground(PrimaryTeal).
-				Background(TextDarkGray).
-				Border(lipgloss.NormalBorder()).
-				BorderForeground(PrimaryTeal).
-				Padding(0, 1)
-
-	// Password input (masked)
-	PasswordStyle = lipgloss.NewStyle().
-			Foreground(PrimaryOrange).
-			Background(TextDarkGray).
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(BorderColor).
-			Padding(0, 1)
 )
 
 // ============================================================
-// UTILITY FUNCTIONS
+// PROGRESS BARS - HP/Stamina/Mana using characters
 // ============================================================
 
-// StyleRoomName applies the appropriate style to a room name
-func StyleRoomName(name string, visited bool) string {
-	if visited {
-		return lipgloss.NewStyle().Foreground(PrimaryTeal).Bold(true).Render(name)
+// ProgressBar creates a text-based progress bar
+func ProgressBar(current, max, width int, filledChar, emptyChar string, fillColor, emptyColor lipgloss.Color) string {
+	if max <= 0 {
+		max = 1
 	}
-	return lipgloss.NewStyle().Foreground(TextWhite).Bold(true).Render(name)
+	if current < 0 {
+		current = 0
+	}
+	if current > max {
+		current = max
+	}
+
+	filledWidth := int(float64(current) / float64(max) * float64(width))
+	emptyWidth := width - filledWidth
+
+	filledStyle := lipgloss.NewStyle().Foreground(fillColor)
+	emptyStyle := lipgloss.NewStyle().Foreground(emptyColor)
+
+	return filledStyle.Render(strings.Repeat(filledChar, filledWidth)) +
+		emptyStyle.Render(strings.Repeat(emptyChar, emptyWidth))
 }
 
-// StyleExit applies color based on exit status
-func StyleExit(direction string, status string) string {
-	var color lipgloss.Color
-	switch status {
-	case "visited":
-		color = ExitVisited
-	case "known":
-		color = ExitKnown
+// StatusBar creates colorful status bars with progress bars
+func StatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int) string {
+	// Use Unicode block characters for progress
+	hpBar := ProgressBar(hp, maxHP, 20, "█", "░", red, gray)
+	staminaBar := ProgressBar(stamina, maxStamina, 20, "▓", "░", yellow, gray)
+	manaBar := ProgressBar(mana, maxMana, 20, "✨", "○", blue, gray)
+
+	return fmt.Sprintf(" %s  HP: %s %d/%d\n %s  STA: %s %d/%d\n %s  MANA: %s %d/%d",
+		lipgloss.NewStyle().Foreground(red).Render("❤️"),
+		hpBar, hp, maxHP,
+		lipgloss.NewStyle().Foreground(yellow).Render("💪"),
+		staminaBar, stamina, maxStamina,
+		lipgloss.NewStyle().Foreground(blue).Render("✨"),
+		manaBar, mana, maxMana)
+}
+
+// MiniStatusBar creates a compact inline status bar
+func MiniStatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int) string {
+	hpPercent := float64(hp) / float64(maxHP) * 100
+	staminaPercent := float64(stamina) / float64(maxStamina) * 100
+	manaPercent := float64(mana) / float64(maxMana) * 100
+
+	var hpColor lipgloss.Color
+	if hpPercent > 60 {
+		hpColor = green
+	} else if hpPercent > 30 {
+		hpColor = yellow
+	} else {
+		hpColor = red
+	}
+
+	hpStr := lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", hpPercent))
+	staStr := lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", staminaPercent))
+	manaStr := lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", manaPercent))
+
+	return fmt.Sprintf("[%s%s%% %s%s%% %s%s%%]",
+		lipgloss.NewStyle().Foreground(hpColor).Render("❤️"),
+		hpStr,
+		lipgloss.NewStyle().Foreground(yellow).Render("💪"),
+		staStr,
+		lipgloss.NewStyle().Foreground(blue).Render("✨"),
+		manaStr)
+}
+
+// Item colors for display
+var (
+	itemColorGold   = lipgloss.Color("220") // Gold for immovable items
+	itemColorWeapon = lipgloss.Color("196") // Red for weapons
+	itemColorArmor  = lipgloss.Color("75")  // Blue for armor
+	itemColorMisc   = lipgloss.Color("242") // Gray for misc
+)
+
+// combatDamageStyle for damage messages (red)
+var combatDamageStyle = lipgloss.NewStyle().
+	Foreground(red).
+	Bold(true)
+
+// combatHealStyle for healing messages (green)
+var combatHealStyle = lipgloss.NewStyle().
+	Foreground(green).
+	Bold(true)
+
+// getItemIcon returns an emoji icon based on item type
+func getItemIcon(itemType string) string {
+	switch itemType {
+	case "weapon":
+		return "⚔️"
+	case "armor":
+		return "🛡️"
+	case "potion":
+		return "🧪"
+	case "food":
+		return "🍖"
+	case "scroll":
+		return "📜"
+	case "key":
+		return "🔑"
+	case "treasure":
+		return "💎"
+	case "quest":
+		return "📋"
 	default:
-		color = ExitNew
+		return "📦"
 	}
-	return lipgloss.NewStyle().Foreground(color).Render(direction)
 }
 
-// StyleItemQuality applies color based on item rarity
-func StyleItemQuality(name string, quality string) string {
-	var color lipgloss.Color
-	switch quality {
-	case "common":
-		color = TextWhite
-	case "uncommon":
-		color = StatusGreen
+// getItemRarityColor returns a lipgloss color based on item rarity
+func getItemRarityColor(rarity string) lipgloss.Color {
+	switch rarity {
 	case "rare":
-		color = StatusBlue
+		return lipgloss.Color("51") // Blue
 	case "epic":
-		color = AccentPurple
+		return lipgloss.Color("201") // Magenta
 	case "legendary":
-		color = PrimaryOrange
+		return lipgloss.Color("220") // Gold
 	default:
-		color = TextGray
-	}
-	return lipgloss.NewStyle().Foreground(color).Render(name)
-}
-
-// StyleQuestStatus applies color based on quest status
-func StyleQuestStatus(status string) lipgloss.Style {
-	switch status {
-	case "completed":
-		return lipgloss.NewStyle().Foreground(StatusGreen).Bold(true)
-	case "in_progress":
-		return lipgloss.NewStyle().Foreground(PrimaryOrange).Bold(true)
-	case "available":
-		return lipgloss.NewStyle().Foreground(StatusBlue)
-	default:
-		return lipgloss.NewStyle().Foreground(TextGray)
+		return lipgloss.Color("white")
 	}
 }

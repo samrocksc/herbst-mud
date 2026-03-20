@@ -74,3 +74,22 @@ Feature: Combat Interrupts (Parry, Shield Bash)
     And shield_bash on another enemy
     Then both interrupts resolve correctly
     And each enemy's action is handled independently
+
+  Scenario: Parry cooldown prevents spam
+    Given the player used parry on previous tick
+    When the player attempts to parry again
+    Then the parry fails due to cooldown
+    And feedback shows cooldown remaining
+
+  Scenario: Shield bash requires shield equipped
+    Given the player has no shield equipped
+    When the player attempts shield_bash
+    Then the ability fails
+    And feedback "You need a shield" is shown
+
+  Scenario: Interrupt fails if target not channeling
+    Given the enemy is using basic attack
+    When the player uses shield_bash
+    Then the bash still deals damage
+    But no interrupt occurs
+    And no stun is applied
