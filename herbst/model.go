@@ -130,7 +130,7 @@ type inventoryItem struct {
 }
 
 // RESTAPIBase is the base URL for the REST API
-const RESTAPIBase = "http://localhost:8080"
+var RESTAPIBase = "http://localhost:8080"
 
 // StartingRoomID is the ID of the room players start in
 const StartingRoomID = 5

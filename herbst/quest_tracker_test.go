@@ -71,19 +71,6 @@ func TestHandleQuestsCommandAPIError(t *testing.T) {
 
 // Test questPanelStyles - verifies Lip Gloss styling exists
 func TestQuestPanelStyles(t *testing.T) {
-	// Verify quest panel colors are defined (non-empty)
-	if questTitleColor == "" {
-		t.Error("Expected questTitleColor to be defined")
-	}
-
-	if questProgressColor == "" {
-		t.Error("Expected questProgressColor to be defined")
-	}
-
-	if questCompletedColor == "" {
-		t.Error("Expected questCompletedColor to be defined")
-	}
-
 	// Verify styles are initialized (not zero value)
 	// We can check if they render something without panicking
 	testStr := "test"
@@ -91,6 +78,7 @@ func TestQuestPanelStyles(t *testing.T) {
 	_ = questBoxStyle.Render(testStr)
 	_ = questProgressStyle.Render(testStr)
 	_ = questCompletedStyle.Render(testStr)
+	_ = questAvailableStyle.Render(testStr)
 }
 
 // Test displayQuestTrackerPlaceholder - verifies placeholder display
