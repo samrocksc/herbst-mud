@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -27,8 +28,16 @@ func (m *model) formatExitsWithColor() string {
 		return lipgloss.NewStyle().Foreground(gray).Render("none")
 	}
 
-	var dirs []string
-	for dir, roomID := range m.exits {
+	// Sort exit directions for consistent ordering
+	dirs := make([]string, 0, len(m.exits))
+	for dir := range m.exits {
+		dirs = append(dirs, dir)
+	}
+	sort.Strings(dirs)
+
+	var formatted []string
+	for _, dir := range dirs {
+		roomID := m.exits[dir]
 		var exitStyle lipgloss.Style
 		if m.visitedRooms[roomID] {
 			exitStyle = lipgloss.NewStyle().Foreground(exitVisitedColor)
@@ -38,10 +47,10 @@ func (m *model) formatExitsWithColor() string {
 			m.knownExits[dir] = true
 			exitStyle = lipgloss.NewStyle().Foreground(exitNewColor)
 		}
-		dirs = append(dirs, exitStyle.Render(dir))
+		formatted = append(formatted, exitStyle.Render(dir))
 	}
 
-	return strings.Join(dirs, ", ")
+	return strings.Join(formatted, ", ")
 }
 
 // formatRoomItems returns a formatted string of items in the room
