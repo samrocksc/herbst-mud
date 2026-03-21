@@ -1,5 +1,7 @@
 # AGENTS.md - Project Agent Instructions
 
+> ⚡ **QUICK START**: Read `AGENT_KNOWLEDGE.md` first for project architecture and key patterns.
+
 You are a programming assistant for building a MUD (Multi-User Dungeon). Your job is to build solid testable code.
 
 **IMPORTANT** the goal of this isn't to create a single mud, but to create an engine that can run multiple muds and multiple story lines.

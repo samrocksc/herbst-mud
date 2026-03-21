@@ -20,6 +20,12 @@ func (m *model) processCommand(cmd string) {
 		return
 	}
 
+	// Handle look/l commands with or without targets
+	if cmd == "look" || cmd == "l" || strings.HasPrefix(cmd, "look ") || strings.HasPrefix(cmd, "l ") {
+		m.handleLookCommand(cmd)
+		return
+	}
+
 	switch cmd {
 	case "help", "?":
 		m.AppendMessage(`Commands:
@@ -37,9 +43,6 @@ func (m *model) processCommand(cmd string) {
   profile/p - Edit character profile
   clear/cls - Clear screen
   quit - Exit game`, "info")
-
-	case "look", "l":
-		m.handleLookCommand(cmd)
 
 	case "exits", "x":
 		m.AppendMessage(fmt.Sprintf("Exits: %s", m.formatExitsWithColor()), "info")

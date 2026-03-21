@@ -26,8 +26,8 @@ func (m *model) handleLookCommand(cmd string) {
 
 	// Strip "at" if present: "look at Gandalf" → "Gandalf"
 	var target string
-	if len(parts) >= 3 && strings.ToLower(parts[2]) == "at" {
-		target = strings.Join(parts[3:], " ")
+	if len(parts) >= 2 && strings.ToLower(parts[1]) == "at" {
+		target = strings.Join(parts[2:], " ")
 	} else {
 		target = strings.Join(parts[1:], " ")
 	}
@@ -38,10 +38,18 @@ func (m *model) handleLookCommand(cmd string) {
 
 // handleLookAt handles "look <target>" — items or characters
 func (m *model) handleLookAt(target string) {
+	if m.debugMode {
+		m.AppendMessage(fmt.Sprintf("[DEBUG] Looking for: '%s'", target), "info")
+		m.AppendMessage(fmt.Sprintf("[DEBUG] Room items: %d, Room characters: %d", len(m.roomItems), len(m.roomCharacters)), "info")
+	}
+
 	// Room items
 	for _, item := range m.roomItems {
 		if !item.IsVisible {
 			continue
+		}
+		if m.debugMode {
+			m.AppendMessage(fmt.Sprintf("[DEBUG] Checking item: '%s'", item.Name), "info")
 		}
 		if fuzzyWordMatch(item.Name, target) || strings.Contains(strings.ToLower(item.Name), target) || strings.ToLower(item.Name) == target {
 			m.displayItemDetails(item)
@@ -52,7 +60,13 @@ func (m *model) handleLookAt(target string) {
 	// Room characters
 	for _, char := range m.roomCharacters {
 		charNameLower := strings.ToLower(char.Name)
+		if m.debugMode {
+			m.AppendMessage(fmt.Sprintf("[DEBUG] Checking character: '%s' (IsNPC: %v)", char.Name, char.IsNPC), "info")
+		}
 		if fuzzyWordMatch(char.Name, target) || strings.Contains(charNameLower, target) || charNameLower == target {
+			if m.debugMode {
+				m.AppendMessage(fmt.Sprintf("[DEBUG] Matched character: '%s'", char.Name), "info")
+			}
 			if char.IsNPC {
 				resp, err := httpGet(fmt.Sprintf("%s/npc?roomId=%d", RESTAPIBase, m.currentRoom))
 				if err == nil {
@@ -65,6 +79,9 @@ func (m *model) handleLookAt(target string) {
 						Disposition string `json:"disposition"`
 					}
 					if json.NewDecoder(resp.Body).Decode(&npcs) == nil {
+						if m.debugMode {
+							m.AppendMessage(fmt.Sprintf("[DEBUG] NPCs from API: %d", len(npcs)), "info")
+						}
 						for _, npc := range npcs {
 							if fuzzyWordMatch(npc.Name, target) || strings.ToLower(npc.Name) == charNameLower || strings.Contains(strings.ToLower(npc.Name), target) {
 								m.AppendMessage(fmt.Sprintf("[%s]\n%s\n\nLevel: %d\nDisposition: %s",

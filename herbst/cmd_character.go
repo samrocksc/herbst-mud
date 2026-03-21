@@ -63,6 +63,22 @@ func (m *model) handleEditFieldInput(input string) {
 // ============================================================
 
 func (m *model) loadOrCreateCharacter() {
+	// Handle case when database client is not available
+	if m.client == nil {
+		m.currentCharacterName = m.currentUserName
+		m.characterGender = "unspecified"
+		m.characterDescription = "A mysterious figure."
+		m.characterHP = 100
+		m.characterMaxHP = 100
+		m.characterStamina = 50
+		m.characterMaxStamina = 50
+		m.characterMana = 25
+		m.characterMaxMana = 25
+		m.characterLevel = 1
+		m.characterExperience = 0
+		return
+	}
+
 	ctx := context.Background()
 	chars, err := m.client.Character.Query().Where(character.HasUserWith(user.IDEQ(m.currentUserID))).All(ctx)
 	if err != nil || len(chars) == 0 {
