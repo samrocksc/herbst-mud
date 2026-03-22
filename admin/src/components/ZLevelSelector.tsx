@@ -16,11 +16,6 @@ const Z_LEVELS = [
 export function ZLevelSelector({ currentLevel, onChange }: ZLevelSelectorProps) {
   const [adjacentLevels, setAdjacentLevels] = useState<number[]>([])
 
-  const filteredNodes = useMemo(() => {
-    // This would be passed in from parent in real implementation
-    return null // Placeholder
-  }, [])
-
   const handleLevelClick = (level: number) => {
     onChange(level)
     // Show adjacent levels for preview

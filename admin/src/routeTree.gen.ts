@@ -9,10 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as NpcsRouteImport } from './routes/npcs'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ItemsRouteImport } from './routes/items'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 
+const NpcsRoute = NpcsRouteImport.update({
+  id: '/npcs',
+  path: '/npcs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
@@ -23,6 +31,16 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ItemsRoute = ItemsRouteImport.update({
+  id: '/items',
+  path: '/items',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,36 +49,55 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/npcs': typeof NpcsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/npcs': typeof NpcsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/npcs': typeof NpcsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/map'
+  fullPaths: '/' | '/dashboard' | '/items' | '/login' | '/map' | '/npcs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/map'
-  id: '__root__' | '/' | '/login' | '/map'
+  to: '/' | '/dashboard' | '/items' | '/login' | '/map' | '/npcs'
+  id: '__root__' | '/' | '/dashboard' | '/items' | '/login' | '/map' | '/npcs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  ItemsRoute: typeof ItemsRoute
   LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
+  NpcsRoute: typeof NpcsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/npcs': {
+      id: '/npcs'
+      path: '/npcs'
+      fullPath: '/npcs'
+      preLoaderRoute: typeof NpcsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/map': {
       id: '/map'
       path: '/map'
@@ -75,6 +112,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/items': {
+      id: '/items'
+      path: '/items'
+      fullPath: '/items'
+      preLoaderRoute: typeof ItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,8 +138,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  ItemsRoute: ItemsRoute,
   LoginRoute: LoginRoute,
   MapRoute: MapRoute,
+  NpcsRoute: NpcsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

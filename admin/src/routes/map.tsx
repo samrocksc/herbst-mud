@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 
 export const Route = createFileRoute('/map')({
   component: MapBuilder,
@@ -11,20 +11,63 @@ interface Room {
   description: string
   isStartingRoom?: boolean
   exits: Record<string, number>
-  x?: number
-  y?: number
-  zLevel?: number
+  atmosphere?: string
+}
+
+interface NPC {
+  id: number
+  name: string
+  class: string
+  race: string
+  level: number
+  currentRoomId: number
+}
+
+interface Equipment {
+  id: number
+  name: string
+  description?: string
+  roomId?: number
+}
+
+// Move constant outside component to avoid recreation
+const OPPOSITE_DIR: Record<string, string> = {
+  north: 'south',
+  south: 'north',
+  east: 'west',
+  west: 'east',
+  up: 'down',
+  down: 'up'
+}
+
+const DIRECTION_OFFSETS: Record<string, { dx: number; dy: number }> = {
+  north: { dx: 0, dy: -120 },
+  south: { dx: 0, dy: 120 },
+  east: { dx: 150, dy: 0 },
+  west: { dx: -150, dy: 0 }
 }
 
 function MapBuilder() {
   const navigate = useNavigate()
   const [rooms, setRooms] = useState<Room[]>([])
+  const [npcs, setNpcs] = useState<NPC[]>([])
+  const [roomEquipment, setRoomEquipment] = useState<Record<number, Equipment[]>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null)
   const [zoom, setZoom] = useState(1)
+  const [currentZLevel, setCurrentZLevel] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    exits: {} as Record<string, string>
+  })
 
-  // Check authentication
+  // Auth check - runs once on mount
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -32,214 +75,439 @@ function MapBuilder() {
     }
   }, [navigate])
 
-  // Load rooms from API
+  // Load rooms and NPCs - runs once on mount
   useEffect(() => {
-    fetch('http://localhost:8080/rooms')
-      .then(res => res.json())
-      .then(data => {
-        setRooms(data)
+    const controller = new AbortController()
+
+    Promise.all([
+      fetch('http://localhost:8080/rooms', { signal: controller.signal }).then(res => res.json()),
+      fetch('http://localhost:8080/npcs', { signal: controller.signal }).then(res => res.json())
+    ])
+      .then(([roomsData, npcsData]) => {
+        setRooms(roomsData)
+        setNpcs(npcsData.npcs || [])
         setLoading(false)
       })
       .catch(err => {
-        setError(err.message)
-        setLoading(false)
+        if (err.name !== 'AbortError') {
+          setError(err.message)
+          setLoading(false)
+        }
       })
+
+    return () => controller.abort()
   }, [])
 
-  // Find starting room (Fountain Plaza) or first room
-  const centerRoom = rooms.find(r => r.isStartingRoom) || rooms[0]
+  // Load equipment for selected room - only when selectedRoom changes
+  useEffect(() => {
+    if (!selectedRoom) return
 
-  // Build a graph-based layout
-  const nodePositions: Map<number, { x: number; y: number }> = new Map()
-  const visited = new Set<number>()
+    const roomId = selectedRoom.id
+    const controller = new AbortController()
 
-  const positionRoom = (roomId: number, x: number, y: number, fromDir?: string) => {
-    if (visited.has(roomId)) return
-    visited.add(roomId)
-    nodePositions.set(roomId, { x, y })
+    fetch(`http://localhost:8080/rooms/${roomId}/equipment`, { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => {
+        setRoomEquipment(prev => ({ ...prev, [roomId]: data.equipment || [] }))
+      })
+      .catch(() => {})
 
-    const room = rooms.find(r => r.id === roomId)
-    if (!room) return
+    return () => controller.abort()
+  }, [selectedRoom?.id]) // Only depend on the room ID, not the room object
 
-    const directionOffsets: Record<string, { dx: number; dy: number }> = {
-      north: { dx: 0, dy: -120 },
-      south: { dx: 0, dy: 120 },
-      east: { dx: 150, dy: 0 },
-      west: { dx: -150, dy: 0 },
-      up: { dx: 100, dy: -80 },
-      down: { dx: -100, dy: 80 }
-    }
+  // Memoize z-level calculation
+  const zLevels = useMemo(() => {
+    const zLevelsMap = new Map<number, number>()
+    const visited = new Set<number>()
 
-    for (const [dir, targetId] of Object.entries(room.exits || {})) {
-      if (targetId && !visited.has(targetId)) {
-        const offset = directionOffsets[dir] || { dx: 150, dy: 0 }
-        positionRoom(targetId, x + offset.dx, y + offset.dy, dir)
+    const assignZLevel = (roomId: number, z: number) => {
+      if (visited.has(roomId)) return
+      visited.add(roomId)
+      zLevelsMap.set(roomId, z)
+
+      const room = rooms.find(r => r.id === roomId)
+      if (!room) return
+
+      for (const [dir, targetId] of Object.entries(room.exits || {})) {
+        if (targetId) {
+          const targetZ = dir === 'up' ? z + 1 : dir === 'down' ? z - 1 : z
+          assignZLevel(targetId, targetZ)
+        }
       }
     }
-  }
 
-  // Position all rooms starting from center
-  if (centerRoom) {
-    positionRoom(centerRoom.id, 400, 300)
-  }
-
-  // Position remaining rooms that weren't connected
-  let orphanX = 800
-  for (const room of rooms) {
-    if (!visited.has(room.id)) {
-      nodePositions.set(room.id, { x: orphanX, y: 300 })
-      orphanX += 150
+    const startRoom = rooms.find(r => r.isStartingRoom) || rooms[0]
+    if (startRoom) {
+      assignZLevel(startRoom.id, 0)
     }
-  }
 
-  // Get all exits for a room
-  const getExitLabels = (room: Room): string => {
-    const exits = Object.entries(room.exits || {})
-    if (exits.length === 0) return '-'
-    return exits.map(([dir, id]) => `${dir.charAt(0).toUpperCase()}→${id}`).join(' ')
-  }
+    for (const room of rooms) {
+      if (!zLevelsMap.has(room.id)) {
+        zLevelsMap.set(room.id, 0)
+      }
+    }
+
+    return zLevelsMap
+  }, [rooms])
+
+  // Memoize z-level range
+  const zLevelRange = useMemo(() => {
+    const values = Array.from(zLevels.values())
+    const minZ = Math.min(...values, 0)
+    const maxZ = Math.max(...values, 0)
+    return Array.from({ length: maxZ - minZ + 1 }, (_, i) => minZ + i)
+  }, [zLevels])
+
+  // Memoize helper functions
+  const getNPCsInRoom = useCallback((roomId: number): NPC[] =>
+    npcs.filter(npc => npc.currentRoomId === roomId)
+  , [npcs])
+
+  const getEquipmentInRoom = useCallback((roomId: number): Equipment[] =>
+    roomEquipment[roomId] || []
+  , [roomEquipment])
+
+  // Memoize node positions for current z-level
+  const nodePositions = useMemo(() => {
+    const positions = new Map<number, { x: number; y: number }>()
+    const visited = new Set<number>()
+
+    const positionRoom = (roomId: number, x: number, y: number) => {
+      if (visited.has(roomId)) return
+      const roomZ = zLevels.get(roomId) || 0
+      if (roomZ !== currentZLevel) return
+
+      visited.add(roomId)
+      positions.set(roomId, { x, y })
+
+      const room = rooms.find(r => r.id === roomId)
+      if (!room) return
+
+      for (const [dir, targetId] of Object.entries(room.exits || {})) {
+        if (targetId && dir !== 'up' && dir !== 'down' && !visited.has(targetId)) {
+          const offset = DIRECTION_OFFSETS[dir] || { dx: 150, dy: 0 }
+          positionRoom(targetId, x + offset.dx, y + offset.dy)
+        }
+      }
+    }
+
+    const centerRoom = rooms.find(r => r.isStartingRoom) || rooms[0]
+    if (centerRoom) {
+      positionRoom(centerRoom.id, 400, 300)
+    }
+
+    // Position orphan rooms
+    let orphanX = 800
+    for (const room of rooms) {
+      const roomZ = zLevels.get(room.id) || 0
+      if (roomZ === currentZLevel && !visited.has(room.id)) {
+        positions.set(room.id, { x: orphanX, y: 300 })
+        orphanX += 150
+      }
+    }
+
+    return positions
+  }, [rooms, zLevels, currentZLevel])
+
+  // Memoize handlers
+  const handleEditRoom = useCallback((room: Room) => {
+    setEditingRoom(room)
+    setEditForm({
+      name: room.name,
+      description: room.description,
+      exits: Object.fromEntries(Object.entries(room.exits || {}).map(([dir, id]) => [dir, String(id)]))
+    })
+  }, [])
+
+  const handleSaveRoom = useCallback(async () => {
+    if (!editingRoom) return
+    setSaving(true)
+
+    try {
+      const token = localStorage.getItem('token')
+      const exits: Record<string, number> = {}
+      for (const [dir, id] of Object.entries(editForm.exits)) {
+        const numId = parseInt(id)
+        if (!isNaN(numId)) {
+          exits[dir] = numId
+        }
+      }
+
+      const response = await fetch(`http://localhost:8080/rooms/${editingRoom.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: editForm.name, description: editForm.description, exits })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save room')
+      }
+
+      setRooms(prev => prev.map(r =>
+        r.id === editingRoom.id
+          ? { ...r, name: editForm.name, description: editForm.description, exits }
+          : r
+      ))
+      setEditingRoom(null)
+      setSelectedRoom(null)
+    } catch (err) {
+      console.error('Save error:', err)
+      alert('Failed to save room')
+    } finally {
+      setSaving(false)
+    }
+  }, [editingRoom, editForm])
+
+  const handleCreateRoom = useCallback(async (fromRoom: Room, direction: string) => {
+    setCreating(true)
+    try {
+      const token = localStorage.getItem('token')
+
+      const newRoomName = `New Room ${rooms.length + 1}`
+      const newRoomDesc = 'A newly created room.'
+
+      const createResponse = await fetch('http://localhost:8080/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newRoomName,
+          description: newRoomDesc,
+          exits: {}
+        })
+      })
+
+      if (!createResponse.ok) {
+        throw new Error('Failed to create room')
+      }
+
+      const newRoom = await createResponse.json()
+
+      const updatedExits = { ...fromRoom.exits, [direction]: newRoom.id }
+
+      await fetch(`http://localhost:8080/rooms/${fromRoom.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...fromRoom, exits: updatedExits })
+      })
+
+      const reverseDirection = OPPOSITE_DIR[direction]
+      await fetch(`http://localhost:8080/rooms/${newRoom.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newRoomName,
+          description: newRoomDesc,
+          exits: { [reverseDirection]: fromRoom.id }
+        })
+      })
+
+      const roomsResponse = await fetch('http://localhost:8080/rooms')
+      const roomsData = await roomsResponse.json()
+      setRooms(roomsData)
+
+      setSelectedRoom(roomsData.find((r: Room) => r.id === newRoom.id) || null)
+    } catch (err) {
+      console.error('Create room error:', err)
+      alert('Failed to create room')
+    } finally {
+      setCreating(false)
+    }
+  }, [rooms.length])
+
+  const handleDeleteRoom = useCallback(async (roomId: number) => {
+    try {
+      const token = localStorage.getItem('token')
+
+      const response = await fetch(`http://localhost:8080/rooms/${roomId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete room')
+      }
+
+      // Refresh rooms
+      const roomsResponse = await fetch('http://localhost:8080/rooms')
+      const roomsData = await roomsResponse.json()
+      setRooms(roomsData)
+      setSelectedRoom(null)
+      setConfirmDelete(null)
+    } catch (err) {
+      console.error('Delete room error:', err)
+      alert('Failed to delete room')
+    }
+  }, [])
 
   if (loading) {
-    return <div style={{ padding: '2rem', color: '#fff' }}>Loading map...</div>
+    return <div className="p-8 text-white">Loading map...</div>
   }
 
   if (error) {
-    return <div style={{ padding: '2rem', color: '#ff6b6b' }}>Error: {error}</div>
+    return <div className="p-8 text-red-400">Error: {error}</div>
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#0a0a0f' }}>
+    <div className="flex h-screen bg-[#0a0a0f]">
+      {/* Left Sidebar */}
+      <div className="w-[220px] bg-[#1a1a2e] border-r border-[#333] flex flex-col">
+        <div className="p-4 border-b border-[#333]">
+          <Link
+            to="/dashboard"
+            className="block text-[#61dafb] no-underline p-2 rounded bg-[#16213e] text-center mb-2 hover:bg-[#1e2a4a]"
+          >
+            ← Dashboard
+          </Link>
+        </div>
+
+        {/* Z-Level Selector */}
+        <div className="p-3 border-b border-[#333]">
+          <label className="text-[#888] text-xs block mb-2">Floor (Z-Level)</label>
+          <div className="flex gap-1 flex-wrap">
+            {zLevelRange.map(z => (
+              <button
+                key={z}
+                onClick={() => setCurrentZLevel(z)}
+                className={`px-2 py-1 rounded text-xs ${
+                  currentZLevel === z
+                    ? 'bg-[#27ae60] border-[#2ecc71] border'
+                    : 'bg-[#16213e] border-[#333] border'
+                } text-white cursor-pointer`}
+              >
+                {z === 0 ? 'G' : z > 0 ? `+${z}` : `${z}`}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="p-3 text-[#666] text-xs border-b border-[#333]">
+          <div>Total: {rooms.length} rooms</div>
+          <div>Floor {currentZLevel}: {Array.from(zLevels.values()).filter(z => z === currentZLevel).length}</div>
+          <div>NPCs: {npcs.length}</div>
+        </div>
+
+        {/* Room List */}
+        <div className="flex-1 overflow-y-auto p-3">
+          <h4 className="m-0 mb-2 text-[#888] text-xs">Rooms on Floor {currentZLevel}</h4>
+          <div className="flex flex-col gap-1">
+            {rooms.filter(r => (zLevels.get(r.id) || 0) === currentZLevel).map(room => (
+              <div
+                key={room.id}
+                onClick={() => setSelectedRoom(room)}
+                className={`p-2 cursor-pointer rounded text-xs flex justify-between items-center ${
+                  selectedRoom?.id === room.id ? 'text-[#6c5ce7] bg-[#16213e]' : 'text-white'
+                }`}
+              >
+                <span className="overflow-hidden text-ellipsis whitespace-nowrap">{room.name}</span>
+                {room.isStartingRoom && <span title="Starting room">⭐</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Map Area */}
-      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+      <div className="flex-1 overflow-hidden relative">
         {/* Header */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          padding: '1rem',
-          background: 'rgba(26, 26, 46, 0.95)',
-          borderBottom: '1px solid #333',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 10
-        }}>
-          <h1 style={{ margin: 0, color: '#fff', fontSize: '1.5rem' }}>
-            🗺️ Map Builder - {rooms.length} Rooms
-          </h1>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <button
-              onClick={() => setZoom(z => Math.min(z + 0.25, 2))}
-              style={{ padding: '0.25rem 0.5rem', background: '#27ae60', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer' }}
-            >
-              +
-            </button>
-            <span style={{ color: '#888' }}>{Math.round(zoom * 100)}%</span>
-            <button
-              onClick={() => setZoom(z => Math.max(z - 0.25, 0.5))}
-              style={{ padding: '0.25rem 0.5rem', background: '#e74c3c', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer' }}
-            >
-              −
-            </button>
+        <div className="absolute top-0 left-0 right-0 p-3 bg-[rgba(26,26,46,0.95)] border-b border-[#333] flex justify-between items-center z-10">
+          <h1 className="m-0 text-white text-lg">Map Builder — Floor {currentZLevel}</h1>
+          <div className="flex gap-2 items-center">
+            <button onClick={() => setZoom(z => Math.max(z - 0.25, 0.5))} className="px-2 py-1 bg-[#e74c3c] border-none rounded text-white cursor-pointer">−</button>
+            <span className="text-[#888] text-xs w-12 text-center">{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom(z => Math.min(z + 0.25, 2))} className="px-2 py-1 bg-[#27ae60] border-none rounded text-white cursor-pointer">+</button>
           </div>
         </div>
 
         {/* Map Canvas */}
-        <div style={{
-          marginTop: '60px',
-          height: 'calc(100% - 60px)',
-          overflow: 'auto',
-          padding: '2rem'
-        }}>
-          <div style={{
-            position: 'relative',
-            width: '2000px',
-            height: '2000px',
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top left'
-          }}>
-            {/* Draw edges (connections) */}
-            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+        <div className="mt-[50px] h-[calc(100%-50px)] overflow-auto p-6">
+          <div className="relative w-[3000px] h-[3000px]" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
+            {/* Edges */}
+            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               {rooms.map(room => {
                 const pos = nodePositions.get(room.id)
                 if (!pos) return null
 
                 return Object.entries(room.exits || {}).map(([dir, targetId]) => {
                   const targetPos = nodePositions.get(targetId)
-                  if (!targetPos) return null
-
-                  const isZExit = dir === 'up' || dir === 'down'
-                  const color = isZExit
-                    ? (dir === 'up' ? '#e17055' : '#74b9ff')
-                    : '#666'
+                  if (!targetPos || dir === 'up' || dir === 'down') return null
 
                   return (
                     <line
                       key={`${room.id}-${targetId}-${dir}`}
-                      x1={pos.x + 50}
-                      y1={pos.y + 30}
-                      x2={targetPos.x + 50}
-                      y2={targetPos.y + 30}
-                      stroke={color}
-                      strokeWidth={isZExit ? 3 : 2}
-                      strokeDasharray={isZExit ? '5,5' : undefined}
-                      markerEnd="url(#arrowhead)"
+                      x1={pos.x + 60}
+                      y1={pos.y + 35}
+                      x2={targetPos.x + 60}
+                      y2={targetPos.y + 35}
+                      stroke="#444"
+                      strokeWidth={2}
                     />
                   )
                 })
               })}
             </svg>
 
-            {/* Draw room nodes */}
+            {/* Room Nodes */}
             {rooms.map(room => {
               const pos = nodePositions.get(room.id)
               if (!pos) return null
 
               const isSelected = selectedRoom?.id === room.id
+              const roomNpcs = getNPCsInRoom(room.id)
+              const roomItems = getEquipmentInRoom(room.id)
+              const hasUp = room.exits?.up
+              const hasDown = room.exits?.down
 
               return (
                 <div
                   key={room.id}
                   onClick={() => setSelectedRoom(room)}
+                  className={`w-[120px] min-h-[65px] p-2 rounded-lg cursor-pointer transition-all ${
+                    room.isStartingRoom
+                      ? 'bg-[#27ae60]'
+                      : isSelected
+                      ? 'bg-[#6c5ce7] shadow-[0_0_15px_rgba(108,92,231,0.5)] z-10'
+                      : 'bg-[#2d5a27]'
+                  } ${
+                    isSelected ? 'border-2 border-[#a29bfe]' : 'border-2 border-[#1a3a1a]'
+                  }`}
                   style={{
                     position: 'absolute',
                     left: pos.x,
                     top: pos.y,
-                    width: '100px',
-                    minHeight: '60px',
-                    background: room.isStartingRoom ? '#27ae60' : isSelected ? '#6c5ce7' : '#2d5a27',
-                    border: `2px solid ${isSelected ? '#a29bfe' : '#1a3a1a'}`,
-                    borderRadius: '8px',
-                    padding: '0.5rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    boxShadow: isSelected ? '0 0 15px rgba(108, 92, 231, 0.5)' : '0 2px 8px rgba(0,0,0,0.3)',
-                    transition: 'all 0.2s',
-                    zIndex: isSelected ? 10 : 1
+                    boxShadow: isSelected ? '0 0 15px rgba(108, 92, 231, 0.5)' : '0 2px 8px rgba(0,0,0,0.3)'
                   }}
                 >
-                  <div style={{
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    fontSize: '0.75rem',
-                    textAlign: 'center',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    width: '100%'
-                  }}>
+                  <div className="text-white font-bold text-xs text-center truncate">
                     {room.name}
-                  </div>
-                  <div style={{
-                    color: '#888',
-                    fontSize: '0.65rem'
-                  }}>
-                    #{room.id}
                     {room.isStartingRoom && ' ⭐'}
+                  </div>
+                  <div className="text-[#888] text-[10px] text-center">#{room.id}</div>
+                  <div className="flex justify-center gap-1 mt-1">
+                    {roomNpcs.length > 0 && (
+                      <span className="text-[10px] text-[#f39c12]" title={`${roomNpcs.length} NPCs`}>👥{roomNpcs.length}</span>
+                    )}
+                    {roomItems.length > 0 && (
+                      <span className="text-[10px] text-[#3498db]" title={`${roomItems.length} items`}>📦{roomItems.length}</span>
+                    )}
+                  </div>
+                  <div className="flex justify-center gap-0.5 mt-0.5">
+                    {hasUp && <span className="text-[8px] text-[#e17055]">▲{hasUp}</span>}
+                    {hasDown && <span className="text-[8px] text-[#74b9ff]">▼{hasDown}</span>}
                   </div>
                 </div>
               )
@@ -248,109 +516,192 @@ function MapBuilder() {
         </div>
       </div>
 
-      {/* Room Details Panel */}
-      <div style={{
-        width: '320px',
-        background: '#1a1a2e',
-        borderLeft: '1px solid #333',
-        padding: '1rem',
-        overflowY: 'auto'
-      }}>
-        {selectedRoom ? (
+      {/* Right Panel */}
+      <div className="w-[300px] bg-[#1a1a2e] border-l border-[#333] flex flex-col">
+        {editingRoom ? (
           <>
-            <h3 style={{ margin: '0 0 1rem 0', color: '#fff' }}>
-              {selectedRoom.name}
-              {selectedRoom.isStartingRoom && <span style={{ color: '#f39c12' }}> ⭐</span>}
-            </h3>
-            <div style={{ color: '#888', marginBottom: '0.5rem' }}>
-              Room ID: {selectedRoom.id}
+            <div className="p-3 border-b border-[#333] flex justify-between items-center">
+              <h3 className="m-0 text-white text-base">Edit Room</h3>
+              <button onClick={() => setEditingRoom(null)} className="bg-transparent border-none text-[#888] cursor-pointer text-xl">×</button>
             </div>
-            <div style={{ color: '#888', marginBottom: '1rem', fontSize: '0.9rem' }}>
-              {selectedRoom.description}
+            <div className="p-3 flex-1 overflow-y-auto">
+              <div className="mb-3">
+                <label className="text-[#888] text-xs block mb-1">Name</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full p-2 bg-[#16213e] border border-[#333] rounded text-white text-sm"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="text-[#888] text-xs block mb-1">Description</label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={4}
+                  className="w-full p-2 bg-[#16213e] border border-[#333] rounded text-white text-sm resize-y"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="text-[#888] text-xs block mb-2">Exits</label>
+                {['north', 'south', 'east', 'west', 'up', 'down'].map(dir => (
+                  <div key={dir} className="flex items-center gap-2 mb-1">
+                    <span className="w-[50px] text-[#666] text-xs">{dir}:</span>
+                    <input
+                      type="text"
+                      value={editForm.exits[dir] || ''}
+                      onChange={(e) => setEditForm({ ...editForm, exits: { ...editForm.exits, [dir]: e.target.value } })}
+                      placeholder="room id"
+                      className="flex-1 p-1 bg-[#16213e] border border-[#333] rounded text-white text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
+            <div className="p-3 border-t border-[#333]">
+              <button
+                onClick={handleSaveRoom}
+                disabled={saving}
+                className="w-full p-2 bg-[#27ae60] border-none rounded text-white cursor-pointer mb-2 disabled:opacity-70"
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button onClick={() => setEditingRoom(null)} className="w-full p-2 bg-[#16213e] border border-[#333] rounded text-[#888] cursor-pointer">
+                Cancel
+              </button>
+            </div>
+          </>
+        ) : selectedRoom ? (
+          <>
+            <div className="p-3 border-b border-[#333] flex justify-between items-center">
+              <h3 className="m-0 text-white text-base">
+                {selectedRoom.name}
+                {selectedRoom.isStartingRoom && <span className="text-[#f39c12]"> ⭐</span>}
+              </h3>
+              <button onClick={() => setSelectedRoom(null)} className="bg-transparent border-none text-[#888] cursor-pointer text-xl">×</button>
+            </div>
+            <div className="p-3 flex-1 overflow-y-auto">
+              <div className="text-[#666] text-[10px] mb-2">
+                Room ID: {selectedRoom.id}
+                {selectedRoom.atmosphere && ` • ${selectedRoom.atmosphere}`}
+              </div>
+              <div className="text-[#aaa] mb-3 text-sm">{selectedRoom.description}</div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <strong style={{ color: '#6c5ce7' }}>Exits:</strong>
-              {Object.entries(selectedRoom.exits || {}).length === 0 ? (
-                <div style={{ color: '#666', marginTop: '0.25rem' }}>None</div>
-              ) : (
-                <div style={{ marginTop: '0.5rem' }}>
-                  {Object.entries(selectedRoom.exits || {}).map(([dir, targetId]) => {
-                    const targetRoom = rooms.find(r => r.id === targetId)
-                    return (
-                      <div
-                        key={dir}
-                        onClick={() => targetRoom && setSelectedRoom(targetRoom)}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          margin: '0.25rem 0',
-                          background: '#16213e',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          color: '#fff',
-                          fontSize: '0.85rem'
-                        }}
-                      >
-                        <strong>{dir}</strong> → {targetRoom?.name || `Room ${targetId}`}
+              {getNPCsInRoom(selectedRoom.id).length > 0 && (
+                <div className="mb-3">
+                  <strong className="text-[#f39c12] text-xs">NPCs:</strong>
+                  <div className="mt-1">
+                    {getNPCsInRoom(selectedRoom.id).map(npc => (
+                      <div key={npc.id} className="p-1 bg-[#16213e] rounded mb-1 text-xs text-white">
+                        {npc.name} <span className="text-[#666]">({npc.race} {npc.class} lv.{npc.level})</span>
                       </div>
-                    )
-                  })}
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
 
-            <button
-              onClick={() => setSelectedRoom(null)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                background: '#16213e',
-                border: '1px solid #333',
-                borderRadius: '4px',
-                color: '#888',
-                cursor: 'pointer'
-              }}
-            >
-              Close
-            </button>
+              {getEquipmentInRoom(selectedRoom.id).length > 0 && (
+                <div className="mb-3">
+                  <strong className="text-[#3498db] text-xs">Items:</strong>
+                  <div className="mt-1">
+                    {getEquipmentInRoom(selectedRoom.id).map(item => (
+                      <div key={item.id} className="p-1 bg-[#16213e] rounded mb-1 text-xs text-white">{item.name}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-3">
+                <strong className="text-[#6c5ce7] text-xs">Exits:</strong>
+                <div className="mt-1">
+                  {['north', 'south', 'east', 'west', 'up', 'down'].map(dir => {
+                    const targetId = selectedRoom.exits?.[dir]
+                    const targetRoom = rooms.find(r => r.id === targetId)
+                    const isZExit = dir === 'up' || dir === 'down'
+
+                    if (targetId && targetRoom) {
+                      return (
+                        <div
+                          key={dir}
+                          onClick={() => {
+                            if (isZExit) setCurrentZLevel(zLevels.get(targetId) || 0)
+                            setSelectedRoom(targetRoom)
+                          }}
+                          className={`p-1 my-1 rounded cursor-pointer text-xs ${
+                            isZExit
+                              ? dir === 'up'
+                                ? 'bg-[rgba(225,112,85,0.2)] border border-[#e17055]'
+                                : 'bg-[rgba(116,185,255,0.2)] border border-[#74b9ff]'
+                              : 'bg-[#16213e] border-none'
+                          }`}
+                        >
+                          <strong>{dir}</strong> → {targetRoom.name}
+                          {isZExit && <span className="text-[#666] ml-1 text-[10px]">(z={zLevels.get(targetId) || 0})</span>}
+                        </div>
+                      )
+                    } else if (targetId) {
+                      return (
+                        <div key={dir} className="p-1 my-1 rounded text-xs bg-[#16213e] border-none">
+                          <strong>{dir}</strong> → <span className="text-[#888]">Room #{targetId}</span>
+                        </div>
+                      )
+                    } else {
+                      return (
+                        <div key={dir} className="flex items-center gap-2 my-1">
+                          <div className="flex-1 p-1 rounded text-xs bg-[#0d0d15] border border-[#333] text-[#555]">
+                            <strong>{dir}</strong> → none
+                          </div>
+                          <button
+                            onClick={() => handleCreateRoom(selectedRoom, dir)}
+                            disabled={creating}
+                            className="px-2 py-1 bg-[#27ae60] border-none rounded text-white text-xs cursor-pointer hover:bg-[#2ecc71] disabled:opacity-50"
+                            title={`Create room to the ${dir}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )
+                    }
+                  })}
+                </div>
+              </div>
+            </div>
+            <div className="p-3 border-t border-[#333] flex gap-2">
+              <button
+                onClick={() => handleEditRoom(selectedRoom)}
+                className="flex-1 p-2 bg-[#6c5ce7] border-none rounded text-white cursor-pointer"
+              >
+                Edit Room
+              </button>
+              <button
+                onClick={() => {
+                  if (confirmDelete === selectedRoom.id) {
+                    handleDeleteRoom(selectedRoom.id)
+                  } else {
+                    setConfirmDelete(selectedRoom.id)
+                  }
+                }}
+                className={`flex-1 p-2 border-none rounded text-white cursor-pointer ${
+                  confirmDelete === selectedRoom.id
+                    ? 'bg-[#e67e22] hover:bg-[#d35400]'
+                    : 'bg-[#c0392b] hover:bg-[#e74c3c]'
+                }`}
+              >
+                {confirmDelete === selectedRoom.id ? 'Confirm Delete?' : 'Delete Room'}
+              </button>
+            </div>
           </>
         ) : (
-          <div style={{ color: '#666', textAlign: 'center', marginTop: '2rem' }}>
-            <p>Click a room to see details</p>
-            <p style={{ fontSize: '0.8rem', marginTop: '1rem' }}>
-              Green rooms are starting points
+          <div className="flex-1 flex flex-col justify-center items-center text-[#666] text-center p-4">
+            <p className="m-0 mb-2">Click a room to see details</p>
+            <p className="text-xs m-0 text-[#555]">
+              👥 NPCs in room<br/>
+              📦 Items on ground<br/>
+              ▲/▼ Stairs
             </p>
           </div>
         )}
-
-        {/* Room List */}
-        <div style={{ marginTop: '2rem', borderTop: '1px solid #333', paddingTop: '1rem' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#888' }}>All Rooms</h4>
-          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-            {rooms.slice(0, 20).map(room => (
-              <div
-                key={room.id}
-                onClick={() => setSelectedRoom(room)}
-                style={{
-                  padding: '0.25rem 0.5rem',
-                  cursor: 'pointer',
-                  color: selectedRoom?.id === room.id ? '#6c5ce7' : '#fff',
-                  background: selectedRoom?.id === room.id ? '#16213e' : 'transparent',
-                  borderRadius: '4px',
-                  fontSize: '0.85rem'
-                }}
-              >
-                {room.name}
-                {room.isStartingRoom && ' ⭐'}
-              </div>
-            ))}
-            {rooms.length > 20 && (
-              <div style={{ color: '#666', fontSize: '0.8rem', padding: '0.25rem' }}>
-                ...and {rooms.length - 20} more
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   )

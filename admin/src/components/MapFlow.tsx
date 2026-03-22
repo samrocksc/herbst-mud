@@ -70,7 +70,6 @@ function MapFlowInner({
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        defaultEdgeType="exit"
         onNodesChange={onNodesChange as never}
         onEdgesChange={onEdgesChange as never}
         onConnect={onConnect as never}
