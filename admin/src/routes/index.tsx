@@ -17,12 +17,12 @@ function Home() {
   }, [navigate])
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white">
-      <h1 className="text-4xl mb-4">Herbst MUD Admin</h1>
-      <p className="text-[#888] mb-8">Welcome to the administrative backend for Herbst MUD.</p>
+    <div className="min-h-screen bg-[#1a1612] flex flex-col items-center justify-center text-[#e8dcc4]">
+      <h1 className="text-4xl mb-4 text-[#4a7c4e]">Herbst MUD Admin</h1>
+      <p className="text-[#a89070] mb-8">Welcome to the administrative backend for Herbst MUD.</p>
       <Link
         to="/login"
-        className="text-[#61dafb] no-underline py-2 px-4 border border-[#61dafb] rounded hover:bg-[rgba(97,218,251,0.1)]"
+        className="text-[#4a7c4e] no-underline py-2 px-4 border-2 border-[#4a7c4e] rounded hover:bg-[#2d2416]"
       >
         Login to Admin Panel
       </Link>

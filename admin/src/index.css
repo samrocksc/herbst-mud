@@ -1,29 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Ninja Turtle Theme - Brown/Green/White */
+  --color-bg-dark: #1a1612;
+  --color-bg-medium: #2d2416;
+  --color-bg-light: #3d3020;
+  --color-primary: #4a7c4e;
+  --color-primary-light: #5a9c5e;
+  --color-primary-dark: #3a5c3e;
+  --color-accent: #8b7355;
+  --color-accent-light: #a89070;
+  --color-text: #e8dcc4;
+  --color-text-muted: #a89070;
+  --color-border: #5a4a35;
+  --color-success: #4a7c4e;
+  --color-danger: #8b4444;
+  --color-warning: #a87044;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Custom scrollbar for dark theme */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a2e;
+  background: var(--color-bg-medium);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--color-accent);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: var(--color-accent-light);
+}
+
+/* Form inputs */
+input, textarea, select {
+  background-color: var(--color-bg-light);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  padding: 0.5rem;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Links */
+a {
+  color: var(--color-primary-light);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary);
 }
