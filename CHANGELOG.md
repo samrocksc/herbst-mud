@@ -1,47 +1,25 @@
-# Changelog
+- [4561225](http://github.com/samrocksc/herbst-mud/commit/4561225d83c9060d349278d45e01dc367550a647) - docs: add refactoring guides for codebase modularization
+- [8336a8b](http://github.com/samrocksc/herbst-mud/commit/8336a8b75861968c746845a4a9773d2034b49546) - feat(admin): add modal component, room creation modal, and ninja turtle theme
+- [1cb7ddc](http://github.com/samrocksc/herbst-mud/commit/1cb7ddcadcec6c85a77d8ca4c2967291ba64ac75) - feat(admin): add dashboard, NPC manager, item manager, and Tailwind CSS
+- [0484ca4](http://github.com/samrocksc/herbst-mud/commit/0484ca4727706201b51b1309537c4e2adf861e8d) - feat(admin): consolidate routes to single map builder
+- [21a4fec](http://github.com/samrocksc/herbst-mud/commit/21a4fecc7747d092b89f9a92b795a8f5aaa4cc07) - feat(combat): implement basic attack command for classless play
+- [56fd9c3](http://github.com/samrocksc/herbst-mud/commit/56fd9c3763328494a691738a5fec3c1ea42472e0) - fix: sort exits alphabetically to prevent display jumping
+- [10daef5](http://github.com/samrocksc/herbst-mud/commit/10daef54aa13e9de7b26010f0432e7c8ee2a2c59) - refactor: split cmd_look.go and cmd_quests.go into smaller files, fix tests
+- [27de6d4](http://github.com/samrocksc/herbst-mud/commit/27de6d4f004dc2663f25c5d74442ae6cd76d5b7a) - fix: resolve look at NPC command and database connection issues
+- [96c0a5e](http://github.com/samrocksc/herbst-mud/commit/96c0a5e8a22243122b33b47a574ae3efccc3736d) - refactor: break main.go (2879 lines) into modular packages
+- [f323142](http://github.com/samrocksc/herbst-mud/commit/f32314288cbd60a25bf67e89a7b9f3531edca6ae) - fix(ui): resolve ctrl+j intercepting text input, add fuzzy word matching for look targets, remove l from welcome login
+- [6973f3d](http://github.com/samrocksc/herbst-mud/commit/6973f3d9ef13f1f36648ec999bdf0744ace6a3e9) - makefile: add build targets, hot reload, and log commands
+- [71b8ba7](http://github.com/samrocksc/herbst-mud/commit/71b8ba77fe6390c936c2ce2a4c193a0ab68d5f5a) - fix(ui): add look/g argument parsing and handleLookAt for examining characters
+- [dfb4ec5](http://github.com/samrocksc/herbst-mud/commit/dfb4ec51592523daeef492ce63ba5aa3391a84da) - fix(quest-tracker): Fix test initialization and error handling (Issue #200) (#211)
+- [077eac1](http://github.com/samrocksc/herbst-mud/commit/077eac1a1c962ce9c6c0b77188991044b7fb5c62) - ui-21: full-screen terminal with scrollable viewport output (#210)
+- [0fc9bfa](http://github.com/samrocksc/herbst-mud/commit/0fc9bfafd405af4e41418b2e371d396c4c73900b) - ui-20: full-width full-height login and game panes (#208)
+- [76178be](http://github.com/samrocksc/herbst-mud/commit/76178bee239fb4b53f45f717b1b47b6b60befefe) - feat: Add comprehensive style definitions for post-apocalyptic MUD theme
+- [9fc59b0](http://github.com/samrocksc/herbst-mud/commit/9fc59b02ed31236ecc26469885e0cd55678f6e9c) - squash: merge feature/skills-talents-commands into main
+- [c4880bc](http://github.com/samrocksc/herbst-mud/commit/c4880bc1ba253f7ecc671b6a7297b3115f1bf20d) - test: add release and changelog unit tests
+- [3b1cf8b](http://github.com/samrocksc/herbst-mud/commit/3b1cf8bc9ee936e0bf51993fdbd9d406c4aa80cd) - test: add release workflow validation tests
+- [79b254e](http://github.com/samrocksc/herbst-mud/commit/79b254e4ec54927fcf8aea18469f5f2824d4b491) - Merge pull request #199 from samrocksc/feature/auth-middleware-188
+- [1addf53](http://github.com/samrocksc/herbst-mud/commit/1addf532a442f222d205a803e7d493c9b293db60) - feat(look-10): Add Look/Examine API endpoints
+- [740053b](http://github.com/samrocksc/herbst-mud/commit/740053b87cb10e70e5701b7c97a24d1da388508e) - feat: Add Auth Middleware to API (issue #188)
+- [ba0d672](http://github.com/samrocksc/herbst-mud/commit/ba0d67259dae8546b98532f6c63a8f0f31d8fe39) - Merge pull request #196 from samrocksc/feature/admin-integrate-room-api-148
+- [eda0246](http://github.com/samrocksc/herbst-mud/commit/eda02463c8b3c1428a56f5b3d93a5b8a623b188f) - feat(admin): Integrate Room API into map builder
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### Added
-- OpenAPI client generation capability for frontend type safety
-- New `dev-frontend` Makefile target to automatically generate TypeScript client from backend API
-- Integration with `@hey-api/openapi-ts` for generating frontend client code
-- Automated client generation during development startup
-- Database setup with ent ORM and PostgreSQL
-- Cross-shaped rooms initialization with "The Hole" as the central starting room
-- Database integration in both SSH server and web API server
-- Users, characters, and rooms entities with relationships
-- Room CRUD operations (Create, Read, Update, Delete) via REST API endpoints
-
-### Changed
-- Updated Makefile to include new development workflow
-- Enhanced admin frontend with API client generation capabilities
-
-## [0.1.0] - 2026-01-25
-
-### Added
-- Initial server scaffolding with Gin framework
-- Basic health check and OpenAPI specification endpoints
-- SSH server implementation
-- Admin frontend with React and TanStack Router
-- Development tooling with Vite and TypeScript
-
-### Changed
-- None
-
-### Deprecated
-- None
-
-### Removed
-- None
-
-### Fixed
-- None
-
-### Security
-- None
