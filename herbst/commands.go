@@ -31,6 +31,7 @@ func (m *model) processCommand(cmd string) {
 		m.AppendMessage(`Commands:
   n/north, s/south, e/east, w/west - Move
   look/l [target] - Look around (or examine: look <target>, look at <target>)
+  attack/a/kill <target> - Attack a target
   ctrl+p - Scroll output up (older messages)
   ctrl+n - Scroll output down (newer messages)
   exits/x - Show exits
@@ -41,6 +42,9 @@ func (m *model) processCommand(cmd string) {
   quests/q - Show your quest log
   whoami - Show your info
   profile/p - Edit character profile
+  skills - Show your skills
+  talents - Show your talents
+  debug - Toggle debug mode
   clear/cls - Clear screen
   quit - Exit game`, "info")
 
@@ -83,6 +87,11 @@ func (m *model) processCommand(cmd string) {
 		m.inputBuffer = ""
 
 	default:
+		// attack/kill
+		if strings.HasPrefix(cmd, "attack ") || strings.HasPrefix(cmd, "kill ") || strings.HasPrefix(cmd, "a ") {
+			m.handleAttackCommand(cmd)
+			return
+		}
 		// take/get
 		if strings.HasPrefix(cmd, "take ") || strings.HasPrefix(cmd, "get ") {
 			m.handleTakeCommand(cmd)
