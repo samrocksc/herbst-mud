@@ -3,7 +3,7 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   getBezierPath,
-  EdgeProps,
+  Position,
 } from '@xyflow/react'
 
 interface ExitEdgeData {
@@ -18,6 +18,19 @@ export type ExitEdgeType = {
   target: string
   type: 'exit'
   data: ExitEdgeData
+  animated?: boolean
+}
+
+interface ExitEdgeProps {
+  id: string
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+  sourcePosition?: Position
+  targetPosition?: Position
+  data?: ExitEdgeData
+  selected?: boolean
   animated?: boolean
 }
 
@@ -55,12 +68,12 @@ export const ExitEdge = memo(({
   sourceY,
   targetX,
   targetY,
-  sourcePosition,
-  targetPosition,
+  sourcePosition = Position.Bottom,
+  targetPosition = Position.Top,
   data,
   selected,
   animated,
-}: EdgeProps<ExitEdgeType>) => {
+}: ExitEdgeProps) => {
   const direction = data?.direction || 'east'
   const isZExit = data?.isZExit || direction === 'up' || direction === 'down'
   const label = data?.label || directionEmoji[direction] || '→'

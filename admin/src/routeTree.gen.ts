@@ -9,26 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminMapRouteImport } from './routes/admin/map'
-import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
-import { Route as AuthRoomsRouteImport } from './routes/_auth/rooms'
-import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
-import { Route as AuthNpcsRouteImport } from './routes/_auth/npcs'
-import { Route as AuthMapRouteImport } from './routes/_auth/map'
-import { Route as AuthItemsRouteImport } from './routes/_auth/items'
-import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
-import { Route as AuthSplatRouteImport } from './routes/_auth/$'
 
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -36,157 +28,51 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminMapRoute = AdminMapRouteImport.update({
-  id: '/admin/map',
-  path: '/admin/map',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthSkillsRoute = AuthSkillsRouteImport.update({
-  id: '/skills',
-  path: '/skills',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthRoomsRoute = AuthRoomsRouteImport.update({
-  id: '/rooms',
-  path: '/rooms',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthPlayersRoute = AuthPlayersRouteImport.update({
-  id: '/players',
-  path: '/players',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthNpcsRoute = AuthNpcsRouteImport.update({
-  id: '/npcs',
-  path: '/npcs',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthMapRoute = AuthMapRouteImport.update({
-  id: '/map',
-  path: '/map',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthItemsRoute = AuthItemsRouteImport.update({
-  id: '/items',
-  path: '/items',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthDashboardRoute = AuthDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthSplatRoute = AuthSplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => AuthRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/$': typeof AuthSplatRoute
-  '/dashboard': typeof AuthDashboardRoute
-  '/items': typeof AuthItemsRoute
-  '/map': typeof AuthMapRoute
-  '/npcs': typeof AuthNpcsRoute
-  '/players': typeof AuthPlayersRoute
-  '/rooms': typeof AuthRoomsRoute
-  '/skills': typeof AuthSkillsRoute
-  '/admin/map': typeof AdminMapRoute
+  '/map': typeof MapRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/$': typeof AuthSplatRoute
-  '/dashboard': typeof AuthDashboardRoute
-  '/items': typeof AuthItemsRoute
-  '/map': typeof AuthMapRoute
-  '/npcs': typeof AuthNpcsRoute
-  '/players': typeof AuthPlayersRoute
-  '/rooms': typeof AuthRoomsRoute
-  '/skills': typeof AuthSkillsRoute
-  '/admin/map': typeof AdminMapRoute
+  '/map': typeof MapRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
-  '/_auth/$': typeof AuthSplatRoute
-  '/_auth/dashboard': typeof AuthDashboardRoute
-  '/_auth/items': typeof AuthItemsRoute
-  '/_auth/map': typeof AuthMapRoute
-  '/_auth/npcs': typeof AuthNpcsRoute
-  '/_auth/players': typeof AuthPlayersRoute
-  '/_auth/rooms': typeof AuthRoomsRoute
-  '/_auth/skills': typeof AuthSkillsRoute
-  '/admin/map': typeof AdminMapRoute
+  '/map': typeof MapRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/login'
-    | '/$'
-    | '/dashboard'
-    | '/items'
-    | '/map'
-    | '/npcs'
-    | '/players'
-    | '/rooms'
-    | '/skills'
-    | '/admin/map'
+  fullPaths: '/' | '/login' | '/map'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/login'
-    | '/$'
-    | '/dashboard'
-    | '/items'
-    | '/map'
-    | '/npcs'
-    | '/players'
-    | '/rooms'
-    | '/skills'
-    | '/admin/map'
-  id:
-    | '__root__'
-    | '/'
-    | '/_auth'
-    | '/login'
-    | '/_auth/$'
-    | '/_auth/dashboard'
-    | '/_auth/items'
-    | '/_auth/map'
-    | '/_auth/npcs'
-    | '/_auth/players'
-    | '/_auth/rooms'
-    | '/_auth/skills'
-    | '/admin/map'
+  to: '/' | '/login' | '/map'
+  id: '__root__' | '/' | '/login' | '/map'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthRoute: typeof AuthRouteWithChildren
   LoginRoute: typeof LoginRoute
-  AdminMapRoute: typeof AdminMapRoute
+  MapRoute: typeof MapRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -196,101 +82,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/map': {
-      id: '/admin/map'
-      path: '/admin/map'
-      fullPath: '/admin/map'
-      preLoaderRoute: typeof AdminMapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth/skills': {
-      id: '/_auth/skills'
-      path: '/skills'
-      fullPath: '/skills'
-      preLoaderRoute: typeof AuthSkillsRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/rooms': {
-      id: '/_auth/rooms'
-      path: '/rooms'
-      fullPath: '/rooms'
-      preLoaderRoute: typeof AuthRoomsRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/players': {
-      id: '/_auth/players'
-      path: '/players'
-      fullPath: '/players'
-      preLoaderRoute: typeof AuthPlayersRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/npcs': {
-      id: '/_auth/npcs'
-      path: '/npcs'
-      fullPath: '/npcs'
-      preLoaderRoute: typeof AuthNpcsRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/map': {
-      id: '/_auth/map'
-      path: '/map'
-      fullPath: '/map'
-      preLoaderRoute: typeof AuthMapRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/items': {
-      id: '/_auth/items'
-      path: '/items'
-      fullPath: '/items'
-      preLoaderRoute: typeof AuthItemsRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/dashboard': {
-      id: '/_auth/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthDashboardRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/$': {
-      id: '/_auth/$'
-      path: '/$'
-      fullPath: '/$'
-      preLoaderRoute: typeof AuthSplatRouteImport
-      parentRoute: typeof AuthRoute
-    }
   }
 }
 
-interface AuthRouteChildren {
-  AuthSplatRoute: typeof AuthSplatRoute
-  AuthDashboardRoute: typeof AuthDashboardRoute
-  AuthItemsRoute: typeof AuthItemsRoute
-  AuthMapRoute: typeof AuthMapRoute
-  AuthNpcsRoute: typeof AuthNpcsRoute
-  AuthPlayersRoute: typeof AuthPlayersRoute
-  AuthRoomsRoute: typeof AuthRoomsRoute
-  AuthSkillsRoute: typeof AuthSkillsRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthSplatRoute: AuthSplatRoute,
-  AuthDashboardRoute: AuthDashboardRoute,
-  AuthItemsRoute: AuthItemsRoute,
-  AuthMapRoute: AuthMapRoute,
-  AuthNpcsRoute: AuthNpcsRoute,
-  AuthPlayersRoute: AuthPlayersRoute,
-  AuthRoomsRoute: AuthRoomsRoute,
-  AuthSkillsRoute: AuthSkillsRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthRoute: AuthRouteWithChildren,
   LoginRoute: LoginRoute,
-  AdminMapRoute: AdminMapRoute,
+  MapRoute: MapRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
