@@ -29,7 +29,9 @@ func (m *model) processCommand(cmd string) {
 	switch cmd {
 	case "help", "?":
 		m.AppendMessage(`Commands:
-  n/north, s/south, e/east, w/west - Move
+  n/north, s/south, e/east, w/west - Move (cardinal)
+  ne/northeast, se/southeast, sw/southwest, nw/northwest - Move (ordinal)
+  u/up, d/down - Move (vertical)
   look/l [target] - Look around (or examine: look <target>, look at <target>)
   attack/a/kill <target> - Attack a target
   ctrl+p - Scroll output up (older messages)

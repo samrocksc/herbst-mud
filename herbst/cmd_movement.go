@@ -18,6 +18,12 @@ func (m *model) handleMovement(cmd string) bool {
 		"s": "south", "south": "south",
 		"e": "east", "east": "east",
 		"w": "west", "west": "west",
+		"ne": "northeast", "northeast": "northeast",
+		"se": "southeast", "southeast": "southeast",
+		"sw": "southwest", "southwest": "southwest",
+		"nw": "northwest", "northwest": "northwest",
+		"u": "up", "up": "up",
+		"d": "down", "down": "down",
 	}
 
 	direction, ok := directionMap[cmd]
@@ -80,15 +86,26 @@ func (m *model) handleMovement(cmd string) bool {
 func (m *model) handlePeerCommand(cmd string) {
 	parts := strings.Fields(cmd)
 	if len(parts) < 2 {
-		m.AppendMessage("Usage: peer <direction>\nDirections: north, south, east, west, up, down", "error")
+		m.AppendMessage("Usage: peer <direction>\nDirections: n/north, s/south, e/east, w/west, ne/northeast, se/southeast, sw/southwest, nw/northwest, u/up, d/down", "error")
 		return
 	}
 	direction := strings.ToLower(parts[1])
 
-	validDirs := map[string]string{"north": "north", "south": "south", "east": "east", "west": "west", "up": "up", "down": "down"}
+	validDirs := map[string]string{
+		"n": "north", "north": "north",
+		"s": "south", "south": "south",
+		"e": "east", "east": "east",
+		"w": "west", "west": "west",
+		"ne": "northeast", "northeast": "northeast",
+		"se": "southeast", "southeast": "southeast",
+		"sw": "southwest", "southwest": "southwest",
+		"nw": "northwest", "northwest": "northwest",
+		"u": "up", "up": "up",
+		"d": "down", "down": "down",
+	}
 	dir, ok := validDirs[direction]
 	if !ok {
-		m.AppendMessage("Invalid direction. Use: north, south, east, west, up, down", "error")
+		m.AppendMessage("Invalid direction. Use: n, s, e, w, ne, se, sw, nw, u, d (or full direction names)", "error")
 		return
 	}
 
