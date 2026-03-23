@@ -56,63 +56,63 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1612] text-[#e8dcc4] p-8">
+    <div className="min-h-screen bg-surface text-text p-8">
       <div className="max-w-[1200px] mx-auto">
-        <div className="flex justify-between items-center mb-8 border-b border-[#5a4a35] pb-4">
-          <h1 className="m-0 text-[#4a7c4e]">Herbst MUD Admin</h1>
-          <button onClick={handleLogout} className="px-4 py-2 bg-[#8b4444] border-none rounded text-[#e8dcc4] cursor-pointer hover:bg-[#a84444]">
+        <div className="flex justify-between items-center mb-8 border-b border-border pb-4">
+          <h1 className="m-0 text-primary">Herbst MUD Admin</h1>
+          <button onClick={handleLogout} className="px-4 py-2 bg-danger border-none rounded text-white cursor-pointer hover:bg-danger-hover">
             Logout
           </button>
         </div>
 
-        <div className="bg-[#2d2416] rounded-lg p-6 mb-8">
-          <h2 className="m-0 mb-2 text-[#e8dcc4]">Welcome back!</h2>
-          <p className="m-0 text-[#a89070]">Manage your MUD world from this admin panel.</p>
+        <div className="bg-surface-muted rounded-lg p-6 mb-8">
+          <h2 className="m-0 mb-2 text-text">Welcome back!</h2>
+          <p className="m-0 text-text-muted">Manage your MUD world from this admin panel.</p>
         </div>
 
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-8">
-          <div className="bg-[#2d2416] rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-[#4a7c4e]">{loading ? '--' : stats.rooms}</div>
-            <div className="text-[#a89070] text-sm">Total Rooms</div>
+          <div className="bg-surface-muted rounded-lg p-6 text-center">
+            <div className="text-2xl font-bold text-primary">{loading ? '--' : stats.rooms}</div>
+            <div className="text-text-muted text-sm">Total Rooms</div>
           </div>
-          <div className="bg-[#2d2416] rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-[#a87044]">{loading ? '--' : stats.npcs}</div>
-            <div className="text-[#a89070] text-sm">Active NPCs</div>
+          <div className="bg-surface-muted rounded-lg p-6 text-center">
+            <div className="text-2xl font-bold text-warning">{loading ? '--' : stats.npcs}</div>
+            <div className="text-text-muted text-sm">Active NPCs</div>
           </div>
-          <div className="bg-[#2d2416] rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-[#8b7355]">{loading ? '--' : stats.items}</div>
-            <div className="text-[#a89070] text-sm">Items</div>
+          <div className="bg-surface-muted rounded-lg p-6 text-center">
+            <div className="text-2xl font-bold text-accent">{loading ? '--' : stats.items}</div>
+            <div className="text-text-muted text-sm">Items</div>
           </div>
-          <div className="bg-[#2d2416] rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-[#5a9c5e]">{loading ? '--' : stats.players}</div>
-            <div className="text-[#a89070] text-sm">Players</div>
+          <div className="bg-surface-muted rounded-lg p-6 text-center">
+            <div className="text-2xl font-bold text-primary-hover">{loading ? '--' : stats.players}</div>
+            <div className="text-text-muted text-sm">Players</div>
           </div>
         </div>
 
-        <h3 className="mb-4 text-[#e8dcc4]">Admin Tools</h3>
+        <h3 className="mb-4 text-text">Admin Tools</h3>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
-          <Link to="/map" className="block bg-[#2d2416] rounded-lg p-6 no-underline text-[#e8dcc4] border border-[#5a4a35] transition-colors hover:border-[#4a7c4e]">
+          <Link to="/map" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
             <div className="text-2xl mb-2">🗺️</div>
             <div className="font-bold mb-1">Map Builder</div>
-            <div className="text-[#a89070] text-sm">View and edit room layout, connections, and z-levels</div>
+            <div className="text-text-muted text-sm">View and edit room layout, connections, and z-levels</div>
           </Link>
 
-          <Link to="/npcs" className="block bg-[#2d2416] rounded-lg p-6 no-underline text-[#e8dcc4] border border-[#5a4a35] transition-colors hover:border-[#4a7c4e]">
+          <Link to="/npcs" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
             <div className="text-2xl mb-2">👤</div>
             <div className="font-bold mb-1">NPC Manager</div>
-            <div className="text-[#a89070] text-sm">Create, edit, and manage NPCs and their locations</div>
+            <div className="text-text-muted text-sm">Create, edit, and manage NPCs and their locations</div>
           </Link>
 
-          <Link to="/items" className="block bg-[#2d2416] rounded-lg p-6 no-underline text-[#e8dcc4] border border-[#5a4a35] transition-colors hover:border-[#4a7c4e]">
+          <Link to="/items" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
             <div className="text-2xl mb-2">📦</div>
             <div className="font-bold mb-1">Item Manager</div>
-            <div className="text-[#a89070] text-sm">Create, edit, and manage items and equipment</div>
+            <div className="text-text-muted text-sm">Create, edit, and manage items and equipment</div>
           </Link>
 
-          <div className="bg-[#2d2416] rounded-lg p-6 border border-[#5a4a35] opacity-50">
+          <div className="bg-surface-muted rounded-lg p-6 border border-border opacity-50">
             <div className="text-2xl mb-2">🎮</div>
             <div className="font-bold mb-1">Player Manager</div>
-            <div className="text-[#a89070] text-sm">Coming soon</div>
+            <div className="text-text-muted text-sm">Coming soon</div>
           </div>
         </div>
       </div>
