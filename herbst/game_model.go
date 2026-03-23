@@ -120,9 +120,11 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.screen == ScreenPlaying {
 			if key == "up" {
 				if len(m.commandHistory) > 0 {
-					if m.historyIndex < len(m.commandHistory)-1 {
+					// historyIndex: 0 = not navigating, 1 = most recent, 2 = second most recent, etc.
+					if m.historyIndex < len(m.commandHistory) {
 						m.historyIndex++
-						m.textInput.SetValue(m.commandHistory[len(m.commandHistory)-1-m.historyIndex])
+						// Show command at position len - historyIndex
+						m.textInput.SetValue(m.commandHistory[len(m.commandHistory)-m.historyIndex])
 					}
 				}
 				return m, nil
@@ -133,7 +135,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.historyIndex == 0 {
 						m.textInput.SetValue("")
 					} else {
-						m.textInput.SetValue(m.commandHistory[len(m.commandHistory)-1-m.historyIndex])
+						m.textInput.SetValue(m.commandHistory[len(m.commandHistory)-m.historyIndex])
 					}
 				}
 				return m, nil
