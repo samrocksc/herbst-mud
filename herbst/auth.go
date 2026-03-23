@@ -70,13 +70,45 @@ func (m *model) attemptLogin() {
 	m.isLoading = false
 
 	if err != nil {
-		m.AppendMessage(fmt.Sprintf("Connection error: %v", err), "error")
+		m.AppendMessage(fmt.Sprintf("Cannot connect to server at %s. Is the server running?", RESTAPIBase), "error")
+		m.AppendMessage("Start the server with: cd server && go run main.go", "info")
 		return
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		m.AppendMessage("Invalid username or password. Try again.", "error")
+	switch resp.StatusCode {
+	case http.StatusOK:
+		// Success - handled below
+	case http.StatusUnauthorized:
+		var errResp map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&errResp)
+		if errMsg, ok := errResp["error"].(string); ok {
+			m.AppendMessage(errMsg, "error")
+		} else {
+			m.AppendMessage("Invalid username or password.", "error")
+		}
+		m.AppendMessage("Type 'login' to try again or 'register' to create an account.", "info")
+		m.inputField = "username"
+		m.loginUsername = ""
+		m.loginPassword = ""
+		m.textInput.EchoMode = textinput.EchoNormal
+		return
+	case http.StatusInternalServerError:
+		m.AppendMessage("Server error. Please try again later.", "error")
+		m.inputField = "username"
+		m.loginUsername = ""
+		m.loginPassword = ""
+		m.textInput.EchoMode = textinput.EchoNormal
+		return
+	case http.StatusBadRequest:
+		m.AppendMessage("Invalid request. Please check your input.", "error")
+		m.inputField = "username"
+		m.loginUsername = ""
+		m.loginPassword = ""
+		m.textInput.EchoMode = textinput.EchoNormal
+		return
+	default:
+		m.AppendMessage(fmt.Sprintf("Login failed (status %d). Please try again.", resp.StatusCode), "error")
 		m.inputField = "username"
 		m.loginUsername = ""
 		m.loginPassword = ""
