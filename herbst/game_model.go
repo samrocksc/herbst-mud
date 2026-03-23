@@ -116,10 +116,45 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		// Command history navigation (up/down arrows) - only in playing screen
+		if m.screen == ScreenPlaying {
+			if key == "up" {
+				if len(m.commandHistory) > 0 {
+					if m.historyIndex < len(m.commandHistory)-1 {
+						m.historyIndex++
+						m.textInput.SetValue(m.commandHistory[len(m.commandHistory)-1-m.historyIndex])
+					}
+				}
+				return m, nil
+			}
+			if key == "down" {
+				if m.historyIndex > 0 {
+					m.historyIndex--
+					if m.historyIndex == 0 {
+						m.textInput.SetValue("")
+					} else {
+						m.textInput.SetValue(m.commandHistory[len(m.commandHistory)-1-m.historyIndex])
+					}
+				}
+				return m, nil
+			}
+		}
+
 		// Enter — process input
 		if key == "enter" || key == "ctrl+m" {
 			input := m.textInput.Value()
 			m.textInput.SetValue("")
+			// Save to command history (if not empty and not duplicate of last)
+			if input != "" {
+				if len(m.commandHistory) == 0 || m.commandHistory[len(m.commandHistory)-1] != input {
+					m.commandHistory = append(m.commandHistory, input)
+					// Keep history to last 100 commands
+					if len(m.commandHistory) > 100 {
+						m.commandHistory = m.commandHistory[1:]
+					}
+				}
+			}
+			m.historyIndex = 0 // Reset history position
 			m.processInput(input)
 			return m, nil
 		}

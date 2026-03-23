@@ -77,7 +77,7 @@ type model struct {
 
 	// Room items & characters
 	roomItems      []RoomItem
-	roomCharacters []roomCharacter
+	roomCharacters []RoomCharacter
 
 	// Debug mode
 	debugMode bool
@@ -88,6 +88,10 @@ type model struct {
 	historyOffset   int
 	maxHistory      int
 	isScrolling     bool
+
+	// Command history (for up/down arrow navigation)
+	commandHistory []string
+	historyIndex   int
 }
 
 // RoomItem represents an item in a room for display
@@ -108,8 +112,8 @@ type RoomItem struct {
 	RevealCondition map[string]any `json:"revealCondition"`
 }
 
-// roomCharacter represents a character (NPC or player) in a room
-type roomCharacter struct {
+// RoomCharacter represents a character in a room
+type RoomCharacter struct {
 	ID     int    `json:"id"`
 	Name   string `json:"name"`
 	IsNPC  bool   `json:"isNPC"`
@@ -119,8 +123,8 @@ type roomCharacter struct {
 	UserID int    `json:"userId"`
 }
 
-// inventoryItem represents an item in the player's inventory
-type inventoryItem struct {
+// Note: HiddenDetail is defined separately in examine_skill.go for that system
+type InventoryItem struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
