@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-03-31
+
+### Fixed
+- Added missing 'fight' command recognition for combat system
+- Added debug logging to combat startup for troubleshooting
+
+## [0.14.0] - 2026-03-31
+
 ### Added
 - OpenAPI client generation capability for frontend type safety
 - New `dev-frontend` Makefile target to automatically generate TypeScript client from backend API
