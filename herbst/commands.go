@@ -33,7 +33,7 @@ func (m *model) processCommand(cmd string) {
   ne/northeast, se/southeast, sw/southwest, nw/northwest - Move (ordinal)
   u/up, d/down - Move (vertical)
   look/l [target] - Look around (or examine: look <target>, look at <target>)
-  attack/a/kill <target> - Attack a target
+  attack/a/kill/fight <target> - Attack a target
   ctrl+p - Scroll output up (older messages)
   ctrl+n - Scroll output down (newer messages)
   exits/x - Show exits
@@ -41,6 +41,7 @@ func (m *model) processCommand(cmd string) {
   take/get <item> - Pick up an item
   drop <item> - Drop an item
   inventory/i - Show your inventory
+  equip - Manage equipment slots (talents 1-4, potion R)
   quests/q - Show your quest log
   whoami - Show your info
   profile/p - Edit character profile
@@ -71,6 +72,9 @@ func (m *model) processCommand(cmd string) {
 		m.menuCursor = 0
 		m.AppendMessage("", "")
 
+	case "equip":
+		m.handleEquipCommand(cmd)
+
 	case "peer":
 		m.AppendMessage("Usage: peer <direction>", "error")
 
@@ -89,8 +93,9 @@ func (m *model) processCommand(cmd string) {
 		m.inputBuffer = ""
 
 	default:
-		// attack/kill
-		if strings.HasPrefix(cmd, "attack ") || strings.HasPrefix(cmd, "kill ") || strings.HasPrefix(cmd, "a ") {
+		// attack/kill/a/fight - handle both bare commands and commands with targets
+		if cmd == "attack" || cmd == "kill" || cmd == "a" || cmd == "fight" ||
+			strings.HasPrefix(cmd, "attack ") || strings.HasPrefix(cmd, "kill ") || strings.HasPrefix(cmd, "a ") || strings.HasPrefix(cmd, "fight ") {
 			m.handleAttackCommand(cmd)
 			return
 		}
