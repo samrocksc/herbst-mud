@@ -116,6 +116,27 @@ func (_u *CharacterUpdate) AddStartingRoomId(v int) *CharacterUpdate {
 	return _u
 }
 
+// SetRespawnRoomId sets the "respawnRoomId" field.
+func (_u *CharacterUpdate) SetRespawnRoomId(v int) *CharacterUpdate {
+	_u.mutation.ResetRespawnRoomId()
+	_u.mutation.SetRespawnRoomId(v)
+	return _u
+}
+
+// SetNillableRespawnRoomId sets the "respawnRoomId" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableRespawnRoomId(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetRespawnRoomId(*v)
+	}
+	return _u
+}
+
+// AddRespawnRoomId adds value to the "respawnRoomId" field.
+func (_u *CharacterUpdate) AddRespawnRoomId(v int) *CharacterUpdate {
+	_u.mutation.AddRespawnRoomId(v)
+	return _u
+}
+
 // SetIsAdmin sets the "is_admin" field.
 func (_u *CharacterUpdate) SetIsAdmin(v bool) *CharacterUpdate {
 	_u.mutation.SetIsAdmin(v)
@@ -904,6 +925,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedStartingRoomId(); ok {
 		_spec.AddField(character.FieldStartingRoomId, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.RespawnRoomId(); ok {
+		_spec.SetField(character.FieldRespawnRoomId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRespawnRoomId(); ok {
+		_spec.AddField(character.FieldRespawnRoomId, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
 	}
@@ -1379,6 +1406,27 @@ func (_u *CharacterUpdateOne) SetNillableStartingRoomId(v *int) *CharacterUpdate
 // AddStartingRoomId adds value to the "startingRoomId" field.
 func (_u *CharacterUpdateOne) AddStartingRoomId(v int) *CharacterUpdateOne {
 	_u.mutation.AddStartingRoomId(v)
+	return _u
+}
+
+// SetRespawnRoomId sets the "respawnRoomId" field.
+func (_u *CharacterUpdateOne) SetRespawnRoomId(v int) *CharacterUpdateOne {
+	_u.mutation.ResetRespawnRoomId()
+	_u.mutation.SetRespawnRoomId(v)
+	return _u
+}
+
+// SetNillableRespawnRoomId sets the "respawnRoomId" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableRespawnRoomId(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetRespawnRoomId(*v)
+	}
+	return _u
+}
+
+// AddRespawnRoomId adds value to the "respawnRoomId" field.
+func (_u *CharacterUpdateOne) AddRespawnRoomId(v int) *CharacterUpdateOne {
+	_u.mutation.AddRespawnRoomId(v)
 	return _u
 }
 
@@ -2199,6 +2247,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.AddedStartingRoomId(); ok {
 		_spec.AddField(character.FieldStartingRoomId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RespawnRoomId(); ok {
+		_spec.SetField(character.FieldRespawnRoomId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRespawnRoomId(); ok {
+		_spec.AddField(character.FieldRespawnRoomId, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)

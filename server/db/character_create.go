@@ -71,6 +71,20 @@ func (_c *CharacterCreate) SetStartingRoomId(v int) *CharacterCreate {
 	return _c
 }
 
+// SetRespawnRoomId sets the "respawnRoomId" field.
+func (_c *CharacterCreate) SetRespawnRoomId(v int) *CharacterCreate {
+	_c.mutation.SetRespawnRoomId(v)
+	return _c
+}
+
+// SetNillableRespawnRoomId sets the "respawnRoomId" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableRespawnRoomId(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetRespawnRoomId(*v)
+	}
+	return _c
+}
+
 // SetIsAdmin sets the "is_admin" field.
 func (_c *CharacterCreate) SetIsAdmin(v bool) *CharacterCreate {
 	_c.mutation.SetIsAdmin(v)
@@ -582,6 +596,10 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultIsNPC
 		_c.mutation.SetIsNPC(v)
 	}
+	if _, ok := _c.mutation.RespawnRoomId(); !ok {
+		v := character.DefaultRespawnRoomId
+		_c.mutation.SetRespawnRoomId(v)
+	}
 	if _, ok := _c.mutation.IsAdmin(); !ok {
 		v := character.DefaultIsAdmin
 		_c.mutation.SetIsAdmin(v)
@@ -693,6 +711,9 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.StartingRoomId(); !ok {
 		return &ValidationError{Name: "startingRoomId", err: errors.New(`db: missing required field "Character.startingRoomId"`)}
+	}
+	if _, ok := _c.mutation.RespawnRoomId(); !ok {
+		return &ValidationError{Name: "respawnRoomId", err: errors.New(`db: missing required field "Character.respawnRoomId"`)}
 	}
 	if _, ok := _c.mutation.IsAdmin(); !ok {
 		return &ValidationError{Name: "is_admin", err: errors.New(`db: missing required field "Character.is_admin"`)}
@@ -810,6 +831,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.StartingRoomId(); ok {
 		_spec.SetField(character.FieldStartingRoomId, field.TypeInt, value)
 		_node.StartingRoomId = value
+	}
+	if value, ok := _c.mutation.RespawnRoomId(); ok {
+		_spec.SetField(character.FieldRespawnRoomId, field.TypeInt, value)
+		_node.RespawnRoomId = value
 	}
 	if value, ok := _c.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)

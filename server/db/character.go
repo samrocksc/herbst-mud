@@ -29,6 +29,8 @@ type Character struct {
 	CurrentRoomId int `json:"currentRoomId,omitempty"`
 	// StartingRoomId holds the value of the "startingRoomId" field.
 	StartingRoomId int `json:"startingRoomId,omitempty"`
+	// Room ID where character respawns after death (default: The Hole)
+	RespawnRoomId int `json:"respawnRoomId,omitempty"`
 	// IsAdmin holds the value of the "is_admin" field.
 	IsAdmin bool `json:"is_admin,omitempty"`
 	// Hitpoints holds the value of the "hitpoints" field.
@@ -178,7 +180,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case character.FieldIsNPC, character.FieldIsAdmin:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
 		case character.FieldName, character.FieldPassword, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -238,6 +240,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field startingRoomId", values[i])
 			} else if value.Valid {
 				_m.StartingRoomId = int(value.Int64)
+			}
+		case character.FieldRespawnRoomId:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field respawnRoomId", values[i])
+			} else if value.Valid {
+				_m.RespawnRoomId = int(value.Int64)
 			}
 		case character.FieldIsAdmin:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -502,6 +510,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("startingRoomId=")
 	builder.WriteString(fmt.Sprintf("%v", _m.StartingRoomId))
+	builder.WriteString(", ")
+	builder.WriteString("respawnRoomId=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RespawnRoomId))
 	builder.WriteString(", ")
 	builder.WriteString("is_admin=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsAdmin))

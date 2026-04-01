@@ -43,6 +43,7 @@ var (
 		{Name: "password", Type: field.TypeString, Nullable: true},
 		{Name: "is_npc", Type: field.TypeBool, Default: false},
 		{Name: "starting_room_id", Type: field.TypeInt},
+		{Name: "respawn_room_id", Type: field.TypeInt, Default: 5},
 		{Name: "is_admin", Type: field.TypeBool, Default: false},
 		{Name: "hitpoints", Type: field.TypeInt, Default: 100},
 		{Name: "max_hitpoints", Type: field.TypeInt, Default: 100},
@@ -83,25 +84,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[32]},
+				Columns:    []*schema.Column{CharactersColumns[33]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[33]},
+				Columns:    []*schema.Column{CharactersColumns[34]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[34]},
+				Columns:    []*schema.Column{CharactersColumns[35]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[35]},
+				Columns:    []*schema.Column{CharactersColumns[36]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -175,11 +176,18 @@ var (
 		{Name: "color", Type: field.TypeString, Default: ""},
 		{Name: "is_visible", Type: field.TypeBool, Default: true},
 		{Name: "item_type", Type: field.TypeString, Default: "misc"},
+		{Name: "owner_id", Type: field.TypeInt, Nullable: true},
+		{Name: "effect_type", Type: field.TypeString, Default: ""},
+		{Name: "effect_value", Type: field.TypeInt, Default: 0},
+		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
+		{Name: "healing", Type: field.TypeInt, Default: 0},
+		{Name: "effect", Type: field.TypeString, Default: ""},
 		{Name: "is_container", Type: field.TypeBool, Default: false},
 		{Name: "container_capacity", Type: field.TypeInt, Default: 0},
 		{Name: "is_locked", Type: field.TypeBool, Default: false},
 		{Name: "key_item_id", Type: field.TypeString, Nullable: true},
 		{Name: "contained_items", Type: field.TypeString, Default: ""},
+		{Name: "reveal_condition", Type: field.TypeString, Default: ""},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -190,7 +198,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[16]},
+				Columns:    []*schema.Column{EquipmentColumns[23]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -238,6 +246,11 @@ var (
 		{Name: "cost", Type: field.TypeInt, Default: 0},
 		{Name: "cooldown", Type: field.TypeInt, Default: 0},
 		{Name: "requirements", Type: field.TypeString, Nullable: true},
+		{Name: "effect_type", Type: field.TypeString, Default: ""},
+		{Name: "effect_value", Type: field.TypeInt, Default: 0},
+		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
+		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
+		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
 	}
 	// SkillsTable holds the schema information for the "skills" table.
 	SkillsTable = &schema.Table{
@@ -251,6 +264,12 @@ var (
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "description", Type: field.TypeString},
 		{Name: "requirements", Type: field.TypeString, Nullable: true},
+		{Name: "effect_type", Type: field.TypeString, Default: ""},
+		{Name: "effect_value", Type: field.TypeInt, Default: 0},
+		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
+		{Name: "cooldown", Type: field.TypeInt, Default: 0},
+		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
+		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
 	}
 	// TalentsTable holds the schema information for the "talents" table.
 	TalentsTable = &schema.Table{

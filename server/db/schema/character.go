@@ -21,6 +21,9 @@ func (Character) Fields() []ent.Field {
 			Default(false),
 		field.Int("currentRoomId"),
 		field.Int("startingRoomId"),
+		field.Int("respawnRoomId").
+			Default(5).
+			Comment("Room ID where character respawns after death (default: The Hole)"),
 		field.Bool("is_admin").
 			Default(false),
 		field.Int("hitpoints").

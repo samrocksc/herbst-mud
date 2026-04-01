@@ -527,12 +527,27 @@ func (m *model) respawnPlayer() {
 	// Reset HP to max
 	m.characterHP = m.characterMaxHP
 
-	// Move player to starting room
-	m.currentRoom = StartingRoomID
+	// Fetch respawn room from server
+	respawnRoomID := StartingRoomID // default fallback
+	if m.currentCharacterID != 0 {
+		resp, err := httpGet(fmt.Sprintf("%s/characters/%d", RESTAPIBase, m.currentCharacterID))
+		if err == nil {
+			defer resp.Body.Close()
+			var char struct {
+				RespawnRoomId int `json:"respawnRoomId"`
+			}
+			if json.NewDecoder(resp.Body).Decode(&char) == nil && char.RespawnRoomId > 0 {
+				respawnRoomID = char.RespawnRoomId
+			}
+		}
+	}
+
+	// Move player to respawn room
+	m.currentRoom = respawnRoomID
 
 	// Reload room data from server
 	if m.client != nil {
-		room, err := m.client.Room.Get(context.Background(), StartingRoomID)
+		room, err := m.client.Room.Get(context.Background(), respawnRoomID)
 		if err == nil {
 			m.roomName = room.Name
 			m.roomDesc = room.Description
@@ -546,6 +561,8 @@ func (m *model) respawnPlayer() {
 
 	// Heal player on server
 	healCharacter(m.currentCharacterID, m.characterMaxHP)
+	
+	m.AppendMessage(fmt.Sprintf("☠ You respawn at %s!", m.roomName), "success")
 }
 
 // applyDamageToCharacter sends damage to the server
