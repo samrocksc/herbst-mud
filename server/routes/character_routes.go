@@ -1025,6 +1025,17 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				"race":            npc.Race,
 				"class":           npc.Class,
 				"level":           npc.Level,
+				"hitpoints":       npc.Hitpoints,
+				"max_hitpoints":   npc.MaxHitpoints,
+				"stamina":         npc.Stamina,
+				"max_stamina":     npc.MaxStamina,
+				"mana":            npc.Mana,
+				"max_mana":        npc.MaxMana,
+				"constitution":    npc.Constitution,
+				"strength":        npc.Strength,
+				"dexterity":        npc.Dexterity,
+				"intelligence":   npc.Intelligence,
+				"wisdom":          npc.Wisdom,
 			}
 		}
 
@@ -1064,15 +1075,33 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		for _, ct := range charTalents {
 			talentName := ""
 			talentDesc := ""
+			effectType := ""
+			effectValue := 0
+			effectDuration := 0
+			cooldown := 0
+			manaCost := 0
+			staminaCost := 0
 			if ct.Edges.Talent != nil {
 				talentName = ct.Edges.Talent.Name
 				talentDesc = ct.Edges.Talent.Description
+				effectType = ct.Edges.Talent.EffectType
+				effectValue = ct.Edges.Talent.EffectValue
+				effectDuration = ct.Edges.Talent.EffectDuration
+				cooldown = ct.Edges.Talent.Cooldown
+				manaCost = ct.Edges.Talent.ManaCost
+				staminaCost = ct.Edges.Talent.StaminaCost
 			}
 			slots[ct.Slot] = map[string]interface{}{
-				"slot":        ct.Slot,
-				"talent_id":   ct.Edges.Talent.ID,
-				"name":        talentName,
-				"description": talentDesc,
+				"slot":           ct.Slot,
+				"talent_id":      ct.Edges.Talent.ID,
+				"name":           talentName,
+				"description":    talentDesc,
+				"effectType":     effectType,
+				"effectValue":    effectValue,
+				"effectDuration": effectDuration,
+				"cooldown":       cooldown,
+				"manaCost":       manaCost,
+				"staminaCost":    staminaCost,
 			}
 		}
 
@@ -1475,5 +1504,201 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"success": true, "talent_id": talentId})
+	})
+
+	// Apply damage to a character (used by combat system)
+	router.POST("/characters/:id/damage", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var req struct {
+			Damage int `json:"damage" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if req.Damage < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Damage must be non-negative"})
+			return
+		}
+
+		// Get the character
+		char, err := client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		// Calculate new HP
+		newHP := char.Hitpoints - req.Damage
+		if newHP < 0 {
+			newHP = 0
+		}
+
+		// Update character HP
+		updatedChar, err := client.Character.UpdateOneID(id).
+			SetHitpoints(newHP).
+			Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		defeated := newHP == 0
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":       updatedChar.ID,
+			"hp":       updatedChar.Hitpoints,
+			"maxHp":    updatedChar.MaxHitpoints,
+			"defeated": defeated,
+		})
+	})
+
+	// Heal a character (used by combat system for healing)
+	router.POST("/characters/:id/heal", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var req struct {
+			Amount int `json:"amount" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if req.Amount < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Heal amount must be non-negative"})
+			return
+		}
+
+		// Get the character
+		char, err := client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		// Calculate new HP (don't exceed max)
+		newHP := char.Hitpoints + req.Amount
+		if newHP > char.MaxHitpoints {
+			newHP = char.MaxHitpoints
+		}
+
+		// Update character HP
+		updatedChar, err := client.Character.UpdateOneID(id).
+			SetHitpoints(newHP).
+			Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":    updatedChar.ID,
+			"hp":    updatedChar.Hitpoints,
+			"maxHp": updatedChar.MaxHitpoints,
+		})
+	})
+
+	// Heal all NPCs in a room (used by regen system)
+	router.POST("/rooms/:id/npcs/heal", func(c *gin.Context) {
+		roomID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+			return
+		}
+
+		var req struct {
+			Amount int `json:"amount" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if req.Amount < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Heal amount must be non-negative"})
+			return
+		}
+
+		// Get all NPCs in this room that need healing
+		npcs, err := client.Character.Query().
+			Where(character.IsNPCEQ(true)).
+			Where(character.CurrentRoomIdEQ(roomID)).
+			All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Heal each NPC
+		healedCount := 0
+		for _, npc := range npcs {
+			if npc.Hitpoints >= npc.MaxHitpoints {
+				continue // Skip full HP NPCs
+			}
+			if npc.Hitpoints <= 0 {
+				continue // Skip defeated NPCs
+			}
+
+			newHP := npc.Hitpoints + req.Amount
+			if newHP > npc.MaxHitpoints {
+				newHP = npc.MaxHitpoints
+			}
+
+			_, err := client.Character.UpdateOneID(npc.ID).
+				SetHitpoints(newHP).
+				Save(c.Request.Context())
+			if err == nil {
+				healedCount++
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"healed": healedCount,
+			"amount": req.Amount,
+		})
+	})
+
+	// Get character combat status (HP, stamina, etc.)
+	router.GET("/characters/:id/combat-status", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		char, err := client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":         char.ID,
+			"name":       char.Name,
+			"hp":         char.Hitpoints,
+			"maxHp":      char.MaxHitpoints,
+			"stamina":    char.Stamina,
+			"maxStamina": char.MaxStamina,
+			"mana":       char.Mana,
+			"maxMana":    char.MaxMana,
+			"level":      char.Level,
+			"strength":   char.Strength,
+			"dexterity":  char.Dexterity,
+			"isNPC":      char.IsNPC,
+		})
 	})
 }

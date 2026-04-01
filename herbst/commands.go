@@ -34,6 +34,7 @@ func (m *model) processCommand(cmd string) {
   u/up, d/down - Move (vertical)
   look/l [target] - Look around (or examine: look <target>, look at <target>)
   attack/a/kill/fight <target> - Attack a target
+  loot [corpse] - Loot a corpse or all corpses in room
   ctrl+p - Scroll output up (older messages)
   ctrl+n - Scroll output down (newer messages)
   exits/x - Show exits
@@ -75,6 +76,9 @@ func (m *model) processCommand(cmd string) {
 	case "equip":
 		m.handleEquipCommand(cmd)
 
+	case "loot":
+		m.handleLootCommand("loot")
+
 	case "peer":
 		m.AppendMessage("Usage: peer <direction>", "error")
 
@@ -107,6 +111,11 @@ func (m *model) processCommand(cmd string) {
 		// drop
 		if strings.HasPrefix(cmd, "drop ") {
 			m.handleDropCommand(cmd)
+			return
+		}
+		// loot
+		if cmd == "loot" || strings.HasPrefix(cmd, "loot ") {
+			m.handleLootCommand(cmd)
 			return
 		}
 		// inventory

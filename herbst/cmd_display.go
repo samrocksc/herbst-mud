@@ -65,6 +65,17 @@ func httpPost(url, body string) (*http.Response, error) {
 	return http.Post(url, "application/json", strings.NewReader(body))
 }
 
+// httpPut is a helper for making PUT requests with a body
+func httpPut(url, body string) (*http.Response, error) {
+	req, err := http.NewRequest("PUT", url, strings.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 5e9}
+	return client.Do(req)
+}
+
 // ioReadAll is exported for use by other files
 func ioReadAll(r io.Reader) ([]byte, error) {
 	return io.ReadAll(r)
