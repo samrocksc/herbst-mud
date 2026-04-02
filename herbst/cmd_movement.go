@@ -53,6 +53,9 @@ func (m *model) handleMovement(cmd string) bool {
 		m.loadRoomItems()
 		m.loadRoomCharacters()
 
+		// Passive heal NPCs that recovered while player was away
+		m.passiveHealNPCs()
+
 		wasVisited := m.visitedRooms[m.currentRoom]
 		m.visitedRooms[m.currentRoom] = true
 

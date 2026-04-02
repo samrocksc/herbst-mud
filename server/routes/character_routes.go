@@ -1756,4 +1756,69 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			"character_id": id,
 		})
 	})
+
+	// Passive heal NPCs in a room (simulates natural recovery over time)
+	router.POST("/rooms/:id/npcs/passive-heal", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+			return
+		}
+
+		// Get all NPCs in this room that are hurt
+		npcs, err := client.Character.Query().
+			Where(character.IsNPCEQ(true)).
+			Where(character.CurrentRoomId(id)).
+			All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Heal each NPC for 25% of max HP (simulating time passing)
+		healedCount := 0
+		fullyHealedCount := 0
+		for _, npc := range npcs {
+			if npc.Hitpoints <= 0 {
+				// Revive defeated NPCs with 50% HP
+				newHP := npc.MaxHitpoints / 2
+				_, err := client.Character.UpdateOneID(npc.ID).
+					SetHitpoints(newHP).
+					Save(c.Request.Context())
+				if err == nil {
+					healedCount++
+				}
+				continue
+			}
+
+			if npc.Hitpoints >= npc.MaxHitpoints {
+				continue // Skip full HP NPCs
+			}
+
+			// Heal for 25% of max HP
+			healAmount := npc.MaxHitpoints / 4
+			if healAmount < 1 {
+				healAmount = 1
+			}
+
+			newHP := npc.Hitpoints + healAmount
+			if newHP >= npc.MaxHitpoints {
+				newHP = npc.MaxHitpoints
+				fullyHealedCount++
+			}
+
+			_, err := client.Character.UpdateOneID(npc.ID).
+				SetHitpoints(newHP).
+				Save(c.Request.Context())
+			if err == nil {
+				healedCount++
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"healed": healedCount,
+			"fullyHealed": fullyHealedCount,
+			"room": id,
+		})
+	})
 }

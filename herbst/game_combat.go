@@ -557,7 +557,7 @@ func (m *model) respawnPlayer() {
 
 	// Reload room contents
 	m.loadRoomItems()
-	m.loadRoomCharacters()
+	m.loadRoomCharactersWithHP()
 
 	// Heal player on server
 	healCharacter(m.currentCharacterID, m.characterMaxHP)

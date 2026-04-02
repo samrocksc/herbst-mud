@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/character"
+	"herbst-server/db/room"
 )
 
 // RegisterRoomRoutes registers all room-related routes
@@ -121,7 +122,67 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		err = client.Room.DeleteOneID(id).Exec(c.Request.Context())
+		ctx := c.Request.Context()
+
+		// Get the starting room ID for relocating characters
+		startingRooms, err := client.Room.Query().
+			Where(room.IsStartingRoom(true)).
+			All(ctx)
+		if err != nil || len(startingRooms) == 0 {
+			// Fallback to room ID 5 if no starting room set
+			startingRooms = []*db.Room{{ID: 5}}
+		}
+		defaultRoomID := startingRooms[0].ID
+
+		// Move any characters in this room to the starting room
+		_, err = client.Character.Update().
+			Where(character.CurrentRoomIdEQ(id)).
+			SetCurrentRoomId(defaultRoomID).
+			Save(ctx)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to relocate characters"})
+			return
+		}
+
+		// Remove this room from all other rooms' exits
+		allRooms, err := client.Room.Query().All(ctx)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query rooms"})
+			return
+		}
+
+		for _, r := range allRooms {
+			if r.ID == id {
+				continue // Skip the room being deleted
+			}
+			if r.Exits == nil {
+				continue
+			}
+
+			// Check if any exit points to the room being deleted
+			needsUpdate := false
+			newExits := make(map[string]int)
+			for dir, targetID := range r.Exits {
+				if targetID != id {
+					newExits[dir] = targetID
+				} else {
+					needsUpdate = true
+				}
+			}
+
+			if needsUpdate {
+				_, err = client.Room.UpdateOneID(r.ID).
+					SetExits(newExits).
+					Save(ctx)
+				if err != nil {
+					// Log but continue
+					continue
+				}
+			}
+		}
+
+		// Now delete the room
+		err = client.Room.DeleteOneID(id).Exec(ctx)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 			return
@@ -146,7 +207,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Return characters without sensitive data
+		// Return full character data including HP for combat visibility
 		result := make([]gin.H, len(characters))
 		for i, char := range characters {
 			result[i] = gin.H{
@@ -156,6 +217,8 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 				"level":    char.Level,
 				"class":    char.Class,
 				"race":     char.Race,
+				"hp":       char.Hitpoints,
+				"maxHp":    char.MaxHitpoints,
 			}
 		}
 
