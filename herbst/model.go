@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/ssh"
+	"herbst/combat"
 	"herbst/db"
 )
 
@@ -92,7 +93,55 @@ type model struct {
 	// Command history (for up/down arrow navigation)
 	commandHistory []string
 	historyIndex   int
+
+	// Combat state
+	inCombat           bool
+	combatTarget       *RoomCharacter
+	combatManager      *combat.CombatManager
+	combatID           int
+	combatLog          []string // Combat messages for display
+	combatQueuedAction string   // Action queued for next tick
+	combatJustStarted  bool     // Flag to start tick timer
+
+	// Combat talents (slots 1-4)
+	combatTalents []EquippedTalent
+
+	// Classless combat skills (slots 1-5)
+	combatSkills *CombatSkillState
+
+	// Equipped potion (R slot)
+	equippedPotion *EquippedPotion
 }
+
+// EquippedTalent represents a talent equipped in a combat slot
+type EquippedTalent struct {
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	Slot          int    `json:"slot"`
+	EffectType    string `json:"effectType"`   // heal|damage|dot|buff_armor|buff_dodge|buff_crit|debuff
+	EffectValue   int    `json:"effectValue"`  // Amount: HP healed, damage, etc.
+	EffectDuration int   `json:"effectDuration"` // Duration in ticks (0 = instant)
+	Cooldown      int    `json:"cooldown"`
+	ManaCost      int    `json:"manaCost"`
+	StaminaCost   int    `json:"staminaCost"`
+}
+
+// EquippedPotion represents a potion equipped in the R slot
+type EquippedPotion struct {
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	EffectType    string `json:"effectType"`
+	EffectValue   int    `json:"effectValue"`
+	EffectDuration int   `json:"effectDuration"`
+}
+
+// combatTickMsg is sent on each combat tick interval
+type combatTickMsg time.Time
+
+// regenTickMsg is sent on each regeneration tick interval  
+type regenTickMsg time.Time
 
 // RoomItem represents an item in a room for display
 type RoomItem struct {
@@ -121,6 +170,8 @@ type RoomCharacter struct {
 	Class  string `json:"class"`
 	Race   string `json:"race"`
 	UserID int    `json:"userId"`
+	HP     int    `json:"hp"`
+	MaxHP  int    `json:"maxHp"`
 }
 
 // Note: HiddenDetail is defined separately in examine_skill.go for that system
@@ -147,4 +198,5 @@ const (
 	ScreenPlaying   = "playing"
 	ScreenProfile   = "profile"
 	ScreenEditField = "edit_field"
+	ScreenCombat    = "combat"
 )

@@ -1672,33 +1672,88 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		})
 	})
 
-	// Get character combat status (HP, stamina, etc.)
-	router.GET("/characters/:id/combat-status", func(c *gin.Context) {
+	// Get classless skills for a character
+	router.GET("/characters/:id/classless-skills", func(c *gin.Context) {
+		_, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		// For now, return the 5 default classless skills
+		// In the future, this could be stored in the database
+		skills := []gin.H{
+			{"id": 100, "name": "Concentrate", "description": "Focus your mind to increase accuracy. +WIS to hit for 4 rounds.", "slot": 1, "effectType": "concentrate", "cooldown": 8, "manaCost": 10, "staminaCost": 0, "baseStat": "wisdom", "duration": 4},
+			{"id": 101, "name": "Haymaker", "description": "A powerful but reckless strike. +STR damage, -DEX to hit.", "slot": 2, "effectType": "haymaker", "cooldown": 6, "manaCost": 0, "staminaCost": 15, "baseStat": "strength", "duration": 1},
+			{"id": 102, "name": "Back-off", "description": "Use agility to dodge all attacks this round. Costs stamina.", "slot": 3, "effectType": "backoff", "cooldown": 10, "manaCost": 0, "staminaCost": 25, "baseStat": "dexterity", "duration": 1},
+			{"id": 103, "name": "Scream", "description": "Release a berserker cry. -WIS/INT, +DEX/STR for 2 rounds.", "slot": 4, "effectType": "scream", "cooldown": 12, "manaCost": 5, "staminaCost": 10, "baseStat": "constitution", "duration": 2},
+			{"id": 104, "name": "Slap", "description": "A quick stunning strike. DEX vs CON to stun for 1 round.", "slot": 5, "effectType": "slap", "cooldown": 8, "manaCost": 0, "staminaCost": 12, "baseStat": "dexterity", "duration": 1},
+		}
+
+		c.JSON(http.StatusOK, gin.H{"skills": skills})
+	})
+
+	// Equip a classless skill (mock - just returns success)
+	router.POST("/characters/:id/classless-skills", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
 			return
 		}
 
-		char, err := client.Character.Get(c.Request.Context(), id)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+		var req struct {
+			SkillID int `json:"skill_id" binding:"required"`
+			Slot    int `json:"slot" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
+		if req.Slot < 1 || req.Slot > 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Slot must be 1-5"})
+			return
+		}
+
+		// For now, just return success (storage would require DB schema update)
 		c.JSON(http.StatusOK, gin.H{
-			"id":         char.ID,
-			"name":       char.Name,
-			"hp":         char.Hitpoints,
-			"maxHp":      char.MaxHitpoints,
-			"stamina":    char.Stamina,
-			"maxStamina": char.MaxStamina,
-			"mana":       char.Mana,
-			"maxMana":    char.MaxMana,
-			"level":      char.Level,
-			"strength":   char.Strength,
-			"dexterity":  char.Dexterity,
-			"isNPC":      char.IsNPC,
+			"message": "Skill equipped",
+			"skill_id": req.SkillID,
+			"slot": req.Slot,
+			"character_id": id,
+		})
+	})
+
+	// Swap classless skills between slots
+	router.PUT("/characters/:id/classless-skills/swap", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var req struct {
+			Slot1 int `json:"slot1" binding:"required"`
+			Slot2 int `json:"slot2" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if req.Slot1 < 1 || req.Slot1 > 5 || req.Slot2 < 1 || req.Slot2 > 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Slots must be 1-5"})
+			return
+		}
+
+		// For now, just return success
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Skills swapped",
+			"slot1": req.Slot1,
+			"slot2": req.Slot2,
+			"character_id": id,
 		})
 	})
 }

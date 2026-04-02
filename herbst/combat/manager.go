@@ -7,9 +7,10 @@ import (
 
 // Combat represents an active combat encounter.
 type Combat struct {
-	ID        int
-	StartTick int
-	mu        sync.RWMutex
+	ID          int
+	StartTick   int
+	CurrentTick int // Track current tick for this combat
+	mu          sync.RWMutex
 	// participants are the combatants in this combat
 	participants map[int]*Participant
 	// actionQueue holds pending actions for this combat
@@ -191,6 +192,9 @@ func (c *Combat) ClearActions(participantID int) {
 func (c *Combat) ProcessTick(tick int) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
+	// Update current tick
+	c.CurrentTick = tick
 
 	// Phase 1: Input phase - participants submit their actions
 	// (handled by SetInput on Participant)

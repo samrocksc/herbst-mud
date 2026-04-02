@@ -46,7 +46,8 @@ func (m *model) processCommand(cmd string) {
   quests/q - Show your quest log
   whoami - Show your info
   profile/p - Edit character profile
-  skills - Show your skills
+  skills - Show your 5 classless combat skills
+  skill [show|all|equip|swap] - Manage classless skills
   talents - Show your talents
   debug - Toggle debug mode
   clear/cls - Clear screen
@@ -128,9 +129,13 @@ func (m *model) processCommand(cmd string) {
 			m.handleQuestsCommand(cmd)
 			return
 		}
-		// skills
+		// skills (classless combat skills)
 		if cmd == "skills" {
-			m.handleSkillsCommand(cmd)
+			if m.combatSkills == nil {
+				m.combatSkills = &CombatSkillState{}
+				m.initCombatSkillState()
+			}
+			m.showEquippedClasslessSkills()
 			return
 		}
 		// talents
@@ -138,9 +143,13 @@ func (m *model) processCommand(cmd string) {
 			m.handleTalentsCommand(cmd)
 			return
 		}
-		// skill equip
+		// skill (classless skills) - equip, swap, show
 		if strings.HasPrefix(cmd, "skill ") {
-			m.handleSkillEquipCommand(cmd)
+			if m.combatSkills == nil {
+				m.combatSkills = &CombatSkillState{}
+				m.initCombatSkillState()
+			}
+			m.handleClasslessSkillCommand(cmd[6:])
 			return
 		}
 		// talent equip/unequip/swap
