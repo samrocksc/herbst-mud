@@ -233,8 +233,9 @@ function SkillsManagement() {
 
   const allTags = useMemo(() => {
     if (!skills) return []
+    const skillArray = Array.isArray(skills) ? skills : (skills as { skills: Skill[] }).skills ?? []
     const tags = new Set<string>()
-    skills.forEach(s => s.tags.forEach(t => tags.add(t)))
+    skillArray.forEach((s: Skill) => s.tags.forEach((t: string) => tags.add(t)))
     return Array.from(tags).sort()
   }, [skills])
 
