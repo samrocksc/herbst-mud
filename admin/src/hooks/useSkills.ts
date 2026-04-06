@@ -59,7 +59,8 @@ export function useSkills(filters?: { type?: string; tag?: string }) {
       const url = `${API_BASE}/skills${params.toString() ? '?' + params.toString() : ''}`
       const response = await fetch(url)
       if (!response.ok) throw new Error('Failed to fetch skills')
-      return response.json()
+      const data = await response.json()
+      return data.skills ?? []
     }
   })
 }
