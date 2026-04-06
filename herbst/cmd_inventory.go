@@ -108,9 +108,9 @@ func (m *model) handleInventoryCommand() {
 		return
 	}
 
-	items := make([]inventoryItem, len(rawItems))
+	items := make([]InventoryItem, len(rawItems))
 	for i, raw := range rawItems {
-		items[i] = inventoryItem(raw)
+		items[i] = InventoryItem(raw)
 	}
 
 	var inv strings.Builder
@@ -119,7 +119,7 @@ func (m *model) handleInventoryCommand() {
 	inv.WriteString(strings.Repeat("─", 30))
 	inv.WriteString("\n\n")
 
-	typeGroups := make(map[string][]inventoryItem)
+	typeGroups := make(map[string][]InventoryItem)
 	for _, item := range items {
 		typeGroups[item.ItemType] = append(typeGroups[item.ItemType], item)
 	}

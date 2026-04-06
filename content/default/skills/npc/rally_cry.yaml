@@ -1,0 +1,27 @@
+# Rally Cry - NPC-only buff skill
+# Warrior/leader NPCs use this to boost allies
+
+id: rally_cry
+name: "Rally Cry"
+description: "A mighty shout that inspires allies"
+type: combat
+tags: [npc, buff, leader]
+ai_only: true
+effects:
+  - type: buff
+    target: self
+    value:
+      stat: strength
+      amount: 5
+    duration: 3
+cooldown: 8
+mana_cost: 0
+stamina_cost: 15
+visual:
+  icon: "📣"
+  color: "#FFD700"
+ai_behavior:
+  can_use: true
+  use_chance: 0.25  # 25% on combat start
+  health_threshold:
+    above: 0.5

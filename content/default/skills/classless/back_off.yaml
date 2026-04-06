@@ -1,0 +1,25 @@
+id: back_off
+name: "Back-off"
+description: "Use agility to dodge all attacks this round. Costs stamina."
+type: combat
+tags:
+  - classless
+  - defensive
+  - buff
+effects:
+  - type: buff
+    target: self
+    stat: dodge_chance
+    value: 999
+cooldown: 10
+mana_cost: 0
+stamina_cost: 25
+visual:
+  icon: "💨"
+  color: "#87CEEB"
+ai_behavior:
+  can_use: true
+  use_chance: 0.3
+  health_threshold:
+    below: 0.4
+    above: 0.15

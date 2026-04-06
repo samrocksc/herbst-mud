@@ -25,13 +25,43 @@ func init() {
 }
 
 func getDBConfig() string {
-	host := getEnv("DB_HOST", "localhost")
-	port := getEnv("DB_PORT", "5432")
-	user := getEnv("DB_USER", "herbst")
-	password := getEnv("DB_PASSWORD", "herbst_password")
-	dbname := getEnv("DB_NAME", "herbst_mud")
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	// Neon DB and many managed Postgres providers set DATABASE_URL
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		return dbURL
+	}
+
+	// Build from individual env vars (required for production)
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+
+	// Check if this is development mode (no env vars set)
+	isDev := host == "" && user == ""
+	
+	// For development only - use defaults if all env vars are empty
+	if isDev {
+		log.Println("Warning: Using development database defaults. Set DATABASE_URL or DB_* env vars for production.")
+		host = "localhost"
+		port = "5432"
+		user = "herbst"
+		password = "herbst_password"
+		dbname = "herbst_mud"
+	}
+
+	// SSL mode: Neon requires 'require', but local dev can use 'disable'
+	sslMode := os.Getenv("DB_SSL_MODE")
+	if sslMode == "" {
+		if isDev {
+			sslMode = "disable" // Local dev default
+		} else {
+			sslMode = "require" // Production default (Neon compatible)
+		}
+	}
+
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		host, port, user, password, dbname, sslMode)
 }
 
 func getEnv(key, defaultValue string) string {
@@ -104,7 +134,11 @@ func main() {
 						width:        initialWidth,
 						height:       initialHeight,
 						maxHistory:   50,
+						commands:     NewCommandRegistry(),
 					}
+
+					// Initialize commands
+					m.initCommands()
 
 					p := tea.NewProgram(m,
 						tea.WithInput(s),

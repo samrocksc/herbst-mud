@@ -35,8 +35,20 @@ type Equipment struct {
 	Color string `json:"color,omitempty"`
 	// Shown in room list
 	IsVisible bool `json:"isVisible,omitempty"`
-	// weapon|armor|consumable|quest|misc|container
+	// weapon|armor|consumable|quest|misc|container|potion
 	ItemType string `json:"itemType,omitempty"`
+	// Character ID that owns this item, nil if in a room
+	OwnerId *int `json:"ownerId,omitempty"`
+	// heal|damage|dot|buff_armor|buff_dodge|buff_crit|debuff
+	EffectType string `json:"effect_type,omitempty"`
+	// Effect magnitude
+	EffectValue int `json:"effect_value,omitempty"`
+	// Duration in ticks (0 = instant)
+	EffectDuration int `json:"effect_duration,omitempty"`
+	// DEPRECATED: Use effect_type=heal and effect_value instead
+	Healing int `json:"healing,omitempty"`
+	// DEPRECATED: Use effect_type instead
+	Effect string `json:"effect,omitempty"`
 	// Can hold items if true
 	IsContainer bool `json:"isContainer,omitempty"`
 	// Max items container can hold
@@ -47,6 +59,8 @@ type Equipment struct {
 	KeyItemID string `json:"keyItemID,omitempty"`
 	// JSON array of contained item IDs
 	ContainedItems string `json:"containedItems,omitempty"`
+	// JSON: {type: examine|perception_check|use_item|event, target, minLevel}
+	RevealCondition string `json:"revealCondition,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges          EquipmentEdges `json:"edges"`
@@ -81,9 +95,9 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsContainer, equipment.FieldIsLocked:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldContainerCapacity:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldKeyItemID, equipment.FieldContainedItems:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition:
 			values[i] = new(sql.NullString)
 		case equipment.ForeignKeys[0]: // room_equipment
 			values[i] = new(sql.NullInt64)
@@ -168,6 +182,43 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ItemType = value.String
 			}
+		case equipment.FieldOwnerId:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field ownerId", values[i])
+			} else if value.Valid {
+				_m.OwnerId = new(int)
+				*_m.OwnerId = int(value.Int64)
+			}
+		case equipment.FieldEffectType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_type", values[i])
+			} else if value.Valid {
+				_m.EffectType = value.String
+			}
+		case equipment.FieldEffectValue:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_value", values[i])
+			} else if value.Valid {
+				_m.EffectValue = int(value.Int64)
+			}
+		case equipment.FieldEffectDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_duration", values[i])
+			} else if value.Valid {
+				_m.EffectDuration = int(value.Int64)
+			}
+		case equipment.FieldHealing:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field healing", values[i])
+			} else if value.Valid {
+				_m.Healing = int(value.Int64)
+			}
+		case equipment.FieldEffect:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field effect", values[i])
+			} else if value.Valid {
+				_m.Effect = value.String
+			}
 		case equipment.FieldIsContainer:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field isContainer", values[i])
@@ -197,6 +248,12 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field containedItems", values[i])
 			} else if value.Valid {
 				_m.ContainedItems = value.String
+			}
+		case equipment.FieldRevealCondition:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field revealCondition", values[i])
+			} else if value.Valid {
+				_m.RevealCondition = value.String
 			}
 		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -276,6 +333,26 @@ func (_m *Equipment) String() string {
 	builder.WriteString("itemType=")
 	builder.WriteString(_m.ItemType)
 	builder.WriteString(", ")
+	if v := _m.OwnerId; v != nil {
+		builder.WriteString("ownerId=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("effect_type=")
+	builder.WriteString(_m.EffectType)
+	builder.WriteString(", ")
+	builder.WriteString("effect_value=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EffectValue))
+	builder.WriteString(", ")
+	builder.WriteString("effect_duration=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EffectDuration))
+	builder.WriteString(", ")
+	builder.WriteString("healing=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Healing))
+	builder.WriteString(", ")
+	builder.WriteString("effect=")
+	builder.WriteString(_m.Effect)
+	builder.WriteString(", ")
 	builder.WriteString("isContainer=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsContainer))
 	builder.WriteString(", ")
@@ -290,6 +367,9 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("containedItems=")
 	builder.WriteString(_m.ContainedItems)
+	builder.WriteString(", ")
+	builder.WriteString("revealCondition=")
+	builder.WriteString(_m.RevealCondition)
 	builder.WriteByte(')')
 	return builder.String()
 }

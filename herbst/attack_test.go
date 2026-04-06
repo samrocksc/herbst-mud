@@ -23,7 +23,7 @@ func TestHandleAttackCommandNoTarget(t *testing.T) {
 // TestHandleAttackCommandTargetNotFound tests attacking non-existent target
 func TestHandleAttackCommandTargetNotFound(t *testing.T) {
 	m := &model{
-		roomCharacters: []roomCharacter{},
+		roomCharacters: []RoomCharacter{},
 		messageHistory: []string{},
 		messageTypes:   []string{},
 		maxHistory:     100,
@@ -43,7 +43,7 @@ func TestHandleAttackCommandTargetNotFound(t *testing.T) {
 // TestHandleAttackCommandNPC tests attacking an NPC
 func TestHandleAttackCommandNPC(t *testing.T) {
 	m := &model{
-		roomCharacters: []roomCharacter{
+		roomCharacters: []RoomCharacter{
 			{Name: "Goblin", IsNPC: true, Level: 1},
 		},
 		currentCharacterID: 1,
@@ -66,7 +66,7 @@ func TestHandleAttackCommandNPC(t *testing.T) {
 // TestHandleAttackCommandExactMatch tests exact name matching
 func TestHandleAttackCommandExactMatch(t *testing.T) {
 	m := &model{
-		roomCharacters: []roomCharacter{
+		roomCharacters: []RoomCharacter{
 			{Name: "Rat", IsNPC: true, Level: 1},
 			{Name: "Rat King", IsNPC: true, Level: 5},
 		},
@@ -88,7 +88,7 @@ func TestHandleAttackCommandExactMatch(t *testing.T) {
 // TestHandleAttackCommandFuzzyMatch tests fuzzy name matching
 func TestHandleAttackCommandFuzzyMatch(t *testing.T) {
 	m := &model{
-		roomCharacters: []roomCharacter{
+		roomCharacters: []RoomCharacter{
 			{Name: "Scrap Rat", IsNPC: true, Level: 1},
 		},
 		currentCharacterID: 1,
@@ -109,7 +109,7 @@ func TestHandleAttackCommandFuzzyMatch(t *testing.T) {
 // TestHandleAttackCommandCaseInsensitive tests case insensitive matching
 func TestHandleAttackCommandCaseInsensitive(t *testing.T) {
 	m := &model{
-		roomCharacters: []roomCharacter{
+		roomCharacters: []RoomCharacter{
 			{Name: "Goblin Warrior", IsNPC: true, Level: 3},
 		},
 		currentCharacterID: 1,
@@ -143,7 +143,7 @@ func TestGetCharacterStrength(t *testing.T) {
 // TestHandleAttackCommandPvP tests attacking another player
 func TestHandleAttackCommandPvP(t *testing.T) {
 	m := &model{
-		roomCharacters: []roomCharacter{
+		roomCharacters: []RoomCharacter{
 			{Name: "TestPlayer", IsNPC: false, Level: 1},
 		},
 		currentCharacterID: 1,

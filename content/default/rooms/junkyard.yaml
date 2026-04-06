@@ -1,0 +1,25 @@
+# The Junkyard
+# Scrap and debris
+# Room ID: 8
+
+id: "8"
+name: "The Junkyard"
+description: |
+  Mountains of scrap metal, broken furniture, and mysterious
+  contraptions fill this chaotic yard. Gizmo the tinkerer is
+  always here, searching for valuable parts in the debris.
+
+area_id: "rough_district"
+
+exits:
+  west: "5"
+
+npcs:
+  - gimli
+
+items:
+  - scrap_pile
+  - broken_cog
+
+flags:
+  - outdoors

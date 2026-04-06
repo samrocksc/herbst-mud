@@ -1,44 +1,80 @@
 version: '3.8'
 
 services:
+  # SSH Server (herbst/)
   mud-ssh:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "4444:4444"
-    volumes:
-      - ./cmd/ssh:/app/cmd/ssh
-      - ./bin:/app/bin
-      - ./go.mod:/app/go.mod
-      - ./go.sum:/app/go.sum
     environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-herbst}
+      - DB_PASSWORD=${DB_PASSWORD:-herbst_password}
+      - DB_NAME=${DB_NAME:-herbst_mud}
+      - API_BASE_URL=http://web:8080
       - GODEBUG=netdns=go
     depends_on:
       - postgres
+      - web
+    networks:
+      - herbst-network
 
+  # REST API Server (server/)
+  web:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-herbst}
+      - DB_PASSWORD=${DB_PASSWORD:-herbst_password}
+      - DB_NAME=${DB_NAME:-herbst_mud}
+      - JWT_SECRET=${JWT_SECRET:-development-jwt-secret-change-in-production}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      - SERVER_PORT=8080
+      - SERVER_HOST=0.0.0.0
+    depends_on:
+      - postgres
+    networks:
+      - herbst-network
+
+  # Admin Panel (admin/)
   admin:
     build:
       context: ./admin
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
-    volumes:
-      - ./admin:/app
-      - /app/node_modules
+      - "80:80"
     environment:
-      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:8080
+    networks:
+      - herbst-network
 
+  # PostgreSQL Database
   postgres:
     image: postgres:15
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: herbst
-      POSTGRES_PASSWORD: herbst_password
-      POSTGRES_DB: herbst_mud
+      POSTGRES_USER: ${DB_USER:-herbst}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-herbst_password}
+      POSTGRES_DB: ${DB_NAME:-herbst_mud}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - herbst-network
+
+networks:
+  herbst-network:
+    driver: bridge
 
 volumes:
   postgres_data:

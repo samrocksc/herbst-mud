@@ -1,0 +1,28 @@
+# Leather Vest
+# Basic armor for survivors
+
+id: leather_vest
+name: "Leather Vest"
+description: "Tough leather armor providing basic protection"
+type: armor
+slot: body
+level_requirement: 1
+
+armor: 3
+
+stats:
+  dexterity: 1
+
+visual:
+  icon: "🦺"
+  color: "#8B4513"
+
+value:
+  buy: 20
+  sell: 8
+
+uses: 0
+stackable: false
+max_stack: 1
+weight: 2.5
+rarity: common

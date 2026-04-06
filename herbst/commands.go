@@ -26,33 +26,15 @@ func (m *model) processCommand(cmd string) {
 		return
 	}
 
-	switch cmd {
-	case "help", "?":
-		m.AppendMessage(`Commands:
-  n/north, s/south, e/east, w/west - Move (cardinal)
-  ne/northeast, se/southeast, sw/southwest, nw/northwest - Move (ordinal)
-  u/up, d/down - Move (vertical)
-  look/l [target] - Look around (or examine: look <target>, look at <target>)
-  attack/a/kill/fight <target> - Attack a target
-  loot [corpse] - Loot a corpse or all corpses in room
-  ctrl+p - Scroll output up (older messages)
-  ctrl+n - Scroll output down (newer messages)
-  exits/x - Show exits
-  peer <dir> - Peek at adjacent room
-  take/get <item> - Pick up an item
-  drop <item> - Drop an item
-  inventory/i - Show your inventory
-  equip - Manage equipment slots (talents 1-4, potion R)
-  quests/q - Show your quest log
-  whoami - Show your info
-  profile/p - Edit character profile
-  skills - Show your 5 classless combat skills
-  skill [show|all|equip|swap] - Manage classless skills
-  talents - Show your talents
-  debug - Toggle debug mode
-  clear/cls - Clear screen
-  quit - Exit game`, "info")
+	// Try command registry first
+	parts := strings.Fields(cmd)
+	if len(parts) > 0 {
+		if m.commands.Execute(m, parts[0], parts) {
+			return
+		}
+	}
 
+	switch cmd {
 	case "exits", "x":
 		m.AppendMessage(fmt.Sprintf("Exits: %s", m.formatExitsWithColor()), "info")
 
@@ -62,40 +44,11 @@ func (m *model) processCommand(cmd string) {
 	case "search", "perception":
 		m.handleSearchCommand(cmd)
 
-	case "whoami":
-		m.AppendMessage(fmt.Sprintf("=== Character Status ===\nUser: %s (ID: %d)\nRoom: %s\n\n[Level %d - %d XP]\n%s",
-			m.currentUserName, m.currentUserID, m.roomName,
-			m.characterLevel, m.characterExperience,
-			StatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)), "info")
-
-	case "profile", "p":
-		m.screen = ScreenProfile
-		m.menuItems = []string{"Edit Gender", "Edit Description", "Back to Game"}
-		m.menuCursor = 0
-		m.AppendMessage("", "")
-
-	case "equip":
-		m.handleEquipCommand(cmd)
-
-	case "loot":
-		m.handleLootCommand("loot")
-
-	case "peer":
-		m.AppendMessage("Usage: peer <direction>", "error")
-
 	case "debug":
 		m.handleDebugCommand(cmd)
 
-	case "clear", "cls":
-		m.messageHistory = nil
-		m.messageTypes = nil
-		m.historyOffset = 0
-		m.isScrolling = false
-		m.inputBuffer = ""
-
-	case "quit", "q":
-		m.AppendMessage("Thanks for playing! Goodbye!", "success")
-		m.inputBuffer = ""
+	case "peer":
+		m.AppendMessage("Usage: peer <direction>", "error")
 
 	default:
 		// attack/kill/a/fight - handle both bare commands and commands with targets

@@ -1,0 +1,25 @@
+id: slap
+name: "Slap"
+description: "A quick stunning strike. DEX vs CON to stun for 1 round."
+type: combat
+tags:
+  - classless
+  - control
+  - stun
+effects:
+  - type: control
+    target: enemy
+    control_type: stun
+    duration: 1
+    success_formula: "dexterity_roll > (target_constitution / 2)"
+cooldown: 8
+mana_cost: 0
+stamina_cost: 12
+visual:
+  icon: "👋"
+  color: "#FFD700"
+ai_behavior:
+  can_use: true
+  use_chance: 0.5
+  health_threshold:
+    above: 0.3

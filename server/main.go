@@ -6,9 +6,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	_ "github.com/lib/pq"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ulule/limiter/v3"
+	"github.com/ulule/limiter/v3/drivers/store/memory"
+	"herbst-server/content"
 	"herbst-server/db"
 	"herbst-server/dbinit"
 	"herbst-server/middleware"
@@ -16,14 +22,45 @@ import (
 )
 
 // getDBConfig returns database connection config from environment variables
+// Supports Neon DB via DATABASE_URL or individual variables
 func getDBConfig() string {
-	host := getEnv("DB_HOST", "localhost")
-	port := getEnv("DB_PORT", "5432")
-	user := getEnv("DB_USER", "herbst")
-	password := getEnv("DB_PASSWORD", "herbst_password")
-	dbname := getEnv("DB_NAME", "herbst_mud")
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	// Neon DB and many managed Postgres providers set DATABASE_URL
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		return dbURL
+	}
+
+	// Build from individual env vars (required for production)
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+
+	// Check if this is development mode (no env vars set)
+	isDev := host == "" && user == ""
+	
+	// For development only - use defaults if all env vars are empty
+	if isDev {
+		log.Println("Warning: Using development database defaults. Set DATABASE_URL or DB_* env vars for production.")
+		host = "localhost"
+		port = "5432"
+		user = "herbst"
+		password = "herbst_password"
+		dbname = "herbst_mud"
+	}
+
+	// SSL mode: Neon requires 'require', but local dev can use 'disable'
+	sslMode := os.Getenv("DB_SSL_MODE")
+	if sslMode == "" {
+		if isDev {
+			sslMode = "disable" // Local dev default
+		} else {
+			sslMode = "require" // Production default (Neon compatible)
+		}
+	}
+
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		host, port, user, password, dbname, sslMode)
 }
 
 // getEnv returns environment variable or default
@@ -48,6 +85,11 @@ func main() {
 	}
 
 	log.Println("Database initialized successfully")
+
+	// Apply database fixes (converts old data types, sets invincible NPCs, etc.)
+	if err := dbinit.ApplyDatabaseFixes(client); err != nil {
+		log.Printf("Warning: failed to apply database fixes: %v", err)
+	}
 
 	// Initialize cross-shaped rooms
 	if err := dbinit.InitCrossWay(client); err != nil {
@@ -79,16 +121,101 @@ func main() {
 		log.Printf("Warning: failed to initialize Junkyard: %v", err)
 	}
 
+	// Heal all characters with invalid HP (startup fix)
+	if err := dbinit.InitCharacterHealth(client); err != nil {
+		log.Printf("Warning: failed to initialize character health: %v", err)
+	}
+
+	// Apply database fixes again (after InitCharacterHealth which might restore 0 HP chars)
+	if err := dbinit.EnsureCombatDummyImmortal(client); err != nil {
+		log.Printf("Warning: failed to ensure Combat Dummy immortality: %v", err)
+	}
+
+	// Initialize world manager (Week 8: Multi-World Support)
+	worldManager, err := content.NewWorldManager("/home/sam/GitHub/herbst-mud/content")
+	if err != nil {
+		log.Printf("Warning: failed to load world manager: %v", err)
+	} else {
+		log.Printf("Worlds loaded: %d", len(worldManager.GetAllWorlds()))
+		for _, world := range worldManager.GetAllWorlds() {
+			log.Printf("  - %s (%s)", world.Name, world.Status)
+			if stats, ok := worldManager.GetWorldStats(world.ID); ok {
+				log.Printf("    Content: %d skills, %d items, %d npcs, %d rooms, %d quests",
+					stats.Skills, stats.Items, stats.NPCs, stats.Rooms, stats.Quests)
+			}
+		}
+	}
+
+	// Keep legacy content manager for backward compatibility (default world)
+	var contentManager *content.Manager
+	if worldManager != nil {
+		defaultWorld := worldManager.GetDefaultWorld()
+		contentManager, _ = worldManager.GetWorldManager(defaultWorld)
+		log.Printf("Default world: %s", defaultWorld)
+	}
+
+	// Initialize consumables (health potions, etc.)
+	if err := dbinit.InitConsumables(client); err != nil {
+		log.Printf("Warning: failed to initialize consumables: %v", err)
+	}
+
+	// Give starting characters health potions
+	if err := dbinit.GivePotionToCharacter(client, 9); err != nil { // sma
+		log.Printf("Warning: failed to give potion to character: %v", err)
+	}
+
 	// Set up Gin router
 	router := gin.Default()
 	
-	// CORS middleware
+	// CORS middleware - configurable origins for security
+	allowedOrigins := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")
 	router.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		origin := c.Request.Header.Get("Origin")
+		allowed := false
+		for _, o := range strings.Split(allowedOrigins, ",") {
+			if strings.TrimSpace(o) == origin || origin == "" {
+				allowed = true
+				break
+			}
+		}
+		if allowed {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		}
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
+
+	// Rate limiting middleware - prevents DoS/brute force
+	rate := getEnv("RATE_LIMIT", "100") // requests per minute
+	window := getEnv("RATE_WINDOW", "60") // seconds
+	rateInt, _ := strconv.Atoi(rate)
+	if rateInt == 0 {
+		rateInt = 100
+	}
+	windowInt, _ := strconv.Atoi(window)
+	if windowInt == 0 {
+		windowInt = 60
+	}
+	
+	limiterStore := memory.NewStore()
+	limiterRate := limiter.Rate{
+		Period: time.Duration(windowInt) * time.Second,
+		Limit:  int64(rateInt),
+	}
+	rateLimiter := limiter.New(limiterStore, limiterRate)
+	router.Use(func(c *gin.Context) {
+		context, err := rateLimiter.Get(c.Request.Context(), c.ClientIP())
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if context.Reached {
+			c.AbortWithStatus(http.StatusTooManyRequests)
 			return
 		}
 		c.Next()
@@ -113,6 +240,23 @@ func main() {
 
 	// Register equipment routes (GitHub #89 - Item system)
 	routes.RegisterEquipmentRoutes(router, client)
+
+	// Register backup routes
+	routes.RegisterBackupRoutes(router, client)
+
+	// Register game export/import routes
+	routes.RegisterGameExportRoutes(router, client)
+
+	// Register content routes (Week 2: Content Externalization)
+	if contentManager != nil {
+		routes.RegisterContentRoutes(router, contentManager)
+	}
+	if worldManager != nil {
+		routes.RegisterWorldRoutes(router, worldManager)
+	}
+
+	// Register admin wipe/reload routes
+	routes.RegisterAdminWipeRoutes(router, client)
 
 	// Healthz endpoint
 	router.GET("/healthz", func(c *gin.Context) {

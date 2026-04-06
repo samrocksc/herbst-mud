@@ -1,0 +1,44 @@
+# Clear the North Road
+# Combat quest
+
+id: road_bandits
+name: "Trouble on the Road"
+description: "Clear the bandits from North Road to make it safe for travelers"
+type: kill
+
+difficulty: medium
+level_required: 2
+
+steps:
+  - id: investigate
+    type: explore
+    description: "Investigate the North Road"
+    target_room: "2"
+    order: 1
+    triggers: auto  # Starts when entering room
+    
+  - id: defeat_bandits
+    type: kill
+    description: "Defeat 3 bandits on the North Road"
+    target_npc: bandit
+    count: 3
+    order: 2
+
+rewards:
+  experience: 200
+  items:
+    - item_id: leather_vest
+      count: 1
+  reputation:
+    faction: city_guard
+    amount: 20
+
+quest_giver: system  # Auto-triggers on room entry
+auto_complete: false
+repeatable: true
+repeat_cooldown: 3600  # 1 hour
+
+flavor:
+  start: "You sense danger as you step onto the road..."
+  progress: "The bandits won't give up without a fight!"
+  complete: "The road is safer thanks to you, brave warrior."

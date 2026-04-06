@@ -1,0 +1,25 @@
+# Farm Country
+# Rural farmland
+# Room ID: 6
+
+id: "6"
+name: "Farm Country"
+description: |
+  Golden wheat fields stretch to the horizon. Farmers work the land,
+  their wagons loaded with produce. A small farmhouse offers rest
+  for weary travelers heading north.
+
+area_id: "countryside"
+
+exits:
+  south: "2"
+
+npcs: []
+
+items:
+  - wheat_sheaf
+  - chicken
+
+flags:
+  - outdoors
+  - resting_bonus

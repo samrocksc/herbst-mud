@@ -22,8 +22,16 @@ const (
 	FieldCurrentRoomId = "current_room_id"
 	// FieldStartingRoomId holds the string denoting the startingroomid field in the database.
 	FieldStartingRoomId = "starting_room_id"
+	// FieldRespawnRoomId holds the string denoting the respawnroomid field in the database.
+	FieldRespawnRoomId = "respawn_room_id"
 	// FieldIsAdmin holds the string denoting the is_admin field in the database.
 	FieldIsAdmin = "is_admin"
+	// FieldIsImmortal holds the string denoting the is_immortal field in the database.
+	FieldIsImmortal = "is_immortal"
+	// FieldNpcSkillID holds the string denoting the npc_skill_id field in the database.
+	FieldNpcSkillID = "npc_skill_id"
+	// FieldNpcSkillCooldown holds the string denoting the npc_skill_cooldown field in the database.
+	FieldNpcSkillCooldown = "npc_skill_cooldown"
 	// FieldHitpoints holds the string denoting the hitpoints field in the database.
 	FieldHitpoints = "hitpoints"
 	// FieldMaxHitpoints holds the string denoting the max_hitpoints field in the database.
@@ -142,7 +150,11 @@ var Columns = []string{
 	FieldIsNPC,
 	FieldCurrentRoomId,
 	FieldStartingRoomId,
+	FieldRespawnRoomId,
 	FieldIsAdmin,
+	FieldIsImmortal,
+	FieldNpcSkillID,
+	FieldNpcSkillCooldown,
 	FieldHitpoints,
 	FieldMaxHitpoints,
 	FieldStamina,
@@ -197,8 +209,14 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsNPC holds the default value on creation for the "isNPC" field.
 	DefaultIsNPC bool
+	// DefaultRespawnRoomId holds the default value on creation for the "respawnRoomId" field.
+	DefaultRespawnRoomId int
 	// DefaultIsAdmin holds the default value on creation for the "is_admin" field.
 	DefaultIsAdmin bool
+	// DefaultIsImmortal holds the default value on creation for the "is_immortal" field.
+	DefaultIsImmortal bool
+	// DefaultNpcSkillCooldown holds the default value on creation for the "npc_skill_cooldown" field.
+	DefaultNpcSkillCooldown int
 	// DefaultHitpoints holds the default value on creation for the "hitpoints" field.
 	DefaultHitpoints int
 	// DefaultMaxHitpoints holds the default value on creation for the "max_hitpoints" field.
@@ -280,9 +298,29 @@ func ByStartingRoomId(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStartingRoomId, opts...).ToFunc()
 }
 
+// ByRespawnRoomId orders the results by the respawnRoomId field.
+func ByRespawnRoomId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRespawnRoomId, opts...).ToFunc()
+}
+
 // ByIsAdmin orders the results by the is_admin field.
 func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
+}
+
+// ByIsImmortal orders the results by the is_immortal field.
+func ByIsImmortal(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsImmortal, opts...).ToFunc()
+}
+
+// ByNpcSkillID orders the results by the npc_skill_id field.
+func ByNpcSkillID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNpcSkillID, opts...).ToFunc()
+}
+
+// ByNpcSkillCooldown orders the results by the npc_skill_cooldown field.
+func ByNpcSkillCooldown(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNpcSkillCooldown, opts...).ToFunc()
 }
 
 // ByHitpoints orders the results by the hitpoints field.

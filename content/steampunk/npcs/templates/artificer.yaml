@@ -1,0 +1,17 @@
+id: artificer
+template_name: "Steam Artificer"
+description: "Master of clockwork and steam"
+level: 5
+stats:
+  strength: 10
+  dexterity: 15
+  constitution: 12
+  intelligence: 16
+  wisdom: 14
+  charisma: 10
+hp:
+  base: 60
+  con_multiplier: 6
+ai:
+  type: crafter
+  aggression: passive

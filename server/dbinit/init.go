@@ -9,6 +9,7 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/equipment"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
 	"herbst-server/db/talent"
@@ -190,14 +191,21 @@ func InitCharacters(client *db.Client) error {
 	testCharacterNames := []string{"Aragorn", "Legolas", "Gimli", "Frodo", "Sam"}
 	for _, name := range testCharacterNames {
 		randomRoom := rooms[rand.Intn(len(rooms))]
-		_, err := client.Character.
+		
+		create := client.Character.
 			Create().
 			SetName(name).
-			SetIsNPC(false).
+			SetIsNPC(true).
 			SetCurrentRoomId(randomRoom.ID).
 			SetStartingRoomId(randomRoom.ID).
-			SetIsAdmin(false).
-			Save(ctx)
+			SetIsAdmin(false)
+		
+		// Aragorn gets Druid healing skill
+		if name == "Aragorn" {
+			create = create.SetNpcSkillID("druid_heal")
+		}
+		
+		_, err := create.Save(ctx)
 		if err != nil {
 			log.Printf("Warning: failed to create character %s: %v", name, err)
 		}
@@ -227,6 +235,24 @@ func InitCharacters(client *db.Client) error {
 			return fmt.Errorf("failed to create Gandalf: %w", err)
 		}
 		log.Println("Created Gandalf NPC in 'The Hole' room with admin privileges")
+
+		// Create Combat Dummy - immortal training dummy (takes damage but never dies)
+		_, err = client.Character.
+			Create().
+			SetName("Combat Dummy").
+			SetIsNPC(true).
+			SetIsImmortal(true).
+			SetCurrentRoomId(holeRoom.ID).
+			SetStartingRoomId(holeRoom.ID).
+			SetIsAdmin(false).
+			SetHitpoints(100).
+			SetMaxHitpoints(100).
+			Save(ctx)
+		if err != nil {
+			log.Printf("Warning: failed to create Combat Dummy: %v", err)
+		} else {
+			log.Println("Created immortal Combat Dummy in 'The Hole' for training")
+		}
 	}
 
 	log.Println("Character seed data initialized successfully")
@@ -600,27 +626,41 @@ func InitTalents(client *db.Client) error {
 		return nil
 	}
 
-	// Talents from CLASS_SYSTEM_SPIKE.md
+	// Talents from CLASS_SYSTEM_SPIKE.md with unified effect system
 	talents := []struct {
-		name        string
-		description string
-		requirements string
+		name          string
+		description   string
+		requirements  string
+		effectType    string
+		effectValue   int
+		effectDuration int
+		cooldown      int
+		manaCost      int
+		staminaCost   int
 	}{
-		{"slash", "Basic sword/blade attack", `{"skills":["blades","knives"]}`},
-		{"parry", "Deflect incoming attacks", "[]"},
-		{"smash", "Powerful blunt attack", `{"skills":["staves","martial"]}`},
-		{"crash", "Body damage based on weight (STR), no weapon required", "[]"},
-		{"shield_bash", "Bash with shield, has stun chance", "[]"},
-		{"battle_cry", "Demoralize enemies, reduces their accuracy", "[]"},
-		{"second_wind", "Recover HP when low", "[]"},
-		{"hail_storm", "Double attacks for 2 cycles", "[]"},
-		{"iron_will", "Resists stun/blind effects (passive)", "[]"},
-		{"heavy_strike", "Strong but slow attack", `{"skills":["blades","staves"]}`},
-		// Additional talents for variety
-		{"dodge", "Increase dodge chance for one round", "[]"},
-		{"quick_slash", "Fast attack with lower damage", `{"skills":["knives"]}`},
-		{"shield_wall", "Increase defense for one round", "[]"},
-		{"focus", "Increase critical chance for next attack", "[]"},
+		// Combat talents - damage dealers
+		{"slash", "Basic sword/blade attack", `{"skills":["blades","knives"]}`, "damage", 10, 0, 1, 0, 5},
+		{"smash", "Powerful blunt attack", `{"skills":["staves","martial"]}`, "damage", 15, 0, 2, 0, 10},
+		{"heavy_strike", "Strong but slow attack", `{"skills":["blades","staves"]}`, "damage", 20, 0, 3, 0, 15},
+		{"quick_slash", "Fast attack with lower damage", `{"skills":["knives"]}`, "damage", 6, 0, 0, 0, 3},
+		{"crash", "Body damage based on weight (STR), no weapon required", "[]", "damage", 12, 0, 2, 0, 8},
+
+		// Defensive talents - buffs
+		{"parry", "Deflect incoming attacks", "[]", "buff_dodge", 20, 2, 3, 0, 5},
+		{"shield_wall", "Increase defense for one round", "[]", "buff_armor", 10, 2, 4, 0, 10},
+		{"dodge", "Increase dodge chance for one round", "[]", "buff_dodge", 30, 2, 3, 0, 5},
+		{"iron_will", "Resists stun/blind effects (passive)", "[]", "buff_armor", 5, 999, 0, 0, 0},
+
+		// Combat talents - offensive buffs
+		{"focus", "Increase critical chance for next attack", "[]", "buff_crit", 15, 2, 3, 0, 5},
+		{"hail_storm", "Double attacks for 2 cycles", "[]", "buff_crit", 50, 2, 10, 5, 20},
+		{"battle_cry", "Demoralize enemies, reduces their accuracy", "[]", "debuff", 10, 2, 5, 0, 15},
+
+		// Healing talents
+		{"second_wind", "Recover HP when low", "[]", "heal", 25, 0, 5, 0, 15},
+
+		// Damage over time
+		{"shield_bash", "Bash with shield, has stun chance", "[]", "dot", 5, 3, 4, 0, 12},
 	}
 
 	for _, t := range talents {
@@ -628,6 +668,12 @@ func InitTalents(client *db.Client) error {
 			SetName(t.name).
 			SetDescription(t.description).
 			SetRequirements(t.requirements).
+			SetEffectType(t.effectType).
+			SetEffectValue(t.effectValue).
+			SetEffectDuration(t.effectDuration).
+			SetCooldown(t.cooldown).
+			SetManaCost(t.manaCost).
+			SetStaminaCost(t.staminaCost).
 			Save(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to create talent %s: %w", t.name, err)
@@ -697,5 +743,156 @@ func InitAvailableTalentsForCharacter(client *db.Client, charID int, charClass s
 	}
 
 	log.Printf("Initialized available talents for character %d (class: %s)", charID, charClass)
+	return nil
+}
+
+// InitCharacterHealth ensures all characters have valid HP values
+// Heals any characters with HP <= 0 back to their max HP
+func InitCharacterHealth(client *db.Client) error {
+	ctx := context.Background()
+
+	// Find all characters with HP <= 0
+	characters, err := client.Character.Query().
+		Where(character.HitpointsLTE(0)).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to query characters with low HP: %w", err)
+	}
+
+	if len(characters) == 0 {
+		log.Println("All characters have valid HP")
+		return nil
+	}
+
+	// Heal each character to max HP (skip immortal characters and invincible 0 HP characters)
+	for _, char := range characters {
+		// Skip immortal characters (cannot die, special handling)
+		if char.IsImmortal {
+			continue
+		}
+
+		// Skip invincible characters (0 max HP means invincible - old system)
+		if char.MaxHitpoints == 0 {
+			continue
+		}
+
+		maxHP := char.MaxHitpoints
+		if maxHP <= 0 {
+			maxHP = 100 // Default max HP
+		}
+
+		_, err := client.Character.UpdateOneID(char.ID).
+			SetHitpoints(maxHP).
+			Save(ctx)
+		if err != nil {
+			log.Printf("Warning: failed to heal character %s (ID: %d): %v", char.Name, char.ID, err)
+			continue
+		}
+		log.Printf("Healed character %s (ID: %d) to %d HP", char.Name, char.ID, maxHP)
+	}
+
+	log.Printf("Healed %d characters with invalid HP", len(characters))
+	return nil
+}
+
+// InitConsumables creates consumable items like health potions
+func InitConsumables(client *db.Client) error {
+	ctx := context.Background()
+
+	// Define all potions
+	potions := []struct {
+		name          string
+		description   string
+		effectType    string
+		effectValue   int
+		effectDuration int
+	}{
+		{
+			name:          "tiny green potion",
+			description:   "A tiny green glass vial containing a weak healing elixir. Restores 15 HP when consumed. Press R in combat to use.",
+			effectType:    "heal",
+			effectValue:   15,
+			effectDuration: 0,
+		},
+		{
+			name:          "small green potion",
+			description:   "A small green glass vial containing a healing elixir. Restores 25 HP when consumed. Press R in combat to use.",
+			effectType:    "heal",
+			effectValue:   25,
+			effectDuration: 0,
+		},
+	}
+
+	for _, p := range potions {
+		// Check if this potion already exists
+		existing, err := client.Equipment.Query().
+			Where(equipment.NameEQ(p.name)).
+			Count(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to check for existing potion %s: %w", p.name, err)
+		}
+
+		if existing > 0 {
+			continue
+		}
+
+		// Create the potion
+		_, err = client.Equipment.Create().
+			SetName(p.name).
+			SetDescription(p.description).
+			SetItemType("potion").
+			SetSlot("consumable").
+			SetEffectType(p.effectType).
+			SetEffectValue(p.effectValue).
+			SetEffectDuration(p.effectDuration).
+			SetIsVisible(true).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to create %s: %w", p.name, err)
+		}
+
+		log.Printf("Created %s consumable", p.name)
+	}
+
+	return nil
+}
+
+// GivePotionToCharacter gives a health potion to a specific character
+func GivePotionToCharacter(client *db.Client, characterID int) error {
+	ctx := context.Background()
+
+	// Check if character already has a potion
+	existingPotions, err := client.Equipment.Query().
+		Where(
+			equipment.OwnerIdEQ(characterID),
+			equipment.ItemTypeEQ("potion"),
+		).
+		Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for existing potions: %w", err)
+	}
+
+	if existingPotions > 0 {
+		log.Printf("Character %d already has potions, skipping...", characterID)
+		return nil
+	}
+
+	// Create a potion for the character
+	_, err = client.Equipment.Create().
+		SetName("small green potion").
+		SetDescription("A small green glass vial containing a healing elixir. Restores 25 HP when consumed. Press R in combat to use.").
+		SetItemType("potion").
+		SetSlot("consumable").
+		SetEffectType("heal").
+		SetEffectValue(25).
+		SetEffectDuration(0).
+		SetIsVisible(true).
+		SetOwnerId(characterID).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create potion for character: %w", err)
+	}
+
+	log.Printf("Created small green potion for character %d", characterID)
 	return nil
 }

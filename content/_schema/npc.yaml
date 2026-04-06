@@ -1,0 +1,173 @@
+# NPC Template Schema v1.0
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "herbst://content/npc"
+
+title: NPC Template
+description: Template for spawning non-player characters
+
+type: object
+required:
+  - id
+  - template_name
+  - level
+  - stats
+
+properties:
+  id:
+    type: string
+    pattern: "^[a-z][a-z0-9_]*$"
+
+  template_name:
+    type: string
+    minLength: 1
+    maxLength: 100
+
+  description:
+    type: string
+    maxLength: 1000
+
+  level:
+    type: integer
+    minimum: 1
+    maximum: 100
+
+  classification:
+    type: string
+    enum: [normal, elite, boss, unique]
+    default: normal
+
+  stats:
+    type: object
+    required: [strength, dexterity, constitution, intelligence, wisdom, charisma]
+    properties:
+      strength: { type: integer, minimum: 1 }
+      dexterity: { type: integer, minimum: 1 }
+      constitution: { type: integer, minimum: 1 }
+      intelligence: { type: integer, minimum: 1 }
+      wisdom: { type: integer, minimum: 1 }
+      charisma: { type: integer, minimum: 1 }
+
+  hp:
+    type: object
+    properties:
+      base: { type: integer, minimum: 1 }
+      con_multiplier: { type: number, minimum: 0 }
+      level_bonus: { type: integer, minimum: 0 }
+    
+  resources:
+    type: object
+    properties:
+      stamina:
+        base: { type: integer }
+        bonus: { type: integer }
+      mana:
+        base: { type: integer }
+        bonus: { type: integer }
+
+  skills:
+    type: object
+    properties:
+      classless:
+        type: object
+        properties:
+          slot_1: { type: string }
+          slot_2: { type: string }
+          slot_3: { type: string }
+          slot_4: { type: string }
+      special:
+        type: array
+        items: { type: string }
+
+  ai:
+    type: object
+    required: [type]
+    properties:
+      type:
+        type: string
+        enum: [brute, skirmisher, mage, druid, support, passive, scripted]
+      aggression:
+        type: string
+        enum: [passive, defensive, aggressive]
+        default: defensive
+      abilities:
+        type: array
+        items:
+          type: object
+          required: [skill_id]
+          properties:
+            skill_id: { type: string }
+            use_chance: { type: number, minimum: 0, maximum: 1 }
+            health_threshold_below: { type: number }
+            health_threshold_above: { type: number }
+      speech:
+        type: object
+        properties:
+          greeting: { type: string }
+          attack: { type: string }
+          defeat: { type: string }
+          idle: 
+            type: array
+            items: { type: string }
+
+  equipment:
+    type: object
+    properties:
+      weapon: { type: string }
+      armor: { type: string }
+      accessory_1: { type: string }
+      accessory_2: { type: string }
+
+  loot:
+    type: array
+    items:
+      type: object
+      required: [item_id]
+      properties:
+        item_id: { type: string }
+        chance: { type: number, minimum: 0, maximum: 1 }
+        count_min: { type: integer, default: 1 }
+        count_max: { type: integer }
+
+  visual:
+    type: object
+    properties:
+      icon: { type: string, maxLength: 2 }
+      color: { type: string, pattern: "^#[0-9A-Fa-f]{6}$" }
+      size: { enum: [small, medium, large] }
+
+  flags:
+    type: array
+    items:
+      enum:
+        - is_npcs
+        - immortal
+        - invincible
+        - no_attack
+        - shopkeeper
+        - quest_giver
+        - trainer
+        - bank
+
+  reputation:
+    type: object
+    properties:
+      faction: { type: string }
+      standing: { enum: [hostile, unfriendly, neutral, friendly, honored] }
+
+examples:
+  - id: aragorn
+    template_name: "Aragorn, the Ranger"
+    level: 10
+    stats:
+      strength: 45
+      dexterity: 50
+      constitution: 42
+      intelligence: 35
+      wisdom: 48
+      charisma: 40
+    ai:
+      type: druid
+      aggression: passive
+      speech:
+        greeting: "The forest welcomes you."

@@ -1,0 +1,53 @@
+# Frodo Baggins
+# Halfling/Scout template
+
+id: frodo
+template_name: "Frodo"
+description: "A hobbit of the Shire, quiet but determined"
+level: 8
+class: rogue
+
+stats:
+  strength: 10
+  dexterity: 16
+  constitution: 12
+  intelligence: 14
+  wisdom: 12
+  charisma: 14
+
+hp:
+  base: 80
+  con_multiplier: 6
+
+skills:
+  classless:
+    slot_1: back_off
+    slot_2: slap
+
+ai:
+  type: scout
+  aggression: passive
+  speech:
+    greeting: "Oh! Hello there. I'm just passing through..."
+
+loot:
+  - item_id: stamina_vial
+    chance: 0.50
+    count_min: 1
+    count_max: 2
+  - item_id: health_potion
+    chance: 0.35
+    count_min: 1
+    count_max: 1
+  - item_id: iron_ore
+    chance: 0.20
+    count_min: 1
+    count_max: 2
+
+visual:
+  appearance: "A small halfling with curly hair, looking slightly nervous"
+  color: "#F4A460"
+  icon: "🧝"
+
+flags:
+  - passive

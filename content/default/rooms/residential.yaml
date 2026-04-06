@@ -1,0 +1,25 @@
+# Residential Quarter
+# Quiet neighborhood
+# Room ID: 4
+
+id: "4"
+name: "Residential Quarter"
+description: |
+  Neat rows of townhouses line the cobblestone streets. Gardens
+  bloom with flowers, and the sound of children's laughter
+  drifts from nearby parks. This is a peaceful part of the city.
+
+area_id: "city_center"
+
+exits:
+  north: "1"
+
+npcs: []
+
+items:
+  - flower_pot
+
+flags:
+  - safe_zone
+  - resting_bonus
+  - indoors

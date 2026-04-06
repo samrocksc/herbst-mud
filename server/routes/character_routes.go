@@ -1535,7 +1535,34 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Calculate new HP
+		// Immortal characters take damage but never die (HP stays at minimum 1)
+		if char.IsImmortal {
+			newHP := char.Hitpoints - req.Damage
+			if newHP < 1 {
+				newHP = 1 // Immortal - cannot die
+			}
+
+			// Update HP
+			updatedChar, err := client.Character.UpdateOneID(id).
+				SetHitpoints(newHP).
+				Save(c.Request.Context())
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"id":        updatedChar.ID,
+				"hp":        updatedChar.Hitpoints,
+				"maxHp":     updatedChar.MaxHitpoints,
+				"defeated":  false,
+				"immortal":  true,
+				"message":   "Took damage but cannot be killed",
+			})
+			return
+		}
+
+		// Calculate new HP for mortal characters
 		newHP := char.Hitpoints - req.Damage
 		if newHP < 0 {
 			newHP = 0
@@ -1757,6 +1784,29 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		})
 	})
 
+	// Get character combat status (for combat system)
+	router.GET("/characters/:id/combat-status", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		// Get the character
+		char, err := client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":    char.ID,
+			"hp":    char.Hitpoints,
+			"maxHp": char.MaxHitpoints,
+			"isNPC": char.IsNPC,
+		})
+	})
+
 	// Passive heal NPCs in a room (simulates natural recovery over time)
 	router.POST("/rooms/:id/npcs/passive-heal", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
@@ -1819,6 +1869,108 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			"healed": healedCount,
 			"fullyHealed": fullyHealedCount,
 			"room": id,
+		})
+	})
+
+	// Regenerate stamina for a character
+	router.POST("/characters/:id/stamina", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var req struct {
+			Amount int `json:"amount" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if req.Amount < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Stamina amount must be non-negative"})
+			return
+		}
+
+		// Get the character
+		char, err := client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		// Calculate new stamina (don't exceed max)
+		newStamina := char.Stamina + req.Amount
+		if newStamina > char.MaxStamina {
+			newStamina = char.MaxStamina
+		}
+
+		// Update character stamina
+		updatedChar, err := client.Character.UpdateOneID(id).
+			SetStamina(newStamina).
+			Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":      updatedChar.ID,
+			"stamina": updatedChar.Stamina,
+			"maxStamina": updatedChar.MaxStamina,
+		})
+	})
+
+	// Regenerate mana for a character
+	router.POST("/characters/:id/mana", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var req struct {
+			Amount int `json:"amount" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if req.Amount < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Mana amount must be non-negative"})
+			return
+		}
+
+		// Get the character
+		char, err := client.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+
+		// Calculate new mana (don't exceed max)
+		newMana := char.Mana + req.Amount
+		if newMana > char.MaxMana {
+			newMana = char.MaxMana
+		}
+
+		// Update character mana
+		updatedChar, err := client.Character.UpdateOneID(id).
+			SetMana(newMana).
+			Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":     updatedChar.ID,
+			"mana":   updatedChar.Mana,
+			"maxMana": updatedChar.MaxMana,
 		})
 	})
 }

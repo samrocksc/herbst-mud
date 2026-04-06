@@ -35,6 +35,11 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			IsVisible   bool   `json:"isVisible"`
 			ItemType    string `json:"itemType"`
 			RoomID      int    `json:"roomId"`
+			// Owner system
+			OwnerID *int `json:"ownerId"`
+			// Consumable effects
+			Healing int    `json:"healing"`
+			Effect  string `json:"effect"`
 			// Hidden items (GitHub #12 - Look System)
 			RevealCondition map[string]any `json:"revealCondition"`
 		}
@@ -62,7 +67,9 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			SetIsEquipped(req.IsEquipped).
 			SetIsImmovable(req.IsImmovable).
 			SetIsVisible(req.IsVisible).
-			SetItemType(req.ItemType)
+			SetItemType(req.ItemType).
+			SetHealing(req.Healing).
+			SetEffect(req.Effect)
 
 		if req.Color != "" {
 			builder.SetColor(req.Color)
@@ -71,6 +78,11 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 		// Set room if provided
 		if req.RoomID > 0 {
 			builder.SetRoomID(req.RoomID)
+		}
+
+		// Set owner if provided
+		if req.OwnerID != nil {
+			builder.SetOwnerId(*req.OwnerID)
 		}
 
 		eq, err := builder.Save(c.Request.Context())
@@ -91,7 +103,22 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 
 	// Get all equipment
 	router.GET("/equipment", func(c *gin.Context) {
-		items, err := client.Equipment.Query().All(c.Request.Context())
+		query := client.Equipment.Query()
+
+		// Filter by owner if ownerId query param is provided
+		if ownerID := c.Query("ownerId"); ownerID != "" {
+			id, err := strconv.Atoi(ownerID)
+			if err == nil {
+				query = query.Where(equipment.OwnerIdEQ(id))
+			}
+		}
+
+		// Filter by type if type query param is provided
+		if itemType := c.Query("type"); itemType != "" {
+			query = query.Where(equipment.ItemTypeEQ(itemType))
+		}
+
+		items, err := query.All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -110,6 +137,9 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			Color           string         `json:"color"`
 			IsVisible       bool           `json:"isVisible"`
 			ItemType        string         `json:"itemType"`
+			OwnerID         *int           `json:"ownerId"`
+			Healing         int            `json:"healing"`
+			Effect          string         `json:"effect"`
 			RevealCondition map[string]any `json:"revealCondition,omitempty"`
 		}
 
@@ -128,6 +158,9 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 				Color:       item.Color,
 				IsVisible:   item.IsVisible,
 				ItemType:    item.ItemType,
+				OwnerID:     item.OwnerId,
+				Healing:     item.Healing,
+				Effect:      item.Effect,
 			}
 			if cond, ok := revealConditions[item.ID]; ok {
 				result[i].RevealCondition = cond

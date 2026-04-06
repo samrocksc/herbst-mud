@@ -1,0 +1,30 @@
+# Stamina Vial
+# Restores stamina for active skills
+
+id: stamina_vial
+name: "Stamina Vial"
+description: "A blue liquid that refreshes the body"
+type: consumable
+slot: none
+level_requirement: 1
+rarity: common
+
+effects:
+  - type: restore
+    effect:
+      resource: stamina
+      amount: 20
+      duration: 0
+
+visual:
+  icon: "🧪"
+  color: "#0000FF"
+
+value:
+  buy: 8
+  sell: 2
+
+uses: 1
+stackable: true
+max_stack: 10
+weight: 0.2

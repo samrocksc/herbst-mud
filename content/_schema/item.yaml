@@ -1,0 +1,186 @@
+# Item Definition Schema v1.0
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "herbst://content/item"
+
+title: Item Definition
+description: Weapons, armor, consumables, and quest items
+
+type: object
+required:
+  - id
+  - name
+  - type
+
+properties:
+  id:
+    type: string
+    pattern: "^[a-z][a-z0-9_]*$"
+
+  name:
+    type: string
+    minLength: 1
+    maxLength: 100
+
+  description:
+    type: string
+    maxLength: 1000
+
+  type:
+    type: string
+    enum:
+      - weapon
+      - armor
+      - consumable
+      - quest
+      - material
+      - currency
+
+  slot:
+    type: string
+    enum:
+      - weapon
+      - head
+      - body
+      - legs
+      - feet
+      - hands
+      - accessory
+      - none
+
+  level_requirement:
+    type: integer
+    minimum: 1
+    default: 1
+
+  class_requirement:
+    type: array
+    items:
+      enum: [warrior, mage, survivor]
+
+  stat_requirements:
+    type: object
+    properties:
+      strength: { type: integer }
+      dexterity: { type: integer }
+      constitution: { type: integer }
+      intelligence: { type: integer }
+      wisdom: { type: integer }
+      charisma: { type: integer }
+
+  # Weapon properties
+  damage:
+    type: object
+    required: [min, max]
+    properties:
+      min: { type: integer, minimum: 0 }
+      max: { type: integer, minimum: 0 }
+      speed: { type: number, minimum: 0.1 }
+      type:
+        enum: [slashing, piercing, blunt, magic, ranged]
+
+  # Armor properties
+  armor:
+    type: integer
+    minimum: 0
+
+  stats:
+    type: object
+    properties:
+      strength: { type: integer }
+      dexterity: { type: integer }
+      constitution: { type: integer }
+      intelligence: { type: integer }
+      wisdom: { type: integer }
+      charisma: { type: integer }
+      hp: { type: integer }
+      mana: { type: integer }
+      stamina: { type: integer }
+
+  effects:
+    type: array
+    items:
+      type: object
+      required: [type]
+      properties:
+        type:
+          enum: [on_hit, on_equip, on_consumption, on_tick]
+        effect:
+          type: object
+          properties:
+            type:
+              enum: [damage, heal, buff, debuff, poison, regen, stamina_regen, mana_regen]
+            value: { type: number }
+            duration: { type: integer }
+            chance: { type: number, minimum: 0, maximum: 1 }
+
+  uses:
+    type: integer
+    minimum: -1
+    default: -1
+    description: "-1 for infinite, 0 for destroyed after use"
+
+  stackable:
+    type: boolean
+    default: false
+
+  max_stack:
+    type: integer
+    minimum: 1
+    default: 1
+
+  weight:
+    type: number
+    minimum: 0
+    default: 0.1
+
+  value:
+    type: object
+    properties:
+      buy: { type: integer, minimum: 0 }
+      sell: { type: integer, minimum: 0 }
+
+  rarity:
+    type: string
+    enum: [common, uncommon, rare, epic, legendary]
+    default: common
+
+  durability:
+    type: object
+    properties:
+      current: { type: integer }
+      max: { type: integer }
+      repairable: { type: boolean, default: true }
+
+  visual:
+    type: object
+    properties:
+      icon: { type: string, maxLength: 2 }
+      color: { type: string }
+      equip_animation: { type: string }
+      use_animation: { type: string }
+
+  drop_table:
+    type: object
+    properties:
+      from_npc: { type: string }
+      from_area: { type: string }
+      chance: { type: number, minimum: 0, maximum: 1 }
+
+examples:
+  - id: iron_sword
+    name: "Iron Sword"
+    type: weapon
+    slot: weapon
+    damage:
+      min: 3
+      max: 7
+      speed: 2.0
+    stats:
+      strength: 2
+    value:
+      buy: 50
+      sell: 10
+    rarity: common
+    visual:
+      icon: "⚔️"

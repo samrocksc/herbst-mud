@@ -151,6 +151,61 @@ func (_u *CharacterUpdate) SetNillableIsAdmin(v *bool) *CharacterUpdate {
 	return _u
 }
 
+// SetIsImmortal sets the "is_immortal" field.
+func (_u *CharacterUpdate) SetIsImmortal(v bool) *CharacterUpdate {
+	_u.mutation.SetIsImmortal(v)
+	return _u
+}
+
+// SetNillableIsImmortal sets the "is_immortal" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableIsImmortal(v *bool) *CharacterUpdate {
+	if v != nil {
+		_u.SetIsImmortal(*v)
+	}
+	return _u
+}
+
+// SetNpcSkillID sets the "npc_skill_id" field.
+func (_u *CharacterUpdate) SetNpcSkillID(v string) *CharacterUpdate {
+	_u.mutation.SetNpcSkillID(v)
+	return _u
+}
+
+// SetNillableNpcSkillID sets the "npc_skill_id" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableNpcSkillID(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetNpcSkillID(*v)
+	}
+	return _u
+}
+
+// ClearNpcSkillID clears the value of the "npc_skill_id" field.
+func (_u *CharacterUpdate) ClearNpcSkillID() *CharacterUpdate {
+	_u.mutation.ClearNpcSkillID()
+	return _u
+}
+
+// SetNpcSkillCooldown sets the "npc_skill_cooldown" field.
+func (_u *CharacterUpdate) SetNpcSkillCooldown(v int) *CharacterUpdate {
+	_u.mutation.ResetNpcSkillCooldown()
+	_u.mutation.SetNpcSkillCooldown(v)
+	return _u
+}
+
+// SetNillableNpcSkillCooldown sets the "npc_skill_cooldown" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableNpcSkillCooldown(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetNpcSkillCooldown(*v)
+	}
+	return _u
+}
+
+// AddNpcSkillCooldown adds value to the "npc_skill_cooldown" field.
+func (_u *CharacterUpdate) AddNpcSkillCooldown(v int) *CharacterUpdate {
+	_u.mutation.AddNpcSkillCooldown(v)
+	return _u
+}
+
 // SetHitpoints sets the "hitpoints" field.
 func (_u *CharacterUpdate) SetHitpoints(v int) *CharacterUpdate {
 	_u.mutation.ResetHitpoints()
@@ -934,6 +989,21 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.IsImmortal(); ok {
+		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NpcSkillID(); ok {
+		_spec.SetField(character.FieldNpcSkillID, field.TypeString, value)
+	}
+	if _u.mutation.NpcSkillIDCleared() {
+		_spec.ClearField(character.FieldNpcSkillID, field.TypeString)
+	}
+	if value, ok := _u.mutation.NpcSkillCooldown(); ok {
+		_spec.SetField(character.FieldNpcSkillCooldown, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedNpcSkillCooldown(); ok {
+		_spec.AddField(character.FieldNpcSkillCooldown, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.Hitpoints(); ok {
 		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)
 	}
@@ -1441,6 +1511,61 @@ func (_u *CharacterUpdateOne) SetNillableIsAdmin(v *bool) *CharacterUpdateOne {
 	if v != nil {
 		_u.SetIsAdmin(*v)
 	}
+	return _u
+}
+
+// SetIsImmortal sets the "is_immortal" field.
+func (_u *CharacterUpdateOne) SetIsImmortal(v bool) *CharacterUpdateOne {
+	_u.mutation.SetIsImmortal(v)
+	return _u
+}
+
+// SetNillableIsImmortal sets the "is_immortal" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableIsImmortal(v *bool) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetIsImmortal(*v)
+	}
+	return _u
+}
+
+// SetNpcSkillID sets the "npc_skill_id" field.
+func (_u *CharacterUpdateOne) SetNpcSkillID(v string) *CharacterUpdateOne {
+	_u.mutation.SetNpcSkillID(v)
+	return _u
+}
+
+// SetNillableNpcSkillID sets the "npc_skill_id" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableNpcSkillID(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetNpcSkillID(*v)
+	}
+	return _u
+}
+
+// ClearNpcSkillID clears the value of the "npc_skill_id" field.
+func (_u *CharacterUpdateOne) ClearNpcSkillID() *CharacterUpdateOne {
+	_u.mutation.ClearNpcSkillID()
+	return _u
+}
+
+// SetNpcSkillCooldown sets the "npc_skill_cooldown" field.
+func (_u *CharacterUpdateOne) SetNpcSkillCooldown(v int) *CharacterUpdateOne {
+	_u.mutation.ResetNpcSkillCooldown()
+	_u.mutation.SetNpcSkillCooldown(v)
+	return _u
+}
+
+// SetNillableNpcSkillCooldown sets the "npc_skill_cooldown" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableNpcSkillCooldown(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetNpcSkillCooldown(*v)
+	}
+	return _u
+}
+
+// AddNpcSkillCooldown adds value to the "npc_skill_cooldown" field.
+func (_u *CharacterUpdateOne) AddNpcSkillCooldown(v int) *CharacterUpdateOne {
+	_u.mutation.AddNpcSkillCooldown(v)
 	return _u
 }
 
@@ -2256,6 +2381,21 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsImmortal(); ok {
+		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NpcSkillID(); ok {
+		_spec.SetField(character.FieldNpcSkillID, field.TypeString, value)
+	}
+	if _u.mutation.NpcSkillIDCleared() {
+		_spec.ClearField(character.FieldNpcSkillID, field.TypeString)
+	}
+	if value, ok := _u.mutation.NpcSkillCooldown(); ok {
+		_spec.SetField(character.FieldNpcSkillCooldown, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedNpcSkillCooldown(); ok {
+		_spec.AddField(character.FieldNpcSkillCooldown, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Hitpoints(); ok {
 		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)

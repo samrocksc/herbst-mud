@@ -24,6 +24,16 @@ const (
 	FieldCooldown = "cooldown"
 	// FieldRequirements holds the string denoting the requirements field in the database.
 	FieldRequirements = "requirements"
+	// FieldEffectType holds the string denoting the effect_type field in the database.
+	FieldEffectType = "effect_type"
+	// FieldEffectValue holds the string denoting the effect_value field in the database.
+	FieldEffectValue = "effect_value"
+	// FieldEffectDuration holds the string denoting the effect_duration field in the database.
+	FieldEffectDuration = "effect_duration"
+	// FieldManaCost holds the string denoting the mana_cost field in the database.
+	FieldManaCost = "mana_cost"
+	// FieldStaminaCost holds the string denoting the stamina_cost field in the database.
+	FieldStaminaCost = "stamina_cost"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// Table holds the table name of the skill in the database.
@@ -46,6 +56,11 @@ var Columns = []string{
 	FieldCost,
 	FieldCooldown,
 	FieldRequirements,
+	FieldEffectType,
+	FieldEffectValue,
+	FieldEffectDuration,
+	FieldManaCost,
+	FieldStaminaCost,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -63,6 +78,16 @@ var (
 	DefaultCost int
 	// DefaultCooldown holds the default value on creation for the "cooldown" field.
 	DefaultCooldown int
+	// DefaultEffectType holds the default value on creation for the "effect_type" field.
+	DefaultEffectType string
+	// DefaultEffectValue holds the default value on creation for the "effect_value" field.
+	DefaultEffectValue int
+	// DefaultEffectDuration holds the default value on creation for the "effect_duration" field.
+	DefaultEffectDuration int
+	// DefaultManaCost holds the default value on creation for the "mana_cost" field.
+	DefaultManaCost int
+	// DefaultStaminaCost holds the default value on creation for the "stamina_cost" field.
+	DefaultStaminaCost int
 )
 
 // OrderOption defines the ordering options for the Skill queries.
@@ -101,6 +126,31 @@ func ByCooldown(opts ...sql.OrderTermOption) OrderOption {
 // ByRequirements orders the results by the requirements field.
 func ByRequirements(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRequirements, opts...).ToFunc()
+}
+
+// ByEffectType orders the results by the effect_type field.
+func ByEffectType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectType, opts...).ToFunc()
+}
+
+// ByEffectValue orders the results by the effect_value field.
+func ByEffectValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectValue, opts...).ToFunc()
+}
+
+// ByEffectDuration orders the results by the effect_duration field.
+func ByEffectDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectDuration, opts...).ToFunc()
+}
+
+// ByManaCost orders the results by the mana_cost field.
+func ByManaCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldManaCost, opts...).ToFunc()
+}
+
+// ByStaminaCost orders the results by the stamina_cost field.
+func ByStaminaCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStaminaCost, opts...).ToFunc()
 }
 
 // ByCharactersCount orders the results by characters count.

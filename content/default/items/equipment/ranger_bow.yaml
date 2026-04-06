@@ -1,0 +1,40 @@
+# Ranger Bow
+# Elven-style longbow
+
+id: ranger_bow
+name: "Ranger's Longbow"
+description: "A masterfully crafted elven bow"
+type: weapon
+slot: weapon
+level_requirement: 10
+rarity: rare
+
+damage:
+  min: 8
+  max: 14
+  speed: 1.2
+  type: ranged
+
+stats:
+  dexterity: 3
+
+requirements:
+  class:
+    - ranger
+    - archer
+
+visual:
+  icon: "🏹"
+  color: "#228B22"
+
+value:
+  buy: 250
+  sell: 125
+
+uses: 0
+stackable: false
+max_stack: 1
+weight: 2.5
+
+flags:
+  - elven_crafted

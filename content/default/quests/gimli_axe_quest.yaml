@@ -1,0 +1,59 @@
+# The Lost Axe
+# Item recovery quest chain
+
+id: gimli_axe_quest
+name: "The Missing Axe"
+description: "Gimli has lost his prized dwarven axe somewhere in the Junkyard"
+type: chain
+chain_position: first
+
+difficulty: medium
+level_required: 3
+
+steps:
+  - id: talk_to_gimli
+    type: talk
+    description: "Speak with Gimli in the Junkyard"
+    target: gimli
+    order: 1
+    
+  - id: search_junkyard
+    type: explore
+    description: "Search the Junkyard for the lost axe"
+    target_room: "8"
+    order: 2
+    
+  - id: find_axe
+    type: fetch
+    description: "Retrieve the Dwarven Axe"
+    item_id: dwarven_axe
+    count: 1
+    order: 3
+    
+  - id: return_axe
+    type: talk
+    description: "Return the axe to Gimli"
+    target: gimli
+    order: 4
+
+rewards:
+  experience: 250
+  items:
+    - item_id: iron_dagger
+      count: 1
+    - item_id: health_potion
+      count: 2
+    - item_id: stamina_vial
+      count: 1
+  reputation:
+    faction: dwarves
+    amount: 25
+
+quest_giver: gimli
+auto_complete: true  # Auto-completes when axe returned
+repeatable: false
+
+flavor:
+  start: "Blast it! Someone's gone and misplaced me axe! Help me find it?"
+  progress: "The axe should be somewhere in this junk pile..."
+  complete: "Me axe! Aye, you're a good soul. Take this as thanks."

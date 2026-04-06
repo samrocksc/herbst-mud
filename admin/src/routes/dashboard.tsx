@@ -109,6 +109,12 @@ function Dashboard() {
             <div className="text-text-muted text-sm">Create, edit, and manage items and equipment</div>
           </Link>
 
+          <Link to="/export" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
+            <div className="text-2xl mb-2">💾</div>
+            <div className="font-bold mb-1">Export / Import</div>
+            <div className="text-text-muted text-sm">Backup and restore game world data</div>
+          </Link>
+
           <div className="bg-surface-muted rounded-lg p-6 border border-border opacity-50">
             <div className="text-2xl mb-2">🎮</div>
             <div className="font-bold mb-1">Player Manager</div>

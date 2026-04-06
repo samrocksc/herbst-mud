@@ -1,0 +1,17 @@
+id: netrunner
+template_name: "NetRunner"
+description: "A digital ghost in the machine"
+level: 5
+stats:
+  strength: 8
+  dexterity: 12
+  constitution: 10
+  intelligence: 18
+  wisdom: 14
+  charisma: 10
+hp:
+  base: 50
+  con_multiplier: 5
+ai:
+  type: hacker
+  aggression: passive

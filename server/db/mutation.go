@@ -619,7 +619,13 @@ type CharacterMutation struct {
 	isNPC                    *bool
 	startingRoomId           *int
 	addstartingRoomId        *int
+	respawnRoomId            *int
+	addrespawnRoomId         *int
 	is_admin                 *bool
+	is_immortal              *bool
+	npc_skill_id             *string
+	npc_skill_cooldown       *int
+	addnpc_skill_cooldown    *int
 	hitpoints                *int
 	addhitpoints             *int
 	max_hitpoints            *int
@@ -999,6 +1005,62 @@ func (m *CharacterMutation) ResetStartingRoomId() {
 	m.addstartingRoomId = nil
 }
 
+// SetRespawnRoomId sets the "respawnRoomId" field.
+func (m *CharacterMutation) SetRespawnRoomId(i int) {
+	m.respawnRoomId = &i
+	m.addrespawnRoomId = nil
+}
+
+// RespawnRoomId returns the value of the "respawnRoomId" field in the mutation.
+func (m *CharacterMutation) RespawnRoomId() (r int, exists bool) {
+	v := m.respawnRoomId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRespawnRoomId returns the old "respawnRoomId" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldRespawnRoomId(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRespawnRoomId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRespawnRoomId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRespawnRoomId: %w", err)
+	}
+	return oldValue.RespawnRoomId, nil
+}
+
+// AddRespawnRoomId adds i to the "respawnRoomId" field.
+func (m *CharacterMutation) AddRespawnRoomId(i int) {
+	if m.addrespawnRoomId != nil {
+		*m.addrespawnRoomId += i
+	} else {
+		m.addrespawnRoomId = &i
+	}
+}
+
+// AddedRespawnRoomId returns the value that was added to the "respawnRoomId" field in this mutation.
+func (m *CharacterMutation) AddedRespawnRoomId() (r int, exists bool) {
+	v := m.addrespawnRoomId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRespawnRoomId resets all changes to the "respawnRoomId" field.
+func (m *CharacterMutation) ResetRespawnRoomId() {
+	m.respawnRoomId = nil
+	m.addrespawnRoomId = nil
+}
+
 // SetIsAdmin sets the "is_admin" field.
 func (m *CharacterMutation) SetIsAdmin(b bool) {
 	m.is_admin = &b
@@ -1033,6 +1095,147 @@ func (m *CharacterMutation) OldIsAdmin(ctx context.Context) (v bool, err error) 
 // ResetIsAdmin resets all changes to the "is_admin" field.
 func (m *CharacterMutation) ResetIsAdmin() {
 	m.is_admin = nil
+}
+
+// SetIsImmortal sets the "is_immortal" field.
+func (m *CharacterMutation) SetIsImmortal(b bool) {
+	m.is_immortal = &b
+}
+
+// IsImmortal returns the value of the "is_immortal" field in the mutation.
+func (m *CharacterMutation) IsImmortal() (r bool, exists bool) {
+	v := m.is_immortal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsImmortal returns the old "is_immortal" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldIsImmortal(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsImmortal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsImmortal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsImmortal: %w", err)
+	}
+	return oldValue.IsImmortal, nil
+}
+
+// ResetIsImmortal resets all changes to the "is_immortal" field.
+func (m *CharacterMutation) ResetIsImmortal() {
+	m.is_immortal = nil
+}
+
+// SetNpcSkillID sets the "npc_skill_id" field.
+func (m *CharacterMutation) SetNpcSkillID(s string) {
+	m.npc_skill_id = &s
+}
+
+// NpcSkillID returns the value of the "npc_skill_id" field in the mutation.
+func (m *CharacterMutation) NpcSkillID() (r string, exists bool) {
+	v := m.npc_skill_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNpcSkillID returns the old "npc_skill_id" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldNpcSkillID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNpcSkillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNpcSkillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNpcSkillID: %w", err)
+	}
+	return oldValue.NpcSkillID, nil
+}
+
+// ClearNpcSkillID clears the value of the "npc_skill_id" field.
+func (m *CharacterMutation) ClearNpcSkillID() {
+	m.npc_skill_id = nil
+	m.clearedFields[character.FieldNpcSkillID] = struct{}{}
+}
+
+// NpcSkillIDCleared returns if the "npc_skill_id" field was cleared in this mutation.
+func (m *CharacterMutation) NpcSkillIDCleared() bool {
+	_, ok := m.clearedFields[character.FieldNpcSkillID]
+	return ok
+}
+
+// ResetNpcSkillID resets all changes to the "npc_skill_id" field.
+func (m *CharacterMutation) ResetNpcSkillID() {
+	m.npc_skill_id = nil
+	delete(m.clearedFields, character.FieldNpcSkillID)
+}
+
+// SetNpcSkillCooldown sets the "npc_skill_cooldown" field.
+func (m *CharacterMutation) SetNpcSkillCooldown(i int) {
+	m.npc_skill_cooldown = &i
+	m.addnpc_skill_cooldown = nil
+}
+
+// NpcSkillCooldown returns the value of the "npc_skill_cooldown" field in the mutation.
+func (m *CharacterMutation) NpcSkillCooldown() (r int, exists bool) {
+	v := m.npc_skill_cooldown
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNpcSkillCooldown returns the old "npc_skill_cooldown" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldNpcSkillCooldown(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNpcSkillCooldown is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNpcSkillCooldown requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNpcSkillCooldown: %w", err)
+	}
+	return oldValue.NpcSkillCooldown, nil
+}
+
+// AddNpcSkillCooldown adds i to the "npc_skill_cooldown" field.
+func (m *CharacterMutation) AddNpcSkillCooldown(i int) {
+	if m.addnpc_skill_cooldown != nil {
+		*m.addnpc_skill_cooldown += i
+	} else {
+		m.addnpc_skill_cooldown = &i
+	}
+}
+
+// AddedNpcSkillCooldown returns the value that was added to the "npc_skill_cooldown" field in this mutation.
+func (m *CharacterMutation) AddedNpcSkillCooldown() (r int, exists bool) {
+	v := m.addnpc_skill_cooldown
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNpcSkillCooldown resets all changes to the "npc_skill_cooldown" field.
+func (m *CharacterMutation) ResetNpcSkillCooldown() {
+	m.npc_skill_cooldown = nil
+	m.addnpc_skill_cooldown = nil
 }
 
 // SetHitpoints sets the "hitpoints" field.
@@ -2744,7 +2947,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 32)
+	fields := make([]string, 0, 36)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -2760,8 +2963,20 @@ func (m *CharacterMutation) Fields() []string {
 	if m.startingRoomId != nil {
 		fields = append(fields, character.FieldStartingRoomId)
 	}
+	if m.respawnRoomId != nil {
+		fields = append(fields, character.FieldRespawnRoomId)
+	}
 	if m.is_admin != nil {
 		fields = append(fields, character.FieldIsAdmin)
+	}
+	if m.is_immortal != nil {
+		fields = append(fields, character.FieldIsImmortal)
+	}
+	if m.npc_skill_id != nil {
+		fields = append(fields, character.FieldNpcSkillID)
+	}
+	if m.npc_skill_cooldown != nil {
+		fields = append(fields, character.FieldNpcSkillCooldown)
 	}
 	if m.hitpoints != nil {
 		fields = append(fields, character.FieldHitpoints)
@@ -2859,8 +3074,16 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.CurrentRoomId()
 	case character.FieldStartingRoomId:
 		return m.StartingRoomId()
+	case character.FieldRespawnRoomId:
+		return m.RespawnRoomId()
 	case character.FieldIsAdmin:
 		return m.IsAdmin()
+	case character.FieldIsImmortal:
+		return m.IsImmortal()
+	case character.FieldNpcSkillID:
+		return m.NpcSkillID()
+	case character.FieldNpcSkillCooldown:
+		return m.NpcSkillCooldown()
 	case character.FieldHitpoints:
 		return m.Hitpoints()
 	case character.FieldMaxHitpoints:
@@ -2932,8 +3155,16 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldCurrentRoomId(ctx)
 	case character.FieldStartingRoomId:
 		return m.OldStartingRoomId(ctx)
+	case character.FieldRespawnRoomId:
+		return m.OldRespawnRoomId(ctx)
 	case character.FieldIsAdmin:
 		return m.OldIsAdmin(ctx)
+	case character.FieldIsImmortal:
+		return m.OldIsImmortal(ctx)
+	case character.FieldNpcSkillID:
+		return m.OldNpcSkillID(ctx)
+	case character.FieldNpcSkillCooldown:
+		return m.OldNpcSkillCooldown(ctx)
 	case character.FieldHitpoints:
 		return m.OldHitpoints(ctx)
 	case character.FieldMaxHitpoints:
@@ -3030,12 +3261,40 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStartingRoomId(v)
 		return nil
+	case character.FieldRespawnRoomId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRespawnRoomId(v)
+		return nil
 	case character.FieldIsAdmin:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsAdmin(v)
+		return nil
+	case character.FieldIsImmortal:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsImmortal(v)
+		return nil
+	case character.FieldNpcSkillID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNpcSkillID(v)
+		return nil
+	case character.FieldNpcSkillCooldown:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNpcSkillCooldown(v)
 		return nil
 	case character.FieldHitpoints:
 		v, ok := value.(int)
@@ -3230,6 +3489,12 @@ func (m *CharacterMutation) AddedFields() []string {
 	if m.addstartingRoomId != nil {
 		fields = append(fields, character.FieldStartingRoomId)
 	}
+	if m.addrespawnRoomId != nil {
+		fields = append(fields, character.FieldRespawnRoomId)
+	}
+	if m.addnpc_skill_cooldown != nil {
+		fields = append(fields, character.FieldNpcSkillCooldown)
+	}
 	if m.addhitpoints != nil {
 		fields = append(fields, character.FieldHitpoints)
 	}
@@ -3303,6 +3568,10 @@ func (m *CharacterMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case character.FieldStartingRoomId:
 		return m.AddedStartingRoomId()
+	case character.FieldRespawnRoomId:
+		return m.AddedRespawnRoomId()
+	case character.FieldNpcSkillCooldown:
+		return m.AddedNpcSkillCooldown()
 	case character.FieldHitpoints:
 		return m.AddedHitpoints()
 	case character.FieldMaxHitpoints:
@@ -3360,6 +3629,20 @@ func (m *CharacterMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddStartingRoomId(v)
+		return nil
+	case character.FieldRespawnRoomId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRespawnRoomId(v)
+		return nil
+	case character.FieldNpcSkillCooldown:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNpcSkillCooldown(v)
 		return nil
 	case character.FieldHitpoints:
 		v, ok := value.(int)
@@ -3519,6 +3802,9 @@ func (m *CharacterMutation) ClearedFields() []string {
 	if m.FieldCleared(character.FieldPassword) {
 		fields = append(fields, character.FieldPassword)
 	}
+	if m.FieldCleared(character.FieldNpcSkillID) {
+		fields = append(fields, character.FieldNpcSkillID)
+	}
 	if m.FieldCleared(character.FieldSpecialty) {
 		fields = append(fields, character.FieldSpecialty)
 	}
@@ -3544,6 +3830,9 @@ func (m *CharacterMutation) ClearField(name string) error {
 	switch name {
 	case character.FieldPassword:
 		m.ClearPassword()
+		return nil
+	case character.FieldNpcSkillID:
+		m.ClearNpcSkillID()
 		return nil
 	case character.FieldSpecialty:
 		m.ClearSpecialty()
@@ -3577,8 +3866,20 @@ func (m *CharacterMutation) ResetField(name string) error {
 	case character.FieldStartingRoomId:
 		m.ResetStartingRoomId()
 		return nil
+	case character.FieldRespawnRoomId:
+		m.ResetRespawnRoomId()
+		return nil
 	case character.FieldIsAdmin:
 		m.ResetIsAdmin()
+		return nil
+	case character.FieldIsImmortal:
+		m.ResetIsImmortal()
+		return nil
+	case character.FieldNpcSkillID:
+		m.ResetNpcSkillID()
+		return nil
+	case character.FieldNpcSkillCooldown:
+		m.ResetNpcSkillCooldown()
 		return nil
 	case character.FieldHitpoints:
 		m.ResetHitpoints()
@@ -4933,12 +5234,23 @@ type EquipmentMutation struct {
 	color                *string
 	isVisible            *bool
 	itemType             *string
+	ownerId              *int
+	addownerId           *int
+	effect_type          *string
+	effect_value         *int
+	addeffect_value      *int
+	effect_duration      *int
+	addeffect_duration   *int
+	healing              *int
+	addhealing           *int
+	effect               *string
 	isContainer          *bool
 	containerCapacity    *int
 	addcontainerCapacity *int
 	isLocked             *bool
 	keyItemID            *string
 	containedItems       *string
+	revealCondition      *string
 	clearedFields        map[string]struct{}
 	room                 *int
 	clearedroom          bool
@@ -5445,6 +5757,316 @@ func (m *EquipmentMutation) ResetItemType() {
 	m.itemType = nil
 }
 
+// SetOwnerId sets the "ownerId" field.
+func (m *EquipmentMutation) SetOwnerId(i int) {
+	m.ownerId = &i
+	m.addownerId = nil
+}
+
+// OwnerId returns the value of the "ownerId" field in the mutation.
+func (m *EquipmentMutation) OwnerId() (r int, exists bool) {
+	v := m.ownerId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwnerId returns the old "ownerId" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldOwnerId(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwnerId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwnerId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwnerId: %w", err)
+	}
+	return oldValue.OwnerId, nil
+}
+
+// AddOwnerId adds i to the "ownerId" field.
+func (m *EquipmentMutation) AddOwnerId(i int) {
+	if m.addownerId != nil {
+		*m.addownerId += i
+	} else {
+		m.addownerId = &i
+	}
+}
+
+// AddedOwnerId returns the value that was added to the "ownerId" field in this mutation.
+func (m *EquipmentMutation) AddedOwnerId() (r int, exists bool) {
+	v := m.addownerId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOwnerId clears the value of the "ownerId" field.
+func (m *EquipmentMutation) ClearOwnerId() {
+	m.ownerId = nil
+	m.addownerId = nil
+	m.clearedFields[equipment.FieldOwnerId] = struct{}{}
+}
+
+// OwnerIdCleared returns if the "ownerId" field was cleared in this mutation.
+func (m *EquipmentMutation) OwnerIdCleared() bool {
+	_, ok := m.clearedFields[equipment.FieldOwnerId]
+	return ok
+}
+
+// ResetOwnerId resets all changes to the "ownerId" field.
+func (m *EquipmentMutation) ResetOwnerId() {
+	m.ownerId = nil
+	m.addownerId = nil
+	delete(m.clearedFields, equipment.FieldOwnerId)
+}
+
+// SetEffectType sets the "effect_type" field.
+func (m *EquipmentMutation) SetEffectType(s string) {
+	m.effect_type = &s
+}
+
+// EffectType returns the value of the "effect_type" field in the mutation.
+func (m *EquipmentMutation) EffectType() (r string, exists bool) {
+	v := m.effect_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectType returns the old "effect_type" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldEffectType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectType: %w", err)
+	}
+	return oldValue.EffectType, nil
+}
+
+// ResetEffectType resets all changes to the "effect_type" field.
+func (m *EquipmentMutation) ResetEffectType() {
+	m.effect_type = nil
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (m *EquipmentMutation) SetEffectValue(i int) {
+	m.effect_value = &i
+	m.addeffect_value = nil
+}
+
+// EffectValue returns the value of the "effect_value" field in the mutation.
+func (m *EquipmentMutation) EffectValue() (r int, exists bool) {
+	v := m.effect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectValue returns the old "effect_value" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldEffectValue(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectValue: %w", err)
+	}
+	return oldValue.EffectValue, nil
+}
+
+// AddEffectValue adds i to the "effect_value" field.
+func (m *EquipmentMutation) AddEffectValue(i int) {
+	if m.addeffect_value != nil {
+		*m.addeffect_value += i
+	} else {
+		m.addeffect_value = &i
+	}
+}
+
+// AddedEffectValue returns the value that was added to the "effect_value" field in this mutation.
+func (m *EquipmentMutation) AddedEffectValue() (r int, exists bool) {
+	v := m.addeffect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectValue resets all changes to the "effect_value" field.
+func (m *EquipmentMutation) ResetEffectValue() {
+	m.effect_value = nil
+	m.addeffect_value = nil
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (m *EquipmentMutation) SetEffectDuration(i int) {
+	m.effect_duration = &i
+	m.addeffect_duration = nil
+}
+
+// EffectDuration returns the value of the "effect_duration" field in the mutation.
+func (m *EquipmentMutation) EffectDuration() (r int, exists bool) {
+	v := m.effect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectDuration returns the old "effect_duration" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldEffectDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectDuration: %w", err)
+	}
+	return oldValue.EffectDuration, nil
+}
+
+// AddEffectDuration adds i to the "effect_duration" field.
+func (m *EquipmentMutation) AddEffectDuration(i int) {
+	if m.addeffect_duration != nil {
+		*m.addeffect_duration += i
+	} else {
+		m.addeffect_duration = &i
+	}
+}
+
+// AddedEffectDuration returns the value that was added to the "effect_duration" field in this mutation.
+func (m *EquipmentMutation) AddedEffectDuration() (r int, exists bool) {
+	v := m.addeffect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectDuration resets all changes to the "effect_duration" field.
+func (m *EquipmentMutation) ResetEffectDuration() {
+	m.effect_duration = nil
+	m.addeffect_duration = nil
+}
+
+// SetHealing sets the "healing" field.
+func (m *EquipmentMutation) SetHealing(i int) {
+	m.healing = &i
+	m.addhealing = nil
+}
+
+// Healing returns the value of the "healing" field in the mutation.
+func (m *EquipmentMutation) Healing() (r int, exists bool) {
+	v := m.healing
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHealing returns the old "healing" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldHealing(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHealing is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHealing requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHealing: %w", err)
+	}
+	return oldValue.Healing, nil
+}
+
+// AddHealing adds i to the "healing" field.
+func (m *EquipmentMutation) AddHealing(i int) {
+	if m.addhealing != nil {
+		*m.addhealing += i
+	} else {
+		m.addhealing = &i
+	}
+}
+
+// AddedHealing returns the value that was added to the "healing" field in this mutation.
+func (m *EquipmentMutation) AddedHealing() (r int, exists bool) {
+	v := m.addhealing
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHealing resets all changes to the "healing" field.
+func (m *EquipmentMutation) ResetHealing() {
+	m.healing = nil
+	m.addhealing = nil
+}
+
+// SetEffect sets the "effect" field.
+func (m *EquipmentMutation) SetEffect(s string) {
+	m.effect = &s
+}
+
+// Effect returns the value of the "effect" field in the mutation.
+func (m *EquipmentMutation) Effect() (r string, exists bool) {
+	v := m.effect
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffect returns the old "effect" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldEffect(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffect is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffect requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffect: %w", err)
+	}
+	return oldValue.Effect, nil
+}
+
+// ResetEffect resets all changes to the "effect" field.
+func (m *EquipmentMutation) ResetEffect() {
+	m.effect = nil
+}
+
 // SetIsContainer sets the "isContainer" field.
 func (m *EquipmentMutation) SetIsContainer(b bool) {
 	m.isContainer = &b
@@ -5658,6 +6280,42 @@ func (m *EquipmentMutation) ResetContainedItems() {
 	m.containedItems = nil
 }
 
+// SetRevealCondition sets the "revealCondition" field.
+func (m *EquipmentMutation) SetRevealCondition(s string) {
+	m.revealCondition = &s
+}
+
+// RevealCondition returns the value of the "revealCondition" field in the mutation.
+func (m *EquipmentMutation) RevealCondition() (r string, exists bool) {
+	v := m.revealCondition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevealCondition returns the old "revealCondition" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldRevealCondition(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevealCondition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevealCondition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevealCondition: %w", err)
+	}
+	return oldValue.RevealCondition, nil
+}
+
+// ResetRevealCondition resets all changes to the "revealCondition" field.
+func (m *EquipmentMutation) ResetRevealCondition() {
+	m.revealCondition = nil
+}
+
 // SetRoomID sets the "room" edge to the Room entity by id.
 func (m *EquipmentMutation) SetRoomID(id int) {
 	m.room = &id
@@ -5731,7 +6389,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 22)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -5762,6 +6420,24 @@ func (m *EquipmentMutation) Fields() []string {
 	if m.itemType != nil {
 		fields = append(fields, equipment.FieldItemType)
 	}
+	if m.ownerId != nil {
+		fields = append(fields, equipment.FieldOwnerId)
+	}
+	if m.effect_type != nil {
+		fields = append(fields, equipment.FieldEffectType)
+	}
+	if m.effect_value != nil {
+		fields = append(fields, equipment.FieldEffectValue)
+	}
+	if m.effect_duration != nil {
+		fields = append(fields, equipment.FieldEffectDuration)
+	}
+	if m.healing != nil {
+		fields = append(fields, equipment.FieldHealing)
+	}
+	if m.effect != nil {
+		fields = append(fields, equipment.FieldEffect)
+	}
 	if m.isContainer != nil {
 		fields = append(fields, equipment.FieldIsContainer)
 	}
@@ -5776,6 +6452,9 @@ func (m *EquipmentMutation) Fields() []string {
 	}
 	if m.containedItems != nil {
 		fields = append(fields, equipment.FieldContainedItems)
+	}
+	if m.revealCondition != nil {
+		fields = append(fields, equipment.FieldRevealCondition)
 	}
 	return fields
 }
@@ -5805,6 +6484,18 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.IsVisible()
 	case equipment.FieldItemType:
 		return m.ItemType()
+	case equipment.FieldOwnerId:
+		return m.OwnerId()
+	case equipment.FieldEffectType:
+		return m.EffectType()
+	case equipment.FieldEffectValue:
+		return m.EffectValue()
+	case equipment.FieldEffectDuration:
+		return m.EffectDuration()
+	case equipment.FieldHealing:
+		return m.Healing()
+	case equipment.FieldEffect:
+		return m.Effect()
 	case equipment.FieldIsContainer:
 		return m.IsContainer()
 	case equipment.FieldContainerCapacity:
@@ -5815,6 +6506,8 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.KeyItemID()
 	case equipment.FieldContainedItems:
 		return m.ContainedItems()
+	case equipment.FieldRevealCondition:
+		return m.RevealCondition()
 	}
 	return nil, false
 }
@@ -5844,6 +6537,18 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldIsVisible(ctx)
 	case equipment.FieldItemType:
 		return m.OldItemType(ctx)
+	case equipment.FieldOwnerId:
+		return m.OldOwnerId(ctx)
+	case equipment.FieldEffectType:
+		return m.OldEffectType(ctx)
+	case equipment.FieldEffectValue:
+		return m.OldEffectValue(ctx)
+	case equipment.FieldEffectDuration:
+		return m.OldEffectDuration(ctx)
+	case equipment.FieldHealing:
+		return m.OldHealing(ctx)
+	case equipment.FieldEffect:
+		return m.OldEffect(ctx)
 	case equipment.FieldIsContainer:
 		return m.OldIsContainer(ctx)
 	case equipment.FieldContainerCapacity:
@@ -5854,6 +6559,8 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldKeyItemID(ctx)
 	case equipment.FieldContainedItems:
 		return m.OldContainedItems(ctx)
+	case equipment.FieldRevealCondition:
+		return m.OldRevealCondition(ctx)
 	}
 	return nil, fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -5933,6 +6640,48 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetItemType(v)
 		return nil
+	case equipment.FieldOwnerId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwnerId(v)
+		return nil
+	case equipment.FieldEffectType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectType(v)
+		return nil
+	case equipment.FieldEffectValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectValue(v)
+		return nil
+	case equipment.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectDuration(v)
+		return nil
+	case equipment.FieldHealing:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHealing(v)
+		return nil
+	case equipment.FieldEffect:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffect(v)
+		return nil
 	case equipment.FieldIsContainer:
 		v, ok := value.(bool)
 		if !ok {
@@ -5968,6 +6717,13 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetContainedItems(v)
 		return nil
+	case equipment.FieldRevealCondition:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevealCondition(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -5981,6 +6737,18 @@ func (m *EquipmentMutation) AddedFields() []string {
 	}
 	if m.addweight != nil {
 		fields = append(fields, equipment.FieldWeight)
+	}
+	if m.addownerId != nil {
+		fields = append(fields, equipment.FieldOwnerId)
+	}
+	if m.addeffect_value != nil {
+		fields = append(fields, equipment.FieldEffectValue)
+	}
+	if m.addeffect_duration != nil {
+		fields = append(fields, equipment.FieldEffectDuration)
+	}
+	if m.addhealing != nil {
+		fields = append(fields, equipment.FieldHealing)
 	}
 	if m.addcontainerCapacity != nil {
 		fields = append(fields, equipment.FieldContainerCapacity)
@@ -5997,6 +6765,14 @@ func (m *EquipmentMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedLevel()
 	case equipment.FieldWeight:
 		return m.AddedWeight()
+	case equipment.FieldOwnerId:
+		return m.AddedOwnerId()
+	case equipment.FieldEffectValue:
+		return m.AddedEffectValue()
+	case equipment.FieldEffectDuration:
+		return m.AddedEffectDuration()
+	case equipment.FieldHealing:
+		return m.AddedHealing()
 	case equipment.FieldContainerCapacity:
 		return m.AddedContainerCapacity()
 	}
@@ -6022,6 +6798,34 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddWeight(v)
 		return nil
+	case equipment.FieldOwnerId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOwnerId(v)
+		return nil
+	case equipment.FieldEffectValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectValue(v)
+		return nil
+	case equipment.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectDuration(v)
+		return nil
+	case equipment.FieldHealing:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHealing(v)
+		return nil
 	case equipment.FieldContainerCapacity:
 		v, ok := value.(int)
 		if !ok {
@@ -6037,6 +6841,9 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *EquipmentMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(equipment.FieldOwnerId) {
+		fields = append(fields, equipment.FieldOwnerId)
+	}
 	if m.FieldCleared(equipment.FieldKeyItemID) {
 		fields = append(fields, equipment.FieldKeyItemID)
 	}
@@ -6054,6 +6861,9 @@ func (m *EquipmentMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *EquipmentMutation) ClearField(name string) error {
 	switch name {
+	case equipment.FieldOwnerId:
+		m.ClearOwnerId()
+		return nil
 	case equipment.FieldKeyItemID:
 		m.ClearKeyItemID()
 		return nil
@@ -6095,6 +6905,24 @@ func (m *EquipmentMutation) ResetField(name string) error {
 	case equipment.FieldItemType:
 		m.ResetItemType()
 		return nil
+	case equipment.FieldOwnerId:
+		m.ResetOwnerId()
+		return nil
+	case equipment.FieldEffectType:
+		m.ResetEffectType()
+		return nil
+	case equipment.FieldEffectValue:
+		m.ResetEffectValue()
+		return nil
+	case equipment.FieldEffectDuration:
+		m.ResetEffectDuration()
+		return nil
+	case equipment.FieldHealing:
+		m.ResetHealing()
+		return nil
+	case equipment.FieldEffect:
+		m.ResetEffect()
+		return nil
 	case equipment.FieldIsContainer:
 		m.ResetIsContainer()
 		return nil
@@ -6109,6 +6937,9 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldContainedItems:
 		m.ResetContainedItems()
+		return nil
+	case equipment.FieldRevealCondition:
+		m.ResetRevealCondition()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
@@ -7671,24 +8502,33 @@ func (m *RoomMutation) ResetEdge(name string) error {
 // SkillMutation represents an operation that mutates the Skill nodes in the graph.
 type SkillMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	name              *string
-	description       *string
-	skill_type        *string
-	cost              *int
-	addcost           *int
-	cooldown          *int
-	addcooldown       *int
-	requirements      *string
-	clearedFields     map[string]struct{}
-	characters        map[int]struct{}
-	removedcharacters map[int]struct{}
-	clearedcharacters bool
-	done              bool
-	oldValue          func(context.Context) (*Skill, error)
-	predicates        []predicate.Skill
+	op                 Op
+	typ                string
+	id                 *int
+	name               *string
+	description        *string
+	skill_type         *string
+	cost               *int
+	addcost            *int
+	cooldown           *int
+	addcooldown        *int
+	requirements       *string
+	effect_type        *string
+	effect_value       *int
+	addeffect_value    *int
+	effect_duration    *int
+	addeffect_duration *int
+	mana_cost          *int
+	addmana_cost       *int
+	stamina_cost       *int
+	addstamina_cost    *int
+	clearedFields      map[string]struct{}
+	characters         map[int]struct{}
+	removedcharacters  map[int]struct{}
+	clearedcharacters  bool
+	done               bool
+	oldValue           func(context.Context) (*Skill, error)
+	predicates         []predicate.Skill
 }
 
 var _ ent.Mutation = (*SkillMutation)(nil)
@@ -8058,6 +8898,266 @@ func (m *SkillMutation) ResetRequirements() {
 	delete(m.clearedFields, skill.FieldRequirements)
 }
 
+// SetEffectType sets the "effect_type" field.
+func (m *SkillMutation) SetEffectType(s string) {
+	m.effect_type = &s
+}
+
+// EffectType returns the value of the "effect_type" field in the mutation.
+func (m *SkillMutation) EffectType() (r string, exists bool) {
+	v := m.effect_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectType returns the old "effect_type" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldEffectType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectType: %w", err)
+	}
+	return oldValue.EffectType, nil
+}
+
+// ResetEffectType resets all changes to the "effect_type" field.
+func (m *SkillMutation) ResetEffectType() {
+	m.effect_type = nil
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (m *SkillMutation) SetEffectValue(i int) {
+	m.effect_value = &i
+	m.addeffect_value = nil
+}
+
+// EffectValue returns the value of the "effect_value" field in the mutation.
+func (m *SkillMutation) EffectValue() (r int, exists bool) {
+	v := m.effect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectValue returns the old "effect_value" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldEffectValue(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectValue: %w", err)
+	}
+	return oldValue.EffectValue, nil
+}
+
+// AddEffectValue adds i to the "effect_value" field.
+func (m *SkillMutation) AddEffectValue(i int) {
+	if m.addeffect_value != nil {
+		*m.addeffect_value += i
+	} else {
+		m.addeffect_value = &i
+	}
+}
+
+// AddedEffectValue returns the value that was added to the "effect_value" field in this mutation.
+func (m *SkillMutation) AddedEffectValue() (r int, exists bool) {
+	v := m.addeffect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectValue resets all changes to the "effect_value" field.
+func (m *SkillMutation) ResetEffectValue() {
+	m.effect_value = nil
+	m.addeffect_value = nil
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (m *SkillMutation) SetEffectDuration(i int) {
+	m.effect_duration = &i
+	m.addeffect_duration = nil
+}
+
+// EffectDuration returns the value of the "effect_duration" field in the mutation.
+func (m *SkillMutation) EffectDuration() (r int, exists bool) {
+	v := m.effect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectDuration returns the old "effect_duration" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldEffectDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectDuration: %w", err)
+	}
+	return oldValue.EffectDuration, nil
+}
+
+// AddEffectDuration adds i to the "effect_duration" field.
+func (m *SkillMutation) AddEffectDuration(i int) {
+	if m.addeffect_duration != nil {
+		*m.addeffect_duration += i
+	} else {
+		m.addeffect_duration = &i
+	}
+}
+
+// AddedEffectDuration returns the value that was added to the "effect_duration" field in this mutation.
+func (m *SkillMutation) AddedEffectDuration() (r int, exists bool) {
+	v := m.addeffect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectDuration resets all changes to the "effect_duration" field.
+func (m *SkillMutation) ResetEffectDuration() {
+	m.effect_duration = nil
+	m.addeffect_duration = nil
+}
+
+// SetManaCost sets the "mana_cost" field.
+func (m *SkillMutation) SetManaCost(i int) {
+	m.mana_cost = &i
+	m.addmana_cost = nil
+}
+
+// ManaCost returns the value of the "mana_cost" field in the mutation.
+func (m *SkillMutation) ManaCost() (r int, exists bool) {
+	v := m.mana_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldManaCost returns the old "mana_cost" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldManaCost(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldManaCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldManaCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldManaCost: %w", err)
+	}
+	return oldValue.ManaCost, nil
+}
+
+// AddManaCost adds i to the "mana_cost" field.
+func (m *SkillMutation) AddManaCost(i int) {
+	if m.addmana_cost != nil {
+		*m.addmana_cost += i
+	} else {
+		m.addmana_cost = &i
+	}
+}
+
+// AddedManaCost returns the value that was added to the "mana_cost" field in this mutation.
+func (m *SkillMutation) AddedManaCost() (r int, exists bool) {
+	v := m.addmana_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetManaCost resets all changes to the "mana_cost" field.
+func (m *SkillMutation) ResetManaCost() {
+	m.mana_cost = nil
+	m.addmana_cost = nil
+}
+
+// SetStaminaCost sets the "stamina_cost" field.
+func (m *SkillMutation) SetStaminaCost(i int) {
+	m.stamina_cost = &i
+	m.addstamina_cost = nil
+}
+
+// StaminaCost returns the value of the "stamina_cost" field in the mutation.
+func (m *SkillMutation) StaminaCost() (r int, exists bool) {
+	v := m.stamina_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStaminaCost returns the old "stamina_cost" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldStaminaCost(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStaminaCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStaminaCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStaminaCost: %w", err)
+	}
+	return oldValue.StaminaCost, nil
+}
+
+// AddStaminaCost adds i to the "stamina_cost" field.
+func (m *SkillMutation) AddStaminaCost(i int) {
+	if m.addstamina_cost != nil {
+		*m.addstamina_cost += i
+	} else {
+		m.addstamina_cost = &i
+	}
+}
+
+// AddedStaminaCost returns the value that was added to the "stamina_cost" field in this mutation.
+func (m *SkillMutation) AddedStaminaCost() (r int, exists bool) {
+	v := m.addstamina_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStaminaCost resets all changes to the "stamina_cost" field.
+func (m *SkillMutation) ResetStaminaCost() {
+	m.stamina_cost = nil
+	m.addstamina_cost = nil
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterSkill entity by ids.
 func (m *SkillMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -8146,7 +9246,7 @@ func (m *SkillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SkillMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 11)
 	if m.name != nil {
 		fields = append(fields, skill.FieldName)
 	}
@@ -8164,6 +9264,21 @@ func (m *SkillMutation) Fields() []string {
 	}
 	if m.requirements != nil {
 		fields = append(fields, skill.FieldRequirements)
+	}
+	if m.effect_type != nil {
+		fields = append(fields, skill.FieldEffectType)
+	}
+	if m.effect_value != nil {
+		fields = append(fields, skill.FieldEffectValue)
+	}
+	if m.effect_duration != nil {
+		fields = append(fields, skill.FieldEffectDuration)
+	}
+	if m.mana_cost != nil {
+		fields = append(fields, skill.FieldManaCost)
+	}
+	if m.stamina_cost != nil {
+		fields = append(fields, skill.FieldStaminaCost)
 	}
 	return fields
 }
@@ -8185,6 +9300,16 @@ func (m *SkillMutation) Field(name string) (ent.Value, bool) {
 		return m.Cooldown()
 	case skill.FieldRequirements:
 		return m.Requirements()
+	case skill.FieldEffectType:
+		return m.EffectType()
+	case skill.FieldEffectValue:
+		return m.EffectValue()
+	case skill.FieldEffectDuration:
+		return m.EffectDuration()
+	case skill.FieldManaCost:
+		return m.ManaCost()
+	case skill.FieldStaminaCost:
+		return m.StaminaCost()
 	}
 	return nil, false
 }
@@ -8206,6 +9331,16 @@ func (m *SkillMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldCooldown(ctx)
 	case skill.FieldRequirements:
 		return m.OldRequirements(ctx)
+	case skill.FieldEffectType:
+		return m.OldEffectType(ctx)
+	case skill.FieldEffectValue:
+		return m.OldEffectValue(ctx)
+	case skill.FieldEffectDuration:
+		return m.OldEffectDuration(ctx)
+	case skill.FieldManaCost:
+		return m.OldManaCost(ctx)
+	case skill.FieldStaminaCost:
+		return m.OldStaminaCost(ctx)
 	}
 	return nil, fmt.Errorf("unknown Skill field %s", name)
 }
@@ -8257,6 +9392,41 @@ func (m *SkillMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRequirements(v)
 		return nil
+	case skill.FieldEffectType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectType(v)
+		return nil
+	case skill.FieldEffectValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectValue(v)
+		return nil
+	case skill.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectDuration(v)
+		return nil
+	case skill.FieldManaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetManaCost(v)
+		return nil
+	case skill.FieldStaminaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStaminaCost(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Skill field %s", name)
 }
@@ -8271,6 +9441,18 @@ func (m *SkillMutation) AddedFields() []string {
 	if m.addcooldown != nil {
 		fields = append(fields, skill.FieldCooldown)
 	}
+	if m.addeffect_value != nil {
+		fields = append(fields, skill.FieldEffectValue)
+	}
+	if m.addeffect_duration != nil {
+		fields = append(fields, skill.FieldEffectDuration)
+	}
+	if m.addmana_cost != nil {
+		fields = append(fields, skill.FieldManaCost)
+	}
+	if m.addstamina_cost != nil {
+		fields = append(fields, skill.FieldStaminaCost)
+	}
 	return fields
 }
 
@@ -8283,6 +9465,14 @@ func (m *SkillMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedCost()
 	case skill.FieldCooldown:
 		return m.AddedCooldown()
+	case skill.FieldEffectValue:
+		return m.AddedEffectValue()
+	case skill.FieldEffectDuration:
+		return m.AddedEffectDuration()
+	case skill.FieldManaCost:
+		return m.AddedManaCost()
+	case skill.FieldStaminaCost:
+		return m.AddedStaminaCost()
 	}
 	return nil, false
 }
@@ -8305,6 +9495,34 @@ func (m *SkillMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCooldown(v)
+		return nil
+	case skill.FieldEffectValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectValue(v)
+		return nil
+	case skill.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectDuration(v)
+		return nil
+	case skill.FieldManaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddManaCost(v)
+		return nil
+	case skill.FieldStaminaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStaminaCost(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Skill numeric field %s", name)
@@ -8359,6 +9577,21 @@ func (m *SkillMutation) ResetField(name string) error {
 		return nil
 	case skill.FieldRequirements:
 		m.ResetRequirements()
+		return nil
+	case skill.FieldEffectType:
+		m.ResetEffectType()
+		return nil
+	case skill.FieldEffectValue:
+		m.ResetEffectValue()
+		return nil
+	case skill.FieldEffectDuration:
+		m.ResetEffectDuration()
+		return nil
+	case skill.FieldManaCost:
+		m.ResetManaCost()
+		return nil
+	case skill.FieldStaminaCost:
+		m.ResetStaminaCost()
 		return nil
 	}
 	return fmt.Errorf("unknown Skill field %s", name)
@@ -8457,6 +9690,17 @@ type TalentMutation struct {
 	name                           *string
 	description                    *string
 	requirements                   *string
+	effect_type                    *string
+	effect_value                   *int
+	addeffect_value                *int
+	effect_duration                *int
+	addeffect_duration             *int
+	cooldown                       *int
+	addcooldown                    *int
+	mana_cost                      *int
+	addmana_cost                   *int
+	stamina_cost                   *int
+	addstamina_cost                *int
 	clearedFields                  map[string]struct{}
 	characters                     map[int]struct{}
 	removedcharacters              map[int]struct{}
@@ -8688,6 +9932,322 @@ func (m *TalentMutation) ResetRequirements() {
 	delete(m.clearedFields, talent.FieldRequirements)
 }
 
+// SetEffectType sets the "effect_type" field.
+func (m *TalentMutation) SetEffectType(s string) {
+	m.effect_type = &s
+}
+
+// EffectType returns the value of the "effect_type" field in the mutation.
+func (m *TalentMutation) EffectType() (r string, exists bool) {
+	v := m.effect_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectType returns the old "effect_type" field's value of the Talent entity.
+// If the Talent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TalentMutation) OldEffectType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectType: %w", err)
+	}
+	return oldValue.EffectType, nil
+}
+
+// ResetEffectType resets all changes to the "effect_type" field.
+func (m *TalentMutation) ResetEffectType() {
+	m.effect_type = nil
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (m *TalentMutation) SetEffectValue(i int) {
+	m.effect_value = &i
+	m.addeffect_value = nil
+}
+
+// EffectValue returns the value of the "effect_value" field in the mutation.
+func (m *TalentMutation) EffectValue() (r int, exists bool) {
+	v := m.effect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectValue returns the old "effect_value" field's value of the Talent entity.
+// If the Talent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TalentMutation) OldEffectValue(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectValue: %w", err)
+	}
+	return oldValue.EffectValue, nil
+}
+
+// AddEffectValue adds i to the "effect_value" field.
+func (m *TalentMutation) AddEffectValue(i int) {
+	if m.addeffect_value != nil {
+		*m.addeffect_value += i
+	} else {
+		m.addeffect_value = &i
+	}
+}
+
+// AddedEffectValue returns the value that was added to the "effect_value" field in this mutation.
+func (m *TalentMutation) AddedEffectValue() (r int, exists bool) {
+	v := m.addeffect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectValue resets all changes to the "effect_value" field.
+func (m *TalentMutation) ResetEffectValue() {
+	m.effect_value = nil
+	m.addeffect_value = nil
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (m *TalentMutation) SetEffectDuration(i int) {
+	m.effect_duration = &i
+	m.addeffect_duration = nil
+}
+
+// EffectDuration returns the value of the "effect_duration" field in the mutation.
+func (m *TalentMutation) EffectDuration() (r int, exists bool) {
+	v := m.effect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectDuration returns the old "effect_duration" field's value of the Talent entity.
+// If the Talent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TalentMutation) OldEffectDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectDuration: %w", err)
+	}
+	return oldValue.EffectDuration, nil
+}
+
+// AddEffectDuration adds i to the "effect_duration" field.
+func (m *TalentMutation) AddEffectDuration(i int) {
+	if m.addeffect_duration != nil {
+		*m.addeffect_duration += i
+	} else {
+		m.addeffect_duration = &i
+	}
+}
+
+// AddedEffectDuration returns the value that was added to the "effect_duration" field in this mutation.
+func (m *TalentMutation) AddedEffectDuration() (r int, exists bool) {
+	v := m.addeffect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectDuration resets all changes to the "effect_duration" field.
+func (m *TalentMutation) ResetEffectDuration() {
+	m.effect_duration = nil
+	m.addeffect_duration = nil
+}
+
+// SetCooldown sets the "cooldown" field.
+func (m *TalentMutation) SetCooldown(i int) {
+	m.cooldown = &i
+	m.addcooldown = nil
+}
+
+// Cooldown returns the value of the "cooldown" field in the mutation.
+func (m *TalentMutation) Cooldown() (r int, exists bool) {
+	v := m.cooldown
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCooldown returns the old "cooldown" field's value of the Talent entity.
+// If the Talent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TalentMutation) OldCooldown(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCooldown is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCooldown requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCooldown: %w", err)
+	}
+	return oldValue.Cooldown, nil
+}
+
+// AddCooldown adds i to the "cooldown" field.
+func (m *TalentMutation) AddCooldown(i int) {
+	if m.addcooldown != nil {
+		*m.addcooldown += i
+	} else {
+		m.addcooldown = &i
+	}
+}
+
+// AddedCooldown returns the value that was added to the "cooldown" field in this mutation.
+func (m *TalentMutation) AddedCooldown() (r int, exists bool) {
+	v := m.addcooldown
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCooldown resets all changes to the "cooldown" field.
+func (m *TalentMutation) ResetCooldown() {
+	m.cooldown = nil
+	m.addcooldown = nil
+}
+
+// SetManaCost sets the "mana_cost" field.
+func (m *TalentMutation) SetManaCost(i int) {
+	m.mana_cost = &i
+	m.addmana_cost = nil
+}
+
+// ManaCost returns the value of the "mana_cost" field in the mutation.
+func (m *TalentMutation) ManaCost() (r int, exists bool) {
+	v := m.mana_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldManaCost returns the old "mana_cost" field's value of the Talent entity.
+// If the Talent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TalentMutation) OldManaCost(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldManaCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldManaCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldManaCost: %w", err)
+	}
+	return oldValue.ManaCost, nil
+}
+
+// AddManaCost adds i to the "mana_cost" field.
+func (m *TalentMutation) AddManaCost(i int) {
+	if m.addmana_cost != nil {
+		*m.addmana_cost += i
+	} else {
+		m.addmana_cost = &i
+	}
+}
+
+// AddedManaCost returns the value that was added to the "mana_cost" field in this mutation.
+func (m *TalentMutation) AddedManaCost() (r int, exists bool) {
+	v := m.addmana_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetManaCost resets all changes to the "mana_cost" field.
+func (m *TalentMutation) ResetManaCost() {
+	m.mana_cost = nil
+	m.addmana_cost = nil
+}
+
+// SetStaminaCost sets the "stamina_cost" field.
+func (m *TalentMutation) SetStaminaCost(i int) {
+	m.stamina_cost = &i
+	m.addstamina_cost = nil
+}
+
+// StaminaCost returns the value of the "stamina_cost" field in the mutation.
+func (m *TalentMutation) StaminaCost() (r int, exists bool) {
+	v := m.stamina_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStaminaCost returns the old "stamina_cost" field's value of the Talent entity.
+// If the Talent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TalentMutation) OldStaminaCost(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStaminaCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStaminaCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStaminaCost: %w", err)
+	}
+	return oldValue.StaminaCost, nil
+}
+
+// AddStaminaCost adds i to the "stamina_cost" field.
+func (m *TalentMutation) AddStaminaCost(i int) {
+	if m.addstamina_cost != nil {
+		*m.addstamina_cost += i
+	} else {
+		m.addstamina_cost = &i
+	}
+}
+
+// AddedStaminaCost returns the value that was added to the "stamina_cost" field in this mutation.
+func (m *TalentMutation) AddedStaminaCost() (r int, exists bool) {
+	v := m.addstamina_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStaminaCost resets all changes to the "stamina_cost" field.
+func (m *TalentMutation) ResetStaminaCost() {
+	m.stamina_cost = nil
+	m.addstamina_cost = nil
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterTalent entity by ids.
 func (m *TalentMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -8830,7 +10390,7 @@ func (m *TalentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TalentMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, talent.FieldName)
 	}
@@ -8839,6 +10399,24 @@ func (m *TalentMutation) Fields() []string {
 	}
 	if m.requirements != nil {
 		fields = append(fields, talent.FieldRequirements)
+	}
+	if m.effect_type != nil {
+		fields = append(fields, talent.FieldEffectType)
+	}
+	if m.effect_value != nil {
+		fields = append(fields, talent.FieldEffectValue)
+	}
+	if m.effect_duration != nil {
+		fields = append(fields, talent.FieldEffectDuration)
+	}
+	if m.cooldown != nil {
+		fields = append(fields, talent.FieldCooldown)
+	}
+	if m.mana_cost != nil {
+		fields = append(fields, talent.FieldManaCost)
+	}
+	if m.stamina_cost != nil {
+		fields = append(fields, talent.FieldStaminaCost)
 	}
 	return fields
 }
@@ -8854,6 +10432,18 @@ func (m *TalentMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case talent.FieldRequirements:
 		return m.Requirements()
+	case talent.FieldEffectType:
+		return m.EffectType()
+	case talent.FieldEffectValue:
+		return m.EffectValue()
+	case talent.FieldEffectDuration:
+		return m.EffectDuration()
+	case talent.FieldCooldown:
+		return m.Cooldown()
+	case talent.FieldManaCost:
+		return m.ManaCost()
+	case talent.FieldStaminaCost:
+		return m.StaminaCost()
 	}
 	return nil, false
 }
@@ -8869,6 +10459,18 @@ func (m *TalentMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldDescription(ctx)
 	case talent.FieldRequirements:
 		return m.OldRequirements(ctx)
+	case talent.FieldEffectType:
+		return m.OldEffectType(ctx)
+	case talent.FieldEffectValue:
+		return m.OldEffectValue(ctx)
+	case talent.FieldEffectDuration:
+		return m.OldEffectDuration(ctx)
+	case talent.FieldCooldown:
+		return m.OldCooldown(ctx)
+	case talent.FieldManaCost:
+		return m.OldManaCost(ctx)
+	case talent.FieldStaminaCost:
+		return m.OldStaminaCost(ctx)
 	}
 	return nil, fmt.Errorf("unknown Talent field %s", name)
 }
@@ -8899,6 +10501,48 @@ func (m *TalentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRequirements(v)
 		return nil
+	case talent.FieldEffectType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectType(v)
+		return nil
+	case talent.FieldEffectValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectValue(v)
+		return nil
+	case talent.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectDuration(v)
+		return nil
+	case talent.FieldCooldown:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCooldown(v)
+		return nil
+	case talent.FieldManaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetManaCost(v)
+		return nil
+	case talent.FieldStaminaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStaminaCost(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Talent field %s", name)
 }
@@ -8906,13 +10550,41 @@ func (m *TalentMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *TalentMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addeffect_value != nil {
+		fields = append(fields, talent.FieldEffectValue)
+	}
+	if m.addeffect_duration != nil {
+		fields = append(fields, talent.FieldEffectDuration)
+	}
+	if m.addcooldown != nil {
+		fields = append(fields, talent.FieldCooldown)
+	}
+	if m.addmana_cost != nil {
+		fields = append(fields, talent.FieldManaCost)
+	}
+	if m.addstamina_cost != nil {
+		fields = append(fields, talent.FieldStaminaCost)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *TalentMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case talent.FieldEffectValue:
+		return m.AddedEffectValue()
+	case talent.FieldEffectDuration:
+		return m.AddedEffectDuration()
+	case talent.FieldCooldown:
+		return m.AddedCooldown()
+	case talent.FieldManaCost:
+		return m.AddedManaCost()
+	case talent.FieldStaminaCost:
+		return m.AddedStaminaCost()
+	}
 	return nil, false
 }
 
@@ -8921,6 +10593,41 @@ func (m *TalentMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *TalentMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case talent.FieldEffectValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectValue(v)
+		return nil
+	case talent.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectDuration(v)
+		return nil
+	case talent.FieldCooldown:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCooldown(v)
+		return nil
+	case talent.FieldManaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddManaCost(v)
+		return nil
+	case talent.FieldStaminaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStaminaCost(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Talent numeric field %s", name)
 }
@@ -8965,6 +10672,24 @@ func (m *TalentMutation) ResetField(name string) error {
 		return nil
 	case talent.FieldRequirements:
 		m.ResetRequirements()
+		return nil
+	case talent.FieldEffectType:
+		m.ResetEffectType()
+		return nil
+	case talent.FieldEffectValue:
+		m.ResetEffectValue()
+		return nil
+	case talent.FieldEffectDuration:
+		m.ResetEffectDuration()
+		return nil
+	case talent.FieldCooldown:
+		m.ResetCooldown()
+		return nil
+	case talent.FieldManaCost:
+		m.ResetManaCost()
+		return nil
+	case talent.FieldStaminaCost:
+		m.ResetStaminaCost()
 		return nil
 	}
 	return fmt.Errorf("unknown Talent field %s", name)

@@ -1,0 +1,50 @@
+# Legolas Greenleaf
+# Archer/Skirmisher template
+
+id: legolas
+template_name: "Legolas"
+description: "An elven archer with unmatched precision"
+level: 14
+class: archer
+
+stats:
+  strength: 14
+  dexterity: 22
+  constitution: 14
+  intelligence: 16
+  wisdom: 18
+  charisma: 15
+
+hp:
+  base: 120
+  con_multiplier: 8
+
+skills:
+  classless:
+    slot_1: concentrate
+    slot_2: haymaker
+
+ai:
+  type: skirmisher
+  aggression: defensive
+  speech:
+    greeting: "The trees whisper of your arrival. What brings you here?"
+
+loot:
+  - item_id: iron_dagger
+    chance: 0.70
+    count_min: 1
+    count_max: 1
+  - item_id: stamina_vial
+    chance: 0.40
+    count_min: 1
+    count_max: 2
+  - item_id: health_potion
+    chance: 0.30
+    count_min: 1
+    count_max: 1
+
+visual:
+  appearance: "A graceful elf with bow ever at the ready"
+  color: "#98FB98"
+  icon: "🌲"

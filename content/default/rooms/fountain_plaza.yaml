@@ -1,0 +1,30 @@
+# Fountain Plaza
+# Central hub area
+# Room ID: 1
+
+id: "1"
+name: "Fountain Plaza"
+description: |
+  You stand in the heart of the city. A magnificent marble fountain
+  bubbles at the center of the cobblestone square, surrounded by
+  merchants hawking their wares. Colorful banners flutter between
+  lamp posts, and the air carries the scent of food from nearby cafes.
+
+area_id: "city_center"
+
+exits:
+  north: "2"
+  east: "5"
+  south: "4"
+  west: "3"
+
+npcs:
+  - aragorn
+  - legolas
+
+items:
+  - water_bucket
+
+flags:
+  - safe_zone
+  - resting_bonus

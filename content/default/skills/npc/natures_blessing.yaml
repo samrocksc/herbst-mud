@@ -1,0 +1,28 @@
+# Nature's Blessing - NPC-only healing skill
+# Druid/healer NPCs use this to sustain themselves
+
+id: natures_blessing
+name: "Nature's Blessing"
+description: "Call upon the spirits of nature to heal wounds"
+type: combat
+tags: [npc, heal, druid]
+ai_only: true  # Players cannot learn this
+level_requirement: 1
+effects:
+  - type: heal
+    target: self
+    value:
+      formula: "maxhp * 0.05"  # 5% max HP heal
+    duration: 0
+cooldown: 4
+mana_cost: 10
+stamina_cost: 0
+visual:
+  icon: "🌿"
+  color: "#228B22"
+ai_behavior:
+  can_use: true
+  use_chance: 0.1  # 10% base
+  health_threshold:
+    below: 0.6  # +40% at low health = 50% max
+    above: 0.1

@@ -1,0 +1,9 @@
+id: "cyber1"
+name: "Cyber Den"
+description: "A neon-lit hideout in the digital underground"
+exits: {}
+npcs:
+  - netrunner
+items: []
+flags:
+  - safe_zone

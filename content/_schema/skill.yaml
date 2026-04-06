@@ -1,0 +1,212 @@
+# Skill Definition Schema v1.0
+# Validated using JSON Schema Draft 7
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "herbst://content/skill"
+
+title: Skill Definition
+description: A combat, passive, or active skill that characters can use
+
+type: object
+required:
+  - id
+  - name
+  - description
+  - type
+
+properties:
+  id:
+    type: string
+    pattern: "^[a-z][a-z0-9_]*$"
+    minLength: 2
+    maxLength: 50
+    description: "Unique identifier in snake_case"
+
+  name:
+    type: string
+    minLength: 1
+    maxLength: 50
+    description: "Display name shown in UI"
+
+  description:
+    type: string
+    maxLength: 500
+    description: "Tooltip description"
+
+  type:
+    type: string
+    enum:
+      - combat      # Used during combat
+      - passive     # Always active
+      - active      # Manual trigger outside combat
+      - triggered   # Activates on condition
+
+  tags:
+    type: array
+    items:
+      type: string
+      enum:
+        - classless
+        - warrior
+        - mage
+        - ranged
+        - stealth
+        - healing
+        - damage
+        - buff
+        - debuff
+
+  level_requirement:
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 1
+
+  class_requirement:
+    type: string
+    enum: [warrior, mage, survivor, null]
+
+  prerequisites:
+    type: array
+    items:
+      type: object
+      required: [skill_id]
+      properties:
+        skill_id:
+          type: string
+        level:
+          type: integer
+          minimum: 1
+          default: 1
+
+  effects:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [damage, heal, buff, debuff, dot, hot, summon, teleport]
+        
+        target:
+          type: string
+          enum: [self, enemy, ally, area, random_enemy]
+          default: enemy
+
+        value:
+          oneOf:
+            - type: integer
+            - type: object
+              required: [formula]
+              properties:
+                formula:
+                  type: string
+                  description: "e.g.: level * 5 + strength * 0.5"
+                min:
+                  type: integer
+                max:
+                  type: integer
+
+        scaling:
+          type: object
+          properties:
+            stat:
+              type: string
+              enum: [strength, dexterity, constitution, intelligence, wisdom, charisma]
+            ratio:
+              type: number
+              minimum: 0
+
+        duration:
+          type: integer
+          minimum: 0
+          default: 0
+          description: "Duration in ticks (0 = instant)"
+
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                enum: [hp_below, hp_above, combat_started, weather]
+              value:
+                type: number
+
+  cooldown:
+    type: integer
+    minimum: 0
+    default: 0
+    description: "Cooldown in ticks"
+
+  mana_cost:
+    type: integer
+    minimum: 0
+    default: 0
+
+  stamina_cost:
+    type: integer
+    minimum: 0
+    default: 0
+
+  health_cost:
+    type: integer
+    minimum: 0
+    default: 0
+    description: "HP cost (for blood magic, etc)"
+
+  visual:
+    type: object
+    properties:
+      icon:
+        type: string
+        maxLength: 2
+        description: "Emoji or single character"
+      color:
+        type: string
+        pattern: "^#[0-9A-Fa-f]{6}$"
+      animation:
+        type: string
+      sound:
+        type: string
+
+  ai_behavior:
+    type: object
+    description: "How NPCs use this skill"
+    properties:
+      can_use:
+        type: boolean
+        default: true
+      use_chance:
+        type: number
+        minimum: 0
+        maximum: 1
+        default: 0.5
+      health_threshold:
+        type: object
+        properties:
+          below:
+            type: number
+          above:
+            type: number
+
+examples:
+  - id: haymaker
+    name: "Haymaker"
+    type: combat
+    description: "A powerful haymaker punch"
+    tags: [classless, damage]
+    level_requirement: 1
+    effects:
+      - type: damage
+        value: 15
+        scaling:
+          stat: strength
+          ratio: 0.5
+    cooldown: 4
+    stamina_cost: 8
+    visual:
+      icon: "👊"
+      color: "#C0C0C0"

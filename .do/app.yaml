@@ -1,0 +1,100 @@
+# Digital Ocean App Platform Specification
+# For: HerbSt MUD REST API + Admin Panel
+# Database: Neon DB (external)
+# SSH Server: Deployed separately to Droplet
+
+name: herbst-mud
+region: nyc1
+
+# Environment variables (set via UI or doctl)
+# Required: DATABASE_URL, JWT_SECRET, CORS_ORIGINS
+
+services:
+  # REST API Server (Go + Gin)
+  - name: api
+    source_dir: /server
+    github:
+      repo: your-username/herbst-mud
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    health_check:
+      http_path: /healthz
+      port: 8080
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+        value: ${DATABASE_URL}
+      - key: JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${JWT_SECRET}
+      - key: CORS_ORIGINS
+        scope: RUN_TIME
+        value: ${CORS_ORIGINS}
+      - key: RATE_LIMIT
+        scope: RUN_TIME
+        value: "100"
+      - key: RATE_WINDOW
+        scope: RUN_TIME
+        value: "60"
+      - key: SERVER_PORT
+        scope: RUN_TIME
+        value: "8080"
+      - key: SERVER_HOST
+        scope: RUN_TIME
+        value: "0.0.0.0"
+    routes:
+      - path: /api
+    alert:
+      - operator: GREATER_THAN
+        rule: CPU_UTILIZATION
+        value: 80
+        window: FIVE_MINUTES
+      - operator: GREATER_THAN
+        rule: MEM_UTILIZATION
+        value: 80
+        window: FIVE_MINUTES
+
+  # Admin Panel (React + Vite + nginx)
+  - name: admin
+    source_dir: /admin
+    github:
+      repo: your-username/herbst-mud
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    http_port: 80
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: VITE_API_BASE_URL
+        scope: RUN_TIME
+        value: ${APP_URL}/api
+    routes:
+      - path: /
+
+# Static Sites (optional - for serving OpenAPI docs if needed)
+# static_sites:
+#   - name: docs
+#     source_dir: /docs
+#     github:
+#       repo: your-username/herbst-mud
+#       branch: main
+#     output_dir: /
+#     index_document: index.html
+
+# Domains (configure after initial deploy)
+# domains:
+#   - domain: api.yourdomain.com
+#     type: PRIMARY
+#     zone: yourdomain.com

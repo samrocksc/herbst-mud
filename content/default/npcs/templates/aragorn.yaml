@@ -1,0 +1,67 @@
+# Aragorn, Son of Arathorn
+# Ranger/Druid template
+# References: LotR - Strider
+
+id: aragorn
+template_name: "Aragorn"
+description: "A ranger of the north, wanderer and protector"
+flavor_text: "The wilds have grown restless. What brings you to these parts?"
+class: ranger
+level: 15
+is_npc: true
+is_immortal: false
+is_invincible: false
+
+stats:
+  strength: 18
+  dexterity: 20
+  constitution: 16
+  intelligence: 14
+  wisdom: 15
+  charisma: 17
+
+hp:
+  base: 150
+  con_multiplier: 10
+
+skills:
+  classless:
+    slot_1: concentrate
+    slot_2: haymaker
+
+ai:
+  type: druid
+  aggression: passive
+  flee_threshold: 0.2
+  speech:
+    greeting: "Greetings, traveler. The road is long and the shadows grow."
+    defeat: "I must rest... the wilderness calls me..."
+    victory: "Your bravery is noted, but we must remain vigilant."
+
+loot:
+  - item_id: ranger_bow
+    chance: 0.15
+    count_min: 1
+    count_max: 1
+  - item_id: leather_vest
+    chance: 0.30
+    count_min: 1
+    count_max: 1
+  - item_id: gizmo_scrap
+    chance: 0.50
+    count_min: 1
+    count_max: 3
+
+visual:
+  appearance: "A weathered ranger in leather armor, sword sheathed but ready"
+  color: "#2E8B57"  # Sea green
+  icon: "🏹"
+
+quests_offered:
+  - tutorial_welcome
+
+spawn:
+  room_id: 5  # Fountain Plaza
+  respawn_seconds: 300
+  max_count: 1
+  despawn_when_empty: false

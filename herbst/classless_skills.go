@@ -337,6 +337,19 @@ func (m *model) handleClasslessSkillCommand(cmd string) {
 	switch action {
 	case "show", "list":
 		m.showEquippedClasslessSkills()
+	case "slot":
+		// skill slot <1-5> - opens selection mode
+		if len(parts) != 2 {
+			m.AppendMessage("Usage: skill slot <1-5>", "error")
+			return
+		}
+		slot := 0
+		fmt.Sscanf(parts[1], "%d", &slot)
+		if slot < 1 || slot > 5 {
+			m.AppendMessage("Slot must be between 1 and 5", "error")
+			return
+		}
+		m.startSkillSelection(slot)
 	case "equip":
 		if len(parts) != 3 {
 			m.AppendMessage("Usage: skill equip <skill_name> <slot>", "error")
@@ -364,52 +377,197 @@ func (m *model) handleClasslessSkillCommand(cmd string) {
 
 // showEquippedClasslessSkills displays currently equipped skills
 func (m *model) showEquippedClasslessSkills() {
-	output := "=== Classless Skills (Slots 1-5) ===\n\n"
+	output := "═══════════════════════════════════════════\n"
+	output += "           ⚔ Combat Skills\n"
+	output += "═══════════════════════════════════════════\n\n"
+	
+	if m.combatSkills == nil {
+		m.initCombatSkillState()
+	}
 
+	output += "[ Classless ] — Available to all characters\n\n"
 	for i := 0; i < 5; i++ {
 		skill := m.combatSkills.EquippedSkill[i]
 		if skill.ID == 0 {
-			output += fmt.Sprintf("[%d] (empty)\n", i+1)
+			output += fmt.Sprintf("  [%d] ─ (empty)\n", i+1)
 		} else {
-			output += fmt.Sprintf("[%d] %s - %s\n", i+1, skill.Name, skill.Description)
+			output += fmt.Sprintf("  [%d] ┌ %s\n", i+1, skill.Name)
+			output += fmt.Sprintf("       │ %s\n", skill.Description)
 			if skill.ManaCost > 0 || skill.StaminaCost > 0 {
-				output += fmt.Sprintf("     Cost: %d💧 %d⚡ | CD: %d rounds\n",
+				output += fmt.Sprintf("       └ Cost: %d💧 %d⚡ • CD: %d rounds\n",
 					skill.ManaCost, skill.StaminaCost, skill.Cooldown)
+			} else {
+				output += fmt.Sprintf("       └ CD: %d rounds\n", skill.Cooldown)
 			}
 		}
 		output += "\n"
 	}
 
-	output += "Use 'skill swap <slot1> <slot2>' to change positions\n"
-	output += "Use 'skill equip <name> <slot>' to equip a different skill\n"
-	output += "Use 'skill all' to see all available skills"
+	output += "───────────────────────────────────────────\n"
+	output += "In combat: Press 1-5 to activate\n"
+	output += "To change: skill slot <1-5>"
 	m.AppendMessage(output, "info")
 }
 
 // showAllAvailableClasslessSkills shows all 5 skills
 func (m *model) showAllAvailableClasslessSkills() {
-	output := "=== All Classless Skills ===\n\n"
+	output := "═══════════════════════════════════════════\n"
+	output += "       All Classless Combat Skills\n"
+	output += "═══════════════════════════════════════════\n\n"
 
 	for _, skill := range ClasslessSkills {
-		output += fmt.Sprintf("%s\n", skill.Name)
-		output += fmt.Sprintf("  %s\n", skill.Description)
-		output += fmt.Sprintf("  Cost: %d💧 %d⚡ | CD: %d | Dur: %d\n\n",
-			skill.ManaCost, skill.StaminaCost, skill.Cooldown, skill.Duration)
+		output += fmt.Sprintf("┌─ %s\n", skill.Name)
+		output += fmt.Sprintf("│ %s\n", skill.Description)
+		costParts := []string{}
+		if skill.ManaCost > 0 {
+			costParts = append(costParts, fmt.Sprintf("%d💧", skill.ManaCost))
+		}
+		if skill.StaminaCost > 0 {
+			costParts = append(costParts, fmt.Sprintf("%d⚡", skill.StaminaCost))
+		}
+		costStr := strings.Join(costParts, " ")
+		if costStr == "" {
+			costStr = "Free"
+		}
+		output += fmt.Sprintf("└ Cost: %s • CD: %d rounds • Duration: %d\n\n",
+			costStr, skill.Cooldown, skill.Duration)
 	}
 
-	output += "All characters can equip any 5 of these skills."
+	output += "───────────────────────────────────────────\n"
+	output += "Any 5 of these can be equipped to your combat slots."
 	m.AppendMessage(output, "info")
+}
+
+// startSkillSelection enters skill selection mode for a slot
+func (m *model) startSkillSelection(slot int) {
+	if m.combatSkills == nil {
+		m.initCombatSkillState()
+	}
+	m.skillSelectSlot = slot
+	m.skillSelectCursor = 0
+	m.screen = ScreenSkillSelect
+	m.renderSkillSelection()
+}
+
+// getSkillCategories returns skills organized by category
+func (m *model) getSkillCategories() map[string][]ClasslessSkill {
+	categories := make(map[string][]ClasslessSkill)
+	
+	// Classless skills (available to all)
+	categories["Classless"] = ClasslessSkills
+	
+	// TODO: Add class-specific skills based on m.characterClass
+	// categories["Fighter"] = FighterSkills
+	// categories["Mage"] = MageSkills
+	
+	// TODO: Add weapon skills based on character's weapon skills
+	// categories["Weapon"] = m.getAvailableWeaponSkills()
+	
+	return categories
+}
+
+// renderSkillSelection displays the skill selection UI with categories
+func (m *model) renderSkillSelection() {
+	output := "═══════════════════════════════════════════\n"
+	output += fmt.Sprintf("      Choose Skill for Slot %d\n", m.skillSelectSlot)
+	output += "═══════════════════════════════════════════\n\n"
+
+	currentSkill := m.combatSkills.EquippedSkill[m.skillSelectSlot-1]
+	if currentSkill.ID != 0 {
+		output += fmt.Sprintf("Currently Equipped: %s\n\n", currentSkill.Name)
+	} else {
+		output += "Slot Empty — Choose a skill:\n\n"
+	}
+
+	// Categories will be used when class-specific skills are added
+	// categories := m.getSkillCategories()
+	
+	// For now, just show classless skills in a clean list
+	// Future: iterate through categories with headers
+	output += "┌─ Classless Skills (Available to All) ─┐\n"
+	for i, skill := range ClasslessSkills {
+		cursor := "  "
+		if i == m.skillSelectCursor {
+			cursor = "▶ "
+		}
+		// Show brief info inline
+		costStr := ""
+		if skill.ManaCost > 0 {
+			costStr += fmt.Sprintf(" %d💧", skill.ManaCost)
+		}
+		if skill.StaminaCost > 0 {
+			costStr += fmt.Sprintf(" %d⚡", skill.StaminaCost)
+		}
+		if costStr == "" {
+			costStr = " Free"
+		}
+		
+		output += fmt.Sprintf("%s%d. %-15s │%s │ CD:%d\n", 
+			cursor, i+1, skill.Name, costStr, skill.Cooldown)
+	}
+	output += "└────────────────────────────────────────┘\n\n"
+	
+	// Show detailed description of selected skill
+	if m.skillSelectCursor >= 0 && m.skillSelectCursor < len(ClasslessSkills) {
+		selected := ClasslessSkills[m.skillSelectCursor]
+		output += fmt.Sprintf("▶ %s\n", selected.Name)
+		output += fmt.Sprintf("  %s\n\n", selected.Description)
+	}
+	
+	output += "Commands: 1-5 select • enter confirm • q cancel"
+
+	m.AppendMessage(output, "info")
+}
+
+// handleSkillSelectionInput processes input in skill selection mode
+func (m *model) handleSkillSelectionInput(key string) bool {
+	switch strings.ToLower(key) {
+	case "1", "2", "3", "4", "5":
+		num, _ := fmt.Sscanf(key, "%d", &m.skillSelectCursor)
+		if num == 1 {
+			m.skillSelectCursor-- // Convert to 0-based index
+			m.renderSkillSelection()
+		}
+		return true // Stay in selection mode
+	case "up", "k":
+		if m.skillSelectCursor > 0 {
+			m.skillSelectCursor--
+		}
+		m.renderSkillSelection()
+		return true
+	case "down", "j":
+		if m.skillSelectCursor < len(ClasslessSkills)-1 {
+			m.skillSelectCursor++
+		}
+		m.renderSkillSelection()
+		return true
+	case "enter", "b", " ":
+		// Confirm selection
+		selectedSkill := ClasslessSkills[m.skillSelectCursor]
+		m.equipClasslessSkill(selectedSkill.Name, m.skillSelectSlot)
+		m.screen = ScreenPlaying
+		m.AppendMessage(fmt.Sprintf("Equipped %s to slot %d!", selectedSkill.Name, m.skillSelectSlot), "success")
+		return false // Exit selection mode
+	case "q", "esc", "cancel":
+		m.screen = ScreenPlaying
+		m.AppendMessage("Skill selection cancelled.", "info")
+		return false // Exit selection mode
+	default:
+		m.AppendMessage("Use 1-5 to select, enter to confirm, q to cancel", "info")
+		return true
+	}
 }
 
 // showClasslessSkillsHelp displays help text
 func (m *model) showClasslessSkillsHelp() {
-	help := `Classless Skills Commands:
-  skill show           - Show equipped skills
-  skill all            - Show all available skills
-  skill equip <n> <s>  - Equip skill name to slot 1-5
+	help := `Skill Commands:
+  skills               - Show equipped combat skills
+  skill slot <1-5>    - Select a skill for a slot
+  skill all            - Show available classless skills
+  skill equip <n> <s>  - Equip skill to slot 1-5 (quick)
   skill swap <s1> <s2> - Swap skills between slots
 
-In combat, press 1-5 to use the skill in that slot.`
+In combat: press 1-5 to activate the skill in that slot.`
 	m.AppendMessage(help, "info")
 }
 
@@ -480,9 +638,18 @@ func (m *model) swapClasslessSkills(slot1, slot2 int) {
 	// Send to server
 	url := fmt.Sprintf("%s/characters/%d/classless-skills/swap", RESTAPIBase, m.currentCharacterID)
 	payload := fmt.Sprintf(`{"slot1":%d,"slot2":%d}`, slot1, slot2)
-	req, _ := http.NewRequest("PUT", url, strings.NewReader(payload))
+	req, err := http.NewRequest("PUT", url, strings.NewReader(payload))
+	if err != nil {
+		m.AppendMessage(fmt.Sprintf("Error creating swap request: %v", err), "error")
+		return
+	}
 	req.Header.Set("Content-Type", "application/json")
-	http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		m.AppendMessage(fmt.Sprintf("Error swapping skills: %v", err), "error")
+		return
+	}
+	defer resp.Body.Close()
 
 	m.AppendMessage(fmt.Sprintf("Swapped skills in slots %d and %d", slot1, slot2), "success")
 }

@@ -1,0 +1,8 @@
+id: hack
+name: "Hack"
+description: "Breach digital security systems"
+type: combat
+tags: [cyberpunk, tech]
+cooldown: 5
+mana_cost: 10
+stamina_cost: 0

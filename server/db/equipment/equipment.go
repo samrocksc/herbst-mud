@@ -32,6 +32,18 @@ const (
 	FieldIsVisible = "is_visible"
 	// FieldItemType holds the string denoting the itemtype field in the database.
 	FieldItemType = "item_type"
+	// FieldOwnerId holds the string denoting the ownerid field in the database.
+	FieldOwnerId = "owner_id"
+	// FieldEffectType holds the string denoting the effect_type field in the database.
+	FieldEffectType = "effect_type"
+	// FieldEffectValue holds the string denoting the effect_value field in the database.
+	FieldEffectValue = "effect_value"
+	// FieldEffectDuration holds the string denoting the effect_duration field in the database.
+	FieldEffectDuration = "effect_duration"
+	// FieldHealing holds the string denoting the healing field in the database.
+	FieldHealing = "healing"
+	// FieldEffect holds the string denoting the effect field in the database.
+	FieldEffect = "effect"
 	// FieldIsContainer holds the string denoting the iscontainer field in the database.
 	FieldIsContainer = "is_container"
 	// FieldContainerCapacity holds the string denoting the containercapacity field in the database.
@@ -42,6 +54,8 @@ const (
 	FieldKeyItemID = "key_item_id"
 	// FieldContainedItems holds the string denoting the containeditems field in the database.
 	FieldContainedItems = "contained_items"
+	// FieldRevealCondition holds the string denoting the revealcondition field in the database.
+	FieldRevealCondition = "reveal_condition"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// Table holds the table name of the equipment in the database.
@@ -68,11 +82,18 @@ var Columns = []string{
 	FieldColor,
 	FieldIsVisible,
 	FieldItemType,
+	FieldOwnerId,
+	FieldEffectType,
+	FieldEffectValue,
+	FieldEffectDuration,
+	FieldHealing,
+	FieldEffect,
 	FieldIsContainer,
 	FieldContainerCapacity,
 	FieldIsLocked,
 	FieldKeyItemID,
 	FieldContainedItems,
+	FieldRevealCondition,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
@@ -111,6 +132,16 @@ var (
 	DefaultIsVisible bool
 	// DefaultItemType holds the default value on creation for the "itemType" field.
 	DefaultItemType string
+	// DefaultEffectType holds the default value on creation for the "effect_type" field.
+	DefaultEffectType string
+	// DefaultEffectValue holds the default value on creation for the "effect_value" field.
+	DefaultEffectValue int
+	// DefaultEffectDuration holds the default value on creation for the "effect_duration" field.
+	DefaultEffectDuration int
+	// DefaultHealing holds the default value on creation for the "healing" field.
+	DefaultHealing int
+	// DefaultEffect holds the default value on creation for the "effect" field.
+	DefaultEffect string
 	// DefaultIsContainer holds the default value on creation for the "isContainer" field.
 	DefaultIsContainer bool
 	// DefaultContainerCapacity holds the default value on creation for the "containerCapacity" field.
@@ -119,6 +150,8 @@ var (
 	DefaultIsLocked bool
 	// DefaultContainedItems holds the default value on creation for the "containedItems" field.
 	DefaultContainedItems string
+	// DefaultRevealCondition holds the default value on creation for the "revealCondition" field.
+	DefaultRevealCondition string
 )
 
 // OrderOption defines the ordering options for the Equipment queries.
@@ -179,6 +212,36 @@ func ByItemType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldItemType, opts...).ToFunc()
 }
 
+// ByOwnerId orders the results by the ownerId field.
+func ByOwnerId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOwnerId, opts...).ToFunc()
+}
+
+// ByEffectType orders the results by the effect_type field.
+func ByEffectType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectType, opts...).ToFunc()
+}
+
+// ByEffectValue orders the results by the effect_value field.
+func ByEffectValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectValue, opts...).ToFunc()
+}
+
+// ByEffectDuration orders the results by the effect_duration field.
+func ByEffectDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectDuration, opts...).ToFunc()
+}
+
+// ByHealing orders the results by the healing field.
+func ByHealing(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHealing, opts...).ToFunc()
+}
+
+// ByEffect orders the results by the effect field.
+func ByEffect(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffect, opts...).ToFunc()
+}
+
 // ByIsContainer orders the results by the isContainer field.
 func ByIsContainer(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsContainer, opts...).ToFunc()
@@ -202,6 +265,11 @@ func ByKeyItemID(opts ...sql.OrderTermOption) OrderOption {
 // ByContainedItems orders the results by the containedItems field.
 func ByContainedItems(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContainedItems, opts...).ToFunc()
+}
+
+// ByRevealCondition orders the results by the revealCondition field.
+func ByRevealCondition(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevealCondition, opts...).ToFunc()
 }
 
 // ByRoomField orders the results by room field.

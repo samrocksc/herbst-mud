@@ -1,0 +1,46 @@
+# Tutorial: Welcome to the City
+# Basic exploration quest for new players
+
+id: tutorial_welcome
+name: "Welcome to the City"
+description: "Learn your way around the central district and meet the locals"
+type: exploration
+
+difficulty: easy
+level_required: 1
+
+steps:
+  - id: meet_aragorn
+    type: talk
+    description: "Speak with Aragorn in the Fountain Plaza"
+    target: aragorn
+    order: 1
+    
+  - id: visit_tavern
+    type: explore
+    description: "Visit the Rusty Anchor tavern"
+    target_room: "3"
+    order: 2
+    
+  - id: return_to_aragorn
+    type: talk
+    description: "Return to Aragorn to complete your orientation"
+    target: aragorn
+    order: 3
+
+rewards:
+  experience: 100
+  items:
+    - item_id: wooden_sword
+      count: 1
+    - item_id: health_potion
+      count: 2
+
+quest_giver: aragorn
+auto_complete: false
+repeatable: false
+
+flavor:
+  start: "Welcome, traveler! Let me show you around our city."
+  progress: "Have you visited the tavern yet? It's just west of here."
+  complete: "Excellent! You're ready to explore on your own. Take these supplies."

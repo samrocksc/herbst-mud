@@ -1,0 +1,53 @@
+# Samwise Gamgee
+# Halfling/Support template
+
+id: sam
+template_name: "Sam"
+description: "A loyal gardener and steadfast companion"
+level: 7
+class: support
+
+stats:
+  strength: 12
+  dexterity: 10
+  constitution: 16
+  intelligence: 10
+  wisdom: 13
+  charisma: 14
+
+hp:
+  base: 90
+  con_multiplier: 7
+
+skills:
+  classless:
+    slot_1: concentrate
+    slot_2: back_off
+
+ai:
+  type: support
+  aggression: defensive
+  speech:
+    greeting: "Well hello! Fancy seeing you here."
+
+loot:
+  - item_id: iron_ore
+    chance: 0.60
+    count_min: 1
+    count_max: 3
+  - item_id: health_potion
+    chance: 0.45
+    count_min: 1
+    count_max: 2
+  - item_id: stamina_vial
+    chance: 0.30
+    count_min: 1
+    count_max: 1
+
+visual:
+  appearance: "A stout halfling with rosy cheeks, carrying a trowel"
+  color: "#CD853F"
+  icon: "🥔"
+
+quests_offered:
+  - help_sam_garden

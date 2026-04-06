@@ -1,0 +1,26 @@
+# North Road
+# Outskirts of town
+# Room ID: 2
+
+id: "2"
+name: "North Road"
+description: |
+  The cobblestones give way to dirt as you leave the city walls behind.
+  Farms and fields stretch into the distance. A weathered signpost
+  points north to "Bree" and south toward the city gates.
+
+area_id: "outskirts"
+
+exits:
+  north: "6"
+  south: "1"
+  west: "7"
+
+npcs:
+  - combat_dummy
+
+items:
+  - hay_bale
+
+flags:
+  - outdoors

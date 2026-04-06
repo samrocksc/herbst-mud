@@ -1,0 +1,9 @@
+id: "steam1"
+name: "Steam Workshop"
+description: "Gears turn and steam whistles in this brass-filled workshop"
+exits: {}
+npcs:
+  - artificer
+items: []
+flags:
+  - safe_zone

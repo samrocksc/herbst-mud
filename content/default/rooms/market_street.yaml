@@ -1,0 +1,26 @@
+# Market Street
+# Commercial district
+# Room ID: 5
+
+id: "5"
+name: "Market Street"
+description: |
+  The street is packed with stalls, carts, and shouting merchants.
+  Exotic spices mingle with the scent of fresh bread. You can buy
+  almost anything here - if you have the coin.
+
+area_id: "city_center"
+
+exits:
+  north: "9"
+  east: "8"
+  west: "1"
+
+npcs: []
+
+items:
+  - market_stall
+
+flags:
+  - safe_zone
+  - indoors

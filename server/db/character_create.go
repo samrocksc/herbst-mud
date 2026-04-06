@@ -99,6 +99,48 @@ func (_c *CharacterCreate) SetNillableIsAdmin(v *bool) *CharacterCreate {
 	return _c
 }
 
+// SetIsImmortal sets the "is_immortal" field.
+func (_c *CharacterCreate) SetIsImmortal(v bool) *CharacterCreate {
+	_c.mutation.SetIsImmortal(v)
+	return _c
+}
+
+// SetNillableIsImmortal sets the "is_immortal" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableIsImmortal(v *bool) *CharacterCreate {
+	if v != nil {
+		_c.SetIsImmortal(*v)
+	}
+	return _c
+}
+
+// SetNpcSkillID sets the "npc_skill_id" field.
+func (_c *CharacterCreate) SetNpcSkillID(v string) *CharacterCreate {
+	_c.mutation.SetNpcSkillID(v)
+	return _c
+}
+
+// SetNillableNpcSkillID sets the "npc_skill_id" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableNpcSkillID(v *string) *CharacterCreate {
+	if v != nil {
+		_c.SetNpcSkillID(*v)
+	}
+	return _c
+}
+
+// SetNpcSkillCooldown sets the "npc_skill_cooldown" field.
+func (_c *CharacterCreate) SetNpcSkillCooldown(v int) *CharacterCreate {
+	_c.mutation.SetNpcSkillCooldown(v)
+	return _c
+}
+
+// SetNillableNpcSkillCooldown sets the "npc_skill_cooldown" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableNpcSkillCooldown(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetNpcSkillCooldown(*v)
+	}
+	return _c
+}
+
 // SetHitpoints sets the "hitpoints" field.
 func (_c *CharacterCreate) SetHitpoints(v int) *CharacterCreate {
 	_c.mutation.SetHitpoints(v)
@@ -604,6 +646,14 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultIsAdmin
 		_c.mutation.SetIsAdmin(v)
 	}
+	if _, ok := _c.mutation.IsImmortal(); !ok {
+		v := character.DefaultIsImmortal
+		_c.mutation.SetIsImmortal(v)
+	}
+	if _, ok := _c.mutation.NpcSkillCooldown(); !ok {
+		v := character.DefaultNpcSkillCooldown
+		_c.mutation.SetNpcSkillCooldown(v)
+	}
 	if _, ok := _c.mutation.Hitpoints(); !ok {
 		v := character.DefaultHitpoints
 		_c.mutation.SetHitpoints(v)
@@ -717,6 +767,12 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsAdmin(); !ok {
 		return &ValidationError{Name: "is_admin", err: errors.New(`db: missing required field "Character.is_admin"`)}
+	}
+	if _, ok := _c.mutation.IsImmortal(); !ok {
+		return &ValidationError{Name: "is_immortal", err: errors.New(`db: missing required field "Character.is_immortal"`)}
+	}
+	if _, ok := _c.mutation.NpcSkillCooldown(); !ok {
+		return &ValidationError{Name: "npc_skill_cooldown", err: errors.New(`db: missing required field "Character.npc_skill_cooldown"`)}
 	}
 	if _, ok := _c.mutation.Hitpoints(); !ok {
 		return &ValidationError{Name: "hitpoints", err: errors.New(`db: missing required field "Character.hitpoints"`)}
@@ -839,6 +895,18 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
 		_node.IsAdmin = value
+	}
+	if value, ok := _c.mutation.IsImmortal(); ok {
+		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
+		_node.IsImmortal = value
+	}
+	if value, ok := _c.mutation.NpcSkillID(); ok {
+		_spec.SetField(character.FieldNpcSkillID, field.TypeString, value)
+		_node.NpcSkillID = value
+	}
+	if value, ok := _c.mutation.NpcSkillCooldown(); ok {
+		_spec.SetField(character.FieldNpcSkillCooldown, field.TypeInt, value)
+		_node.NpcSkillCooldown = value
 	}
 	if value, ok := _c.mutation.Hitpoints(); ok {
 		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)

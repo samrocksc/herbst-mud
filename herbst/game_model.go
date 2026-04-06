@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"herbst/combat"
 )
 
 // ============================================================
@@ -17,7 +19,13 @@ import (
 // ============================================================
 
 func (m model) Init() tea.Cmd {
-	return textinput.Blink
+	// Start both text input blink and regen tick timer
+	return tea.Batch(
+		textinput.Blink,
+		tea.Tick(regenConfig.TickInterval, func(t time.Time) tea.Msg {
+			return regenTickMsg(t)
+		}),
+	)
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -48,6 +56,24 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.isLoading {
 			m.spinner, cmd = m.spinner.Update(msg)
 			return m, cmd
+		}
+
+	case regenTickMsg:
+		// Perform HP regeneration if conditions are met
+		if m.screen == ScreenPlaying && !m.inCombat {
+			m.performRegen()
+		}
+		// Always schedule next regen tick
+		return m, tea.Tick(regenConfig.TickInterval, func(t time.Time) tea.Msg {
+			return regenTickMsg(t)
+		})
+
+	case combatTickMsg:
+		if m.inCombat {
+			m.processCombatTick()
+			return m, tea.Tick(time.Duration(combat.DefaultTickInterval)*time.Millisecond, func(t time.Time) tea.Msg {
+				return combatTickMsg(t)
+			})
 		}
 
 	case tea.KeyMsg:
@@ -116,6 +142,23 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		// Combat screen key handlers - queue actions for next tick
+		if m.screen == ScreenCombat {
+			m.handleCombatInput(key)
+			return m, nil
+		}
+
+		// Skill selection screen handler
+		if m.screen == ScreenSkillSelect {
+			stayInMode := m.handleSkillSelectionInput(key)
+			if stayInMode {
+				return m, nil
+			}
+			// If we exited selection mode, clear input and continue
+			m.textInput.SetValue("")
+			return m, nil
+		}
+
 		// Command history navigation (up/down arrows) - only in playing screen
 		if m.screen == ScreenPlaying {
 			if key == "up" {
@@ -158,6 +201,13 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.historyIndex = 0 // Reset history position
 			m.processInput(input)
+			// Check if combat just started - start tick timer
+			if m.combatJustStarted {
+				m.combatJustStarted = false
+				return m, tea.Tick(time.Duration(combat.DefaultTickInterval)*time.Millisecond, func(t time.Time) tea.Msg {
+					return combatTickMsg(t)
+				})
+			}
 			return m, nil
 		}
 
@@ -170,6 +220,14 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Text input
 		m.textInput, cmd = m.textInput.Update(msg)
 		m.inputBuffer = m.textInput.Value()
+
+		// Check if combat just started - start tick timer
+		if m.combatJustStarted {
+			m.combatJustStarted = false
+			return m, tea.Tick(time.Duration(combat.DefaultTickInterval)*time.Millisecond, func(t time.Time) tea.Msg {
+				return combatTickMsg(t)
+			})
+		}
 
 		return m, cmd
 	}
@@ -196,6 +254,8 @@ func (m *model) handleEscape() {
 		m.AppendMessage("", "")
 	case ScreenPlaying:
 		m.AppendMessage("Type 'quit' or press Ctrl+C to exit", "info")
+	case ScreenCombat:
+		m.exitCombat()
 	}
 }
 
@@ -218,6 +278,9 @@ func (m *model) processInput(input string) {
 	case ScreenEditField:
 		m.handleEditFieldInput(input)
 	case ScreenPlaying:
+		m.processCommand(input)
+	case ScreenCombat:
+		// In combat, number keys are handled directly, text input can be used for commands
 		m.processCommand(input)
 	}
 }
@@ -311,6 +374,74 @@ func (m *model) View() string {
 		s.WriteString(promptStyle.Render("> "))
 		s.WriteString(m.textInput.View())
 
+	case ScreenCombat:
+		return m.renderCombatScreen()
+
+	case ScreenSkillSelect:
+		// Render skill selection screen
+		var sb strings.Builder
+		sb.WriteString("\n")
+		
+		// Header
+		headerStyle := lipgloss.NewStyle().Bold(true).Foreground(pink).Align(lipgloss.Center)
+		sb.WriteString(headerStyle.Render(fmt.Sprintf("Choose Skill for Slot %d", m.skillSelectSlot)))
+		sb.WriteString("\n\n")
+		
+		// Currently equipped
+		currentSkill := m.combatSkills.EquippedSkill[m.skillSelectSlot-1]
+		if currentSkill.ID != 0 {
+			sb.WriteString(fmt.Sprintf("Currently: %s\n\n", currentSkill.Name))
+		} else {
+			sb.WriteString("Slot Empty — Choose a skill:\n\n")
+		}
+		
+		// Skills list with cursor
+		for i, skill := range ClasslessSkills {
+			cursor := "  "
+			if i == m.skillSelectCursor {
+				cursor = "▶ "
+			}
+			
+			// Cost string
+			costStr := ""
+			if skill.ManaCost > 0 {
+				costStr += fmt.Sprintf(" %d💧", skill.ManaCost)
+			}
+			if skill.StaminaCost > 0 {
+				costStr += fmt.Sprintf(" %d⚡", skill.StaminaCost)
+			}
+			if costStr == "" {
+				costStr = " Free"
+			}
+			
+			line := fmt.Sprintf("%s%d. %-15s │%s │ CD:%d", cursor, i+1, skill.Name, costStr, skill.Cooldown)
+			if i == m.skillSelectCursor {
+				sb.WriteString(lipgloss.NewStyle().Foreground(green).Render(line))
+			} else {
+				sb.WriteString(line)
+			}
+			sb.WriteString("\n")
+		}
+		
+		// Selected skill description
+		if m.skillSelectCursor >= 0 && m.skillSelectCursor < len(ClasslessSkills) {
+			selected := ClasslessSkills[m.skillSelectCursor]
+			sb.WriteString("\n")
+			sb.WriteString(lipgloss.NewStyle().Bold(true).Render("▶ " + selected.Name))
+			sb.WriteString("\n")
+			sb.WriteString(selected.Description)
+			sb.WriteString("\n")
+		}
+		
+		// Footer
+		sb.WriteString("\n")
+		sb.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Commands: 1-5 select • enter confirm • q cancel"))
+		sb.WriteString("\n")
+		sb.WriteString(promptStyle.Render("> "))
+		sb.WriteString(m.textInput.View())
+		
+		return sb.String()
+
 	case ScreenPlaying:
 		width := m.width
 		height := m.height
@@ -357,7 +488,9 @@ func (m *model) View() string {
 		s.WriteString(viewportStyle.Render(m.viewport.View()))
 		s.WriteString("\n")
 
-		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana)
+		// Determine if regen is active (out of combat, not full HP, alive)
+		regenActive := !m.inCombat && m.characterHP < m.characterMaxHP && m.characterHP > 0
+		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana, regenActive)
 		debugInfo := ""
 		if m.debugMode {
 			debugInfo = " " + lipgloss.NewStyle().Foreground(yellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))

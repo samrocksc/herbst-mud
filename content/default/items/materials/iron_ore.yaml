@@ -1,0 +1,23 @@
+# Iron Ore
+# Raw material for blacksmithing
+
+id: iron_ore
+name: "Iron Ore"
+description: "Raw iron ore suitable for smelting"
+type: material
+slot: none
+level_requirement: 1
+rarity: common
+
+visual:
+  icon: "⛏️"
+  color: "#808080"
+
+value:
+  buy: 2
+  sell: 1
+
+uses: 0
+stackable: true
+max_stack: 50
+weight: 2.0

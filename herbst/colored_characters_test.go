@@ -15,7 +15,7 @@ func TestColorCodedCharacters(t *testing.T) {
 	}{
 		{
 			name: "NPC should show red",
-			char: roomCharacter{
+			char: RoomCharacter{
 				ID:    1,
 				Name:  "Goblin",
 				IsNPC: true,
@@ -28,7 +28,7 @@ func TestColorCodedCharacters(t *testing.T) {
 		},
 		{
 			name: "Player should show green",
-			char: roomCharacter{
+			char: RoomCharacter{
 				ID:      2,
 				Name:    "Sam123",
 				IsNPC:   false,
@@ -64,7 +64,7 @@ func TestColorCodedCharacters(t *testing.T) {
 
 // TestRoomCharacterStruct verifies the roomCharacter struct has all required fields
 func TestRoomCharacterStruct(t *testing.T) {
-	char := roomCharacter{
+	char := RoomCharacter{
 		ID:       1,
 		Name:     "Test",
 		IsNPC:    true,

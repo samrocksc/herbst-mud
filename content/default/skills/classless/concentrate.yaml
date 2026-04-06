@@ -1,0 +1,25 @@
+id: concentrate
+name: "Concentrate"
+description: "Focus your mind, increasing critical hit chance for the next attack"
+type: combat
+tags:
+  - classless
+  - buff
+level_requirement: 1
+effects:
+  - type: buff
+    target: self
+    value:
+      stat: crit_chance
+      amount: 0.1
+    duration: 3
+cooldown: 3
+stamina_cost: 5
+visual:
+  icon: "⚡"
+  color: "#FFD700"
+ai_behavior:
+  can_use: true
+  use_chance: 0.3
+  health_threshold:
+    above: 0.5

@@ -1,0 +1,28 @@
+# Spawn Configuration: Fountain Plaza
+# Central hub with ranger and elf presence
+# Room ID: 5
+
+location:
+  room_id: 5
+  room_name: "Fountain Plaza"
+  area: "Town Center"
+
+description: "The central plaza with ornate fountain, attracts noble adventurers"
+
+npcs:
+  - template_id: aragorn
+    chance: 1.0  # Always present
+    respawn_seconds: 300
+    max_count: 1
+    conditions: []
+  
+  - template_id: legolas
+    chance: 1.0
+    respawn_seconds: 300
+    max_count: 1
+    conditions: []
+
+meta:
+  created: "2026-04-06"
+  author: "content-team"
+  version: "1.0"

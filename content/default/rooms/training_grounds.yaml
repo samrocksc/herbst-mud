@@ -1,0 +1,26 @@
+# Training Grounds
+# Combat practice area
+# Room ID: 7
+
+id: "7"
+name: "Training Grounds"
+description: |
+  Straw training dummies and wooden sparring rings fill this yard.
+  Trainees practice their forms while instructors shout corrections.
+  The clash of practice weapons creates a constant din.
+
+area_id: "outskirts"
+
+exits:
+  east: "2"
+
+npcs:
+  - combat_dummy
+
+items:
+  - practice_sword
+  - straw_dummy
+
+flags:
+  - combat_zone
+  - outdoors

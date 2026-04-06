@@ -1,0 +1,56 @@
+# Gimli, Son of Glóin
+# Warrior/Brute template
+
+id: gimli
+template_name: "Gimli"
+description: "A fierce dwarven warrior, proud and steadfast"
+level: 12
+class: warrior
+
+stats:
+  strength: 22
+  dexterity: 12
+  constitution: 20
+  intelligence: 10
+  wisdom: 12
+  charisma: 8
+
+hp:
+  base: 180
+  con_multiplier: 12
+
+skills:
+  classless:
+    slot_1: scream
+    slot_2: slap
+
+ai:
+  type: warrior
+  aggression: aggressive
+  speech:
+    greeting: "Heh! A new face. You look like you could use some axe work!"
+
+loot:
+  - item_id: wooden_sword
+    chance: 0.60
+    count_min: 1
+    count_max: 2
+  - item_id: iron_ore
+    chance: 0.40
+    count_min: 2
+    count_max: 5
+  - item_id: health_potion
+    chance: 0.25
+    count_min: 1
+    count_max: 2
+
+visual:
+  appearance: "A stout dwarf with braided beard, wielding a massive battle axe"
+  color: "#8B4513"
+  icon: "🪓"
+
+quests_offered:
+  - gimli_axe_quest
+
+flags:
+  - aggressive

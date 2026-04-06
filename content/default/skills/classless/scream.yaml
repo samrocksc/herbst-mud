@@ -1,0 +1,45 @@
+id: scream
+name: "Scream"
+description: "Release a berserker cry. -WIS/INT, +DEX/STR for 2 rounds."
+type: combat
+tags:
+  - classless
+  - buff
+  - debuff
+effects:
+  - type: buff
+    target: self
+    stat: strength
+    value:
+      formula: "constitution * 0.5"
+    duration: 2
+  - type: buff
+    target: self
+    stat: dexterity
+    value:
+      formula: "constitution * 0.5"
+    duration: 2
+  - type: debuff
+    target: self
+    stat: wisdom
+    value:
+      formula: "-constitution * 0.5"
+    duration: 2
+  - type: debuff
+    target: self
+    stat: intelligence
+    value:
+      formula: "-constitution * 0.5"
+    duration: 2
+cooldown: 12
+mana_cost: 5
+stamina_cost: 10
+visual:
+  icon: "😤"
+  color: "#DC143C"
+ai_behavior:
+  can_use: true
+  use_chance: 0.2
+  health_threshold:
+    below: 0.5
+    above: 0.2

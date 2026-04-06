@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -16,8 +17,14 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// JWT secret - should match the one in user_routes.go
-var jwtSecret = []byte("your-secret-key-change-in-production")
+// getJWTSecret returns the JWT secret from environment variable
+func getJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return []byte("dev-secret-key-not-for-production-use-only")
+	}
+	return []byte(secret)
+}
 
 // AuthMiddleware creates authentication middleware
 // It validates JWT tokens and extracts user information
@@ -113,7 +120,7 @@ func validateToken(tokenString string) (*Claims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, &ValidationError{Message: "invalid signing method"}
 		}
-		return jwtSecret, nil
+		return getJWTSecret(), nil
 	})
 
 	if err != nil {

@@ -40,7 +40,10 @@ func (s *ServerTest) theWebServerIsRunning() error {
 
 func (s *ServerTest) iRequestTheHealthzEndpoint() error {
 	// Create a test request
-	req, _ := http.NewRequest("GET", "/healthz", nil)
+	req, err := http.NewRequest("GET", "/healthz", nil)
+	if err != nil {
+		return err
+	}
 	s.response = httptest.NewRecorder()
 	s.server.ServeHTTP(s.response, req)
 	return nil
@@ -48,7 +51,10 @@ func (s *ServerTest) iRequestTheHealthzEndpoint() error {
 
 func (s *ServerTest) iRequestTheOpenapijsonEndpoint() error {
 	// Create a test request
-	req, _ := http.NewRequest("GET", "/openapi.json", nil)
+	req, err := http.NewRequest("GET", "/openapi.json", nil)
+	if err != nil {
+		return err
+	}
 	s.response = httptest.NewRecorder()
 	s.server.ServeHTTP(s.response, req)
 	return nil

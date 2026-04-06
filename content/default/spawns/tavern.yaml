@@ -1,0 +1,31 @@
+# Spawn Configuration: The Rusty Anchor Tavern
+# Starting area with hobbit presence
+# Room ID: 2
+
+location:
+  room_id: 2
+  room_name: "The Rusty Anchor"
+  area: "Town Center"
+
+description: "Cozy tavern, attracts travelers and locals"
+
+npcs:
+  - template_id: frodo
+    chance: 1.0
+    respawn_seconds: 240
+    max_count: 1
+    conditions: []
+  
+  - template_id: sam
+    chance: 1.0
+    respawn_seconds: 240
+    max_count: 1
+    conditions:
+      - type: dependency
+        npc: frodo
+        message: "Sam is looking for Frodo..."
+
+meta:
+  created: "2026-04-06"
+  author: "content-team"
+  version: "1.0"

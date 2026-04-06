@@ -136,7 +136,7 @@ func (m *model) loadRoomCharacters() {
 		return
 	}
 
-	var characters []roomCharacter
+	var characters []RoomCharacter
 	if err := json.NewDecoder(resp.Body).Decode(&characters); err != nil {
 		return
 	}

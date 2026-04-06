@@ -1,0 +1,23 @@
+# Blacksmith Square
+# Crafting district
+# Room ID: 9
+
+id: "9"
+name: "Blacksmith Square"
+description: |
+  The ring of hammer on anvil echoes through this industrial
+  sector. Forge fires glow brightly, and the smell of hot metal
+  fills the air. Smiths craft weapons and armor here.
+
+area_id: "crafting_district"
+
+exits:
+  south: "5"
+
+npcs: []
+
+items:
+  - anvil
+
+flags:
+  - indoors

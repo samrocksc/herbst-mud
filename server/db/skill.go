@@ -28,6 +28,16 @@ type Skill struct {
 	Cooldown int `json:"cooldown,omitempty"`
 	// JSON string of prerequisites
 	Requirements string `json:"requirements,omitempty"`
+	// heal|damage|dot|buff_armor|buff_dodge|buff_crit|passive
+	EffectType string `json:"effect_type,omitempty"`
+	// Amount: HP healed, damage dealt, armor bonus, etc.
+	EffectValue int `json:"effect_value,omitempty"`
+	// Duration in ticks (0 = instant)
+	EffectDuration int `json:"effect_duration,omitempty"`
+	// Mana cost to use
+	ManaCost int `json:"mana_cost,omitempty"`
+	// Stamina cost to use
+	StaminaCost int `json:"stamina_cost,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SkillQuery when eager-loading is set.
 	Edges        SkillEdges `json:"edges"`
@@ -57,9 +67,9 @@ func (*Skill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case skill.FieldID, skill.FieldCost, skill.FieldCooldown:
+		case skill.FieldID, skill.FieldCost, skill.FieldCooldown, skill.FieldEffectValue, skill.FieldEffectDuration, skill.FieldManaCost, skill.FieldStaminaCost:
 			values[i] = new(sql.NullInt64)
-		case skill.FieldName, skill.FieldDescription, skill.FieldSkillType, skill.FieldRequirements:
+		case skill.FieldName, skill.FieldDescription, skill.FieldSkillType, skill.FieldRequirements, skill.FieldEffectType:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -117,6 +127,36 @@ func (_m *Skill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field requirements", values[i])
 			} else if value.Valid {
 				_m.Requirements = value.String
+			}
+		case skill.FieldEffectType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_type", values[i])
+			} else if value.Valid {
+				_m.EffectType = value.String
+			}
+		case skill.FieldEffectValue:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_value", values[i])
+			} else if value.Valid {
+				_m.EffectValue = int(value.Int64)
+			}
+		case skill.FieldEffectDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_duration", values[i])
+			} else if value.Valid {
+				_m.EffectDuration = int(value.Int64)
+			}
+		case skill.FieldManaCost:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field mana_cost", values[i])
+			} else if value.Valid {
+				_m.ManaCost = int(value.Int64)
+			}
+		case skill.FieldStaminaCost:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field stamina_cost", values[i])
+			} else if value.Valid {
+				_m.StaminaCost = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -176,6 +216,21 @@ func (_m *Skill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("requirements=")
 	builder.WriteString(_m.Requirements)
+	builder.WriteString(", ")
+	builder.WriteString("effect_type=")
+	builder.WriteString(_m.EffectType)
+	builder.WriteString(", ")
+	builder.WriteString("effect_value=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EffectValue))
+	builder.WriteString(", ")
+	builder.WriteString("effect_duration=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EffectDuration))
+	builder.WriteString(", ")
+	builder.WriteString("mana_cost=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ManaCost))
+	builder.WriteString(", ")
+	builder.WriteString("stamina_cost=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StaminaCost))
 	builder.WriteByte(')')
 	return builder.String()
 }

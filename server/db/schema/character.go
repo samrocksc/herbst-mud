@@ -26,6 +26,15 @@ func (Character) Fields() []ent.Field {
 			Comment("Room ID where character respawns after death (default: The Hole)"),
 		field.Bool("is_admin").
 			Default(false),
+		field.Bool("is_immortal").
+			Default(false).
+			Comment("Character cannot be killed - takes damage but never dies"),
+		field.String("npc_skill_id").
+			Optional().
+			Comment("NPC skill identifier (e.g., 'druid_heal')"),
+		field.Int("npc_skill_cooldown").
+			Default(0).
+			Comment("Current cooldown ticks on NPC skill"),
 		field.Int("hitpoints").
 			Default(100),
 		field.Int("max_hitpoints").

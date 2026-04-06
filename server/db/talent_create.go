@@ -47,6 +47,90 @@ func (_c *TalentCreate) SetNillableRequirements(v *string) *TalentCreate {
 	return _c
 }
 
+// SetEffectType sets the "effect_type" field.
+func (_c *TalentCreate) SetEffectType(v string) *TalentCreate {
+	_c.mutation.SetEffectType(v)
+	return _c
+}
+
+// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
+func (_c *TalentCreate) SetNillableEffectType(v *string) *TalentCreate {
+	if v != nil {
+		_c.SetEffectType(*v)
+	}
+	return _c
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (_c *TalentCreate) SetEffectValue(v int) *TalentCreate {
+	_c.mutation.SetEffectValue(v)
+	return _c
+}
+
+// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
+func (_c *TalentCreate) SetNillableEffectValue(v *int) *TalentCreate {
+	if v != nil {
+		_c.SetEffectValue(*v)
+	}
+	return _c
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (_c *TalentCreate) SetEffectDuration(v int) *TalentCreate {
+	_c.mutation.SetEffectDuration(v)
+	return _c
+}
+
+// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
+func (_c *TalentCreate) SetNillableEffectDuration(v *int) *TalentCreate {
+	if v != nil {
+		_c.SetEffectDuration(*v)
+	}
+	return _c
+}
+
+// SetCooldown sets the "cooldown" field.
+func (_c *TalentCreate) SetCooldown(v int) *TalentCreate {
+	_c.mutation.SetCooldown(v)
+	return _c
+}
+
+// SetNillableCooldown sets the "cooldown" field if the given value is not nil.
+func (_c *TalentCreate) SetNillableCooldown(v *int) *TalentCreate {
+	if v != nil {
+		_c.SetCooldown(*v)
+	}
+	return _c
+}
+
+// SetManaCost sets the "mana_cost" field.
+func (_c *TalentCreate) SetManaCost(v int) *TalentCreate {
+	_c.mutation.SetManaCost(v)
+	return _c
+}
+
+// SetNillableManaCost sets the "mana_cost" field if the given value is not nil.
+func (_c *TalentCreate) SetNillableManaCost(v *int) *TalentCreate {
+	if v != nil {
+		_c.SetManaCost(*v)
+	}
+	return _c
+}
+
+// SetStaminaCost sets the "stamina_cost" field.
+func (_c *TalentCreate) SetStaminaCost(v int) *TalentCreate {
+	_c.mutation.SetStaminaCost(v)
+	return _c
+}
+
+// SetNillableStaminaCost sets the "stamina_cost" field if the given value is not nil.
+func (_c *TalentCreate) SetNillableStaminaCost(v *int) *TalentCreate {
+	if v != nil {
+		_c.SetStaminaCost(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterTalent entity by IDs.
 func (_c *TalentCreate) AddCharacterIDs(ids ...int) *TalentCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -84,6 +168,7 @@ func (_c *TalentCreate) Mutation() *TalentMutation {
 
 // Save creates the Talent in the database.
 func (_c *TalentCreate) Save(ctx context.Context) (*Talent, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -109,6 +194,34 @@ func (_c *TalentCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *TalentCreate) defaults() {
+	if _, ok := _c.mutation.EffectType(); !ok {
+		v := talent.DefaultEffectType
+		_c.mutation.SetEffectType(v)
+	}
+	if _, ok := _c.mutation.EffectValue(); !ok {
+		v := talent.DefaultEffectValue
+		_c.mutation.SetEffectValue(v)
+	}
+	if _, ok := _c.mutation.EffectDuration(); !ok {
+		v := talent.DefaultEffectDuration
+		_c.mutation.SetEffectDuration(v)
+	}
+	if _, ok := _c.mutation.Cooldown(); !ok {
+		v := talent.DefaultCooldown
+		_c.mutation.SetCooldown(v)
+	}
+	if _, ok := _c.mutation.ManaCost(); !ok {
+		v := talent.DefaultManaCost
+		_c.mutation.SetManaCost(v)
+	}
+	if _, ok := _c.mutation.StaminaCost(); !ok {
+		v := talent.DefaultStaminaCost
+		_c.mutation.SetStaminaCost(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *TalentCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
@@ -116,6 +229,24 @@ func (_c *TalentCreate) check() error {
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Talent.description"`)}
+	}
+	if _, ok := _c.mutation.EffectType(); !ok {
+		return &ValidationError{Name: "effect_type", err: errors.New(`db: missing required field "Talent.effect_type"`)}
+	}
+	if _, ok := _c.mutation.EffectValue(); !ok {
+		return &ValidationError{Name: "effect_value", err: errors.New(`db: missing required field "Talent.effect_value"`)}
+	}
+	if _, ok := _c.mutation.EffectDuration(); !ok {
+		return &ValidationError{Name: "effect_duration", err: errors.New(`db: missing required field "Talent.effect_duration"`)}
+	}
+	if _, ok := _c.mutation.Cooldown(); !ok {
+		return &ValidationError{Name: "cooldown", err: errors.New(`db: missing required field "Talent.cooldown"`)}
+	}
+	if _, ok := _c.mutation.ManaCost(); !ok {
+		return &ValidationError{Name: "mana_cost", err: errors.New(`db: missing required field "Talent.mana_cost"`)}
+	}
+	if _, ok := _c.mutation.StaminaCost(); !ok {
+		return &ValidationError{Name: "stamina_cost", err: errors.New(`db: missing required field "Talent.stamina_cost"`)}
 	}
 	return nil
 }
@@ -154,6 +285,30 @@ func (_c *TalentCreate) createSpec() (*Talent, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Requirements(); ok {
 		_spec.SetField(talent.FieldRequirements, field.TypeString, value)
 		_node.Requirements = value
+	}
+	if value, ok := _c.mutation.EffectType(); ok {
+		_spec.SetField(talent.FieldEffectType, field.TypeString, value)
+		_node.EffectType = value
+	}
+	if value, ok := _c.mutation.EffectValue(); ok {
+		_spec.SetField(talent.FieldEffectValue, field.TypeInt, value)
+		_node.EffectValue = value
+	}
+	if value, ok := _c.mutation.EffectDuration(); ok {
+		_spec.SetField(talent.FieldEffectDuration, field.TypeInt, value)
+		_node.EffectDuration = value
+	}
+	if value, ok := _c.mutation.Cooldown(); ok {
+		_spec.SetField(talent.FieldCooldown, field.TypeInt, value)
+		_node.Cooldown = value
+	}
+	if value, ok := _c.mutation.ManaCost(); ok {
+		_spec.SetField(talent.FieldManaCost, field.TypeInt, value)
+		_node.ManaCost = value
+	}
+	if value, ok := _c.mutation.StaminaCost(); ok {
+		_spec.SetField(talent.FieldStaminaCost, field.TypeInt, value)
+		_node.StaminaCost = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -208,6 +363,7 @@ func (_c *TalentCreateBulk) Save(ctx context.Context) ([]*Talent, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TalentMutation)
 				if !ok {

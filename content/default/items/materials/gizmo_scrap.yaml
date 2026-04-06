@@ -1,0 +1,23 @@
+# Gizmo's Scrap
+# Junkyard material
+
+id: gizmo_scrap
+name: "Gizmo's Scrap"
+description: "A pile of interesting machine parts"
+type: material
+slot: none
+level_requirement: 1
+rarity: uncommon
+
+visual:
+  icon: "⚙️"
+  color: "#A9A9A9"
+
+value:
+  buy: 5
+  sell: 2
+
+uses: 0
+stackable: true
+max_stack: 20
+weight: 1.5

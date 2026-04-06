@@ -187,7 +187,7 @@ func StatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int) string {
 }
 
 // MiniStatusBar creates a compact inline status bar
-func MiniStatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int) string {
+func MiniStatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int, regenActive bool) string {
 	hpPercent := float64(hp) / float64(maxHP) * 100
 	staminaPercent := float64(stamina) / float64(maxStamina) * 100
 	manaPercent := float64(mana) / float64(maxMana) * 100
@@ -203,11 +203,24 @@ func MiniStatusBar(hp, maxHP, stamina, maxStamina, mana, maxMana int) string {
 	staStr := lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", staminaPercent))
 	manaStr := lipgloss.NewStyle().Foreground(gray).Render(fmt.Sprintf("%.0f", manaPercent))
 
+	// Use single-width characters to avoid alignment issues
+	var hpIcon, staIcon, manaIcon string
+	if regenActive {
+		hpIcon = lipgloss.NewStyle().Foreground(green).Render("+") // + for regen
+	} else {
+		hpIcon = lipgloss.NewStyle().Foreground(hpColor).Render("H") // H for HP
+	}
+	staIcon = lipgloss.NewStyle().Foreground(yellow).Render("S") // S for Stamina
+	manaIcon = lipgloss.NewStyle().Foreground(blue).Render("M") // M for Mana
+
+	// For users who prefer emoji, we can use these with proper spacing
+	// Note: Emojis are double-width, so we don't add extra spaces
+	// hpIcon = lipgloss.NewStyle().Foreground(hpColor).Render("❤")
+	// staIcon = lipgloss.NewStyle().Foreground(yellow).Render("⚡")
+	// manaIcon = lipgloss.NewStyle().Foreground(blue).Render("✦")
+
 	return fmt.Sprintf("[%s%s%% %s%s%% %s%s%%]",
-		lipgloss.NewStyle().Foreground(hpColor).Render("❤️"),
-		hpStr,
-		lipgloss.NewStyle().Foreground(yellow).Render("💪"),
-		staStr,
-		lipgloss.NewStyle().Foreground(blue).Render("✨"),
-		manaStr)
+		hpIcon, hpStr,
+		staIcon, staStr,
+		manaIcon, manaStr)
 }

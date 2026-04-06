@@ -1,0 +1,62 @@
+# World Registry
+# Defines available MUD worlds this instance can run
+
+version: "1.0"
+
+worlds:
+  - id: default
+    name: "Herbst MUD - Classic Fantasy"
+    description: "The original fantasy world with Aragorn, Gimli, and the fellowship"
+    status: active
+    content_path: "default"
+    database_prefix: ""  # Uses default tables
+    features:
+      - fantasy_classes
+      - magic_system
+      - loot_tables
+    settings:
+      pvp_enabled: true
+      permadeath: false
+      xp_multiplier: 1.0
+      gold_multiplier: 1.0
+
+  - id: cyberpunk
+    name: "Neon Nights"
+    description: "A cyberpunk dystopia in the year 2077"
+    status: development
+    content_path: "cyberpunk"
+    database_prefix: "cyber_"
+    features:
+      - hacking_system
+      - cyberware
+      - factions
+    settings:
+      pvp_enabled: true
+      permadeath: true
+      xp_multiplier: 1.5
+      gold_multiplier: 0.5
+
+  - id: steampunk
+    name: "Steam & Gear"
+    description: "Victorian steampunk airship adventures"
+    status: development
+    content_path: "steampunk"
+    database_prefix: "steam_"
+    features:
+      - airship_travel
+      - invention_system
+      - social_classes
+    settings:
+      pvp_enabled: false
+      permadeath: false
+      xp_multiplier: 1.2
+      gold_multiplier: 0.8
+
+# Default world for new players
+default_world: default
+
+# Cross-world features (shared across all worlds)
+shared:
+  - user_accounts
+  - achievements
+  - admin_panel

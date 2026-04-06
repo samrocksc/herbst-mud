@@ -35,7 +35,28 @@ func (Equipment) Fields() []ent.Field {
 			Comment("Shown in room list"),
 		field.String("itemType").
 			Default("misc").
-			Comment("weapon|armor|consumable|quest|misc|container"),
+			Comment("weapon|armor|consumable|quest|misc|container|potion"),
+		// Owner system - items can be owned by a character
+		field.Int("ownerId").
+			Optional().
+			Nillable().
+			Comment("Character ID that owns this item, nil if in a room"),
+		// Consumable effects (unified effect system)
+		field.String("effect_type").
+			Default("").
+			Comment("heal|damage|dot|buff_armor|buff_dodge|buff_crit|debuff"),
+		field.Int("effect_value").
+			Default(0).
+			Comment("Effect magnitude"),
+		field.Int("effect_duration").
+			Default(0).
+			Comment("Duration in ticks (0 = instant)"),
+		field.Int("healing").
+			Default(0).
+			Comment("DEPRECATED: Use effect_type=heal and effect_value instead"),
+		field.String("effect").
+			Default("").
+			Comment("DEPRECATED: Use effect_type instead"),
 		// Container system fields (GitHub #143)
 		field.Bool("isContainer").
 			Default(false).

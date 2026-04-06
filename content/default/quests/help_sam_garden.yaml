@@ -1,0 +1,48 @@
+# Help Sam with Gardening
+# Basic fetch quest
+
+id: help_sam_garden
+name: "Sam's Gardening Supplies"
+description: "Sam needs some iron ore for his garden tools"
+type: fetch
+
+difficulty: easy
+level_required: 1
+
+steps:
+  - id: talk_to_sam
+    type: talk
+    description: "Speak with Sam in the Rusty Anchor"
+    target: sam
+    order: 1
+    
+  - id: collect_ore
+    type: fetch
+    description: "Collect 3 pieces of iron ore"
+    item_id: iron_ore
+    count: 3
+    order: 2
+    
+  - id: return_ore
+    type: talk
+    description: "Bring the iron ore back to Sam"
+    target: sam
+    order: 3
+
+rewards:
+  experience: 75
+  items:
+    - item_id: health_potion
+      count: 3
+  reputation:
+    faction: hobbits
+    amount: 15
+
+quest_giver: sam
+auto_complete: false
+repeatable: true  # Sam always needs more ore
+
+flavor:
+  start: "I could sure use some iron ore for me gardening tools."
+  progress: "Have you found that ore yet? Check the Junkyard."
+  complete: "You're a lifesaver! Here, take these potions for your troubles."

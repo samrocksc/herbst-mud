@@ -1,0 +1,29 @@
+# Health Potion
+# Restores health when consumed
+
+id: health_potion
+name: "Health Potion"
+description: "A red liquid that heals wounds when consumed"
+type: consumable
+slot: none
+level_requirement: 1
+rarity: common
+
+effects:
+  - type: heal
+    effect:
+      value: 25
+      duration: 0
+
+visual:
+  icon: "🧪"
+  color: "#FF0000"
+
+value:
+  buy: 10
+  sell: 3
+
+uses: 1
+stackable: true
+max_stack: 10
+weight: 0.2

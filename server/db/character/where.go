@@ -79,9 +79,29 @@ func StartingRoomId(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldStartingRoomId, v))
 }
 
+// RespawnRoomId applies equality check predicate on the "respawnRoomId" field. It's identical to RespawnRoomIdEQ.
+func RespawnRoomId(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldRespawnRoomId, v))
+}
+
 // IsAdmin applies equality check predicate on the "is_admin" field. It's identical to IsAdminEQ.
 func IsAdmin(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsAdmin, v))
+}
+
+// IsImmortal applies equality check predicate on the "is_immortal" field. It's identical to IsImmortalEQ.
+func IsImmortal(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsImmortal, v))
+}
+
+// NpcSkillID applies equality check predicate on the "npc_skill_id" field. It's identical to NpcSkillIDEQ.
+func NpcSkillID(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldNpcSkillID, v))
+}
+
+// NpcSkillCooldown applies equality check predicate on the "npc_skill_cooldown" field. It's identical to NpcSkillCooldownEQ.
+func NpcSkillCooldown(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldNpcSkillCooldown, v))
 }
 
 // Hitpoints applies equality check predicate on the "hitpoints" field. It's identical to HitpointsEQ.
@@ -424,6 +444,46 @@ func StartingRoomIdLTE(v int) predicate.Character {
 	return predicate.Character(sql.FieldLTE(FieldStartingRoomId, v))
 }
 
+// RespawnRoomIdEQ applies the EQ predicate on the "respawnRoomId" field.
+func RespawnRoomIdEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldRespawnRoomId, v))
+}
+
+// RespawnRoomIdNEQ applies the NEQ predicate on the "respawnRoomId" field.
+func RespawnRoomIdNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldRespawnRoomId, v))
+}
+
+// RespawnRoomIdIn applies the In predicate on the "respawnRoomId" field.
+func RespawnRoomIdIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldRespawnRoomId, vs...))
+}
+
+// RespawnRoomIdNotIn applies the NotIn predicate on the "respawnRoomId" field.
+func RespawnRoomIdNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldRespawnRoomId, vs...))
+}
+
+// RespawnRoomIdGT applies the GT predicate on the "respawnRoomId" field.
+func RespawnRoomIdGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldRespawnRoomId, v))
+}
+
+// RespawnRoomIdGTE applies the GTE predicate on the "respawnRoomId" field.
+func RespawnRoomIdGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldRespawnRoomId, v))
+}
+
+// RespawnRoomIdLT applies the LT predicate on the "respawnRoomId" field.
+func RespawnRoomIdLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldRespawnRoomId, v))
+}
+
+// RespawnRoomIdLTE applies the LTE predicate on the "respawnRoomId" field.
+func RespawnRoomIdLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldRespawnRoomId, v))
+}
+
 // IsAdminEQ applies the EQ predicate on the "is_admin" field.
 func IsAdminEQ(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsAdmin, v))
@@ -432,6 +492,131 @@ func IsAdminEQ(v bool) predicate.Character {
 // IsAdminNEQ applies the NEQ predicate on the "is_admin" field.
 func IsAdminNEQ(v bool) predicate.Character {
 	return predicate.Character(sql.FieldNEQ(FieldIsAdmin, v))
+}
+
+// IsImmortalEQ applies the EQ predicate on the "is_immortal" field.
+func IsImmortalEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsImmortal, v))
+}
+
+// IsImmortalNEQ applies the NEQ predicate on the "is_immortal" field.
+func IsImmortalNEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldIsImmortal, v))
+}
+
+// NpcSkillIDEQ applies the EQ predicate on the "npc_skill_id" field.
+func NpcSkillIDEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDNEQ applies the NEQ predicate on the "npc_skill_id" field.
+func NpcSkillIDNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDIn applies the In predicate on the "npc_skill_id" field.
+func NpcSkillIDIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldNpcSkillID, vs...))
+}
+
+// NpcSkillIDNotIn applies the NotIn predicate on the "npc_skill_id" field.
+func NpcSkillIDNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldNpcSkillID, vs...))
+}
+
+// NpcSkillIDGT applies the GT predicate on the "npc_skill_id" field.
+func NpcSkillIDGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDGTE applies the GTE predicate on the "npc_skill_id" field.
+func NpcSkillIDGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDLT applies the LT predicate on the "npc_skill_id" field.
+func NpcSkillIDLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDLTE applies the LTE predicate on the "npc_skill_id" field.
+func NpcSkillIDLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDContains applies the Contains predicate on the "npc_skill_id" field.
+func NpcSkillIDContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDHasPrefix applies the HasPrefix predicate on the "npc_skill_id" field.
+func NpcSkillIDHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDHasSuffix applies the HasSuffix predicate on the "npc_skill_id" field.
+func NpcSkillIDHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDIsNil applies the IsNil predicate on the "npc_skill_id" field.
+func NpcSkillIDIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldNpcSkillID))
+}
+
+// NpcSkillIDNotNil applies the NotNil predicate on the "npc_skill_id" field.
+func NpcSkillIDNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldNpcSkillID))
+}
+
+// NpcSkillIDEqualFold applies the EqualFold predicate on the "npc_skill_id" field.
+func NpcSkillIDEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldNpcSkillID, v))
+}
+
+// NpcSkillIDContainsFold applies the ContainsFold predicate on the "npc_skill_id" field.
+func NpcSkillIDContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldNpcSkillID, v))
+}
+
+// NpcSkillCooldownEQ applies the EQ predicate on the "npc_skill_cooldown" field.
+func NpcSkillCooldownEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldNpcSkillCooldown, v))
+}
+
+// NpcSkillCooldownNEQ applies the NEQ predicate on the "npc_skill_cooldown" field.
+func NpcSkillCooldownNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldNpcSkillCooldown, v))
+}
+
+// NpcSkillCooldownIn applies the In predicate on the "npc_skill_cooldown" field.
+func NpcSkillCooldownIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldNpcSkillCooldown, vs...))
+}
+
+// NpcSkillCooldownNotIn applies the NotIn predicate on the "npc_skill_cooldown" field.
+func NpcSkillCooldownNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldNpcSkillCooldown, vs...))
+}
+
+// NpcSkillCooldownGT applies the GT predicate on the "npc_skill_cooldown" field.
+func NpcSkillCooldownGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldNpcSkillCooldown, v))
+}
+
+// NpcSkillCooldownGTE applies the GTE predicate on the "npc_skill_cooldown" field.
+func NpcSkillCooldownGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldNpcSkillCooldown, v))
+}
+
+// NpcSkillCooldownLT applies the LT predicate on the "npc_skill_cooldown" field.
+func NpcSkillCooldownLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldNpcSkillCooldown, v))
+}
+
+// NpcSkillCooldownLTE applies the LTE predicate on the "npc_skill_cooldown" field.
+func NpcSkillCooldownLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldNpcSkillCooldown, v))
 }
 
 // HitpointsEQ applies the EQ predicate on the "hitpoints" field.

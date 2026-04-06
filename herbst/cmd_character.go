@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"net/http"
 	"strings"
 
 	"herbst/db/character"
@@ -82,23 +85,83 @@ func (m *model) loadOrCreateCharacter() {
 	ctx := context.Background()
 	chars, err := m.client.Character.Query().Where(character.HasUserWith(user.IDEQ(m.currentUserID))).All(ctx)
 	if err != nil || len(chars) == 0 {
-		m.currentCharacterName = m.currentUserName
-		m.characterGender = "unspecified"
-		m.characterDescription = "A mysterious figure."
-		m.characterHP = 100
-		m.characterMaxHP = 100
-		m.characterStamina = 50
-		m.characterMaxStamina = 50
-		m.characterMana = 25
-		m.characterMaxMana = 25
-		m.characterLevel = 1
-		m.characterExperience = 0
+		// No character exists - create one
+		m.createDefaultCharacter()
 		return
 	}
 
 	char := chars[0]
 	m.currentCharacterID = char.ID
 	m.currentCharacterName = char.Name
+	m.characterLevel = char.Level
+	m.characterExperience = 0
+	m.characterHP = char.Hitpoints
+	m.characterMaxHP = char.MaxHitpoints
+	m.characterStamina = char.Stamina
+	m.characterMaxStamina = char.MaxStamina
+	m.characterMana = char.Mana
+	m.characterMaxMana = char.MaxMana
+}
+
+func (m *model) createDefaultCharacter() {
+	// Create character via REST API
+	jsonData, _ := json.Marshal(map[string]interface{}{
+		"name":           m.currentUserName,
+		"userId":         m.currentUserID,
+		"isNPC":          false,
+		"currentRoomId":  StartingRoomID,
+		"startingRoomId": StartingRoomID,
+		"race":           "human",
+		"class":          "adventurer",
+		"level":          1,
+		"hitpoints":      100,
+		"max_hitpoints":  100,
+		"stamina":        50,
+		"max_stamina":    50,
+		"mana":           25,
+		"max_mana":       25,
+	})
+
+	resp, err := http.Post(RESTAPIBase+"/characters", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		// Fallback to local state only
+		m.currentCharacterName = m.currentUserName
+		m.setCharacterDefaults()
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		// Fallback to local state only
+		m.currentCharacterName = m.currentUserName
+		m.setCharacterDefaults()
+		return
+	}
+
+	// Parse created character
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.currentCharacterName = m.currentUserName
+		m.setCharacterDefaults()
+		return
+	}
+
+	if id, ok := result["id"].(float64); ok {
+		m.currentCharacterID = int(id)
+	}
+	m.currentCharacterName = m.currentUserName
+	m.setCharacterDefaults()
+}
+
+func (m *model) setCharacterDefaults() {
+	m.characterGender = "unspecified"
+	m.characterDescription = "A mysterious figure."
+	m.characterHP = 100
+	m.characterMaxHP = 100
+	m.characterStamina = 50
+	m.characterMaxStamina = 50
+	m.characterMana = 25
+	m.characterMaxMana = 25
 	m.characterLevel = 1
 	m.characterExperience = 0
 }

@@ -136,6 +136,90 @@ func (_c *EquipmentCreate) SetNillableItemType(v *string) *EquipmentCreate {
 	return _c
 }
 
+// SetOwnerId sets the "ownerId" field.
+func (_c *EquipmentCreate) SetOwnerId(v int) *EquipmentCreate {
+	_c.mutation.SetOwnerId(v)
+	return _c
+}
+
+// SetNillableOwnerId sets the "ownerId" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableOwnerId(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetOwnerId(*v)
+	}
+	return _c
+}
+
+// SetEffectType sets the "effect_type" field.
+func (_c *EquipmentCreate) SetEffectType(v string) *EquipmentCreate {
+	_c.mutation.SetEffectType(v)
+	return _c
+}
+
+// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableEffectType(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetEffectType(*v)
+	}
+	return _c
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (_c *EquipmentCreate) SetEffectValue(v int) *EquipmentCreate {
+	_c.mutation.SetEffectValue(v)
+	return _c
+}
+
+// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableEffectValue(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetEffectValue(*v)
+	}
+	return _c
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (_c *EquipmentCreate) SetEffectDuration(v int) *EquipmentCreate {
+	_c.mutation.SetEffectDuration(v)
+	return _c
+}
+
+// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableEffectDuration(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetEffectDuration(*v)
+	}
+	return _c
+}
+
+// SetHealing sets the "healing" field.
+func (_c *EquipmentCreate) SetHealing(v int) *EquipmentCreate {
+	_c.mutation.SetHealing(v)
+	return _c
+}
+
+// SetNillableHealing sets the "healing" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableHealing(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetHealing(*v)
+	}
+	return _c
+}
+
+// SetEffect sets the "effect" field.
+func (_c *EquipmentCreate) SetEffect(v string) *EquipmentCreate {
+	_c.mutation.SetEffect(v)
+	return _c
+}
+
+// SetNillableEffect sets the "effect" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableEffect(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetEffect(*v)
+	}
+	return _c
+}
+
 // SetIsContainer sets the "isContainer" field.
 func (_c *EquipmentCreate) SetIsContainer(v bool) *EquipmentCreate {
 	_c.mutation.SetIsContainer(v)
@@ -202,6 +286,20 @@ func (_c *EquipmentCreate) SetContainedItems(v string) *EquipmentCreate {
 func (_c *EquipmentCreate) SetNillableContainedItems(v *string) *EquipmentCreate {
 	if v != nil {
 		_c.SetContainedItems(*v)
+	}
+	return _c
+}
+
+// SetRevealCondition sets the "revealCondition" field.
+func (_c *EquipmentCreate) SetRevealCondition(v string) *EquipmentCreate {
+	_c.mutation.SetRevealCondition(v)
+	return _c
+}
+
+// SetNillableRevealCondition sets the "revealCondition" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableRevealCondition(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetRevealCondition(*v)
 	}
 	return _c
 }
@@ -288,6 +386,26 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultItemType
 		_c.mutation.SetItemType(v)
 	}
+	if _, ok := _c.mutation.EffectType(); !ok {
+		v := equipment.DefaultEffectType
+		_c.mutation.SetEffectType(v)
+	}
+	if _, ok := _c.mutation.EffectValue(); !ok {
+		v := equipment.DefaultEffectValue
+		_c.mutation.SetEffectValue(v)
+	}
+	if _, ok := _c.mutation.EffectDuration(); !ok {
+		v := equipment.DefaultEffectDuration
+		_c.mutation.SetEffectDuration(v)
+	}
+	if _, ok := _c.mutation.Healing(); !ok {
+		v := equipment.DefaultHealing
+		_c.mutation.SetHealing(v)
+	}
+	if _, ok := _c.mutation.Effect(); !ok {
+		v := equipment.DefaultEffect
+		_c.mutation.SetEffect(v)
+	}
 	if _, ok := _c.mutation.IsContainer(); !ok {
 		v := equipment.DefaultIsContainer
 		_c.mutation.SetIsContainer(v)
@@ -303,6 +421,10 @@ func (_c *EquipmentCreate) defaults() {
 	if _, ok := _c.mutation.ContainedItems(); !ok {
 		v := equipment.DefaultContainedItems
 		_c.mutation.SetContainedItems(v)
+	}
+	if _, ok := _c.mutation.RevealCondition(); !ok {
+		v := equipment.DefaultRevealCondition
+		_c.mutation.SetRevealCondition(v)
 	}
 }
 
@@ -338,6 +460,21 @@ func (_c *EquipmentCreate) check() error {
 	if _, ok := _c.mutation.ItemType(); !ok {
 		return &ValidationError{Name: "itemType", err: errors.New(`db: missing required field "Equipment.itemType"`)}
 	}
+	if _, ok := _c.mutation.EffectType(); !ok {
+		return &ValidationError{Name: "effect_type", err: errors.New(`db: missing required field "Equipment.effect_type"`)}
+	}
+	if _, ok := _c.mutation.EffectValue(); !ok {
+		return &ValidationError{Name: "effect_value", err: errors.New(`db: missing required field "Equipment.effect_value"`)}
+	}
+	if _, ok := _c.mutation.EffectDuration(); !ok {
+		return &ValidationError{Name: "effect_duration", err: errors.New(`db: missing required field "Equipment.effect_duration"`)}
+	}
+	if _, ok := _c.mutation.Healing(); !ok {
+		return &ValidationError{Name: "healing", err: errors.New(`db: missing required field "Equipment.healing"`)}
+	}
+	if _, ok := _c.mutation.Effect(); !ok {
+		return &ValidationError{Name: "effect", err: errors.New(`db: missing required field "Equipment.effect"`)}
+	}
 	if _, ok := _c.mutation.IsContainer(); !ok {
 		return &ValidationError{Name: "isContainer", err: errors.New(`db: missing required field "Equipment.isContainer"`)}
 	}
@@ -349,6 +486,9 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.ContainedItems(); !ok {
 		return &ValidationError{Name: "containedItems", err: errors.New(`db: missing required field "Equipment.containedItems"`)}
+	}
+	if _, ok := _c.mutation.RevealCondition(); !ok {
+		return &ValidationError{Name: "revealCondition", err: errors.New(`db: missing required field "Equipment.revealCondition"`)}
 	}
 	return nil
 }
@@ -416,6 +556,30 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 		_node.ItemType = value
 	}
+	if value, ok := _c.mutation.OwnerId(); ok {
+		_spec.SetField(equipment.FieldOwnerId, field.TypeInt, value)
+		_node.OwnerId = &value
+	}
+	if value, ok := _c.mutation.EffectType(); ok {
+		_spec.SetField(equipment.FieldEffectType, field.TypeString, value)
+		_node.EffectType = value
+	}
+	if value, ok := _c.mutation.EffectValue(); ok {
+		_spec.SetField(equipment.FieldEffectValue, field.TypeInt, value)
+		_node.EffectValue = value
+	}
+	if value, ok := _c.mutation.EffectDuration(); ok {
+		_spec.SetField(equipment.FieldEffectDuration, field.TypeInt, value)
+		_node.EffectDuration = value
+	}
+	if value, ok := _c.mutation.Healing(); ok {
+		_spec.SetField(equipment.FieldHealing, field.TypeInt, value)
+		_node.Healing = value
+	}
+	if value, ok := _c.mutation.Effect(); ok {
+		_spec.SetField(equipment.FieldEffect, field.TypeString, value)
+		_node.Effect = value
+	}
 	if value, ok := _c.mutation.IsContainer(); ok {
 		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
 		_node.IsContainer = value
@@ -435,6 +599,10 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ContainedItems(); ok {
 		_spec.SetField(equipment.FieldContainedItems, field.TypeString, value)
 		_node.ContainedItems = value
+	}
+	if value, ok := _c.mutation.RevealCondition(); ok {
+		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
+		_node.RevealCondition = value
 	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

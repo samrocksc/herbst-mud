@@ -80,6 +80,76 @@ func (_c *SkillCreate) SetNillableRequirements(v *string) *SkillCreate {
 	return _c
 }
 
+// SetEffectType sets the "effect_type" field.
+func (_c *SkillCreate) SetEffectType(v string) *SkillCreate {
+	_c.mutation.SetEffectType(v)
+	return _c
+}
+
+// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableEffectType(v *string) *SkillCreate {
+	if v != nil {
+		_c.SetEffectType(*v)
+	}
+	return _c
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (_c *SkillCreate) SetEffectValue(v int) *SkillCreate {
+	_c.mutation.SetEffectValue(v)
+	return _c
+}
+
+// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableEffectValue(v *int) *SkillCreate {
+	if v != nil {
+		_c.SetEffectValue(*v)
+	}
+	return _c
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (_c *SkillCreate) SetEffectDuration(v int) *SkillCreate {
+	_c.mutation.SetEffectDuration(v)
+	return _c
+}
+
+// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableEffectDuration(v *int) *SkillCreate {
+	if v != nil {
+		_c.SetEffectDuration(*v)
+	}
+	return _c
+}
+
+// SetManaCost sets the "mana_cost" field.
+func (_c *SkillCreate) SetManaCost(v int) *SkillCreate {
+	_c.mutation.SetManaCost(v)
+	return _c
+}
+
+// SetNillableManaCost sets the "mana_cost" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableManaCost(v *int) *SkillCreate {
+	if v != nil {
+		_c.SetManaCost(*v)
+	}
+	return _c
+}
+
+// SetStaminaCost sets the "stamina_cost" field.
+func (_c *SkillCreate) SetStaminaCost(v int) *SkillCreate {
+	_c.mutation.SetStaminaCost(v)
+	return _c
+}
+
+// SetNillableStaminaCost sets the "stamina_cost" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableStaminaCost(v *int) *SkillCreate {
+	if v != nil {
+		_c.SetStaminaCost(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterSkill entity by IDs.
 func (_c *SkillCreate) AddCharacterIDs(ids ...int) *SkillCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -138,6 +208,26 @@ func (_c *SkillCreate) defaults() {
 		v := skill.DefaultCooldown
 		_c.mutation.SetCooldown(v)
 	}
+	if _, ok := _c.mutation.EffectType(); !ok {
+		v := skill.DefaultEffectType
+		_c.mutation.SetEffectType(v)
+	}
+	if _, ok := _c.mutation.EffectValue(); !ok {
+		v := skill.DefaultEffectValue
+		_c.mutation.SetEffectValue(v)
+	}
+	if _, ok := _c.mutation.EffectDuration(); !ok {
+		v := skill.DefaultEffectDuration
+		_c.mutation.SetEffectDuration(v)
+	}
+	if _, ok := _c.mutation.ManaCost(); !ok {
+		v := skill.DefaultManaCost
+		_c.mutation.SetManaCost(v)
+	}
+	if _, ok := _c.mutation.StaminaCost(); !ok {
+		v := skill.DefaultStaminaCost
+		_c.mutation.SetStaminaCost(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -156,6 +246,21 @@ func (_c *SkillCreate) check() error {
 	}
 	if _, ok := _c.mutation.Cooldown(); !ok {
 		return &ValidationError{Name: "cooldown", err: errors.New(`db: missing required field "Skill.cooldown"`)}
+	}
+	if _, ok := _c.mutation.EffectType(); !ok {
+		return &ValidationError{Name: "effect_type", err: errors.New(`db: missing required field "Skill.effect_type"`)}
+	}
+	if _, ok := _c.mutation.EffectValue(); !ok {
+		return &ValidationError{Name: "effect_value", err: errors.New(`db: missing required field "Skill.effect_value"`)}
+	}
+	if _, ok := _c.mutation.EffectDuration(); !ok {
+		return &ValidationError{Name: "effect_duration", err: errors.New(`db: missing required field "Skill.effect_duration"`)}
+	}
+	if _, ok := _c.mutation.ManaCost(); !ok {
+		return &ValidationError{Name: "mana_cost", err: errors.New(`db: missing required field "Skill.mana_cost"`)}
+	}
+	if _, ok := _c.mutation.StaminaCost(); !ok {
+		return &ValidationError{Name: "stamina_cost", err: errors.New(`db: missing required field "Skill.stamina_cost"`)}
 	}
 	return nil
 }
@@ -206,6 +311,26 @@ func (_c *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Requirements(); ok {
 		_spec.SetField(skill.FieldRequirements, field.TypeString, value)
 		_node.Requirements = value
+	}
+	if value, ok := _c.mutation.EffectType(); ok {
+		_spec.SetField(skill.FieldEffectType, field.TypeString, value)
+		_node.EffectType = value
+	}
+	if value, ok := _c.mutation.EffectValue(); ok {
+		_spec.SetField(skill.FieldEffectValue, field.TypeInt, value)
+		_node.EffectValue = value
+	}
+	if value, ok := _c.mutation.EffectDuration(); ok {
+		_spec.SetField(skill.FieldEffectDuration, field.TypeInt, value)
+		_node.EffectDuration = value
+	}
+	if value, ok := _c.mutation.ManaCost(); ok {
+		_spec.SetField(skill.FieldManaCost, field.TypeInt, value)
+		_node.ManaCost = value
+	}
+	if value, ok := _c.mutation.StaminaCost(); ok {
+		_spec.SetField(skill.FieldStaminaCost, field.TypeInt, value)
+		_node.StaminaCost = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

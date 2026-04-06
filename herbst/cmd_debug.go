@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-// handleDebugCommand handles the debug command
+// HandleDebug handles the debug command
 func (m *model) handleDebugCommand(cmd string) {
 	parts := strings.Fields(strings.ToLower(cmd))
 	if len(parts) < 2 {

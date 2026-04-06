@@ -1,0 +1,32 @@
+# Wooden Practice Sword
+# Basic weapon for starting characters
+
+id: wooden_sword
+name: "Wooden Practice Sword"
+description: "A sturdy wooden blade, good for training"
+type: weapon
+slot: weapon
+level_requirement: 1
+rarity: common
+
+damage:
+  min: 2
+  max: 4
+  speed: 1.0
+
+cooldown: 1.0
+
+visual:
+  icon: "🗡️"
+  color: "#8B4513"
+
+value:
+  buy: 5
+  sell: 1
+
+uses: 0
+stackable: false
+max_stack: 1
+weight: 1.0
+flags:
+  - training

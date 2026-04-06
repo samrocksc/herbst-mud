@@ -13,6 +13,7 @@ import { Route as NpcsRouteImport } from './routes/npcs'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ItemsRouteImport } from './routes/items'
+import { Route as ExportRouteImport } from './routes/export'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -36,6 +37,11 @@ const ItemsRoute = ItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExportRoute = ExportRouteImport.update({
+  id: '/export',
+  path: '/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -50,6 +56,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/export': typeof ExportRoute
   '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/export': typeof ExportRoute
   '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/export': typeof ExportRoute
   '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
@@ -74,15 +83,31 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/items' | '/login' | '/map' | '/npcs'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/export'
+    | '/items'
+    | '/login'
+    | '/map'
+    | '/npcs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/items' | '/login' | '/map' | '/npcs'
-  id: '__root__' | '/' | '/dashboard' | '/items' | '/login' | '/map' | '/npcs'
+  to: '/' | '/dashboard' | '/export' | '/items' | '/login' | '/map' | '/npcs'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/export'
+    | '/items'
+    | '/login'
+    | '/map'
+    | '/npcs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  ExportRoute: typeof ExportRoute
   ItemsRoute: typeof ItemsRoute
   LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
@@ -119,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ItemsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/export': {
+      id: '/export'
+      path: '/export'
+      fullPath: '/export'
+      preLoaderRoute: typeof ExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -139,6 +171,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  ExportRoute: ExportRoute,
   ItemsRoute: ItemsRoute,
   LoginRoute: LoginRoute,
   MapRoute: MapRoute,

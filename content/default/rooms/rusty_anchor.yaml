@@ -1,0 +1,27 @@
+# Fountain Plaza Inn (The Rusty Anchor)
+# A cozy tavern
+# Room ID: 3
+
+id: "3"
+name: "The Rusty Anchor"
+description: |
+  Warm candlelight flickers against weathered wooden walls. The smell
+  of roasted meat and hearty ale fills the air. Patrons fill the room
+  with cheerful noise, and a bard plays softly in the corner.
+
+area_id: "city_center"
+
+exits:
+  east: "1"
+
+npcs:
+  - frodo
+  - sam
+
+items:
+  - ale_mug
+
+flags:
+  - safe_zone
+  - resting_bonus
+  - indoors

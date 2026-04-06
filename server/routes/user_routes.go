@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -12,8 +13,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// JWT secret key - in production use environment variable
-var jwtSecret = []byte("your-secret-key-change-in-production")
+// getJWTSecret returns the JWT secret from environment variable
+// Must match the function in middleware/auth.go
+func getJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return []byte("dev-secret-key-not-for-production-use-only")
+	}
+	return []byte(secret)
+}
 
 // RegisterUserRoutes registers all user-related routes
 func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
@@ -93,7 +101,7 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		})
 
-		tokenString, err := token.SignedString(jwtSecret)
+		tokenString, err := token.SignedString(getJWTSecret())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return

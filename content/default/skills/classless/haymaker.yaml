@@ -1,0 +1,32 @@
+id: haymaker
+name: "Haymaker"
+description: "A powerful but reckless strike. +STR to damage, -DEX to hit."
+type: combat
+tags:
+  - classless
+  - damage
+effects:
+  - type: damage
+    target: self
+    value: 5  # Base bonus
+    scaling:
+      stat: strength
+      ratio: 1.0  # Full STR modifier added to damage
+  - type: debuff
+    target: self
+    value: -50  # Percentage reduction
+    scaling:
+      stat: strength
+      ratio: 0.5  # Half STR as DEX penalty
+    stat: dexterity
+cooldown: 6
+mana_cost: 0
+stamina_cost: 15
+visual:
+  icon: "💪"
+  color: "#FF4500"  # Orange red
+ai_behavior:
+  can_use: true
+  use_chance: 0.4
+  health_threshold:
+    above: 0.2

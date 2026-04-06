@@ -109,6 +109,16 @@ type model struct {
 	// Classless combat skills (slots 1-5)
 	combatSkills *CombatSkillState
 
+	// Command registry
+	commands *CommandRegistry
+
+	// NPC skill cooldown (for enemy skills)
+	npcSkillCooldown int
+
+	// Skill selection state
+	skillSelectSlot   int                 // Which slot we're selecting for (1-5)
+	skillSelectCursor int                 // Cursor position in the list
+
 	// Equipped potion (R slot)
 	equippedPotion *EquippedPotion
 }
@@ -196,7 +206,8 @@ const (
 	ScreenLogin     = "login"
 	ScreenRegister  = "register"
 	ScreenPlaying   = "playing"
-	ScreenProfile   = "profile"
-	ScreenEditField = "edit_field"
-	ScreenCombat    = "combat"
+	ScreenProfile    = "profile"
+	ScreenEditField  = "edit_field"
+	ScreenCombat     = "combat"
+	ScreenSkillSelect = "skill_select"
 )

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -67,8 +68,8 @@ func (m *model) startCombat(target *RoomCharacter) {
 	)
 	m.combatManager.AddParticipant(m.combatID, targetParticipant)
 
-	// Load equipped talents for combat
-	m.loadCombatTalents()
+	// Load classless skills for combat (slots 1-5)
+	m.initCombatSkillState()
 
 	m.AppendMessage(fmt.Sprintf("⚔ You enter combat with %s!", target.Name), "combat")
 	m.addCombatLog(fmt.Sprintf("Combat started with %s (Level %d)", target.Name, target.Level))
@@ -299,6 +300,9 @@ func (m *model) processCombatTick() {
 		return
 	}
 
+	// Decrement cooldowns at the start of each tick
+	m.decrementCooldowns()
+
 	// Execute queued action or auto-attack
 	if m.combatQueuedAction != "" {
 		m.executeCombatAction(m.combatQueuedAction)
@@ -433,6 +437,20 @@ func (m *model) enemyTurnWithDice() {
 		return
 	}
 
+	// Attempt NPC skill usage (happens before regular attack)
+	// This makes combat more dynamic - NPC might heal instead of attacking
+	if m.attemptNPCSkill(m.combatTarget) {
+		// NPC used a skill (like healing) - check if combat ended
+		if !m.inCombat || m.combatTarget.HP <= 0 {
+			return
+		}
+		// After using skill, NPC might still attack this tick
+		// 50% chance to still attack after healing
+		if rand.Float64() < 0.5 {
+			return
+		}
+	}
+
 	// Enemy rolls to hit player
 	enemyDexMod := m.combatTarget.Level / 3 // Simple enemy stat approximation
 	roll, toHit, isCrit, isFumble := dice.RollWithCrit(enemyDexMod)
@@ -500,6 +518,23 @@ func (m *model) checkCombatEnd() {
 }
 
 // exitCombat cleans up combat state
+// decrementCooldowns reduces all cooldowns at the start of a tick
+func (m *model) decrementCooldowns() {
+	// Decrement player skill cooldowns
+	if m.combatSkills != nil {
+		for skillID, cd := range m.combatSkills.Cooldowns {
+			if cd > 0 {
+				m.combatSkills.Cooldowns[skillID] = cd - 1
+			}
+		}
+	}
+	
+	// Decrement NPC skill cooldown
+	if m.npcSkillCooldown > 0 {
+		m.npcSkillCooldown--
+	}
+}
+
 func (m *model) exitCombat() {
 	if m.combatManager != nil && m.combatID > 0 {
 		m.combatManager.EndCombat(m.combatID)

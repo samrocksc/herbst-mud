@@ -1,0 +1,22 @@
+# Spawn Configuration: The Junkyard
+# Rough area with warrior presence
+# Room ID: 6
+
+location:
+  room_id: 6
+  room_name: "Junkyard"
+  area: "Rough District"
+
+description: "Scrap heaps and discarded treasures, attracts scavengers"
+
+npcs:
+  - template_id: gimli
+    chance: 1.0
+    respawn_seconds: 180
+    max_count: 1
+    conditions: []
+
+meta:
+  created: "2026-04-06"
+  author: "content-team"
+  version: "1.0"

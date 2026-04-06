@@ -182,6 +182,124 @@ func (_u *EquipmentUpdate) SetNillableItemType(v *string) *EquipmentUpdate {
 	return _u
 }
 
+// SetOwnerId sets the "ownerId" field.
+func (_u *EquipmentUpdate) SetOwnerId(v int) *EquipmentUpdate {
+	_u.mutation.ResetOwnerId()
+	_u.mutation.SetOwnerId(v)
+	return _u
+}
+
+// SetNillableOwnerId sets the "ownerId" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableOwnerId(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetOwnerId(*v)
+	}
+	return _u
+}
+
+// AddOwnerId adds value to the "ownerId" field.
+func (_u *EquipmentUpdate) AddOwnerId(v int) *EquipmentUpdate {
+	_u.mutation.AddOwnerId(v)
+	return _u
+}
+
+// ClearOwnerId clears the value of the "ownerId" field.
+func (_u *EquipmentUpdate) ClearOwnerId() *EquipmentUpdate {
+	_u.mutation.ClearOwnerId()
+	return _u
+}
+
+// SetEffectType sets the "effect_type" field.
+func (_u *EquipmentUpdate) SetEffectType(v string) *EquipmentUpdate {
+	_u.mutation.SetEffectType(v)
+	return _u
+}
+
+// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableEffectType(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetEffectType(*v)
+	}
+	return _u
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (_u *EquipmentUpdate) SetEffectValue(v int) *EquipmentUpdate {
+	_u.mutation.ResetEffectValue()
+	_u.mutation.SetEffectValue(v)
+	return _u
+}
+
+// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableEffectValue(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetEffectValue(*v)
+	}
+	return _u
+}
+
+// AddEffectValue adds value to the "effect_value" field.
+func (_u *EquipmentUpdate) AddEffectValue(v int) *EquipmentUpdate {
+	_u.mutation.AddEffectValue(v)
+	return _u
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (_u *EquipmentUpdate) SetEffectDuration(v int) *EquipmentUpdate {
+	_u.mutation.ResetEffectDuration()
+	_u.mutation.SetEffectDuration(v)
+	return _u
+}
+
+// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableEffectDuration(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetEffectDuration(*v)
+	}
+	return _u
+}
+
+// AddEffectDuration adds value to the "effect_duration" field.
+func (_u *EquipmentUpdate) AddEffectDuration(v int) *EquipmentUpdate {
+	_u.mutation.AddEffectDuration(v)
+	return _u
+}
+
+// SetHealing sets the "healing" field.
+func (_u *EquipmentUpdate) SetHealing(v int) *EquipmentUpdate {
+	_u.mutation.ResetHealing()
+	_u.mutation.SetHealing(v)
+	return _u
+}
+
+// SetNillableHealing sets the "healing" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableHealing(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetHealing(*v)
+	}
+	return _u
+}
+
+// AddHealing adds value to the "healing" field.
+func (_u *EquipmentUpdate) AddHealing(v int) *EquipmentUpdate {
+	_u.mutation.AddHealing(v)
+	return _u
+}
+
+// SetEffect sets the "effect" field.
+func (_u *EquipmentUpdate) SetEffect(v string) *EquipmentUpdate {
+	_u.mutation.SetEffect(v)
+	return _u
+}
+
+// SetNillableEffect sets the "effect" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableEffect(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetEffect(*v)
+	}
+	return _u
+}
+
 // SetIsContainer sets the "isContainer" field.
 func (_u *EquipmentUpdate) SetIsContainer(v bool) *EquipmentUpdate {
 	_u.mutation.SetIsContainer(v)
@@ -261,6 +379,20 @@ func (_u *EquipmentUpdate) SetContainedItems(v string) *EquipmentUpdate {
 func (_u *EquipmentUpdate) SetNillableContainedItems(v *string) *EquipmentUpdate {
 	if v != nil {
 		_u.SetContainedItems(*v)
+	}
+	return _u
+}
+
+// SetRevealCondition sets the "revealCondition" field.
+func (_u *EquipmentUpdate) SetRevealCondition(v string) *EquipmentUpdate {
+	_u.mutation.SetRevealCondition(v)
+	return _u
+}
+
+// SetNillableRevealCondition sets the "revealCondition" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableRevealCondition(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetRevealCondition(*v)
 	}
 	return _u
 }
@@ -367,6 +499,39 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.OwnerId(); ok {
+		_spec.SetField(equipment.FieldOwnerId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedOwnerId(); ok {
+		_spec.AddField(equipment.FieldOwnerId, field.TypeInt, value)
+	}
+	if _u.mutation.OwnerIdCleared() {
+		_spec.ClearField(equipment.FieldOwnerId, field.TypeInt)
+	}
+	if value, ok := _u.mutation.EffectType(); ok {
+		_spec.SetField(equipment.FieldEffectType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EffectValue(); ok {
+		_spec.SetField(equipment.FieldEffectValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedEffectValue(); ok {
+		_spec.AddField(equipment.FieldEffectValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.EffectDuration(); ok {
+		_spec.SetField(equipment.FieldEffectDuration, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedEffectDuration(); ok {
+		_spec.AddField(equipment.FieldEffectDuration, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Healing(); ok {
+		_spec.SetField(equipment.FieldHealing, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHealing(); ok {
+		_spec.AddField(equipment.FieldHealing, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Effect(); ok {
+		_spec.SetField(equipment.FieldEffect, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.IsContainer(); ok {
 		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
 	}
@@ -387,6 +552,9 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ContainedItems(); ok {
 		_spec.SetField(equipment.FieldContainedItems, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RevealCondition(); ok {
+		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -591,6 +759,124 @@ func (_u *EquipmentUpdateOne) SetNillableItemType(v *string) *EquipmentUpdateOne
 	return _u
 }
 
+// SetOwnerId sets the "ownerId" field.
+func (_u *EquipmentUpdateOne) SetOwnerId(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetOwnerId()
+	_u.mutation.SetOwnerId(v)
+	return _u
+}
+
+// SetNillableOwnerId sets the "ownerId" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableOwnerId(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetOwnerId(*v)
+	}
+	return _u
+}
+
+// AddOwnerId adds value to the "ownerId" field.
+func (_u *EquipmentUpdateOne) AddOwnerId(v int) *EquipmentUpdateOne {
+	_u.mutation.AddOwnerId(v)
+	return _u
+}
+
+// ClearOwnerId clears the value of the "ownerId" field.
+func (_u *EquipmentUpdateOne) ClearOwnerId() *EquipmentUpdateOne {
+	_u.mutation.ClearOwnerId()
+	return _u
+}
+
+// SetEffectType sets the "effect_type" field.
+func (_u *EquipmentUpdateOne) SetEffectType(v string) *EquipmentUpdateOne {
+	_u.mutation.SetEffectType(v)
+	return _u
+}
+
+// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableEffectType(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetEffectType(*v)
+	}
+	return _u
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (_u *EquipmentUpdateOne) SetEffectValue(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetEffectValue()
+	_u.mutation.SetEffectValue(v)
+	return _u
+}
+
+// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableEffectValue(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetEffectValue(*v)
+	}
+	return _u
+}
+
+// AddEffectValue adds value to the "effect_value" field.
+func (_u *EquipmentUpdateOne) AddEffectValue(v int) *EquipmentUpdateOne {
+	_u.mutation.AddEffectValue(v)
+	return _u
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (_u *EquipmentUpdateOne) SetEffectDuration(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetEffectDuration()
+	_u.mutation.SetEffectDuration(v)
+	return _u
+}
+
+// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableEffectDuration(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetEffectDuration(*v)
+	}
+	return _u
+}
+
+// AddEffectDuration adds value to the "effect_duration" field.
+func (_u *EquipmentUpdateOne) AddEffectDuration(v int) *EquipmentUpdateOne {
+	_u.mutation.AddEffectDuration(v)
+	return _u
+}
+
+// SetHealing sets the "healing" field.
+func (_u *EquipmentUpdateOne) SetHealing(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetHealing()
+	_u.mutation.SetHealing(v)
+	return _u
+}
+
+// SetNillableHealing sets the "healing" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableHealing(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetHealing(*v)
+	}
+	return _u
+}
+
+// AddHealing adds value to the "healing" field.
+func (_u *EquipmentUpdateOne) AddHealing(v int) *EquipmentUpdateOne {
+	_u.mutation.AddHealing(v)
+	return _u
+}
+
+// SetEffect sets the "effect" field.
+func (_u *EquipmentUpdateOne) SetEffect(v string) *EquipmentUpdateOne {
+	_u.mutation.SetEffect(v)
+	return _u
+}
+
+// SetNillableEffect sets the "effect" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableEffect(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetEffect(*v)
+	}
+	return _u
+}
+
 // SetIsContainer sets the "isContainer" field.
 func (_u *EquipmentUpdateOne) SetIsContainer(v bool) *EquipmentUpdateOne {
 	_u.mutation.SetIsContainer(v)
@@ -670,6 +956,20 @@ func (_u *EquipmentUpdateOne) SetContainedItems(v string) *EquipmentUpdateOne {
 func (_u *EquipmentUpdateOne) SetNillableContainedItems(v *string) *EquipmentUpdateOne {
 	if v != nil {
 		_u.SetContainedItems(*v)
+	}
+	return _u
+}
+
+// SetRevealCondition sets the "revealCondition" field.
+func (_u *EquipmentUpdateOne) SetRevealCondition(v string) *EquipmentUpdateOne {
+	_u.mutation.SetRevealCondition(v)
+	return _u
+}
+
+// SetNillableRevealCondition sets the "revealCondition" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableRevealCondition(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetRevealCondition(*v)
 	}
 	return _u
 }
@@ -806,6 +1106,39 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	if value, ok := _u.mutation.ItemType(); ok {
 		_spec.SetField(equipment.FieldItemType, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.OwnerId(); ok {
+		_spec.SetField(equipment.FieldOwnerId, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedOwnerId(); ok {
+		_spec.AddField(equipment.FieldOwnerId, field.TypeInt, value)
+	}
+	if _u.mutation.OwnerIdCleared() {
+		_spec.ClearField(equipment.FieldOwnerId, field.TypeInt)
+	}
+	if value, ok := _u.mutation.EffectType(); ok {
+		_spec.SetField(equipment.FieldEffectType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EffectValue(); ok {
+		_spec.SetField(equipment.FieldEffectValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedEffectValue(); ok {
+		_spec.AddField(equipment.FieldEffectValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.EffectDuration(); ok {
+		_spec.SetField(equipment.FieldEffectDuration, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedEffectDuration(); ok {
+		_spec.AddField(equipment.FieldEffectDuration, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Healing(); ok {
+		_spec.SetField(equipment.FieldHealing, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHealing(); ok {
+		_spec.AddField(equipment.FieldHealing, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Effect(); ok {
+		_spec.SetField(equipment.FieldEffect, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.IsContainer(); ok {
 		_spec.SetField(equipment.FieldIsContainer, field.TypeBool, value)
 	}
@@ -826,6 +1159,9 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if value, ok := _u.mutation.ContainedItems(); ok {
 		_spec.SetField(equipment.FieldContainedItems, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RevealCondition(); ok {
+		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
