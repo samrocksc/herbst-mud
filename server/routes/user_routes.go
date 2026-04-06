@@ -209,6 +209,34 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 		})
 	})
 
+	// Reset password for a user (sets to "password")
+	router.POST("/users/:id/reset-password", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
+
+		// Hash the default password with bcrypt
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			return
+		}
+
+		user, err := client.User.UpdateOneID(id).SetPassword(string(hashedPassword)).Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":       user.ID,
+			"email":    user.Email,
+			"is_admin": user.IsAdmin,
+		})
+	})
+
 	// Delete a user by ID
 	router.DELETE("/users/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
