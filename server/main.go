@@ -224,6 +224,9 @@ func main() {
 	// Register room routes
 	routes.RegisterRoomRoutes(router, client)
 
+	// Register skill routes
+	routes.RegisterSkillRoutes(router, client)
+
 	// Register user routes
 	routes.RegisterUserRoutes(router, client)
 
