@@ -227,6 +227,9 @@ func main() {
 	// Register skill routes
 	routes.RegisterSkillRoutes(router, client)
 
+	// Register talent routes
+	routes.RegisterTalentRoutes(router, client)
+
 	// Register user routes
 	routes.RegisterUserRoutes(router, client)
 

@@ -39,6 +39,12 @@ const SkillsIcon = () => (
   </svg>
 )
 
+const TalentsIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+  </svg>
+)
+
 const MapIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
@@ -70,6 +76,7 @@ const navItems: NavItem[] = [
   { label: 'Items', path: '/items', icon: <ItemsIcon /> },
   { label: 'Rooms', path: '/rooms', icon: <RoomsIcon /> },
   { label: 'Skills', path: '/skills', icon: <SkillsIcon /> },
+  { label: 'Talents', path: '/talents', icon: <TalentsIcon /> },
   { label: 'Map', path: '/map', icon: <MapIcon /> },
   { label: 'NPCs', path: '/npcs', icon: <NPCsIcon /> },
   { label: 'Players', path: '/players', icon: <PlayersIcon /> },

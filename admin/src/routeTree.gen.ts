@@ -15,7 +15,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ItemsRouteImport } from './routes/items'
 import { Route as ExportRouteImport } from './routes/export'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthTalentsRouteImport } from './routes/_auth/talents'
+import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
+import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
 
 const NpcsRoute = NpcsRouteImport.update({
   id: '/npcs',
@@ -47,10 +51,29 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthTalentsRoute = AuthTalentsRouteImport.update({
+  id: '/talents',
+  path: '/talents',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSkillsRoute = AuthSkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthPlayersRoute = AuthPlayersRouteImport.update({
+  id: '/players',
+  path: '/players',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -61,6 +84,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
+  '/players': typeof AuthPlayersRoute
+  '/skills': typeof AuthSkillsRoute
+  '/talents': typeof AuthTalentsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,16 +96,23 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
+  '/players': typeof AuthPlayersRoute
+  '/skills': typeof AuthSkillsRoute
+  '/talents': typeof AuthTalentsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/export': typeof ExportRoute
   '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
+  '/_auth/players': typeof AuthPlayersRoute
+  '/_auth/skills': typeof AuthSkillsRoute
+  '/_auth/talents': typeof AuthTalentsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,10 +124,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/map'
     | '/npcs'
+    | '/players'
+    | '/skills'
+    | '/talents'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/export' | '/items' | '/login' | '/map' | '/npcs'
-  id:
-    | '__root__'
+  to:
     | '/'
     | '/dashboard'
     | '/export'
@@ -102,10 +136,27 @@ export interface FileRouteTypes {
     | '/login'
     | '/map'
     | '/npcs'
+    | '/players'
+    | '/skills'
+    | '/talents'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/dashboard'
+    | '/export'
+    | '/items'
+    | '/login'
+    | '/map'
+    | '/npcs'
+    | '/_auth/players'
+    | '/_auth/skills'
+    | '/_auth/talents'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   ExportRoute: typeof ExportRoute
   ItemsRoute: typeof ItemsRoute
@@ -158,6 +209,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -165,11 +223,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/talents': {
+      id: '/_auth/talents'
+      path: '/talents'
+      fullPath: '/talents'
+      preLoaderRoute: typeof AuthTalentsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/skills': {
+      id: '/_auth/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof AuthSkillsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/players': {
+      id: '/_auth/players'
+      path: '/players'
+      fullPath: '/players'
+      preLoaderRoute: typeof AuthPlayersRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
+interface AuthRouteChildren {
+  AuthPlayersRoute: typeof AuthPlayersRoute
+  AuthSkillsRoute: typeof AuthSkillsRoute
+  AuthTalentsRoute: typeof AuthTalentsRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthPlayersRoute: AuthPlayersRoute,
+  AuthSkillsRoute: AuthSkillsRoute,
+  AuthTalentsRoute: AuthTalentsRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRouteWithChildren,
   DashboardRoute: DashboardRoute,
   ExportRoute: ExportRoute,
   ItemsRoute: ItemsRoute,
