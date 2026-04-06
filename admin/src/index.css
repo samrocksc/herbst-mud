@@ -938,3 +938,82 @@ button.danger:hover {
     border-bottom: 1px solid #ddd;
   }
 }
+/* Players and Skills Admin Panel Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.badge-admin { background: #7c3aed; color: white; }
+.badge-player { background: #2563eb; color: white; }
+.badge-classless { background: #f97316; color: white; }
+
+.players-table-container { overflow-x: auto; }
+.players-table { width: 100%; border-collapse: collapse; }
+.players-table th, .players-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.players-table th { font-weight: 600; background: #f9fafb; }
+.players-table tr:hover { background: #f9fafb; }
+.clickable-row { cursor: pointer; }
+.clickable-row:hover { background: #f3f4f6 !important; }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
+  align-items: center; justify-content: center; z-index: 50;
+}
+.modal-content {
+  background: white; border-radius: 8px; max-width: 500px; width: 90%;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; border-bottom: 1px solid #e5e7eb;
+}
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; }
+.modal-body { padding: 20px; }
+.modal-footer {
+  padding: 16px 20px; border-top: 1px solid #e5e7eb;
+  display: flex; gap: 8px; justify-content: flex-end;
+}
+
+.form-row { margin-bottom: 16px; }
+.form-row label { display: block; font-weight: 500; margin-bottom: 4px; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; padding: 8px 12px; border: 1px solid #d1d5db;
+  border-radius: 6px; font-size: 14px;
+}
+.form-row textarea { min-height: 80px; resize: vertical; }
+
+.btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; border: none; }
+.btn-primary { background: #2563eb; color: white; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-danger { background: #dc2626; color: white; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-secondary { background: #6b7280; color: white; }
+.btn-secondary:hover { background: #4b5563; }
+
+.skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.skill-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+  padding: 16px; transition: box-shadow 0.2s;
+}
+.skill-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.skill-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.skill-type-badge {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;
+}
+.skill-type-weapon { background: #fef2f2; color: #dc2626; }
+.skill-type-magic { background: #faf5ff; color: #7c3aed; }
+.skill-type-utility { background: #eff6ff; color: #2563eb; }
+
+.filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-bar select { padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; }
+
+.toast {
+  position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
+  border-radius: 6px; z-index: 100; font-weight: 500;
+}
+.toast-success { background: #22c55e; color: white; }
+.toast-error { background: #ef4444; color: white; }

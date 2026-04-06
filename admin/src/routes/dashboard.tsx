@@ -10,11 +10,12 @@ interface Stats {
   npcs: number
   items: number
   players: number
+  skills: number
 }
 
 function Dashboard() {
   const navigate = useNavigate()
-  const [stats, setStats] = useState<Stats>({ rooms: 0, npcs: 0, items: 0, players: 0 })
+  const [stats, setStats] = useState<Stats>({ rooms: 0, npcs: 0, items: 0, players: 0, skills: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -26,17 +27,20 @@ function Dashboard() {
 
     const fetchStats = async () => {
       try {
-        const [roomsRes, npcsRes] = await Promise.all([
+        const [roomsRes, npcsRes, skillsRes] = await Promise.all([
           fetch('http://localhost:8080/rooms'),
-          fetch('http://localhost:8080/npcs')
+          fetch('http://localhost:8080/npcs'),
+          fetch('http://localhost:8080/skills')
         ])
         const roomsData = await roomsRes.json()
         const npcsData = await npcsRes.json()
+        const skillsData = await skillsRes.json()
         setStats({
           rooms: Array.isArray(roomsData) ? roomsData.length : 0,
           npcs: npcsData.npcs?.length || 0,
           items: 0,
-          players: 0
+          players: 0,
+          skills: skillsData.count || 0
         })
       } catch (err) {
         console.error('Failed to fetch stats:', err)
@@ -84,7 +88,12 @@ function Dashboard() {
             <div className="text-text-muted text-sm">Items</div>
           </div>
           <div className="bg-surface-muted rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-primary-hover">{loading ? '--' : stats.players}</div>
+            <div className="text-2xl font-bold text-primary-hover">{loading ? '--' : stats.skills}</div>
+            <div className="text-text-muted text-sm">Skills</div>
+          </div>
+
+          <div className="bg-surface-muted rounded-lg p-6 text-center">
+            <div className="text-2xl font-bold text-secondary">{loading ? '--' : stats.players}</div>
             <div className="text-text-muted text-sm">Players</div>
           </div>
         </div>
@@ -115,11 +124,17 @@ function Dashboard() {
             <div className="text-text-muted text-sm">Backup and restore game world data</div>
           </Link>
 
-          <div className="bg-surface-muted rounded-lg p-6 border border-border opacity-50">
+          <Link to="/players" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
             <div className="text-2xl mb-2">🎮</div>
             <div className="font-bold mb-1">Player Manager</div>
-            <div className="text-text-muted text-sm">Coming soon</div>
-          </div>
+            <div className="text-text-muted text-sm">Manage players and reset passwords</div>
+          </Link>
+
+          <Link to="/skills" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
+            <div className="text-2xl mb-2">⚡</div>
+            <div className="font-bold mb-1">Skills Manager</div>
+            <div className="text-text-muted text-sm">Create, edit, and manage skills</div>
+          </Link>
         </div>
       </div>
     </div>
