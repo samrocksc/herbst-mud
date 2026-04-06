@@ -21,87 +21,87 @@ func NewItemRegistry() *ItemRegistry {
 
 // ItemDef represents an item definition
 type ItemDef struct {
-	ID                string            `yaml:"id" json:"id"`
-	Name              string            `yaml:"name" json:"name"`
-	Description       string            `yaml:"description" json:"description"`
-	Type              string            `yaml:"type" json:"type"`
-	Slot              string            `yaml:"slot" json:"slot"`
-	LevelRequirement  int               `yaml:"level_requirement" json:"level_requirement"`
-	ClassRequirement  []string          `yaml:"class_requirement,omitempty" json:"class_requirement,omitempty"`
-	StatRequirements  StatReqDef        `yaml:"stat_requirements,omitempty" json:"stat_requirements,omitempty"`
-	Damage            *DamageDef        `yaml:"damage,omitempty" json:"damage,omitempty"`
-	Armor             int               `yaml:"armor,omitempty" json:"armor,omitempty"`
-	Stats             StatBonusDef      `yaml:"stats,omitempty" json:"stats,omitempty"`
-	Effects           []ItemEffectDef   `yaml:"effects,omitempty" json:"effects,omitempty"`
-	Uses              int               `yaml:"uses" json:"uses"`
-	Stackable         bool              `yaml:"stackable" json:"stackable"`
-	MaxStack          int               `yaml:"max_stack" json:"max_stack"`
-	Weight            float64           `yaml:"weight" json:"weight"`
-	Value             ValueDef          `yaml:"value" json:"value"`
-	Rarity            string            `yaml:"rarity" json:"rarity"`
-	Durability        *DurabilityDef    `yaml:"durability,omitempty" json:"durability,omitempty"`
-	Visual            VisualDef         `yaml:"visual" json:"visual"`
-	DropTable         *DropTableDef     `yaml:"drop_table,omitempty" json:"drop_table,omitempty"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Description       string            `json:"description"`
+	Type              string            `json:"type"`
+	Slot              string            `json:"slot"`
+	LevelRequirement  int               `json:"level_requirement"`
+	ClassRequirement  []string          `json:"class_requirement,omitempty"`
+	StatRequirements  StatReqDef        `json:"stat_requirements,omitempty"`
+	Damage            *DamageDef        `json:"damage,omitempty"`
+	Armor             int               `json:"armor,omitempty"`
+	Stats             StatBonusDef      `json:"stats,omitempty"`
+	Effects           []ItemEffectDef   `json:"effects,omitempty"`
+	Uses              int               `json:"uses"`
+	Stackable         bool              `json:"stackable"`
+	MaxStack          int               `json:"max_stack"`
+	Weight            float64           `json:"weight"`
+	Value             ValueDef          `json:"value"`
+	Rarity            string            `json:"rarity"`
+	Durability        *DurabilityDef    `json:"durability,omitempty"`
+	Visual            VisualDef         `json:"visual"`
+	DropTable         *DropTableDef     `json:"drop_table,omitempty"`
 }
 
 // StatReqDef represents stat requirements
 type StatReqDef struct {
-	Strength     int `yaml:"strength,omitempty" json:"strength,omitempty"`
-	Dexterity    int `yaml:"dexterity,omitempty" json:"dexterity,omitempty"`
-	Constitution int `yaml:"constitution,omitempty" json:"constitution,omitempty"`
-	Intelligence int `yaml:"intelligence,omitempty" json:"intelligence,omitempty"`
-	Wisdom       int `yaml:"wisdom,omitempty" json:"wisdom,omitempty"`
-	Charisma     int `yaml:"charisma,omitempty" json:"charisma,omitempty"`
+	Strength     int `json:"strength,omitempty"`
+	Dexterity    int `json:"dexterity,omitempty"`
+	Constitution int `json:"constitution,omitempty"`
+	Intelligence int `json:"intelligence,omitempty"`
+	Wisdom       int `json:"wisdom,omitempty"`
+	Charisma     int `json:"charisma,omitempty"`
 }
 
 // DamageDef represents weapon damage
 type DamageDef struct {
-	Min   float64 `yaml:"min" json:"min"`
-	Max   float64 `yaml:"max" json:"max"`
-	Speed float64 `yaml:"speed" json:"speed"`
-	Type  string  `yaml:"type" json:"type"`
+	Min   float64 `json:"min"`
+	Max   float64 `json:"max"`
+	Speed float64 `json:"speed"`
+	Type  string  `json:"type"`
 }
 
 // StatBonusDef represents stat bonuses from equipment
 type StatBonusDef struct {
-	StatsDef `yaml:",inline"`
-	HP       int `yaml:"hp,omitempty" json:"hp,omitempty"`
-	Mana     int `yaml:"mana,omitempty" json:"mana,omitempty"`
-	Stamina  int `yaml:"stamina,omitempty" json:"stamina,omitempty"`
+	StatsDef ``
+	HP       int `json:"hp,omitempty"`
+	Mana     int `json:"mana,omitempty"`
+	Stamina  int `json:"stamina,omitempty"`
 }
 
 // ItemEffectDef represents item effect
 type ItemEffectDef struct {
-	Type   string         `yaml:"type" json:"type"`
-	Effect EffectDataDef  `yaml:"effect" json:"effect"`
+	Type   string         `json:"type"`
+	Effect EffectDataDef  `json:"effect"`
 }
 
 // EffectDataDef represents effect data
 type EffectDataDef struct {
-	Type     string  `yaml:"type" json:"type"`
-	Value    float64 `yaml:"value" json:"value"`
-	Duration int     `yaml:"duration" json:"duration"`
-	Chance   float64 `yaml:"chance" json:"chance"`
+	Type     string  `json:"type"`
+	Value    float64 `json:"value"`
+	Duration int     `json:"duration"`
+	Chance   float64 `json:"chance"`
 }
 
 // ValueDef represents item value
 type ValueDef struct {
-	Buy  int `yaml:"buy" json:"buy"`
-	Sell int `yaml:"sell" json:"sell"`
+	Buy  int `json:"buy"`
+	Sell int `json:"sell"`
 }
 
 // DurabilityDef represents item durability
 type DurabilityDef struct {
-	Current    int  `yaml:"current" json:"current"`
-	Max        int  `yaml:"max" json:"max"`
-	Repairable bool `yaml:"repairable" json:"repairable"`
+	Current    int  `json:"current"`
+	Max        int  `json:"max"`
+	Repairable bool `json:"repairable"`
 }
 
 // DropTableDef defines where item drops from
 type DropTableDef struct {
-	FromNPC  string  `yaml:"from_npc,omitempty" json:"from_npc,omitempty"`
-	FromArea string  `yaml:"from_area,omitempty" json:"from_area,omitempty"`
-	Chance   float64 `yaml:"chance" json:"chance"`
+	FromNPC  string  `json:"from_npc,omitempty"`
+	FromArea string  `json:"from_area,omitempty"`
+	Chance   float64 `json:"chance"`
 }
 
 // Register adds an item to the registry

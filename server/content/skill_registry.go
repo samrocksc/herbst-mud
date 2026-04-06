@@ -21,63 +21,63 @@ func NewSkillRegistry() *SkillRegistry {
 
 // SkillDef represents a skill definition from YAML
 type SkillDef struct {
-	ID               string            `yaml:"id" json:"id"`
-	Name             string            `yaml:"name" json:"name"`
-	Description      string            `yaml:"description" json:"description"`
-	Type             string            `yaml:"type" json:"type"`
-	Tags             []string          `yaml:"tags,omitempty" json:"tags,omitempty"`
-	LevelRequirement int               `yaml:"level_requirement" json:"level_requirement"`
-	ClassRequirement string            `yaml:"class_requirement,omitempty" json:"class_requirement,omitempty"`
-	Prerequisites    []SkillPrereq     `yaml:"prerequisites,omitempty" json:"prerequisites,omitempty"`
-	Effects          []EffectDef       `yaml:"effects" json:"effects"`
-	Cooldown         int               `yaml:"cooldown" json:"cooldown"`
-	ManaCost         int               `yaml:"mana_cost" json:"mana_cost"`
-	StaminaCost      int               `yaml:"stamina_cost" json:"stamina_cost"`
-	HealthCost       int               `yaml:"health_cost,omitempty" json:"health_cost,omitempty"`
-	Visual           VisualDef         `yaml:"visual,omitempty" json:"visual,omitempty"`
-	AIBehavior       AIBehaviorDef     `yaml:"ai_behavior,omitempty" json:"ai_behavior,omitempty"`
+	ID               string            `json:"id"`
+	Name             string            `json:"name"`
+	Description      string            `json:"description"`
+	Type             string            `json:"type"`
+	Tags             []string          `json:"tags,omitempty"`
+	LevelRequirement int               `json:"level_requirement"`
+	ClassRequirement string            `json:"class_requirement,omitempty"`
+	Prerequisites    []SkillPrereq     `json:"prerequisites,omitempty"`
+	Effects          []EffectDef       `json:"effects"`
+	Cooldown         int               `json:"cooldown"`
+	ManaCost         int               `json:"mana_cost"`
+	StaminaCost      int               `json:"stamina_cost"`
+	HealthCost       int               `json:"health_cost,omitempty"`
+	Visual           VisualDef         `json:"visual,omitempty"`
+	AIBehavior       AIBehaviorDef     `json:"ai_behavior,omitempty"`
 }
 
 // SkillPrereq represents a skill prerequisite
 type SkillPrereq struct {
-	SkillID string `yaml:"skill_id" json:"skill_id"`
-	Level   int    `yaml:"level" json:"level"`
+	SkillID string `json:"skill_id"`
+	Level   int    `json:"level"`
 }
 
 // EffectDef represents a skill effect
 type EffectDef struct {
-	Type     string      `yaml:"type" json:"type"`
-	Target   string      `yaml:"target" json:"target"`
-	Value    interface{} `yaml:"value" json:"value"`
-	Scaling  *ScalingDef `yaml:"scaling,omitempty" json:"scaling,omitempty"`
-	Duration int         `yaml:"duration" json:"duration"`
+	Type     string      `json:"type"`
+	Target   string      `json:"target"`
+	Value    interface{} `json:"value"`
+	Scaling  *ScalingDef `json:"scaling,omitempty"`
+	Duration int         `json:"duration"`
 }
 
 // ScalingDef represents stat scaling
 type ScalingDef struct {
-	Stat  string  `yaml:"stat" json:"stat"`
-	Ratio float64 `yaml:"ratio" json:"ratio"`
+	Stat  string  `json:"stat"`
+	Ratio float64 `json:"ratio"`
 }
 
 // VisualDef represents visual/sound properties
 type VisualDef struct {
-	Icon      string `yaml:"icon,omitempty" json:"icon,omitempty"`
-	Color     string `yaml:"color,omitempty" json:"color,omitempty"`
-	Animation string `yaml:"animation,omitempty" json:"animation,omitempty"`
-	Sound     string `yaml:"sound,omitempty" json:"sound,omitempty"`
+	Icon      string `json:"icon,omitempty"`
+	Color     string `json:"color,omitempty"`
+	Animation string `json:"animation,omitempty"`
+	Sound     string `json:"sound,omitempty"`
 }
 
 // AIBehaviorDef defines how NPCs use a skill
 type AIBehaviorDef struct {
-	CanUse          bool              `yaml:"can_use" json:"can_use"`
-	UseChance       float64           `yaml:"use_chance" json:"use_chance"`
-	HealthThreshold *HealthThreshold  `yaml:"health_threshold,omitempty" json:"health_threshold,omitempty"`
+	CanUse          bool              `json:"can_use"`
+	UseChance       float64           `json:"use_chance"`
+	HealthThreshold *HealthThreshold  `json:"health_threshold,omitempty"`
 }
 
 // HealthThreshold defines when AI uses skill based on health
 type HealthThreshold struct {
-	Below float64 `yaml:"below,omitempty" json:"below,omitempty"`
-	Above float64 `yaml:"above,omitempty" json:"above,omitempty"`
+	Below float64 `json:"below,omitempty"`
+	Above float64 `json:"above,omitempty"`
 }
 
 // Register adds a skill to the registry

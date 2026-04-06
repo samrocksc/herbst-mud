@@ -21,30 +21,30 @@ func NewRoomRegistry() *RoomRegistry {
 
 // RoomDef represents a room definition
 type RoomDef struct {
-	ID          string            `yaml:"id" json:"id"`
-	Name        string            `yaml:"name" json:"name"`
-	Description string            `yaml:"description" json:"description"`
-	AreaID      string            `yaml:"area_id,omitempty" json:"area_id,omitempty"`
-	Flags       []string          `yaml:"flags,omitempty" json:"flags,omitempty"`
-	Exits       map[string]string `yaml:"exits,omitempty" json:"exits,omitempty"` // direction -> room_id
-	Items       []string          `yaml:"items,omitempty" json:"items,omitempty"`     // item_ids
-	NPCs        []string          `yaml:"npcs,omitempty" json:"npcs,omitempty"`     // npc_template_ids
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	AreaID      string            `json:"area_id,omitempty"`
+	Flags       []string          `json:"flags,omitempty"`
+	Exits       map[string]string `json:"exits,omitempty"` // direction -> room_id
+	Items       []string          `json:"items,omitempty"`     // item_ids
+	NPCs        []string          `json:"npcs,omitempty"`     // npc_template_ids
 }
 
 // AreaDef represents an area containing rooms
 type AreaDef struct {
-	AreaID  string    `yaml:"area_id"`
-	Name    string    `yaml:"name"`
-	Rooms   []RoomDef `yaml:"rooms"`
-	Exits   []AreaExitDef `yaml:"exits,omitempty"`
+	AreaID  string    ``
+	Name    string    ``
+	Rooms   []RoomDef ``
+	Exits   []AreaExitDef ``
 }
 
 // AreaExitDef represents exits between areas
 type AreaExitDef struct {
-	From        string `yaml:"from"`
-	To          string `yaml:"to"`
-	Direction   string `yaml:"direction"`
-	Description string `yaml:"description"`
+	From        string ``
+	To          string ``
+	Direction   string ``
+	Description string ``
 }
 
 // Register adds a room to the registry

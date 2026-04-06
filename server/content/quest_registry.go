@@ -21,58 +21,58 @@ func NewQuestRegistry() *QuestRegistry {
 
 // QuestDef represents a quest definition
 type QuestDef struct {
-	ID            string         `yaml:"id" json:"id"`
-	Name          string         `yaml:"name" json:"name"`
-	Description   string         `yaml:"description" json:"description"`
-	Type          string         `yaml:"type" json:"type"`
-	Difficulty    string         `yaml:"difficulty" json:"difficulty"`
-	LevelRequired int            `yaml:"level_required" json:"level_required"`
-	Steps         []QuestStep    `yaml:"steps" json:"steps"`
-	Rewards       QuestRewards   `yaml:"rewards" json:"rewards"`
-	QuestGiver    string         `yaml:"quest_giver" json:"quest_giver"`
-	AutoComplete  bool           `yaml:"auto_complete" json:"auto_complete"`
-	Repeatable    bool           `yaml:"repeatable" json:"repeatable"`
-	RepeatCooldown int         `yaml:"repeat_cooldown,omitempty" json:"repeat_cooldown,omitempty"`
-	Flavor        QuestFlavor    `yaml:"flavor,omitempty" json:"flavor,omitempty"`
+	ID            string         `json:"id"`
+	Name          string         `json:"name"`
+	Description   string         `json:"description"`
+	Type          string         `json:"type"`
+	Difficulty    string         `json:"difficulty"`
+	LevelRequired int            `json:"level_required"`
+	Steps         []QuestStep    `json:"steps"`
+	Rewards       QuestRewards   `json:"rewards"`
+	QuestGiver    string         `json:"quest_giver"`
+	AutoComplete  bool           `json:"auto_complete"`
+	Repeatable    bool           `json:"repeatable"`
+	RepeatCooldown int         `json:"repeat_cooldown,omitempty"`
+	Flavor        QuestFlavor    `json:"flavor,omitempty"`
 }
 
 // QuestStep represents a single step in a quest
 type QuestStep struct {
-	ID          string `yaml:"id" json:"id"`
-	Type        string `yaml:"type" json:"type"`
-	Description string `yaml:"description" json:"description"`
-	Target      string `yaml:"target,omitempty" json:"target,omitempty"`
-	TargetRoom  string `yaml:"target_room,omitempty" json:"target_room,omitempty"`
-	ItemID      string `yaml:"item_id,omitempty" json:"item_id,omitempty"`
-	Count       int    `yaml:"count,omitempty" json:"count,omitempty"`
-	Order       int    `yaml:"order" json:"order"`
-	Requires    string `yaml:"requires,omitempty" json:"requires,omitempty"`
+	ID          string `json:"id"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+	Target      string `json:"target,omitempty"`
+	TargetRoom  string `json:"target_room,omitempty"`
+	ItemID      string `json:"item_id,omitempty"`
+	Count       int    `json:"count,omitempty"`
+	Order       int    `json:"order"`
+	Requires    string `json:"requires,omitempty"`
 }
 
 // QuestRewards represents quest completion rewards
 type QuestRewards struct {
-	Experience int           `yaml:"experience" json:"experience"`
-	Items      []QuestReward `yaml:"items,omitempty" json:"items,omitempty"`
-	Reputation *RepReward  `yaml:"reputation,omitempty" json:"reputation,omitempty"`
+	Experience int           `json:"experience"`
+	Items      []QuestReward `json:"items,omitempty"`
+	Reputation *RepReward  `json:"reputation,omitempty"`
 }
 
 // QuestReward represents an item reward
 type QuestReward struct {
-	ItemID string `yaml:"item_id" json:"item_id"`
-	Count  int    `yaml:"count" json:"count"`
+	ItemID string `json:"item_id"`
+	Count  int    `json:"count"`
 }
 
 // RepReward represents reputation reward
 type RepReward struct {
-	Faction string `yaml:"faction" json:"faction"`
-	Amount  int    `yaml:"amount" json:"amount"`
+	Faction string `json:"faction"`
+	Amount  int    `json:"amount"`
 }
 
 // QuestFlavor contains flavor text
 type QuestFlavor struct {
-	Start     string `yaml:"start,omitempty" json:"start,omitempty"`
-	Progress  string `yaml:"progress,omitempty" json:"progress,omitempty"`
-	Complete  string `yaml:"complete,omitempty" json:"complete,omitempty"`
+	Start     string `json:"start,omitempty"`
+	Progress  string `json:"progress,omitempty"`
+	Complete  string `json:"complete,omitempty"`
 }
 
 // Register adds a quest to the registry

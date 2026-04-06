@@ -21,103 +21,103 @@ func NewNPCRegistry() *NPCRegistry {
 
 // NPCTemplate defines an NPC template from YAML
 type NPCTemplate struct {
-	ID             string            `yaml:"id" json:"id"`
-	TemplateName   string            `yaml:"template_name" json:"template_name"`
-	Description    string            `yaml:"description" json:"description"`
-	Level          int               `yaml:"level" json:"level"`
-	Classification string            `yaml:"classification" json:"classification"`
-	Stats          StatsDef          `yaml:"stats" json:"stats"`
-	HP             HPCalc            `yaml:"hp" json:"hp"`
-	Resources      ResourcesDef      `yaml:"resources,omitempty" json:"resources,omitempty"`
-	Skills         NPCSkills         `yaml:"skills,omitempty" json:"skills,omitempty"`
-	AI             AIDef             `yaml:"ai" json:"ai"`
-	Equipment      EquipmentDef      `yaml:"equipment,omitempty" json:"equipment,omitempty"`
-	Loot           []LootEntry       `yaml:"loot,omitempty" json:"loot,omitempty"`
-	Visual         VisualDef         `yaml:"visual,omitempty" json:"visual,omitempty"`
-	Flags          []string          `yaml:"flags,omitempty" json:"flags,omitempty"`
-	Reputation     *ReputationDef    `yaml:"reputation,omitempty" json:"reputation,omitempty"`
-	QuestsOffered  []string          `yaml:"quests_offered,omitempty" json:"quests_offered,omitempty"`
+	ID             string            `json:"id"`
+	TemplateName   string            `json:"template_name"`
+	Description    string            `json:"description"`
+	Level          int               `json:"level"`
+	Classification string            `json:"classification"`
+	Stats          StatsDef          `json:"stats"`
+	HP             HPCalc            `json:"hp"`
+	Resources      ResourcesDef      `json:"resources,omitempty"`
+	Skills         NPCSkills         `json:"skills,omitempty"`
+	AI             AIDef             `json:"ai"`
+	Equipment      EquipmentDef      `json:"equipment,omitempty"`
+	Loot           []LootEntry       `json:"loot,omitempty"`
+	Visual         VisualDef         `json:"visual,omitempty"`
+	Flags          []string          `json:"flags,omitempty"`
+	Reputation     *ReputationDef    `json:"reputation,omitempty"`
+	QuestsOffered  []string          `json:"quests_offered,omitempty"`
 }
 
 // StatsDef represents NPC base stats
 type StatsDef struct {
-	Strength     int `yaml:"strength" json:"strength"`
-	Dexterity    int `yaml:"dexterity" json:"dexterity"`
-	Constitution int `yaml:"constitution" json:"constitution"`
-	Intelligence int `yaml:"intelligence" json:"intelligence"`
-	Wisdom       int `yaml:"wisdom" json:"wisdom"`
-	Charisma     int `yaml:"charisma" json:"charisma"`
+	Strength     int `json:"strength"`
+	Dexterity    int `json:"dexterity"`
+	Constitution int `json:"constitution"`
+	Intelligence int `json:"intelligence"`
+	Wisdom       int `json:"wisdom"`
+	Charisma     int `json:"charisma"`
 }
 
 // HPCalc defines how to calculate max HP
 type HPCalc struct {
-	Base          int     `yaml:"base" json:"base"`
-	ConMultiplier float64 `yaml:"con_multiplier" json:"con_multiplier"`
-	LevelBonus    int     `yaml:"level_bonus" json:"level_bonus"`
+	Base          int     `json:"base"`
+	ConMultiplier float64 `json:"con_multiplier"`
+	LevelBonus    int     `json:"level_bonus"`
 }
 
 // ResourcesDef defines stamina/mana
 type ResourcesDef struct {
-	Stamina ResourceCalc `yaml:"stamina" json:"stamina"`
-	Mana    ResourceCalc `yaml:"mana" json:"mana"`
+	Stamina ResourceCalc `json:"stamina"`
+	Mana    ResourceCalc `json:"mana"`
 }
 
 // ResourceCalc defines resource calculation
 type ResourceCalc struct {
-	Base   int `yaml:"base" json:"base"`
-	Bonus  int `yaml:"bonus" json:"bonus"`
+	Base   int `json:"base"`
+	Bonus  int `json:"bonus"`
 }
 
 // NPCSkills defines equipped skills
 type NPCSkills struct {
-	Classless map[string]string `yaml:"classless,omitempty" json:"classless,omitempty"` // key: slot, value: skill_id
-	Special   []string          `yaml:"special,omitempty" json:"special,omitempty"`
+	Classless map[string]string `json:"classless,omitempty"` // key: slot, value: skill_id
+	Special   []string          `json:"special,omitempty"`
 }
 
 // AIDef defines AI behavior
 type AIDef struct {
-	Type        string          `yaml:"type" json:"type"`
-	Aggression  string          `yaml:"aggression" json:"aggression"`
-	Abilities   []AIAbility     `yaml:"abilities,omitempty" json:"abilities,omitempty"`
-	Speech      SpeechDef       `yaml:"speech,omitempty" json:"speech,omitempty"`
+	Type        string          `json:"type"`
+	Aggression  string          `json:"aggression"`
+	Abilities   []AIAbility     `json:"abilities,omitempty"`
+	Speech      SpeechDef       `json:"speech,omitempty"`
 }
 
 // AIAbility defines an AI skill use
 type AIAbility struct {
-	SkillID               string  `yaml:"skill_id" json:"skill_id"`
-	UseChance             float64 `yaml:"use_chance" json:"use_chance"`
-	HealthThresholdBelow  float64 `yaml:"health_threshold_below,omitempty" json:"health_threshold_below,omitempty"`
-	HealthThresholdAbove  float64 `yaml:"health_threshold_above,omitempty" json:"health_threshold_above,omitempty"`
+	SkillID               string  `json:"skill_id"`
+	UseChance             float64 `json:"use_chance"`
+	HealthThresholdBelow  float64 `json:"health_threshold_below,omitempty"`
+	HealthThresholdAbove  float64 `json:"health_threshold_above,omitempty"`
 }
 
 // SpeechDef defines NPC dialogue
 type SpeechDef struct {
-	Greeting string   `yaml:"greeting,omitempty" json:"greeting,omitempty"`
-	Attack   string   `yaml:"attack,omitempty" json:"attack,omitempty"`
-	Defeat   string   `yaml:"defeat,omitempty" json:"defeat,omitempty"`
-	Idle     []string `yaml:"idle,omitempty" json:"idle,omitempty"`
+	Greeting string   `json:"greeting,omitempty"`
+	Attack   string   `json:"attack,omitempty"`
+	Defeat   string   `json:"defeat,omitempty"`
+	Idle     []string `json:"idle,omitempty"`
 }
 
 // EquipmentDef defines equipped gear
 type EquipmentDef struct {
-	Weapon      string `yaml:"weapon,omitempty" json:"weapon,omitempty"`
-	Armor       string `yaml:"armor,omitempty" json:"armor,omitempty"`
-	Accessory1  string `yaml:"accessory_1,omitempty" json:"accessory_1,omitempty"`
-	Accessory2  string `yaml:"accessory_2,omitempty" json:"accessory_2,omitempty"`
+	Weapon      string `json:"weapon,omitempty"`
+	Armor       string `json:"armor,omitempty"`
+	Accessory1  string `json:"accessory_1,omitempty"`
+	Accessory2  string `json:"accessory_2,omitempty"`
 }
 
 // LootEntry defines a loot table entry
 type LootEntry struct {
-	ItemID   string  `yaml:"item_id" json:"item_id"`
-	Chance   float64 `yaml:"chance" json:"chance"`
-	CountMin int     `yaml:"count_min" json:"count_min"`
-	CountMax int     `yaml:"count_max" json:"count_max"`
+	ItemID   string  `json:"item_id"`
+	Chance   float64 `json:"chance"`
+	CountMin int     `json:"count_min"`
+	CountMax int     `json:"count_max"`
 }
 
 // ReputationDef defines faction reputation
 type ReputationDef struct {
-	Faction  string `yaml:"faction" json:"faction"`
-	Standing string `yaml:"standing" json:"standing"`
+	Faction  string `json:"faction"`
+	Standing string `json:"standing"`
 }
 
 // Register adds an NPC template

@@ -18,30 +18,30 @@ type WorldManager struct {
 
 // World represents a MUD world configuration
 type World struct {
-	ID             string            `yaml:"id" json:"id"`
-	Name           string            `yaml:"name" json:"name"`
-	Description    string            `yaml:"description" json:"description"`
-	Status         string            `yaml:"status" json:"status"` // active, development, maintenance
-	ContentPath    string            `yaml:"content_path" json:"content_path"`
-	DatabasePrefix string            `yaml:"database_prefix" json:"database_prefix"`
-	Features       []string          `yaml:"features" json:"features"`
-	Settings       WorldSettings     `yaml:"settings" json:"settings"`
+	ID             string            `json:"id"`
+	Name           string            `json:"name"`
+	Description    string            `json:"description"`
+	Status         string            `json:"status"` // active, development, maintenance
+	ContentPath    string            `json:"content_path"`
+	DatabasePrefix string            `json:"database_prefix"`
+	Features       []string          `json:"features"`
+	Settings       WorldSettings     `json:"settings"`
 }
 
 // WorldSettings contains world-specific game settings
 type WorldSettings struct {
-	PvPEnabled       bool    `yaml:"pvp_enabled" json:"pvp_enabled"`
-	Permadeath       bool    `yaml:"permadeath" json:"permadeath"`
-	XPMultiplier     float64 `yaml:"xp_multiplier" json:"xp_multiplier"`
-	GoldMultiplier   float64 `yaml:"gold_multiplier" json:"gold_multiplier"`
+	PvPEnabled       bool    `json:"pvp_enabled"`
+	Permadeath       bool    `json:"permadeath"`
+	XPMultiplier     float64 `json:"xp_multiplier"`
+	GoldMultiplier   float64 `json:"gold_multiplier"`
 }
 
 // WorldRegistry represents the worlds.yaml structure
 type WorldRegistry struct {
-	Version      string   `yaml:"version"`
-	Worlds       []World  `yaml:"worlds"`
-	DefaultWorld string   `yaml:"default_world"`
-	Shared       []string `yaml:"shared"`
+	Version      string   ``
+	Worlds       []World  ``
+	DefaultWorld string   ``
+	Shared       []string ``
 }
 
 // NewWorldManager creates a new world manager
