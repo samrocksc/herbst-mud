@@ -135,6 +135,12 @@ function Dashboard() {
             <div className="font-bold mb-1">Skills Manager</div>
             <div className="text-text-muted text-sm">Create, edit, and manage skills</div>
           </Link>
+
+          <Link to="/talents" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
+            <div className="text-2xl mb-2">🎯</div>
+            <div className="font-bold mb-1">Talents Manager</div>
+            <div className="text-text-muted text-sm">Manage talent specializations</div>
+          </Link>
         </div>
       </div>
     </div>

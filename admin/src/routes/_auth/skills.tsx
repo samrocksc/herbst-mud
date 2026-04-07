@@ -35,7 +35,7 @@ function SkillForm({
     if (skill) {
       return {
         ...skill,
-        tags: skill.tags.join(', '),
+        tags: (skill.tags ?? []).join(', '),
         effects: skill.effects ? JSON.stringify(skill.effects, null, 2) : ''
       }
     }

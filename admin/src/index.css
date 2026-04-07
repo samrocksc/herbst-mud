@@ -1015,3 +1015,49 @@ button.danger:hover {
 }
 .toast-success { background: #22c55e; color: white; }
 .toast-error { background: #ef4444; color: white; }
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  height: 100vh;
+  background: #1a1a1a;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #333;
+}
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #646cff;
+}
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  gap: 0.25rem;
+}
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  color: #888;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-nav-item:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+.sidebar-nav-item.active {
+  background: #2d5a27;
+  color: #fff;
+}
