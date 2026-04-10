@@ -1165,6 +1165,29 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		if talentObj.Requirements != "" {
 			requirements := map[string]int{}
 			if err := json.Unmarshal([]byte(talentObj.Requirements), &requirements); err == nil {
+				// Get character's skill columns (blades, staves, etc.)
+				char, err := client.Character.Get(c.Request.Context(), id)
+				if err == nil {
+					skillLevels := map[string]int{
+						"blades":   char.SkillBlades,
+						"staves":   char.SkillStaves,
+						"knives":   char.SkillKnives,
+						"martial":  char.SkillMartial,
+						"brawling": char.SkillBrawling,
+						"tech":     char.SkillTech,
+					}
+					for skillName, requiredLevel := range requirements {
+						if skillLevels[skillName] < requiredLevel {
+							c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot equip talent: requires " + skillName + " level " + strconv.Itoa(requiredLevel)})
+							return
+						}
+					}
+				}
+			}
+		}
+		if talentObj.Requirements != "" {
+			requirements := map[string]int{}
+			if err := json.Unmarshal([]byte(talentObj.Requirements), &requirements); err == nil {
 				// Get character's skills
 				charSkills, err := client.Character.Query().
 					Where(character.ID(id)).
@@ -1174,7 +1197,6 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 					skillLevels := make(map[string]int)
 					for _, cs := range charSkills {
 						if cs.Edges.Skill != nil {
-							skillLevels[cs.Edges.Skill.Name] = cs.Level
 						}
 					}
 					for skillName, requiredLevel := range requirements {

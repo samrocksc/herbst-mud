@@ -33,7 +33,7 @@ func CharacterSkills(ctx context.Context, client *db.Client, backupDir string, m
 		newSkillID := mapping.Skills[s.SkillID]
 
 		_, err := client.CharacterSkill.Create().
-			SetLevel(s.Level).SetExperience(s.Experience).
+			SetSlot(0). // old backups don't have slot info; default to 0
 			SetCharacterID(newCharID).SetSkillID(newSkillID).Save(ctx)
 		if err != nil {
 			return err
