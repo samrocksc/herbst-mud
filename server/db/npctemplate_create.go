@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/npcskill"
 	"herbst-server/db/npctemplate"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -87,6 +88,21 @@ func (_c *NPCTemplateCreate) SetGreeting(v string) *NPCTemplateCreate {
 func (_c *NPCTemplateCreate) SetID(v string) *NPCTemplateCreate {
 	_c.mutation.SetID(v)
 	return _c
+}
+
+// AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by IDs.
+func (_c *NPCTemplateCreate) AddNpcSkillIDs(ids ...int) *NPCTemplateCreate {
+	_c.mutation.AddNpcSkillIDs(ids...)
+	return _c
+}
+
+// AddNpcSkills adds the "npc_skills" edges to the NPCSkill entity.
+func (_c *NPCTemplateCreate) AddNpcSkills(v ...*NPCSkill) *NPCTemplateCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNpcSkillIDs(ids...)
 }
 
 // Mutation returns the NPCTemplateMutation object of the builder.
@@ -231,6 +247,22 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Greeting(); ok {
 		_spec.SetField(npctemplate.FieldGreeting, field.TypeString, value)
 		_node.Greeting = value
+	}
+	if nodes := _c.mutation.NpcSkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   npctemplate.NpcSkillsTable,
+			Columns: npctemplate.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -5,7 +5,6 @@ package db
 import (
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
-	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/equipment"
 	"herbst-server/db/npctemplate"
@@ -144,16 +143,6 @@ func init() {
 	characterDescSkillHeavyArmor := characterFields[35].Descriptor()
 	// character.DefaultSkillHeavyArmor holds the default value on creation for the skill_heavy_armor field.
 	character.DefaultSkillHeavyArmor = characterDescSkillHeavyArmor.Default.(int)
-	characterskillFields := schema.CharacterSkill{}.Fields()
-	_ = characterskillFields
-	// characterskillDescLevel is the schema descriptor for level field.
-	characterskillDescLevel := characterskillFields[0].Descriptor()
-	// characterskill.DefaultLevel holds the default value on creation for the level field.
-	characterskill.DefaultLevel = characterskillDescLevel.Default.(int)
-	// characterskillDescExperience is the schema descriptor for experience field.
-	characterskillDescExperience := characterskillFields[1].Descriptor()
-	// characterskill.DefaultExperience holds the default value on creation for the experience field.
-	characterskill.DefaultExperience = characterskillDescExperience.Default.(int)
 	charactertalentFields := schema.CharacterTalent{}.Fields()
 	_ = charactertalentFields
 	// charactertalentDescSlot is the schema descriptor for slot field.
@@ -264,14 +253,22 @@ func init() {
 	skillDescEffectDuration := skillFields[8].Descriptor()
 	// skill.DefaultEffectDuration holds the default value on creation for the effect_duration field.
 	skill.DefaultEffectDuration = skillDescEffectDuration.Default.(int)
+	// skillDescScalingPercentPerPoint is the schema descriptor for scaling_percent_per_point field.
+	skillDescScalingPercentPerPoint := skillFields[10].Descriptor()
+	// skill.DefaultScalingPercentPerPoint holds the default value on creation for the scaling_percent_per_point field.
+	skill.DefaultScalingPercentPerPoint = skillDescScalingPercentPerPoint.Default.(float64)
 	// skillDescManaCost is the schema descriptor for mana_cost field.
-	skillDescManaCost := skillFields[9].Descriptor()
+	skillDescManaCost := skillFields[11].Descriptor()
 	// skill.DefaultManaCost holds the default value on creation for the mana_cost field.
 	skill.DefaultManaCost = skillDescManaCost.Default.(int)
 	// skillDescStaminaCost is the schema descriptor for stamina_cost field.
-	skillDescStaminaCost := skillFields[10].Descriptor()
+	skillDescStaminaCost := skillFields[12].Descriptor()
 	// skill.DefaultStaminaCost holds the default value on creation for the stamina_cost field.
 	skill.DefaultStaminaCost = skillDescStaminaCost.Default.(int)
+	// skillDescHpCost is the schema descriptor for hp_cost field.
+	skillDescHpCost := skillFields[13].Descriptor()
+	// skill.DefaultHpCost holds the default value on creation for the hp_cost field.
+	skill.DefaultHpCost = skillDescHpCost.Default.(int)
 	talentFields := schema.Talent{}.Fields()
 	_ = talentFields
 	// talentDescEffectType is the schema descriptor for effect_type field.

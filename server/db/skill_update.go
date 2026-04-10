@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/characterskill"
+	"herbst-server/db/npcskill"
 	"herbst-server/db/predicate"
 	"herbst-server/db/skill"
 
@@ -188,6 +189,47 @@ func (_u *SkillUpdate) AddEffectDuration(v int) *SkillUpdate {
 	return _u
 }
 
+// SetScalingStat sets the "scaling_stat" field.
+func (_u *SkillUpdate) SetScalingStat(v string) *SkillUpdate {
+	_u.mutation.SetScalingStat(v)
+	return _u
+}
+
+// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableScalingStat(v *string) *SkillUpdate {
+	if v != nil {
+		_u.SetScalingStat(*v)
+	}
+	return _u
+}
+
+// ClearScalingStat clears the value of the "scaling_stat" field.
+func (_u *SkillUpdate) ClearScalingStat() *SkillUpdate {
+	_u.mutation.ClearScalingStat()
+	return _u
+}
+
+// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
+func (_u *SkillUpdate) SetScalingPercentPerPoint(v float64) *SkillUpdate {
+	_u.mutation.ResetScalingPercentPerPoint()
+	_u.mutation.SetScalingPercentPerPoint(v)
+	return _u
+}
+
+// SetNillableScalingPercentPerPoint sets the "scaling_percent_per_point" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableScalingPercentPerPoint(v *float64) *SkillUpdate {
+	if v != nil {
+		_u.SetScalingPercentPerPoint(*v)
+	}
+	return _u
+}
+
+// AddScalingPercentPerPoint adds value to the "scaling_percent_per_point" field.
+func (_u *SkillUpdate) AddScalingPercentPerPoint(v float64) *SkillUpdate {
+	_u.mutation.AddScalingPercentPerPoint(v)
+	return _u
+}
+
 // SetManaCost sets the "mana_cost" field.
 func (_u *SkillUpdate) SetManaCost(v int) *SkillUpdate {
 	_u.mutation.ResetManaCost()
@@ -230,6 +272,27 @@ func (_u *SkillUpdate) AddStaminaCost(v int) *SkillUpdate {
 	return _u
 }
 
+// SetHpCost sets the "hp_cost" field.
+func (_u *SkillUpdate) SetHpCost(v int) *SkillUpdate {
+	_u.mutation.ResetHpCost()
+	_u.mutation.SetHpCost(v)
+	return _u
+}
+
+// SetNillableHpCost sets the "hp_cost" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableHpCost(v *int) *SkillUpdate {
+	if v != nil {
+		_u.SetHpCost(*v)
+	}
+	return _u
+}
+
+// AddHpCost adds value to the "hp_cost" field.
+func (_u *SkillUpdate) AddHpCost(v int) *SkillUpdate {
+	_u.mutation.AddHpCost(v)
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterSkill entity by IDs.
 func (_u *SkillUpdate) AddCharacterIDs(ids ...int) *SkillUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -243,6 +306,21 @@ func (_u *SkillUpdate) AddCharacters(v ...*CharacterSkill) *SkillUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddCharacterIDs(ids...)
+}
+
+// AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by IDs.
+func (_u *SkillUpdate) AddNpcSkillIDs(ids ...int) *SkillUpdate {
+	_u.mutation.AddNpcSkillIDs(ids...)
+	return _u
+}
+
+// AddNpcSkills adds the "npc_skills" edges to the NPCSkill entity.
+func (_u *SkillUpdate) AddNpcSkills(v ...*NPCSkill) *SkillUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNpcSkillIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -269,6 +347,27 @@ func (_u *SkillUpdate) RemoveCharacters(v ...*CharacterSkill) *SkillUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearNpcSkills clears all "npc_skills" edges to the NPCSkill entity.
+func (_u *SkillUpdate) ClearNpcSkills() *SkillUpdate {
+	_u.mutation.ClearNpcSkills()
+	return _u
+}
+
+// RemoveNpcSkillIDs removes the "npc_skills" edge to NPCSkill entities by IDs.
+func (_u *SkillUpdate) RemoveNpcSkillIDs(ids ...int) *SkillUpdate {
+	_u.mutation.RemoveNpcSkillIDs(ids...)
+	return _u
+}
+
+// RemoveNpcSkills removes "npc_skills" edges to NPCSkill entities.
+func (_u *SkillUpdate) RemoveNpcSkills(v ...*NPCSkill) *SkillUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNpcSkillIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -349,6 +448,18 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedEffectDuration(); ok {
 		_spec.AddField(skill.FieldEffectDuration, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.ScalingStat(); ok {
+		_spec.SetField(skill.FieldScalingStat, field.TypeString, value)
+	}
+	if _u.mutation.ScalingStatCleared() {
+		_spec.ClearField(skill.FieldScalingStat, field.TypeString)
+	}
+	if value, ok := _u.mutation.ScalingPercentPerPoint(); ok {
+		_spec.SetField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedScalingPercentPerPoint(); ok {
+		_spec.AddField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+	}
 	if value, ok := _u.mutation.ManaCost(); ok {
 		_spec.SetField(skill.FieldManaCost, field.TypeInt, value)
 	}
@@ -360,6 +471,12 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedStaminaCost(); ok {
 		_spec.AddField(skill.FieldStaminaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.HpCost(); ok {
+		_spec.SetField(skill.FieldHpCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHpCost(); ok {
+		_spec.AddField(skill.FieldHpCost, field.TypeInt, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -399,6 +516,51 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NpcSkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.NpcSkillsTable,
+			Columns: skill.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNpcSkillsIDs(); len(nodes) > 0 && !_u.mutation.NpcSkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.NpcSkillsTable,
+			Columns: skill.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NpcSkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.NpcSkillsTable,
+			Columns: skill.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -586,6 +748,47 @@ func (_u *SkillUpdateOne) AddEffectDuration(v int) *SkillUpdateOne {
 	return _u
 }
 
+// SetScalingStat sets the "scaling_stat" field.
+func (_u *SkillUpdateOne) SetScalingStat(v string) *SkillUpdateOne {
+	_u.mutation.SetScalingStat(v)
+	return _u
+}
+
+// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableScalingStat(v *string) *SkillUpdateOne {
+	if v != nil {
+		_u.SetScalingStat(*v)
+	}
+	return _u
+}
+
+// ClearScalingStat clears the value of the "scaling_stat" field.
+func (_u *SkillUpdateOne) ClearScalingStat() *SkillUpdateOne {
+	_u.mutation.ClearScalingStat()
+	return _u
+}
+
+// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
+func (_u *SkillUpdateOne) SetScalingPercentPerPoint(v float64) *SkillUpdateOne {
+	_u.mutation.ResetScalingPercentPerPoint()
+	_u.mutation.SetScalingPercentPerPoint(v)
+	return _u
+}
+
+// SetNillableScalingPercentPerPoint sets the "scaling_percent_per_point" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableScalingPercentPerPoint(v *float64) *SkillUpdateOne {
+	if v != nil {
+		_u.SetScalingPercentPerPoint(*v)
+	}
+	return _u
+}
+
+// AddScalingPercentPerPoint adds value to the "scaling_percent_per_point" field.
+func (_u *SkillUpdateOne) AddScalingPercentPerPoint(v float64) *SkillUpdateOne {
+	_u.mutation.AddScalingPercentPerPoint(v)
+	return _u
+}
+
 // SetManaCost sets the "mana_cost" field.
 func (_u *SkillUpdateOne) SetManaCost(v int) *SkillUpdateOne {
 	_u.mutation.ResetManaCost()
@@ -628,6 +831,27 @@ func (_u *SkillUpdateOne) AddStaminaCost(v int) *SkillUpdateOne {
 	return _u
 }
 
+// SetHpCost sets the "hp_cost" field.
+func (_u *SkillUpdateOne) SetHpCost(v int) *SkillUpdateOne {
+	_u.mutation.ResetHpCost()
+	_u.mutation.SetHpCost(v)
+	return _u
+}
+
+// SetNillableHpCost sets the "hp_cost" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableHpCost(v *int) *SkillUpdateOne {
+	if v != nil {
+		_u.SetHpCost(*v)
+	}
+	return _u
+}
+
+// AddHpCost adds value to the "hp_cost" field.
+func (_u *SkillUpdateOne) AddHpCost(v int) *SkillUpdateOne {
+	_u.mutation.AddHpCost(v)
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterSkill entity by IDs.
 func (_u *SkillUpdateOne) AddCharacterIDs(ids ...int) *SkillUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -641,6 +865,21 @@ func (_u *SkillUpdateOne) AddCharacters(v ...*CharacterSkill) *SkillUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddCharacterIDs(ids...)
+}
+
+// AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by IDs.
+func (_u *SkillUpdateOne) AddNpcSkillIDs(ids ...int) *SkillUpdateOne {
+	_u.mutation.AddNpcSkillIDs(ids...)
+	return _u
+}
+
+// AddNpcSkills adds the "npc_skills" edges to the NPCSkill entity.
+func (_u *SkillUpdateOne) AddNpcSkills(v ...*NPCSkill) *SkillUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNpcSkillIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -667,6 +906,27 @@ func (_u *SkillUpdateOne) RemoveCharacters(v ...*CharacterSkill) *SkillUpdateOne
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearNpcSkills clears all "npc_skills" edges to the NPCSkill entity.
+func (_u *SkillUpdateOne) ClearNpcSkills() *SkillUpdateOne {
+	_u.mutation.ClearNpcSkills()
+	return _u
+}
+
+// RemoveNpcSkillIDs removes the "npc_skills" edge to NPCSkill entities by IDs.
+func (_u *SkillUpdateOne) RemoveNpcSkillIDs(ids ...int) *SkillUpdateOne {
+	_u.mutation.RemoveNpcSkillIDs(ids...)
+	return _u
+}
+
+// RemoveNpcSkills removes "npc_skills" edges to NPCSkill entities.
+func (_u *SkillUpdateOne) RemoveNpcSkills(v ...*NPCSkill) *SkillUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNpcSkillIDs(ids...)
 }
 
 // Where appends a list predicates to the SkillUpdate builder.
@@ -777,6 +1037,18 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 	if value, ok := _u.mutation.AddedEffectDuration(); ok {
 		_spec.AddField(skill.FieldEffectDuration, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.ScalingStat(); ok {
+		_spec.SetField(skill.FieldScalingStat, field.TypeString, value)
+	}
+	if _u.mutation.ScalingStatCleared() {
+		_spec.ClearField(skill.FieldScalingStat, field.TypeString)
+	}
+	if value, ok := _u.mutation.ScalingPercentPerPoint(); ok {
+		_spec.SetField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedScalingPercentPerPoint(); ok {
+		_spec.AddField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+	}
 	if value, ok := _u.mutation.ManaCost(); ok {
 		_spec.SetField(skill.FieldManaCost, field.TypeInt, value)
 	}
@@ -788,6 +1060,12 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 	}
 	if value, ok := _u.mutation.AddedStaminaCost(); ok {
 		_spec.AddField(skill.FieldStaminaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.HpCost(); ok {
+		_spec.SetField(skill.FieldHpCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHpCost(); ok {
+		_spec.AddField(skill.FieldHpCost, field.TypeInt, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -827,6 +1105,51 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NpcSkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.NpcSkillsTable,
+			Columns: skill.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNpcSkillsIDs(); len(nodes) > 0 && !_u.mutation.NpcSkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.NpcSkillsTable,
+			Columns: skill.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NpcSkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.NpcSkillsTable,
+			Columns: skill.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

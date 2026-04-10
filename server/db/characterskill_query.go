@@ -335,12 +335,12 @@ func (_q *CharacterSkillQuery) WithSkill(opts ...func(*SkillQuery)) *CharacterSk
 // Example:
 //
 //	var v []struct {
-//		Level int `json:"level,omitempty"`
+//		Slot int `json:"slot,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.CharacterSkill.Query().
-//		GroupBy(characterskill.FieldLevel).
+//		GroupBy(characterskill.FieldSlot).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *CharacterSkillQuery) GroupBy(field string, fields ...string) *CharacterSkillGroupBy {
@@ -358,11 +358,11 @@ func (_q *CharacterSkillQuery) GroupBy(field string, fields ...string) *Characte
 // Example:
 //
 //	var v []struct {
-//		Level int `json:"level,omitempty"`
+//		Slot int `json:"slot,omitempty"`
 //	}
 //
 //	client.CharacterSkill.Query().
-//		Select(characterskill.FieldLevel).
+//		Select(characterskill.FieldSlot).
 //		Scan(ctx, &v)
 func (_q *CharacterSkillQuery) Select(fields ...string) *CharacterSkillSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

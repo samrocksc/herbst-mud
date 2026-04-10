@@ -6,77 +6,69 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"herbst-server/db/character"
-	"herbst-server/db/characterskill"
+	"herbst-server/db/npcskill"
+	"herbst-server/db/npctemplate"
 	"herbst-server/db/skill"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
 
-// CharacterSkillCreate is the builder for creating a CharacterSkill entity.
-type CharacterSkillCreate struct {
+// NPCSkillCreate is the builder for creating a NPCSkill entity.
+type NPCSkillCreate struct {
 	config
-	mutation *CharacterSkillMutation
+	mutation *NPCSkillMutation
 	hooks    []Hook
 }
 
 // SetSlot sets the "slot" field.
-func (_c *CharacterSkillCreate) SetSlot(v int) *CharacterSkillCreate {
+func (_c *NPCSkillCreate) SetSlot(v int) *NPCSkillCreate {
 	_c.mutation.SetSlot(v)
 	return _c
 }
 
-// SetCharacterID sets the "character" edge to the Character entity by ID.
-func (_c *CharacterSkillCreate) SetCharacterID(id int) *CharacterSkillCreate {
-	_c.mutation.SetCharacterID(id)
+// AddNpcTemplateIDs adds the "npc_template" edge to the NPCTemplate entity by IDs.
+func (_c *NPCSkillCreate) AddNpcTemplateIDs(ids ...string) *NPCSkillCreate {
+	_c.mutation.AddNpcTemplateIDs(ids...)
 	return _c
 }
 
-// SetNillableCharacterID sets the "character" edge to the Character entity by ID if the given value is not nil.
-func (_c *CharacterSkillCreate) SetNillableCharacterID(id *int) *CharacterSkillCreate {
-	if id != nil {
-		_c = _c.SetCharacterID(*id)
+// AddNpcTemplate adds the "npc_template" edges to the NPCTemplate entity.
+func (_c *NPCSkillCreate) AddNpcTemplate(v ...*NPCTemplate) *NPCSkillCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
+	return _c.AddNpcTemplateIDs(ids...)
+}
+
+// AddSkillIDs adds the "skill" edge to the Skill entity by IDs.
+func (_c *NPCSkillCreate) AddSkillIDs(ids ...int) *NPCSkillCreate {
+	_c.mutation.AddSkillIDs(ids...)
 	return _c
 }
 
-// SetCharacter sets the "character" edge to the Character entity.
-func (_c *CharacterSkillCreate) SetCharacter(v *Character) *CharacterSkillCreate {
-	return _c.SetCharacterID(v.ID)
-}
-
-// SetSkillID sets the "skill" edge to the Skill entity by ID.
-func (_c *CharacterSkillCreate) SetSkillID(id int) *CharacterSkillCreate {
-	_c.mutation.SetSkillID(id)
-	return _c
-}
-
-// SetNillableSkillID sets the "skill" edge to the Skill entity by ID if the given value is not nil.
-func (_c *CharacterSkillCreate) SetNillableSkillID(id *int) *CharacterSkillCreate {
-	if id != nil {
-		_c = _c.SetSkillID(*id)
+// AddSkill adds the "skill" edges to the Skill entity.
+func (_c *NPCSkillCreate) AddSkill(v ...*Skill) *NPCSkillCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _c
+	return _c.AddSkillIDs(ids...)
 }
 
-// SetSkill sets the "skill" edge to the Skill entity.
-func (_c *CharacterSkillCreate) SetSkill(v *Skill) *CharacterSkillCreate {
-	return _c.SetSkillID(v.ID)
-}
-
-// Mutation returns the CharacterSkillMutation object of the builder.
-func (_c *CharacterSkillCreate) Mutation() *CharacterSkillMutation {
+// Mutation returns the NPCSkillMutation object of the builder.
+func (_c *NPCSkillCreate) Mutation() *NPCSkillMutation {
 	return _c.mutation
 }
 
-// Save creates the CharacterSkill in the database.
-func (_c *CharacterSkillCreate) Save(ctx context.Context) (*CharacterSkill, error) {
+// Save creates the NPCSkill in the database.
+func (_c *NPCSkillCreate) Save(ctx context.Context) (*NPCSkill, error) {
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *CharacterSkillCreate) SaveX(ctx context.Context) *CharacterSkill {
+func (_c *NPCSkillCreate) SaveX(ctx context.Context) *NPCSkill {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -85,27 +77,33 @@ func (_c *CharacterSkillCreate) SaveX(ctx context.Context) *CharacterSkill {
 }
 
 // Exec executes the query.
-func (_c *CharacterSkillCreate) Exec(ctx context.Context) error {
+func (_c *NPCSkillCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *CharacterSkillCreate) ExecX(ctx context.Context) {
+func (_c *NPCSkillCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *CharacterSkillCreate) check() error {
+func (_c *NPCSkillCreate) check() error {
 	if _, ok := _c.mutation.Slot(); !ok {
-		return &ValidationError{Name: "slot", err: errors.New(`db: missing required field "CharacterSkill.slot"`)}
+		return &ValidationError{Name: "slot", err: errors.New(`db: missing required field "NPCSkill.slot"`)}
+	}
+	if len(_c.mutation.NpcTemplateIDs()) == 0 {
+		return &ValidationError{Name: "npc_template", err: errors.New(`db: missing required edge "NPCSkill.npc_template"`)}
+	}
+	if len(_c.mutation.SkillIDs()) == 0 {
+		return &ValidationError{Name: "skill", err: errors.New(`db: missing required edge "NPCSkill.skill"`)}
 	}
 	return nil
 }
 
-func (_c *CharacterSkillCreate) sqlSave(ctx context.Context) (*CharacterSkill, error) {
+func (_c *NPCSkillCreate) sqlSave(ctx context.Context) (*NPCSkill, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -123,38 +121,37 @@ func (_c *CharacterSkillCreate) sqlSave(ctx context.Context) (*CharacterSkill, e
 	return _node, nil
 }
 
-func (_c *CharacterSkillCreate) createSpec() (*CharacterSkill, *sqlgraph.CreateSpec) {
+func (_c *NPCSkillCreate) createSpec() (*NPCSkill, *sqlgraph.CreateSpec) {
 	var (
-		_node = &CharacterSkill{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(characterskill.Table, sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt))
+		_node = &NPCSkill{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(npcskill.Table, sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt))
 	)
 	if value, ok := _c.mutation.Slot(); ok {
-		_spec.SetField(characterskill.FieldSlot, field.TypeInt, value)
+		_spec.SetField(npcskill.FieldSlot, field.TypeInt, value)
 		_node.Slot = value
 	}
-	if nodes := _c.mutation.CharacterIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.NpcTemplateIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   characterskill.CharacterTable,
-			Columns: []string{characterskill.CharacterColumn},
+			Table:   npcskill.NpcTemplateTable,
+			Columns: npcskill.NpcTemplatePrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.character_skills = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.SkillIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   characterskill.SkillTable,
-			Columns: []string{characterskill.SkillColumn},
+			Table:   npcskill.SkillTable,
+			Columns: npcskill.SkillPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
@@ -163,32 +160,31 @@ func (_c *CharacterSkillCreate) createSpec() (*CharacterSkill, *sqlgraph.CreateS
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.skill_characters = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
 
-// CharacterSkillCreateBulk is the builder for creating many CharacterSkill entities in bulk.
-type CharacterSkillCreateBulk struct {
+// NPCSkillCreateBulk is the builder for creating many NPCSkill entities in bulk.
+type NPCSkillCreateBulk struct {
 	config
 	err      error
-	builders []*CharacterSkillCreate
+	builders []*NPCSkillCreate
 }
 
-// Save creates the CharacterSkill entities in the database.
-func (_c *CharacterSkillCreateBulk) Save(ctx context.Context) ([]*CharacterSkill, error) {
+// Save creates the NPCSkill entities in the database.
+func (_c *NPCSkillCreateBulk) Save(ctx context.Context) ([]*NPCSkill, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*CharacterSkill, len(_c.builders))
+	nodes := make([]*NPCSkill, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*CharacterSkillMutation)
+				mutation, ok := m.(*NPCSkillMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -235,7 +231,7 @@ func (_c *CharacterSkillCreateBulk) Save(ctx context.Context) ([]*CharacterSkill
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *CharacterSkillCreateBulk) SaveX(ctx context.Context) []*CharacterSkill {
+func (_c *NPCSkillCreateBulk) SaveX(ctx context.Context) []*NPCSkill {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -244,13 +240,13 @@ func (_c *CharacterSkillCreateBulk) SaveX(ctx context.Context) []*CharacterSkill
 }
 
 // Exec executes the query.
-func (_c *CharacterSkillCreateBulk) Exec(ctx context.Context) error {
+func (_c *NPCSkillCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *CharacterSkillCreateBulk) ExecX(ctx context.Context) {
+func (_c *NPCSkillCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}

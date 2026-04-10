@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/characterskill"
+	"herbst-server/db/npcskill"
 	"herbst-server/db/skill"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -122,6 +123,34 @@ func (_c *SkillCreate) SetNillableEffectDuration(v *int) *SkillCreate {
 	return _c
 }
 
+// SetScalingStat sets the "scaling_stat" field.
+func (_c *SkillCreate) SetScalingStat(v string) *SkillCreate {
+	_c.mutation.SetScalingStat(v)
+	return _c
+}
+
+// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableScalingStat(v *string) *SkillCreate {
+	if v != nil {
+		_c.SetScalingStat(*v)
+	}
+	return _c
+}
+
+// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
+func (_c *SkillCreate) SetScalingPercentPerPoint(v float64) *SkillCreate {
+	_c.mutation.SetScalingPercentPerPoint(v)
+	return _c
+}
+
+// SetNillableScalingPercentPerPoint sets the "scaling_percent_per_point" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableScalingPercentPerPoint(v *float64) *SkillCreate {
+	if v != nil {
+		_c.SetScalingPercentPerPoint(*v)
+	}
+	return _c
+}
+
 // SetManaCost sets the "mana_cost" field.
 func (_c *SkillCreate) SetManaCost(v int) *SkillCreate {
 	_c.mutation.SetManaCost(v)
@@ -150,6 +179,20 @@ func (_c *SkillCreate) SetNillableStaminaCost(v *int) *SkillCreate {
 	return _c
 }
 
+// SetHpCost sets the "hp_cost" field.
+func (_c *SkillCreate) SetHpCost(v int) *SkillCreate {
+	_c.mutation.SetHpCost(v)
+	return _c
+}
+
+// SetNillableHpCost sets the "hp_cost" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableHpCost(v *int) *SkillCreate {
+	if v != nil {
+		_c.SetHpCost(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterSkill entity by IDs.
 func (_c *SkillCreate) AddCharacterIDs(ids ...int) *SkillCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -163,6 +206,21 @@ func (_c *SkillCreate) AddCharacters(v ...*CharacterSkill) *SkillCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddCharacterIDs(ids...)
+}
+
+// AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by IDs.
+func (_c *SkillCreate) AddNpcSkillIDs(ids ...int) *SkillCreate {
+	_c.mutation.AddNpcSkillIDs(ids...)
+	return _c
+}
+
+// AddNpcSkills adds the "npc_skills" edges to the NPCSkill entity.
+func (_c *SkillCreate) AddNpcSkills(v ...*NPCSkill) *SkillCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNpcSkillIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -220,6 +278,10 @@ func (_c *SkillCreate) defaults() {
 		v := skill.DefaultEffectDuration
 		_c.mutation.SetEffectDuration(v)
 	}
+	if _, ok := _c.mutation.ScalingPercentPerPoint(); !ok {
+		v := skill.DefaultScalingPercentPerPoint
+		_c.mutation.SetScalingPercentPerPoint(v)
+	}
 	if _, ok := _c.mutation.ManaCost(); !ok {
 		v := skill.DefaultManaCost
 		_c.mutation.SetManaCost(v)
@@ -227,6 +289,10 @@ func (_c *SkillCreate) defaults() {
 	if _, ok := _c.mutation.StaminaCost(); !ok {
 		v := skill.DefaultStaminaCost
 		_c.mutation.SetStaminaCost(v)
+	}
+	if _, ok := _c.mutation.HpCost(); !ok {
+		v := skill.DefaultHpCost
+		_c.mutation.SetHpCost(v)
 	}
 }
 
@@ -256,11 +322,17 @@ func (_c *SkillCreate) check() error {
 	if _, ok := _c.mutation.EffectDuration(); !ok {
 		return &ValidationError{Name: "effect_duration", err: errors.New(`db: missing required field "Skill.effect_duration"`)}
 	}
+	if _, ok := _c.mutation.ScalingPercentPerPoint(); !ok {
+		return &ValidationError{Name: "scaling_percent_per_point", err: errors.New(`db: missing required field "Skill.scaling_percent_per_point"`)}
+	}
 	if _, ok := _c.mutation.ManaCost(); !ok {
 		return &ValidationError{Name: "mana_cost", err: errors.New(`db: missing required field "Skill.mana_cost"`)}
 	}
 	if _, ok := _c.mutation.StaminaCost(); !ok {
 		return &ValidationError{Name: "stamina_cost", err: errors.New(`db: missing required field "Skill.stamina_cost"`)}
+	}
+	if _, ok := _c.mutation.HpCost(); !ok {
+		return &ValidationError{Name: "hp_cost", err: errors.New(`db: missing required field "Skill.hp_cost"`)}
 	}
 	return nil
 }
@@ -324,6 +396,14 @@ func (_c *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 		_spec.SetField(skill.FieldEffectDuration, field.TypeInt, value)
 		_node.EffectDuration = value
 	}
+	if value, ok := _c.mutation.ScalingStat(); ok {
+		_spec.SetField(skill.FieldScalingStat, field.TypeString, value)
+		_node.ScalingStat = value
+	}
+	if value, ok := _c.mutation.ScalingPercentPerPoint(); ok {
+		_spec.SetField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+		_node.ScalingPercentPerPoint = value
+	}
 	if value, ok := _c.mutation.ManaCost(); ok {
 		_spec.SetField(skill.FieldManaCost, field.TypeInt, value)
 		_node.ManaCost = value
@@ -331,6 +411,10 @@ func (_c *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.StaminaCost(); ok {
 		_spec.SetField(skill.FieldStaminaCost, field.TypeInt, value)
 		_node.StaminaCost = value
+	}
+	if value, ok := _c.mutation.HpCost(); ok {
+		_spec.SetField(skill.FieldHpCost, field.TypeInt, value)
+		_node.HpCost = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -341,6 +425,22 @@ func (_c *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NpcSkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   skill.NpcSkillsTable,
+			Columns: skill.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

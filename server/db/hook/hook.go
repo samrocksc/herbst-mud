@@ -68,6 +68,18 @@ func (f EquipmentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EquipmentMutation", m)
 }
 
+// The NPCSkillFunc type is an adapter to allow the use of ordinary
+// function as NPCSkill mutator.
+type NPCSkillFunc func(context.Context, *db.NPCSkillMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NPCSkillFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.NPCSkillMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.NPCSkillMutation", m)
+}
+
 // The NPCTemplateFunc type is an adapter to allow the use of ordinary
 // function as NPCTemplate mutator.
 type NPCTemplateFunc func(context.Context, *db.NPCTemplateMutation) (db.Value, error)

@@ -16,6 +16,7 @@ import (
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/equipment"
+	"herbst-server/db/npcskill"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
 	"herbst-server/db/skill"
@@ -43,6 +44,8 @@ type Client struct {
 	CharacterTalent *CharacterTalentClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
+	// NPCSkill is the client for interacting with the NPCSkill builders.
+	NPCSkill *NPCSkillClient
 	// NPCTemplate is the client for interacting with the NPCTemplate builders.
 	NPCTemplate *NPCTemplateClient
 	// Room is the client for interacting with the Room builders.
@@ -69,6 +72,7 @@ func (c *Client) init() {
 	c.CharacterSkill = NewCharacterSkillClient(c.config)
 	c.CharacterTalent = NewCharacterTalentClient(c.config)
 	c.Equipment = NewEquipmentClient(c.config)
+	c.NPCSkill = NewNPCSkillClient(c.config)
 	c.NPCTemplate = NewNPCTemplateClient(c.config)
 	c.Room = NewRoomClient(c.config)
 	c.Skill = NewSkillClient(c.config)
@@ -171,6 +175,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CharacterSkill:  NewCharacterSkillClient(cfg),
 		CharacterTalent: NewCharacterTalentClient(cfg),
 		Equipment:       NewEquipmentClient(cfg),
+		NPCSkill:        NewNPCSkillClient(cfg),
 		NPCTemplate:     NewNPCTemplateClient(cfg),
 		Room:            NewRoomClient(cfg),
 		Skill:           NewSkillClient(cfg),
@@ -200,6 +205,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CharacterSkill:  NewCharacterSkillClient(cfg),
 		CharacterTalent: NewCharacterTalentClient(cfg),
 		Equipment:       NewEquipmentClient(cfg),
+		NPCSkill:        NewNPCSkillClient(cfg),
 		NPCTemplate:     NewNPCTemplateClient(cfg),
 		Room:            NewRoomClient(cfg),
 		Skill:           NewSkillClient(cfg),
@@ -235,7 +241,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AvailableTalent, c.Character, c.CharacterSkill, c.CharacterTalent,
-		c.Equipment, c.NPCTemplate, c.Room, c.Skill, c.Talent, c.User,
+		c.Equipment, c.NPCSkill, c.NPCTemplate, c.Room, c.Skill, c.Talent, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -246,7 +252,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AvailableTalent, c.Character, c.CharacterSkill, c.CharacterTalent,
-		c.Equipment, c.NPCTemplate, c.Room, c.Skill, c.Talent, c.User,
+		c.Equipment, c.NPCSkill, c.NPCTemplate, c.Room, c.Skill, c.Talent, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -265,6 +271,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CharacterTalent.mutate(ctx, m)
 	case *EquipmentMutation:
 		return c.Equipment.mutate(ctx, m)
+	case *NPCSkillMutation:
+		return c.NPCSkill.mutate(ctx, m)
 	case *NPCTemplateMutation:
 		return c.NPCTemplate.mutate(ctx, m)
 	case *RoomMutation:
@@ -1153,6 +1161,171 @@ func (c *EquipmentClient) mutate(ctx context.Context, m *EquipmentMutation) (Val
 	}
 }
 
+// NPCSkillClient is a client for the NPCSkill schema.
+type NPCSkillClient struct {
+	config
+}
+
+// NewNPCSkillClient returns a client for the NPCSkill from the given config.
+func NewNPCSkillClient(c config) *NPCSkillClient {
+	return &NPCSkillClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `npcskill.Hooks(f(g(h())))`.
+func (c *NPCSkillClient) Use(hooks ...Hook) {
+	c.hooks.NPCSkill = append(c.hooks.NPCSkill, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `npcskill.Intercept(f(g(h())))`.
+func (c *NPCSkillClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NPCSkill = append(c.inters.NPCSkill, interceptors...)
+}
+
+// Create returns a builder for creating a NPCSkill entity.
+func (c *NPCSkillClient) Create() *NPCSkillCreate {
+	mutation := newNPCSkillMutation(c.config, OpCreate)
+	return &NPCSkillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NPCSkill entities.
+func (c *NPCSkillClient) CreateBulk(builders ...*NPCSkillCreate) *NPCSkillCreateBulk {
+	return &NPCSkillCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NPCSkillClient) MapCreateBulk(slice any, setFunc func(*NPCSkillCreate, int)) *NPCSkillCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NPCSkillCreateBulk{err: fmt.Errorf("calling to NPCSkillClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NPCSkillCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NPCSkillCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NPCSkill.
+func (c *NPCSkillClient) Update() *NPCSkillUpdate {
+	mutation := newNPCSkillMutation(c.config, OpUpdate)
+	return &NPCSkillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NPCSkillClient) UpdateOne(_m *NPCSkill) *NPCSkillUpdateOne {
+	mutation := newNPCSkillMutation(c.config, OpUpdateOne, withNPCSkill(_m))
+	return &NPCSkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NPCSkillClient) UpdateOneID(id int) *NPCSkillUpdateOne {
+	mutation := newNPCSkillMutation(c.config, OpUpdateOne, withNPCSkillID(id))
+	return &NPCSkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NPCSkill.
+func (c *NPCSkillClient) Delete() *NPCSkillDelete {
+	mutation := newNPCSkillMutation(c.config, OpDelete)
+	return &NPCSkillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NPCSkillClient) DeleteOne(_m *NPCSkill) *NPCSkillDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NPCSkillClient) DeleteOneID(id int) *NPCSkillDeleteOne {
+	builder := c.Delete().Where(npcskill.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NPCSkillDeleteOne{builder}
+}
+
+// Query returns a query builder for NPCSkill.
+func (c *NPCSkillClient) Query() *NPCSkillQuery {
+	return &NPCSkillQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNPCSkill},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NPCSkill entity by its id.
+func (c *NPCSkillClient) Get(ctx context.Context, id int) (*NPCSkill, error) {
+	return c.Query().Where(npcskill.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NPCSkillClient) GetX(ctx context.Context, id int) *NPCSkill {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryNpcTemplate queries the npc_template edge of a NPCSkill.
+func (c *NPCSkillClient) QueryNpcTemplate(_m *NPCSkill) *NPCTemplateQuery {
+	query := (&NPCTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npcskill.Table, npcskill.FieldID, id),
+			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, npcskill.NpcTemplateTable, npcskill.NpcTemplatePrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySkill queries the skill edge of a NPCSkill.
+func (c *NPCSkillClient) QuerySkill(_m *NPCSkill) *SkillQuery {
+	query := (&SkillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npcskill.Table, npcskill.FieldID, id),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, npcskill.SkillTable, npcskill.SkillPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NPCSkillClient) Hooks() []Hook {
+	return c.hooks.NPCSkill
+}
+
+// Interceptors returns the client interceptors.
+func (c *NPCSkillClient) Interceptors() []Interceptor {
+	return c.inters.NPCSkill
+}
+
+func (c *NPCSkillClient) mutate(ctx context.Context, m *NPCSkillMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NPCSkillCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NPCSkillUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NPCSkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NPCSkillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown NPCSkill mutation op: %q", m.Op())
+	}
+}
+
 // NPCTemplateClient is a client for the NPCTemplate schema.
 type NPCTemplateClient struct {
 	config
@@ -1259,6 +1432,22 @@ func (c *NPCTemplateClient) GetX(ctx context.Context, id string) *NPCTemplate {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryNpcSkills queries the npc_skills edge of a NPCTemplate.
+func (c *NPCTemplateClient) QueryNpcSkills(_m *NPCTemplate) *NPCSkillQuery {
+	query := (&NPCSkillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, id),
+			sqlgraph.To(npcskill.Table, npcskill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, npctemplate.NpcSkillsTable, npctemplate.NpcSkillsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1568,6 +1757,22 @@ func (c *SkillClient) QueryCharacters(_m *Skill) *CharacterSkillQuery {
 			sqlgraph.From(skill.Table, skill.FieldID, id),
 			sqlgraph.To(characterskill.Table, characterskill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, skill.CharactersTable, skill.CharactersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNpcSkills queries the npc_skills edge of a Skill.
+func (c *SkillClient) QueryNpcSkills(_m *Skill) *NPCSkillQuery {
+	query := (&NPCSkillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, id),
+			sqlgraph.To(npcskill.Table, npcskill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, skill.NpcSkillsTable, skill.NpcSkillsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1918,10 +2123,10 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AvailableTalent, Character, CharacterSkill, CharacterTalent, Equipment,
-		NPCTemplate, Room, Skill, Talent, User []ent.Hook
+		NPCSkill, NPCTemplate, Room, Skill, Talent, User []ent.Hook
 	}
 	inters struct {
 		AvailableTalent, Character, CharacterSkill, CharacterTalent, Equipment,
-		NPCTemplate, Room, Skill, Talent, User []ent.Interceptor
+		NPCSkill, NPCTemplate, Room, Skill, Talent, User []ent.Interceptor
 	}
 )

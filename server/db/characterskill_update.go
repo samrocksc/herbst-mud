@@ -29,45 +29,24 @@ func (_u *CharacterSkillUpdate) Where(ps ...predicate.CharacterSkill) *Character
 	return _u
 }
 
-// SetLevel sets the "level" field.
-func (_u *CharacterSkillUpdate) SetLevel(v int) *CharacterSkillUpdate {
-	_u.mutation.ResetLevel()
-	_u.mutation.SetLevel(v)
+// SetSlot sets the "slot" field.
+func (_u *CharacterSkillUpdate) SetSlot(v int) *CharacterSkillUpdate {
+	_u.mutation.ResetSlot()
+	_u.mutation.SetSlot(v)
 	return _u
 }
 
-// SetNillableLevel sets the "level" field if the given value is not nil.
-func (_u *CharacterSkillUpdate) SetNillableLevel(v *int) *CharacterSkillUpdate {
+// SetNillableSlot sets the "slot" field if the given value is not nil.
+func (_u *CharacterSkillUpdate) SetNillableSlot(v *int) *CharacterSkillUpdate {
 	if v != nil {
-		_u.SetLevel(*v)
+		_u.SetSlot(*v)
 	}
 	return _u
 }
 
-// AddLevel adds value to the "level" field.
-func (_u *CharacterSkillUpdate) AddLevel(v int) *CharacterSkillUpdate {
-	_u.mutation.AddLevel(v)
-	return _u
-}
-
-// SetExperience sets the "experience" field.
-func (_u *CharacterSkillUpdate) SetExperience(v int) *CharacterSkillUpdate {
-	_u.mutation.ResetExperience()
-	_u.mutation.SetExperience(v)
-	return _u
-}
-
-// SetNillableExperience sets the "experience" field if the given value is not nil.
-func (_u *CharacterSkillUpdate) SetNillableExperience(v *int) *CharacterSkillUpdate {
-	if v != nil {
-		_u.SetExperience(*v)
-	}
-	return _u
-}
-
-// AddExperience adds value to the "experience" field.
-func (_u *CharacterSkillUpdate) AddExperience(v int) *CharacterSkillUpdate {
-	_u.mutation.AddExperience(v)
+// AddSlot adds value to the "slot" field.
+func (_u *CharacterSkillUpdate) AddSlot(v int) *CharacterSkillUpdate {
+	_u.mutation.AddSlot(v)
 	return _u
 }
 
@@ -162,17 +141,11 @@ func (_u *CharacterSkillUpdate) sqlSave(ctx context.Context) (_node int, err err
 			}
 		}
 	}
-	if value, ok := _u.mutation.Level(); ok {
-		_spec.SetField(characterskill.FieldLevel, field.TypeInt, value)
+	if value, ok := _u.mutation.Slot(); ok {
+		_spec.SetField(characterskill.FieldSlot, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.AddedLevel(); ok {
-		_spec.AddField(characterskill.FieldLevel, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.Experience(); ok {
-		_spec.SetField(characterskill.FieldExperience, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedExperience(); ok {
-		_spec.AddField(characterskill.FieldExperience, field.TypeInt, value)
+	if value, ok := _u.mutation.AddedSlot(); ok {
+		_spec.AddField(characterskill.FieldSlot, field.TypeInt, value)
 	}
 	if _u.mutation.CharacterCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -252,45 +225,24 @@ type CharacterSkillUpdateOne struct {
 	mutation *CharacterSkillMutation
 }
 
-// SetLevel sets the "level" field.
-func (_u *CharacterSkillUpdateOne) SetLevel(v int) *CharacterSkillUpdateOne {
-	_u.mutation.ResetLevel()
-	_u.mutation.SetLevel(v)
+// SetSlot sets the "slot" field.
+func (_u *CharacterSkillUpdateOne) SetSlot(v int) *CharacterSkillUpdateOne {
+	_u.mutation.ResetSlot()
+	_u.mutation.SetSlot(v)
 	return _u
 }
 
-// SetNillableLevel sets the "level" field if the given value is not nil.
-func (_u *CharacterSkillUpdateOne) SetNillableLevel(v *int) *CharacterSkillUpdateOne {
+// SetNillableSlot sets the "slot" field if the given value is not nil.
+func (_u *CharacterSkillUpdateOne) SetNillableSlot(v *int) *CharacterSkillUpdateOne {
 	if v != nil {
-		_u.SetLevel(*v)
+		_u.SetSlot(*v)
 	}
 	return _u
 }
 
-// AddLevel adds value to the "level" field.
-func (_u *CharacterSkillUpdateOne) AddLevel(v int) *CharacterSkillUpdateOne {
-	_u.mutation.AddLevel(v)
-	return _u
-}
-
-// SetExperience sets the "experience" field.
-func (_u *CharacterSkillUpdateOne) SetExperience(v int) *CharacterSkillUpdateOne {
-	_u.mutation.ResetExperience()
-	_u.mutation.SetExperience(v)
-	return _u
-}
-
-// SetNillableExperience sets the "experience" field if the given value is not nil.
-func (_u *CharacterSkillUpdateOne) SetNillableExperience(v *int) *CharacterSkillUpdateOne {
-	if v != nil {
-		_u.SetExperience(*v)
-	}
-	return _u
-}
-
-// AddExperience adds value to the "experience" field.
-func (_u *CharacterSkillUpdateOne) AddExperience(v int) *CharacterSkillUpdateOne {
-	_u.mutation.AddExperience(v)
+// AddSlot adds value to the "slot" field.
+func (_u *CharacterSkillUpdateOne) AddSlot(v int) *CharacterSkillUpdateOne {
+	_u.mutation.AddSlot(v)
 	return _u
 }
 
@@ -415,17 +367,11 @@ func (_u *CharacterSkillUpdateOne) sqlSave(ctx context.Context) (_node *Characte
 			}
 		}
 	}
-	if value, ok := _u.mutation.Level(); ok {
-		_spec.SetField(characterskill.FieldLevel, field.TypeInt, value)
+	if value, ok := _u.mutation.Slot(); ok {
+		_spec.SetField(characterskill.FieldSlot, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.AddedLevel(); ok {
-		_spec.AddField(characterskill.FieldLevel, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.Experience(); ok {
-		_spec.SetField(characterskill.FieldExperience, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedExperience(); ok {
-		_spec.AddField(characterskill.FieldExperience, field.TypeInt, value)
+	if value, ok := _u.mutation.AddedSlot(); ok {
+		_spec.AddField(characterskill.FieldSlot, field.TypeInt, value)
 	}
 	if _u.mutation.CharacterCleared() {
 		edge := &sqlgraph.EdgeSpec{

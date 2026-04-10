@@ -4,7 +4,9 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
+	"herbst-server/db/npcskill"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 	"math"
@@ -18,10 +20,11 @@ import (
 // NPCTemplateQuery is the builder for querying NPCTemplate entities.
 type NPCTemplateQuery struct {
 	config
-	ctx        *QueryContext
-	order      []npctemplate.OrderOption
-	inters     []Interceptor
-	predicates []predicate.NPCTemplate
+	ctx           *QueryContext
+	order         []npctemplate.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.NPCTemplate
+	withNpcSkills *NPCSkillQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (_q *NPCTemplateQuery) Unique(unique bool) *NPCTemplateQuery {
 func (_q *NPCTemplateQuery) Order(o ...npctemplate.OrderOption) *NPCTemplateQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryNpcSkills chains the current query on the "npc_skills" edge.
+func (_q *NPCTemplateQuery) QueryNpcSkills() *NPCSkillQuery {
+	query := (&NPCSkillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, selector),
+			sqlgraph.To(npcskill.Table, npcskill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, npctemplate.NpcSkillsTable, npctemplate.NpcSkillsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first NPCTemplate entity from the query.
@@ -245,15 +270,27 @@ func (_q *NPCTemplateQuery) Clone() *NPCTemplateQuery {
 		return nil
 	}
 	return &NPCTemplateQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]npctemplate.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.NPCTemplate{}, _q.predicates...),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]npctemplate.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.NPCTemplate{}, _q.predicates...),
+		withNpcSkills: _q.withNpcSkills.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithNpcSkills tells the query-builder to eager-load the nodes that are connected to
+// the "npc_skills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NPCTemplateQuery) WithNpcSkills(opts ...func(*NPCSkillQuery)) *NPCTemplateQuery {
+	query := (&NPCSkillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNpcSkills = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +369,11 @@ func (_q *NPCTemplateQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NPCTemplate, error) {
 	var (
-		nodes = []*NPCTemplate{}
-		_spec = _q.querySpec()
+		nodes       = []*NPCTemplate{}
+		_spec       = _q.querySpec()
+		loadedTypes = [1]bool{
+			_q.withNpcSkills != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*NPCTemplate).scanValues(nil, columns)
@@ -341,6 +381,7 @@ func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &NPCTemplate{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +393,76 @@ func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withNpcSkills; query != nil {
+		if err := _q.loadNpcSkills(ctx, query, nodes,
+			func(n *NPCTemplate) { n.Edges.NpcSkills = []*NPCSkill{} },
+			func(n *NPCTemplate, e *NPCSkill) { n.Edges.NpcSkills = append(n.Edges.NpcSkills, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *NPCTemplateQuery) loadNpcSkills(ctx context.Context, query *NPCSkillQuery, nodes []*NPCTemplate, init func(*NPCTemplate), assign func(*NPCTemplate, *NPCSkill)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[string]*NPCTemplate)
+	nids := make(map[int]map[*NPCTemplate]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(npctemplate.NpcSkillsTable)
+		s.Join(joinT).On(s.C(npcskill.FieldID), joinT.C(npctemplate.NpcSkillsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(npctemplate.NpcSkillsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(npctemplate.NpcSkillsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullString)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := values[0].(*sql.NullString).String
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*NPCTemplate]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*NPCSkill](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "npc_skills" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (_q *NPCTemplateQuery) sqlCount(ctx context.Context) (int, error) {

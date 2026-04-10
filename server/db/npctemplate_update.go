@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/npcskill"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 
@@ -137,9 +138,45 @@ func (_u *NPCTemplateUpdate) SetNillableGreeting(v *string) *NPCTemplateUpdate {
 	return _u
 }
 
+// AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by IDs.
+func (_u *NPCTemplateUpdate) AddNpcSkillIDs(ids ...int) *NPCTemplateUpdate {
+	_u.mutation.AddNpcSkillIDs(ids...)
+	return _u
+}
+
+// AddNpcSkills adds the "npc_skills" edges to the NPCSkill entity.
+func (_u *NPCTemplateUpdate) AddNpcSkills(v ...*NPCSkill) *NPCTemplateUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNpcSkillIDs(ids...)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_u *NPCTemplateUpdate) Mutation() *NPCTemplateMutation {
 	return _u.mutation
+}
+
+// ClearNpcSkills clears all "npc_skills" edges to the NPCSkill entity.
+func (_u *NPCTemplateUpdate) ClearNpcSkills() *NPCTemplateUpdate {
+	_u.mutation.ClearNpcSkills()
+	return _u
+}
+
+// RemoveNpcSkillIDs removes the "npc_skills" edge to NPCSkill entities by IDs.
+func (_u *NPCTemplateUpdate) RemoveNpcSkillIDs(ids ...int) *NPCTemplateUpdate {
+	_u.mutation.RemoveNpcSkillIDs(ids...)
+	return _u
+}
+
+// RemoveNpcSkills removes "npc_skills" edges to NPCSkill entities.
+func (_u *NPCTemplateUpdate) RemoveNpcSkills(v ...*NPCSkill) *NPCTemplateUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNpcSkillIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -222,6 +259,51 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Greeting(); ok {
 		_spec.SetField(npctemplate.FieldGreeting, field.TypeString, value)
+	}
+	if _u.mutation.NpcSkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   npctemplate.NpcSkillsTable,
+			Columns: npctemplate.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNpcSkillsIDs(); len(nodes) > 0 && !_u.mutation.NpcSkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   npctemplate.NpcSkillsTable,
+			Columns: npctemplate.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NpcSkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   npctemplate.NpcSkillsTable,
+			Columns: npctemplate.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -352,9 +434,45 @@ func (_u *NPCTemplateUpdateOne) SetNillableGreeting(v *string) *NPCTemplateUpdat
 	return _u
 }
 
+// AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by IDs.
+func (_u *NPCTemplateUpdateOne) AddNpcSkillIDs(ids ...int) *NPCTemplateUpdateOne {
+	_u.mutation.AddNpcSkillIDs(ids...)
+	return _u
+}
+
+// AddNpcSkills adds the "npc_skills" edges to the NPCSkill entity.
+func (_u *NPCTemplateUpdateOne) AddNpcSkills(v ...*NPCSkill) *NPCTemplateUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNpcSkillIDs(ids...)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_u *NPCTemplateUpdateOne) Mutation() *NPCTemplateMutation {
 	return _u.mutation
+}
+
+// ClearNpcSkills clears all "npc_skills" edges to the NPCSkill entity.
+func (_u *NPCTemplateUpdateOne) ClearNpcSkills() *NPCTemplateUpdateOne {
+	_u.mutation.ClearNpcSkills()
+	return _u
+}
+
+// RemoveNpcSkillIDs removes the "npc_skills" edge to NPCSkill entities by IDs.
+func (_u *NPCTemplateUpdateOne) RemoveNpcSkillIDs(ids ...int) *NPCTemplateUpdateOne {
+	_u.mutation.RemoveNpcSkillIDs(ids...)
+	return _u
+}
+
+// RemoveNpcSkills removes "npc_skills" edges to NPCSkill entities.
+func (_u *NPCTemplateUpdateOne) RemoveNpcSkills(v ...*NPCSkill) *NPCTemplateUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNpcSkillIDs(ids...)
 }
 
 // Where appends a list predicates to the NPCTemplateUpdate builder.
@@ -467,6 +585,51 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 	}
 	if value, ok := _u.mutation.Greeting(); ok {
 		_spec.SetField(npctemplate.FieldGreeting, field.TypeString, value)
+	}
+	if _u.mutation.NpcSkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   npctemplate.NpcSkillsTable,
+			Columns: npctemplate.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNpcSkillsIDs(); len(nodes) > 0 && !_u.mutation.NpcSkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   npctemplate.NpcSkillsTable,
+			Columns: npctemplate.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NpcSkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   npctemplate.NpcSkillsTable,
+			Columns: npctemplate.NpcSkillsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &NPCTemplate{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -6,8 +6,8 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
-	"herbst-server/db/characterskill"
 	"herbst-server/db/npcskill"
+	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/skill"
 	"math"
@@ -18,54 +18,54 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// SkillQuery is the builder for querying Skill entities.
-type SkillQuery struct {
+// NPCSkillQuery is the builder for querying NPCSkill entities.
+type NPCSkillQuery struct {
 	config
-	ctx            *QueryContext
-	order          []skill.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.Skill
-	withCharacters *CharacterSkillQuery
-	withNpcSkills  *NPCSkillQuery
+	ctx             *QueryContext
+	order           []npcskill.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.NPCSkill
+	withNpcTemplate *NPCTemplateQuery
+	withSkill       *SkillQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the SkillQuery builder.
-func (_q *SkillQuery) Where(ps ...predicate.Skill) *SkillQuery {
+// Where adds a new predicate for the NPCSkillQuery builder.
+func (_q *NPCSkillQuery) Where(ps ...predicate.NPCSkill) *NPCSkillQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *SkillQuery) Limit(limit int) *SkillQuery {
+func (_q *NPCSkillQuery) Limit(limit int) *NPCSkillQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *SkillQuery) Offset(offset int) *SkillQuery {
+func (_q *NPCSkillQuery) Offset(offset int) *NPCSkillQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *SkillQuery) Unique(unique bool) *SkillQuery {
+func (_q *NPCSkillQuery) Unique(unique bool) *NPCSkillQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *SkillQuery) Order(o ...skill.OrderOption) *SkillQuery {
+func (_q *NPCSkillQuery) Order(o ...npcskill.OrderOption) *NPCSkillQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// QueryCharacters chains the current query on the "characters" edge.
-func (_q *SkillQuery) QueryCharacters() *CharacterSkillQuery {
-	query := (&CharacterSkillClient{config: _q.config}).Query()
+// QueryNpcTemplate chains the current query on the "npc_template" edge.
+func (_q *NPCSkillQuery) QueryNpcTemplate() *NPCTemplateQuery {
+	query := (&NPCTemplateClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -75,9 +75,9 @@ func (_q *SkillQuery) QueryCharacters() *CharacterSkillQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(skill.Table, skill.FieldID, selector),
-			sqlgraph.To(characterskill.Table, characterskill.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, skill.CharactersTable, skill.CharactersColumn),
+			sqlgraph.From(npcskill.Table, npcskill.FieldID, selector),
+			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, npcskill.NpcTemplateTable, npcskill.NpcTemplatePrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -85,9 +85,9 @@ func (_q *SkillQuery) QueryCharacters() *CharacterSkillQuery {
 	return query
 }
 
-// QueryNpcSkills chains the current query on the "npc_skills" edge.
-func (_q *SkillQuery) QueryNpcSkills() *NPCSkillQuery {
-	query := (&NPCSkillClient{config: _q.config}).Query()
+// QuerySkill chains the current query on the "skill" edge.
+func (_q *NPCSkillQuery) QuerySkill() *SkillQuery {
+	query := (&SkillClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -97,9 +97,9 @@ func (_q *SkillQuery) QueryNpcSkills() *NPCSkillQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(skill.Table, skill.FieldID, selector),
-			sqlgraph.To(npcskill.Table, npcskill.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, skill.NpcSkillsTable, skill.NpcSkillsPrimaryKey...),
+			sqlgraph.From(npcskill.Table, npcskill.FieldID, selector),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, npcskill.SkillTable, npcskill.SkillPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -107,21 +107,21 @@ func (_q *SkillQuery) QueryNpcSkills() *NPCSkillQuery {
 	return query
 }
 
-// First returns the first Skill entity from the query.
-// Returns a *NotFoundError when no Skill was found.
-func (_q *SkillQuery) First(ctx context.Context) (*Skill, error) {
+// First returns the first NPCSkill entity from the query.
+// Returns a *NotFoundError when no NPCSkill was found.
+func (_q *NPCSkillQuery) First(ctx context.Context) (*NPCSkill, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{skill.Label}
+		return nil, &NotFoundError{npcskill.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *SkillQuery) FirstX(ctx context.Context) *Skill {
+func (_q *NPCSkillQuery) FirstX(ctx context.Context) *NPCSkill {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -129,22 +129,22 @@ func (_q *SkillQuery) FirstX(ctx context.Context) *Skill {
 	return node
 }
 
-// FirstID returns the first Skill ID from the query.
-// Returns a *NotFoundError when no Skill ID was found.
-func (_q *SkillQuery) FirstID(ctx context.Context) (id int, err error) {
+// FirstID returns the first NPCSkill ID from the query.
+// Returns a *NotFoundError when no NPCSkill ID was found.
+func (_q *NPCSkillQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{skill.Label}
+		err = &NotFoundError{npcskill.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *SkillQuery) FirstIDX(ctx context.Context) int {
+func (_q *NPCSkillQuery) FirstIDX(ctx context.Context) int {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -152,10 +152,10 @@ func (_q *SkillQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single Skill entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one Skill entity is found.
-// Returns a *NotFoundError when no Skill entities are found.
-func (_q *SkillQuery) Only(ctx context.Context) (*Skill, error) {
+// Only returns a single NPCSkill entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one NPCSkill entity is found.
+// Returns a *NotFoundError when no NPCSkill entities are found.
+func (_q *NPCSkillQuery) Only(ctx context.Context) (*NPCSkill, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -164,14 +164,14 @@ func (_q *SkillQuery) Only(ctx context.Context) (*Skill, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{skill.Label}
+		return nil, &NotFoundError{npcskill.Label}
 	default:
-		return nil, &NotSingularError{skill.Label}
+		return nil, &NotSingularError{npcskill.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *SkillQuery) OnlyX(ctx context.Context) *Skill {
+func (_q *NPCSkillQuery) OnlyX(ctx context.Context) *NPCSkill {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -179,10 +179,10 @@ func (_q *SkillQuery) OnlyX(ctx context.Context) *Skill {
 	return node
 }
 
-// OnlyID is like Only, but returns the only Skill ID in the query.
-// Returns a *NotSingularError when more than one Skill ID is found.
+// OnlyID is like Only, but returns the only NPCSkill ID in the query.
+// Returns a *NotSingularError when more than one NPCSkill ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *SkillQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *NPCSkillQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -191,15 +191,15 @@ func (_q *SkillQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{skill.Label}
+		err = &NotFoundError{npcskill.Label}
 	default:
-		err = &NotSingularError{skill.Label}
+		err = &NotSingularError{npcskill.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *SkillQuery) OnlyIDX(ctx context.Context) int {
+func (_q *NPCSkillQuery) OnlyIDX(ctx context.Context) int {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -207,18 +207,18 @@ func (_q *SkillQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of Skills.
-func (_q *SkillQuery) All(ctx context.Context) ([]*Skill, error) {
+// All executes the query and returns a list of NPCSkills.
+func (_q *NPCSkillQuery) All(ctx context.Context) ([]*NPCSkill, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*Skill, *SkillQuery]()
-	return withInterceptors[[]*Skill](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*NPCSkill, *NPCSkillQuery]()
+	return withInterceptors[[]*NPCSkill](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *SkillQuery) AllX(ctx context.Context) []*Skill {
+func (_q *NPCSkillQuery) AllX(ctx context.Context) []*NPCSkill {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -226,20 +226,20 @@ func (_q *SkillQuery) AllX(ctx context.Context) []*Skill {
 	return nodes
 }
 
-// IDs executes the query and returns a list of Skill IDs.
-func (_q *SkillQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of NPCSkill IDs.
+func (_q *NPCSkillQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(skill.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(npcskill.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *SkillQuery) IDsX(ctx context.Context) []int {
+func (_q *NPCSkillQuery) IDsX(ctx context.Context) []int {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -248,16 +248,16 @@ func (_q *SkillQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *SkillQuery) Count(ctx context.Context) (int, error) {
+func (_q *NPCSkillQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*SkillQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*NPCSkillQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *SkillQuery) CountX(ctx context.Context) int {
+func (_q *NPCSkillQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -266,7 +266,7 @@ func (_q *SkillQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *SkillQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *NPCSkillQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -279,7 +279,7 @@ func (_q *SkillQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *SkillQuery) ExistX(ctx context.Context) bool {
+func (_q *NPCSkillQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -287,45 +287,45 @@ func (_q *SkillQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the SkillQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the NPCSkillQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *SkillQuery) Clone() *SkillQuery {
+func (_q *NPCSkillQuery) Clone() *NPCSkillQuery {
 	if _q == nil {
 		return nil
 	}
-	return &SkillQuery{
-		config:         _q.config,
-		ctx:            _q.ctx.Clone(),
-		order:          append([]skill.OrderOption{}, _q.order...),
-		inters:         append([]Interceptor{}, _q.inters...),
-		predicates:     append([]predicate.Skill{}, _q.predicates...),
-		withCharacters: _q.withCharacters.Clone(),
-		withNpcSkills:  _q.withNpcSkills.Clone(),
+	return &NPCSkillQuery{
+		config:          _q.config,
+		ctx:             _q.ctx.Clone(),
+		order:           append([]npcskill.OrderOption{}, _q.order...),
+		inters:          append([]Interceptor{}, _q.inters...),
+		predicates:      append([]predicate.NPCSkill{}, _q.predicates...),
+		withNpcTemplate: _q.withNpcTemplate.Clone(),
+		withSkill:       _q.withSkill.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithCharacters tells the query-builder to eager-load the nodes that are connected to
-// the "characters" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SkillQuery) WithCharacters(opts ...func(*CharacterSkillQuery)) *SkillQuery {
-	query := (&CharacterSkillClient{config: _q.config}).Query()
+// WithNpcTemplate tells the query-builder to eager-load the nodes that are connected to
+// the "npc_template" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NPCSkillQuery) WithNpcTemplate(opts ...func(*NPCTemplateQuery)) *NPCSkillQuery {
+	query := (&NPCTemplateClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withCharacters = query
+	_q.withNpcTemplate = query
 	return _q
 }
 
-// WithNpcSkills tells the query-builder to eager-load the nodes that are connected to
-// the "npc_skills" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SkillQuery) WithNpcSkills(opts ...func(*NPCSkillQuery)) *SkillQuery {
-	query := (&NPCSkillClient{config: _q.config}).Query()
+// WithSkill tells the query-builder to eager-load the nodes that are connected to
+// the "skill" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NPCSkillQuery) WithSkill(opts ...func(*SkillQuery)) *NPCSkillQuery {
+	query := (&SkillClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withNpcSkills = query
+	_q.withSkill = query
 	return _q
 }
 
@@ -335,19 +335,19 @@ func (_q *SkillQuery) WithNpcSkills(opts ...func(*NPCSkillQuery)) *SkillQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Slot int `json:"slot,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Skill.Query().
-//		GroupBy(skill.FieldName).
+//	client.NPCSkill.Query().
+//		GroupBy(npcskill.FieldSlot).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-func (_q *SkillQuery) GroupBy(field string, fields ...string) *SkillGroupBy {
+func (_q *NPCSkillQuery) GroupBy(field string, fields ...string) *NPCSkillGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &SkillGroupBy{build: _q}
+	grbuild := &NPCSkillGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = skill.Label
+	grbuild.label = npcskill.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -358,26 +358,26 @@ func (_q *SkillQuery) GroupBy(field string, fields ...string) *SkillGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Slot int `json:"slot,omitempty"`
 //	}
 //
-//	client.Skill.Query().
-//		Select(skill.FieldName).
+//	client.NPCSkill.Query().
+//		Select(npcskill.FieldSlot).
 //		Scan(ctx, &v)
-func (_q *SkillQuery) Select(fields ...string) *SkillSelect {
+func (_q *NPCSkillQuery) Select(fields ...string) *NPCSkillSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &SkillSelect{SkillQuery: _q}
-	sbuild.label = skill.Label
+	sbuild := &NPCSkillSelect{NPCSkillQuery: _q}
+	sbuild.label = npcskill.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a SkillSelect configured with the given aggregations.
-func (_q *SkillQuery) Aggregate(fns ...AggregateFunc) *SkillSelect {
+// Aggregate returns a NPCSkillSelect configured with the given aggregations.
+func (_q *NPCSkillQuery) Aggregate(fns ...AggregateFunc) *NPCSkillSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *SkillQuery) prepareQuery(ctx context.Context) error {
+func (_q *NPCSkillQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("db: uninitialized interceptor (forgotten import db/runtime?)")
@@ -389,7 +389,7 @@ func (_q *SkillQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !skill.ValidColumn(f) {
+		if !npcskill.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("db: invalid field %q for query", f)}
 		}
 	}
@@ -403,20 +403,20 @@ func (_q *SkillQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *SkillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Skill, error) {
+func (_q *NPCSkillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NPCSkill, error) {
 	var (
-		nodes       = []*Skill{}
+		nodes       = []*NPCSkill{}
 		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
-			_q.withCharacters != nil,
-			_q.withNpcSkills != nil,
+			_q.withNpcTemplate != nil,
+			_q.withSkill != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*Skill).scanValues(nil, columns)
+		return (*NPCSkill).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &Skill{config: _q.config}
+		node := &NPCSkill{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -430,58 +430,27 @@ func (_q *SkillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Skill,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withCharacters; query != nil {
-		if err := _q.loadCharacters(ctx, query, nodes,
-			func(n *Skill) { n.Edges.Characters = []*CharacterSkill{} },
-			func(n *Skill, e *CharacterSkill) { n.Edges.Characters = append(n.Edges.Characters, e) }); err != nil {
+	if query := _q.withNpcTemplate; query != nil {
+		if err := _q.loadNpcTemplate(ctx, query, nodes,
+			func(n *NPCSkill) { n.Edges.NpcTemplate = []*NPCTemplate{} },
+			func(n *NPCSkill, e *NPCTemplate) { n.Edges.NpcTemplate = append(n.Edges.NpcTemplate, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withNpcSkills; query != nil {
-		if err := _q.loadNpcSkills(ctx, query, nodes,
-			func(n *Skill) { n.Edges.NpcSkills = []*NPCSkill{} },
-			func(n *Skill, e *NPCSkill) { n.Edges.NpcSkills = append(n.Edges.NpcSkills, e) }); err != nil {
+	if query := _q.withSkill; query != nil {
+		if err := _q.loadSkill(ctx, query, nodes,
+			func(n *NPCSkill) { n.Edges.Skill = []*Skill{} },
+			func(n *NPCSkill, e *Skill) { n.Edges.Skill = append(n.Edges.Skill, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *SkillQuery) loadCharacters(ctx context.Context, query *CharacterSkillQuery, nodes []*Skill, init func(*Skill), assign func(*Skill, *CharacterSkill)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Skill)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.withFKs = true
-	query.Where(predicate.CharacterSkill(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(skill.CharactersColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.skill_characters
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "skill_characters" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "skill_characters" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *SkillQuery) loadNpcSkills(ctx context.Context, query *NPCSkillQuery, nodes []*Skill, init func(*Skill), assign func(*Skill, *NPCSkill)) error {
+func (_q *NPCSkillQuery) loadNpcTemplate(ctx context.Context, query *NPCTemplateQuery, nodes []*NPCSkill, init func(*NPCSkill), assign func(*NPCSkill, *NPCTemplate)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Skill)
-	nids := make(map[int]map[*Skill]struct{})
+	byID := make(map[int]*NPCSkill)
+	nids := make(map[string]map[*NPCSkill]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -490,11 +459,72 @@ func (_q *SkillQuery) loadNpcSkills(ctx context.Context, query *NPCSkillQuery, n
 		}
 	}
 	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(skill.NpcSkillsTable)
-		s.Join(joinT).On(s.C(npcskill.FieldID), joinT.C(skill.NpcSkillsPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(skill.NpcSkillsPrimaryKey[0]), edgeIDs...))
+		joinT := sql.Table(npcskill.NpcTemplateTable)
+		s.Join(joinT).On(s.C(npctemplate.FieldID), joinT.C(npcskill.NpcTemplatePrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(npcskill.NpcTemplatePrimaryKey[1]), edgeIDs...))
 		columns := s.SelectedColumns()
-		s.Select(joinT.C(skill.NpcSkillsPrimaryKey[0]))
+		s.Select(joinT.C(npcskill.NpcTemplatePrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := values[1].(*sql.NullString).String
+				if nids[inValue] == nil {
+					nids[inValue] = map[*NPCSkill]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*NPCTemplate](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "npc_template" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *NPCSkillQuery) loadSkill(ctx context.Context, query *SkillQuery, nodes []*NPCSkill, init func(*NPCSkill), assign func(*NPCSkill, *Skill)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*NPCSkill)
+	nids := make(map[int]map[*NPCSkill]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(npcskill.SkillTable)
+		s.Join(joinT).On(s.C(skill.FieldID), joinT.C(npcskill.SkillPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(npcskill.SkillPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(npcskill.SkillPrimaryKey[1]))
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
@@ -516,7 +546,7 @@ func (_q *SkillQuery) loadNpcSkills(ctx context.Context, query *NPCSkillQuery, n
 				outValue := int(values[0].(*sql.NullInt64).Int64)
 				inValue := int(values[1].(*sql.NullInt64).Int64)
 				if nids[inValue] == nil {
-					nids[inValue] = map[*Skill]struct{}{byID[outValue]: {}}
+					nids[inValue] = map[*NPCSkill]struct{}{byID[outValue]: {}}
 					return assign(columns[1:], values[1:])
 				}
 				nids[inValue][byID[outValue]] = struct{}{}
@@ -524,14 +554,14 @@ func (_q *SkillQuery) loadNpcSkills(ctx context.Context, query *NPCSkillQuery, n
 			}
 		})
 	})
-	neighbors, err := withInterceptors[[]*NPCSkill](ctx, query, qr, query.inters)
+	neighbors, err := withInterceptors[[]*Skill](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
 		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "npc_skills" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "skill" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)
@@ -540,7 +570,7 @@ func (_q *SkillQuery) loadNpcSkills(ctx context.Context, query *NPCSkillQuery, n
 	return nil
 }
 
-func (_q *SkillQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *NPCSkillQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -549,8 +579,8 @@ func (_q *SkillQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *SkillQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(skill.Table, skill.Columns, sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt))
+func (_q *NPCSkillQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(npcskill.Table, npcskill.Columns, sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -559,9 +589,9 @@ func (_q *SkillQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, skill.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, npcskill.FieldID)
 		for i := range fields {
-			if fields[i] != skill.FieldID {
+			if fields[i] != npcskill.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -589,12 +619,12 @@ func (_q *SkillQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *SkillQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *NPCSkillQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(skill.Table)
+	t1 := builder.Table(npcskill.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = skill.Columns
+		columns = npcskill.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -621,28 +651,28 @@ func (_q *SkillQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// SkillGroupBy is the group-by builder for Skill entities.
-type SkillGroupBy struct {
+// NPCSkillGroupBy is the group-by builder for NPCSkill entities.
+type NPCSkillGroupBy struct {
 	selector
-	build *SkillQuery
+	build *NPCSkillQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *SkillGroupBy) Aggregate(fns ...AggregateFunc) *SkillGroupBy {
+func (_g *NPCSkillGroupBy) Aggregate(fns ...AggregateFunc) *NPCSkillGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *SkillGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *NPCSkillGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*SkillQuery, *SkillGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*NPCSkillQuery, *NPCSkillGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *SkillGroupBy) sqlScan(ctx context.Context, root *SkillQuery, v any) error {
+func (_g *NPCSkillGroupBy) sqlScan(ctx context.Context, root *NPCSkillQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -669,28 +699,28 @@ func (_g *SkillGroupBy) sqlScan(ctx context.Context, root *SkillQuery, v any) er
 	return sql.ScanSlice(rows, v)
 }
 
-// SkillSelect is the builder for selecting fields of Skill entities.
-type SkillSelect struct {
-	*SkillQuery
+// NPCSkillSelect is the builder for selecting fields of NPCSkill entities.
+type NPCSkillSelect struct {
+	*NPCSkillQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *SkillSelect) Aggregate(fns ...AggregateFunc) *SkillSelect {
+func (_s *NPCSkillSelect) Aggregate(fns ...AggregateFunc) *NPCSkillSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *SkillSelect) Scan(ctx context.Context, v any) error {
+func (_s *NPCSkillSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*SkillQuery, *SkillSelect](ctx, _s.SkillQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*NPCSkillQuery, *NPCSkillSelect](ctx, _s.NPCSkillQuery, _s, _s.inters, v)
 }
 
-func (_s *SkillSelect) sqlScan(ctx context.Context, root *SkillQuery, v any) error {
+func (_s *NPCSkillSelect) sqlScan(ctx context.Context, root *NPCSkillQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

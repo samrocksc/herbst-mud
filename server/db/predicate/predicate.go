@@ -21,6 +21,9 @@ type CharacterTalent func(*sql.Selector)
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)
 
+// NPCSkill is the predicate function for npcskill builders.
+type NPCSkill func(*sql.Selector)
+
 // NPCTemplate is the predicate function for npctemplate builders.
 type NPCTemplate func(*sql.Selector)
 
