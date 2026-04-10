@@ -14,12 +14,8 @@ type CharacterSkill struct {
 // Fields of the CharacterSkill.
 func (CharacterSkill) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("level").
-			Default(1).
-			Comment("Current skill level"),
-		field.Int("experience").
-			Default(0).
-			Comment("Experience points toward next level"),
+		field.Int("slot").
+			Comment("Skill slot 1-5, same as classless skill system"),
 	}
 }
 

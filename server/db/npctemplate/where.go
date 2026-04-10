@@ -6,6 +6,7 @@ import (
 	"herbst-server/db/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -406,6 +407,29 @@ func GreetingEqualFold(v string) predicate.NPCTemplate {
 // GreetingContainsFold applies the ContainsFold predicate on the "greeting" field.
 func GreetingContainsFold(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldContainsFold(FieldGreeting, v))
+}
+
+// HasNpcSkills applies the HasEdge predicate on the "npc_skills" edge.
+func HasNpcSkills() predicate.NPCTemplate {
+	return predicate.NPCTemplate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, NpcSkillsTable, NpcSkillsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNpcSkillsWith applies the HasEdge predicate on the "npc_skills" edge with a given conditions (other predicates).
+func HasNpcSkillsWith(preds ...predicate.NPCSkill) predicate.NPCTemplate {
+	return predicate.NPCTemplate(func(s *sql.Selector) {
+		step := newNpcSkillsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

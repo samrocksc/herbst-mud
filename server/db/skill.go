@@ -24,20 +24,26 @@ type Skill struct {
 	SkillType string `json:"skill_type,omitempty"`
 	// Points cost to learn/unlearn
 	Cost int `json:"cost,omitempty"`
-	// Cooldown in seconds
+	// Cooldown in ticks
 	Cooldown int `json:"cooldown,omitempty"`
 	// JSON string of prerequisites
 	Requirements string `json:"requirements,omitempty"`
-	// heal|damage|dot|buff_armor|buff_dodge|buff_crit|passive
+	// Handler key: concentrate, haymaker, backoff, scream, slap
 	EffectType string `json:"effect_type,omitempty"`
-	// Amount: HP healed, damage dealt, armor bonus, etc.
+	// Base damage/heal amount
 	EffectValue int `json:"effect_value,omitempty"`
 	// Duration in ticks (0 = instant)
 	EffectDuration int `json:"effect_duration,omitempty"`
-	// Mana cost to use
+	// Which stat the skill scales off: wisdom, strength, dexterity, constitution, intelligence
+	ScalingStat string `json:"scaling_stat,omitempty"`
+	// % bonus per point of the scaling stat (e.g., 0.05 = +5% per stat point)
+	ScalingPercentPerPoint float64 `json:"scaling_percent_per_point,omitempty"`
+	// ManaCost holds the value of the "mana_cost" field.
 	ManaCost int `json:"mana_cost,omitempty"`
-	// Stamina cost to use
+	// StaminaCost holds the value of the "stamina_cost" field.
 	StaminaCost int `json:"stamina_cost,omitempty"`
+	// HP sacrificed to use skill
+	HpCost int `json:"hp_cost,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SkillQuery when eager-loading is set.
 	Edges        SkillEdges `json:"edges"`
@@ -48,9 +54,11 @@ type Skill struct {
 type SkillEdges struct {
 	// Characters holds the value of the characters edge.
 	Characters []*CharacterSkill `json:"characters,omitempty"`
+	// NpcSkills holds the value of the npc_skills edge.
+	NpcSkills []*NPCSkill `json:"npc_skills,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -62,14 +70,25 @@ func (e SkillEdges) CharactersOrErr() ([]*CharacterSkill, error) {
 	return nil, &NotLoadedError{edge: "characters"}
 }
 
+// NpcSkillsOrErr returns the NpcSkills value or an error if the edge
+// was not loaded in eager-loading.
+func (e SkillEdges) NpcSkillsOrErr() ([]*NPCSkill, error) {
+	if e.loadedTypes[1] {
+		return e.NpcSkills, nil
+	}
+	return nil, &NotLoadedError{edge: "npc_skills"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Skill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case skill.FieldID, skill.FieldCost, skill.FieldCooldown, skill.FieldEffectValue, skill.FieldEffectDuration, skill.FieldManaCost, skill.FieldStaminaCost:
+		case skill.FieldScalingPercentPerPoint:
+			values[i] = new(sql.NullFloat64)
+		case skill.FieldID, skill.FieldCost, skill.FieldCooldown, skill.FieldEffectValue, skill.FieldEffectDuration, skill.FieldManaCost, skill.FieldStaminaCost, skill.FieldHpCost:
 			values[i] = new(sql.NullInt64)
-		case skill.FieldName, skill.FieldDescription, skill.FieldSkillType, skill.FieldRequirements, skill.FieldEffectType:
+		case skill.FieldName, skill.FieldDescription, skill.FieldSkillType, skill.FieldRequirements, skill.FieldEffectType, skill.FieldScalingStat:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -146,6 +165,18 @@ func (_m *Skill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.EffectDuration = int(value.Int64)
 			}
+		case skill.FieldScalingStat:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field scaling_stat", values[i])
+			} else if value.Valid {
+				_m.ScalingStat = value.String
+			}
+		case skill.FieldScalingPercentPerPoint:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field scaling_percent_per_point", values[i])
+			} else if value.Valid {
+				_m.ScalingPercentPerPoint = value.Float64
+			}
 		case skill.FieldManaCost:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field mana_cost", values[i])
@@ -157,6 +188,12 @@ func (_m *Skill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field stamina_cost", values[i])
 			} else if value.Valid {
 				_m.StaminaCost = int(value.Int64)
+			}
+		case skill.FieldHpCost:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field hp_cost", values[i])
+			} else if value.Valid {
+				_m.HpCost = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -174,6 +211,11 @@ func (_m *Skill) Value(name string) (ent.Value, error) {
 // QueryCharacters queries the "characters" edge of the Skill entity.
 func (_m *Skill) QueryCharacters() *CharacterSkillQuery {
 	return NewSkillClient(_m.config).QueryCharacters(_m)
+}
+
+// QueryNpcSkills queries the "npc_skills" edge of the Skill entity.
+func (_m *Skill) QueryNpcSkills() *NPCSkillQuery {
+	return NewSkillClient(_m.config).QueryNpcSkills(_m)
 }
 
 // Update returns a builder for updating this Skill.
@@ -226,11 +268,20 @@ func (_m *Skill) String() string {
 	builder.WriteString("effect_duration=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EffectDuration))
 	builder.WriteString(", ")
+	builder.WriteString("scaling_stat=")
+	builder.WriteString(_m.ScalingStat)
+	builder.WriteString(", ")
+	builder.WriteString("scaling_percent_per_point=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ScalingPercentPerPoint))
+	builder.WriteString(", ")
 	builder.WriteString("mana_cost=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ManaCost))
 	builder.WriteString(", ")
 	builder.WriteString("stamina_cost=")
 	builder.WriteString(fmt.Sprintf("%v", _m.StaminaCost))
+	builder.WriteString(", ")
+	builder.WriteString("hp_cost=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HpCost))
 	builder.WriteByte(')')
 	return builder.String()
 }

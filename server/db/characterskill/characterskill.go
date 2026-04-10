@@ -12,10 +12,8 @@ const (
 	Label = "character_skill"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldLevel holds the string denoting the level field in the database.
-	FieldLevel = "level"
-	// FieldExperience holds the string denoting the experience field in the database.
-	FieldExperience = "experience"
+	// FieldSlot holds the string denoting the slot field in the database.
+	FieldSlot = "slot"
 	// EdgeCharacter holds the string denoting the character edge name in mutations.
 	EdgeCharacter = "character"
 	// EdgeSkill holds the string denoting the skill edge name in mutations.
@@ -41,8 +39,7 @@ const (
 // Columns holds all SQL columns for characterskill fields.
 var Columns = []string{
 	FieldID,
-	FieldLevel,
-	FieldExperience,
+	FieldSlot,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "character_skills"
@@ -67,13 +64,6 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-var (
-	// DefaultLevel holds the default value on creation for the "level" field.
-	DefaultLevel int
-	// DefaultExperience holds the default value on creation for the "experience" field.
-	DefaultExperience int
-)
-
 // OrderOption defines the ordering options for the CharacterSkill queries.
 type OrderOption func(*sql.Selector)
 
@@ -82,14 +72,9 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByLevel orders the results by the level field.
-func ByLevel(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldLevel, opts...).ToFunc()
-}
-
-// ByExperience orders the results by the experience field.
-func ByExperience(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExperience, opts...).ToFunc()
+// BySlot orders the results by the slot field.
+func BySlot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSlot, opts...).ToFunc()
 }
 
 // ByCharacterField orders the results by character field.

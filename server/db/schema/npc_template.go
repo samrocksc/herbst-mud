@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -26,5 +27,12 @@ func (NPCTemplate) Fields() []ent.Field {
 		field.JSON("skills", map[string]int{}),
 		field.Strings("trades_with"),
 		field.Text("greeting"),
+	}
+}
+
+// Edges of the NPCTemplate.
+func (NPCTemplate) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("npc_skills", NPCSkill.Type),
 	}
 }

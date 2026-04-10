@@ -30,12 +30,20 @@ const (
 	FieldEffectValue = "effect_value"
 	// FieldEffectDuration holds the string denoting the effect_duration field in the database.
 	FieldEffectDuration = "effect_duration"
+	// FieldScalingStat holds the string denoting the scaling_stat field in the database.
+	FieldScalingStat = "scaling_stat"
+	// FieldScalingPercentPerPoint holds the string denoting the scaling_percent_per_point field in the database.
+	FieldScalingPercentPerPoint = "scaling_percent_per_point"
 	// FieldManaCost holds the string denoting the mana_cost field in the database.
 	FieldManaCost = "mana_cost"
 	// FieldStaminaCost holds the string denoting the stamina_cost field in the database.
 	FieldStaminaCost = "stamina_cost"
+	// FieldHpCost holds the string denoting the hp_cost field in the database.
+	FieldHpCost = "hp_cost"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
+	// EdgeNpcSkills holds the string denoting the npc_skills edge name in mutations.
+	EdgeNpcSkills = "npc_skills"
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
 	// CharactersTable is the table that holds the characters relation/edge.
@@ -45,6 +53,11 @@ const (
 	CharactersInverseTable = "character_skills"
 	// CharactersColumn is the table column denoting the characters relation/edge.
 	CharactersColumn = "skill_characters"
+	// NpcSkillsTable is the table that holds the npc_skills relation/edge. The primary key declared below.
+	NpcSkillsTable = "skill_npc_skills"
+	// NpcSkillsInverseTable is the table name for the NPCSkill entity.
+	// It exists in this package in order to avoid circular dependency with the "npcskill" package.
+	NpcSkillsInverseTable = "npc_skills"
 )
 
 // Columns holds all SQL columns for skill fields.
@@ -59,9 +72,18 @@ var Columns = []string{
 	FieldEffectType,
 	FieldEffectValue,
 	FieldEffectDuration,
+	FieldScalingStat,
+	FieldScalingPercentPerPoint,
 	FieldManaCost,
 	FieldStaminaCost,
+	FieldHpCost,
 }
+
+var (
+	// NpcSkillsPrimaryKey and NpcSkillsColumn2 are the table columns denoting the
+	// primary key for the npc_skills relation (M2M).
+	NpcSkillsPrimaryKey = []string{"skill_id", "npc_skill_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -84,10 +106,14 @@ var (
 	DefaultEffectValue int
 	// DefaultEffectDuration holds the default value on creation for the "effect_duration" field.
 	DefaultEffectDuration int
+	// DefaultScalingPercentPerPoint holds the default value on creation for the "scaling_percent_per_point" field.
+	DefaultScalingPercentPerPoint float64
 	// DefaultManaCost holds the default value on creation for the "mana_cost" field.
 	DefaultManaCost int
 	// DefaultStaminaCost holds the default value on creation for the "stamina_cost" field.
 	DefaultStaminaCost int
+	// DefaultHpCost holds the default value on creation for the "hp_cost" field.
+	DefaultHpCost int
 )
 
 // OrderOption defines the ordering options for the Skill queries.
@@ -143,6 +169,16 @@ func ByEffectDuration(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEffectDuration, opts...).ToFunc()
 }
 
+// ByScalingStat orders the results by the scaling_stat field.
+func ByScalingStat(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScalingStat, opts...).ToFunc()
+}
+
+// ByScalingPercentPerPoint orders the results by the scaling_percent_per_point field.
+func ByScalingPercentPerPoint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScalingPercentPerPoint, opts...).ToFunc()
+}
+
 // ByManaCost orders the results by the mana_cost field.
 func ByManaCost(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldManaCost, opts...).ToFunc()
@@ -151,6 +187,11 @@ func ByManaCost(opts ...sql.OrderTermOption) OrderOption {
 // ByStaminaCost orders the results by the stamina_cost field.
 func ByStaminaCost(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStaminaCost, opts...).ToFunc()
+}
+
+// ByHpCost orders the results by the hp_cost field.
+func ByHpCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHpCost, opts...).ToFunc()
 }
 
 // ByCharactersCount orders the results by characters count.
@@ -166,10 +207,31 @@ func ByCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByNpcSkillsCount orders the results by npc_skills count.
+func ByNpcSkillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNpcSkillsStep(), opts...)
+	}
+}
+
+// ByNpcSkills orders the results by npc_skills terms.
+func ByNpcSkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNpcSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CharactersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CharactersTable, CharactersColumn),
+	)
+}
+func newNpcSkillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NpcSkillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, NpcSkillsTable, NpcSkillsPrimaryKey...),
 	)
 }

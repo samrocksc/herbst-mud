@@ -54,94 +54,49 @@ func IDLTE(id int) predicate.CharacterSkill {
 	return predicate.CharacterSkill(sql.FieldLTE(FieldID, id))
 }
 
-// Level applies equality check predicate on the "level" field. It's identical to LevelEQ.
-func Level(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldEQ(FieldLevel, v))
+// Slot applies equality check predicate on the "slot" field. It's identical to SlotEQ.
+func Slot(v int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldEQ(FieldSlot, v))
 }
 
-// Experience applies equality check predicate on the "experience" field. It's identical to ExperienceEQ.
-func Experience(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldEQ(FieldExperience, v))
+// SlotEQ applies the EQ predicate on the "slot" field.
+func SlotEQ(v int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldEQ(FieldSlot, v))
 }
 
-// LevelEQ applies the EQ predicate on the "level" field.
-func LevelEQ(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldEQ(FieldLevel, v))
+// SlotNEQ applies the NEQ predicate on the "slot" field.
+func SlotNEQ(v int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldNEQ(FieldSlot, v))
 }
 
-// LevelNEQ applies the NEQ predicate on the "level" field.
-func LevelNEQ(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldNEQ(FieldLevel, v))
+// SlotIn applies the In predicate on the "slot" field.
+func SlotIn(vs ...int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldIn(FieldSlot, vs...))
 }
 
-// LevelIn applies the In predicate on the "level" field.
-func LevelIn(vs ...int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldIn(FieldLevel, vs...))
+// SlotNotIn applies the NotIn predicate on the "slot" field.
+func SlotNotIn(vs ...int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldNotIn(FieldSlot, vs...))
 }
 
-// LevelNotIn applies the NotIn predicate on the "level" field.
-func LevelNotIn(vs ...int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldNotIn(FieldLevel, vs...))
+// SlotGT applies the GT predicate on the "slot" field.
+func SlotGT(v int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldGT(FieldSlot, v))
 }
 
-// LevelGT applies the GT predicate on the "level" field.
-func LevelGT(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldGT(FieldLevel, v))
+// SlotGTE applies the GTE predicate on the "slot" field.
+func SlotGTE(v int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldGTE(FieldSlot, v))
 }
 
-// LevelGTE applies the GTE predicate on the "level" field.
-func LevelGTE(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldGTE(FieldLevel, v))
+// SlotLT applies the LT predicate on the "slot" field.
+func SlotLT(v int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldLT(FieldSlot, v))
 }
 
-// LevelLT applies the LT predicate on the "level" field.
-func LevelLT(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldLT(FieldLevel, v))
-}
-
-// LevelLTE applies the LTE predicate on the "level" field.
-func LevelLTE(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldLTE(FieldLevel, v))
-}
-
-// ExperienceEQ applies the EQ predicate on the "experience" field.
-func ExperienceEQ(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldEQ(FieldExperience, v))
-}
-
-// ExperienceNEQ applies the NEQ predicate on the "experience" field.
-func ExperienceNEQ(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldNEQ(FieldExperience, v))
-}
-
-// ExperienceIn applies the In predicate on the "experience" field.
-func ExperienceIn(vs ...int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldIn(FieldExperience, vs...))
-}
-
-// ExperienceNotIn applies the NotIn predicate on the "experience" field.
-func ExperienceNotIn(vs ...int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldNotIn(FieldExperience, vs...))
-}
-
-// ExperienceGT applies the GT predicate on the "experience" field.
-func ExperienceGT(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldGT(FieldExperience, v))
-}
-
-// ExperienceGTE applies the GTE predicate on the "experience" field.
-func ExperienceGTE(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldGTE(FieldExperience, v))
-}
-
-// ExperienceLT applies the LT predicate on the "experience" field.
-func ExperienceLT(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldLT(FieldExperience, v))
-}
-
-// ExperienceLTE applies the LTE predicate on the "experience" field.
-func ExperienceLTE(v int) predicate.CharacterSkill {
-	return predicate.CharacterSkill(sql.FieldLTE(FieldExperience, v))
+// SlotLTE applies the LTE predicate on the "slot" field.
+func SlotLTE(v int) predicate.CharacterSkill {
+	return predicate.CharacterSkill(sql.FieldLTE(FieldSlot, v))
 }
 
 // HasCharacter applies the HasEdge predicate on the "character" edge.

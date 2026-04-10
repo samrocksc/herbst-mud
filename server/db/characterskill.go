@@ -18,10 +18,8 @@ type CharacterSkill struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Current skill level
-	Level int `json:"level,omitempty"`
-	// Experience points toward next level
-	Experience int `json:"experience,omitempty"`
+	// Skill slot 1-5, same as classless skill system
+	Slot int `json:"slot,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterSkillQuery when eager-loading is set.
 	Edges            CharacterSkillEdges `json:"edges"`
@@ -68,7 +66,7 @@ func (*CharacterSkill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case characterskill.FieldID, characterskill.FieldLevel, characterskill.FieldExperience:
+		case characterskill.FieldID, characterskill.FieldSlot:
 			values[i] = new(sql.NullInt64)
 		case characterskill.ForeignKeys[0]: // character_skills
 			values[i] = new(sql.NullInt64)
@@ -95,17 +93,11 @@ func (_m *CharacterSkill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case characterskill.FieldLevel:
+		case characterskill.FieldSlot:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field level", values[i])
+				return fmt.Errorf("unexpected type %T for field slot", values[i])
 			} else if value.Valid {
-				_m.Level = int(value.Int64)
-			}
-		case characterskill.FieldExperience:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field experience", values[i])
-			} else if value.Valid {
-				_m.Experience = int(value.Int64)
+				_m.Slot = int(value.Int64)
 			}
 		case characterskill.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -167,11 +159,8 @@ func (_m *CharacterSkill) String() string {
 	var builder strings.Builder
 	builder.WriteString("CharacterSkill(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("level=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Level))
-	builder.WriteString(", ")
-	builder.WriteString("experience=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Experience))
+	builder.WriteString("slot=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Slot))
 	builder.WriteByte(')')
 	return builder.String()
 }

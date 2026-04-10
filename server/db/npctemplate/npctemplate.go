@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -29,8 +30,15 @@ const (
 	FieldTradesWith = "trades_with"
 	// FieldGreeting holds the string denoting the greeting field in the database.
 	FieldGreeting = "greeting"
+	// EdgeNpcSkills holds the string denoting the npc_skills edge name in mutations.
+	EdgeNpcSkills = "npc_skills"
 	// Table holds the table name of the npctemplate in the database.
 	Table = "npc_templates"
+	// NpcSkillsTable is the table that holds the npc_skills relation/edge. The primary key declared below.
+	NpcSkillsTable = "npc_template_npc_skills"
+	// NpcSkillsInverseTable is the table name for the NPCSkill entity.
+	// It exists in this package in order to avoid circular dependency with the "npcskill" package.
+	NpcSkillsInverseTable = "npc_skills"
 )
 
 // Columns holds all SQL columns for npctemplate fields.
@@ -45,6 +53,12 @@ var Columns = []string{
 	FieldTradesWith,
 	FieldGreeting,
 }
+
+var (
+	// NpcSkillsPrimaryKey and NpcSkillsColumn2 are the table columns denoting the
+	// primary key for the npc_skills relation (M2M).
+	NpcSkillsPrimaryKey = []string{"npc_template_id", "npc_skill_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -124,4 +138,25 @@ func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 // ByGreeting orders the results by the greeting field.
 func ByGreeting(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGreeting, opts...).ToFunc()
+}
+
+// ByNpcSkillsCount orders the results by npc_skills count.
+func ByNpcSkillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNpcSkillsStep(), opts...)
+	}
+}
+
+// ByNpcSkills orders the results by npc_skills terms.
+func ByNpcSkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNpcSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newNpcSkillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NpcSkillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, NpcSkillsTable, NpcSkillsPrimaryKey...),
+	)
 }

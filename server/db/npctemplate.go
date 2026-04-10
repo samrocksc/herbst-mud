@@ -32,8 +32,29 @@ type NPCTemplate struct {
 	// TradesWith holds the value of the "trades_with" field.
 	TradesWith []string `json:"trades_with,omitempty"`
 	// Greeting holds the value of the "greeting" field.
-	Greeting     string `json:"greeting,omitempty"`
+	Greeting string `json:"greeting,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the NPCTemplateQuery when eager-loading is set.
+	Edges        NPCTemplateEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// NPCTemplateEdges holds the relations/edges for other nodes in the graph.
+type NPCTemplateEdges struct {
+	// NpcSkills holds the value of the npc_skills edge.
+	NpcSkills []*NPCSkill `json:"npc_skills,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// NpcSkillsOrErr returns the NpcSkills value or an error if the edge
+// was not loaded in eager-loading.
+func (e NPCTemplateEdges) NpcSkillsOrErr() ([]*NPCSkill, error) {
+	if e.loadedTypes[0] {
+		return e.NpcSkills, nil
+	}
+	return nil, &NotLoadedError{edge: "npc_skills"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -131,6 +152,11 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *NPCTemplate) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryNpcSkills queries the "npc_skills" edge of the NPCTemplate entity.
+func (_m *NPCTemplate) QueryNpcSkills() *NPCSkillQuery {
+	return NewNPCTemplateClient(_m.config).QueryNpcSkills(_m)
 }
 
 // Update returns a builder for updating this NPCTemplate.
