@@ -68,6 +68,30 @@ func (f EquipmentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EquipmentMutation", m)
 }
 
+// The GameConfigFunc type is an adapter to allow the use of ordinary
+// function as GameConfig mutator.
+type GameConfigFunc func(context.Context, *db.GameConfigMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameConfigFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.GameConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.GameConfigMutation", m)
+}
+
+// The GenderFunc type is an adapter to allow the use of ordinary
+// function as Gender mutator.
+type GenderFunc func(context.Context, *db.GenderMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GenderFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.GenderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.GenderMutation", m)
+}
+
 // The NPCSkillFunc type is an adapter to allow the use of ordinary
 // function as NPCSkill mutator.
 type NPCSkillFunc func(context.Context, *db.NPCSkillMutation) (db.Value, error)
@@ -90,6 +114,18 @@ func (f NPCTemplateFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, e
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.NPCTemplateMutation", m)
+}
+
+// The RaceFunc type is an adapter to allow the use of ordinary
+// function as Race mutator.
+type RaceFunc func(context.Context, *db.RaceMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RaceFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.RaceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RaceMutation", m)
 }
 
 // The RoomFunc type is an adapter to allow the use of ordinary

@@ -11,8 +11,11 @@ import (
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/equipment"
+	"herbst-server/db/gameconfig"
+	"herbst-server/db/gender"
 	"herbst-server/db/npcskill"
 	"herbst-server/db/npctemplate"
+	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/skill"
 	"herbst-server/db/talent"
@@ -88,8 +91,11 @@ func checkColumn(t, c string) error {
 			characterskill.Table:  characterskill.ValidColumn,
 			charactertalent.Table: charactertalent.ValidColumn,
 			equipment.Table:       equipment.ValidColumn,
+			gameconfig.Table:      gameconfig.ValidColumn,
+			gender.Table:          gender.ValidColumn,
 			npcskill.Table:        npcskill.ValidColumn,
 			npctemplate.Table:     npctemplate.ValidColumn,
+			race.Table:            race.ValidColumn,
 			room.Table:            room.ValidColumn,
 			skill.Table:           skill.ValidColumn,
 			talent.Table:          talent.ValidColumn,

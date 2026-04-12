@@ -206,6 +206,33 @@ var (
 			},
 		},
 	}
+	// GameConfigsColumns holds the columns for the "game_configs" table.
+	GameConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "key", Type: field.TypeString, Unique: true},
+		{Name: "value", Type: field.TypeString},
+	}
+	// GameConfigsTable holds the schema information for the "game_configs" table.
+	GameConfigsTable = &schema.Table{
+		Name:       "game_configs",
+		Columns:    GameConfigsColumns,
+		PrimaryKey: []*schema.Column{GameConfigsColumns[0]},
+	}
+	// GendersColumns holds the columns for the "genders" table.
+	GendersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "subject_pronoun", Type: field.TypeString},
+		{Name: "object_pronoun", Type: field.TypeString},
+		{Name: "possessive_pronoun", Type: field.TypeString},
+	}
+	// GendersTable holds the schema information for the "genders" table.
+	GendersTable = &schema.Table{
+		Name:       "genders",
+		Columns:    GendersColumns,
+		PrimaryKey: []*schema.Column{GendersColumns[0]},
+	}
 	// NpcSkillsColumns holds the columns for the "npc_skills" table.
 	NpcSkillsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -234,6 +261,22 @@ var (
 		Name:       "npc_templates",
 		Columns:    NpcTemplatesColumns,
 		PrimaryKey: []*schema.Column{NpcTemplatesColumns[0]},
+	}
+	// RacesColumns holds the columns for the "races" table.
+	RacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
+		{Name: "stat_modifiers", Type: field.TypeString, Nullable: true},
+		{Name: "skill_grants", Type: field.TypeString, Nullable: true},
+		{Name: "is_playable", Type: field.TypeBool, Default: true},
+	}
+	// RacesTable holds the schema information for the "races" table.
+	RacesTable = &schema.Table{
+		Name:       "races",
+		Columns:    RacesColumns,
+		PrimaryKey: []*schema.Column{RacesColumns[0]},
 	}
 	// RoomsColumns holds the columns for the "rooms" table.
 	RoomsColumns = []*schema.Column{
@@ -364,8 +407,11 @@ var (
 		CharacterSkillsTable,
 		CharacterTalentsTable,
 		EquipmentTable,
+		GameConfigsTable,
+		GendersTable,
 		NpcSkillsTable,
 		NpcTemplatesTable,
+		RacesTable,
 		RoomsTable,
 		SkillsTable,
 		TalentsTable,

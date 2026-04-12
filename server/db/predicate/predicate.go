@@ -21,11 +21,20 @@ type CharacterTalent func(*sql.Selector)
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)
 
+// GameConfig is the predicate function for gameconfig builders.
+type GameConfig func(*sql.Selector)
+
+// Gender is the predicate function for gender builders.
+type Gender func(*sql.Selector)
+
 // NPCSkill is the predicate function for npcskill builders.
 type NPCSkill func(*sql.Selector)
 
 // NPCTemplate is the predicate function for npctemplate builders.
 type NPCTemplate func(*sql.Selector)
+
+// Race is the predicate function for race builders.
+type Race func(*sql.Selector)
 
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)

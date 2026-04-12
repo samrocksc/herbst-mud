@@ -8,6 +8,7 @@ import (
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/equipment"
 	"herbst-server/db/npctemplate"
+	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/schema"
 	"herbst-server/db/skill"
@@ -225,6 +226,12 @@ func init() {
 	npctemplateDescLevel := npctemplateFields[5].Descriptor()
 	// npctemplate.DefaultLevel holds the default value on creation for the level field.
 	npctemplate.DefaultLevel = npctemplateDescLevel.Default.(int)
+	raceFields := schema.Race{}.Fields()
+	_ = raceFields
+	// raceDescIsPlayable is the schema descriptor for is_playable field.
+	raceDescIsPlayable := raceFields[5].Descriptor()
+	// race.DefaultIsPlayable holds the default value on creation for the is_playable field.
+	race.DefaultIsPlayable = raceDescIsPlayable.Default.(bool)
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
 	// roomDescIsStartingRoom is the schema descriptor for isStartingRoom field.

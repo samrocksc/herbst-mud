@@ -22,10 +22,16 @@ type Tx struct {
 	CharacterTalent *CharacterTalentClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
+	// GameConfig is the client for interacting with the GameConfig builders.
+	GameConfig *GameConfigClient
+	// Gender is the client for interacting with the Gender builders.
+	Gender *GenderClient
 	// NPCSkill is the client for interacting with the NPCSkill builders.
 	NPCSkill *NPCSkillClient
 	// NPCTemplate is the client for interacting with the NPCTemplate builders.
 	NPCTemplate *NPCTemplateClient
+	// Race is the client for interacting with the Race builders.
+	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// Skill is the client for interacting with the Skill builders.
@@ -170,8 +176,11 @@ func (tx *Tx) init() {
 	tx.CharacterSkill = NewCharacterSkillClient(tx.config)
 	tx.CharacterTalent = NewCharacterTalentClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
+	tx.GameConfig = NewGameConfigClient(tx.config)
+	tx.Gender = NewGenderClient(tx.config)
 	tx.NPCSkill = NewNPCSkillClient(tx.config)
 	tx.NPCTemplate = NewNPCTemplateClient(tx.config)
+	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
 	tx.Skill = NewSkillClient(tx.config)
 	tx.Talent = NewTalentClient(tx.config)

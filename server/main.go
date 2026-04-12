@@ -116,6 +116,14 @@ func main() {
 		log.Printf("Warning: failed to initialize Gizmo NPC: %v", err)
 	}
 
+	// Seed races and genders
+	if err := dbinit.InitRaces(client); err != nil {
+		log.Printf("Warning: failed to initialize races: %v", err)
+	}
+	if err := dbinit.InitGenders(client); err != nil {
+		log.Printf("Warning: failed to initialize genders: %v", err)
+	}
+
 	// Initialize the Junkyard newbie zone
 	if err := dbinit.InitJunkyard(client); err != nil {
 		log.Printf("Warning: failed to initialize Junkyard: %v", err)

@@ -16,8 +16,11 @@ import (
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/equipment"
+	"herbst-server/db/gameconfig"
+	"herbst-server/db/gender"
 	"herbst-server/db/npcskill"
 	"herbst-server/db/npctemplate"
+	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/skill"
 	"herbst-server/db/talent"
@@ -44,10 +47,16 @@ type Client struct {
 	CharacterTalent *CharacterTalentClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
+	// GameConfig is the client for interacting with the GameConfig builders.
+	GameConfig *GameConfigClient
+	// Gender is the client for interacting with the Gender builders.
+	Gender *GenderClient
 	// NPCSkill is the client for interacting with the NPCSkill builders.
 	NPCSkill *NPCSkillClient
 	// NPCTemplate is the client for interacting with the NPCTemplate builders.
 	NPCTemplate *NPCTemplateClient
+	// Race is the client for interacting with the Race builders.
+	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// Skill is the client for interacting with the Skill builders.
@@ -72,8 +81,11 @@ func (c *Client) init() {
 	c.CharacterSkill = NewCharacterSkillClient(c.config)
 	c.CharacterTalent = NewCharacterTalentClient(c.config)
 	c.Equipment = NewEquipmentClient(c.config)
+	c.GameConfig = NewGameConfigClient(c.config)
+	c.Gender = NewGenderClient(c.config)
 	c.NPCSkill = NewNPCSkillClient(c.config)
 	c.NPCTemplate = NewNPCTemplateClient(c.config)
+	c.Race = NewRaceClient(c.config)
 	c.Room = NewRoomClient(c.config)
 	c.Skill = NewSkillClient(c.config)
 	c.Talent = NewTalentClient(c.config)
@@ -175,8 +187,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CharacterSkill:  NewCharacterSkillClient(cfg),
 		CharacterTalent: NewCharacterTalentClient(cfg),
 		Equipment:       NewEquipmentClient(cfg),
+		GameConfig:      NewGameConfigClient(cfg),
+		Gender:          NewGenderClient(cfg),
 		NPCSkill:        NewNPCSkillClient(cfg),
 		NPCTemplate:     NewNPCTemplateClient(cfg),
+		Race:            NewRaceClient(cfg),
 		Room:            NewRoomClient(cfg),
 		Skill:           NewSkillClient(cfg),
 		Talent:          NewTalentClient(cfg),
@@ -205,8 +220,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CharacterSkill:  NewCharacterSkillClient(cfg),
 		CharacterTalent: NewCharacterTalentClient(cfg),
 		Equipment:       NewEquipmentClient(cfg),
+		GameConfig:      NewGameConfigClient(cfg),
+		Gender:          NewGenderClient(cfg),
 		NPCSkill:        NewNPCSkillClient(cfg),
 		NPCTemplate:     NewNPCTemplateClient(cfg),
+		Race:            NewRaceClient(cfg),
 		Room:            NewRoomClient(cfg),
 		Skill:           NewSkillClient(cfg),
 		Talent:          NewTalentClient(cfg),
@@ -241,7 +259,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AvailableTalent, c.Character, c.CharacterSkill, c.CharacterTalent,
-		c.Equipment, c.NPCSkill, c.NPCTemplate, c.Room, c.Skill, c.Talent, c.User,
+		c.Equipment, c.GameConfig, c.Gender, c.NPCSkill, c.NPCTemplate, c.Race, c.Room,
+		c.Skill, c.Talent, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -252,7 +271,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AvailableTalent, c.Character, c.CharacterSkill, c.CharacterTalent,
-		c.Equipment, c.NPCSkill, c.NPCTemplate, c.Room, c.Skill, c.Talent, c.User,
+		c.Equipment, c.GameConfig, c.Gender, c.NPCSkill, c.NPCTemplate, c.Race, c.Room,
+		c.Skill, c.Talent, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -271,10 +291,16 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CharacterTalent.mutate(ctx, m)
 	case *EquipmentMutation:
 		return c.Equipment.mutate(ctx, m)
+	case *GameConfigMutation:
+		return c.GameConfig.mutate(ctx, m)
+	case *GenderMutation:
+		return c.Gender.mutate(ctx, m)
 	case *NPCSkillMutation:
 		return c.NPCSkill.mutate(ctx, m)
 	case *NPCTemplateMutation:
 		return c.NPCTemplate.mutate(ctx, m)
+	case *RaceMutation:
+		return c.Race.mutate(ctx, m)
 	case *RoomMutation:
 		return c.Room.mutate(ctx, m)
 	case *SkillMutation:
@@ -1161,6 +1187,272 @@ func (c *EquipmentClient) mutate(ctx context.Context, m *EquipmentMutation) (Val
 	}
 }
 
+// GameConfigClient is a client for the GameConfig schema.
+type GameConfigClient struct {
+	config
+}
+
+// NewGameConfigClient returns a client for the GameConfig from the given config.
+func NewGameConfigClient(c config) *GameConfigClient {
+	return &GameConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gameconfig.Hooks(f(g(h())))`.
+func (c *GameConfigClient) Use(hooks ...Hook) {
+	c.hooks.GameConfig = append(c.hooks.GameConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gameconfig.Intercept(f(g(h())))`.
+func (c *GameConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameConfig = append(c.inters.GameConfig, interceptors...)
+}
+
+// Create returns a builder for creating a GameConfig entity.
+func (c *GameConfigClient) Create() *GameConfigCreate {
+	mutation := newGameConfigMutation(c.config, OpCreate)
+	return &GameConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameConfig entities.
+func (c *GameConfigClient) CreateBulk(builders ...*GameConfigCreate) *GameConfigCreateBulk {
+	return &GameConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameConfigClient) MapCreateBulk(slice any, setFunc func(*GameConfigCreate, int)) *GameConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameConfigCreateBulk{err: fmt.Errorf("calling to GameConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameConfig.
+func (c *GameConfigClient) Update() *GameConfigUpdate {
+	mutation := newGameConfigMutation(c.config, OpUpdate)
+	return &GameConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameConfigClient) UpdateOne(_m *GameConfig) *GameConfigUpdateOne {
+	mutation := newGameConfigMutation(c.config, OpUpdateOne, withGameConfig(_m))
+	return &GameConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameConfigClient) UpdateOneID(id int) *GameConfigUpdateOne {
+	mutation := newGameConfigMutation(c.config, OpUpdateOne, withGameConfigID(id))
+	return &GameConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameConfig.
+func (c *GameConfigClient) Delete() *GameConfigDelete {
+	mutation := newGameConfigMutation(c.config, OpDelete)
+	return &GameConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameConfigClient) DeleteOne(_m *GameConfig) *GameConfigDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameConfigClient) DeleteOneID(id int) *GameConfigDeleteOne {
+	builder := c.Delete().Where(gameconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for GameConfig.
+func (c *GameConfigClient) Query() *GameConfigQuery {
+	return &GameConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameConfig entity by its id.
+func (c *GameConfigClient) Get(ctx context.Context, id int) (*GameConfig, error) {
+	return c.Query().Where(gameconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameConfigClient) GetX(ctx context.Context, id int) *GameConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameConfigClient) Hooks() []Hook {
+	return c.hooks.GameConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameConfigClient) Interceptors() []Interceptor {
+	return c.inters.GameConfig
+}
+
+func (c *GameConfigClient) mutate(ctx context.Context, m *GameConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown GameConfig mutation op: %q", m.Op())
+	}
+}
+
+// GenderClient is a client for the Gender schema.
+type GenderClient struct {
+	config
+}
+
+// NewGenderClient returns a client for the Gender from the given config.
+func NewGenderClient(c config) *GenderClient {
+	return &GenderClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gender.Hooks(f(g(h())))`.
+func (c *GenderClient) Use(hooks ...Hook) {
+	c.hooks.Gender = append(c.hooks.Gender, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gender.Intercept(f(g(h())))`.
+func (c *GenderClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Gender = append(c.inters.Gender, interceptors...)
+}
+
+// Create returns a builder for creating a Gender entity.
+func (c *GenderClient) Create() *GenderCreate {
+	mutation := newGenderMutation(c.config, OpCreate)
+	return &GenderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Gender entities.
+func (c *GenderClient) CreateBulk(builders ...*GenderCreate) *GenderCreateBulk {
+	return &GenderCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GenderClient) MapCreateBulk(slice any, setFunc func(*GenderCreate, int)) *GenderCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GenderCreateBulk{err: fmt.Errorf("calling to GenderClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GenderCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GenderCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Gender.
+func (c *GenderClient) Update() *GenderUpdate {
+	mutation := newGenderMutation(c.config, OpUpdate)
+	return &GenderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GenderClient) UpdateOne(_m *Gender) *GenderUpdateOne {
+	mutation := newGenderMutation(c.config, OpUpdateOne, withGender(_m))
+	return &GenderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GenderClient) UpdateOneID(id int) *GenderUpdateOne {
+	mutation := newGenderMutation(c.config, OpUpdateOne, withGenderID(id))
+	return &GenderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Gender.
+func (c *GenderClient) Delete() *GenderDelete {
+	mutation := newGenderMutation(c.config, OpDelete)
+	return &GenderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GenderClient) DeleteOne(_m *Gender) *GenderDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GenderClient) DeleteOneID(id int) *GenderDeleteOne {
+	builder := c.Delete().Where(gender.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GenderDeleteOne{builder}
+}
+
+// Query returns a query builder for Gender.
+func (c *GenderClient) Query() *GenderQuery {
+	return &GenderQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGender},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Gender entity by its id.
+func (c *GenderClient) Get(ctx context.Context, id int) (*Gender, error) {
+	return c.Query().Where(gender.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GenderClient) GetX(ctx context.Context, id int) *Gender {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GenderClient) Hooks() []Hook {
+	return c.hooks.Gender
+}
+
+// Interceptors returns the client interceptors.
+func (c *GenderClient) Interceptors() []Interceptor {
+	return c.inters.Gender
+}
+
+func (c *GenderClient) mutate(ctx context.Context, m *GenderMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GenderCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GenderUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GenderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GenderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Gender mutation op: %q", m.Op())
+	}
+}
+
 // NPCSkillClient is a client for the NPCSkill schema.
 type NPCSkillClient struct {
 	config
@@ -1472,6 +1764,139 @@ func (c *NPCTemplateClient) mutate(ctx context.Context, m *NPCTemplateMutation) 
 		return (&NPCTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown NPCTemplate mutation op: %q", m.Op())
+	}
+}
+
+// RaceClient is a client for the Race schema.
+type RaceClient struct {
+	config
+}
+
+// NewRaceClient returns a client for the Race from the given config.
+func NewRaceClient(c config) *RaceClient {
+	return &RaceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `race.Hooks(f(g(h())))`.
+func (c *RaceClient) Use(hooks ...Hook) {
+	c.hooks.Race = append(c.hooks.Race, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `race.Intercept(f(g(h())))`.
+func (c *RaceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Race = append(c.inters.Race, interceptors...)
+}
+
+// Create returns a builder for creating a Race entity.
+func (c *RaceClient) Create() *RaceCreate {
+	mutation := newRaceMutation(c.config, OpCreate)
+	return &RaceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Race entities.
+func (c *RaceClient) CreateBulk(builders ...*RaceCreate) *RaceCreateBulk {
+	return &RaceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RaceClient) MapCreateBulk(slice any, setFunc func(*RaceCreate, int)) *RaceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RaceCreateBulk{err: fmt.Errorf("calling to RaceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RaceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RaceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Race.
+func (c *RaceClient) Update() *RaceUpdate {
+	mutation := newRaceMutation(c.config, OpUpdate)
+	return &RaceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RaceClient) UpdateOne(_m *Race) *RaceUpdateOne {
+	mutation := newRaceMutation(c.config, OpUpdateOne, withRace(_m))
+	return &RaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RaceClient) UpdateOneID(id int) *RaceUpdateOne {
+	mutation := newRaceMutation(c.config, OpUpdateOne, withRaceID(id))
+	return &RaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Race.
+func (c *RaceClient) Delete() *RaceDelete {
+	mutation := newRaceMutation(c.config, OpDelete)
+	return &RaceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RaceClient) DeleteOne(_m *Race) *RaceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RaceClient) DeleteOneID(id int) *RaceDeleteOne {
+	builder := c.Delete().Where(race.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RaceDeleteOne{builder}
+}
+
+// Query returns a query builder for Race.
+func (c *RaceClient) Query() *RaceQuery {
+	return &RaceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRace},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Race entity by its id.
+func (c *RaceClient) Get(ctx context.Context, id int) (*Race, error) {
+	return c.Query().Where(race.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RaceClient) GetX(ctx context.Context, id int) *Race {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *RaceClient) Hooks() []Hook {
+	return c.hooks.Race
+}
+
+// Interceptors returns the client interceptors.
+func (c *RaceClient) Interceptors() []Interceptor {
+	return c.inters.Race
+}
+
+func (c *RaceClient) mutate(ctx context.Context, m *RaceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RaceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RaceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RaceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Race mutation op: %q", m.Op())
 	}
 }
 
@@ -2123,10 +2548,12 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AvailableTalent, Character, CharacterSkill, CharacterTalent, Equipment,
-		NPCSkill, NPCTemplate, Room, Skill, Talent, User []ent.Hook
+		GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room, Skill, Talent,
+		User []ent.Hook
 	}
 	inters struct {
 		AvailableTalent, Character, CharacterSkill, CharacterTalent, Equipment,
-		NPCSkill, NPCTemplate, Room, Skill, Talent, User []ent.Interceptor
+		GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room, Skill, Talent,
+		User []ent.Interceptor
 	}
 )

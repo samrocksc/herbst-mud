@@ -319,6 +319,13 @@ func InitFountain(client *db.Client) error {
 
 	log.Printf("Starting room (Fountain Plaza) created with ID: %d", startingRoom.ID)
 
+	// Store fountain room ID in game_config
+	if err := SetFountainRoomID(ctx, client, fountainRoom.ID); err != nil {
+		log.Printf("Warning: failed to set fountain_room_id in game_config: %v", err)
+	} else {
+		log.Printf("Fountain room ID %d stored in game_config", fountainRoom.ID)
+	}
+
 	// Note: StartingRoomID constant in herbst/main.go will need updating
 	log.Println("Fountain and Fountain Plaza rooms initialized successfully")
 	return nil
