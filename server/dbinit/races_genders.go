@@ -174,16 +174,12 @@ func GetAllGenders(ctx context.Context, client *db.Client) ([]*db.Gender, error)
 	return client.Gender.Query().All(ctx)
 }
 
-// ApplyRaceToCharacter reads the race from DB and applies stat modifiers + skill grants.
-func ApplyRaceToCharacter(ctx context.Context, client *db.Client, charID int, raceName string) error {
-	raceObj, err := client.Race.Query().Where(race.NameEQ(raceName)).Only(ctx)
+// ApplyRaceToCharacter reads the race from DB and applies stat modifiers.
+// It mutates the character in-place and returns the updated character.
+func ApplyRaceToCharacter(ctx context.Context, client *db.Client, char *db.Character) (*db.Character, error) {
+	raceObj, err := client.Race.Query().Where(race.NameEQ(char.Race)).Only(ctx)
 	if err != nil {
-		return err
-	}
-
-	char, err := client.Character.Get(ctx, charID)
-	if err != nil {
-		return err
+		return char, err
 	}
 
 	var statMods map[string]int
@@ -209,7 +205,7 @@ func ApplyRaceToCharacter(ctx context.Context, client *db.Client, charID int, ra
 	}
 
 	_, err = updater.Save(ctx)
-	return err
+	return char, err
 }
 
 // ApplyGenderToCharacter sets the gender field on a character.

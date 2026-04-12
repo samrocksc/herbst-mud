@@ -55,6 +55,27 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			hashedPassword = string(hash)
 		}
 
+		// Name validation: 1-23 chars, letters only
+		if len(req.Name) < 1 || len(req.Name) > 23 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Character name must be 1-23 characters"})
+			return
+		}
+		for _, ch := range req.Name {
+			if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Character name can only contain letters (a-z, A-Z)"})
+				return
+			}
+		}
+
+		// Max 3 characters per user
+		if req.UserID > 0 {
+			userChars, _ := client.Character.Query().Where(character.HasUserWith(user.IDEQ(req.UserID))).Count(c.Request.Context())
+			if userChars >= 3 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Maximum of 3 characters per user reached"})
+				return
+			}
+		}
+
 		builder := client.Character.
 			Create().
 			SetName(req.Name).
@@ -82,12 +103,26 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
+		// Apply race stat modifiers (default to human)
+		character, err = dbinit.ApplyRaceToCharacter(c.Request.Context(), client, character)
+		if err != nil {
+			log.Printf("Warning: failed to apply race modifiers: %v", err)
+		}
+
 		c.JSON(http.StatusCreated, gin.H{
-			"id":           character.ID,
-			"name":         character.Name,
-			"isNPC":        character.IsNPC,
-			"is_admin":     character.IsAdmin,
-			"currentRoomId": character.CurrentRoomId,
+			"id":             character.ID,
+			"name":           character.Name,
+			"race":           character.Race,
+			"gender":         character.Gender,
+			"class":          character.Class,
+			"strength":       character.Strength,
+			"dexterity":      character.Dexterity,
+			"constitution":   character.Constitution,
+			"intelligence":   character.Intelligence,
+			"wisdom":         character.Wisdom,
+			"isNPC":          character.IsNPC,
+			"is_admin":       character.IsAdmin,
+			"currentRoomId":  character.CurrentRoomId,
 			"startingRoomId": character.StartingRoomId,
 		})
 	})
@@ -460,7 +495,10 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// Apply race stat modifiers from DB
-		dbinit.ApplyRaceToCharacter(c.Request.Context(), client, char.ID, race)
+		char, err = dbinit.ApplyRaceToCharacter(c.Request.Context(), client, char)
+		if err != nil {
+			log.Printf("Warning: failed to apply race modifiers: %v", err)
+		}
 
 		c.JSON(http.StatusCreated, gin.H{
 			"id":              char.ID,
