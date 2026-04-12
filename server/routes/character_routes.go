@@ -16,8 +16,12 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/room"
+	"herbst-server/db/gameconfig"
+	genderpkg "herbst-server/db/gender"
+	racepkg "herbst-server/db/race"
 	"herbst-server/db/talent"
 	"herbst-server/db/user"
+	"herbst-server/dbinit"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -304,6 +308,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			Password    string `json:"password" binding:"required"`
 			Class       string `json:"class"`
 			Race        string `json:"race"`
+			Gender      string `json:"gender"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -326,6 +331,25 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 		hashedPassword := string(hash)
 
+		// Validate character name: 1-23 chars, letters only
+		if len(req.Name) < 1 || len(req.Name) > 23 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Character name must be 1-23 characters"})
+			return
+		}
+		for _, ch := range req.Name {
+			if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Character name can only contain letters (a-z, A-Z)"})
+				return
+			}
+		}
+
+		// Enforce max 3 characters per user
+		userChars, _ := client.Character.Query().Where(character.HasUserWith(user.IDEQ(userId))).Count(c.Request.Context())
+		if userChars >= 3 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Maximum of 3 characters per user reached"})
+			return
+		}
+
 		// Set default stats based on class (if provided)
 		hitpoints := 100
 		maxHitpoints := 100
@@ -344,16 +368,36 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			startingRoomID = startingRooms[0].ID
 		}
 
-		// Set race (default to human)
+		// Validate and resolve race from DB (default to human)
 		race := "human"
 		if req.Race != "" {
-			race = req.Race
+			raceObj, err := client.Race.Query().Where(racepkg.NameEQ(req.Race)).Only(c.Request.Context())
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race: use human, turtle, or mutant"})
+				return
+			}
+			if !raceObj.IsPlayable {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Race not available for player characters"})
+				return
+			}
+			race = raceObj.Name
 		}
 
 		// Set class (default to survivor)
 		class := "survivor"
 		if req.Class != "" {
 			class = req.Class
+		}
+
+		// Set gender (default to he_him)
+		gender := "he_him"
+		if req.Gender != "" {
+			genderObj, err := client.Gender.Query().Where(genderpkg.NameEQ(req.Gender)).Only(c.Request.Context())
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gender: use he_him, she_her, or they_them"})
+				return
+			}
+			gender = genderObj.Name
 		}
 
 		// Get class configuration with specialty
@@ -381,6 +425,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			SetCurrentRoomId(startingRoomID).
 			SetStartingRoomId(startingRoomID).
 			SetRace(race).
+			SetGender(gender).
 			SetClass(class).
 			SetSpecialty(classConfig.Specialty).
 			SetStrength(baseStrength).
@@ -409,11 +454,13 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 
 		// Create the character
 		char, err := builder.Save(c.Request.Context())
-
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
+		// Apply race stat modifiers from DB
+		dbinit.ApplyRaceToCharacter(c.Request.Context(), client, char.ID, race)
 
 		c.JSON(http.StatusCreated, gin.H{
 			"id":              char.ID,
@@ -629,8 +676,85 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		})
 	})
 
-	// Update character race
+	// GET /races — list all playable races
+	router.GET("/races", func(c *gin.Context) {
+		races, err := dbinit.GetPlayableRaces(c.Request.Context(), client)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		result := make([]gin.H, len(races))
+		for i, r := range races {
+			result[i] = gin.H{
+				"name":           r.Name,
+				"display_name":   r.DisplayName,
+				"description":    r.Description,
+				"stat_modifiers": r.StatModifiers,
+				"skill_grants":   r.SkillGrants,
+			}
+		}
+		c.JSON(http.StatusOK, result)
+	})
+
+	// GET /genders — list all genders
+	router.GET("/genders", func(c *gin.Context) {
+		genders, err := dbinit.GetAllGenders(c.Request.Context(), client)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		result := make([]gin.H, len(genders))
+		for i, g := range genders {
+			result[i] = gin.H{
+				"name":               g.Name,
+				"display_name":       g.DisplayName,
+				"subject_pronoun":    g.SubjectPronoun,
+				"object_pronoun":     g.ObjectPronoun,
+				"possessive_pronoun": g.PossessivePronoun,
+			}
+		}
+		c.JSON(http.StatusOK, result)
+	})
+
+	// GET /game-config/:key
+	router.GET("/game-config/:key", func(c *gin.Context) {
+		key := c.Param("key")
+		cfg, err := client.GameConfig.Query().Where(gameconfig.KeyEQ(key)).Only(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Config key not found"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"key": cfg.Key, "value": cfg.Value})
+	})
+
+	// PUT /game-config/:key (admin-set fountain room, etc.)
+	router.PUT("/game-config/:key", func(c *gin.Context) {
+		key := c.Param("key")
+		var req struct{ Value string `json:"value" binding:"required"` }
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		existing, err := client.GameConfig.Query().Where(gameconfig.KeyEQ(key)).Only(c.Request.Context())
+		if err == nil && existing != nil {
+			updated, err := client.GameConfig.UpdateOne(existing).SetValue(req.Value).Save(c.Request.Context())
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"key": updated.Key, "value": updated.Value})
+			return
+		}
+		created, err := client.GameConfig.Create().SetKey(key).SetValue(req.Value).Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{"key": created.Key, "value": created.Value})
+	})
+
 	router.PUT("/characters/:id/race", func(c *gin.Context) {
+	// Update character race
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
