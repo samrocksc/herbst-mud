@@ -19,9 +19,16 @@ herbst/.ssh/
 herbst/herbst
 herbst/herbst-tui
 herbst/herbst-server
+herbst/herbst-web
 server/herbst-server
+server/herbst-web
 *.pid
 server.log
+
+# Build artifacts & temp files
+*.log
+*.bak
+*.binary
 
 # IDE files
 .vscode/
