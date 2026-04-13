@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
@@ -30,7 +31,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			Weight      int    `json:"weight"`
 			IsEquipped  bool   `json:"isEquipped"`
 			// Item system fields (GitHub #89)
-			IsImmovable bool   `json:"isImmovable"`
+			IsImmovable bool `json:"isImmovable"`
 			Color       string `json:"color"`
 			IsVisible   bool   `json:"isVisible"`
 			ItemType    string `json:"itemType"`
@@ -42,6 +43,8 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			Effect  string `json:"effect"`
 			// Hidden items (GitHub #12 - Look System)
 			RevealCondition map[string]any `json:"revealCondition"`
+			// Corpse rotting (GitHub #22)
+			ExpiresAt *time.Time `json:"expiresAt,omitempty"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -83,6 +86,11 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 		// Set owner if provided
 		if req.OwnerID != nil {
 			builder.SetOwnerId(*req.OwnerID)
+		}
+
+		// Set expiry time for corpses and other transient items (GitHub #22)
+		if req.ExpiresAt != nil {
+			builder.SetExpiresAt(*req.ExpiresAt)
 		}
 
 		eq, err := builder.Save(c.Request.Context())
@@ -311,6 +319,8 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			ItemType        string         `json:"itemType"`
 			RoomID          *int           `json:"roomId"`
 			RevealCondition map[string]any `json:"revealCondition"`
+			// Corpse rotting (GitHub #22)
+			ExpiresAt *time.Time `json:"expiresAt,omitempty"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -356,6 +366,11 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			} else {
 				updater.SetRoomID(*req.RoomID)
 			}
+		}
+
+		// Update expiry time (GitHub #22)
+		if req.ExpiresAt != nil {
+			updater.SetExpiresAt(*req.ExpiresAt)
 		}
 
 		// Update reveal condition in memory (GitHub #12)
@@ -436,15 +451,15 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 
 		// Return examine response
 		c.JSON(http.StatusOK, gin.H{
-			"id":             eq.ID,
-			"name":           eq.Name,
-			"description":    eq.Description,
-			"type":           eq.ItemType,
-			"is_immovable":   eq.IsImmovable,
-			"is_visible":     eq.IsVisible,
-			"color":          eq.Color,
-			"examine_level":  examineLevel,
-			"hidden_details": hiddenDetails,
+			"id":              eq.ID,
+			"name":            eq.Name,
+			"description":     eq.Description,
+			"type":            eq.ItemType,
+			"is_immovable":    eq.IsImmovable,
+			"is_visible":      eq.IsVisible,
+			"color":           eq.Color,
+			"examine_level":   examineLevel,
+			"hidden_details":  hiddenDetails,
 			"examine_xp":      1, // Grant XP for examining
 		})
 	})

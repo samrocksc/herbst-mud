@@ -4,6 +4,7 @@ package equipment
 
 import (
 	"herbst-server/db/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -162,6 +163,11 @@ func ContainedItems(v string) predicate.Equipment {
 // RevealCondition applies equality check predicate on the "revealCondition" field. It's identical to RevealConditionEQ.
 func RevealCondition(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldRevealCondition, v))
+}
+
+// ExpiresAt applies equality check predicate on the "expiresAt" field. It's identical to ExpiresAtEQ.
+func ExpiresAt(v time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldExpiresAt, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -1162,6 +1168,56 @@ func RevealConditionEqualFold(v string) predicate.Equipment {
 // RevealConditionContainsFold applies the ContainsFold predicate on the "revealCondition" field.
 func RevealConditionContainsFold(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldContainsFold(FieldRevealCondition, v))
+}
+
+// ExpiresAtEQ applies the EQ predicate on the "expiresAt" field.
+func ExpiresAtEQ(v time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldExpiresAt, v))
+}
+
+// ExpiresAtNEQ applies the NEQ predicate on the "expiresAt" field.
+func ExpiresAtNEQ(v time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldExpiresAt, v))
+}
+
+// ExpiresAtIn applies the In predicate on the "expiresAt" field.
+func ExpiresAtIn(vs ...time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldExpiresAt, vs...))
+}
+
+// ExpiresAtNotIn applies the NotIn predicate on the "expiresAt" field.
+func ExpiresAtNotIn(vs ...time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldExpiresAt, vs...))
+}
+
+// ExpiresAtGT applies the GT predicate on the "expiresAt" field.
+func ExpiresAtGT(v time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldExpiresAt, v))
+}
+
+// ExpiresAtGTE applies the GTE predicate on the "expiresAt" field.
+func ExpiresAtGTE(v time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldExpiresAt, v))
+}
+
+// ExpiresAtLT applies the LT predicate on the "expiresAt" field.
+func ExpiresAtLT(v time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldExpiresAt, v))
+}
+
+// ExpiresAtLTE applies the LTE predicate on the "expiresAt" field.
+func ExpiresAtLTE(v time.Time) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldExpiresAt, v))
+}
+
+// ExpiresAtIsNil applies the IsNil predicate on the "expiresAt" field.
+func ExpiresAtIsNil() predicate.Equipment {
+	return predicate.Equipment(sql.FieldIsNull(FieldExpiresAt))
+}
+
+// ExpiresAtNotNil applies the NotNil predicate on the "expiresAt" field.
+func ExpiresAtNotNil() predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotNull(FieldExpiresAt))
 }
 
 // HasRoom applies the HasEdge predicate on the "room" edge.

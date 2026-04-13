@@ -27,6 +27,10 @@ type LootItem struct {
 	Slot        string `json:"slot"`
 }
 
+// CorpseRotDuration is how long corpses stick around before rotting away.
+// Players can loot them before they expire.
+const CorpseRotDuration = 10 * time.Minute
+
 // generateCorpse creates a corpse item in the room when someone dies
 // and transfers all equipment from the defeated character to the corpse
 func (m *model) generateCorpse(defeated *RoomCharacter) {
@@ -36,7 +40,7 @@ func (m *model) generateCorpse(defeated *RoomCharacter) {
 
 	// Fetch all equipment from the defeated character
 	lootItems := m.fetchCharacterEquipment(defeated.ID)
-	
+
 	if m.debugMode {
 		m.AppendMessage(fmt.Sprintf("[DEBUG] Fetched %d items from %s's inventory", len(lootItems), defeated.Name), "info")
 	}
@@ -60,20 +64,24 @@ func (m *model) generateCorpse(defeated *RoomCharacter) {
 
 	dataJSON, _ := json.Marshal(corpseData)
 
+	// Set expiry time for corpse rotting (GitHub #22)
+	expiresAt := time.Now().Add(CorpseRotDuration)
+
 	// Build the request payload
 	payload := struct {
-		Name            string `json:"name"`
-		Description     string `json:"description"`
-		Slot            string `json:"slot"`
-		ItemType        string `json:"itemType"`
-		IsImmovable     bool   `json:"isImmovable"`
-		IsVisible       bool   `json:"isVisible"`
-		Weight          int    `json:"weight"`
-		Color           string `json:"color"`
-		RoomID          int    `json:"roomId"`
-		ExamineDesc     string `json:"examineDesc"`
-		IsContainer     bool   `json:"isContainer"`
-		ContainerCapacity int  `json:"containerCapacity"`
+		Name              string    `json:"name"`
+		Description       string    `json:"description"`
+		Slot              string    `json:"slot"`
+		ItemType          string    `json:"itemType"`
+		IsImmovable       bool      `json:"isImmovable"`
+		IsVisible         bool      `json:"isVisible"`
+		Weight            int       `json:"weight"`
+		Color             string    `json:"color"`
+		RoomID            int       `json:"roomId"`
+		ExamineDesc       string    `json:"examineDesc"`
+		IsContainer       bool      `json:"isContainer"`
+		ContainerCapacity int       `json:"containerCapacity"`
+		ExpiresAt         *time.Time `json:"expiresAt,omitempty"`
 	}{
 		Name:              corpseName,
 		Description:       description,
@@ -81,12 +89,13 @@ func (m *model) generateCorpse(defeated *RoomCharacter) {
 		ItemType:          "corpse",
 		IsImmovable:       false,
 		IsVisible:         true,
-		Weight:            200, // Heavy but movable
+		Weight:            200,
 		Color:             "purple",
 		RoomID:            m.currentRoom,
 		ExamineDesc:       string(dataJSON),
 		IsContainer:       true,
-		ContainerCapacity: 100, // Can hold many items
+		ContainerCapacity: 100,
+		ExpiresAt:         &expiresAt,
 	}
 
 	// Serialize payload

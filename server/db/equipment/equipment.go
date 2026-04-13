@@ -56,6 +56,8 @@ const (
 	FieldContainedItems = "contained_items"
 	// FieldRevealCondition holds the string denoting the revealcondition field in the database.
 	FieldRevealCondition = "reveal_condition"
+	// FieldExpiresAt holds the string denoting the expiresat field in the database.
+	FieldExpiresAt = "expires_at"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// Table holds the table name of the equipment in the database.
@@ -94,6 +96,7 @@ var Columns = []string{
 	FieldKeyItemID,
 	FieldContainedItems,
 	FieldRevealCondition,
+	FieldExpiresAt,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
@@ -270,6 +273,11 @@ func ByContainedItems(opts ...sql.OrderTermOption) OrderOption {
 // ByRevealCondition orders the results by the revealCondition field.
 func ByRevealCondition(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRevealCondition, opts...).ToFunc()
+}
+
+// ByExpiresAt orders the results by the expiresAt field.
+func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
 }
 
 // ByRoomField orders the results by room field.

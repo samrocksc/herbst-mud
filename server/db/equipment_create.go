@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -300,6 +301,20 @@ func (_c *EquipmentCreate) SetRevealCondition(v string) *EquipmentCreate {
 func (_c *EquipmentCreate) SetNillableRevealCondition(v *string) *EquipmentCreate {
 	if v != nil {
 		_c.SetRevealCondition(*v)
+	}
+	return _c
+}
+
+// SetExpiresAt sets the "expiresAt" field.
+func (_c *EquipmentCreate) SetExpiresAt(v time.Time) *EquipmentCreate {
+	_c.mutation.SetExpiresAt(v)
+	return _c
+}
+
+// SetNillableExpiresAt sets the "expiresAt" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableExpiresAt(v *time.Time) *EquipmentCreate {
+	if v != nil {
+		_c.SetExpiresAt(*v)
 	}
 	return _c
 }
@@ -603,6 +618,10 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.RevealCondition(); ok {
 		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
 		_node.RevealCondition = value
+	}
+	if value, ok := _c.mutation.ExpiresAt(); ok {
+		_spec.SetField(equipment.FieldExpiresAt, field.TypeTime, value)
+		_node.ExpiresAt = &value
 	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

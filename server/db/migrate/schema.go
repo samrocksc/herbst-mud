@@ -190,6 +190,7 @@ var (
 		{Name: "key_item_id", Type: field.TypeString, Nullable: true},
 		{Name: "contained_items", Type: field.TypeString, Default: ""},
 		{Name: "reveal_condition", Type: field.TypeString, Default: ""},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -200,7 +201,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[23]},
+				Columns:    []*schema.Column{EquipmentColumns[24]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

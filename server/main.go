@@ -272,6 +272,9 @@ func main() {
 	// Register admin wipe/reload routes
 	routes.RegisterAdminWipeRoutes(router, client)
 
+	// Start corpse cleanup background goroutine (GitHub #22)
+	startCorpseCleanup(client)
+
 	// Healthz endpoint
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

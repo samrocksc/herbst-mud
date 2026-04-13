@@ -77,6 +77,11 @@ func (Equipment) Fields() []ent.Field {
 		field.String("revealCondition").
 			Default("").
 			Comment("JSON: {type: examine|perception_check|use_item|event, target, minLevel}"),
+		// Corpse rotting (GitHub #22)
+		field.Time("expiresAt").
+			Optional().
+			Nillable().
+			Comment("When this item expires and is auto-deleted. nil = never rots."),
 	}
 }
 

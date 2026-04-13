@@ -22,6 +22,7 @@ import (
 	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"sync"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -5172,6 +5173,7 @@ type EquipmentMutation struct {
 	keyItemID            *string
 	containedItems       *string
 	revealCondition      *string
+	expiresAt            *time.Time
 	clearedFields        map[string]struct{}
 	room                 *int
 	clearedroom          bool
@@ -6237,6 +6239,55 @@ func (m *EquipmentMutation) ResetRevealCondition() {
 	m.revealCondition = nil
 }
 
+// SetExpiresAt sets the "expiresAt" field.
+func (m *EquipmentMutation) SetExpiresAt(t time.Time) {
+	m.expiresAt = &t
+}
+
+// ExpiresAt returns the value of the "expiresAt" field in the mutation.
+func (m *EquipmentMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expiresAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expiresAt" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expiresAt" field.
+func (m *EquipmentMutation) ClearExpiresAt() {
+	m.expiresAt = nil
+	m.clearedFields[equipment.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expiresAt" field was cleared in this mutation.
+func (m *EquipmentMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[equipment.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expiresAt" field.
+func (m *EquipmentMutation) ResetExpiresAt() {
+	m.expiresAt = nil
+	delete(m.clearedFields, equipment.FieldExpiresAt)
+}
+
 // SetRoomID sets the "room" edge to the Room entity by id.
 func (m *EquipmentMutation) SetRoomID(id int) {
 	m.room = &id
@@ -6310,7 +6361,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 23)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -6377,6 +6428,9 @@ func (m *EquipmentMutation) Fields() []string {
 	if m.revealCondition != nil {
 		fields = append(fields, equipment.FieldRevealCondition)
 	}
+	if m.expiresAt != nil {
+		fields = append(fields, equipment.FieldExpiresAt)
+	}
 	return fields
 }
 
@@ -6429,6 +6483,8 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.ContainedItems()
 	case equipment.FieldRevealCondition:
 		return m.RevealCondition()
+	case equipment.FieldExpiresAt:
+		return m.ExpiresAt()
 	}
 	return nil, false
 }
@@ -6482,6 +6538,8 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldContainedItems(ctx)
 	case equipment.FieldRevealCondition:
 		return m.OldRevealCondition(ctx)
+	case equipment.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -6645,6 +6703,13 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRevealCondition(v)
 		return nil
+	case equipment.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -6768,6 +6833,9 @@ func (m *EquipmentMutation) ClearedFields() []string {
 	if m.FieldCleared(equipment.FieldKeyItemID) {
 		fields = append(fields, equipment.FieldKeyItemID)
 	}
+	if m.FieldCleared(equipment.FieldExpiresAt) {
+		fields = append(fields, equipment.FieldExpiresAt)
+	}
 	return fields
 }
 
@@ -6787,6 +6855,9 @@ func (m *EquipmentMutation) ClearField(name string) error {
 		return nil
 	case equipment.FieldKeyItemID:
 		m.ClearKeyItemID()
+		return nil
+	case equipment.FieldExpiresAt:
+		m.ClearExpiresAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment nullable field %s", name)
@@ -6861,6 +6932,9 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldRevealCondition:
 		m.ResetRevealCondition()
+		return nil
+	case equipment.FieldExpiresAt:
+		m.ResetExpiresAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)

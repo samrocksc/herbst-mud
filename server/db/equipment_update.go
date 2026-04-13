@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/equipment"
 	"herbst-server/db/predicate"
 	"herbst-server/db/room"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -397,6 +398,26 @@ func (_u *EquipmentUpdate) SetNillableRevealCondition(v *string) *EquipmentUpdat
 	return _u
 }
 
+// SetExpiresAt sets the "expiresAt" field.
+func (_u *EquipmentUpdate) SetExpiresAt(v time.Time) *EquipmentUpdate {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expiresAt" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableExpiresAt(v *time.Time) *EquipmentUpdate {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearExpiresAt clears the value of the "expiresAt" field.
+func (_u *EquipmentUpdate) ClearExpiresAt() *EquipmentUpdate {
+	_u.mutation.ClearExpiresAt()
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdate) SetRoomID(id int) *EquipmentUpdate {
 	_u.mutation.SetRoomID(id)
@@ -555,6 +576,12 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.RevealCondition(); ok {
 		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(equipment.FieldExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ExpiresAtCleared() {
+		_spec.ClearField(equipment.FieldExpiresAt, field.TypeTime)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -974,6 +1001,26 @@ func (_u *EquipmentUpdateOne) SetNillableRevealCondition(v *string) *EquipmentUp
 	return _u
 }
 
+// SetExpiresAt sets the "expiresAt" field.
+func (_u *EquipmentUpdateOne) SetExpiresAt(v time.Time) *EquipmentUpdateOne {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expiresAt" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableExpiresAt(v *time.Time) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearExpiresAt clears the value of the "expiresAt" field.
+func (_u *EquipmentUpdateOne) ClearExpiresAt() *EquipmentUpdateOne {
+	_u.mutation.ClearExpiresAt()
+	return _u
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *EquipmentUpdateOne) SetRoomID(id int) *EquipmentUpdateOne {
 	_u.mutation.SetRoomID(id)
@@ -1162,6 +1209,12 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if value, ok := _u.mutation.RevealCondition(); ok {
 		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(equipment.FieldExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ExpiresAtCleared() {
+		_spec.ClearField(equipment.FieldExpiresAt, field.TypeTime)
 	}
 	if _u.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{

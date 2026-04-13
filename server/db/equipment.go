@@ -7,6 +7,7 @@ import (
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -61,6 +62,8 @@ type Equipment struct {
 	ContainedItems string `json:"containedItems,omitempty"`
 	// JSON: {type: examine|perception_check|use_item|event, target, minLevel}
 	RevealCondition string `json:"revealCondition,omitempty"`
+	// When this item expires and is auto-deleted. nil = never rots.
+	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges          EquipmentEdges `json:"edges"`
@@ -99,6 +102,8 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition:
 			values[i] = new(sql.NullString)
+		case equipment.FieldExpiresAt:
+			values[i] = new(sql.NullTime)
 		case equipment.ForeignKeys[0]: // room_equipment
 			values[i] = new(sql.NullInt64)
 		default:
@@ -255,6 +260,13 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.RevealCondition = value.String
 			}
+		case equipment.FieldExpiresAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field expiresAt", values[i])
+			} else if value.Valid {
+				_m.ExpiresAt = new(time.Time)
+				*_m.ExpiresAt = value.Time
+			}
 		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_equipment", value)
@@ -370,6 +382,11 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("revealCondition=")
 	builder.WriteString(_m.RevealCondition)
+	builder.WriteString(", ")
+	if v := _m.ExpiresAt; v != nil {
+		builder.WriteString("expiresAt=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }
