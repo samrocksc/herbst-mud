@@ -64,8 +64,8 @@ export function Sidebar() {
       width: 220,
       minWidth: 220,
       height: '100vh',
-      background: '#1a1a1a',
-      borderRight: '1px solid #333',
+      background: '#ffffff',
+      borderRight: '1px solid #d1d5db',
       display: 'flex',
       flexDirection: 'column',
       overflowY: 'auto',
@@ -73,8 +73,8 @@ export function Sidebar() {
     }}>
       <div style={{
         padding: '1rem',
-        borderBottom: '1px solid #333',
-        color: '#646cff',
+        borderBottom: '1px solid #d1d5db',
+        color: '#1d4ed8',
         fontSize: '1.1rem',
         fontWeight: 700,
       }}>
@@ -94,8 +94,8 @@ export function Sidebar() {
                 gap: '0.75rem',
                 padding: '0.6rem 0.75rem',
                 borderRadius: 6,
-                color: isActive ? '#fff' : '#888',
-                background: isActive ? '#2d5a27' : 'transparent',
+                color: isActive ? '#ffffff' : '#374151',
+                background: isActive ? '#2563eb' : 'transparent',
                 textDecoration: 'none',
                 fontSize: '0.9rem',
                 transition: 'background 0.15s, color 0.15s',

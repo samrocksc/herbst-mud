@@ -11,9 +11,9 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex h-screen bg-surface">
+      <div className="flex h-screen bg-white">
         <Sidebar />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-gray-50">
           <Outlet />
         </main>
       </div>

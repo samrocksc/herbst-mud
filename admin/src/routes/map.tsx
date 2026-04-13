@@ -407,7 +407,7 @@ function MapBuilder() {
               return (
                 <div key={room.id} onClick={() => setSelectedRoom(room)}
                   className={`w-[120px] min-h-[65px] p-2 rounded-lg cursor-pointer transition-all ${room.isStartingRoom ? 'bg-primary' : isSelected ? 'bg-primary-hover shadow-lg' : 'bg-surface-dark'} ${isSelected ? 'border-2 border-accent' : 'border-2 border-border'}`}
-                  style={{ position: 'absolute', left: pos.x, top: pos.y }}>
+                  style={{ position: 'absolute', left: pos.x, top: pos.y, zIndex: 1 }}>
                   <div className={`font-bold text-xs text-center truncate ${isColored ? 'text-white' : 'text-text'}`}>{room.name}{room.isStartingRoom && ' ⭐'}</div>
                   <div className="text-text-muted text-[10px] text-center">#{room.id}</div>
                   <div className="flex justify-center gap-1 mt-1">
