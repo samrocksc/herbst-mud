@@ -5990,25 +5990,38 @@ func (m *RoomMutation) ResetEdge(name string) error {
 // SkillMutation represents an operation that mutates the Skill nodes in the graph.
 type SkillMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	name              *string
-	description       *string
-	_type             *string
-	cost              *int
-	addcost           *int
-	cooldown          *int
-	addcooldown       *int
-	power             *int
-	addpower          *int
-	clearedFields     map[string]struct{}
-	characters        map[int]struct{}
-	removedcharacters map[int]struct{}
-	clearedcharacters bool
-	done              bool
-	oldValue          func(context.Context) (*Skill, error)
-	predicates        []predicate.Skill
+	op                           Op
+	typ                          string
+	id                           *int
+	name                         *string
+	description                  *string
+	skill_type                   *string
+	cost                         *int
+	addcost                      *int
+	cooldown                     *int
+	addcooldown                  *int
+	requirements                 *string
+	effect_type                  *string
+	effect_value                 *int
+	addeffect_value              *int
+	effect_duration              *int
+	addeffect_duration           *int
+	scaling_stat                 *string
+	scaling_percent_per_point    *float64
+	addscaling_percent_per_point *float64
+	mana_cost                    *int
+	addmana_cost                 *int
+	stamina_cost                 *int
+	addstamina_cost              *int
+	hp_cost                      *int
+	addhp_cost                   *int
+	clearedFields                map[string]struct{}
+	characters                   map[int]struct{}
+	removedcharacters            map[int]struct{}
+	clearedcharacters            bool
+	done                         bool
+	oldValue                     func(context.Context) (*Skill, error)
+	predicates                   []predicate.Skill
 }
 
 var _ ent.Mutation = (*SkillMutation)(nil)
@@ -6181,40 +6194,40 @@ func (m *SkillMutation) ResetDescription() {
 	m.description = nil
 }
 
-// SetType sets the "type" field.
-func (m *SkillMutation) SetType(s string) {
-	m._type = &s
+// SetSkillType sets the "skill_type" field.
+func (m *SkillMutation) SetSkillType(s string) {
+	m.skill_type = &s
 }
 
-// GetType returns the value of the "type" field in the mutation.
-func (m *SkillMutation) GetType() (r string, exists bool) {
-	v := m._type
+// SkillType returns the value of the "skill_type" field in the mutation.
+func (m *SkillMutation) SkillType() (r string, exists bool) {
+	v := m.skill_type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldType returns the old "type" field's value of the Skill entity.
+// OldSkillType returns the old "skill_type" field's value of the Skill entity.
 // If the Skill object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SkillMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *SkillMutation) OldSkillType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
+		return v, errors.New("OldSkillType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
+		return v, errors.New("OldSkillType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
+		return v, fmt.Errorf("querying old value for OldSkillType: %w", err)
 	}
-	return oldValue.Type, nil
+	return oldValue.SkillType, nil
 }
 
-// ResetType resets all changes to the "type" field.
-func (m *SkillMutation) ResetType() {
-	m._type = nil
+// ResetSkillType resets all changes to the "skill_type" field.
+func (m *SkillMutation) ResetSkillType() {
+	m.skill_type = nil
 }
 
 // SetCost sets the "cost" field.
@@ -6329,60 +6342,474 @@ func (m *SkillMutation) ResetCooldown() {
 	m.addcooldown = nil
 }
 
-// SetPower sets the "power" field.
-func (m *SkillMutation) SetPower(i int) {
-	m.power = &i
-	m.addpower = nil
+// SetRequirements sets the "requirements" field.
+func (m *SkillMutation) SetRequirements(s string) {
+	m.requirements = &s
 }
 
-// Power returns the value of the "power" field in the mutation.
-func (m *SkillMutation) Power() (r int, exists bool) {
-	v := m.power
+// Requirements returns the value of the "requirements" field in the mutation.
+func (m *SkillMutation) Requirements() (r string, exists bool) {
+	v := m.requirements
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldPower returns the old "power" field's value of the Skill entity.
+// OldRequirements returns the old "requirements" field's value of the Skill entity.
 // If the Skill object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SkillMutation) OldPower(ctx context.Context) (v int, err error) {
+func (m *SkillMutation) OldRequirements(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPower is only allowed on UpdateOne operations")
+		return v, errors.New("OldRequirements is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPower requires an ID field in the mutation")
+		return v, errors.New("OldRequirements requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPower: %w", err)
+		return v, fmt.Errorf("querying old value for OldRequirements: %w", err)
 	}
-	return oldValue.Power, nil
+	return oldValue.Requirements, nil
 }
 
-// AddPower adds i to the "power" field.
-func (m *SkillMutation) AddPower(i int) {
-	if m.addpower != nil {
-		*m.addpower += i
-	} else {
-		m.addpower = &i
-	}
+// ClearRequirements clears the value of the "requirements" field.
+func (m *SkillMutation) ClearRequirements() {
+	m.requirements = nil
+	m.clearedFields[skill.FieldRequirements] = struct{}{}
 }
 
-// AddedPower returns the value that was added to the "power" field in this mutation.
-func (m *SkillMutation) AddedPower() (r int, exists bool) {
-	v := m.addpower
+// RequirementsCleared returns if the "requirements" field was cleared in this mutation.
+func (m *SkillMutation) RequirementsCleared() bool {
+	_, ok := m.clearedFields[skill.FieldRequirements]
+	return ok
+}
+
+// ResetRequirements resets all changes to the "requirements" field.
+func (m *SkillMutation) ResetRequirements() {
+	m.requirements = nil
+	delete(m.clearedFields, skill.FieldRequirements)
+}
+
+// SetEffectType sets the "effect_type" field.
+func (m *SkillMutation) SetEffectType(s string) {
+	m.effect_type = &s
+}
+
+// EffectType returns the value of the "effect_type" field in the mutation.
+func (m *SkillMutation) EffectType() (r string, exists bool) {
+	v := m.effect_type
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetPower resets all changes to the "power" field.
-func (m *SkillMutation) ResetPower() {
-	m.power = nil
-	m.addpower = nil
+// OldEffectType returns the old "effect_type" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldEffectType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectType: %w", err)
+	}
+	return oldValue.EffectType, nil
+}
+
+// ResetEffectType resets all changes to the "effect_type" field.
+func (m *SkillMutation) ResetEffectType() {
+	m.effect_type = nil
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (m *SkillMutation) SetEffectValue(i int) {
+	m.effect_value = &i
+	m.addeffect_value = nil
+}
+
+// EffectValue returns the value of the "effect_value" field in the mutation.
+func (m *SkillMutation) EffectValue() (r int, exists bool) {
+	v := m.effect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectValue returns the old "effect_value" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldEffectValue(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectValue: %w", err)
+	}
+	return oldValue.EffectValue, nil
+}
+
+// AddEffectValue adds i to the "effect_value" field.
+func (m *SkillMutation) AddEffectValue(i int) {
+	if m.addeffect_value != nil {
+		*m.addeffect_value += i
+	} else {
+		m.addeffect_value = &i
+	}
+}
+
+// AddedEffectValue returns the value that was added to the "effect_value" field in this mutation.
+func (m *SkillMutation) AddedEffectValue() (r int, exists bool) {
+	v := m.addeffect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectValue resets all changes to the "effect_value" field.
+func (m *SkillMutation) ResetEffectValue() {
+	m.effect_value = nil
+	m.addeffect_value = nil
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (m *SkillMutation) SetEffectDuration(i int) {
+	m.effect_duration = &i
+	m.addeffect_duration = nil
+}
+
+// EffectDuration returns the value of the "effect_duration" field in the mutation.
+func (m *SkillMutation) EffectDuration() (r int, exists bool) {
+	v := m.effect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectDuration returns the old "effect_duration" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldEffectDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectDuration: %w", err)
+	}
+	return oldValue.EffectDuration, nil
+}
+
+// AddEffectDuration adds i to the "effect_duration" field.
+func (m *SkillMutation) AddEffectDuration(i int) {
+	if m.addeffect_duration != nil {
+		*m.addeffect_duration += i
+	} else {
+		m.addeffect_duration = &i
+	}
+}
+
+// AddedEffectDuration returns the value that was added to the "effect_duration" field in this mutation.
+func (m *SkillMutation) AddedEffectDuration() (r int, exists bool) {
+	v := m.addeffect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectDuration resets all changes to the "effect_duration" field.
+func (m *SkillMutation) ResetEffectDuration() {
+	m.effect_duration = nil
+	m.addeffect_duration = nil
+}
+
+// SetScalingStat sets the "scaling_stat" field.
+func (m *SkillMutation) SetScalingStat(s string) {
+	m.scaling_stat = &s
+}
+
+// ScalingStat returns the value of the "scaling_stat" field in the mutation.
+func (m *SkillMutation) ScalingStat() (r string, exists bool) {
+	v := m.scaling_stat
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScalingStat returns the old "scaling_stat" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldScalingStat(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScalingStat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScalingStat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScalingStat: %w", err)
+	}
+	return oldValue.ScalingStat, nil
+}
+
+// ClearScalingStat clears the value of the "scaling_stat" field.
+func (m *SkillMutation) ClearScalingStat() {
+	m.scaling_stat = nil
+	m.clearedFields[skill.FieldScalingStat] = struct{}{}
+}
+
+// ScalingStatCleared returns if the "scaling_stat" field was cleared in this mutation.
+func (m *SkillMutation) ScalingStatCleared() bool {
+	_, ok := m.clearedFields[skill.FieldScalingStat]
+	return ok
+}
+
+// ResetScalingStat resets all changes to the "scaling_stat" field.
+func (m *SkillMutation) ResetScalingStat() {
+	m.scaling_stat = nil
+	delete(m.clearedFields, skill.FieldScalingStat)
+}
+
+// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
+func (m *SkillMutation) SetScalingPercentPerPoint(f float64) {
+	m.scaling_percent_per_point = &f
+	m.addscaling_percent_per_point = nil
+}
+
+// ScalingPercentPerPoint returns the value of the "scaling_percent_per_point" field in the mutation.
+func (m *SkillMutation) ScalingPercentPerPoint() (r float64, exists bool) {
+	v := m.scaling_percent_per_point
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScalingPercentPerPoint returns the old "scaling_percent_per_point" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldScalingPercentPerPoint(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScalingPercentPerPoint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScalingPercentPerPoint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScalingPercentPerPoint: %w", err)
+	}
+	return oldValue.ScalingPercentPerPoint, nil
+}
+
+// AddScalingPercentPerPoint adds f to the "scaling_percent_per_point" field.
+func (m *SkillMutation) AddScalingPercentPerPoint(f float64) {
+	if m.addscaling_percent_per_point != nil {
+		*m.addscaling_percent_per_point += f
+	} else {
+		m.addscaling_percent_per_point = &f
+	}
+}
+
+// AddedScalingPercentPerPoint returns the value that was added to the "scaling_percent_per_point" field in this mutation.
+func (m *SkillMutation) AddedScalingPercentPerPoint() (r float64, exists bool) {
+	v := m.addscaling_percent_per_point
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetScalingPercentPerPoint resets all changes to the "scaling_percent_per_point" field.
+func (m *SkillMutation) ResetScalingPercentPerPoint() {
+	m.scaling_percent_per_point = nil
+	m.addscaling_percent_per_point = nil
+}
+
+// SetManaCost sets the "mana_cost" field.
+func (m *SkillMutation) SetManaCost(i int) {
+	m.mana_cost = &i
+	m.addmana_cost = nil
+}
+
+// ManaCost returns the value of the "mana_cost" field in the mutation.
+func (m *SkillMutation) ManaCost() (r int, exists bool) {
+	v := m.mana_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldManaCost returns the old "mana_cost" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldManaCost(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldManaCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldManaCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldManaCost: %w", err)
+	}
+	return oldValue.ManaCost, nil
+}
+
+// AddManaCost adds i to the "mana_cost" field.
+func (m *SkillMutation) AddManaCost(i int) {
+	if m.addmana_cost != nil {
+		*m.addmana_cost += i
+	} else {
+		m.addmana_cost = &i
+	}
+}
+
+// AddedManaCost returns the value that was added to the "mana_cost" field in this mutation.
+func (m *SkillMutation) AddedManaCost() (r int, exists bool) {
+	v := m.addmana_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetManaCost resets all changes to the "mana_cost" field.
+func (m *SkillMutation) ResetManaCost() {
+	m.mana_cost = nil
+	m.addmana_cost = nil
+}
+
+// SetStaminaCost sets the "stamina_cost" field.
+func (m *SkillMutation) SetStaminaCost(i int) {
+	m.stamina_cost = &i
+	m.addstamina_cost = nil
+}
+
+// StaminaCost returns the value of the "stamina_cost" field in the mutation.
+func (m *SkillMutation) StaminaCost() (r int, exists bool) {
+	v := m.stamina_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStaminaCost returns the old "stamina_cost" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldStaminaCost(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStaminaCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStaminaCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStaminaCost: %w", err)
+	}
+	return oldValue.StaminaCost, nil
+}
+
+// AddStaminaCost adds i to the "stamina_cost" field.
+func (m *SkillMutation) AddStaminaCost(i int) {
+	if m.addstamina_cost != nil {
+		*m.addstamina_cost += i
+	} else {
+		m.addstamina_cost = &i
+	}
+}
+
+// AddedStaminaCost returns the value that was added to the "stamina_cost" field in this mutation.
+func (m *SkillMutation) AddedStaminaCost() (r int, exists bool) {
+	v := m.addstamina_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStaminaCost resets all changes to the "stamina_cost" field.
+func (m *SkillMutation) ResetStaminaCost() {
+	m.stamina_cost = nil
+	m.addstamina_cost = nil
+}
+
+// SetHpCost sets the "hp_cost" field.
+func (m *SkillMutation) SetHpCost(i int) {
+	m.hp_cost = &i
+	m.addhp_cost = nil
+}
+
+// HpCost returns the value of the "hp_cost" field in the mutation.
+func (m *SkillMutation) HpCost() (r int, exists bool) {
+	v := m.hp_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHpCost returns the old "hp_cost" field's value of the Skill entity.
+// If the Skill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SkillMutation) OldHpCost(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHpCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHpCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHpCost: %w", err)
+	}
+	return oldValue.HpCost, nil
+}
+
+// AddHpCost adds i to the "hp_cost" field.
+func (m *SkillMutation) AddHpCost(i int) {
+	if m.addhp_cost != nil {
+		*m.addhp_cost += i
+	} else {
+		m.addhp_cost = &i
+	}
+}
+
+// AddedHpCost returns the value that was added to the "hp_cost" field in this mutation.
+func (m *SkillMutation) AddedHpCost() (r int, exists bool) {
+	v := m.addhp_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHpCost resets all changes to the "hp_cost" field.
+func (m *SkillMutation) ResetHpCost() {
+	m.hp_cost = nil
+	m.addhp_cost = nil
 }
 
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
@@ -6473,15 +6900,15 @@ func (m *SkillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SkillMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 14)
 	if m.name != nil {
 		fields = append(fields, skill.FieldName)
 	}
 	if m.description != nil {
 		fields = append(fields, skill.FieldDescription)
 	}
-	if m._type != nil {
-		fields = append(fields, skill.FieldType)
+	if m.skill_type != nil {
+		fields = append(fields, skill.FieldSkillType)
 	}
 	if m.cost != nil {
 		fields = append(fields, skill.FieldCost)
@@ -6489,8 +6916,32 @@ func (m *SkillMutation) Fields() []string {
 	if m.cooldown != nil {
 		fields = append(fields, skill.FieldCooldown)
 	}
-	if m.power != nil {
-		fields = append(fields, skill.FieldPower)
+	if m.requirements != nil {
+		fields = append(fields, skill.FieldRequirements)
+	}
+	if m.effect_type != nil {
+		fields = append(fields, skill.FieldEffectType)
+	}
+	if m.effect_value != nil {
+		fields = append(fields, skill.FieldEffectValue)
+	}
+	if m.effect_duration != nil {
+		fields = append(fields, skill.FieldEffectDuration)
+	}
+	if m.scaling_stat != nil {
+		fields = append(fields, skill.FieldScalingStat)
+	}
+	if m.scaling_percent_per_point != nil {
+		fields = append(fields, skill.FieldScalingPercentPerPoint)
+	}
+	if m.mana_cost != nil {
+		fields = append(fields, skill.FieldManaCost)
+	}
+	if m.stamina_cost != nil {
+		fields = append(fields, skill.FieldStaminaCost)
+	}
+	if m.hp_cost != nil {
+		fields = append(fields, skill.FieldHpCost)
 	}
 	return fields
 }
@@ -6504,14 +6955,30 @@ func (m *SkillMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case skill.FieldDescription:
 		return m.Description()
-	case skill.FieldType:
-		return m.GetType()
+	case skill.FieldSkillType:
+		return m.SkillType()
 	case skill.FieldCost:
 		return m.Cost()
 	case skill.FieldCooldown:
 		return m.Cooldown()
-	case skill.FieldPower:
-		return m.Power()
+	case skill.FieldRequirements:
+		return m.Requirements()
+	case skill.FieldEffectType:
+		return m.EffectType()
+	case skill.FieldEffectValue:
+		return m.EffectValue()
+	case skill.FieldEffectDuration:
+		return m.EffectDuration()
+	case skill.FieldScalingStat:
+		return m.ScalingStat()
+	case skill.FieldScalingPercentPerPoint:
+		return m.ScalingPercentPerPoint()
+	case skill.FieldManaCost:
+		return m.ManaCost()
+	case skill.FieldStaminaCost:
+		return m.StaminaCost()
+	case skill.FieldHpCost:
+		return m.HpCost()
 	}
 	return nil, false
 }
@@ -6525,14 +6992,30 @@ func (m *SkillMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldName(ctx)
 	case skill.FieldDescription:
 		return m.OldDescription(ctx)
-	case skill.FieldType:
-		return m.OldType(ctx)
+	case skill.FieldSkillType:
+		return m.OldSkillType(ctx)
 	case skill.FieldCost:
 		return m.OldCost(ctx)
 	case skill.FieldCooldown:
 		return m.OldCooldown(ctx)
-	case skill.FieldPower:
-		return m.OldPower(ctx)
+	case skill.FieldRequirements:
+		return m.OldRequirements(ctx)
+	case skill.FieldEffectType:
+		return m.OldEffectType(ctx)
+	case skill.FieldEffectValue:
+		return m.OldEffectValue(ctx)
+	case skill.FieldEffectDuration:
+		return m.OldEffectDuration(ctx)
+	case skill.FieldScalingStat:
+		return m.OldScalingStat(ctx)
+	case skill.FieldScalingPercentPerPoint:
+		return m.OldScalingPercentPerPoint(ctx)
+	case skill.FieldManaCost:
+		return m.OldManaCost(ctx)
+	case skill.FieldStaminaCost:
+		return m.OldStaminaCost(ctx)
+	case skill.FieldHpCost:
+		return m.OldHpCost(ctx)
 	}
 	return nil, fmt.Errorf("unknown Skill field %s", name)
 }
@@ -6556,12 +7039,12 @@ func (m *SkillMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
-	case skill.FieldType:
+	case skill.FieldSkillType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetType(v)
+		m.SetSkillType(v)
 		return nil
 	case skill.FieldCost:
 		v, ok := value.(int)
@@ -6577,12 +7060,68 @@ func (m *SkillMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCooldown(v)
 		return nil
-	case skill.FieldPower:
+	case skill.FieldRequirements:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequirements(v)
+		return nil
+	case skill.FieldEffectType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectType(v)
+		return nil
+	case skill.FieldEffectValue:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetPower(v)
+		m.SetEffectValue(v)
+		return nil
+	case skill.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectDuration(v)
+		return nil
+	case skill.FieldScalingStat:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScalingStat(v)
+		return nil
+	case skill.FieldScalingPercentPerPoint:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScalingPercentPerPoint(v)
+		return nil
+	case skill.FieldManaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetManaCost(v)
+		return nil
+	case skill.FieldStaminaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStaminaCost(v)
+		return nil
+	case skill.FieldHpCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHpCost(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Skill field %s", name)
@@ -6598,8 +7137,23 @@ func (m *SkillMutation) AddedFields() []string {
 	if m.addcooldown != nil {
 		fields = append(fields, skill.FieldCooldown)
 	}
-	if m.addpower != nil {
-		fields = append(fields, skill.FieldPower)
+	if m.addeffect_value != nil {
+		fields = append(fields, skill.FieldEffectValue)
+	}
+	if m.addeffect_duration != nil {
+		fields = append(fields, skill.FieldEffectDuration)
+	}
+	if m.addscaling_percent_per_point != nil {
+		fields = append(fields, skill.FieldScalingPercentPerPoint)
+	}
+	if m.addmana_cost != nil {
+		fields = append(fields, skill.FieldManaCost)
+	}
+	if m.addstamina_cost != nil {
+		fields = append(fields, skill.FieldStaminaCost)
+	}
+	if m.addhp_cost != nil {
+		fields = append(fields, skill.FieldHpCost)
 	}
 	return fields
 }
@@ -6613,8 +7167,18 @@ func (m *SkillMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedCost()
 	case skill.FieldCooldown:
 		return m.AddedCooldown()
-	case skill.FieldPower:
-		return m.AddedPower()
+	case skill.FieldEffectValue:
+		return m.AddedEffectValue()
+	case skill.FieldEffectDuration:
+		return m.AddedEffectDuration()
+	case skill.FieldScalingPercentPerPoint:
+		return m.AddedScalingPercentPerPoint()
+	case skill.FieldManaCost:
+		return m.AddedManaCost()
+	case skill.FieldStaminaCost:
+		return m.AddedStaminaCost()
+	case skill.FieldHpCost:
+		return m.AddedHpCost()
 	}
 	return nil, false
 }
@@ -6638,12 +7202,47 @@ func (m *SkillMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddCooldown(v)
 		return nil
-	case skill.FieldPower:
+	case skill.FieldEffectValue:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddPower(v)
+		m.AddEffectValue(v)
+		return nil
+	case skill.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectDuration(v)
+		return nil
+	case skill.FieldScalingPercentPerPoint:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddScalingPercentPerPoint(v)
+		return nil
+	case skill.FieldManaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddManaCost(v)
+		return nil
+	case skill.FieldStaminaCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStaminaCost(v)
+		return nil
+	case skill.FieldHpCost:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHpCost(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Skill numeric field %s", name)
@@ -6652,7 +7251,14 @@ func (m *SkillMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *SkillMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(skill.FieldRequirements) {
+		fields = append(fields, skill.FieldRequirements)
+	}
+	if m.FieldCleared(skill.FieldScalingStat) {
+		fields = append(fields, skill.FieldScalingStat)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -6665,6 +7271,14 @@ func (m *SkillMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *SkillMutation) ClearField(name string) error {
+	switch name {
+	case skill.FieldRequirements:
+		m.ClearRequirements()
+		return nil
+	case skill.FieldScalingStat:
+		m.ClearScalingStat()
+		return nil
+	}
 	return fmt.Errorf("unknown Skill nullable field %s", name)
 }
 
@@ -6678,8 +7292,8 @@ func (m *SkillMutation) ResetField(name string) error {
 	case skill.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case skill.FieldType:
-		m.ResetType()
+	case skill.FieldSkillType:
+		m.ResetSkillType()
 		return nil
 	case skill.FieldCost:
 		m.ResetCost()
@@ -6687,8 +7301,32 @@ func (m *SkillMutation) ResetField(name string) error {
 	case skill.FieldCooldown:
 		m.ResetCooldown()
 		return nil
-	case skill.FieldPower:
-		m.ResetPower()
+	case skill.FieldRequirements:
+		m.ResetRequirements()
+		return nil
+	case skill.FieldEffectType:
+		m.ResetEffectType()
+		return nil
+	case skill.FieldEffectValue:
+		m.ResetEffectValue()
+		return nil
+	case skill.FieldEffectDuration:
+		m.ResetEffectDuration()
+		return nil
+	case skill.FieldScalingStat:
+		m.ResetScalingStat()
+		return nil
+	case skill.FieldScalingPercentPerPoint:
+		m.ResetScalingPercentPerPoint()
+		return nil
+	case skill.FieldManaCost:
+		m.ResetManaCost()
+		return nil
+	case skill.FieldStaminaCost:
+		m.ResetStaminaCost()
+		return nil
+	case skill.FieldHpCost:
+		m.ResetHpCost()
 		return nil
 	}
 	return fmt.Errorf("unknown Skill field %s", name)

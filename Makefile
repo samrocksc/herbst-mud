@@ -1,4 +1,4 @@
-.PHONY: help start stop run start-web stop-web dev start-admin stop-admin dev-all test test-bdd test-server-bdd logs-ssh logs-web build build-all reload
+.PHONY: help start stop run start-web stop-web dev start-admin stop-admin dev-all test test-bdd test-server-bdd logs-ssh logs-web build build-all reload build-admin-tui run-admin-tui
 
 PATH := $(PATH):/usr/local/go/bin
 export PATH
@@ -84,6 +84,14 @@ dev-all: ## Build and start all services (SSH + web + admin)
 	@echo $$! > .admin.pid
 	@sleep 2
 	@echo "SSH: $$(cat .herbst.pid) | Web: $$(cat .web.pid) | Admin: $$(cat .admin.pid)"
+
+build-admin-tui: ## Build the admin TUI binary
+	@echo "Building admin TUI..."
+	@cd admin-tui && go build -o admin-tui . && echo "Admin TUI binary built"
+
+run-admin-tui: ## Run the admin TUI (requires dev stack running on localhost:8080)
+	@echo "Starting admin TUI..."
+	@API_BASE_URL=http://localhost:8080 ./admin-tui/admin-tui
 
 reload: ## Rebuild SSH binary and restart (hot reload)
 	@echo "Building..."

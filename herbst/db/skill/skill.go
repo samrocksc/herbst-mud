@@ -16,14 +16,30 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
+	// FieldSkillType holds the string denoting the skill_type field in the database.
+	FieldSkillType = "skill_type"
 	// FieldCost holds the string denoting the cost field in the database.
 	FieldCost = "cost"
 	// FieldCooldown holds the string denoting the cooldown field in the database.
 	FieldCooldown = "cooldown"
-	// FieldPower holds the string denoting the power field in the database.
-	FieldPower = "power"
+	// FieldRequirements holds the string denoting the requirements field in the database.
+	FieldRequirements = "requirements"
+	// FieldEffectType holds the string denoting the effect_type field in the database.
+	FieldEffectType = "effect_type"
+	// FieldEffectValue holds the string denoting the effect_value field in the database.
+	FieldEffectValue = "effect_value"
+	// FieldEffectDuration holds the string denoting the effect_duration field in the database.
+	FieldEffectDuration = "effect_duration"
+	// FieldScalingStat holds the string denoting the scaling_stat field in the database.
+	FieldScalingStat = "scaling_stat"
+	// FieldScalingPercentPerPoint holds the string denoting the scaling_percent_per_point field in the database.
+	FieldScalingPercentPerPoint = "scaling_percent_per_point"
+	// FieldManaCost holds the string denoting the mana_cost field in the database.
+	FieldManaCost = "mana_cost"
+	// FieldStaminaCost holds the string denoting the stamina_cost field in the database.
+	FieldStaminaCost = "stamina_cost"
+	// FieldHpCost holds the string denoting the hp_cost field in the database.
+	FieldHpCost = "hp_cost"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// Table holds the table name of the skill in the database.
@@ -42,10 +58,18 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldDescription,
-	FieldType,
+	FieldSkillType,
 	FieldCost,
 	FieldCooldown,
-	FieldPower,
+	FieldRequirements,
+	FieldEffectType,
+	FieldEffectValue,
+	FieldEffectDuration,
+	FieldScalingStat,
+	FieldScalingPercentPerPoint,
+	FieldManaCost,
+	FieldStaminaCost,
+	FieldHpCost,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -76,9 +100,9 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
-// ByType orders the results by the type field.
-func ByType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldType, opts...).ToFunc()
+// BySkillType orders the results by the skill_type field.
+func BySkillType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillType, opts...).ToFunc()
 }
 
 // ByCost orders the results by the cost field.
@@ -91,9 +115,49 @@ func ByCooldown(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCooldown, opts...).ToFunc()
 }
 
-// ByPower orders the results by the power field.
-func ByPower(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPower, opts...).ToFunc()
+// ByRequirements orders the results by the requirements field.
+func ByRequirements(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequirements, opts...).ToFunc()
+}
+
+// ByEffectType orders the results by the effect_type field.
+func ByEffectType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectType, opts...).ToFunc()
+}
+
+// ByEffectValue orders the results by the effect_value field.
+func ByEffectValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectValue, opts...).ToFunc()
+}
+
+// ByEffectDuration orders the results by the effect_duration field.
+func ByEffectDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEffectDuration, opts...).ToFunc()
+}
+
+// ByScalingStat orders the results by the scaling_stat field.
+func ByScalingStat(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScalingStat, opts...).ToFunc()
+}
+
+// ByScalingPercentPerPoint orders the results by the scaling_percent_per_point field.
+func ByScalingPercentPerPoint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScalingPercentPerPoint, opts...).ToFunc()
+}
+
+// ByManaCost orders the results by the mana_cost field.
+func ByManaCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldManaCost, opts...).ToFunc()
+}
+
+// ByStaminaCost orders the results by the stamina_cost field.
+func ByStaminaCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStaminaCost, opts...).ToFunc()
+}
+
+// ByHpCost orders the results by the hp_cost field.
+func ByHpCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHpCost, opts...).ToFunc()
 }
 
 // ByCharactersCount orders the results by characters count.

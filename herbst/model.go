@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -194,8 +195,14 @@ type InventoryItem struct {
 	Rarity      string `json:"rarity"`
 }
 
-// RESTAPIBase is the base URL for the REST API
-var RESTAPIBase = "http://localhost:8080"
+var RESTAPIBase string
+
+func init() {
+	RESTAPIBase = os.Getenv("API_BASE_URL")
+	if RESTAPIBase == "" {
+		RESTAPIBase = "http://localhost:8080"
+	}
+}
 
 // StartingRoomID is the ID of the room players start in
 const StartingRoomID = 5

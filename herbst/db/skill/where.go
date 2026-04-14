@@ -64,9 +64,9 @@ func Description(v string) predicate.Skill {
 	return predicate.Skill(sql.FieldEQ(FieldDescription, v))
 }
 
-// Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
-func Type(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldEQ(FieldType, v))
+// SkillType applies equality check predicate on the "skill_type" field. It's identical to SkillTypeEQ.
+func SkillType(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldSkillType, v))
 }
 
 // Cost applies equality check predicate on the "cost" field. It's identical to CostEQ.
@@ -79,9 +79,49 @@ func Cooldown(v int) predicate.Skill {
 	return predicate.Skill(sql.FieldEQ(FieldCooldown, v))
 }
 
-// Power applies equality check predicate on the "power" field. It's identical to PowerEQ.
-func Power(v int) predicate.Skill {
-	return predicate.Skill(sql.FieldEQ(FieldPower, v))
+// Requirements applies equality check predicate on the "requirements" field. It's identical to RequirementsEQ.
+func Requirements(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldRequirements, v))
+}
+
+// EffectType applies equality check predicate on the "effect_type" field. It's identical to EffectTypeEQ.
+func EffectType(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldEffectType, v))
+}
+
+// EffectValue applies equality check predicate on the "effect_value" field. It's identical to EffectValueEQ.
+func EffectValue(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldEffectValue, v))
+}
+
+// EffectDuration applies equality check predicate on the "effect_duration" field. It's identical to EffectDurationEQ.
+func EffectDuration(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldEffectDuration, v))
+}
+
+// ScalingStat applies equality check predicate on the "scaling_stat" field. It's identical to ScalingStatEQ.
+func ScalingStat(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldScalingStat, v))
+}
+
+// ScalingPercentPerPoint applies equality check predicate on the "scaling_percent_per_point" field. It's identical to ScalingPercentPerPointEQ.
+func ScalingPercentPerPoint(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldScalingPercentPerPoint, v))
+}
+
+// ManaCost applies equality check predicate on the "mana_cost" field. It's identical to ManaCostEQ.
+func ManaCost(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldManaCost, v))
+}
+
+// StaminaCost applies equality check predicate on the "stamina_cost" field. It's identical to StaminaCostEQ.
+func StaminaCost(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldStaminaCost, v))
+}
+
+// HpCost applies equality check predicate on the "hp_cost" field. It's identical to HpCostEQ.
+func HpCost(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldHpCost, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -214,69 +254,69 @@ func DescriptionContainsFold(v string) predicate.Skill {
 	return predicate.Skill(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldEQ(FieldType, v))
+// SkillTypeEQ applies the EQ predicate on the "skill_type" field.
+func SkillTypeEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldSkillType, v))
 }
 
-// TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldNEQ(FieldType, v))
+// SkillTypeNEQ applies the NEQ predicate on the "skill_type" field.
+func SkillTypeNEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldSkillType, v))
 }
 
-// TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...string) predicate.Skill {
-	return predicate.Skill(sql.FieldIn(FieldType, vs...))
+// SkillTypeIn applies the In predicate on the "skill_type" field.
+func SkillTypeIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldSkillType, vs...))
 }
 
-// TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...string) predicate.Skill {
-	return predicate.Skill(sql.FieldNotIn(FieldType, vs...))
+// SkillTypeNotIn applies the NotIn predicate on the "skill_type" field.
+func SkillTypeNotIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldSkillType, vs...))
 }
 
-// TypeGT applies the GT predicate on the "type" field.
-func TypeGT(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldGT(FieldType, v))
+// SkillTypeGT applies the GT predicate on the "skill_type" field.
+func SkillTypeGT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldSkillType, v))
 }
 
-// TypeGTE applies the GTE predicate on the "type" field.
-func TypeGTE(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldGTE(FieldType, v))
+// SkillTypeGTE applies the GTE predicate on the "skill_type" field.
+func SkillTypeGTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldSkillType, v))
 }
 
-// TypeLT applies the LT predicate on the "type" field.
-func TypeLT(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldLT(FieldType, v))
+// SkillTypeLT applies the LT predicate on the "skill_type" field.
+func SkillTypeLT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldSkillType, v))
 }
 
-// TypeLTE applies the LTE predicate on the "type" field.
-func TypeLTE(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldLTE(FieldType, v))
+// SkillTypeLTE applies the LTE predicate on the "skill_type" field.
+func SkillTypeLTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldSkillType, v))
 }
 
-// TypeContains applies the Contains predicate on the "type" field.
-func TypeContains(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldContains(FieldType, v))
+// SkillTypeContains applies the Contains predicate on the "skill_type" field.
+func SkillTypeContains(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContains(FieldSkillType, v))
 }
 
-// TypeHasPrefix applies the HasPrefix predicate on the "type" field.
-func TypeHasPrefix(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldHasPrefix(FieldType, v))
+// SkillTypeHasPrefix applies the HasPrefix predicate on the "skill_type" field.
+func SkillTypeHasPrefix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasPrefix(FieldSkillType, v))
 }
 
-// TypeHasSuffix applies the HasSuffix predicate on the "type" field.
-func TypeHasSuffix(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldHasSuffix(FieldType, v))
+// SkillTypeHasSuffix applies the HasSuffix predicate on the "skill_type" field.
+func SkillTypeHasSuffix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasSuffix(FieldSkillType, v))
 }
 
-// TypeEqualFold applies the EqualFold predicate on the "type" field.
-func TypeEqualFold(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldEqualFold(FieldType, v))
+// SkillTypeEqualFold applies the EqualFold predicate on the "skill_type" field.
+func SkillTypeEqualFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEqualFold(FieldSkillType, v))
 }
 
-// TypeContainsFold applies the ContainsFold predicate on the "type" field.
-func TypeContainsFold(v string) predicate.Skill {
-	return predicate.Skill(sql.FieldContainsFold(FieldType, v))
+// SkillTypeContainsFold applies the ContainsFold predicate on the "skill_type" field.
+func SkillTypeContainsFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContainsFold(FieldSkillType, v))
 }
 
 // CostEQ applies the EQ predicate on the "cost" field.
@@ -359,44 +399,459 @@ func CooldownLTE(v int) predicate.Skill {
 	return predicate.Skill(sql.FieldLTE(FieldCooldown, v))
 }
 
-// PowerEQ applies the EQ predicate on the "power" field.
-func PowerEQ(v int) predicate.Skill {
-	return predicate.Skill(sql.FieldEQ(FieldPower, v))
+// RequirementsEQ applies the EQ predicate on the "requirements" field.
+func RequirementsEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldRequirements, v))
 }
 
-// PowerNEQ applies the NEQ predicate on the "power" field.
-func PowerNEQ(v int) predicate.Skill {
-	return predicate.Skill(sql.FieldNEQ(FieldPower, v))
+// RequirementsNEQ applies the NEQ predicate on the "requirements" field.
+func RequirementsNEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldRequirements, v))
 }
 
-// PowerIn applies the In predicate on the "power" field.
-func PowerIn(vs ...int) predicate.Skill {
-	return predicate.Skill(sql.FieldIn(FieldPower, vs...))
+// RequirementsIn applies the In predicate on the "requirements" field.
+func RequirementsIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldRequirements, vs...))
 }
 
-// PowerNotIn applies the NotIn predicate on the "power" field.
-func PowerNotIn(vs ...int) predicate.Skill {
-	return predicate.Skill(sql.FieldNotIn(FieldPower, vs...))
+// RequirementsNotIn applies the NotIn predicate on the "requirements" field.
+func RequirementsNotIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldRequirements, vs...))
 }
 
-// PowerGT applies the GT predicate on the "power" field.
-func PowerGT(v int) predicate.Skill {
-	return predicate.Skill(sql.FieldGT(FieldPower, v))
+// RequirementsGT applies the GT predicate on the "requirements" field.
+func RequirementsGT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldRequirements, v))
 }
 
-// PowerGTE applies the GTE predicate on the "power" field.
-func PowerGTE(v int) predicate.Skill {
-	return predicate.Skill(sql.FieldGTE(FieldPower, v))
+// RequirementsGTE applies the GTE predicate on the "requirements" field.
+func RequirementsGTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldRequirements, v))
 }
 
-// PowerLT applies the LT predicate on the "power" field.
-func PowerLT(v int) predicate.Skill {
-	return predicate.Skill(sql.FieldLT(FieldPower, v))
+// RequirementsLT applies the LT predicate on the "requirements" field.
+func RequirementsLT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldRequirements, v))
 }
 
-// PowerLTE applies the LTE predicate on the "power" field.
-func PowerLTE(v int) predicate.Skill {
-	return predicate.Skill(sql.FieldLTE(FieldPower, v))
+// RequirementsLTE applies the LTE predicate on the "requirements" field.
+func RequirementsLTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldRequirements, v))
+}
+
+// RequirementsContains applies the Contains predicate on the "requirements" field.
+func RequirementsContains(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContains(FieldRequirements, v))
+}
+
+// RequirementsHasPrefix applies the HasPrefix predicate on the "requirements" field.
+func RequirementsHasPrefix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasPrefix(FieldRequirements, v))
+}
+
+// RequirementsHasSuffix applies the HasSuffix predicate on the "requirements" field.
+func RequirementsHasSuffix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasSuffix(FieldRequirements, v))
+}
+
+// RequirementsIsNil applies the IsNil predicate on the "requirements" field.
+func RequirementsIsNil() predicate.Skill {
+	return predicate.Skill(sql.FieldIsNull(FieldRequirements))
+}
+
+// RequirementsNotNil applies the NotNil predicate on the "requirements" field.
+func RequirementsNotNil() predicate.Skill {
+	return predicate.Skill(sql.FieldNotNull(FieldRequirements))
+}
+
+// RequirementsEqualFold applies the EqualFold predicate on the "requirements" field.
+func RequirementsEqualFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEqualFold(FieldRequirements, v))
+}
+
+// RequirementsContainsFold applies the ContainsFold predicate on the "requirements" field.
+func RequirementsContainsFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContainsFold(FieldRequirements, v))
+}
+
+// EffectTypeEQ applies the EQ predicate on the "effect_type" field.
+func EffectTypeEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldEffectType, v))
+}
+
+// EffectTypeNEQ applies the NEQ predicate on the "effect_type" field.
+func EffectTypeNEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldEffectType, v))
+}
+
+// EffectTypeIn applies the In predicate on the "effect_type" field.
+func EffectTypeIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldEffectType, vs...))
+}
+
+// EffectTypeNotIn applies the NotIn predicate on the "effect_type" field.
+func EffectTypeNotIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldEffectType, vs...))
+}
+
+// EffectTypeGT applies the GT predicate on the "effect_type" field.
+func EffectTypeGT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldEffectType, v))
+}
+
+// EffectTypeGTE applies the GTE predicate on the "effect_type" field.
+func EffectTypeGTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldEffectType, v))
+}
+
+// EffectTypeLT applies the LT predicate on the "effect_type" field.
+func EffectTypeLT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldEffectType, v))
+}
+
+// EffectTypeLTE applies the LTE predicate on the "effect_type" field.
+func EffectTypeLTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldEffectType, v))
+}
+
+// EffectTypeContains applies the Contains predicate on the "effect_type" field.
+func EffectTypeContains(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContains(FieldEffectType, v))
+}
+
+// EffectTypeHasPrefix applies the HasPrefix predicate on the "effect_type" field.
+func EffectTypeHasPrefix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasPrefix(FieldEffectType, v))
+}
+
+// EffectTypeHasSuffix applies the HasSuffix predicate on the "effect_type" field.
+func EffectTypeHasSuffix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasSuffix(FieldEffectType, v))
+}
+
+// EffectTypeEqualFold applies the EqualFold predicate on the "effect_type" field.
+func EffectTypeEqualFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEqualFold(FieldEffectType, v))
+}
+
+// EffectTypeContainsFold applies the ContainsFold predicate on the "effect_type" field.
+func EffectTypeContainsFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContainsFold(FieldEffectType, v))
+}
+
+// EffectValueEQ applies the EQ predicate on the "effect_value" field.
+func EffectValueEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldEffectValue, v))
+}
+
+// EffectValueNEQ applies the NEQ predicate on the "effect_value" field.
+func EffectValueNEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldEffectValue, v))
+}
+
+// EffectValueIn applies the In predicate on the "effect_value" field.
+func EffectValueIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldEffectValue, vs...))
+}
+
+// EffectValueNotIn applies the NotIn predicate on the "effect_value" field.
+func EffectValueNotIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldEffectValue, vs...))
+}
+
+// EffectValueGT applies the GT predicate on the "effect_value" field.
+func EffectValueGT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldEffectValue, v))
+}
+
+// EffectValueGTE applies the GTE predicate on the "effect_value" field.
+func EffectValueGTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldEffectValue, v))
+}
+
+// EffectValueLT applies the LT predicate on the "effect_value" field.
+func EffectValueLT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldEffectValue, v))
+}
+
+// EffectValueLTE applies the LTE predicate on the "effect_value" field.
+func EffectValueLTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldEffectValue, v))
+}
+
+// EffectDurationEQ applies the EQ predicate on the "effect_duration" field.
+func EffectDurationEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldEffectDuration, v))
+}
+
+// EffectDurationNEQ applies the NEQ predicate on the "effect_duration" field.
+func EffectDurationNEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldEffectDuration, v))
+}
+
+// EffectDurationIn applies the In predicate on the "effect_duration" field.
+func EffectDurationIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldEffectDuration, vs...))
+}
+
+// EffectDurationNotIn applies the NotIn predicate on the "effect_duration" field.
+func EffectDurationNotIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldEffectDuration, vs...))
+}
+
+// EffectDurationGT applies the GT predicate on the "effect_duration" field.
+func EffectDurationGT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldEffectDuration, v))
+}
+
+// EffectDurationGTE applies the GTE predicate on the "effect_duration" field.
+func EffectDurationGTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldEffectDuration, v))
+}
+
+// EffectDurationLT applies the LT predicate on the "effect_duration" field.
+func EffectDurationLT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldEffectDuration, v))
+}
+
+// EffectDurationLTE applies the LTE predicate on the "effect_duration" field.
+func EffectDurationLTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldEffectDuration, v))
+}
+
+// ScalingStatEQ applies the EQ predicate on the "scaling_stat" field.
+func ScalingStatEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldScalingStat, v))
+}
+
+// ScalingStatNEQ applies the NEQ predicate on the "scaling_stat" field.
+func ScalingStatNEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldScalingStat, v))
+}
+
+// ScalingStatIn applies the In predicate on the "scaling_stat" field.
+func ScalingStatIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldScalingStat, vs...))
+}
+
+// ScalingStatNotIn applies the NotIn predicate on the "scaling_stat" field.
+func ScalingStatNotIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldScalingStat, vs...))
+}
+
+// ScalingStatGT applies the GT predicate on the "scaling_stat" field.
+func ScalingStatGT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldScalingStat, v))
+}
+
+// ScalingStatGTE applies the GTE predicate on the "scaling_stat" field.
+func ScalingStatGTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldScalingStat, v))
+}
+
+// ScalingStatLT applies the LT predicate on the "scaling_stat" field.
+func ScalingStatLT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldScalingStat, v))
+}
+
+// ScalingStatLTE applies the LTE predicate on the "scaling_stat" field.
+func ScalingStatLTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldScalingStat, v))
+}
+
+// ScalingStatContains applies the Contains predicate on the "scaling_stat" field.
+func ScalingStatContains(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContains(FieldScalingStat, v))
+}
+
+// ScalingStatHasPrefix applies the HasPrefix predicate on the "scaling_stat" field.
+func ScalingStatHasPrefix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasPrefix(FieldScalingStat, v))
+}
+
+// ScalingStatHasSuffix applies the HasSuffix predicate on the "scaling_stat" field.
+func ScalingStatHasSuffix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasSuffix(FieldScalingStat, v))
+}
+
+// ScalingStatIsNil applies the IsNil predicate on the "scaling_stat" field.
+func ScalingStatIsNil() predicate.Skill {
+	return predicate.Skill(sql.FieldIsNull(FieldScalingStat))
+}
+
+// ScalingStatNotNil applies the NotNil predicate on the "scaling_stat" field.
+func ScalingStatNotNil() predicate.Skill {
+	return predicate.Skill(sql.FieldNotNull(FieldScalingStat))
+}
+
+// ScalingStatEqualFold applies the EqualFold predicate on the "scaling_stat" field.
+func ScalingStatEqualFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEqualFold(FieldScalingStat, v))
+}
+
+// ScalingStatContainsFold applies the ContainsFold predicate on the "scaling_stat" field.
+func ScalingStatContainsFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContainsFold(FieldScalingStat, v))
+}
+
+// ScalingPercentPerPointEQ applies the EQ predicate on the "scaling_percent_per_point" field.
+func ScalingPercentPerPointEQ(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldScalingPercentPerPoint, v))
+}
+
+// ScalingPercentPerPointNEQ applies the NEQ predicate on the "scaling_percent_per_point" field.
+func ScalingPercentPerPointNEQ(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldScalingPercentPerPoint, v))
+}
+
+// ScalingPercentPerPointIn applies the In predicate on the "scaling_percent_per_point" field.
+func ScalingPercentPerPointIn(vs ...float64) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldScalingPercentPerPoint, vs...))
+}
+
+// ScalingPercentPerPointNotIn applies the NotIn predicate on the "scaling_percent_per_point" field.
+func ScalingPercentPerPointNotIn(vs ...float64) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldScalingPercentPerPoint, vs...))
+}
+
+// ScalingPercentPerPointGT applies the GT predicate on the "scaling_percent_per_point" field.
+func ScalingPercentPerPointGT(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldScalingPercentPerPoint, v))
+}
+
+// ScalingPercentPerPointGTE applies the GTE predicate on the "scaling_percent_per_point" field.
+func ScalingPercentPerPointGTE(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldScalingPercentPerPoint, v))
+}
+
+// ScalingPercentPerPointLT applies the LT predicate on the "scaling_percent_per_point" field.
+func ScalingPercentPerPointLT(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldScalingPercentPerPoint, v))
+}
+
+// ScalingPercentPerPointLTE applies the LTE predicate on the "scaling_percent_per_point" field.
+func ScalingPercentPerPointLTE(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldScalingPercentPerPoint, v))
+}
+
+// ManaCostEQ applies the EQ predicate on the "mana_cost" field.
+func ManaCostEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldManaCost, v))
+}
+
+// ManaCostNEQ applies the NEQ predicate on the "mana_cost" field.
+func ManaCostNEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldManaCost, v))
+}
+
+// ManaCostIn applies the In predicate on the "mana_cost" field.
+func ManaCostIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldManaCost, vs...))
+}
+
+// ManaCostNotIn applies the NotIn predicate on the "mana_cost" field.
+func ManaCostNotIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldManaCost, vs...))
+}
+
+// ManaCostGT applies the GT predicate on the "mana_cost" field.
+func ManaCostGT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldManaCost, v))
+}
+
+// ManaCostGTE applies the GTE predicate on the "mana_cost" field.
+func ManaCostGTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldManaCost, v))
+}
+
+// ManaCostLT applies the LT predicate on the "mana_cost" field.
+func ManaCostLT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldManaCost, v))
+}
+
+// ManaCostLTE applies the LTE predicate on the "mana_cost" field.
+func ManaCostLTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldManaCost, v))
+}
+
+// StaminaCostEQ applies the EQ predicate on the "stamina_cost" field.
+func StaminaCostEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldStaminaCost, v))
+}
+
+// StaminaCostNEQ applies the NEQ predicate on the "stamina_cost" field.
+func StaminaCostNEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldStaminaCost, v))
+}
+
+// StaminaCostIn applies the In predicate on the "stamina_cost" field.
+func StaminaCostIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldStaminaCost, vs...))
+}
+
+// StaminaCostNotIn applies the NotIn predicate on the "stamina_cost" field.
+func StaminaCostNotIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldStaminaCost, vs...))
+}
+
+// StaminaCostGT applies the GT predicate on the "stamina_cost" field.
+func StaminaCostGT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldStaminaCost, v))
+}
+
+// StaminaCostGTE applies the GTE predicate on the "stamina_cost" field.
+func StaminaCostGTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldStaminaCost, v))
+}
+
+// StaminaCostLT applies the LT predicate on the "stamina_cost" field.
+func StaminaCostLT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldStaminaCost, v))
+}
+
+// StaminaCostLTE applies the LTE predicate on the "stamina_cost" field.
+func StaminaCostLTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldStaminaCost, v))
+}
+
+// HpCostEQ applies the EQ predicate on the "hp_cost" field.
+func HpCostEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldHpCost, v))
+}
+
+// HpCostNEQ applies the NEQ predicate on the "hp_cost" field.
+func HpCostNEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldHpCost, v))
+}
+
+// HpCostIn applies the In predicate on the "hp_cost" field.
+func HpCostIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldHpCost, vs...))
+}
+
+// HpCostNotIn applies the NotIn predicate on the "hp_cost" field.
+func HpCostNotIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldHpCost, vs...))
+}
+
+// HpCostGT applies the GT predicate on the "hp_cost" field.
+func HpCostGT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldHpCost, v))
+}
+
+// HpCostGTE applies the GTE predicate on the "hp_cost" field.
+func HpCostGTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldHpCost, v))
+}
+
+// HpCostLT applies the LT predicate on the "hp_cost" field.
+func HpCostLT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldHpCost, v))
+}
+
+// HpCostLTE applies the LTE predicate on the "hp_cost" field.
+func HpCostLTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldHpCost, v))
 }
 
 // HasCharacters applies the HasEdge predicate on the "characters" edge.

@@ -21,111 +21,88 @@ func InitSkillsAndTalents(client *db.Client) error {
 		return nil
 	}
 
-	// Create default skills
+	// Create the 5 classless combat skills
 	defaultSkills := []*db.SkillCreate{
 		client.Skill.Create().
-			SetName("Slash").
-			SetDescription("A basic sword attack").
-			SetType("combat").
-			SetCost(1).
-			SetCooldown(0).
-			SetPower(10),
+			SetName("Concentrate").
+			SetDescription("Focus your mind to increase accuracy. +WIS to hit for 4 rounds.").
+			SetSkillType("combat").
+			SetCost(0).
+			SetCooldown(8).
+			SetRequirements("{}").
+			SetEffectType("concentrate").
+			SetEffectValue(10).
+			SetEffectDuration(4).
+			SetScalingStat("wisdom").
+			SetScalingPercentPerPoint(0.05).
+			SetManaCost(10).
+			SetStaminaCost(0).
+			SetHpCost(0),
 		client.Skill.Create().
-			SetName("Power Strike").
-			SetDescription("A strong attack that deals extra damage").
-			SetType("combat").
-			SetCost(2).
-			SetCooldown(3).
-			SetPower(20),
-		client.Skill.Create().
-			SetName("Shield Block").
-			SetDescription("Defensive stance that reduces damage").
-			SetType("defensive").
-			SetCost(1).
-			SetCooldown(2).
-			SetPower(5),
-		client.Skill.Create().
-			SetName("Quick Strike").
-			SetDescription("Fast attack with low damage").
-			SetType("combat").
-			SetCost(1).
-			SetCooldown(1).
-			SetPower(5),
-		client.Skill.Create().
-			SetName("Heal").
-			SetDescription("Restore health").
-			SetType("utility").
-			SetCost(2).
-			SetCooldown(5).
-			SetPower(-15),
-		client.Skill.Create().
-			SetName("Fireball").
-			SetDescription("Launch a ball of fire").
-			SetType("combat").
-			SetCost(3).
-			SetCooldown(4).
-			SetPower(25),
-		client.Skill.Create().
-			SetName("Ice Shield").
-			SetDescription("Protect against cold attacks").
-			SetType("defensive").
-			SetCost(2).
+			SetName("Haymaker").
+			SetDescription("A powerful but reckless strike. +STR to damage, -DEX to hit.").
+			SetSkillType("combat").
+			SetCost(0).
 			SetCooldown(6).
-			SetPower(10),
+			SetRequirements("{}").
+			SetEffectType("haymaker").
+			SetEffectValue(12).
+			SetEffectDuration(1).
+			SetScalingStat("strength").
+			SetScalingPercentPerPoint(0.05).
+			SetManaCost(0).
+			SetStaminaCost(15).
+			SetHpCost(0),
 		client.Skill.Create().
-			SetName("Sprint").
-			SetDescription("Move faster for a short time").
-			SetType("utility").
-			SetCost(1).
+			SetName("Back-off").
+			SetDescription("Use agility to dodge all attacks this round. Costs stamina.").
+			SetSkillType("combat").
+			SetCost(0).
 			SetCooldown(10).
-			SetPower(0),
+			SetRequirements("{}").
+			SetEffectType("backoff").
+			SetEffectValue(0).
+			SetEffectDuration(1).
+			SetScalingStat("").
+			SetScalingPercentPerPoint(0).
+			SetManaCost(0).
+			SetStaminaCost(25).
+			SetHpCost(0),
+		client.Skill.Create().
+			SetName("Scream").
+			SetDescription("Release a berserker cry. -WIS/INT, +DEX/STR for 2 rounds.").
+			SetSkillType("combat").
+			SetCost(0).
+			SetCooldown(12).
+			SetRequirements("{}").
+			SetEffectType("scream").
+			SetEffectValue(0).
+			SetEffectDuration(2).
+			SetScalingStat("").
+			SetScalingPercentPerPoint(0).
+			SetManaCost(5).
+			SetStaminaCost(10).
+			SetHpCost(0),
+		client.Skill.Create().
+			SetName("Slap").
+			SetDescription("A quick stunning strike. DEX vs CON to stun for 1 round.").
+			SetSkillType("combat").
+			SetCost(0).
+			SetCooldown(8).
+			SetRequirements("{}").
+			SetEffectType("slap").
+			SetEffectValue(8).
+			SetEffectDuration(1).
+			SetScalingStat("").
+			SetScalingPercentPerPoint(0).
+			SetManaCost(0).
+			SetStaminaCost(12).
+			SetHpCost(0),
 	}
 
 	for _, skill := range defaultSkills {
 		if _, err := skill.Save(ctx); err != nil {
 			log.Printf("Warning: failed to create skill: %v", err)
-		}
-	}
-
-	// Create default talents
-	defaultTalents := []*db.TalentCreate{
-		client.Talent.Create().
-			SetName("Warrior's Might").
-			SetDescription("Increase strength by 5").
-			SetRequirements(map[string]int{"level": 5, "strength": 10}),
-		client.Talent.Create().
-			SetName("Agile Fighter").
-			SetDescription("Increase dexterity by 5").
-			SetRequirements(map[string]int{"level": 5, "dexterity": 10}),
-		client.Talent.Create().
-			SetName("Iron Will").
-			SetDescription("Increase constitution by 5").
-			SetRequirements(map[string]int{"level": 5, "constitution": 10}),
-		client.Talent.Create().
-			SetName("Arcane Mind").
-			SetDescription("Increase intelligence by 5").
-			SetRequirements(map[string]int{"level": 5, "intelligence": 10}),
-		client.Talent.Create().
-			SetName("Leader").
-			SetDescription("Increase charisma by 5").
-			SetRequirements(map[string]int{"level": 5, "charisma": 10}),
-		client.Talent.Create().
-			SetName("Sword Mastery").
-			SetDescription("+5 damage with sword weapons").
-			SetRequirements(map[string]int{"level": 10, "strength": 15}),
-		client.Talent.Create().
-			SetName("Spell Mastery").
-			SetDescription("+10% magic damage").
-			SetRequirements(map[string]int{"level": 10, "intelligence": 15}),
-		client.Talent.Create().
-			SetName("Tank").
-			SetDescription("+10% damage reduction").
-			SetRequirements(map[string]int{"level": 15, "constitution": 20}),
-	}
-
-	for _, talent := range defaultTalents {
-		if _, err := talent.Save(ctx); err != nil {
-			log.Printf("Warning: failed to create talent: %v", err)
 		}
 	}
 

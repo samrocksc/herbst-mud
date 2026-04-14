@@ -551,8 +551,8 @@ func (m *model) exitCombat() {
 func (m *model) addCombatLog(msg string) {
 	timestamp := time.Now().Format("15:04:05")
 	m.combatLog = append(m.combatLog, fmt.Sprintf("[%s] %s", timestamp, msg))
-	// Keep log to last 50 messages
-	if len(m.combatLog) > 50 {
+	// Keep log to last 100 messages
+	if len(m.combatLog) > 100 {
 		m.combatLog = m.combatLog[len(m.combatLog)-50:]
 	}
 }

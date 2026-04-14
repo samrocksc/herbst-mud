@@ -56,16 +56,16 @@ func (_u *SkillUpdate) SetNillableDescription(v *string) *SkillUpdate {
 	return _u
 }
 
-// SetType sets the "type" field.
-func (_u *SkillUpdate) SetType(v string) *SkillUpdate {
-	_u.mutation.SetType(v)
+// SetSkillType sets the "skill_type" field.
+func (_u *SkillUpdate) SetSkillType(v string) *SkillUpdate {
+	_u.mutation.SetSkillType(v)
 	return _u
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (_u *SkillUpdate) SetNillableType(v *string) *SkillUpdate {
+// SetNillableSkillType sets the "skill_type" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableSkillType(v *string) *SkillUpdate {
 	if v != nil {
-		_u.SetType(*v)
+		_u.SetSkillType(*v)
 	}
 	return _u
 }
@@ -112,24 +112,183 @@ func (_u *SkillUpdate) AddCooldown(v int) *SkillUpdate {
 	return _u
 }
 
-// SetPower sets the "power" field.
-func (_u *SkillUpdate) SetPower(v int) *SkillUpdate {
-	_u.mutation.ResetPower()
-	_u.mutation.SetPower(v)
+// SetRequirements sets the "requirements" field.
+func (_u *SkillUpdate) SetRequirements(v string) *SkillUpdate {
+	_u.mutation.SetRequirements(v)
 	return _u
 }
 
-// SetNillablePower sets the "power" field if the given value is not nil.
-func (_u *SkillUpdate) SetNillablePower(v *int) *SkillUpdate {
+// SetNillableRequirements sets the "requirements" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableRequirements(v *string) *SkillUpdate {
 	if v != nil {
-		_u.SetPower(*v)
+		_u.SetRequirements(*v)
 	}
 	return _u
 }
 
-// AddPower adds value to the "power" field.
-func (_u *SkillUpdate) AddPower(v int) *SkillUpdate {
-	_u.mutation.AddPower(v)
+// ClearRequirements clears the value of the "requirements" field.
+func (_u *SkillUpdate) ClearRequirements() *SkillUpdate {
+	_u.mutation.ClearRequirements()
+	return _u
+}
+
+// SetEffectType sets the "effect_type" field.
+func (_u *SkillUpdate) SetEffectType(v string) *SkillUpdate {
+	_u.mutation.SetEffectType(v)
+	return _u
+}
+
+// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableEffectType(v *string) *SkillUpdate {
+	if v != nil {
+		_u.SetEffectType(*v)
+	}
+	return _u
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (_u *SkillUpdate) SetEffectValue(v int) *SkillUpdate {
+	_u.mutation.ResetEffectValue()
+	_u.mutation.SetEffectValue(v)
+	return _u
+}
+
+// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableEffectValue(v *int) *SkillUpdate {
+	if v != nil {
+		_u.SetEffectValue(*v)
+	}
+	return _u
+}
+
+// AddEffectValue adds value to the "effect_value" field.
+func (_u *SkillUpdate) AddEffectValue(v int) *SkillUpdate {
+	_u.mutation.AddEffectValue(v)
+	return _u
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (_u *SkillUpdate) SetEffectDuration(v int) *SkillUpdate {
+	_u.mutation.ResetEffectDuration()
+	_u.mutation.SetEffectDuration(v)
+	return _u
+}
+
+// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableEffectDuration(v *int) *SkillUpdate {
+	if v != nil {
+		_u.SetEffectDuration(*v)
+	}
+	return _u
+}
+
+// AddEffectDuration adds value to the "effect_duration" field.
+func (_u *SkillUpdate) AddEffectDuration(v int) *SkillUpdate {
+	_u.mutation.AddEffectDuration(v)
+	return _u
+}
+
+// SetScalingStat sets the "scaling_stat" field.
+func (_u *SkillUpdate) SetScalingStat(v string) *SkillUpdate {
+	_u.mutation.SetScalingStat(v)
+	return _u
+}
+
+// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableScalingStat(v *string) *SkillUpdate {
+	if v != nil {
+		_u.SetScalingStat(*v)
+	}
+	return _u
+}
+
+// ClearScalingStat clears the value of the "scaling_stat" field.
+func (_u *SkillUpdate) ClearScalingStat() *SkillUpdate {
+	_u.mutation.ClearScalingStat()
+	return _u
+}
+
+// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
+func (_u *SkillUpdate) SetScalingPercentPerPoint(v float64) *SkillUpdate {
+	_u.mutation.ResetScalingPercentPerPoint()
+	_u.mutation.SetScalingPercentPerPoint(v)
+	return _u
+}
+
+// SetNillableScalingPercentPerPoint sets the "scaling_percent_per_point" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableScalingPercentPerPoint(v *float64) *SkillUpdate {
+	if v != nil {
+		_u.SetScalingPercentPerPoint(*v)
+	}
+	return _u
+}
+
+// AddScalingPercentPerPoint adds value to the "scaling_percent_per_point" field.
+func (_u *SkillUpdate) AddScalingPercentPerPoint(v float64) *SkillUpdate {
+	_u.mutation.AddScalingPercentPerPoint(v)
+	return _u
+}
+
+// SetManaCost sets the "mana_cost" field.
+func (_u *SkillUpdate) SetManaCost(v int) *SkillUpdate {
+	_u.mutation.ResetManaCost()
+	_u.mutation.SetManaCost(v)
+	return _u
+}
+
+// SetNillableManaCost sets the "mana_cost" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableManaCost(v *int) *SkillUpdate {
+	if v != nil {
+		_u.SetManaCost(*v)
+	}
+	return _u
+}
+
+// AddManaCost adds value to the "mana_cost" field.
+func (_u *SkillUpdate) AddManaCost(v int) *SkillUpdate {
+	_u.mutation.AddManaCost(v)
+	return _u
+}
+
+// SetStaminaCost sets the "stamina_cost" field.
+func (_u *SkillUpdate) SetStaminaCost(v int) *SkillUpdate {
+	_u.mutation.ResetStaminaCost()
+	_u.mutation.SetStaminaCost(v)
+	return _u
+}
+
+// SetNillableStaminaCost sets the "stamina_cost" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableStaminaCost(v *int) *SkillUpdate {
+	if v != nil {
+		_u.SetStaminaCost(*v)
+	}
+	return _u
+}
+
+// AddStaminaCost adds value to the "stamina_cost" field.
+func (_u *SkillUpdate) AddStaminaCost(v int) *SkillUpdate {
+	_u.mutation.AddStaminaCost(v)
+	return _u
+}
+
+// SetHpCost sets the "hp_cost" field.
+func (_u *SkillUpdate) SetHpCost(v int) *SkillUpdate {
+	_u.mutation.ResetHpCost()
+	_u.mutation.SetHpCost(v)
+	return _u
+}
+
+// SetNillableHpCost sets the "hp_cost" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableHpCost(v *int) *SkillUpdate {
+	if v != nil {
+		_u.SetHpCost(*v)
+	}
+	return _u
+}
+
+// AddHpCost adds value to the "hp_cost" field.
+func (_u *SkillUpdate) AddHpCost(v int) *SkillUpdate {
+	_u.mutation.AddHpCost(v)
 	return _u
 }
 
@@ -216,8 +375,8 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(skill.FieldDescription, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.GetType(); ok {
-		_spec.SetField(skill.FieldType, field.TypeString, value)
+	if value, ok := _u.mutation.SkillType(); ok {
+		_spec.SetField(skill.FieldSkillType, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Cost(); ok {
 		_spec.SetField(skill.FieldCost, field.TypeInt, value)
@@ -231,11 +390,56 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedCooldown(); ok {
 		_spec.AddField(skill.FieldCooldown, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.Power(); ok {
-		_spec.SetField(skill.FieldPower, field.TypeInt, value)
+	if value, ok := _u.mutation.Requirements(); ok {
+		_spec.SetField(skill.FieldRequirements, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.AddedPower(); ok {
-		_spec.AddField(skill.FieldPower, field.TypeInt, value)
+	if _u.mutation.RequirementsCleared() {
+		_spec.ClearField(skill.FieldRequirements, field.TypeString)
+	}
+	if value, ok := _u.mutation.EffectType(); ok {
+		_spec.SetField(skill.FieldEffectType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EffectValue(); ok {
+		_spec.SetField(skill.FieldEffectValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedEffectValue(); ok {
+		_spec.AddField(skill.FieldEffectValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.EffectDuration(); ok {
+		_spec.SetField(skill.FieldEffectDuration, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedEffectDuration(); ok {
+		_spec.AddField(skill.FieldEffectDuration, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.ScalingStat(); ok {
+		_spec.SetField(skill.FieldScalingStat, field.TypeString, value)
+	}
+	if _u.mutation.ScalingStatCleared() {
+		_spec.ClearField(skill.FieldScalingStat, field.TypeString)
+	}
+	if value, ok := _u.mutation.ScalingPercentPerPoint(); ok {
+		_spec.SetField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedScalingPercentPerPoint(); ok {
+		_spec.AddField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ManaCost(); ok {
+		_spec.SetField(skill.FieldManaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedManaCost(); ok {
+		_spec.AddField(skill.FieldManaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.StaminaCost(); ok {
+		_spec.SetField(skill.FieldStaminaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStaminaCost(); ok {
+		_spec.AddField(skill.FieldStaminaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.HpCost(); ok {
+		_spec.SetField(skill.FieldHpCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHpCost(); ok {
+		_spec.AddField(skill.FieldHpCost, field.TypeInt, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -330,16 +534,16 @@ func (_u *SkillUpdateOne) SetNillableDescription(v *string) *SkillUpdateOne {
 	return _u
 }
 
-// SetType sets the "type" field.
-func (_u *SkillUpdateOne) SetType(v string) *SkillUpdateOne {
-	_u.mutation.SetType(v)
+// SetSkillType sets the "skill_type" field.
+func (_u *SkillUpdateOne) SetSkillType(v string) *SkillUpdateOne {
+	_u.mutation.SetSkillType(v)
 	return _u
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (_u *SkillUpdateOne) SetNillableType(v *string) *SkillUpdateOne {
+// SetNillableSkillType sets the "skill_type" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableSkillType(v *string) *SkillUpdateOne {
 	if v != nil {
-		_u.SetType(*v)
+		_u.SetSkillType(*v)
 	}
 	return _u
 }
@@ -386,24 +590,183 @@ func (_u *SkillUpdateOne) AddCooldown(v int) *SkillUpdateOne {
 	return _u
 }
 
-// SetPower sets the "power" field.
-func (_u *SkillUpdateOne) SetPower(v int) *SkillUpdateOne {
-	_u.mutation.ResetPower()
-	_u.mutation.SetPower(v)
+// SetRequirements sets the "requirements" field.
+func (_u *SkillUpdateOne) SetRequirements(v string) *SkillUpdateOne {
+	_u.mutation.SetRequirements(v)
 	return _u
 }
 
-// SetNillablePower sets the "power" field if the given value is not nil.
-func (_u *SkillUpdateOne) SetNillablePower(v *int) *SkillUpdateOne {
+// SetNillableRequirements sets the "requirements" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableRequirements(v *string) *SkillUpdateOne {
 	if v != nil {
-		_u.SetPower(*v)
+		_u.SetRequirements(*v)
 	}
 	return _u
 }
 
-// AddPower adds value to the "power" field.
-func (_u *SkillUpdateOne) AddPower(v int) *SkillUpdateOne {
-	_u.mutation.AddPower(v)
+// ClearRequirements clears the value of the "requirements" field.
+func (_u *SkillUpdateOne) ClearRequirements() *SkillUpdateOne {
+	_u.mutation.ClearRequirements()
+	return _u
+}
+
+// SetEffectType sets the "effect_type" field.
+func (_u *SkillUpdateOne) SetEffectType(v string) *SkillUpdateOne {
+	_u.mutation.SetEffectType(v)
+	return _u
+}
+
+// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableEffectType(v *string) *SkillUpdateOne {
+	if v != nil {
+		_u.SetEffectType(*v)
+	}
+	return _u
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (_u *SkillUpdateOne) SetEffectValue(v int) *SkillUpdateOne {
+	_u.mutation.ResetEffectValue()
+	_u.mutation.SetEffectValue(v)
+	return _u
+}
+
+// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableEffectValue(v *int) *SkillUpdateOne {
+	if v != nil {
+		_u.SetEffectValue(*v)
+	}
+	return _u
+}
+
+// AddEffectValue adds value to the "effect_value" field.
+func (_u *SkillUpdateOne) AddEffectValue(v int) *SkillUpdateOne {
+	_u.mutation.AddEffectValue(v)
+	return _u
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (_u *SkillUpdateOne) SetEffectDuration(v int) *SkillUpdateOne {
+	_u.mutation.ResetEffectDuration()
+	_u.mutation.SetEffectDuration(v)
+	return _u
+}
+
+// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableEffectDuration(v *int) *SkillUpdateOne {
+	if v != nil {
+		_u.SetEffectDuration(*v)
+	}
+	return _u
+}
+
+// AddEffectDuration adds value to the "effect_duration" field.
+func (_u *SkillUpdateOne) AddEffectDuration(v int) *SkillUpdateOne {
+	_u.mutation.AddEffectDuration(v)
+	return _u
+}
+
+// SetScalingStat sets the "scaling_stat" field.
+func (_u *SkillUpdateOne) SetScalingStat(v string) *SkillUpdateOne {
+	_u.mutation.SetScalingStat(v)
+	return _u
+}
+
+// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableScalingStat(v *string) *SkillUpdateOne {
+	if v != nil {
+		_u.SetScalingStat(*v)
+	}
+	return _u
+}
+
+// ClearScalingStat clears the value of the "scaling_stat" field.
+func (_u *SkillUpdateOne) ClearScalingStat() *SkillUpdateOne {
+	_u.mutation.ClearScalingStat()
+	return _u
+}
+
+// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
+func (_u *SkillUpdateOne) SetScalingPercentPerPoint(v float64) *SkillUpdateOne {
+	_u.mutation.ResetScalingPercentPerPoint()
+	_u.mutation.SetScalingPercentPerPoint(v)
+	return _u
+}
+
+// SetNillableScalingPercentPerPoint sets the "scaling_percent_per_point" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableScalingPercentPerPoint(v *float64) *SkillUpdateOne {
+	if v != nil {
+		_u.SetScalingPercentPerPoint(*v)
+	}
+	return _u
+}
+
+// AddScalingPercentPerPoint adds value to the "scaling_percent_per_point" field.
+func (_u *SkillUpdateOne) AddScalingPercentPerPoint(v float64) *SkillUpdateOne {
+	_u.mutation.AddScalingPercentPerPoint(v)
+	return _u
+}
+
+// SetManaCost sets the "mana_cost" field.
+func (_u *SkillUpdateOne) SetManaCost(v int) *SkillUpdateOne {
+	_u.mutation.ResetManaCost()
+	_u.mutation.SetManaCost(v)
+	return _u
+}
+
+// SetNillableManaCost sets the "mana_cost" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableManaCost(v *int) *SkillUpdateOne {
+	if v != nil {
+		_u.SetManaCost(*v)
+	}
+	return _u
+}
+
+// AddManaCost adds value to the "mana_cost" field.
+func (_u *SkillUpdateOne) AddManaCost(v int) *SkillUpdateOne {
+	_u.mutation.AddManaCost(v)
+	return _u
+}
+
+// SetStaminaCost sets the "stamina_cost" field.
+func (_u *SkillUpdateOne) SetStaminaCost(v int) *SkillUpdateOne {
+	_u.mutation.ResetStaminaCost()
+	_u.mutation.SetStaminaCost(v)
+	return _u
+}
+
+// SetNillableStaminaCost sets the "stamina_cost" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableStaminaCost(v *int) *SkillUpdateOne {
+	if v != nil {
+		_u.SetStaminaCost(*v)
+	}
+	return _u
+}
+
+// AddStaminaCost adds value to the "stamina_cost" field.
+func (_u *SkillUpdateOne) AddStaminaCost(v int) *SkillUpdateOne {
+	_u.mutation.AddStaminaCost(v)
+	return _u
+}
+
+// SetHpCost sets the "hp_cost" field.
+func (_u *SkillUpdateOne) SetHpCost(v int) *SkillUpdateOne {
+	_u.mutation.ResetHpCost()
+	_u.mutation.SetHpCost(v)
+	return _u
+}
+
+// SetNillableHpCost sets the "hp_cost" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableHpCost(v *int) *SkillUpdateOne {
+	if v != nil {
+		_u.SetHpCost(*v)
+	}
+	return _u
+}
+
+// AddHpCost adds value to the "hp_cost" field.
+func (_u *SkillUpdateOne) AddHpCost(v int) *SkillUpdateOne {
+	_u.mutation.AddHpCost(v)
 	return _u
 }
 
@@ -520,8 +883,8 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(skill.FieldDescription, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.GetType(); ok {
-		_spec.SetField(skill.FieldType, field.TypeString, value)
+	if value, ok := _u.mutation.SkillType(); ok {
+		_spec.SetField(skill.FieldSkillType, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Cost(); ok {
 		_spec.SetField(skill.FieldCost, field.TypeInt, value)
@@ -535,11 +898,56 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 	if value, ok := _u.mutation.AddedCooldown(); ok {
 		_spec.AddField(skill.FieldCooldown, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.Power(); ok {
-		_spec.SetField(skill.FieldPower, field.TypeInt, value)
+	if value, ok := _u.mutation.Requirements(); ok {
+		_spec.SetField(skill.FieldRequirements, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.AddedPower(); ok {
-		_spec.AddField(skill.FieldPower, field.TypeInt, value)
+	if _u.mutation.RequirementsCleared() {
+		_spec.ClearField(skill.FieldRequirements, field.TypeString)
+	}
+	if value, ok := _u.mutation.EffectType(); ok {
+		_spec.SetField(skill.FieldEffectType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EffectValue(); ok {
+		_spec.SetField(skill.FieldEffectValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedEffectValue(); ok {
+		_spec.AddField(skill.FieldEffectValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.EffectDuration(); ok {
+		_spec.SetField(skill.FieldEffectDuration, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedEffectDuration(); ok {
+		_spec.AddField(skill.FieldEffectDuration, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.ScalingStat(); ok {
+		_spec.SetField(skill.FieldScalingStat, field.TypeString, value)
+	}
+	if _u.mutation.ScalingStatCleared() {
+		_spec.ClearField(skill.FieldScalingStat, field.TypeString)
+	}
+	if value, ok := _u.mutation.ScalingPercentPerPoint(); ok {
+		_spec.SetField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedScalingPercentPerPoint(); ok {
+		_spec.AddField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ManaCost(); ok {
+		_spec.SetField(skill.FieldManaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedManaCost(); ok {
+		_spec.AddField(skill.FieldManaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.StaminaCost(); ok {
+		_spec.SetField(skill.FieldStaminaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStaminaCost(); ok {
+		_spec.AddField(skill.FieldStaminaCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.HpCost(); ok {
+		_spec.SetField(skill.FieldHpCost, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHpCost(); ok {
+		_spec.AddField(skill.FieldHpCost, field.TypeInt, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -168,10 +168,18 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
-		{Name: "type", Type: field.TypeString},
+		{Name: "skill_type", Type: field.TypeString},
 		{Name: "cost", Type: field.TypeInt},
 		{Name: "cooldown", Type: field.TypeInt},
-		{Name: "power", Type: field.TypeInt},
+		{Name: "requirements", Type: field.TypeString, Nullable: true},
+		{Name: "effect_type", Type: field.TypeString},
+		{Name: "effect_value", Type: field.TypeInt},
+		{Name: "effect_duration", Type: field.TypeInt},
+		{Name: "scaling_stat", Type: field.TypeString, Nullable: true},
+		{Name: "scaling_percent_per_point", Type: field.TypeFloat64},
+		{Name: "mana_cost", Type: field.TypeInt},
+		{Name: "stamina_cost", Type: field.TypeInt},
+		{Name: "hp_cost", Type: field.TypeInt},
 	}
 	// SkillsTable holds the schema information for the "skills" table.
 	SkillsTable = &schema.Table{

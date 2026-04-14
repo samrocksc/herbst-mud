@@ -32,9 +32,9 @@ func (_c *SkillCreate) SetDescription(v string) *SkillCreate {
 	return _c
 }
 
-// SetType sets the "type" field.
-func (_c *SkillCreate) SetType(v string) *SkillCreate {
-	_c.mutation.SetType(v)
+// SetSkillType sets the "skill_type" field.
+func (_c *SkillCreate) SetSkillType(v string) *SkillCreate {
+	_c.mutation.SetSkillType(v)
 	return _c
 }
 
@@ -50,9 +50,73 @@ func (_c *SkillCreate) SetCooldown(v int) *SkillCreate {
 	return _c
 }
 
-// SetPower sets the "power" field.
-func (_c *SkillCreate) SetPower(v int) *SkillCreate {
-	_c.mutation.SetPower(v)
+// SetRequirements sets the "requirements" field.
+func (_c *SkillCreate) SetRequirements(v string) *SkillCreate {
+	_c.mutation.SetRequirements(v)
+	return _c
+}
+
+// SetNillableRequirements sets the "requirements" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableRequirements(v *string) *SkillCreate {
+	if v != nil {
+		_c.SetRequirements(*v)
+	}
+	return _c
+}
+
+// SetEffectType sets the "effect_type" field.
+func (_c *SkillCreate) SetEffectType(v string) *SkillCreate {
+	_c.mutation.SetEffectType(v)
+	return _c
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (_c *SkillCreate) SetEffectValue(v int) *SkillCreate {
+	_c.mutation.SetEffectValue(v)
+	return _c
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (_c *SkillCreate) SetEffectDuration(v int) *SkillCreate {
+	_c.mutation.SetEffectDuration(v)
+	return _c
+}
+
+// SetScalingStat sets the "scaling_stat" field.
+func (_c *SkillCreate) SetScalingStat(v string) *SkillCreate {
+	_c.mutation.SetScalingStat(v)
+	return _c
+}
+
+// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableScalingStat(v *string) *SkillCreate {
+	if v != nil {
+		_c.SetScalingStat(*v)
+	}
+	return _c
+}
+
+// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
+func (_c *SkillCreate) SetScalingPercentPerPoint(v float64) *SkillCreate {
+	_c.mutation.SetScalingPercentPerPoint(v)
+	return _c
+}
+
+// SetManaCost sets the "mana_cost" field.
+func (_c *SkillCreate) SetManaCost(v int) *SkillCreate {
+	_c.mutation.SetManaCost(v)
+	return _c
+}
+
+// SetStaminaCost sets the "stamina_cost" field.
+func (_c *SkillCreate) SetStaminaCost(v int) *SkillCreate {
+	_c.mutation.SetStaminaCost(v)
+	return _c
+}
+
+// SetHpCost sets the "hp_cost" field.
+func (_c *SkillCreate) SetHpCost(v int) *SkillCreate {
+	_c.mutation.SetHpCost(v)
 	return _c
 }
 
@@ -111,8 +175,8 @@ func (_c *SkillCreate) check() error {
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Skill.description"`)}
 	}
-	if _, ok := _c.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`db: missing required field "Skill.type"`)}
+	if _, ok := _c.mutation.SkillType(); !ok {
+		return &ValidationError{Name: "skill_type", err: errors.New(`db: missing required field "Skill.skill_type"`)}
 	}
 	if _, ok := _c.mutation.Cost(); !ok {
 		return &ValidationError{Name: "cost", err: errors.New(`db: missing required field "Skill.cost"`)}
@@ -120,8 +184,26 @@ func (_c *SkillCreate) check() error {
 	if _, ok := _c.mutation.Cooldown(); !ok {
 		return &ValidationError{Name: "cooldown", err: errors.New(`db: missing required field "Skill.cooldown"`)}
 	}
-	if _, ok := _c.mutation.Power(); !ok {
-		return &ValidationError{Name: "power", err: errors.New(`db: missing required field "Skill.power"`)}
+	if _, ok := _c.mutation.EffectType(); !ok {
+		return &ValidationError{Name: "effect_type", err: errors.New(`db: missing required field "Skill.effect_type"`)}
+	}
+	if _, ok := _c.mutation.EffectValue(); !ok {
+		return &ValidationError{Name: "effect_value", err: errors.New(`db: missing required field "Skill.effect_value"`)}
+	}
+	if _, ok := _c.mutation.EffectDuration(); !ok {
+		return &ValidationError{Name: "effect_duration", err: errors.New(`db: missing required field "Skill.effect_duration"`)}
+	}
+	if _, ok := _c.mutation.ScalingPercentPerPoint(); !ok {
+		return &ValidationError{Name: "scaling_percent_per_point", err: errors.New(`db: missing required field "Skill.scaling_percent_per_point"`)}
+	}
+	if _, ok := _c.mutation.ManaCost(); !ok {
+		return &ValidationError{Name: "mana_cost", err: errors.New(`db: missing required field "Skill.mana_cost"`)}
+	}
+	if _, ok := _c.mutation.StaminaCost(); !ok {
+		return &ValidationError{Name: "stamina_cost", err: errors.New(`db: missing required field "Skill.stamina_cost"`)}
+	}
+	if _, ok := _c.mutation.HpCost(); !ok {
+		return &ValidationError{Name: "hp_cost", err: errors.New(`db: missing required field "Skill.hp_cost"`)}
 	}
 	return nil
 }
@@ -157,9 +239,9 @@ func (_c *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 		_spec.SetField(skill.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := _c.mutation.GetType(); ok {
-		_spec.SetField(skill.FieldType, field.TypeString, value)
-		_node.Type = value
+	if value, ok := _c.mutation.SkillType(); ok {
+		_spec.SetField(skill.FieldSkillType, field.TypeString, value)
+		_node.SkillType = value
 	}
 	if value, ok := _c.mutation.Cost(); ok {
 		_spec.SetField(skill.FieldCost, field.TypeInt, value)
@@ -169,9 +251,41 @@ func (_c *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 		_spec.SetField(skill.FieldCooldown, field.TypeInt, value)
 		_node.Cooldown = value
 	}
-	if value, ok := _c.mutation.Power(); ok {
-		_spec.SetField(skill.FieldPower, field.TypeInt, value)
-		_node.Power = value
+	if value, ok := _c.mutation.Requirements(); ok {
+		_spec.SetField(skill.FieldRequirements, field.TypeString, value)
+		_node.Requirements = value
+	}
+	if value, ok := _c.mutation.EffectType(); ok {
+		_spec.SetField(skill.FieldEffectType, field.TypeString, value)
+		_node.EffectType = value
+	}
+	if value, ok := _c.mutation.EffectValue(); ok {
+		_spec.SetField(skill.FieldEffectValue, field.TypeInt, value)
+		_node.EffectValue = value
+	}
+	if value, ok := _c.mutation.EffectDuration(); ok {
+		_spec.SetField(skill.FieldEffectDuration, field.TypeInt, value)
+		_node.EffectDuration = value
+	}
+	if value, ok := _c.mutation.ScalingStat(); ok {
+		_spec.SetField(skill.FieldScalingStat, field.TypeString, value)
+		_node.ScalingStat = value
+	}
+	if value, ok := _c.mutation.ScalingPercentPerPoint(); ok {
+		_spec.SetField(skill.FieldScalingPercentPerPoint, field.TypeFloat64, value)
+		_node.ScalingPercentPerPoint = value
+	}
+	if value, ok := _c.mutation.ManaCost(); ok {
+		_spec.SetField(skill.FieldManaCost, field.TypeInt, value)
+		_node.ManaCost = value
+	}
+	if value, ok := _c.mutation.StaminaCost(); ok {
+		_spec.SetField(skill.FieldStaminaCost, field.TypeInt, value)
+		_node.StaminaCost = value
+	}
+	if value, ok := _c.mutation.HpCost(); ok {
+		_spec.SetField(skill.FieldHpCost, field.TypeInt, value)
+		_node.HpCost = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

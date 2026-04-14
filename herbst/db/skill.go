@@ -20,14 +20,30 @@ type Skill struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Type holds the value of the "type" field.
-	Type string `json:"type,omitempty"`
+	// SkillType holds the value of the "skill_type" field.
+	SkillType string `json:"skill_type,omitempty"`
 	// Cost holds the value of the "cost" field.
 	Cost int `json:"cost,omitempty"`
 	// Cooldown holds the value of the "cooldown" field.
 	Cooldown int `json:"cooldown,omitempty"`
-	// Power holds the value of the "power" field.
-	Power int `json:"power,omitempty"`
+	// Requirements holds the value of the "requirements" field.
+	Requirements string `json:"requirements,omitempty"`
+	// EffectType holds the value of the "effect_type" field.
+	EffectType string `json:"effect_type,omitempty"`
+	// EffectValue holds the value of the "effect_value" field.
+	EffectValue int `json:"effect_value,omitempty"`
+	// EffectDuration holds the value of the "effect_duration" field.
+	EffectDuration int `json:"effect_duration,omitempty"`
+	// ScalingStat holds the value of the "scaling_stat" field.
+	ScalingStat string `json:"scaling_stat,omitempty"`
+	// ScalingPercentPerPoint holds the value of the "scaling_percent_per_point" field.
+	ScalingPercentPerPoint float64 `json:"scaling_percent_per_point,omitempty"`
+	// ManaCost holds the value of the "mana_cost" field.
+	ManaCost int `json:"mana_cost,omitempty"`
+	// StaminaCost holds the value of the "stamina_cost" field.
+	StaminaCost int `json:"stamina_cost,omitempty"`
+	// HpCost holds the value of the "hp_cost" field.
+	HpCost int `json:"hp_cost,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SkillQuery when eager-loading is set.
 	Edges        SkillEdges `json:"edges"`
@@ -57,9 +73,11 @@ func (*Skill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case skill.FieldID, skill.FieldCost, skill.FieldCooldown, skill.FieldPower:
+		case skill.FieldScalingPercentPerPoint:
+			values[i] = new(sql.NullFloat64)
+		case skill.FieldID, skill.FieldCost, skill.FieldCooldown, skill.FieldEffectValue, skill.FieldEffectDuration, skill.FieldManaCost, skill.FieldStaminaCost, skill.FieldHpCost:
 			values[i] = new(sql.NullInt64)
-		case skill.FieldName, skill.FieldDescription, skill.FieldType:
+		case skill.FieldName, skill.FieldDescription, skill.FieldSkillType, skill.FieldRequirements, skill.FieldEffectType, skill.FieldScalingStat:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -94,11 +112,11 @@ func (_m *Skill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Description = value.String
 			}
-		case skill.FieldType:
+		case skill.FieldSkillType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
+				return fmt.Errorf("unexpected type %T for field skill_type", values[i])
 			} else if value.Valid {
-				_m.Type = value.String
+				_m.SkillType = value.String
 			}
 		case skill.FieldCost:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -112,11 +130,59 @@ func (_m *Skill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Cooldown = int(value.Int64)
 			}
-		case skill.FieldPower:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field power", values[i])
+		case skill.FieldRequirements:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field requirements", values[i])
 			} else if value.Valid {
-				_m.Power = int(value.Int64)
+				_m.Requirements = value.String
+			}
+		case skill.FieldEffectType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_type", values[i])
+			} else if value.Valid {
+				_m.EffectType = value.String
+			}
+		case skill.FieldEffectValue:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_value", values[i])
+			} else if value.Valid {
+				_m.EffectValue = int(value.Int64)
+			}
+		case skill.FieldEffectDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field effect_duration", values[i])
+			} else if value.Valid {
+				_m.EffectDuration = int(value.Int64)
+			}
+		case skill.FieldScalingStat:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field scaling_stat", values[i])
+			} else if value.Valid {
+				_m.ScalingStat = value.String
+			}
+		case skill.FieldScalingPercentPerPoint:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field scaling_percent_per_point", values[i])
+			} else if value.Valid {
+				_m.ScalingPercentPerPoint = value.Float64
+			}
+		case skill.FieldManaCost:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field mana_cost", values[i])
+			} else if value.Valid {
+				_m.ManaCost = int(value.Int64)
+			}
+		case skill.FieldStaminaCost:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field stamina_cost", values[i])
+			} else if value.Valid {
+				_m.StaminaCost = int(value.Int64)
+			}
+		case skill.FieldHpCost:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field hp_cost", values[i])
+			} else if value.Valid {
+				_m.HpCost = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -165,8 +231,8 @@ func (_m *Skill) String() string {
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
-	builder.WriteString("type=")
-	builder.WriteString(_m.Type)
+	builder.WriteString("skill_type=")
+	builder.WriteString(_m.SkillType)
 	builder.WriteString(", ")
 	builder.WriteString("cost=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Cost))
@@ -174,8 +240,32 @@ func (_m *Skill) String() string {
 	builder.WriteString("cooldown=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Cooldown))
 	builder.WriteString(", ")
-	builder.WriteString("power=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Power))
+	builder.WriteString("requirements=")
+	builder.WriteString(_m.Requirements)
+	builder.WriteString(", ")
+	builder.WriteString("effect_type=")
+	builder.WriteString(_m.EffectType)
+	builder.WriteString(", ")
+	builder.WriteString("effect_value=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EffectValue))
+	builder.WriteString(", ")
+	builder.WriteString("effect_duration=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EffectDuration))
+	builder.WriteString(", ")
+	builder.WriteString("scaling_stat=")
+	builder.WriteString(_m.ScalingStat)
+	builder.WriteString(", ")
+	builder.WriteString("scaling_percent_per_point=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ScalingPercentPerPoint))
+	builder.WriteString(", ")
+	builder.WriteString("mana_cost=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ManaCost))
+	builder.WriteString(", ")
+	builder.WriteString("stamina_cost=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StaminaCost))
+	builder.WriteString(", ")
+	builder.WriteString("hp_cost=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HpCost))
 	builder.WriteByte(')')
 	return builder.String()
 }
