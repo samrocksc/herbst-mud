@@ -11,14 +11,95 @@ import (
 )
 
 type NPCsModel struct {
-	token       string
-	npcs        []api.Character
-	loading     bool
-	errMsg      string
-	selected    int
-	mode        string
-	confirmDel  bool
-	width       int
+	token      string
+	npcs       []api.Character
+	loading    bool
+	errMsg     string
+	selected   int
+	mode       string // "list", "detail", "create"
+	confirmDel bool
+	width      int
+	form       npcForm
+	formField  int
+	createErr  string
+}
+
+type npcForm struct {
+	Name        string
+	Description string
+	Class       string
+	Race        string
+	Behavior    string
+	Aggression  string
+	Hp          string
+	Level       string
+	RoomID      string
+}
+
+var npcFormFields = []string{
+	"name", "roomID",
+}
+
+func (f npcForm) reset() npcForm {
+	return npcForm{}
+}
+
+func (f npcForm) fieldValue(field string) string {
+	switch field {
+	case "name":
+		return f.Name
+	case "description":
+		return f.Description
+	case "class":
+		return f.Class
+	case "race":
+		return f.Race
+	case "behavior":
+		return f.Behavior
+	case "aggression":
+		return f.Aggression
+	case "hp":
+		return f.Hp
+	case "level":
+		return f.Level
+	case "roomID":
+		return f.RoomID
+	}
+	return ""
+}
+
+func (f *npcForm) setFieldValue(field, val string) {
+	switch field {
+	case "name":
+		f.Name = val
+	case "description":
+		f.Description = val
+	case "class":
+		f.Class = val
+	case "race":
+		f.Race = val
+	case "behavior":
+		f.Behavior = val
+	case "aggression":
+		f.Aggression = val
+	case "hp":
+		f.Hp = val
+	case "level":
+		f.Level = val
+	case "roomID":
+		f.RoomID = val
+	}
+}
+
+func (f npcForm) toMap() map[string]any {
+	body := map[string]any{
+		"name":  f.Name,
+		"isNPC": true,
+	}
+	if f.RoomID != "" {
+		body["currentRoomId"] = f.RoomID
+	}
+	return body
 }
 
 func NewNPCsScreen(token string) tea.Model {
@@ -55,6 +136,11 @@ func (m NPCsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m NPCsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Handle form input when in create mode
+	if m.mode == "create" {
+		return m.handleCreateKey(msg)
+	}
+
 	switch msg.String() {
 	case "ctrl+c":
 		return m, tea.Quit
@@ -65,10 +151,20 @@ func (m NPCsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, func() tea.Msg { return NavigateMsg{Screen: 1} }
 	case "enter":
-		m.mode = "edit"
-		return m, nil
+		if m.mode == "list" && len(m.npcs) > 0 && m.selected < len(m.npcs) {
+			m.mode = "detail"
+			return m, nil
+		}
+	case "c":
+		if m.mode == "list" {
+			m.mode = "create"
+			m.form = npcForm.reset(m.form)
+			m.formField = 0
+			m.createErr = ""
+			return m, nil
+		}
 	case "d":
-		if m.mode == "edit" {
+		if m.mode == "detail" {
 			if m.confirmDel {
 				go func() { api.DeleteNPC(m.npcs[m.selected].ID) }()
 				m.npcs = filterNPCs(m.npcs, m.npcs[m.selected].ID)
@@ -101,15 +197,75 @@ func (m NPCsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 	if m.mode == "list" {
 		switch msg.String() {
-		case "u": return m, func() tea.Msg { return NavigateMsg{Screen: 2} }
-		case "c": return m, func() tea.Msg { return NavigateMsg{Screen: 3} }
-		case "r": return m, func() tea.Msg { return NavigateMsg{Screen: 4} }
-		case "i": return m, func() tea.Msg { return NavigateMsg{Screen: 6} }
-		case "q": return m, func() tea.Msg { return NavigateMsg{Screen: 7} }
-		case "b": return m, func() tea.Msg { return NavigateMsg{Screen: 8} }
-		case "w": return m, func() tea.Msg { return NavigateMsg{Screen: 9} }
+		case "u":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 2} }
+		case "c":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 3} }
+		case "r":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 4} }
+		case "i":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 6} }
+		case "q":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 7} }
+		case "b":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 8} }
+		case "w":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 9} }
 		}
 	}
+	return m, nil
+}
+
+func (m NPCsModel) handleCreateKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	field := npcFormFields[m.formField]
+
+	switch msg.String() {
+	case "ctrl+c":
+		return m, tea.Quit
+	case "esc":
+		m.mode = "list"
+		m.createErr = ""
+		return m, nil
+	case "tab":
+		m.formField = (m.formField + 1) % len(npcFormFields)
+		return m, nil
+	case "shift+tab":
+		m.formField = (m.formField - 1 + len(npcFormFields)) % len(npcFormFields)
+		return m, nil
+	case "enter":
+		return m.handleCreateSubmit()
+	case "backspace":
+		cur := m.form.fieldValue(field)
+		if len(cur) > 0 {
+			m.form.setFieldValue(field, cur[:len(cur)-1])
+		}
+		return m, nil
+	}
+
+	// Regular text input
+	if len(msg.String()) == 1 {
+		cur := m.form.fieldValue(field)
+		m.form.setFieldValue(field, cur+msg.String())
+	}
+	return m, nil
+}
+
+func (m NPCsModel) handleCreateSubmit() (tea.Model, tea.Cmd) {
+	if m.form.Name == "" {
+		m.createErr = "Name is required"
+		return m, nil
+	}
+
+	created, err := api.CreateNPC(m.form.toMap())
+	if err != nil {
+		m.createErr = fmt.Sprintf("Create failed: %v", err)
+		return m, nil
+	}
+
+	m.npcs = append(m.npcs, created)
+	m.selected = len(m.npcs) - 1
+	m.mode = "detail"
+	m.createErr = ""
 	return m, nil
 }
 
@@ -127,10 +283,18 @@ func (m NPCsModel) View() string {
 	if m.loading {
 		return style.Info("Loading NPCs...")
 	}
-	if m.mode == "edit" && m.selected < len(m.npcs) {
-		return m.viewDetail()
+	switch m.mode {
+	case "detail":
+		if m.selected < len(m.npcs) {
+			return m.viewDetail()
+		}
+		m.mode = "list"
+		return m.viewList()
+	case "create":
+		return m.viewCreate()
+	default:
+		return m.viewList()
 	}
-	return m.viewList()
 }
 
 func (m NPCsModel) viewList() string {
@@ -168,7 +332,7 @@ func (m NPCsModel) viewList() string {
 		lines = append(lines, style.StyleMuted.Render("  No NPCs found"))
 	}
 	lines = append(lines, "")
-	lines = append(lines, style.StyleMuted.Render("  [Enter] view/edit   [D] delete   [R] refresh   [Esc] back"))
+	lines = append(lines, style.StyleMuted.Render("  [Enter] view detail   [C] create   [D] delete   [R] refresh   [Esc] back"))
 	if m.errMsg != "" {
 		lines = append(lines, "", style.Error(m.errMsg))
 	}
@@ -182,6 +346,7 @@ func (m NPCsModel) viewDetail() string {
 		style.RenderDivider(max(90, m.width-4)),
 		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Name:"), style.StyleValue.Render(n.Name)),
 		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Class:"), style.StyleValue.Render(n.Class)),
+		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Race:"), style.StyleValue.Render(n.Race)),
 		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Level:"), style.StyleValue.Render(fmt.Sprintf("%d", n.Level))),
 		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("HP:"), style.StyleValue.Render(fmt.Sprintf("%d/%d", n.HP, n.MaxHP))),
 		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Room:"), style.StyleValue.Render(fmt.Sprintf("%d", n.RoomID))),
@@ -189,11 +354,50 @@ func (m NPCsModel) viewDetail() string {
 		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Aggression:"), style.StyleValue.Render(n.Aggression)),
 		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Description:"), style.StyleValue.Render(trunc(n.Description, 60))),
 		"",
-		style.StyleMuted.Render("  [D] delete   [Esc] back to list"),
+		style.StyleMuted.Render("  [C] create   [D] delete   [Esc] back to list"),
 	}
 	if m.confirmDel {
 		lines = append(lines, "", style.StyleDanger.Render("  Confirm DELETE? Press [D] again to confirm"))
 	}
+	return strings.Join(lines, "\n")
+}
+
+func (m NPCsModel) viewCreate() string {
+	fieldLabels := []struct {
+		label string
+		field string
+	}{
+		{"Name:", "name"},
+		{"Description:", "description"},
+		{"Class:", "class"},
+		{"Race:", "race"},
+		{"Behavior:", "behavior"},
+		{"Aggression:", "aggression"},
+		{"HP:", "hp"},
+		{"Level:", "level"},
+		{"Room ID:", "roomID"},
+	}
+
+	lines := []string{
+		style.StyleHeader.Render("Create NPC"),
+		style.RenderDivider(max(90, m.width-4)),
+		style.StyleMuted.Render("  [Tab] next field   [Enter] submit   [Esc] cancel"),
+		"",
+	}
+
+	for i, fl := range fieldLabels {
+		val := m.form.fieldValue(fl.field)
+		cursor := "  "
+		if i == m.formField {
+			cursor = "▸ "
+		}
+		lines = append(lines, fmt.Sprintf("%s%-14s %s", cursor, style.StyleLabel.Render(fl.label), style.StyleValue.Render(val)))
+	}
+
+	if m.createErr != "" {
+		lines = append(lines, "", style.Error(m.createErr))
+	}
+
 	return strings.Join(lines, "\n")
 }
 
