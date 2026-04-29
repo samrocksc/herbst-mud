@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go test:*)",
+      "Bash(go mod:*)",
+      "Bash(go build:*)",
+      "Bash(make stop:*)",
+      "Bash(make build:*)",
+      "Bash(make build-web:*)",
+      "Bash(make start:*)",
+      "Bash(make start-web:*)",
+      "Bash(make build-all:*)",
+      "Bash(wc -l *.go)",
+      "Bash(make dev:*)",
+      "Bash(cd:*)",
+      "Bash(sed -i 's/\\\\[\\\\]roomCharacter/[]RoomCharacter/g' /home/sam/GitHub/herbst-mud/herbst/*.go)",
+      "Bash(sed -i 's/\\\\[\\\\]inventoryItem/[]InventoryItem/g' /home/sam/GitHub/herbst-mud/herbst/*.go)",
+      "Bash(sed -i 's/\\\\*roomCharacter/*RoomCharacter/g' *.go)",
+      "Bash(sed -i 's/inventoryItem\\(raw\\)/InventoryItem\\(raw\\)/g' *.go)",
+      "Bash(pkill -f herbst-web)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(pkill -f \"node.*vite\")"
+    ]
+  }
+}

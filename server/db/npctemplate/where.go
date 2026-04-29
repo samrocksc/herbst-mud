@@ -84,6 +84,11 @@ func Level(v int) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldLevel, v))
 }
 
+// XpValue applies equality check predicate on the "xp_value" field. It's identical to XpValueEQ.
+func XpValue(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldXpValue, v))
+}
+
 // Greeting applies equality check predicate on the "greeting" field. It's identical to GreetingEQ.
 func Greeting(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldGreeting, v))
@@ -342,6 +347,46 @@ func LevelLT(v int) predicate.NPCTemplate {
 // LevelLTE applies the LTE predicate on the "level" field.
 func LevelLTE(v int) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldLTE(FieldLevel, v))
+}
+
+// XpValueEQ applies the EQ predicate on the "xp_value" field.
+func XpValueEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldXpValue, v))
+}
+
+// XpValueNEQ applies the NEQ predicate on the "xp_value" field.
+func XpValueNEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldXpValue, v))
+}
+
+// XpValueIn applies the In predicate on the "xp_value" field.
+func XpValueIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldXpValue, vs...))
+}
+
+// XpValueNotIn applies the NotIn predicate on the "xp_value" field.
+func XpValueNotIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldXpValue, vs...))
+}
+
+// XpValueGT applies the GT predicate on the "xp_value" field.
+func XpValueGT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldXpValue, v))
+}
+
+// XpValueGTE applies the GTE predicate on the "xp_value" field.
+func XpValueGTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldXpValue, v))
+}
+
+// XpValueLT applies the LT predicate on the "xp_value" field.
+func XpValueLT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldXpValue, v))
+}
+
+// XpValueLTE applies the LTE predicate on the "xp_value" field.
+func XpValueLTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldXpValue, v))
 }
 
 // GreetingEQ applies the EQ predicate on the "greeting" field.

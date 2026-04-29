@@ -44,7 +44,7 @@ start-web: ## Start the web server in the background (uses pre-built binary)
 	@echo "Starting web server on port 8080..."
 	@[ -f server/herbst-web ] || $(MAKE) build-web
 	@fuser -k 8080/tcp 2>/dev/null; \
-	server/herbst-web > /tmp/herbst-web.log 2>&1 & \
+	(cd /home/sam/GitHub/herbst-mud && server/herbst-web > /tmp/herbst-web.log 2>&1) & \
 	echo $$! > .web.pid && echo "Web server started with PID $$(cat .web.pid)"
 
 stop-web: ## Stop the web server

@@ -106,6 +106,27 @@ func (_u *NPCTemplateUpdate) AddLevel(v int) *NPCTemplateUpdate {
 	return _u
 }
 
+// SetXpValue sets the "xp_value" field.
+func (_u *NPCTemplateUpdate) SetXpValue(v int) *NPCTemplateUpdate {
+	_u.mutation.ResetXpValue()
+	_u.mutation.SetXpValue(v)
+	return _u
+}
+
+// SetNillableXpValue sets the "xp_value" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableXpValue(v *int) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetXpValue(*v)
+	}
+	return _u
+}
+
+// AddXpValue adds value to the "xp_value" field.
+func (_u *NPCTemplateUpdate) AddXpValue(v int) *NPCTemplateUpdate {
+	_u.mutation.AddXpValue(v)
+	return _u
+}
+
 // SetSkills sets the "skills" field.
 func (_u *NPCTemplateUpdate) SetSkills(v map[string]int) *NPCTemplateUpdate {
 	_u.mutation.SetSkills(v)
@@ -245,6 +266,12 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.AddedLevel(); ok {
 		_spec.AddField(npctemplate.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.XpValue(); ok {
+		_spec.SetField(npctemplate.FieldXpValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedXpValue(); ok {
+		_spec.AddField(npctemplate.FieldXpValue, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Skills(); ok {
 		_spec.SetField(npctemplate.FieldSkills, field.TypeJSON, value)
@@ -399,6 +426,27 @@ func (_u *NPCTemplateUpdateOne) SetNillableLevel(v *int) *NPCTemplateUpdateOne {
 // AddLevel adds value to the "level" field.
 func (_u *NPCTemplateUpdateOne) AddLevel(v int) *NPCTemplateUpdateOne {
 	_u.mutation.AddLevel(v)
+	return _u
+}
+
+// SetXpValue sets the "xp_value" field.
+func (_u *NPCTemplateUpdateOne) SetXpValue(v int) *NPCTemplateUpdateOne {
+	_u.mutation.ResetXpValue()
+	_u.mutation.SetXpValue(v)
+	return _u
+}
+
+// SetNillableXpValue sets the "xp_value" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableXpValue(v *int) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetXpValue(*v)
+	}
+	return _u
+}
+
+// AddXpValue adds value to the "xp_value" field.
+func (_u *NPCTemplateUpdateOne) AddXpValue(v int) *NPCTemplateUpdateOne {
+	_u.mutation.AddXpValue(v)
 	return _u
 }
 
@@ -571,6 +619,12 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 	}
 	if value, ok := _u.mutation.AddedLevel(); ok {
 		_spec.AddField(npctemplate.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.XpValue(); ok {
+		_spec.SetField(npctemplate.FieldXpValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedXpValue(); ok {
+		_spec.AddField(npctemplate.FieldXpValue, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Skills(); ok {
 		_spec.SetField(npctemplate.FieldSkills, field.TypeJSON, value)

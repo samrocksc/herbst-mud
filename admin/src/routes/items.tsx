@@ -294,7 +294,7 @@ function ItemManager() {
                 itemType: 'misc'
               })
             }}
-            className="w-full p-2 bg-primary border-none rounded text-white cursor-pointer hover:bg-primary-hover"
+            className="w-full p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover"
           >
             + Add Item
           </button>
@@ -407,7 +407,7 @@ function ItemManager() {
                 <button
                   onClick={handleCreateItem}
                   disabled={saving}
-                  className="flex-1 p-2 bg-primary border-none rounded text-white cursor-pointer disabled:opacity-70"
+                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70"
                 >
                   {saving ? 'Creating...' : 'Create Item'}
                 </button>
@@ -511,7 +511,7 @@ function ItemManager() {
                 <button
                   onClick={handleUpdateItem}
                   disabled={saving}
-                  className="flex-1 p-2 bg-primary border-none rounded text-white cursor-pointer disabled:opacity-70"
+                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -578,7 +578,7 @@ function ItemManager() {
               <div className="flex gap-2">
                 <button
                   onClick={() => startEditing(selectedItem)}
-                  className="flex-1 p-2 bg-primary border-none rounded text-white cursor-pointer hover:bg-primary-hover"
+                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover"
                 >
                   Edit Item
                 </button>

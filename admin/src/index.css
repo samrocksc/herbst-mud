@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
+@theme {
+  /* Brand */
+  --color-primary: #646cff;
+  --color-primary-hover: #535bf2;
+  --color-accent: #f59e0b;
+  --color-accent-hover: #d97706;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-secondary: #f97316;
+
+  /* Semantic surfaces (light theme) */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f4f6;
+  --color-surface-dark: #1a1a1a;
+  --color-surface-darker: #111827;
+
+  /* Borders */
+  --color-border: #d1d5db;
+  --color-border-dark: #111827;
+
+  /* Text */
+  --color-text: #111827;
+  --color-text-muted: #6b7280;
+  --color-text-inverse: #ffffff;
+
+  /* Background */
+  --color-bg: #f9fafb;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -35,17 +66,19 @@ h1 {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 2px solid #111827;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #ffffff;
+  color: #111827;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #535bf2;
+  background-color: #f3f4f6;
 }
 button:focus,
 button:focus-visible {
@@ -1015,13 +1048,13 @@ button.danger:hover {
 }
 .form-row textarea { min-height: 80px; resize: vertical; }
 
-.btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; border: none; }
-.btn-primary { background: #2563eb; color: white; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-danger { background: #dc2626; color: white; }
-.btn-danger:hover { background: #b91c1c; }
-.btn-secondary { background: #6b7280; color: white; }
-.btn-secondary:hover { background: #4b5563; }
+.btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; border: 2px solid #111827; background: #ffffff; color: #646cff; }
+.btn-primary { background: #ffffff; color: #646cff; border-color: #111827; }
+.btn-primary:hover { background: #f3f4f6; border-color: #535bf2; }
+.btn-danger { background: #ffffff; color: #646cff; border-color: #111827; }
+.btn-danger:hover { background: #fef2f2; border-color: #dc2626; }
+.btn-secondary { background: #ffffff; color: #646cff; border-color: #111827; }
+.btn-secondary:hover { background: #f3f4f6; border-color: #535bf2; }
 
 .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .skill-card {

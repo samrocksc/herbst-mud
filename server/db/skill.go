@@ -4,6 +4,7 @@ package db
 
 import (
 	"fmt"
+	"herbst-server/db/faction"
 	"herbst-server/db/skill"
 	"strings"
 
@@ -44,10 +45,23 @@ type Skill struct {
 	StaminaCost int `json:"stamina_cost,omitempty"`
 	// HP sacrificed to use skill
 	HpCost int `json:"hp_cost,omitempty"`
+	// Globally unique skill identifier e.g., foot_clan_power_strike
+	Slug string `json:"slug,omitempty"`
+	// Tag required to unlock this skill beyond faction membership
+	RequiredTag string `json:"required_tag,omitempty"`
+	// passive or active
+	SkillClass string `json:"skill_class,omitempty"`
+	// For passives: % chance to proc (0.15 = 15%)
+	ProcChance float64 `json:"proc_chance,omitempty"`
+	// What triggers the proc: on_hit, on_hit_received, on_crit, on_kill
+	ProcEvent string `json:"proc_event,omitempty"`
+	// For actives: cooldown in seconds
+	CooldownSeconds int `json:"cooldown_seconds,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SkillQuery when eager-loading is set.
-	Edges        SkillEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges          SkillEdges `json:"edges"`
+	faction_skills *int
+	selectValues   sql.SelectValues
 }
 
 // SkillEdges holds the relations/edges for other nodes in the graph.
@@ -56,9 +70,11 @@ type SkillEdges struct {
 	Characters []*CharacterSkill `json:"characters,omitempty"`
 	// NpcSkills holds the value of the npc_skills edge.
 	NpcSkills []*NPCSkill `json:"npc_skills,omitempty"`
+	// Faction holds the value of the faction edge.
+	Faction *Faction `json:"faction,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -79,17 +95,30 @@ func (e SkillEdges) NpcSkillsOrErr() ([]*NPCSkill, error) {
 	return nil, &NotLoadedError{edge: "npc_skills"}
 }
 
+// FactionOrErr returns the Faction value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SkillEdges) FactionOrErr() (*Faction, error) {
+	if e.Faction != nil {
+		return e.Faction, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: faction.Label}
+	}
+	return nil, &NotLoadedError{edge: "faction"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Skill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case skill.FieldScalingPercentPerPoint:
+		case skill.FieldScalingPercentPerPoint, skill.FieldProcChance:
 			values[i] = new(sql.NullFloat64)
-		case skill.FieldID, skill.FieldCost, skill.FieldCooldown, skill.FieldEffectValue, skill.FieldEffectDuration, skill.FieldManaCost, skill.FieldStaminaCost, skill.FieldHpCost:
+		case skill.FieldID, skill.FieldCost, skill.FieldCooldown, skill.FieldEffectValue, skill.FieldEffectDuration, skill.FieldManaCost, skill.FieldStaminaCost, skill.FieldHpCost, skill.FieldCooldownSeconds:
 			values[i] = new(sql.NullInt64)
-		case skill.FieldName, skill.FieldDescription, skill.FieldSkillType, skill.FieldRequirements, skill.FieldEffectType, skill.FieldScalingStat:
+		case skill.FieldName, skill.FieldDescription, skill.FieldSkillType, skill.FieldRequirements, skill.FieldEffectType, skill.FieldScalingStat, skill.FieldSlug, skill.FieldRequiredTag, skill.FieldSkillClass, skill.FieldProcEvent:
 			values[i] = new(sql.NullString)
+		case skill.ForeignKeys[0]: // faction_skills
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -195,6 +224,49 @@ func (_m *Skill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.HpCost = int(value.Int64)
 			}
+		case skill.FieldSlug:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field slug", values[i])
+			} else if value.Valid {
+				_m.Slug = value.String
+			}
+		case skill.FieldRequiredTag:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field required_tag", values[i])
+			} else if value.Valid {
+				_m.RequiredTag = value.String
+			}
+		case skill.FieldSkillClass:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_class", values[i])
+			} else if value.Valid {
+				_m.SkillClass = value.String
+			}
+		case skill.FieldProcChance:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field proc_chance", values[i])
+			} else if value.Valid {
+				_m.ProcChance = value.Float64
+			}
+		case skill.FieldProcEvent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field proc_event", values[i])
+			} else if value.Valid {
+				_m.ProcEvent = value.String
+			}
+		case skill.FieldCooldownSeconds:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field cooldown_seconds", values[i])
+			} else if value.Valid {
+				_m.CooldownSeconds = int(value.Int64)
+			}
+		case skill.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field faction_skills", value)
+			} else if value.Valid {
+				_m.faction_skills = new(int)
+				*_m.faction_skills = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -216,6 +288,11 @@ func (_m *Skill) QueryCharacters() *CharacterSkillQuery {
 // QueryNpcSkills queries the "npc_skills" edge of the Skill entity.
 func (_m *Skill) QueryNpcSkills() *NPCSkillQuery {
 	return NewSkillClient(_m.config).QueryNpcSkills(_m)
+}
+
+// QueryFaction queries the "faction" edge of the Skill entity.
+func (_m *Skill) QueryFaction() *FactionQuery {
+	return NewSkillClient(_m.config).QueryFaction(_m)
 }
 
 // Update returns a builder for updating this Skill.
@@ -282,6 +359,24 @@ func (_m *Skill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("hp_cost=")
 	builder.WriteString(fmt.Sprintf("%v", _m.HpCost))
+	builder.WriteString(", ")
+	builder.WriteString("slug=")
+	builder.WriteString(_m.Slug)
+	builder.WriteString(", ")
+	builder.WriteString("required_tag=")
+	builder.WriteString(_m.RequiredTag)
+	builder.WriteString(", ")
+	builder.WriteString("skill_class=")
+	builder.WriteString(_m.SkillClass)
+	builder.WriteString(", ")
+	builder.WriteString("proc_chance=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ProcChance))
+	builder.WriteString(", ")
+	builder.WriteString("proc_event=")
+	builder.WriteString(_m.ProcEvent)
+	builder.WriteString(", ")
+	builder.WriteString("cooldown_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CooldownSeconds))
 	builder.WriteByte(')')
 	return builder.String()
 }

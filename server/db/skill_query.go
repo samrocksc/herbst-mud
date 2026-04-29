@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"herbst-server/db/characterskill"
+	"herbst-server/db/faction"
 	"herbst-server/db/npcskill"
 	"herbst-server/db/predicate"
 	"herbst-server/db/skill"
@@ -27,6 +28,8 @@ type SkillQuery struct {
 	predicates     []predicate.Skill
 	withCharacters *CharacterSkillQuery
 	withNpcSkills  *NPCSkillQuery
+	withFaction    *FactionQuery
+	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +103,28 @@ func (_q *SkillQuery) QueryNpcSkills() *NPCSkillQuery {
 			sqlgraph.From(skill.Table, skill.FieldID, selector),
 			sqlgraph.To(npcskill.Table, npcskill.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, skill.NpcSkillsTable, skill.NpcSkillsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFaction chains the current query on the "faction" edge.
+func (_q *SkillQuery) QueryFaction() *FactionQuery {
+	query := (&FactionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, selector),
+			sqlgraph.To(faction.Table, faction.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, skill.FactionTable, skill.FactionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +326,7 @@ func (_q *SkillQuery) Clone() *SkillQuery {
 		predicates:     append([]predicate.Skill{}, _q.predicates...),
 		withCharacters: _q.withCharacters.Clone(),
 		withNpcSkills:  _q.withNpcSkills.Clone(),
+		withFaction:    _q.withFaction.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +352,17 @@ func (_q *SkillQuery) WithNpcSkills(opts ...func(*NPCSkillQuery)) *SkillQuery {
 		opt(query)
 	}
 	_q.withNpcSkills = query
+	return _q
+}
+
+// WithFaction tells the query-builder to eager-load the nodes that are connected to
+// the "faction" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SkillQuery) WithFaction(opts ...func(*FactionQuery)) *SkillQuery {
+	query := (&FactionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFaction = query
 	return _q
 }
 
@@ -406,12 +443,20 @@ func (_q *SkillQuery) prepareQuery(ctx context.Context) error {
 func (_q *SkillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Skill, error) {
 	var (
 		nodes       = []*Skill{}
+		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withCharacters != nil,
 			_q.withNpcSkills != nil,
+			_q.withFaction != nil,
 		}
 	)
+	if _q.withFaction != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, skill.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Skill).scanValues(nil, columns)
 	}
@@ -441,6 +486,12 @@ func (_q *SkillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Skill,
 		if err := _q.loadNpcSkills(ctx, query, nodes,
 			func(n *Skill) { n.Edges.NpcSkills = []*NPCSkill{} },
 			func(n *Skill, e *NPCSkill) { n.Edges.NpcSkills = append(n.Edges.NpcSkills, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFaction; query != nil {
+		if err := _q.loadFaction(ctx, query, nodes, nil,
+			func(n *Skill, e *Faction) { n.Edges.Faction = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -535,6 +586,38 @@ func (_q *SkillQuery) loadNpcSkills(ctx context.Context, query *NPCSkillQuery, n
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *SkillQuery) loadFaction(ctx context.Context, query *FactionQuery, nodes []*Skill, init func(*Skill), assign func(*Skill, *Faction)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Skill)
+	for i := range nodes {
+		if nodes[i].faction_skills == nil {
+			continue
+		}
+		fk := *nodes[i].faction_skills
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(faction.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "faction_skills" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

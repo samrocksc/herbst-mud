@@ -40,10 +40,24 @@ const (
 	FieldStaminaCost = "stamina_cost"
 	// FieldHpCost holds the string denoting the hp_cost field in the database.
 	FieldHpCost = "hp_cost"
+	// FieldSlug holds the string denoting the slug field in the database.
+	FieldSlug = "slug"
+	// FieldRequiredTag holds the string denoting the required_tag field in the database.
+	FieldRequiredTag = "required_tag"
+	// FieldSkillClass holds the string denoting the skill_class field in the database.
+	FieldSkillClass = "skill_class"
+	// FieldProcChance holds the string denoting the proc_chance field in the database.
+	FieldProcChance = "proc_chance"
+	// FieldProcEvent holds the string denoting the proc_event field in the database.
+	FieldProcEvent = "proc_event"
+	// FieldCooldownSeconds holds the string denoting the cooldown_seconds field in the database.
+	FieldCooldownSeconds = "cooldown_seconds"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// EdgeNpcSkills holds the string denoting the npc_skills edge name in mutations.
 	EdgeNpcSkills = "npc_skills"
+	// EdgeFaction holds the string denoting the faction edge name in mutations.
+	EdgeFaction = "faction"
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
 	// CharactersTable is the table that holds the characters relation/edge.
@@ -58,6 +72,13 @@ const (
 	// NpcSkillsInverseTable is the table name for the NPCSkill entity.
 	// It exists in this package in order to avoid circular dependency with the "npcskill" package.
 	NpcSkillsInverseTable = "npc_skills"
+	// FactionTable is the table that holds the faction relation/edge.
+	FactionTable = "skills"
+	// FactionInverseTable is the table name for the Faction entity.
+	// It exists in this package in order to avoid circular dependency with the "faction" package.
+	FactionInverseTable = "factions"
+	// FactionColumn is the table column denoting the faction relation/edge.
+	FactionColumn = "faction_skills"
 )
 
 // Columns holds all SQL columns for skill fields.
@@ -77,6 +98,18 @@ var Columns = []string{
 	FieldManaCost,
 	FieldStaminaCost,
 	FieldHpCost,
+	FieldSlug,
+	FieldRequiredTag,
+	FieldSkillClass,
+	FieldProcChance,
+	FieldProcEvent,
+	FieldCooldownSeconds,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "skills"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"faction_skills",
 }
 
 var (
@@ -89,6 +122,11 @@ var (
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -114,6 +152,12 @@ var (
 	DefaultStaminaCost int
 	// DefaultHpCost holds the default value on creation for the "hp_cost" field.
 	DefaultHpCost int
+	// DefaultSkillClass holds the default value on creation for the "skill_class" field.
+	DefaultSkillClass string
+	// DefaultProcChance holds the default value on creation for the "proc_chance" field.
+	DefaultProcChance float64
+	// DefaultCooldownSeconds holds the default value on creation for the "cooldown_seconds" field.
+	DefaultCooldownSeconds int
 )
 
 // OrderOption defines the ordering options for the Skill queries.
@@ -194,6 +238,36 @@ func ByHpCost(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHpCost, opts...).ToFunc()
 }
 
+// BySlug orders the results by the slug field.
+func BySlug(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSlug, opts...).ToFunc()
+}
+
+// ByRequiredTag orders the results by the required_tag field.
+func ByRequiredTag(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequiredTag, opts...).ToFunc()
+}
+
+// BySkillClass orders the results by the skill_class field.
+func BySkillClass(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillClass, opts...).ToFunc()
+}
+
+// ByProcChance orders the results by the proc_chance field.
+func ByProcChance(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProcChance, opts...).ToFunc()
+}
+
+// ByProcEvent orders the results by the proc_event field.
+func ByProcEvent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProcEvent, opts...).ToFunc()
+}
+
+// ByCooldownSeconds orders the results by the cooldown_seconds field.
+func ByCooldownSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCooldownSeconds, opts...).ToFunc()
+}
+
 // ByCharactersCount orders the results by characters count.
 func ByCharactersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -221,6 +295,13 @@ func ByNpcSkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newNpcSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFactionField orders the results by faction field.
+func ByFactionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFactionStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -233,5 +314,12 @@ func newNpcSkillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NpcSkillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, NpcSkillsTable, NpcSkillsPrimaryKey...),
+	)
+}
+func newFactionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FactionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, FactionTable, FactionColumn),
 	)
 }

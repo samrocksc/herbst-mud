@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
+	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
@@ -398,6 +400,27 @@ func (_u *CharacterUpdate) SetNillableLevel(v *int) *CharacterUpdate {
 // AddLevel adds value to the "level" field.
 func (_u *CharacterUpdate) AddLevel(v int) *CharacterUpdate {
 	_u.mutation.AddLevel(v)
+	return _u
+}
+
+// SetXp sets the "xp" field.
+func (_u *CharacterUpdate) SetXp(v int) *CharacterUpdate {
+	_u.mutation.ResetXp()
+	_u.mutation.SetXp(v)
+	return _u
+}
+
+// SetNillableXp sets the "xp" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableXp(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetXp(*v)
+	}
+	return _u
+}
+
+// AddXp adds value to the "xp" field.
+func (_u *CharacterUpdate) AddXp(v int) *CharacterUpdate {
+	_u.mutation.AddXp(v)
 	return _u
 }
 
@@ -829,6 +852,36 @@ func (_u *CharacterUpdate) AddTalents(v ...*CharacterTalent) *CharacterUpdate {
 	return _u.AddTalentIDs(ids...)
 }
 
+// AddTagIDs adds the "tags" edge to the CharacterTag entity by IDs.
+func (_u *CharacterUpdate) AddTagIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddTagIDs(ids...)
+	return _u
+}
+
+// AddTags adds the "tags" edges to the CharacterTag entity.
+func (_u *CharacterUpdate) AddTags(v ...*CharacterTag) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTagIDs(ids...)
+}
+
+// AddFactionMembershipIDs adds the "faction_memberships" edge to the CharacterFaction entity by IDs.
+func (_u *CharacterUpdate) AddFactionMembershipIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddFactionMembershipIDs(ids...)
+	return _u
+}
+
+// AddFactionMemberships adds the "faction_memberships" edges to the CharacterFaction entity.
+func (_u *CharacterUpdate) AddFactionMemberships(v ...*CharacterFaction) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFactionMembershipIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -913,6 +966,48 @@ func (_u *CharacterUpdate) RemoveTalents(v ...*CharacterTalent) *CharacterUpdate
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveTalentIDs(ids...)
+}
+
+// ClearTags clears all "tags" edges to the CharacterTag entity.
+func (_u *CharacterUpdate) ClearTags() *CharacterUpdate {
+	_u.mutation.ClearTags()
+	return _u
+}
+
+// RemoveTagIDs removes the "tags" edge to CharacterTag entities by IDs.
+func (_u *CharacterUpdate) RemoveTagIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveTagIDs(ids...)
+	return _u
+}
+
+// RemoveTags removes "tags" edges to CharacterTag entities.
+func (_u *CharacterUpdate) RemoveTags(v ...*CharacterTag) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTagIDs(ids...)
+}
+
+// ClearFactionMemberships clears all "faction_memberships" edges to the CharacterFaction entity.
+func (_u *CharacterUpdate) ClearFactionMemberships() *CharacterUpdate {
+	_u.mutation.ClearFactionMemberships()
+	return _u
+}
+
+// RemoveFactionMembershipIDs removes the "faction_memberships" edge to CharacterFaction entities by IDs.
+func (_u *CharacterUpdate) RemoveFactionMembershipIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveFactionMembershipIDs(ids...)
+	return _u
+}
+
+// RemoveFactionMemberships removes "faction_memberships" edges to CharacterFaction entities.
+func (_u *CharacterUpdate) RemoveFactionMemberships(v ...*CharacterFaction) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFactionMembershipIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1057,6 +1152,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedLevel(); ok {
 		_spec.AddField(character.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Xp(); ok {
+		_spec.SetField(character.FieldXp, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedXp(); ok {
+		_spec.AddField(character.FieldXp, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)
@@ -1369,6 +1470,96 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TagsTable,
+			Columns: []string{character.TagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactertag.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTagsIDs(); len(nodes) > 0 && !_u.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TagsTable,
+			Columns: []string{character.TagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactertag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TagsTable,
+			Columns: []string{character.TagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactertag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FactionMembershipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.FactionMembershipsTable,
+			Columns: []string{character.FactionMembershipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFactionMembershipsIDs(); len(nodes) > 0 && !_u.mutation.FactionMembershipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.FactionMembershipsTable,
+			Columns: []string{character.FactionMembershipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FactionMembershipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.FactionMembershipsTable,
+			Columns: []string{character.FactionMembershipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1761,6 +1952,27 @@ func (_u *CharacterUpdateOne) SetNillableLevel(v *int) *CharacterUpdateOne {
 // AddLevel adds value to the "level" field.
 func (_u *CharacterUpdateOne) AddLevel(v int) *CharacterUpdateOne {
 	_u.mutation.AddLevel(v)
+	return _u
+}
+
+// SetXp sets the "xp" field.
+func (_u *CharacterUpdateOne) SetXp(v int) *CharacterUpdateOne {
+	_u.mutation.ResetXp()
+	_u.mutation.SetXp(v)
+	return _u
+}
+
+// SetNillableXp sets the "xp" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableXp(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetXp(*v)
+	}
+	return _u
+}
+
+// AddXp adds value to the "xp" field.
+func (_u *CharacterUpdateOne) AddXp(v int) *CharacterUpdateOne {
+	_u.mutation.AddXp(v)
 	return _u
 }
 
@@ -2192,6 +2404,36 @@ func (_u *CharacterUpdateOne) AddTalents(v ...*CharacterTalent) *CharacterUpdate
 	return _u.AddTalentIDs(ids...)
 }
 
+// AddTagIDs adds the "tags" edge to the CharacterTag entity by IDs.
+func (_u *CharacterUpdateOne) AddTagIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddTagIDs(ids...)
+	return _u
+}
+
+// AddTags adds the "tags" edges to the CharacterTag entity.
+func (_u *CharacterUpdateOne) AddTags(v ...*CharacterTag) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTagIDs(ids...)
+}
+
+// AddFactionMembershipIDs adds the "faction_memberships" edge to the CharacterFaction entity by IDs.
+func (_u *CharacterUpdateOne) AddFactionMembershipIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddFactionMembershipIDs(ids...)
+	return _u
+}
+
+// AddFactionMemberships adds the "faction_memberships" edges to the CharacterFaction entity.
+func (_u *CharacterUpdateOne) AddFactionMemberships(v ...*CharacterFaction) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFactionMembershipIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -2276,6 +2518,48 @@ func (_u *CharacterUpdateOne) RemoveTalents(v ...*CharacterTalent) *CharacterUpd
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveTalentIDs(ids...)
+}
+
+// ClearTags clears all "tags" edges to the CharacterTag entity.
+func (_u *CharacterUpdateOne) ClearTags() *CharacterUpdateOne {
+	_u.mutation.ClearTags()
+	return _u
+}
+
+// RemoveTagIDs removes the "tags" edge to CharacterTag entities by IDs.
+func (_u *CharacterUpdateOne) RemoveTagIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveTagIDs(ids...)
+	return _u
+}
+
+// RemoveTags removes "tags" edges to CharacterTag entities.
+func (_u *CharacterUpdateOne) RemoveTags(v ...*CharacterTag) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTagIDs(ids...)
+}
+
+// ClearFactionMemberships clears all "faction_memberships" edges to the CharacterFaction entity.
+func (_u *CharacterUpdateOne) ClearFactionMemberships() *CharacterUpdateOne {
+	_u.mutation.ClearFactionMemberships()
+	return _u
+}
+
+// RemoveFactionMembershipIDs removes the "faction_memberships" edge to CharacterFaction entities by IDs.
+func (_u *CharacterUpdateOne) RemoveFactionMembershipIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveFactionMembershipIDs(ids...)
+	return _u
+}
+
+// RemoveFactionMemberships removes "faction_memberships" edges to CharacterFaction entities.
+func (_u *CharacterUpdateOne) RemoveFactionMemberships(v ...*CharacterFaction) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFactionMembershipIDs(ids...)
 }
 
 // Where appends a list predicates to the CharacterUpdate builder.
@@ -2450,6 +2734,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.AddedLevel(); ok {
 		_spec.AddField(character.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Xp(); ok {
+		_spec.SetField(character.FieldXp, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedXp(); ok {
+		_spec.AddField(character.FieldXp, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)
@@ -2762,6 +3052,96 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TagsTable,
+			Columns: []string{character.TagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactertag.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTagsIDs(); len(nodes) > 0 && !_u.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TagsTable,
+			Columns: []string{character.TagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactertag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TagsTable,
+			Columns: []string{character.TagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactertag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FactionMembershipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.FactionMembershipsTable,
+			Columns: []string{character.FactionMembershipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFactionMembershipsIDs(); len(nodes) > 0 && !_u.mutation.FactionMembershipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.FactionMembershipsTable,
+			Columns: []string{character.FactionMembershipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FactionMembershipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.FactionMembershipsTable,
+			Columns: []string{character.FactionMembershipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

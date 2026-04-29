@@ -1,5 +1,8 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
+import { StatCard } from '../components/StatCard'
+import { StatGrid } from '../components/StatGrid'
+import { PageHeader } from '../components/PageHeader'
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
@@ -62,87 +65,53 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-surface text-text p-8">
       <div className="max-w-[1200px] mx-auto">
-        <div className="flex justify-between items-center mb-8 border-b border-border pb-4">
-          <h1 className="m-0 text-primary">Herbst MUD Admin</h1>
-          <button onClick={handleLogout} className="px-4 py-2 bg-danger border-none rounded text-white cursor-pointer hover:bg-danger-hover">
-            Logout
-          </button>
-        </div>
+        <PageHeader
+          title="Herbst MUD Admin"
+          actions={
+            <button onClick={handleLogout} className="bg-danger text-text-inverse border-border-dark hover:bg-danger-hover">
+              Logout
+            </button>
+          }
+        />
 
         <div className="bg-surface-muted rounded-lg p-6 mb-8">
           <h2 className="m-0 mb-2 text-text">Welcome back!</h2>
           <p className="m-0 text-text-muted">Manage your MUD world from this admin panel.</p>
         </div>
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-8">
-          <div className="bg-surface-muted rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-primary">{loading ? '--' : stats.rooms}</div>
-            <div className="text-text-muted text-sm">Total Rooms</div>
-          </div>
-          <div className="bg-surface-muted rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-warning">{loading ? '--' : stats.npcs}</div>
-            <div className="text-text-muted text-sm">Active NPCs</div>
-          </div>
-          <div className="bg-surface-muted rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-accent">{loading ? '--' : stats.items}</div>
-            <div className="text-text-muted text-sm">Items</div>
-          </div>
-          <div className="bg-surface-muted rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-primary-hover">{loading ? '--' : stats.skills}</div>
-            <div className="text-text-muted text-sm">Skills</div>
-          </div>
-
-          <div className="bg-surface-muted rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-secondary">{loading ? '--' : stats.players}</div>
-            <div className="text-text-muted text-sm">Players</div>
-          </div>
-        </div>
+        <StatGrid>
+          <StatCard label="Total Rooms" value={stats.rooms} accent="primary" loading={loading} />
+          <StatCard label="Active NPCs" value={stats.npcs} accent="warning" loading={loading} />
+          <StatCard label="Items" value={stats.items} accent="accent" loading={loading} />
+          <StatCard label="Players" value={stats.players} accent="secondary" loading={loading} />
+          <StatCard label="Skills" value={stats.skills} accent="success" loading={loading} />
+        </StatGrid>
 
         <h3 className="mb-4 text-text">Admin Tools</h3>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
-          <Link to="/map" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
-            <div className="text-2xl mb-2">🗺️</div>
-            <div className="font-bold mb-1">Map Builder</div>
-            <div className="text-text-muted text-sm">View and edit room layout, connections, and z-levels</div>
-          </Link>
-
-          <Link to="/npcs" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
-            <div className="text-2xl mb-2">👤</div>
-            <div className="font-bold mb-1">NPC Manager</div>
-            <div className="text-text-muted text-sm">Create, edit, and manage NPCs and their locations</div>
-          </Link>
-
-          <Link to="/items" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
-            <div className="text-2xl mb-2">📦</div>
-            <div className="font-bold mb-1">Item Manager</div>
-            <div className="text-text-muted text-sm">Create, edit, and manage items and equipment</div>
-          </Link>
-
-          <Link to="/export" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
-            <div className="text-2xl mb-2">💾</div>
-            <div className="font-bold mb-1">Export / Import</div>
-            <div className="text-text-muted text-sm">Backup and restore game world data</div>
-          </Link>
-
-          <Link to="/players" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
-            <div className="text-2xl mb-2">🎮</div>
-            <div className="font-bold mb-1">Player Manager</div>
-            <div className="text-text-muted text-sm">Manage players and reset passwords</div>
-          </Link>
-
-          <Link to="/skills" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
-            <div className="text-2xl mb-2">⚡</div>
-            <div className="font-bold mb-1">Skills Manager</div>
-            <div className="text-text-muted text-sm">Create, edit, and manage skills</div>
-          </Link>
-
-          <Link to="/talents" className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary">
-            <div className="text-2xl mb-2">🎯</div>
-            <div className="font-bold mb-1">Talents Manager</div>
-            <div className="text-text-muted text-sm">Manage talent specializations</div>
-          </Link>
+          <ToolCard to="/map" emoji="🗺️" title="Map Builder" desc="View and edit room layout, connections, and z-levels" />
+          <ToolCard to="/npcs" emoji="👤" title="NPC Manager" desc="Create, edit, and manage NPCs and their locations" />
+          <ToolCard to="/items" emoji="📦" title="Item Manager" desc="Create, edit, and manage items and equipment" />
+          <ToolCard to="/export" emoji="💾" title="Export / Import" desc="Backup and restore game world data" />
+          <ToolCard to="/players" emoji="🎮" title="Player Manager" desc="Manage players and reset passwords" />
+          <ToolCard to="/skills" emoji="⚡" title="Skills Manager" desc="Create, edit, and manage skills" />
+          <ToolCard to="/talents" emoji="🎯" title="Talents Manager" desc="Manage talent specializations" />
+          <ToolCard to="/factions" emoji="⚔️" title="Factions Manager" desc="Manage factions, categories, and member standing" />
         </div>
       </div>
     </div>
+  )
+}
+
+function ToolCard({ to, emoji, title, desc }: { to: string; emoji: string; title: string; desc: string }) {
+  return (
+    <Link
+      to={to as any}
+      className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary hover:bg-surface-muted/70"
+    >
+      <div className="text-2xl mb-2">{emoji}</div>
+      <div className="font-bold mb-1">{title}</div>
+      <div className="text-text-muted text-sm">{desc}</div>
+    </Link>
   )
 }

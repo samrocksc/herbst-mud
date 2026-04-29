@@ -152,6 +152,31 @@ func max(a, b int) int {
 	return b
 }
 
+func trunc(s string, max int) string {
+	if len(s) > max {
+		return s[:max-1] + "…"
+	}
+	return s
+}
+
+func humanSize(bytes int64) string {
+	if bytes < 1024 {
+		return fmt.Sprintf("%d B", bytes)
+	}
+	if bytes < 1024*1024 {
+		return fmt.Sprintf("%.1f KB", float64(bytes)/1024)
+	}
+	return fmt.Sprintf("%.1f MB", float64(bytes)/(1024*1024))
+}
+
+func mask(s string) string {
+	r := ""
+	for range s {
+		r += "•"
+	}
+	return r
+}
+
 // ─── Shared message types ────────────────────────────────────────────────────
 
 type HealthMsg struct {

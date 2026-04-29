@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,13 +16,11 @@ import (
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
 	"herbst-server/db/charactertalent"
-	"herbst-server/db/room"
 	"herbst-server/db/gameconfig"
-	genderpkg "herbst-server/db/gender"
-	racepkg "herbst-server/db/race"
 	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"herbst-server/dbinit"
+	"herbst-server/services"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -339,11 +338,11 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		var req struct {
-			Name        string `json:"name" binding:"required"`
-			Password    string `json:"password" binding:"required"`
-			Class       string `json:"class"`
-			Race        string `json:"race"`
-			Gender      string `json:"gender"`
+			Name     string `json:"name" binding:"required"`
+			Password string `json:"password" binding:"required"`
+			Class    string `json:"class"`
+			Race     string `json:"race"`
+			Gender   string `json:"gender"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -351,153 +350,37 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Check if character name already exists
-		existingChar, err := client.Character.Query().Where(character.NameEQ(req.Name)).Only(c.Request.Context())
-		if err == nil && existingChar != nil {
-			c.JSON(http.StatusConflict, gin.H{"error": "Character name already exists"})
-			return
-		}
-
 		// Hash the password
-		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		hashedPassword, err := services.HashPassword(req.Password)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
-		hashedPassword := string(hash)
 
-		// Validate character name: 1-23 chars, letters only
-		if len(req.Name) < 1 || len(req.Name) > 23 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Character name must be 1-23 characters"})
-			return
-		}
-		for _, ch := range req.Name {
-			if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Character name can only contain letters (a-z, A-Z)"})
-				return
-			}
-		}
-
-		// Enforce max 3 characters per user
-		userChars, _ := client.Character.Query().Where(character.HasUserWith(user.IDEQ(userId))).Count(c.Request.Context())
-		if userChars >= 3 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Maximum of 3 characters per user reached"})
-			return
-		}
-
-		// Set default stats based on class (if provided)
-		hitpoints := 100
-		maxHitpoints := 100
-		stamina := 50
-		maxStamina := 50
-		mana := 50
-		maxMana := 50
-
-		// Get starting room (first room by default)
-		startingRooms, err := client.Room.Query().Where(room.IsStartingRoom(true)).All(c.Request.Context())
+		// Delegate to character service
+		charSvc := services.NewCharacterService(client)
+		char, err := charSvc.CreateCharacter(c.Request.Context(), services.CreateCharacterInput{
+			UserID:   userId,
+			Name:     req.Name,
+			Password: hashedPassword,
+			Class:    req.Class,
+			Race:     req.Race,
+			Gender:   req.Gender,
+		})
 		if err != nil {
-			log.Printf("Warning: failed to get starting room: %v", err)
-		}
-		var startingRoomID int
-		if err == nil && len(startingRooms) > 0 {
-			startingRoomID = startingRooms[0].ID
-		}
-
-		// Validate and resolve race from DB (default to human)
-		race := "human"
-		if req.Race != "" {
-			raceObj, err := client.Race.Query().Where(racepkg.NameEQ(req.Race)).Only(c.Request.Context())
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race: use human, turtle, or mutant"})
-				return
+			switch {
+			case errors.Is(err, services.ErrCharacterNameTaken):
+				c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			case errors.Is(err, services.ErrTooManyCharacters):
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			case errors.Is(err, services.ErrInvalidRace):
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race"})
+			case errors.Is(err, services.ErrInvalidGender):
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gender"})
+			default:
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			}
-			if !raceObj.IsPlayable {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Race not available for player characters"})
-				return
-			}
-			race = raceObj.Name
-		}
-
-		// Set class (default to survivor)
-		class := "survivor"
-		if req.Class != "" {
-			class = req.Class
-		}
-
-		// Set gender (default to he_him)
-		gender := "he_him"
-		if req.Gender != "" {
-			genderObj, err := client.Gender.Query().Where(genderpkg.NameEQ(req.Gender)).Only(c.Request.Context())
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gender: use he_him, she_her, or they_them"})
-				return
-			}
-			gender = genderObj.Name
-		}
-
-		// Get class configuration with specialty
-		classConfig := constants.GetClassConfig(class, "")
-
-		// Calculate base stats with class bonuses
-		baseStrength := constants.DefaultStats.Strength + classConfig.StatBonuses.Strength
-		baseDexterity := constants.DefaultStats.Dexterity + classConfig.StatBonuses.Dexterity
-		baseConstitution := constants.DefaultStats.Constitution + classConfig.StatBonuses.Constitution
-		baseIntelligence := constants.DefaultStats.Intelligence + classConfig.StatBonuses.Intelligence
-		baseWisdom := constants.DefaultStats.Wisdom + classConfig.StatBonuses.Wisdom
-
-		// Create the character builder
-		builder := client.Character.
-			Create().
-			SetName(req.Name).
-			SetPassword(hashedPassword).
-			SetUserID(userId).
-			SetHitpoints(hitpoints).
-			SetMaxHitpoints(maxHitpoints).
-			SetStamina(stamina).
-			SetMaxStamina(maxStamina).
-			SetMana(mana).
-			SetMaxMana(maxMana).
-			SetCurrentRoomId(startingRoomID).
-			SetStartingRoomId(startingRoomID).
-			SetRace(race).
-			SetGender(gender).
-			SetClass(class).
-			SetSpecialty(classConfig.Specialty).
-			SetStrength(baseStrength).
-			SetDexterity(baseDexterity).
-			SetConstitution(baseConstitution).
-			SetIntelligence(baseIntelligence).
-			SetWisdom(baseWisdom)
-
-		// Apply starting skills
-		for skill, level := range classConfig.StartingSkills {
-			switch skill {
-			case "blades":
-				builder.SetSkillBlades(level)
-			case "staves":
-				builder.SetSkillStaves(level)
-			case "knives":
-				builder.SetSkillKnives(level)
-			case "martial":
-				builder.SetSkillMartial(level)
-			case "brawling":
-				builder.SetSkillBrawling(level)
-			case "tech":
-				builder.SetSkillTech(level)
-			}
-		}
-
-		// Create the character
-		char, err := builder.Save(c.Request.Context())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
-		}
-
-		// Apply race stat modifiers from DB
-		char, err = dbinit.ApplyRaceToCharacter(c.Request.Context(), client, char)
-		if err != nil {
-			log.Printf("Warning: failed to apply race modifiers: %v", err)
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
@@ -521,6 +404,8 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			"constitution":    char.Constitution,
 			"intelligence":    char.Intelligence,
 			"wisdom":          char.Wisdom,
+			"level":           char.Level,
+			"xp":              char.Xp,
 		})
 	})
 

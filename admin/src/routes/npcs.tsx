@@ -298,7 +298,7 @@ function NPCManager() {
         <div className="p-3 border-t border-border">
           <button
             onClick={() => { setShowCreateForm(true); setSelectedNPC(null); setEditingNPC(null); }}
-            className="w-full p-2 bg-primary border-none rounded text-white cursor-pointer hover:bg-primary-hover"
+            className="w-full p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover"
           >
             + Create NPC
           </button>
@@ -409,7 +409,7 @@ function NPCManager() {
                 <button
                   onClick={handleCreateNPC}
                   disabled={saving}
-                  className="flex-1 p-2 bg-primary border-none rounded text-white cursor-pointer disabled:opacity-70"
+                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70"
                 >
                   {saving ? 'Creating...' : 'Create NPC'}
                 </button>
@@ -522,7 +522,7 @@ function NPCManager() {
                 <button
                   onClick={handleUpdateNPC}
                   disabled={saving}
-                  className="flex-1 p-2 bg-primary border-none rounded text-white cursor-pointer disabled:opacity-70"
+                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -590,7 +590,7 @@ function NPCManager() {
               <div className="flex gap-2">
                 <button
                   onClick={() => startEditing(selectedNPC)}
-                  className="flex-1 p-2 bg-accent border-none rounded text-white cursor-pointer hover:bg-accent-hover"
+                  className="flex-1 p-2 bg-accent border-2 border-black rounded text-white cursor-pointer hover:bg-accent-hover"
                 >
                   Edit NPC
                 </button>

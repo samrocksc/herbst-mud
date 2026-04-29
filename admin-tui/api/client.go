@@ -146,6 +146,35 @@ type BackupManifest struct {
 	Size      int64  `json:"size"`
 }
 
+// FactionCategory represents a faction category
+type FactionCategory struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+}
+
+// Faction represents a player/NPC faction
+type Faction struct {
+	ID          int      `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	CategoryID  int      `json:"category_id,omitempty"`
+	Standing    int      `json:"standing"`
+	Members     []int    `json:"members,omitempty"`
+	IsUniversal bool     `json:"is_universal,omitempty"`
+	CreatedAt   string   `json:"created_at,omitempty"`
+}
+
+// CharacterFaction represents a character's faction membership
+type CharacterFaction struct {
+	ID         int    `json:"id"`
+	CharacterID int    `json:"character_id"`
+	FactionID  int    `json:"faction_id"`
+	FactionName string `json:"faction_name,omitempty"`
+	Standing   int    `json:"standing"`
+	JoinedAt   string `json:"joined_at,omitempty"`
+}
+
 // APIError wraps server error responses
 type APIError struct {
 	StatusCode int
@@ -330,6 +359,60 @@ func ListBackups() ([]BackupManifest, error) {
 
 func TriggerBackup() error {
 	_, err := doRequest[any]("POST", "/api/backups", nil)
+	return err
+}
+
+// ─── Factions ────────────────────────────────────────────────────────────────
+
+func ListFactions() ([]Faction, error) {
+	return doRequest[[]Faction]("GET", "/api/factions", nil)
+}
+
+func GetFaction(id int) (Faction, error) {
+	return doRequest[Faction]("GET", fmt.Sprintf("/api/factions/%d", id), nil)
+}
+
+func CreateFaction(body map[string]any) (Faction, error) {
+	return doRequest[Faction]("POST", "/api/factions", body)
+}
+
+func UpdateFaction(id int, body map[string]any) (Faction, error) {
+	return doRequest[Faction]("PUT", fmt.Sprintf("/api/factions/%d", id), body)
+}
+
+func DeleteFaction(id int) error {
+	_, err := doRequest[any]("DELETE", fmt.Sprintf("/api/factions/%d", id), nil)
+	return err
+}
+
+func AssignCharacterToFaction(characterID, factionID int) error {
+	_, err := doRequest[any]("POST", fmt.Sprintf("/api/factions/%d/assign", factionID),
+		map[string]any{"character_id": characterID})
+	return err
+}
+
+func RemoveCharacterFromFaction(characterID, factionID int) error {
+	_, err := doRequest[any]("POST", fmt.Sprintf("/api/factions/%d/unassign", factionID),
+		map[string]any{"character_id": characterID})
+	return err
+}
+
+// ─── Faction Categories ─────────────────────────────────────────────────────
+
+func ListFactionCategories() ([]FactionCategory, error) {
+	return doRequest[[]FactionCategory]("GET", "/api/faction-categories", nil)
+}
+
+func CreateFactionCategory(body map[string]any) (FactionCategory, error) {
+	return doRequest[FactionCategory]("POST", "/api/faction-categories", body)
+}
+
+func UpdateFactionCategory(id int, body map[string]any) (FactionCategory, error) {
+	return doRequest[FactionCategory]("PUT", fmt.Sprintf("/api/faction-categories/%d", id), body)
+}
+
+func DeleteFactionCategory(id int) error {
+	_, err := doRequest[any]("DELETE", fmt.Sprintf("/api/faction-categories/%d", id), nil)
 	return err
 }
 

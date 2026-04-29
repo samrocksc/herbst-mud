@@ -47,7 +47,7 @@ function Login() {
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center justify-center text-text">
       <h1 className="text-3xl mb-2">Herbst MUD Admin</h1>
-      <Link to="/" className="text-primary no-underline mb-6 hover:text-primary-hover">
+      <Link to="/" className="text-primary no-underline mb-6 hover:text-primary">
         ← Back to Home
       </Link>
 
@@ -72,7 +72,7 @@ function Login() {
         </div>
         <button
           type="submit" disabled={loading}
-          className="w-full py-3 bg-primary border-none rounded text-white cursor-pointer disabled:opacity-70 hover:bg-primary-hover"
+          className="w-full py-3 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70 hover:bg-primary-hover"
         >
           {loading ? 'Logging in...' : 'Login'}
         </button>

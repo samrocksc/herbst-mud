@@ -12,14 +12,29 @@ type AvailableTalent func(*sql.Selector)
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 
+// CharacterFaction is the predicate function for characterfaction builders.
+type CharacterFaction func(*sql.Selector)
+
 // CharacterSkill is the predicate function for characterskill builders.
 type CharacterSkill func(*sql.Selector)
+
+// CharacterTag is the predicate function for charactertag builders.
+type CharacterTag func(*sql.Selector)
 
 // CharacterTalent is the predicate function for charactertalent builders.
 type CharacterTalent func(*sql.Selector)
 
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)
+
+// Faction is the predicate function for faction builders.
+type Faction func(*sql.Selector)
+
+// FactionCategory is the predicate function for factioncategory builders.
+type FactionCategory func(*sql.Selector)
+
+// FactionRequiredTag is the predicate function for factionrequiredtag builders.
+type FactionRequiredTag func(*sql.Selector)
 
 // GameConfig is the predicate function for gameconfig builders.
 type GameConfig func(*sql.Selector)

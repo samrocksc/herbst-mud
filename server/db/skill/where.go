@@ -124,6 +124,36 @@ func HpCost(v int) predicate.Skill {
 	return predicate.Skill(sql.FieldEQ(FieldHpCost, v))
 }
 
+// Slug applies equality check predicate on the "slug" field. It's identical to SlugEQ.
+func Slug(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldSlug, v))
+}
+
+// RequiredTag applies equality check predicate on the "required_tag" field. It's identical to RequiredTagEQ.
+func RequiredTag(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldRequiredTag, v))
+}
+
+// SkillClass applies equality check predicate on the "skill_class" field. It's identical to SkillClassEQ.
+func SkillClass(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldSkillClass, v))
+}
+
+// ProcChance applies equality check predicate on the "proc_chance" field. It's identical to ProcChanceEQ.
+func ProcChance(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldProcChance, v))
+}
+
+// ProcEvent applies equality check predicate on the "proc_event" field. It's identical to ProcEventEQ.
+func ProcEvent(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldProcEvent, v))
+}
+
+// CooldownSeconds applies equality check predicate on the "cooldown_seconds" field. It's identical to CooldownSecondsEQ.
+func CooldownSeconds(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldCooldownSeconds, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Skill {
 	return predicate.Skill(sql.FieldEQ(FieldName, v))
@@ -854,6 +884,366 @@ func HpCostLTE(v int) predicate.Skill {
 	return predicate.Skill(sql.FieldLTE(FieldHpCost, v))
 }
 
+// SlugEQ applies the EQ predicate on the "slug" field.
+func SlugEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldSlug, v))
+}
+
+// SlugNEQ applies the NEQ predicate on the "slug" field.
+func SlugNEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldSlug, v))
+}
+
+// SlugIn applies the In predicate on the "slug" field.
+func SlugIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldSlug, vs...))
+}
+
+// SlugNotIn applies the NotIn predicate on the "slug" field.
+func SlugNotIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldSlug, vs...))
+}
+
+// SlugGT applies the GT predicate on the "slug" field.
+func SlugGT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldSlug, v))
+}
+
+// SlugGTE applies the GTE predicate on the "slug" field.
+func SlugGTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldSlug, v))
+}
+
+// SlugLT applies the LT predicate on the "slug" field.
+func SlugLT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldSlug, v))
+}
+
+// SlugLTE applies the LTE predicate on the "slug" field.
+func SlugLTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldSlug, v))
+}
+
+// SlugContains applies the Contains predicate on the "slug" field.
+func SlugContains(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContains(FieldSlug, v))
+}
+
+// SlugHasPrefix applies the HasPrefix predicate on the "slug" field.
+func SlugHasPrefix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasPrefix(FieldSlug, v))
+}
+
+// SlugHasSuffix applies the HasSuffix predicate on the "slug" field.
+func SlugHasSuffix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasSuffix(FieldSlug, v))
+}
+
+// SlugEqualFold applies the EqualFold predicate on the "slug" field.
+func SlugEqualFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEqualFold(FieldSlug, v))
+}
+
+// SlugContainsFold applies the ContainsFold predicate on the "slug" field.
+func SlugContainsFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContainsFold(FieldSlug, v))
+}
+
+// RequiredTagEQ applies the EQ predicate on the "required_tag" field.
+func RequiredTagEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldRequiredTag, v))
+}
+
+// RequiredTagNEQ applies the NEQ predicate on the "required_tag" field.
+func RequiredTagNEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldRequiredTag, v))
+}
+
+// RequiredTagIn applies the In predicate on the "required_tag" field.
+func RequiredTagIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldRequiredTag, vs...))
+}
+
+// RequiredTagNotIn applies the NotIn predicate on the "required_tag" field.
+func RequiredTagNotIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldRequiredTag, vs...))
+}
+
+// RequiredTagGT applies the GT predicate on the "required_tag" field.
+func RequiredTagGT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldRequiredTag, v))
+}
+
+// RequiredTagGTE applies the GTE predicate on the "required_tag" field.
+func RequiredTagGTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldRequiredTag, v))
+}
+
+// RequiredTagLT applies the LT predicate on the "required_tag" field.
+func RequiredTagLT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldRequiredTag, v))
+}
+
+// RequiredTagLTE applies the LTE predicate on the "required_tag" field.
+func RequiredTagLTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldRequiredTag, v))
+}
+
+// RequiredTagContains applies the Contains predicate on the "required_tag" field.
+func RequiredTagContains(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContains(FieldRequiredTag, v))
+}
+
+// RequiredTagHasPrefix applies the HasPrefix predicate on the "required_tag" field.
+func RequiredTagHasPrefix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasPrefix(FieldRequiredTag, v))
+}
+
+// RequiredTagHasSuffix applies the HasSuffix predicate on the "required_tag" field.
+func RequiredTagHasSuffix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasSuffix(FieldRequiredTag, v))
+}
+
+// RequiredTagIsNil applies the IsNil predicate on the "required_tag" field.
+func RequiredTagIsNil() predicate.Skill {
+	return predicate.Skill(sql.FieldIsNull(FieldRequiredTag))
+}
+
+// RequiredTagNotNil applies the NotNil predicate on the "required_tag" field.
+func RequiredTagNotNil() predicate.Skill {
+	return predicate.Skill(sql.FieldNotNull(FieldRequiredTag))
+}
+
+// RequiredTagEqualFold applies the EqualFold predicate on the "required_tag" field.
+func RequiredTagEqualFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEqualFold(FieldRequiredTag, v))
+}
+
+// RequiredTagContainsFold applies the ContainsFold predicate on the "required_tag" field.
+func RequiredTagContainsFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContainsFold(FieldRequiredTag, v))
+}
+
+// SkillClassEQ applies the EQ predicate on the "skill_class" field.
+func SkillClassEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldSkillClass, v))
+}
+
+// SkillClassNEQ applies the NEQ predicate on the "skill_class" field.
+func SkillClassNEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldSkillClass, v))
+}
+
+// SkillClassIn applies the In predicate on the "skill_class" field.
+func SkillClassIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldSkillClass, vs...))
+}
+
+// SkillClassNotIn applies the NotIn predicate on the "skill_class" field.
+func SkillClassNotIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldSkillClass, vs...))
+}
+
+// SkillClassGT applies the GT predicate on the "skill_class" field.
+func SkillClassGT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldSkillClass, v))
+}
+
+// SkillClassGTE applies the GTE predicate on the "skill_class" field.
+func SkillClassGTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldSkillClass, v))
+}
+
+// SkillClassLT applies the LT predicate on the "skill_class" field.
+func SkillClassLT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldSkillClass, v))
+}
+
+// SkillClassLTE applies the LTE predicate on the "skill_class" field.
+func SkillClassLTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldSkillClass, v))
+}
+
+// SkillClassContains applies the Contains predicate on the "skill_class" field.
+func SkillClassContains(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContains(FieldSkillClass, v))
+}
+
+// SkillClassHasPrefix applies the HasPrefix predicate on the "skill_class" field.
+func SkillClassHasPrefix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasPrefix(FieldSkillClass, v))
+}
+
+// SkillClassHasSuffix applies the HasSuffix predicate on the "skill_class" field.
+func SkillClassHasSuffix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasSuffix(FieldSkillClass, v))
+}
+
+// SkillClassEqualFold applies the EqualFold predicate on the "skill_class" field.
+func SkillClassEqualFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEqualFold(FieldSkillClass, v))
+}
+
+// SkillClassContainsFold applies the ContainsFold predicate on the "skill_class" field.
+func SkillClassContainsFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContainsFold(FieldSkillClass, v))
+}
+
+// ProcChanceEQ applies the EQ predicate on the "proc_chance" field.
+func ProcChanceEQ(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldProcChance, v))
+}
+
+// ProcChanceNEQ applies the NEQ predicate on the "proc_chance" field.
+func ProcChanceNEQ(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldProcChance, v))
+}
+
+// ProcChanceIn applies the In predicate on the "proc_chance" field.
+func ProcChanceIn(vs ...float64) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldProcChance, vs...))
+}
+
+// ProcChanceNotIn applies the NotIn predicate on the "proc_chance" field.
+func ProcChanceNotIn(vs ...float64) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldProcChance, vs...))
+}
+
+// ProcChanceGT applies the GT predicate on the "proc_chance" field.
+func ProcChanceGT(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldProcChance, v))
+}
+
+// ProcChanceGTE applies the GTE predicate on the "proc_chance" field.
+func ProcChanceGTE(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldProcChance, v))
+}
+
+// ProcChanceLT applies the LT predicate on the "proc_chance" field.
+func ProcChanceLT(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldProcChance, v))
+}
+
+// ProcChanceLTE applies the LTE predicate on the "proc_chance" field.
+func ProcChanceLTE(v float64) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldProcChance, v))
+}
+
+// ProcEventEQ applies the EQ predicate on the "proc_event" field.
+func ProcEventEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldProcEvent, v))
+}
+
+// ProcEventNEQ applies the NEQ predicate on the "proc_event" field.
+func ProcEventNEQ(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldProcEvent, v))
+}
+
+// ProcEventIn applies the In predicate on the "proc_event" field.
+func ProcEventIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldProcEvent, vs...))
+}
+
+// ProcEventNotIn applies the NotIn predicate on the "proc_event" field.
+func ProcEventNotIn(vs ...string) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldProcEvent, vs...))
+}
+
+// ProcEventGT applies the GT predicate on the "proc_event" field.
+func ProcEventGT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldProcEvent, v))
+}
+
+// ProcEventGTE applies the GTE predicate on the "proc_event" field.
+func ProcEventGTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldProcEvent, v))
+}
+
+// ProcEventLT applies the LT predicate on the "proc_event" field.
+func ProcEventLT(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldProcEvent, v))
+}
+
+// ProcEventLTE applies the LTE predicate on the "proc_event" field.
+func ProcEventLTE(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldProcEvent, v))
+}
+
+// ProcEventContains applies the Contains predicate on the "proc_event" field.
+func ProcEventContains(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContains(FieldProcEvent, v))
+}
+
+// ProcEventHasPrefix applies the HasPrefix predicate on the "proc_event" field.
+func ProcEventHasPrefix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasPrefix(FieldProcEvent, v))
+}
+
+// ProcEventHasSuffix applies the HasSuffix predicate on the "proc_event" field.
+func ProcEventHasSuffix(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldHasSuffix(FieldProcEvent, v))
+}
+
+// ProcEventIsNil applies the IsNil predicate on the "proc_event" field.
+func ProcEventIsNil() predicate.Skill {
+	return predicate.Skill(sql.FieldIsNull(FieldProcEvent))
+}
+
+// ProcEventNotNil applies the NotNil predicate on the "proc_event" field.
+func ProcEventNotNil() predicate.Skill {
+	return predicate.Skill(sql.FieldNotNull(FieldProcEvent))
+}
+
+// ProcEventEqualFold applies the EqualFold predicate on the "proc_event" field.
+func ProcEventEqualFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldEqualFold(FieldProcEvent, v))
+}
+
+// ProcEventContainsFold applies the ContainsFold predicate on the "proc_event" field.
+func ProcEventContainsFold(v string) predicate.Skill {
+	return predicate.Skill(sql.FieldContainsFold(FieldProcEvent, v))
+}
+
+// CooldownSecondsEQ applies the EQ predicate on the "cooldown_seconds" field.
+func CooldownSecondsEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldEQ(FieldCooldownSeconds, v))
+}
+
+// CooldownSecondsNEQ applies the NEQ predicate on the "cooldown_seconds" field.
+func CooldownSecondsNEQ(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldNEQ(FieldCooldownSeconds, v))
+}
+
+// CooldownSecondsIn applies the In predicate on the "cooldown_seconds" field.
+func CooldownSecondsIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldIn(FieldCooldownSeconds, vs...))
+}
+
+// CooldownSecondsNotIn applies the NotIn predicate on the "cooldown_seconds" field.
+func CooldownSecondsNotIn(vs ...int) predicate.Skill {
+	return predicate.Skill(sql.FieldNotIn(FieldCooldownSeconds, vs...))
+}
+
+// CooldownSecondsGT applies the GT predicate on the "cooldown_seconds" field.
+func CooldownSecondsGT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGT(FieldCooldownSeconds, v))
+}
+
+// CooldownSecondsGTE applies the GTE predicate on the "cooldown_seconds" field.
+func CooldownSecondsGTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldGTE(FieldCooldownSeconds, v))
+}
+
+// CooldownSecondsLT applies the LT predicate on the "cooldown_seconds" field.
+func CooldownSecondsLT(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLT(FieldCooldownSeconds, v))
+}
+
+// CooldownSecondsLTE applies the LTE predicate on the "cooldown_seconds" field.
+func CooldownSecondsLTE(v int) predicate.Skill {
+	return predicate.Skill(sql.FieldLTE(FieldCooldownSeconds, v))
+}
+
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
 func HasCharacters() predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
@@ -892,6 +1282,29 @@ func HasNpcSkills() predicate.Skill {
 func HasNpcSkillsWith(preds ...predicate.NPCSkill) predicate.Skill {
 	return predicate.Skill(func(s *sql.Selector) {
 		step := newNpcSkillsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFaction applies the HasEdge predicate on the "faction" edge.
+func HasFaction() predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FactionTable, FactionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFactionWith applies the HasEdge predicate on the "faction" edge with a given conditions (other predicates).
+func HasFactionWith(preds ...predicate.Faction) predicate.Skill {
+	return predicate.Skill(func(s *sql.Selector) {
+		step := newFactionStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

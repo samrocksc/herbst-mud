@@ -27,6 +27,8 @@ type NPCTemplate struct {
 	Disposition npctemplate.Disposition `json:"disposition,omitempty"`
 	// Level holds the value of the "level" field.
 	Level int `json:"level,omitempty"`
+	// Base XP awarded when this NPC is killed by a player
+	XpValue int `json:"xp_value,omitempty"`
 	// Skills holds the value of the "skills" field.
 	Skills map[string]int `json:"skills,omitempty"`
 	// TradesWith holds the value of the "trades_with" field.
@@ -64,7 +66,7 @@ func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case npctemplate.FieldSkills, npctemplate.FieldTradesWith:
 			values[i] = new([]byte)
-		case npctemplate.FieldLevel:
+		case npctemplate.FieldLevel, npctemplate.FieldXpValue:
 			values[i] = new(sql.NullInt64)
 		case npctemplate.FieldID, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldRace, npctemplate.FieldDisposition, npctemplate.FieldGreeting:
 			values[i] = new(sql.NullString)
@@ -118,6 +120,12 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field level", values[i])
 			} else if value.Valid {
 				_m.Level = int(value.Int64)
+			}
+		case npctemplate.FieldXpValue:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field xp_value", values[i])
+			} else if value.Valid {
+				_m.XpValue = int(value.Int64)
 			}
 		case npctemplate.FieldSkills:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -196,6 +204,9 @@ func (_m *NPCTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("level=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Level))
+	builder.WriteString(", ")
+	builder.WriteString("xp_value=")
+	builder.WriteString(fmt.Sprintf("%v", _m.XpValue))
 	builder.WriteString(", ")
 	builder.WriteString("skills=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Skills))

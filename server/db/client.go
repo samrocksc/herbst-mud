@@ -13,9 +13,14 @@ import (
 
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
+	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/equipment"
+	"herbst-server/db/faction"
+	"herbst-server/db/factioncategory"
+	"herbst-server/db/factionrequiredtag"
 	"herbst-server/db/gameconfig"
 	"herbst-server/db/gender"
 	"herbst-server/db/npcskill"
@@ -41,12 +46,22 @@ type Client struct {
 	AvailableTalent *AvailableTalentClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// CharacterFaction is the client for interacting with the CharacterFaction builders.
+	CharacterFaction *CharacterFactionClient
 	// CharacterSkill is the client for interacting with the CharacterSkill builders.
 	CharacterSkill *CharacterSkillClient
+	// CharacterTag is the client for interacting with the CharacterTag builders.
+	CharacterTag *CharacterTagClient
 	// CharacterTalent is the client for interacting with the CharacterTalent builders.
 	CharacterTalent *CharacterTalentClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
+	// Faction is the client for interacting with the Faction builders.
+	Faction *FactionClient
+	// FactionCategory is the client for interacting with the FactionCategory builders.
+	FactionCategory *FactionCategoryClient
+	// FactionRequiredTag is the client for interacting with the FactionRequiredTag builders.
+	FactionRequiredTag *FactionRequiredTagClient
 	// GameConfig is the client for interacting with the GameConfig builders.
 	GameConfig *GameConfigClient
 	// Gender is the client for interacting with the Gender builders.
@@ -78,9 +93,14 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AvailableTalent = NewAvailableTalentClient(c.config)
 	c.Character = NewCharacterClient(c.config)
+	c.CharacterFaction = NewCharacterFactionClient(c.config)
 	c.CharacterSkill = NewCharacterSkillClient(c.config)
+	c.CharacterTag = NewCharacterTagClient(c.config)
 	c.CharacterTalent = NewCharacterTalentClient(c.config)
 	c.Equipment = NewEquipmentClient(c.config)
+	c.Faction = NewFactionClient(c.config)
+	c.FactionCategory = NewFactionCategoryClient(c.config)
+	c.FactionRequiredTag = NewFactionRequiredTagClient(c.config)
 	c.GameConfig = NewGameConfigClient(c.config)
 	c.Gender = NewGenderClient(c.config)
 	c.NPCSkill = NewNPCSkillClient(c.config)
@@ -180,22 +200,27 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		AvailableTalent: NewAvailableTalentClient(cfg),
-		Character:       NewCharacterClient(cfg),
-		CharacterSkill:  NewCharacterSkillClient(cfg),
-		CharacterTalent: NewCharacterTalentClient(cfg),
-		Equipment:       NewEquipmentClient(cfg),
-		GameConfig:      NewGameConfigClient(cfg),
-		Gender:          NewGenderClient(cfg),
-		NPCSkill:        NewNPCSkillClient(cfg),
-		NPCTemplate:     NewNPCTemplateClient(cfg),
-		Race:            NewRaceClient(cfg),
-		Room:            NewRoomClient(cfg),
-		Skill:           NewSkillClient(cfg),
-		Talent:          NewTalentClient(cfg),
-		User:            NewUserClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		AvailableTalent:    NewAvailableTalentClient(cfg),
+		Character:          NewCharacterClient(cfg),
+		CharacterFaction:   NewCharacterFactionClient(cfg),
+		CharacterSkill:     NewCharacterSkillClient(cfg),
+		CharacterTag:       NewCharacterTagClient(cfg),
+		CharacterTalent:    NewCharacterTalentClient(cfg),
+		Equipment:          NewEquipmentClient(cfg),
+		Faction:            NewFactionClient(cfg),
+		FactionCategory:    NewFactionCategoryClient(cfg),
+		FactionRequiredTag: NewFactionRequiredTagClient(cfg),
+		GameConfig:         NewGameConfigClient(cfg),
+		Gender:             NewGenderClient(cfg),
+		NPCSkill:           NewNPCSkillClient(cfg),
+		NPCTemplate:        NewNPCTemplateClient(cfg),
+		Race:               NewRaceClient(cfg),
+		Room:               NewRoomClient(cfg),
+		Skill:              NewSkillClient(cfg),
+		Talent:             NewTalentClient(cfg),
+		User:               NewUserClient(cfg),
 	}, nil
 }
 
@@ -213,22 +238,27 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		AvailableTalent: NewAvailableTalentClient(cfg),
-		Character:       NewCharacterClient(cfg),
-		CharacterSkill:  NewCharacterSkillClient(cfg),
-		CharacterTalent: NewCharacterTalentClient(cfg),
-		Equipment:       NewEquipmentClient(cfg),
-		GameConfig:      NewGameConfigClient(cfg),
-		Gender:          NewGenderClient(cfg),
-		NPCSkill:        NewNPCSkillClient(cfg),
-		NPCTemplate:     NewNPCTemplateClient(cfg),
-		Race:            NewRaceClient(cfg),
-		Room:            NewRoomClient(cfg),
-		Skill:           NewSkillClient(cfg),
-		Talent:          NewTalentClient(cfg),
-		User:            NewUserClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		AvailableTalent:    NewAvailableTalentClient(cfg),
+		Character:          NewCharacterClient(cfg),
+		CharacterFaction:   NewCharacterFactionClient(cfg),
+		CharacterSkill:     NewCharacterSkillClient(cfg),
+		CharacterTag:       NewCharacterTagClient(cfg),
+		CharacterTalent:    NewCharacterTalentClient(cfg),
+		Equipment:          NewEquipmentClient(cfg),
+		Faction:            NewFactionClient(cfg),
+		FactionCategory:    NewFactionCategoryClient(cfg),
+		FactionRequiredTag: NewFactionRequiredTagClient(cfg),
+		GameConfig:         NewGameConfigClient(cfg),
+		Gender:             NewGenderClient(cfg),
+		NPCSkill:           NewNPCSkillClient(cfg),
+		NPCTemplate:        NewNPCTemplateClient(cfg),
+		Race:               NewRaceClient(cfg),
+		Room:               NewRoomClient(cfg),
+		Skill:              NewSkillClient(cfg),
+		Talent:             NewTalentClient(cfg),
+		User:               NewUserClient(cfg),
 	}, nil
 }
 
@@ -258,9 +288,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AvailableTalent, c.Character, c.CharacterSkill, c.CharacterTalent,
-		c.Equipment, c.GameConfig, c.Gender, c.NPCSkill, c.NPCTemplate, c.Race, c.Room,
-		c.Skill, c.Talent, c.User,
+		c.AvailableTalent, c.Character, c.CharacterFaction, c.CharacterSkill,
+		c.CharacterTag, c.CharacterTalent, c.Equipment, c.Faction, c.FactionCategory,
+		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCSkill, c.NPCTemplate,
+		c.Race, c.Room, c.Skill, c.Talent, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -270,9 +301,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AvailableTalent, c.Character, c.CharacterSkill, c.CharacterTalent,
-		c.Equipment, c.GameConfig, c.Gender, c.NPCSkill, c.NPCTemplate, c.Race, c.Room,
-		c.Skill, c.Talent, c.User,
+		c.AvailableTalent, c.Character, c.CharacterFaction, c.CharacterSkill,
+		c.CharacterTag, c.CharacterTalent, c.Equipment, c.Faction, c.FactionCategory,
+		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCSkill, c.NPCTemplate,
+		c.Race, c.Room, c.Skill, c.Talent, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -285,12 +317,22 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AvailableTalent.mutate(ctx, m)
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
+	case *CharacterFactionMutation:
+		return c.CharacterFaction.mutate(ctx, m)
 	case *CharacterSkillMutation:
 		return c.CharacterSkill.mutate(ctx, m)
+	case *CharacterTagMutation:
+		return c.CharacterTag.mutate(ctx, m)
 	case *CharacterTalentMutation:
 		return c.CharacterTalent.mutate(ctx, m)
 	case *EquipmentMutation:
 		return c.Equipment.mutate(ctx, m)
+	case *FactionMutation:
+		return c.Faction.mutate(ctx, m)
+	case *FactionCategoryMutation:
+		return c.FactionCategory.mutate(ctx, m)
+	case *FactionRequiredTagMutation:
+		return c.FactionRequiredTag.mutate(ctx, m)
 	case *GameConfigMutation:
 		return c.GameConfig.mutate(ctx, m)
 	case *GenderMutation:
@@ -683,6 +725,38 @@ func (c *CharacterClient) QueryTalents(_m *Character) *CharacterTalentQuery {
 	return query
 }
 
+// QueryTags queries the tags edge of a Character.
+func (c *CharacterClient) QueryTags(_m *Character) *CharacterTagQuery {
+	query := (&CharacterTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(charactertag.Table, charactertag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.TagsTable, character.TagsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFactionMemberships queries the faction_memberships edge of a Character.
+func (c *CharacterClient) QueryFactionMemberships(_m *Character) *CharacterFactionQuery {
+	query := (&CharacterFactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(characterfaction.Table, characterfaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.FactionMembershipsTable, character.FactionMembershipsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CharacterClient) Hooks() []Hook {
 	return c.hooks.Character
@@ -705,6 +779,171 @@ func (c *CharacterClient) mutate(ctx context.Context, m *CharacterMutation) (Val
 		return (&CharacterDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Character mutation op: %q", m.Op())
+	}
+}
+
+// CharacterFactionClient is a client for the CharacterFaction schema.
+type CharacterFactionClient struct {
+	config
+}
+
+// NewCharacterFactionClient returns a client for the CharacterFaction from the given config.
+func NewCharacterFactionClient(c config) *CharacterFactionClient {
+	return &CharacterFactionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `characterfaction.Hooks(f(g(h())))`.
+func (c *CharacterFactionClient) Use(hooks ...Hook) {
+	c.hooks.CharacterFaction = append(c.hooks.CharacterFaction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `characterfaction.Intercept(f(g(h())))`.
+func (c *CharacterFactionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CharacterFaction = append(c.inters.CharacterFaction, interceptors...)
+}
+
+// Create returns a builder for creating a CharacterFaction entity.
+func (c *CharacterFactionClient) Create() *CharacterFactionCreate {
+	mutation := newCharacterFactionMutation(c.config, OpCreate)
+	return &CharacterFactionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CharacterFaction entities.
+func (c *CharacterFactionClient) CreateBulk(builders ...*CharacterFactionCreate) *CharacterFactionCreateBulk {
+	return &CharacterFactionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CharacterFactionClient) MapCreateBulk(slice any, setFunc func(*CharacterFactionCreate, int)) *CharacterFactionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CharacterFactionCreateBulk{err: fmt.Errorf("calling to CharacterFactionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CharacterFactionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CharacterFactionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CharacterFaction.
+func (c *CharacterFactionClient) Update() *CharacterFactionUpdate {
+	mutation := newCharacterFactionMutation(c.config, OpUpdate)
+	return &CharacterFactionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CharacterFactionClient) UpdateOne(_m *CharacterFaction) *CharacterFactionUpdateOne {
+	mutation := newCharacterFactionMutation(c.config, OpUpdateOne, withCharacterFaction(_m))
+	return &CharacterFactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CharacterFactionClient) UpdateOneID(id int) *CharacterFactionUpdateOne {
+	mutation := newCharacterFactionMutation(c.config, OpUpdateOne, withCharacterFactionID(id))
+	return &CharacterFactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CharacterFaction.
+func (c *CharacterFactionClient) Delete() *CharacterFactionDelete {
+	mutation := newCharacterFactionMutation(c.config, OpDelete)
+	return &CharacterFactionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CharacterFactionClient) DeleteOne(_m *CharacterFaction) *CharacterFactionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CharacterFactionClient) DeleteOneID(id int) *CharacterFactionDeleteOne {
+	builder := c.Delete().Where(characterfaction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CharacterFactionDeleteOne{builder}
+}
+
+// Query returns a query builder for CharacterFaction.
+func (c *CharacterFactionClient) Query() *CharacterFactionQuery {
+	return &CharacterFactionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCharacterFaction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CharacterFaction entity by its id.
+func (c *CharacterFactionClient) Get(ctx context.Context, id int) (*CharacterFaction, error) {
+	return c.Query().Where(characterfaction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CharacterFactionClient) GetX(ctx context.Context, id int) *CharacterFaction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacter queries the character edge of a CharacterFaction.
+func (c *CharacterFactionClient) QueryCharacter(_m *CharacterFaction) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(characterfaction.Table, characterfaction.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, characterfaction.CharacterTable, characterfaction.CharacterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFaction queries the faction edge of a CharacterFaction.
+func (c *CharacterFactionClient) QueryFaction(_m *CharacterFaction) *FactionQuery {
+	query := (&FactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(characterfaction.Table, characterfaction.FieldID, id),
+			sqlgraph.To(faction.Table, faction.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, characterfaction.FactionTable, characterfaction.FactionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CharacterFactionClient) Hooks() []Hook {
+	return c.hooks.CharacterFaction
+}
+
+// Interceptors returns the client interceptors.
+func (c *CharacterFactionClient) Interceptors() []Interceptor {
+	return c.inters.CharacterFaction
+}
+
+func (c *CharacterFactionClient) mutate(ctx context.Context, m *CharacterFactionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CharacterFactionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CharacterFactionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CharacterFactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CharacterFactionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CharacterFaction mutation op: %q", m.Op())
 	}
 }
 
@@ -870,6 +1109,155 @@ func (c *CharacterSkillClient) mutate(ctx context.Context, m *CharacterSkillMuta
 		return (&CharacterSkillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CharacterSkill mutation op: %q", m.Op())
+	}
+}
+
+// CharacterTagClient is a client for the CharacterTag schema.
+type CharacterTagClient struct {
+	config
+}
+
+// NewCharacterTagClient returns a client for the CharacterTag from the given config.
+func NewCharacterTagClient(c config) *CharacterTagClient {
+	return &CharacterTagClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `charactertag.Hooks(f(g(h())))`.
+func (c *CharacterTagClient) Use(hooks ...Hook) {
+	c.hooks.CharacterTag = append(c.hooks.CharacterTag, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `charactertag.Intercept(f(g(h())))`.
+func (c *CharacterTagClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CharacterTag = append(c.inters.CharacterTag, interceptors...)
+}
+
+// Create returns a builder for creating a CharacterTag entity.
+func (c *CharacterTagClient) Create() *CharacterTagCreate {
+	mutation := newCharacterTagMutation(c.config, OpCreate)
+	return &CharacterTagCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CharacterTag entities.
+func (c *CharacterTagClient) CreateBulk(builders ...*CharacterTagCreate) *CharacterTagCreateBulk {
+	return &CharacterTagCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CharacterTagClient) MapCreateBulk(slice any, setFunc func(*CharacterTagCreate, int)) *CharacterTagCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CharacterTagCreateBulk{err: fmt.Errorf("calling to CharacterTagClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CharacterTagCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CharacterTagCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CharacterTag.
+func (c *CharacterTagClient) Update() *CharacterTagUpdate {
+	mutation := newCharacterTagMutation(c.config, OpUpdate)
+	return &CharacterTagUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CharacterTagClient) UpdateOne(_m *CharacterTag) *CharacterTagUpdateOne {
+	mutation := newCharacterTagMutation(c.config, OpUpdateOne, withCharacterTag(_m))
+	return &CharacterTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CharacterTagClient) UpdateOneID(id int) *CharacterTagUpdateOne {
+	mutation := newCharacterTagMutation(c.config, OpUpdateOne, withCharacterTagID(id))
+	return &CharacterTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CharacterTag.
+func (c *CharacterTagClient) Delete() *CharacterTagDelete {
+	mutation := newCharacterTagMutation(c.config, OpDelete)
+	return &CharacterTagDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CharacterTagClient) DeleteOne(_m *CharacterTag) *CharacterTagDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CharacterTagClient) DeleteOneID(id int) *CharacterTagDeleteOne {
+	builder := c.Delete().Where(charactertag.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CharacterTagDeleteOne{builder}
+}
+
+// Query returns a query builder for CharacterTag.
+func (c *CharacterTagClient) Query() *CharacterTagQuery {
+	return &CharacterTagQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCharacterTag},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CharacterTag entity by its id.
+func (c *CharacterTagClient) Get(ctx context.Context, id int) (*CharacterTag, error) {
+	return c.Query().Where(charactertag.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CharacterTagClient) GetX(ctx context.Context, id int) *CharacterTag {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacter queries the character edge of a CharacterTag.
+func (c *CharacterTagClient) QueryCharacter(_m *CharacterTag) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(charactertag.Table, charactertag.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, charactertag.CharacterTable, charactertag.CharacterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CharacterTagClient) Hooks() []Hook {
+	return c.hooks.CharacterTag
+}
+
+// Interceptors returns the client interceptors.
+func (c *CharacterTagClient) Interceptors() []Interceptor {
+	return c.inters.CharacterTag
+}
+
+func (c *CharacterTagClient) mutate(ctx context.Context, m *CharacterTagMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CharacterTagCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CharacterTagUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CharacterTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CharacterTagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CharacterTag mutation op: %q", m.Op())
 	}
 }
 
@@ -1184,6 +1572,501 @@ func (c *EquipmentClient) mutate(ctx context.Context, m *EquipmentMutation) (Val
 		return (&EquipmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Equipment mutation op: %q", m.Op())
+	}
+}
+
+// FactionClient is a client for the Faction schema.
+type FactionClient struct {
+	config
+}
+
+// NewFactionClient returns a client for the Faction from the given config.
+func NewFactionClient(c config) *FactionClient {
+	return &FactionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `faction.Hooks(f(g(h())))`.
+func (c *FactionClient) Use(hooks ...Hook) {
+	c.hooks.Faction = append(c.hooks.Faction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `faction.Intercept(f(g(h())))`.
+func (c *FactionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Faction = append(c.inters.Faction, interceptors...)
+}
+
+// Create returns a builder for creating a Faction entity.
+func (c *FactionClient) Create() *FactionCreate {
+	mutation := newFactionMutation(c.config, OpCreate)
+	return &FactionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Faction entities.
+func (c *FactionClient) CreateBulk(builders ...*FactionCreate) *FactionCreateBulk {
+	return &FactionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FactionClient) MapCreateBulk(slice any, setFunc func(*FactionCreate, int)) *FactionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FactionCreateBulk{err: fmt.Errorf("calling to FactionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FactionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FactionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Faction.
+func (c *FactionClient) Update() *FactionUpdate {
+	mutation := newFactionMutation(c.config, OpUpdate)
+	return &FactionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FactionClient) UpdateOne(_m *Faction) *FactionUpdateOne {
+	mutation := newFactionMutation(c.config, OpUpdateOne, withFaction(_m))
+	return &FactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FactionClient) UpdateOneID(id int) *FactionUpdateOne {
+	mutation := newFactionMutation(c.config, OpUpdateOne, withFactionID(id))
+	return &FactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Faction.
+func (c *FactionClient) Delete() *FactionDelete {
+	mutation := newFactionMutation(c.config, OpDelete)
+	return &FactionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FactionClient) DeleteOne(_m *Faction) *FactionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FactionClient) DeleteOneID(id int) *FactionDeleteOne {
+	builder := c.Delete().Where(faction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FactionDeleteOne{builder}
+}
+
+// Query returns a query builder for Faction.
+func (c *FactionClient) Query() *FactionQuery {
+	return &FactionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFaction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Faction entity by its id.
+func (c *FactionClient) Get(ctx context.Context, id int) (*Faction, error) {
+	return c.Query().Where(faction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FactionClient) GetX(ctx context.Context, id int) *Faction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCategory queries the category edge of a Faction.
+func (c *FactionClient) QueryCategory(_m *Faction) *FactionCategoryQuery {
+	query := (&FactionCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(faction.Table, faction.FieldID, id),
+			sqlgraph.To(factioncategory.Table, factioncategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, faction.CategoryTable, faction.CategoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRequiredTags queries the required_tags edge of a Faction.
+func (c *FactionClient) QueryRequiredTags(_m *Faction) *FactionRequiredTagQuery {
+	query := (&FactionRequiredTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(faction.Table, faction.FieldID, id),
+			sqlgraph.To(factionrequiredtag.Table, factionrequiredtag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, faction.RequiredTagsTable, faction.RequiredTagsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCharacterFactions queries the character_factions edge of a Faction.
+func (c *FactionClient) QueryCharacterFactions(_m *Faction) *CharacterFactionQuery {
+	query := (&CharacterFactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(faction.Table, faction.FieldID, id),
+			sqlgraph.To(characterfaction.Table, characterfaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, faction.CharacterFactionsTable, faction.CharacterFactionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySkills queries the skills edge of a Faction.
+func (c *FactionClient) QuerySkills(_m *Faction) *SkillQuery {
+	query := (&SkillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(faction.Table, faction.FieldID, id),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, faction.SkillsTable, faction.SkillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FactionClient) Hooks() []Hook {
+	return c.hooks.Faction
+}
+
+// Interceptors returns the client interceptors.
+func (c *FactionClient) Interceptors() []Interceptor {
+	return c.inters.Faction
+}
+
+func (c *FactionClient) mutate(ctx context.Context, m *FactionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FactionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FactionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FactionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Faction mutation op: %q", m.Op())
+	}
+}
+
+// FactionCategoryClient is a client for the FactionCategory schema.
+type FactionCategoryClient struct {
+	config
+}
+
+// NewFactionCategoryClient returns a client for the FactionCategory from the given config.
+func NewFactionCategoryClient(c config) *FactionCategoryClient {
+	return &FactionCategoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `factioncategory.Hooks(f(g(h())))`.
+func (c *FactionCategoryClient) Use(hooks ...Hook) {
+	c.hooks.FactionCategory = append(c.hooks.FactionCategory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `factioncategory.Intercept(f(g(h())))`.
+func (c *FactionCategoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FactionCategory = append(c.inters.FactionCategory, interceptors...)
+}
+
+// Create returns a builder for creating a FactionCategory entity.
+func (c *FactionCategoryClient) Create() *FactionCategoryCreate {
+	mutation := newFactionCategoryMutation(c.config, OpCreate)
+	return &FactionCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FactionCategory entities.
+func (c *FactionCategoryClient) CreateBulk(builders ...*FactionCategoryCreate) *FactionCategoryCreateBulk {
+	return &FactionCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FactionCategoryClient) MapCreateBulk(slice any, setFunc func(*FactionCategoryCreate, int)) *FactionCategoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FactionCategoryCreateBulk{err: fmt.Errorf("calling to FactionCategoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FactionCategoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FactionCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FactionCategory.
+func (c *FactionCategoryClient) Update() *FactionCategoryUpdate {
+	mutation := newFactionCategoryMutation(c.config, OpUpdate)
+	return &FactionCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FactionCategoryClient) UpdateOne(_m *FactionCategory) *FactionCategoryUpdateOne {
+	mutation := newFactionCategoryMutation(c.config, OpUpdateOne, withFactionCategory(_m))
+	return &FactionCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FactionCategoryClient) UpdateOneID(id int) *FactionCategoryUpdateOne {
+	mutation := newFactionCategoryMutation(c.config, OpUpdateOne, withFactionCategoryID(id))
+	return &FactionCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FactionCategory.
+func (c *FactionCategoryClient) Delete() *FactionCategoryDelete {
+	mutation := newFactionCategoryMutation(c.config, OpDelete)
+	return &FactionCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FactionCategoryClient) DeleteOne(_m *FactionCategory) *FactionCategoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FactionCategoryClient) DeleteOneID(id int) *FactionCategoryDeleteOne {
+	builder := c.Delete().Where(factioncategory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FactionCategoryDeleteOne{builder}
+}
+
+// Query returns a query builder for FactionCategory.
+func (c *FactionCategoryClient) Query() *FactionCategoryQuery {
+	return &FactionCategoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFactionCategory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FactionCategory entity by its id.
+func (c *FactionCategoryClient) Get(ctx context.Context, id int) (*FactionCategory, error) {
+	return c.Query().Where(factioncategory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FactionCategoryClient) GetX(ctx context.Context, id int) *FactionCategory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryFactions queries the factions edge of a FactionCategory.
+func (c *FactionCategoryClient) QueryFactions(_m *FactionCategory) *FactionQuery {
+	query := (&FactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(factioncategory.Table, factioncategory.FieldID, id),
+			sqlgraph.To(faction.Table, faction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, factioncategory.FactionsTable, factioncategory.FactionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FactionCategoryClient) Hooks() []Hook {
+	return c.hooks.FactionCategory
+}
+
+// Interceptors returns the client interceptors.
+func (c *FactionCategoryClient) Interceptors() []Interceptor {
+	return c.inters.FactionCategory
+}
+
+func (c *FactionCategoryClient) mutate(ctx context.Context, m *FactionCategoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FactionCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FactionCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FactionCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FactionCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown FactionCategory mutation op: %q", m.Op())
+	}
+}
+
+// FactionRequiredTagClient is a client for the FactionRequiredTag schema.
+type FactionRequiredTagClient struct {
+	config
+}
+
+// NewFactionRequiredTagClient returns a client for the FactionRequiredTag from the given config.
+func NewFactionRequiredTagClient(c config) *FactionRequiredTagClient {
+	return &FactionRequiredTagClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `factionrequiredtag.Hooks(f(g(h())))`.
+func (c *FactionRequiredTagClient) Use(hooks ...Hook) {
+	c.hooks.FactionRequiredTag = append(c.hooks.FactionRequiredTag, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `factionrequiredtag.Intercept(f(g(h())))`.
+func (c *FactionRequiredTagClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FactionRequiredTag = append(c.inters.FactionRequiredTag, interceptors...)
+}
+
+// Create returns a builder for creating a FactionRequiredTag entity.
+func (c *FactionRequiredTagClient) Create() *FactionRequiredTagCreate {
+	mutation := newFactionRequiredTagMutation(c.config, OpCreate)
+	return &FactionRequiredTagCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FactionRequiredTag entities.
+func (c *FactionRequiredTagClient) CreateBulk(builders ...*FactionRequiredTagCreate) *FactionRequiredTagCreateBulk {
+	return &FactionRequiredTagCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FactionRequiredTagClient) MapCreateBulk(slice any, setFunc func(*FactionRequiredTagCreate, int)) *FactionRequiredTagCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FactionRequiredTagCreateBulk{err: fmt.Errorf("calling to FactionRequiredTagClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FactionRequiredTagCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FactionRequiredTagCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FactionRequiredTag.
+func (c *FactionRequiredTagClient) Update() *FactionRequiredTagUpdate {
+	mutation := newFactionRequiredTagMutation(c.config, OpUpdate)
+	return &FactionRequiredTagUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FactionRequiredTagClient) UpdateOne(_m *FactionRequiredTag) *FactionRequiredTagUpdateOne {
+	mutation := newFactionRequiredTagMutation(c.config, OpUpdateOne, withFactionRequiredTag(_m))
+	return &FactionRequiredTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FactionRequiredTagClient) UpdateOneID(id int) *FactionRequiredTagUpdateOne {
+	mutation := newFactionRequiredTagMutation(c.config, OpUpdateOne, withFactionRequiredTagID(id))
+	return &FactionRequiredTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FactionRequiredTag.
+func (c *FactionRequiredTagClient) Delete() *FactionRequiredTagDelete {
+	mutation := newFactionRequiredTagMutation(c.config, OpDelete)
+	return &FactionRequiredTagDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FactionRequiredTagClient) DeleteOne(_m *FactionRequiredTag) *FactionRequiredTagDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FactionRequiredTagClient) DeleteOneID(id int) *FactionRequiredTagDeleteOne {
+	builder := c.Delete().Where(factionrequiredtag.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FactionRequiredTagDeleteOne{builder}
+}
+
+// Query returns a query builder for FactionRequiredTag.
+func (c *FactionRequiredTagClient) Query() *FactionRequiredTagQuery {
+	return &FactionRequiredTagQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFactionRequiredTag},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FactionRequiredTag entity by its id.
+func (c *FactionRequiredTagClient) Get(ctx context.Context, id int) (*FactionRequiredTag, error) {
+	return c.Query().Where(factionrequiredtag.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FactionRequiredTagClient) GetX(ctx context.Context, id int) *FactionRequiredTag {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryFaction queries the faction edge of a FactionRequiredTag.
+func (c *FactionRequiredTagClient) QueryFaction(_m *FactionRequiredTag) *FactionQuery {
+	query := (&FactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(factionrequiredtag.Table, factionrequiredtag.FieldID, id),
+			sqlgraph.To(faction.Table, faction.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, factionrequiredtag.FactionTable, factionrequiredtag.FactionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FactionRequiredTagClient) Hooks() []Hook {
+	return c.hooks.FactionRequiredTag
+}
+
+// Interceptors returns the client interceptors.
+func (c *FactionRequiredTagClient) Interceptors() []Interceptor {
+	return c.inters.FactionRequiredTag
+}
+
+func (c *FactionRequiredTagClient) mutate(ctx context.Context, m *FactionRequiredTagMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FactionRequiredTagCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FactionRequiredTagUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FactionRequiredTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FactionRequiredTagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown FactionRequiredTag mutation op: %q", m.Op())
 	}
 }
 
@@ -2205,6 +3088,22 @@ func (c *SkillClient) QueryNpcSkills(_m *Skill) *NPCSkillQuery {
 	return query
 }
 
+// QueryFaction queries the faction edge of a Skill.
+func (c *SkillClient) QueryFaction(_m *Skill) *FactionQuery {
+	query := (&FactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, id),
+			sqlgraph.To(faction.Table, faction.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, skill.FactionTable, skill.FactionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SkillClient) Hooks() []Hook {
 	return c.hooks.Skill
@@ -2547,12 +3446,14 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AvailableTalent, Character, CharacterSkill, CharacterTalent, Equipment,
+		AvailableTalent, Character, CharacterFaction, CharacterSkill, CharacterTag,
+		CharacterTalent, Equipment, Faction, FactionCategory, FactionRequiredTag,
 		GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room, Skill, Talent,
 		User []ent.Hook
 	}
 	inters struct {
-		AvailableTalent, Character, CharacterSkill, CharacterTalent, Equipment,
+		AvailableTalent, Character, CharacterFaction, CharacterSkill, CharacterTag,
+		CharacterTalent, Equipment, Faction, FactionCategory, FactionRequiredTag,
 		GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room, Skill, Talent,
 		User []ent.Interceptor
 	}

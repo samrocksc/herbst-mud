@@ -59,6 +59,8 @@ type Character struct {
 	Specialty string `json:"specialty,omitempty"`
 	// Level holds the value of the "level" field.
 	Level int `json:"level,omitempty"`
+	// Current accumulated experience points
+	Xp int `json:"xp,omitempty"`
 	// Constitution holds the value of the "constitution" field.
 	Constitution int `json:"constitution,omitempty"`
 	// Gender holds the value of the "gender" field.
@@ -114,9 +116,13 @@ type CharacterEdges struct {
 	Skills []*CharacterSkill `json:"skills,omitempty"`
 	// Talents holds the value of the talents edge.
 	Talents []*CharacterTalent `json:"talents,omitempty"`
+	// Tags holds the value of the tags edge.
+	Tags []*CharacterTag `json:"tags,omitempty"`
+	// FactionMemberships holds the value of the faction_memberships edge.
+	FactionMemberships []*CharacterFaction `json:"faction_memberships,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [8]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -179,6 +185,24 @@ func (e CharacterEdges) TalentsOrErr() ([]*CharacterTalent, error) {
 	return nil, &NotLoadedError{edge: "talents"}
 }
 
+// TagsOrErr returns the Tags value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) TagsOrErr() ([]*CharacterTag, error) {
+	if e.loadedTypes[6] {
+		return e.Tags, nil
+	}
+	return nil, &NotLoadedError{edge: "tags"}
+}
+
+// FactionMembershipsOrErr returns the FactionMemberships value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) FactionMembershipsOrErr() ([]*CharacterFaction, error) {
+	if e.loadedTypes[7] {
+		return e.FactionMemberships, nil
+	}
+	return nil, &NotLoadedError{edge: "faction_memberships"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -186,7 +210,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsImmortal:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldXp, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
 		case character.FieldName, character.FieldPassword, character.FieldNpcSkillID, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -336,6 +360,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field level", values[i])
 			} else if value.Valid {
 				_m.Level = int(value.Int64)
+			}
+		case character.FieldXp:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field xp", values[i])
+			} else if value.Valid {
+				_m.Xp = int(value.Int64)
 			}
 		case character.FieldConstitution:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -497,6 +527,16 @@ func (_m *Character) QueryTalents() *CharacterTalentQuery {
 	return NewCharacterClient(_m.config).QueryTalents(_m)
 }
 
+// QueryTags queries the "tags" edge of the Character entity.
+func (_m *Character) QueryTags() *CharacterTagQuery {
+	return NewCharacterClient(_m.config).QueryTags(_m)
+}
+
+// QueryFactionMemberships queries the "faction_memberships" edge of the Character entity.
+func (_m *Character) QueryFactionMemberships() *CharacterFactionQuery {
+	return NewCharacterClient(_m.config).QueryFactionMemberships(_m)
+}
+
 // Update returns a builder for updating this Character.
 // Note that you need to call Character.Unwrap() before calling this method if this Character
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -579,6 +619,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("level=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Level))
+	builder.WriteString(", ")
+	builder.WriteString("xp=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Xp))
 	builder.WriteString(", ")
 	builder.WriteString("constitution=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Constitution))

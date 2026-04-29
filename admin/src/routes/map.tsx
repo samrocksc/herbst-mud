@@ -335,7 +335,7 @@ function MapBuilder() {
           <Link to="/dashboard" className="block text-primary no-underline p-2 rounded bg-surface-dark text-center mb-2 hover:bg-surface-darker">
             ← Dashboard
           </Link>
-          <button onClick={() => setShowCreateModal(true)} className="w-full p-2 bg-primary border-none rounded text-white cursor-pointer hover:bg-primary-hover">
+          <button onClick={() => setShowCreateModal(true)} className="w-full p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover">
             + Add Room
           </button>
         </div>
@@ -377,9 +377,9 @@ function MapBuilder() {
         <div className="absolute top-0 left-0 right-0 p-3 bg-surface-muted border-b border-border flex justify-between items-center z-10">
           <h1 className="m-0 text-text text-lg">Map Builder — Floor {currentZLevel}</h1>
           <div className="flex gap-2 items-center">
-            <button onClick={() => setZoom(z => Math.max(z - 0.25, 0.5))} className="px-2 py-1 bg-danger border-none rounded text-white cursor-pointer">−</button>
+            <button onClick={() => setZoom(z => Math.max(z - 0.25, 0.5))} className="px-2 py-1 bg-danger border-2 border-black rounded text-white cursor-pointer">−</button>
             <span className="text-text-muted text-xs w-12 text-center">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom(z => Math.min(z + 0.25, 2))} className="px-2 py-1 bg-primary border-none rounded text-white cursor-pointer">+</button>
+            <button onClick={() => setZoom(z => Math.min(z + 0.25, 2))} className="px-2 py-1 bg-primary border-2 border-black rounded text-white cursor-pointer">+</button>
           </div>
         </div>
 
@@ -457,7 +457,7 @@ function MapBuilder() {
             </div>
             <div className="p-3 border-t border-border">
               <button onClick={handleSaveRoom} disabled={saving}
-                className="w-full p-2 bg-primary border-none rounded text-white cursor-pointer mb-2 disabled:opacity-70">
+                className="w-full p-2 bg-primary border-2 border-black rounded text-white cursor-pointer mb-2 disabled:opacity-70">
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
               <button onClick={() => setEditingRoom(null)} className="w-full p-2 bg-surface-dark border border-border rounded text-text-muted cursor-pointer">
@@ -522,7 +522,7 @@ function MapBuilder() {
                         <div key={dir} className="flex items-center gap-2 my-1">
                           <div className="flex-1 p-1 rounded text-xs bg-surface-muted border border-border text-text-muted"><strong>{dir}</strong> → none</div>
                           <button onClick={() => { setNewRoomForm({ name: '', description: '' }); setShowCreateModal(true); }}
-                            disabled={creating} className="px-2 py-1 bg-primary border-none rounded text-white text-xs cursor-pointer hover:bg-primary-hover disabled:opacity-50" title={`Create room to the ${dir}`}>
+                            disabled={creating} className="px-2 py-1 bg-primary border-2 border-black rounded text-white text-xs cursor-pointer hover:bg-primary-hover disabled:opacity-50" title={`Create room to the ${dir}`}>
                             +
                           </button>
                         </div>
@@ -533,7 +533,7 @@ function MapBuilder() {
               </div>
             </div>
             <div className="p-3 border-t border-border flex gap-2">
-              <button onClick={() => handleEditRoom(selectedRoom)} className="flex-1 p-2 bg-accent border-none rounded text-white cursor-pointer">Edit Room</button>
+              <button onClick={() => handleEditRoom(selectedRoom)} className="flex-1 p-2 bg-accent border-2 border-black rounded text-white cursor-pointer">Edit Room</button>
               <button onClick={() => { if (confirmDelete === selectedRoom.id) { handleDeleteRoom(selectedRoom.id) } else { setConfirmDelete(selectedRoom.id) } }}
                 className={`flex-1 p-2 border-none rounded text-white cursor-pointer ${confirmDelete === selectedRoom.id ? 'bg-warning hover:bg-warning/80' : 'bg-danger hover:bg-danger-hover'}`}>
                 {confirmDelete === selectedRoom.id ? 'Confirm Delete?' : 'Delete Room'}
@@ -562,7 +562,7 @@ function MapBuilder() {
         </div>
         <div className="flex gap-2">
           <button onClick={handleCreateStandaloneRoom} disabled={creating}
-            className="flex-1 p-2 bg-primary border-none rounded text-white cursor-pointer disabled:opacity-70">
+            className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70">
             {creating ? 'Creating...' : 'Create Room'}
           </button>
           <button onClick={() => setShowCreateModal(false)} className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted cursor-pointer">

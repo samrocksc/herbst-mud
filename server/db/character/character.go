@@ -52,6 +52,8 @@ const (
 	FieldSpecialty = "specialty"
 	// FieldLevel holds the string denoting the level field in the database.
 	FieldLevel = "level"
+	// FieldXp holds the string denoting the xp field in the database.
+	FieldXp = "xp"
 	// FieldConstitution holds the string denoting the constitution field in the database.
 	FieldConstitution = "constitution"
 	// FieldGender holds the string denoting the gender field in the database.
@@ -96,6 +98,10 @@ const (
 	EdgeSkills = "skills"
 	// EdgeTalents holds the string denoting the talents edge name in mutations.
 	EdgeTalents = "talents"
+	// EdgeTags holds the string denoting the tags edge name in mutations.
+	EdgeTags = "tags"
+	// EdgeFactionMemberships holds the string denoting the faction_memberships edge name in mutations.
+	EdgeFactionMemberships = "faction_memberships"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -140,6 +146,20 @@ const (
 	TalentsInverseTable = "character_talents"
 	// TalentsColumn is the table column denoting the talents relation/edge.
 	TalentsColumn = "character_talents"
+	// TagsTable is the table that holds the tags relation/edge.
+	TagsTable = "character_tags"
+	// TagsInverseTable is the table name for the CharacterTag entity.
+	// It exists in this package in order to avoid circular dependency with the "charactertag" package.
+	TagsInverseTable = "character_tags"
+	// TagsColumn is the table column denoting the tags relation/edge.
+	TagsColumn = "character_tags"
+	// FactionMembershipsTable is the table that holds the faction_memberships relation/edge.
+	FactionMembershipsTable = "character_factions"
+	// FactionMembershipsInverseTable is the table name for the CharacterFaction entity.
+	// It exists in this package in order to avoid circular dependency with the "characterfaction" package.
+	FactionMembershipsInverseTable = "character_factions"
+	// FactionMembershipsColumn is the table column denoting the faction_memberships relation/edge.
+	FactionMembershipsColumn = "character_faction_memberships"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -165,6 +185,7 @@ var Columns = []string{
 	FieldClass,
 	FieldSpecialty,
 	FieldLevel,
+	FieldXp,
 	FieldConstitution,
 	FieldGender,
 	FieldDescription,
@@ -235,6 +256,8 @@ var (
 	DefaultClass string
 	// DefaultLevel holds the default value on creation for the "level" field.
 	DefaultLevel int
+	// DefaultXp holds the default value on creation for the "xp" field.
+	DefaultXp int
 	// DefaultConstitution holds the default value on creation for the "constitution" field.
 	DefaultConstitution int
 	// DefaultStrength holds the default value on creation for the "strength" field.
@@ -371,6 +394,11 @@ func BySpecialty(opts ...sql.OrderTermOption) OrderOption {
 // ByLevel orders the results by the level field.
 func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLevel, opts...).ToFunc()
+}
+
+// ByXp orders the results by the xp field.
+func ByXp(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldXp, opts...).ToFunc()
 }
 
 // ByConstitution orders the results by the constitution field.
@@ -515,6 +543,34 @@ func ByTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByTagsCount orders the results by tags count.
+func ByTagsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTagsStep(), opts...)
+	}
+}
+
+// ByTags orders the results by tags terms.
+func ByTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFactionMembershipsCount orders the results by faction_memberships count.
+func ByFactionMembershipsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFactionMembershipsStep(), opts...)
+	}
+}
+
+// ByFactionMemberships orders the results by faction_memberships terms.
+func ByFactionMemberships(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFactionMembershipsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -555,5 +611,19 @@ func newTalentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TalentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TalentsTable, TalentsColumn),
+	)
+}
+func newTagsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TagsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TagsTable, TagsColumn),
+	)
+}
+func newFactionMembershipsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FactionMembershipsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FactionMembershipsTable, FactionMembershipsColumn),
 	)
 }

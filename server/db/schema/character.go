@@ -56,6 +56,9 @@ func (Character) Fields() []ent.Field {
 			Comment("Class specialty (e.g., fighter for warrior)"),
 		field.Int("level").
 			Default(1),
+		field.Int("xp").
+			Default(0).
+			Comment("Current accumulated experience points"),
 		field.Int("constitution").
 			Default(10),
 		field.String("gender").
@@ -106,5 +109,7 @@ func (Character) Edges() []ent.Edge {
 		edge.To("available_talents", AvailableTalent.Type),
 		edge.To("skills", CharacterSkill.Type),
 		edge.To("talents", CharacterTalent.Type),
+		edge.To("tags", CharacterTag.Type),
+		edge.To("faction_memberships", CharacterFaction.Type),
 	}
 }

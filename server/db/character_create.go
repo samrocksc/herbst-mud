@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
+	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
@@ -277,6 +279,20 @@ func (_c *CharacterCreate) SetLevel(v int) *CharacterCreate {
 func (_c *CharacterCreate) SetNillableLevel(v *int) *CharacterCreate {
 	if v != nil {
 		_c.SetLevel(*v)
+	}
+	return _c
+}
+
+// SetXp sets the "xp" field.
+func (_c *CharacterCreate) SetXp(v int) *CharacterCreate {
+	_c.mutation.SetXp(v)
+	return _c
+}
+
+// SetNillableXp sets the "xp" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableXp(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetXp(*v)
 	}
 	return _c
 }
@@ -599,6 +615,36 @@ func (_c *CharacterCreate) AddTalents(v ...*CharacterTalent) *CharacterCreate {
 	return _c.AddTalentIDs(ids...)
 }
 
+// AddTagIDs adds the "tags" edge to the CharacterTag entity by IDs.
+func (_c *CharacterCreate) AddTagIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddTagIDs(ids...)
+	return _c
+}
+
+// AddTags adds the "tags" edges to the CharacterTag entity.
+func (_c *CharacterCreate) AddTags(v ...*CharacterTag) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTagIDs(ids...)
+}
+
+// AddFactionMembershipIDs adds the "faction_memberships" edge to the CharacterFaction entity by IDs.
+func (_c *CharacterCreate) AddFactionMembershipIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddFactionMembershipIDs(ids...)
+	return _c
+}
+
+// AddFactionMemberships adds the "faction_memberships" edges to the CharacterFaction entity.
+func (_c *CharacterCreate) AddFactionMemberships(v ...*CharacterFaction) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFactionMembershipIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_c *CharacterCreate) Mutation() *CharacterMutation {
 	return _c.mutation
@@ -689,6 +735,10 @@ func (_c *CharacterCreate) defaults() {
 	if _, ok := _c.mutation.Level(); !ok {
 		v := character.DefaultLevel
 		_c.mutation.SetLevel(v)
+	}
+	if _, ok := _c.mutation.Xp(); !ok {
+		v := character.DefaultXp
+		_c.mutation.SetXp(v)
 	}
 	if _, ok := _c.mutation.Constitution(); !ok {
 		v := character.DefaultConstitution
@@ -800,6 +850,9 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.Level(); !ok {
 		return &ValidationError{Name: "level", err: errors.New(`db: missing required field "Character.level"`)}
+	}
+	if _, ok := _c.mutation.Xp(); !ok {
+		return &ValidationError{Name: "xp", err: errors.New(`db: missing required field "Character.xp"`)}
 	}
 	if _, ok := _c.mutation.Constitution(); !ok {
 		return &ValidationError{Name: "constitution", err: errors.New(`db: missing required field "Character.constitution"`)}
@@ -947,6 +1000,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Level(); ok {
 		_spec.SetField(character.FieldLevel, field.TypeInt, value)
 		_node.Level = value
+	}
+	if value, ok := _c.mutation.Xp(); ok {
+		_spec.SetField(character.FieldXp, field.TypeInt, value)
+		_node.Xp = value
 	}
 	if value, ok := _c.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)
@@ -1104,6 +1161,38 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(charactertalent.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TagsTable,
+			Columns: []string{character.TagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactertag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FactionMembershipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.FactionMembershipsTable,
+			Columns: []string{character.FactionMembershipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

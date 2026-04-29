@@ -58,6 +58,7 @@ var (
 		{Name: "class", Type: field.TypeString, Default: "adventurer"},
 		{Name: "specialty", Type: field.TypeString, Nullable: true},
 		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "xp", Type: field.TypeInt, Default: 0},
 		{Name: "constitution", Type: field.TypeInt, Default: 10},
 		{Name: "gender", Type: field.TypeString, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true},
@@ -87,26 +88,55 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[36]},
+				Columns:    []*schema.Column{CharactersColumns[37]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[37]},
+				Columns:    []*schema.Column{CharactersColumns[38]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[38]},
+				Columns:    []*schema.Column{CharactersColumns[39]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[39]},
+				Columns:    []*schema.Column{CharactersColumns[40]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CharacterFactionsColumns holds the columns for the "character_factions" table.
+	CharacterFactionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "reputation", Type: field.TypeInt, Default: 0},
+		{Name: "status", Type: field.TypeString, Default: "active"},
+		{Name: "joined_at", Type: field.TypeTime},
+		{Name: "character_faction_memberships", Type: field.TypeInt, Nullable: true},
+		{Name: "faction_character_factions", Type: field.TypeInt, Nullable: true},
+	}
+	// CharacterFactionsTable holds the schema information for the "character_factions" table.
+	CharacterFactionsTable = &schema.Table{
+		Name:       "character_factions",
+		Columns:    CharacterFactionsColumns,
+		PrimaryKey: []*schema.Column{CharacterFactionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_factions_characters_faction_memberships",
+				Columns:    []*schema.Column{CharacterFactionsColumns[4]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "character_factions_factions_character_factions",
+				Columns:    []*schema.Column{CharacterFactionsColumns[5]},
+				RefColumns: []*schema.Column{FactionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -134,6 +164,28 @@ var (
 				Symbol:     "character_skills_skills_characters",
 				Columns:    []*schema.Column{CharacterSkillsColumns[3]},
 				RefColumns: []*schema.Column{SkillsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CharacterTagsColumns holds the columns for the "character_tags" table.
+	CharacterTagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "tag", Type: field.TypeString},
+		{Name: "source", Type: field.TypeString, Default: "system"},
+		{Name: "earned_at", Type: field.TypeTime},
+		{Name: "character_tags", Type: field.TypeInt, Nullable: true},
+	}
+	// CharacterTagsTable holds the schema information for the "character_tags" table.
+	CharacterTagsTable = &schema.Table{
+		Name:       "character_tags",
+		Columns:    CharacterTagsColumns,
+		PrimaryKey: []*schema.Column{CharacterTagsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_tags_characters_tags",
+				Columns:    []*schema.Column{CharacterTagsColumns[4]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -207,6 +259,63 @@ var (
 			},
 		},
 	}
+	// FactionsColumns holds the columns for the "factions" table.
+	FactionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "faction_category_factions", Type: field.TypeInt, Nullable: true},
+	}
+	// FactionsTable holds the schema information for the "factions" table.
+	FactionsTable = &schema.Table{
+		Name:       "factions",
+		Columns:    FactionsColumns,
+		PrimaryKey: []*schema.Column{FactionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "factions_faction_categories_factions",
+				Columns:    []*schema.Column{FactionsColumns[4]},
+				RefColumns: []*schema.Column{FactionCategoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// FactionCategoriesColumns holds the columns for the "faction_categories" table.
+	FactionCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "max_memberships", Type: field.TypeInt, Default: 1},
+		{Name: "auto_join", Type: field.TypeBool, Default: false},
+	}
+	// FactionCategoriesTable holds the schema information for the "faction_categories" table.
+	FactionCategoriesTable = &schema.Table{
+		Name:       "faction_categories",
+		Columns:    FactionCategoriesColumns,
+		PrimaryKey: []*schema.Column{FactionCategoriesColumns[0]},
+	}
+	// FactionRequiredTagsColumns holds the columns for the "faction_required_tags" table.
+	FactionRequiredTagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "required_tag", Type: field.TypeString},
+		{Name: "faction_required_tags", Type: field.TypeInt, Nullable: true},
+	}
+	// FactionRequiredTagsTable holds the schema information for the "faction_required_tags" table.
+	FactionRequiredTagsTable = &schema.Table{
+		Name:       "faction_required_tags",
+		Columns:    FactionRequiredTagsColumns,
+		PrimaryKey: []*schema.Column{FactionRequiredTagsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "faction_required_tags_factions_required_tags",
+				Columns:    []*schema.Column{FactionRequiredTagsColumns[2]},
+				RefColumns: []*schema.Column{FactionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// GameConfigsColumns holds the columns for the "game_configs" table.
 	GameConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -253,6 +362,7 @@ var (
 		{Name: "race", Type: field.TypeString},
 		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral"}, Default: "neutral"},
 		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "xp_value", Type: field.TypeInt, Default: 0},
 		{Name: "skills", Type: field.TypeJSON},
 		{Name: "trades_with", Type: field.TypeJSON},
 		{Name: "greeting", Type: field.TypeString, Size: 2147483647},
@@ -311,12 +421,27 @@ var (
 		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
 		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
 		{Name: "hp_cost", Type: field.TypeInt, Default: 0},
+		{Name: "slug", Type: field.TypeString, Unique: true},
+		{Name: "required_tag", Type: field.TypeString, Nullable: true},
+		{Name: "skill_class", Type: field.TypeString, Default: "active"},
+		{Name: "proc_chance", Type: field.TypeFloat64, Default: 0},
+		{Name: "proc_event", Type: field.TypeString, Nullable: true},
+		{Name: "cooldown_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "faction_skills", Type: field.TypeInt, Nullable: true},
 	}
 	// SkillsTable holds the schema information for the "skills" table.
 	SkillsTable = &schema.Table{
 		Name:       "skills",
 		Columns:    SkillsColumns,
 		PrimaryKey: []*schema.Column{SkillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "skills_factions_skills",
+				Columns:    []*schema.Column{SkillsColumns[21]},
+				RefColumns: []*schema.Column{FactionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// TalentsColumns holds the columns for the "talents" table.
 	TalentsColumns = []*schema.Column{
@@ -405,9 +530,14 @@ var (
 	Tables = []*schema.Table{
 		AvailableTalentsTable,
 		CharactersTable,
+		CharacterFactionsTable,
 		CharacterSkillsTable,
+		CharacterTagsTable,
 		CharacterTalentsTable,
 		EquipmentTable,
+		FactionsTable,
+		FactionCategoriesTable,
+		FactionRequiredTagsTable,
 		GameConfigsTable,
 		GendersTable,
 		NpcSkillsTable,
@@ -429,11 +559,17 @@ func init() {
 	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[3].RefTable = UsersTable
+	CharacterFactionsTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterFactionsTable.ForeignKeys[1].RefTable = FactionsTable
 	CharacterSkillsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterSkillsTable.ForeignKeys[1].RefTable = SkillsTable
+	CharacterTagsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterTalentsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterTalentsTable.ForeignKeys[1].RefTable = TalentsTable
 	EquipmentTable.ForeignKeys[0].RefTable = RoomsTable
+	FactionsTable.ForeignKeys[0].RefTable = FactionCategoriesTable
+	FactionRequiredTagsTable.ForeignKeys[0].RefTable = FactionsTable
+	SkillsTable.ForeignKeys[0].RefTable = FactionsTable
 	NpcTemplateNpcSkillsTable.ForeignKeys[0].RefTable = NpcTemplatesTable
 	NpcTemplateNpcSkillsTable.ForeignKeys[1].RefTable = NpcSkillsTable
 	SkillNpcSkillsTable.ForeignKeys[0].RefTable = SkillsTable

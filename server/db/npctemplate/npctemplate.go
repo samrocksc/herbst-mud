@@ -24,6 +24,8 @@ const (
 	FieldDisposition = "disposition"
 	// FieldLevel holds the string denoting the level field in the database.
 	FieldLevel = "level"
+	// FieldXpValue holds the string denoting the xp_value field in the database.
+	FieldXpValue = "xp_value"
 	// FieldSkills holds the string denoting the skills field in the database.
 	FieldSkills = "skills"
 	// FieldTradesWith holds the string denoting the trades_with field in the database.
@@ -49,6 +51,7 @@ var Columns = []string{
 	FieldRace,
 	FieldDisposition,
 	FieldLevel,
+	FieldXpValue,
 	FieldSkills,
 	FieldTradesWith,
 	FieldGreeting,
@@ -73,6 +76,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultLevel holds the default value on creation for the "level" field.
 	DefaultLevel int
+	// DefaultXpValue holds the default value on creation for the "xp_value" field.
+	DefaultXpValue int
 )
 
 // Disposition defines the type for the "disposition" enum field.
@@ -133,6 +138,11 @@ func ByDisposition(opts ...sql.OrderTermOption) OrderOption {
 // ByLevel orders the results by the level field.
 func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLevel, opts...).ToFunc()
+}
+
+// ByXpValue orders the results by the xp_value field.
+func ByXpValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldXpValue, opts...).ToFunc()
 }
 
 // ByGreeting orders the results by the greeting field.

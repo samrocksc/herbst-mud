@@ -16,12 +16,22 @@ type Tx struct {
 	AvailableTalent *AvailableTalentClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// CharacterFaction is the client for interacting with the CharacterFaction builders.
+	CharacterFaction *CharacterFactionClient
 	// CharacterSkill is the client for interacting with the CharacterSkill builders.
 	CharacterSkill *CharacterSkillClient
+	// CharacterTag is the client for interacting with the CharacterTag builders.
+	CharacterTag *CharacterTagClient
 	// CharacterTalent is the client for interacting with the CharacterTalent builders.
 	CharacterTalent *CharacterTalentClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
+	// Faction is the client for interacting with the Faction builders.
+	Faction *FactionClient
+	// FactionCategory is the client for interacting with the FactionCategory builders.
+	FactionCategory *FactionCategoryClient
+	// FactionRequiredTag is the client for interacting with the FactionRequiredTag builders.
+	FactionRequiredTag *FactionRequiredTagClient
 	// GameConfig is the client for interacting with the GameConfig builders.
 	GameConfig *GameConfigClient
 	// Gender is the client for interacting with the Gender builders.
@@ -173,9 +183,14 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.AvailableTalent = NewAvailableTalentClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
+	tx.CharacterFaction = NewCharacterFactionClient(tx.config)
 	tx.CharacterSkill = NewCharacterSkillClient(tx.config)
+	tx.CharacterTag = NewCharacterTagClient(tx.config)
 	tx.CharacterTalent = NewCharacterTalentClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
+	tx.Faction = NewFactionClient(tx.config)
+	tx.FactionCategory = NewFactionCategoryClient(tx.config)
+	tx.FactionRequiredTag = NewFactionRequiredTagClient(tx.config)
 	tx.GameConfig = NewGameConfigClient(tx.config)
 	tx.Gender = NewGenderClient(tx.config)
 	tx.NPCSkill = NewNPCSkillClient(tx.config)

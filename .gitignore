@@ -45,3 +45,9 @@ server.log
 .Trashes
 ehthumbs.db
 Thumbs.db
+*.log
+backups/
+herbst-admin-tui
+herbst-mud
+server/herbst-web
+server/herbst-mud

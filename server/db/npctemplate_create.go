@@ -66,6 +66,20 @@ func (_c *NPCTemplateCreate) SetNillableLevel(v *int) *NPCTemplateCreate {
 	return _c
 }
 
+// SetXpValue sets the "xp_value" field.
+func (_c *NPCTemplateCreate) SetXpValue(v int) *NPCTemplateCreate {
+	_c.mutation.SetXpValue(v)
+	return _c
+}
+
+// SetNillableXpValue sets the "xp_value" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableXpValue(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetXpValue(*v)
+	}
+	return _c
+}
+
 // SetSkills sets the "skills" field.
 func (_c *NPCTemplateCreate) SetSkills(v map[string]int) *NPCTemplateCreate {
 	_c.mutation.SetSkills(v)
@@ -148,6 +162,10 @@ func (_c *NPCTemplateCreate) defaults() {
 		v := npctemplate.DefaultLevel
 		_c.mutation.SetLevel(v)
 	}
+	if _, ok := _c.mutation.XpValue(); !ok {
+		v := npctemplate.DefaultXpValue
+		_c.mutation.SetXpValue(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -171,6 +189,9 @@ func (_c *NPCTemplateCreate) check() error {
 	}
 	if _, ok := _c.mutation.Level(); !ok {
 		return &ValidationError{Name: "level", err: errors.New(`db: missing required field "NPCTemplate.level"`)}
+	}
+	if _, ok := _c.mutation.XpValue(); !ok {
+		return &ValidationError{Name: "xp_value", err: errors.New(`db: missing required field "NPCTemplate.xp_value"`)}
 	}
 	if _, ok := _c.mutation.Skills(); !ok {
 		return &ValidationError{Name: "skills", err: errors.New(`db: missing required field "NPCTemplate.skills"`)}
@@ -235,6 +256,10 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Level(); ok {
 		_spec.SetField(npctemplate.FieldLevel, field.TypeInt, value)
 		_node.Level = value
+	}
+	if value, ok := _c.mutation.XpValue(); ok {
+		_spec.SetField(npctemplate.FieldXpValue, field.TypeInt, value)
+		_node.XpValue = value
 	}
 	if value, ok := _c.mutation.Skills(); ok {
 		_spec.SetField(npctemplate.FieldSkills, field.TypeJSON, value)

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/characterskill"
+	"herbst-server/db/faction"
 	"herbst-server/db/npcskill"
 	"herbst-server/db/predicate"
 	"herbst-server/db/skill"
@@ -293,6 +294,116 @@ func (_u *SkillUpdate) AddHpCost(v int) *SkillUpdate {
 	return _u
 }
 
+// SetSlug sets the "slug" field.
+func (_u *SkillUpdate) SetSlug(v string) *SkillUpdate {
+	_u.mutation.SetSlug(v)
+	return _u
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableSlug(v *string) *SkillUpdate {
+	if v != nil {
+		_u.SetSlug(*v)
+	}
+	return _u
+}
+
+// SetRequiredTag sets the "required_tag" field.
+func (_u *SkillUpdate) SetRequiredTag(v string) *SkillUpdate {
+	_u.mutation.SetRequiredTag(v)
+	return _u
+}
+
+// SetNillableRequiredTag sets the "required_tag" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableRequiredTag(v *string) *SkillUpdate {
+	if v != nil {
+		_u.SetRequiredTag(*v)
+	}
+	return _u
+}
+
+// ClearRequiredTag clears the value of the "required_tag" field.
+func (_u *SkillUpdate) ClearRequiredTag() *SkillUpdate {
+	_u.mutation.ClearRequiredTag()
+	return _u
+}
+
+// SetSkillClass sets the "skill_class" field.
+func (_u *SkillUpdate) SetSkillClass(v string) *SkillUpdate {
+	_u.mutation.SetSkillClass(v)
+	return _u
+}
+
+// SetNillableSkillClass sets the "skill_class" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableSkillClass(v *string) *SkillUpdate {
+	if v != nil {
+		_u.SetSkillClass(*v)
+	}
+	return _u
+}
+
+// SetProcChance sets the "proc_chance" field.
+func (_u *SkillUpdate) SetProcChance(v float64) *SkillUpdate {
+	_u.mutation.ResetProcChance()
+	_u.mutation.SetProcChance(v)
+	return _u
+}
+
+// SetNillableProcChance sets the "proc_chance" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableProcChance(v *float64) *SkillUpdate {
+	if v != nil {
+		_u.SetProcChance(*v)
+	}
+	return _u
+}
+
+// AddProcChance adds value to the "proc_chance" field.
+func (_u *SkillUpdate) AddProcChance(v float64) *SkillUpdate {
+	_u.mutation.AddProcChance(v)
+	return _u
+}
+
+// SetProcEvent sets the "proc_event" field.
+func (_u *SkillUpdate) SetProcEvent(v string) *SkillUpdate {
+	_u.mutation.SetProcEvent(v)
+	return _u
+}
+
+// SetNillableProcEvent sets the "proc_event" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableProcEvent(v *string) *SkillUpdate {
+	if v != nil {
+		_u.SetProcEvent(*v)
+	}
+	return _u
+}
+
+// ClearProcEvent clears the value of the "proc_event" field.
+func (_u *SkillUpdate) ClearProcEvent() *SkillUpdate {
+	_u.mutation.ClearProcEvent()
+	return _u
+}
+
+// SetCooldownSeconds sets the "cooldown_seconds" field.
+func (_u *SkillUpdate) SetCooldownSeconds(v int) *SkillUpdate {
+	_u.mutation.ResetCooldownSeconds()
+	_u.mutation.SetCooldownSeconds(v)
+	return _u
+}
+
+// SetNillableCooldownSeconds sets the "cooldown_seconds" field if the given value is not nil.
+func (_u *SkillUpdate) SetNillableCooldownSeconds(v *int) *SkillUpdate {
+	if v != nil {
+		_u.SetCooldownSeconds(*v)
+	}
+	return _u
+}
+
+// AddCooldownSeconds adds value to the "cooldown_seconds" field.
+func (_u *SkillUpdate) AddCooldownSeconds(v int) *SkillUpdate {
+	_u.mutation.AddCooldownSeconds(v)
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterSkill entity by IDs.
 func (_u *SkillUpdate) AddCharacterIDs(ids ...int) *SkillUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -321,6 +432,25 @@ func (_u *SkillUpdate) AddNpcSkills(v ...*NPCSkill) *SkillUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddNpcSkillIDs(ids...)
+}
+
+// SetFactionID sets the "faction" edge to the Faction entity by ID.
+func (_u *SkillUpdate) SetFactionID(id int) *SkillUpdate {
+	_u.mutation.SetFactionID(id)
+	return _u
+}
+
+// SetNillableFactionID sets the "faction" edge to the Faction entity by ID if the given value is not nil.
+func (_u *SkillUpdate) SetNillableFactionID(id *int) *SkillUpdate {
+	if id != nil {
+		_u = _u.SetFactionID(*id)
+	}
+	return _u
+}
+
+// SetFaction sets the "faction" edge to the Faction entity.
+func (_u *SkillUpdate) SetFaction(v *Faction) *SkillUpdate {
+	return _u.SetFactionID(v.ID)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -368,6 +498,12 @@ func (_u *SkillUpdate) RemoveNpcSkills(v ...*NPCSkill) *SkillUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNpcSkillIDs(ids...)
+}
+
+// ClearFaction clears the "faction" edge to the Faction entity.
+func (_u *SkillUpdate) ClearFaction() *SkillUpdate {
+	_u.mutation.ClearFaction()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -478,6 +614,36 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedHpCost(); ok {
 		_spec.AddField(skill.FieldHpCost, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.Slug(); ok {
+		_spec.SetField(skill.FieldSlug, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RequiredTag(); ok {
+		_spec.SetField(skill.FieldRequiredTag, field.TypeString, value)
+	}
+	if _u.mutation.RequiredTagCleared() {
+		_spec.ClearField(skill.FieldRequiredTag, field.TypeString)
+	}
+	if value, ok := _u.mutation.SkillClass(); ok {
+		_spec.SetField(skill.FieldSkillClass, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ProcChance(); ok {
+		_spec.SetField(skill.FieldProcChance, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedProcChance(); ok {
+		_spec.AddField(skill.FieldProcChance, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ProcEvent(); ok {
+		_spec.SetField(skill.FieldProcEvent, field.TypeString, value)
+	}
+	if _u.mutation.ProcEventCleared() {
+		_spec.ClearField(skill.FieldProcEvent, field.TypeString)
+	}
+	if value, ok := _u.mutation.CooldownSeconds(); ok {
+		_spec.SetField(skill.FieldCooldownSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCooldownSeconds(); ok {
+		_spec.AddField(skill.FieldCooldownSeconds, field.TypeInt, value)
+	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -561,6 +727,35 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FactionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.FactionTable,
+			Columns: []string{skill.FactionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(faction.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FactionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.FactionTable,
+			Columns: []string{skill.FactionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(faction.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -852,6 +1047,116 @@ func (_u *SkillUpdateOne) AddHpCost(v int) *SkillUpdateOne {
 	return _u
 }
 
+// SetSlug sets the "slug" field.
+func (_u *SkillUpdateOne) SetSlug(v string) *SkillUpdateOne {
+	_u.mutation.SetSlug(v)
+	return _u
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableSlug(v *string) *SkillUpdateOne {
+	if v != nil {
+		_u.SetSlug(*v)
+	}
+	return _u
+}
+
+// SetRequiredTag sets the "required_tag" field.
+func (_u *SkillUpdateOne) SetRequiredTag(v string) *SkillUpdateOne {
+	_u.mutation.SetRequiredTag(v)
+	return _u
+}
+
+// SetNillableRequiredTag sets the "required_tag" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableRequiredTag(v *string) *SkillUpdateOne {
+	if v != nil {
+		_u.SetRequiredTag(*v)
+	}
+	return _u
+}
+
+// ClearRequiredTag clears the value of the "required_tag" field.
+func (_u *SkillUpdateOne) ClearRequiredTag() *SkillUpdateOne {
+	_u.mutation.ClearRequiredTag()
+	return _u
+}
+
+// SetSkillClass sets the "skill_class" field.
+func (_u *SkillUpdateOne) SetSkillClass(v string) *SkillUpdateOne {
+	_u.mutation.SetSkillClass(v)
+	return _u
+}
+
+// SetNillableSkillClass sets the "skill_class" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableSkillClass(v *string) *SkillUpdateOne {
+	if v != nil {
+		_u.SetSkillClass(*v)
+	}
+	return _u
+}
+
+// SetProcChance sets the "proc_chance" field.
+func (_u *SkillUpdateOne) SetProcChance(v float64) *SkillUpdateOne {
+	_u.mutation.ResetProcChance()
+	_u.mutation.SetProcChance(v)
+	return _u
+}
+
+// SetNillableProcChance sets the "proc_chance" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableProcChance(v *float64) *SkillUpdateOne {
+	if v != nil {
+		_u.SetProcChance(*v)
+	}
+	return _u
+}
+
+// AddProcChance adds value to the "proc_chance" field.
+func (_u *SkillUpdateOne) AddProcChance(v float64) *SkillUpdateOne {
+	_u.mutation.AddProcChance(v)
+	return _u
+}
+
+// SetProcEvent sets the "proc_event" field.
+func (_u *SkillUpdateOne) SetProcEvent(v string) *SkillUpdateOne {
+	_u.mutation.SetProcEvent(v)
+	return _u
+}
+
+// SetNillableProcEvent sets the "proc_event" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableProcEvent(v *string) *SkillUpdateOne {
+	if v != nil {
+		_u.SetProcEvent(*v)
+	}
+	return _u
+}
+
+// ClearProcEvent clears the value of the "proc_event" field.
+func (_u *SkillUpdateOne) ClearProcEvent() *SkillUpdateOne {
+	_u.mutation.ClearProcEvent()
+	return _u
+}
+
+// SetCooldownSeconds sets the "cooldown_seconds" field.
+func (_u *SkillUpdateOne) SetCooldownSeconds(v int) *SkillUpdateOne {
+	_u.mutation.ResetCooldownSeconds()
+	_u.mutation.SetCooldownSeconds(v)
+	return _u
+}
+
+// SetNillableCooldownSeconds sets the "cooldown_seconds" field if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableCooldownSeconds(v *int) *SkillUpdateOne {
+	if v != nil {
+		_u.SetCooldownSeconds(*v)
+	}
+	return _u
+}
+
+// AddCooldownSeconds adds value to the "cooldown_seconds" field.
+func (_u *SkillUpdateOne) AddCooldownSeconds(v int) *SkillUpdateOne {
+	_u.mutation.AddCooldownSeconds(v)
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterSkill entity by IDs.
 func (_u *SkillUpdateOne) AddCharacterIDs(ids ...int) *SkillUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -880,6 +1185,25 @@ func (_u *SkillUpdateOne) AddNpcSkills(v ...*NPCSkill) *SkillUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddNpcSkillIDs(ids...)
+}
+
+// SetFactionID sets the "faction" edge to the Faction entity by ID.
+func (_u *SkillUpdateOne) SetFactionID(id int) *SkillUpdateOne {
+	_u.mutation.SetFactionID(id)
+	return _u
+}
+
+// SetNillableFactionID sets the "faction" edge to the Faction entity by ID if the given value is not nil.
+func (_u *SkillUpdateOne) SetNillableFactionID(id *int) *SkillUpdateOne {
+	if id != nil {
+		_u = _u.SetFactionID(*id)
+	}
+	return _u
+}
+
+// SetFaction sets the "faction" edge to the Faction entity.
+func (_u *SkillUpdateOne) SetFaction(v *Faction) *SkillUpdateOne {
+	return _u.SetFactionID(v.ID)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -927,6 +1251,12 @@ func (_u *SkillUpdateOne) RemoveNpcSkills(v ...*NPCSkill) *SkillUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNpcSkillIDs(ids...)
+}
+
+// ClearFaction clears the "faction" edge to the Faction entity.
+func (_u *SkillUpdateOne) ClearFaction() *SkillUpdateOne {
+	_u.mutation.ClearFaction()
+	return _u
 }
 
 // Where appends a list predicates to the SkillUpdate builder.
@@ -1067,6 +1397,36 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 	if value, ok := _u.mutation.AddedHpCost(); ok {
 		_spec.AddField(skill.FieldHpCost, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.Slug(); ok {
+		_spec.SetField(skill.FieldSlug, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RequiredTag(); ok {
+		_spec.SetField(skill.FieldRequiredTag, field.TypeString, value)
+	}
+	if _u.mutation.RequiredTagCleared() {
+		_spec.ClearField(skill.FieldRequiredTag, field.TypeString)
+	}
+	if value, ok := _u.mutation.SkillClass(); ok {
+		_spec.SetField(skill.FieldSkillClass, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ProcChance(); ok {
+		_spec.SetField(skill.FieldProcChance, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedProcChance(); ok {
+		_spec.AddField(skill.FieldProcChance, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ProcEvent(); ok {
+		_spec.SetField(skill.FieldProcEvent, field.TypeString, value)
+	}
+	if _u.mutation.ProcEventCleared() {
+		_spec.ClearField(skill.FieldProcEvent, field.TypeString)
+	}
+	if value, ok := _u.mutation.CooldownSeconds(); ok {
+		_spec.SetField(skill.FieldCooldownSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCooldownSeconds(); ok {
+		_spec.AddField(skill.FieldCooldownSeconds, field.TypeInt, value)
+	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1150,6 +1510,35 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FactionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.FactionTable,
+			Columns: []string{skill.FactionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(faction.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FactionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   skill.FactionTable,
+			Columns: []string{skill.FactionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(faction.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

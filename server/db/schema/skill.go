@@ -51,6 +51,26 @@ func (Skill) Fields() []ent.Field {
 		field.Int("hp_cost").
 			Default(0).
 			Comment("HP sacrificed to use skill"),
+		// Faction skill fields
+		field.String("slug").
+			Unique().
+			Optional().
+			Comment("Globally unique skill identifier e.g., foot_clan_power_strike"),
+		field.String("required_tag").
+			Optional().
+			Comment("Tag required to unlock this skill beyond faction membership"),
+		field.String("skill_class").
+			Default("active").
+			Comment("passive or active"),
+		field.Float("proc_chance").
+			Default(0).
+			Comment("For passives: % chance to proc (0.15 = 15%)"),
+		field.String("proc_event").
+			Optional().
+			Comment("What triggers the proc: on_hit, on_hit_received, on_crit, on_kill"),
+		field.Int("cooldown_seconds").
+			Default(0).
+			Comment("For actives: cooldown in seconds"),
 	}
 }
 
@@ -59,5 +79,8 @@ func (Skill) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("characters", CharacterSkill.Type),
 		edge.To("npc_skills", NPCSkill.Type),
+		edge.From("faction", Faction.Type).
+			Ref("skills").
+			Unique(),
 	}
 }

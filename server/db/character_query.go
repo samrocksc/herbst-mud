@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
+	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
@@ -25,17 +27,19 @@ import (
 // CharacterQuery is the builder for querying Character entities.
 type CharacterQuery struct {
 	config
-	ctx                  *QueryContext
-	order                []character.OrderOption
-	inters               []Interceptor
-	predicates           []predicate.Character
-	withUser             *UserQuery
-	withRoom             *RoomQuery
-	withNpcTemplate      *NPCTemplateQuery
-	withAvailableTalents *AvailableTalentQuery
-	withSkills           *CharacterSkillQuery
-	withTalents          *CharacterTalentQuery
-	withFKs              bool
+	ctx                    *QueryContext
+	order                  []character.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.Character
+	withUser               *UserQuery
+	withRoom               *RoomQuery
+	withNpcTemplate        *NPCTemplateQuery
+	withAvailableTalents   *AvailableTalentQuery
+	withSkills             *CharacterSkillQuery
+	withTalents            *CharacterTalentQuery
+	withTags               *CharacterTagQuery
+	withFactionMemberships *CharacterFactionQuery
+	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -197,6 +201,50 @@ func (_q *CharacterQuery) QueryTalents() *CharacterTalentQuery {
 			sqlgraph.From(character.Table, character.FieldID, selector),
 			sqlgraph.To(charactertalent.Table, charactertalent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, character.TalentsTable, character.TalentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTags chains the current query on the "tags" edge.
+func (_q *CharacterQuery) QueryTags() *CharacterTagQuery {
+	query := (&CharacterTagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(charactertag.Table, charactertag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.TagsTable, character.TagsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFactionMemberships chains the current query on the "faction_memberships" edge.
+func (_q *CharacterQuery) QueryFactionMemberships() *CharacterFactionQuery {
+	query := (&CharacterFactionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(characterfaction.Table, characterfaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.FactionMembershipsTable, character.FactionMembershipsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -391,17 +439,19 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		return nil
 	}
 	return &CharacterQuery{
-		config:               _q.config,
-		ctx:                  _q.ctx.Clone(),
-		order:                append([]character.OrderOption{}, _q.order...),
-		inters:               append([]Interceptor{}, _q.inters...),
-		predicates:           append([]predicate.Character{}, _q.predicates...),
-		withUser:             _q.withUser.Clone(),
-		withRoom:             _q.withRoom.Clone(),
-		withNpcTemplate:      _q.withNpcTemplate.Clone(),
-		withAvailableTalents: _q.withAvailableTalents.Clone(),
-		withSkills:           _q.withSkills.Clone(),
-		withTalents:          _q.withTalents.Clone(),
+		config:                 _q.config,
+		ctx:                    _q.ctx.Clone(),
+		order:                  append([]character.OrderOption{}, _q.order...),
+		inters:                 append([]Interceptor{}, _q.inters...),
+		predicates:             append([]predicate.Character{}, _q.predicates...),
+		withUser:               _q.withUser.Clone(),
+		withRoom:               _q.withRoom.Clone(),
+		withNpcTemplate:        _q.withNpcTemplate.Clone(),
+		withAvailableTalents:   _q.withAvailableTalents.Clone(),
+		withSkills:             _q.withSkills.Clone(),
+		withTalents:            _q.withTalents.Clone(),
+		withTags:               _q.withTags.Clone(),
+		withFactionMemberships: _q.withFactionMemberships.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -471,6 +521,28 @@ func (_q *CharacterQuery) WithTalents(opts ...func(*CharacterTalentQuery)) *Char
 		opt(query)
 	}
 	_q.withTalents = query
+	return _q
+}
+
+// WithTags tells the query-builder to eager-load the nodes that are connected to
+// the "tags" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithTags(opts ...func(*CharacterTagQuery)) *CharacterQuery {
+	query := (&CharacterTagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTags = query
+	return _q
+}
+
+// WithFactionMemberships tells the query-builder to eager-load the nodes that are connected to
+// the "faction_memberships" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithFactionMemberships(opts ...func(*CharacterFactionQuery)) *CharacterQuery {
+	query := (&CharacterFactionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFactionMemberships = query
 	return _q
 }
 
@@ -553,13 +625,15 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [8]bool{
 			_q.withUser != nil,
 			_q.withRoom != nil,
 			_q.withNpcTemplate != nil,
 			_q.withAvailableTalents != nil,
 			_q.withSkills != nil,
 			_q.withTalents != nil,
+			_q.withTags != nil,
+			_q.withFactionMemberships != nil,
 		}
 	)
 	if _q.withUser != nil || _q.withNpcTemplate != nil {
@@ -622,6 +696,22 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		if err := _q.loadTalents(ctx, query, nodes,
 			func(n *Character) { n.Edges.Talents = []*CharacterTalent{} },
 			func(n *Character, e *CharacterTalent) { n.Edges.Talents = append(n.Edges.Talents, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTags; query != nil {
+		if err := _q.loadTags(ctx, query, nodes,
+			func(n *Character) { n.Edges.Tags = []*CharacterTag{} },
+			func(n *Character, e *CharacterTag) { n.Edges.Tags = append(n.Edges.Tags, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFactionMemberships; query != nil {
+		if err := _q.loadFactionMemberships(ctx, query, nodes,
+			func(n *Character) { n.Edges.FactionMemberships = []*CharacterFaction{} },
+			func(n *Character, e *CharacterFaction) {
+				n.Edges.FactionMemberships = append(n.Edges.FactionMemberships, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -809,6 +899,68 @@ func (_q *CharacterQuery) loadTalents(ctx context.Context, query *CharacterTalen
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "character_talents" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadTags(ctx context.Context, query *CharacterTagQuery, nodes []*Character, init func(*Character), assign func(*Character, *CharacterTag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.CharacterTag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.TagsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_tags
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_tags" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_tags" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadFactionMemberships(ctx context.Context, query *CharacterFactionQuery, nodes []*Character, init func(*Character), assign func(*Character, *CharacterFaction)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.CharacterFaction(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.FactionMembershipsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_faction_memberships
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_faction_memberships" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_faction_memberships" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

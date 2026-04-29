@@ -24,6 +24,9 @@ func (NPCTemplate) Fields() []ent.Field {
 			Default("neutral"),
 		field.Int("level").
 			Default(1),
+		field.Int("xp_value").
+			Default(0).
+			Comment("Base XP awarded when this NPC is killed by a player"),
 		field.JSON("skills", map[string]int{}),
 		field.Strings("trades_with"),
 		field.Text("greeting"),

@@ -21,6 +21,7 @@ const (
 	screenNPCs
 	screenItems
 	screenQuests
+	screenFactions
 	screenBackup
 	screenWipe
 )
@@ -34,6 +35,7 @@ var screenNames = map[screen]string{
 	screenNPCs:       "NPCs",
 	screenItems:      "Items",
 	screenQuests:     "Quests",
+	screenFactions:   "Factions",
 	screenBackup:     "Backup",
 	screenWipe:       "Wipe World",
 }
@@ -94,7 +96,8 @@ func (m RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.currentUser = UserInfo{ID: msg.UserID, Email: msg.Email, IsAdmin: msg.IsAdmin}
 		m.currentScreen = screenDashboard
 		m.screenModel = screens.NewDashboardScreen(m.token, m.currentUser)
-		return m, nil
+		// Bubble up the new screen's Init command so it runs immediately
+		return m, m.screenModel.Init()
 
 	case screens.NavigateMsg:
 		m.currentScreen = screen(msg.Screen)
@@ -113,6 +116,8 @@ func (m RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.screenModel = screens.NewItemsScreen(m.token)
 		case screenQuests:
 			m.screenModel = screens.NewQuestsScreen(m.token)
+		case screenFactions:
+			m.screenModel = screens.NewFactionsScreen(m.token)
 		case screenBackup:
 			m.screenModel = screens.NewBackupScreen(m.token)
 		case screenWipe:
@@ -146,6 +151,7 @@ func (m RootModel) renderNav() string {
 		"[N]PCs",
 		"[I]tems",
 		"[Q]uests",
+		"[F]actions",
 		"[B]ackup",
 		"[W]ipe",
 		"[Esc]Back",
@@ -190,6 +196,8 @@ func screenFromKey(item string) screen {
 		return screenItems
 	case 'Q':
 		return screenQuests
+	case 'F':
+		return screenFactions
 	case 'B':
 		return screenBackup
 	case 'W':

@@ -154,6 +154,11 @@ func Level(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldLevel, v))
 }
 
+// Xp applies equality check predicate on the "xp" field. It's identical to XpEQ.
+func Xp(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldXp, v))
+}
+
 // Constitution applies equality check predicate on the "constitution" field. It's identical to ConstitutionEQ.
 func Constitution(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldConstitution, v))
@@ -1104,6 +1109,46 @@ func LevelLTE(v int) predicate.Character {
 	return predicate.Character(sql.FieldLTE(FieldLevel, v))
 }
 
+// XpEQ applies the EQ predicate on the "xp" field.
+func XpEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldXp, v))
+}
+
+// XpNEQ applies the NEQ predicate on the "xp" field.
+func XpNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldXp, v))
+}
+
+// XpIn applies the In predicate on the "xp" field.
+func XpIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldXp, vs...))
+}
+
+// XpNotIn applies the NotIn predicate on the "xp" field.
+func XpNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldXp, vs...))
+}
+
+// XpGT applies the GT predicate on the "xp" field.
+func XpGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldXp, v))
+}
+
+// XpGTE applies the GTE predicate on the "xp" field.
+func XpGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldXp, v))
+}
+
+// XpLT applies the LT predicate on the "xp" field.
+func XpLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldXp, v))
+}
+
+// XpLTE applies the LTE predicate on the "xp" field.
+func XpLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldXp, v))
+}
+
 // ConstitutionEQ applies the EQ predicate on the "constitution" field.
 func ConstitutionEQ(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldConstitution, v))
@@ -1944,6 +1989,52 @@ func HasTalents() predicate.Character {
 func HasTalentsWith(preds ...predicate.CharacterTalent) predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
 		step := newTalentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTags applies the HasEdge predicate on the "tags" edge.
+func HasTags() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TagsTable, TagsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTagsWith applies the HasEdge predicate on the "tags" edge with a given conditions (other predicates).
+func HasTagsWith(preds ...predicate.CharacterTag) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newTagsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFactionMemberships applies the HasEdge predicate on the "faction_memberships" edge.
+func HasFactionMemberships() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FactionMembershipsTable, FactionMembershipsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFactionMembershipsWith applies the HasEdge predicate on the "faction_memberships" edge with a given conditions (other predicates).
+func HasFactionMembershipsWith(preds ...predicate.CharacterFaction) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newFactionMembershipsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

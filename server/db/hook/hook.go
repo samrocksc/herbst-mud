@@ -32,6 +32,18 @@ func (f CharacterFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterMutation", m)
 }
 
+// The CharacterFactionFunc type is an adapter to allow the use of ordinary
+// function as CharacterFaction mutator.
+type CharacterFactionFunc func(context.Context, *db.CharacterFactionMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterFactionFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterFactionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterFactionMutation", m)
+}
+
 // The CharacterSkillFunc type is an adapter to allow the use of ordinary
 // function as CharacterSkill mutator.
 type CharacterSkillFunc func(context.Context, *db.CharacterSkillMutation) (db.Value, error)
@@ -42,6 +54,18 @@ func (f CharacterSkillFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterSkillMutation", m)
+}
+
+// The CharacterTagFunc type is an adapter to allow the use of ordinary
+// function as CharacterTag mutator.
+type CharacterTagFunc func(context.Context, *db.CharacterTagMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterTagFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterTagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterTagMutation", m)
 }
 
 // The CharacterTalentFunc type is an adapter to allow the use of ordinary
@@ -66,6 +90,42 @@ func (f EquipmentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EquipmentMutation", m)
+}
+
+// The FactionFunc type is an adapter to allow the use of ordinary
+// function as Faction mutator.
+type FactionFunc func(context.Context, *db.FactionMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FactionFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.FactionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.FactionMutation", m)
+}
+
+// The FactionCategoryFunc type is an adapter to allow the use of ordinary
+// function as FactionCategory mutator.
+type FactionCategoryFunc func(context.Context, *db.FactionCategoryMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FactionCategoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.FactionCategoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.FactionCategoryMutation", m)
+}
+
+// The FactionRequiredTagFunc type is an adapter to allow the use of ordinary
+// function as FactionRequiredTag mutator.
+type FactionRequiredTagFunc func(context.Context, *db.FactionRequiredTagMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FactionRequiredTagFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.FactionRequiredTagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.FactionRequiredTagMutation", m)
 }
 
 // The GameConfigFunc type is an adapter to allow the use of ordinary

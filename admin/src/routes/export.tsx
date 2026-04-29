@@ -175,7 +175,7 @@ function ExportPage() {
             </button>
             <h1 className="text-primary">Game Export / Import</h1>
           </div>
-          <button onClick={handleLogout} className="px-4 py-2 bg-danger border-none rounded text-white cursor-pointer hover:opacity-80">
+          <button onClick={handleLogout} className="px-4 py-2 bg-danger border-2 border-black rounded text-white cursor-pointer hover:opacity-80">
             Logout
           </button>
         </div>
@@ -209,7 +209,7 @@ function ExportPage() {
             <button
               onClick={handleExport}
               disabled={loading}
-              className="w-full px-4 py-3 bg-primary border-none rounded text-white font-bold cursor-pointer hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 bg-primary border-2 border-black rounded text-white font-bold cursor-pointer hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Exporting...' : '📥 Export to JSON'}
             </button>
@@ -260,7 +260,7 @@ function ExportPage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
-                className="w-full px-4 py-3 bg-accent border-none rounded text-white font-bold cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 bg-accent border-2 border-black rounded text-white font-bold cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Validating...' : '📤 Select JSON File'}
               </button>
@@ -276,7 +276,7 @@ function ExportPage() {
                   <button
                     onClick={handleImport}
                     disabled={loading}
-                    className="flex-1 px-4 py-3 bg-danger border-none rounded text-white font-bold cursor-pointer hover:opacity-80"
+                    className="flex-1 px-4 py-3 bg-danger border-2 border-black rounded text-white font-bold cursor-pointer hover:opacity-80"
                   >
                     {loading ? 'Importing...' : '✓ Confirm Import'}
                   </button>
@@ -335,7 +335,7 @@ function ExportPage() {
               <button
                 onClick={() => setShowWipeConfirm(true)}
                 disabled={loading}
-                className="w-full px-4 py-3 bg-red-700 border-none rounded text-white font-bold cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 bg-red-700 border-2 border-black rounded text-white font-bold cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 🗑️ Wipe & Reload Game World
               </button>
@@ -354,7 +354,7 @@ function ExportPage() {
                   <button
                     onClick={handleWipe}
                     disabled={loading}
-                    className="flex-1 px-6 py-4 bg-red-600 border-none rounded text-white font-bold cursor-pointer hover:bg-red-500 text-lg"
+                    className="flex-1 px-6 py-4 bg-red-600 border-2 border-black rounded text-white font-bold cursor-pointer hover:bg-red-500 text-lg"
                   >
                     {loading ? 'Wiping...' : '☠️ YES - WIPE EVERYTHING'}
                   </button>

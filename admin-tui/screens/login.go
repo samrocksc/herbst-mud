@@ -38,7 +38,6 @@ func (m LoginModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focused = 1
 				return m, nil
 			}
-			// Attempt login
 			m.loading = true
 			resp, err := api.Login(m.email, m.password)
 			if err != nil {
@@ -46,15 +45,12 @@ func (m LoginModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.loading = false
 				return m, nil
 			}
-			// Login succeeded — signal main to switch screen
 			return m, func() tea.Msg {
 				return AuthSuccessMsg{Token: resp.Token, UserID: resp.UserID, Email: resp.Email, IsAdmin: resp.IsAdmin}
 			}
 		case "ctrl+c", "esc":
 			return m, tea.Quit
 		}
-
-		// Typing
 		if m.focused == 0 {
 			switch msg.String() {
 			case "backspace":
@@ -87,17 +83,14 @@ func (m LoginModel) View() string {
 	if m.focused == 1 {
 		passwordStyle = style.StyleInputFocused
 	}
-
 	errStr := ""
 	if m.errMsg != "" {
 		errStr = "\n" + style.Error(m.errMsg)
 	}
-
 	loadingStr := ""
 	if m.loading {
 		loadingStr = "\n" + style.Info("Logging in...")
 	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -113,7 +106,7 @@ func (m LoginModel) View() string {
 		style.StyleLabel.Render("Email:"),
 		emailStyle.Width(40).Render(m.email),
 		style.StyleLabel.Render("Password:"),
-		passwordStyle.Width(40).Render(mask(m.password)),
+		passwordStyle.Width(40).Render(maskPwd(m.password)),
 		style.StyleMuted.Render("  [Tab] toggle field"),
 		style.StyleMuted.Render("[Enter] login"),
 		style.StyleMuted.Render("  [Esc] quit"),
@@ -121,12 +114,12 @@ func (m LoginModel) View() string {
 	)
 }
 
-func mask(s string) string {
-	result := ""
+func maskPwd(s string) string {
+	r := ""
 	for range s {
-		result += "•"
+		r += "•"
 	}
-	return result
+	return r
 }
 
 // AuthSuccessMsg signals login success to the root model.
