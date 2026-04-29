@@ -1031,6 +1031,11 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		// Build response with NPC info
 		result := make([]gin.H, len(npcs))
 		for i, npc := range npcs {
+			// Default XP reward: level * 10, but look up template xp_value if available
+			xpValue := npc.Level * 10
+			if tmpl, err := client.NPCTemplate.Get(c.Request.Context(), npc.Name); err == nil && tmpl.XpValue > 0 {
+				xpValue = tmpl.XpValue
+			}
 			result[i] = gin.H{
 				"id":              npc.ID,
 				"name":            npc.Name,
@@ -1041,6 +1046,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				"level":           npc.Level,
 				"hitpoints":       npc.Hitpoints,
 				"max_hitpoints":   npc.MaxHitpoints,
+				"xpValue":         xpValue,
 			}
 		}
 

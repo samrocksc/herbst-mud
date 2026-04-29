@@ -17,6 +17,7 @@ import { Route as ExportRouteImport } from './routes/export'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthXpRouteImport } from './routes/_auth/xp'
 import { Route as AuthTalentsRouteImport } from './routes/_auth/talents'
 import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
 import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
@@ -62,6 +63,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthXpRoute = AuthXpRouteImport.update({
+  id: '/xp',
+  path: '/xp',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthTalentsRoute = AuthTalentsRouteImport.update({
   id: '/talents',
   path: '/talents',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/players': typeof AuthPlayersRoute
   '/skills': typeof AuthSkillsRoute
   '/talents': typeof AuthTalentsRoute
+  '/xp': typeof AuthXpRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/players': typeof AuthPlayersRoute
   '/skills': typeof AuthSkillsRoute
   '/talents': typeof AuthTalentsRoute
+  '/xp': typeof AuthXpRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/_auth/players': typeof AuthPlayersRoute
   '/_auth/skills': typeof AuthSkillsRoute
   '/_auth/talents': typeof AuthTalentsRoute
+  '/_auth/xp': typeof AuthXpRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/players'
     | '/skills'
     | '/talents'
+    | '/xp'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/players'
     | '/skills'
     | '/talents'
+    | '/xp'
   id:
     | '__root__'
     | '/'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/_auth/players'
     | '/_auth/skills'
     | '/_auth/talents'
+    | '/_auth/xp'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/xp': {
+      id: '/_auth/xp'
+      path: '/xp'
+      fullPath: '/xp'
+      preLoaderRoute: typeof AuthXpRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/talents': {
       id: '/_auth/talents'
       path: '/talents'
@@ -291,6 +310,7 @@ interface AuthRouteChildren {
   AuthPlayersRoute: typeof AuthPlayersRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
   AuthTalentsRoute: typeof AuthTalentsRoute
+  AuthXpRoute: typeof AuthXpRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -299,6 +319,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthPlayersRoute: AuthPlayersRoute,
   AuthSkillsRoute: AuthSkillsRoute,
   AuthTalentsRoute: AuthTalentsRoute,
+  AuthXpRoute: AuthXpRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

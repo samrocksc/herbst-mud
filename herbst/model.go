@@ -174,15 +174,16 @@ type RoomItem struct {
 
 // RoomCharacter represents a character in a room
 type RoomCharacter struct {
-	ID     int    `json:"id"`
-	Name   string `json:"name"`
-	IsNPC  bool   `json:"isNPC"`
-	Level  int    `json:"level"`
-	Class  string `json:"class"`
-	Race   string `json:"race"`
-	UserID int    `json:"userId"`
-	HP     int    `json:"hp"`
-	MaxHP  int    `json:"maxHp"`
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	IsNPC    bool   `json:"isNPC"`
+	Level    int    `json:"level"`
+	Class    string `json:"class"`
+	Race     string `json:"race"`
+	UserID   int    `json:"userId"`
+	HP       int    `json:"hp"`
+	MaxHP    int    `json:"maxHp"`
+	XpValue  int    `json:"xpValue"` // XP awarded when this NPC is defeated
 }
 
 // Note: HiddenDetail is defined separately in examine_skill.go for that system

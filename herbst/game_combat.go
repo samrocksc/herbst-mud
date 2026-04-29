@@ -144,7 +144,12 @@ func (m *model) performCombatAttack() {
 	if m.combatTarget.HP <= 0 {
 		m.addCombatLog(fmt.Sprintf("✦ %s has been defeated!", m.combatTarget.Name))
 		m.AppendMessage(fmt.Sprintf("⚔ You defeated %s!", m.combatTarget.Name), "success")
-		
+
+		// Fire XP event for NPC defeat
+		if m.combatTarget.IsNPC && m.combatTarget.XpValue > 0 {
+			FireDefeatEvent(m.currentCharacterID, m.combatTarget.XpValue)
+		}
+
 		// Generate corpse
 		// Generate corpse with victim's equipment
 		m.generateCorpse(m.combatTarget)

@@ -3,6 +3,7 @@ import { useLocation } from '@tanstack/react-router'
 
 const navItems = [
   { label: 'Dashboard', path: '/dashboard' },
+  { label: 'XP', path: '/xp' },
   { label: 'Config', path: '/config' },
   { label: 'Factions', path: '/factions' },
   { label: 'Items', path: '/items' },
@@ -18,6 +19,11 @@ const iconMap: Record<string, () => React.ReactNode> = {
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/>
       <rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
+    </svg>
+  ),
+  XP: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
     </svg>
   ),
   Config: () => (
