@@ -258,6 +258,9 @@ func main() {
 	// Register backup routes
 	routes.RegisterBackupRoutes(router, client)
 
+	// Register faction routes
+	routes.RegisterFactionRoutes(router, client)
+
 	// Register game export/import routes
 	routes.RegisterGameExportRoutes(router, client)
 
