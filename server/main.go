@@ -285,15 +285,13 @@ func main() {
 	})
 
 	// OpenAPI spec — served from static file (generated; see tools/openapi-gen/)
+	// Binary runs from repo root, so use ./server/static/ relative to that
+	staticPath := "./server/static"
 	router.GET("/openapi.json", func(c *gin.Context) {
-		c.File("./static/openapi.json")
+		c.File(staticPath + "/openapi.json")
 	})
-
-	// Swagger UI — visit http://localhost:8080/docs
 	router.GET("/docs", func(c *gin.Context) {
-		c.Header("Content-Type", "text/html")
-		c.Header("Cache-Control", "no-cache")
-		c.File("./static/swagger/index.html")
+		c.File(staticPath + "/swagger/index.html")
 	})
 
 	// Start the server
