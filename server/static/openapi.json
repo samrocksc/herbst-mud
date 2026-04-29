@@ -1,0 +1,3018 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Herbst MUD API",
+    "description": "REST API for the Herbst MUD game server. All endpoints that modify data require JWT authentication via /users/auth.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "GET /healthz",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "System"
+        ]
+      }
+    },
+    "/characters/authenticate": {
+      "post": {
+        "summary": "Authenticate character",
+        "responses": {
+          "201": {
+            "description": "POST /characters/authenticate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRequest"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/users/auth": {
+      "post": {
+        "summary": "Authenticate user",
+        "responses": {
+          "201": {
+            "description": "POST /users/auth",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRequest"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/characters": {
+      "get": {
+        "summary": "List all characters",
+        "responses": {
+          "200": {
+            "description": "GET /characters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "tags": [
+          "Characters"
+        ]
+      },
+      "post": {
+        "summary": "Create character",
+        "responses": {
+          "201": {
+            "description": "POST /characters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Character"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CharacterInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}": {
+      "get": {
+        "summary": "Get character by ID",
+        "responses": {
+          "200": {
+            "description": "GET /characters/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Character"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "put": {
+        "summary": "Update character",
+        "responses": {
+          "200": {
+            "description": "PUT /characters/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Character"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CharacterInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Characters"
+        ]
+      },
+      "delete": {
+        "summary": "Delete character",
+        "responses": {
+          "204": {
+            "description": "DELETE /characters/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Character"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/stats": {
+      "get": {
+        "summary": "Get character stats",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "put": {
+        "summary": "Update character stats",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/skills": {
+      "get": {
+        "summary": "Get character skills (hotbar)",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "put": {
+        "summary": "Set character skills",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/talents": {
+      "get": {
+        "summary": "Get character talents",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "post": {
+        "summary": "Learn talent",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/talents/{slot}": {
+      "delete": {
+        "summary": "Unlearn talent from slot",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/talents/swap": {
+      "put": {
+        "summary": "Swap talent slots",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/available-talents": {
+      "get": {
+        "summary": "List learnable talents",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "post": {
+        "summary": "Learn available talent",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/available-talents/{talentId}": {
+      "delete": {
+        "summary": "Unlearn available talent",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "talentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/class": {
+      "get": {
+        "summary": "Get character class info",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "put": {
+        "summary": "Change character class",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/specialty": {
+      "get": {
+        "summary": "Get character specialty",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "put": {
+        "summary": "Set character specialty",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/race": {
+      "get": {
+        "summary": "Get character race",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "put": {
+        "summary": "Set character race",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/combat-status": {
+      "get": {
+        "summary": "Get combat status",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/damage": {
+      "post": {
+        "summary": "Apply damage",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/heal": {
+      "post": {
+        "summary": "Heal character",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/stamina": {
+      "post": {
+        "summary": "Recover stamina",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/mana": {
+      "post": {
+        "summary": "Recover mana",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/classless-skills": {
+      "get": {
+        "summary": "Get classless skills",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "post": {
+        "summary": "Learn classless skill",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/characters/{id}/classless-skills/swap": {
+      "put": {
+        "summary": "Swap classless skill slots",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/user-characters/{id}": {
+      "get": {
+        "summary": "Get user's characters",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      },
+      "post": {
+        "summary": "Create character for user",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/user-characters/{id}/needed": {
+      "get": {
+        "summary": "Get needed items for user",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Characters"
+        ]
+      }
+    },
+    "/rooms": {
+      "get": {
+        "summary": "List all rooms",
+        "responses": {},
+        "tags": [
+          "Rooms"
+        ]
+      },
+      "post": {
+        "summary": "Create room",
+        "responses": {
+          "201": {
+            "description": "POST /rooms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/rooms/{id}": {
+      "get": {
+        "summary": "Get room by ID",
+        "responses": {
+          "200": {
+            "description": "GET /rooms/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Rooms"
+        ]
+      },
+      "put": {
+        "summary": "Update room",
+        "responses": {
+          "200": {
+            "description": "PUT /rooms/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Rooms"
+        ]
+      },
+      "delete": {
+        "summary": "Delete room",
+        "responses": {
+          "204": {
+            "description": "DELETE /rooms/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/rooms/{id}/characters": {
+      "get": {
+        "summary": "List characters in room",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/rooms/{id}/look": {
+      "get": {
+        "summary": "Look at room",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/npcs": {
+      "get": {
+        "summary": "List all NPCs",
+        "responses": {},
+        "tags": [
+          "NPCs"
+        ]
+      }
+    },
+    "/npcs/room/{id}": {
+      "get": {
+        "summary": "List NPCs in room",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "NPCs"
+        ]
+      }
+    },
+    "/rooms/{id}/npcs/heal": {
+      "post": {
+        "summary": "Heal NPC in room",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "NPCs"
+        ]
+      }
+    },
+    "/rooms/{id}/npcs/passive-heal": {
+      "post": {
+        "summary": "Passive heal NPC in room",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "NPCs"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "List all users",
+        "responses": {},
+        "tags": [
+          "Users"
+        ]
+      },
+      "post": {
+        "summary": "Create user",
+        "responses": {
+          "201": {
+            "description": "POST /users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "responses": {
+          "200": {
+            "description": "GET /users/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      },
+      "put": {
+        "summary": "Update user",
+        "responses": {
+          "200": {
+            "description": "PUT /users/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "summary": "Delete user",
+        "responses": {
+          "204": {
+            "description": "DELETE /users/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/{id}/reset-password": {
+      "post": {
+        "summary": "Reset user password",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/skills": {
+      "get": {
+        "summary": "List all skills",
+        "responses": {},
+        "tags": [
+          "Skills"
+        ]
+      },
+      "post": {
+        "summary": "Create skill",
+        "responses": {
+          "201": {
+            "description": "POST /skills",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Skill"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/skills/{id}": {
+      "get": {
+        "summary": "Get skill by ID",
+        "responses": {
+          "200": {
+            "description": "GET /skills/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Skill"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      },
+      "put": {
+        "summary": "Update skill",
+        "responses": {
+          "200": {
+            "description": "PUT /skills/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Skill"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Skills"
+        ]
+      },
+      "delete": {
+        "summary": "Delete skill",
+        "responses": {
+          "204": {
+            "description": "DELETE /skills/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Skill"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/skills/type/{type}": {
+      "get": {
+        "summary": "List skills by type",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/skills/effect/{effectType}": {
+      "get": {
+        "summary": "List skills by effect type",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "effectType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/talents": {
+      "get": {
+        "summary": "List all talents",
+        "responses": {},
+        "tags": [
+          "Talents"
+        ]
+      },
+      "post": {
+        "summary": "Create talent",
+        "responses": {
+          "201": {
+            "description": "POST /talents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Talent"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TalentInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Talents"
+        ]
+      }
+    },
+    "/talents/{id}": {
+      "get": {
+        "summary": "Get talent by ID",
+        "responses": {
+          "200": {
+            "description": "GET /talents/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Talent"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Talents"
+        ]
+      },
+      "put": {
+        "summary": "Update talent",
+        "responses": {
+          "200": {
+            "description": "PUT /talents/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Talent"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TalentInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Talents"
+        ]
+      },
+      "delete": {
+        "summary": "Delete talent",
+        "responses": {
+          "204": {
+            "description": "DELETE /talents/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Talent"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Talents"
+        ]
+      }
+    },
+    "/talents/effect/{effectType}": {
+      "get": {
+        "summary": "List talents by effect type",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "effectType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Talents"
+        ]
+      }
+    },
+    "/equipment": {
+      "get": {
+        "summary": "List all items",
+        "responses": {},
+        "tags": [
+          "Equipment"
+        ]
+      },
+      "post": {
+        "summary": "Create item",
+        "responses": {
+          "201": {
+            "description": "POST /equipment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Equipment"
+        ]
+      }
+    },
+    "/equipment/{id}": {
+      "get": {
+        "summary": "Get item by ID",
+        "responses": {
+          "200": {
+            "description": "GET /equipment/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Equipment"
+        ]
+      },
+      "put": {
+        "summary": "Update item",
+        "responses": {
+          "200": {
+            "description": "PUT /equipment/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Equipment"
+        ]
+      },
+      "delete": {
+        "summary": "Delete item",
+        "responses": {
+          "204": {
+            "description": "DELETE /equipment/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Equipment"
+        ]
+      }
+    },
+    "/equipment/{id}/examine": {
+      "get": {
+        "summary": "Examine item",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Equipment"
+        ]
+      }
+    },
+    "/equipment/{id}/reveal": {
+      "post": {
+        "summary": "Reveal hidden item",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Equipment"
+        ]
+      },
+      "get": {
+        "summary": "Check if item is revealed",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Equipment"
+        ]
+      }
+    },
+    "/rooms/{id}/equipment": {
+      "get": {
+        "summary": "List equipment in room",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Equipment"
+        ]
+      }
+    },
+    "/content/skills": {
+      "get": {
+        "summary": "List content skills",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/skills/{id}": {
+      "get": {
+        "summary": "Get content skill",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/skills/tag/{tag}": {
+      "get": {
+        "summary": "List skills by tag",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "tag",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/skills/class/{class}": {
+      "get": {
+        "summary": "List skills by class",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "class",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/items": {
+      "get": {
+        "summary": "List content items",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/items/{id}": {
+      "get": {
+        "summary": "Get content item",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/npcs": {
+      "get": {
+        "summary": "List content NPCs",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/npcs/{id}": {
+      "get": {
+        "summary": "Get content NPC",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/rooms": {
+      "get": {
+        "summary": "List content rooms",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/rooms/{id}": {
+      "get": {
+        "summary": "Get content room",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/rooms/{id}/exits": {
+      "get": {
+        "summary": "Get room exits",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/quests": {
+      "get": {
+        "summary": "List content quests",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/quests/{id}": {
+      "get": {
+        "summary": "Get quest",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/quests/difficulty/{difficulty}": {
+      "get": {
+        "summary": "List quests by difficulty",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "difficulty",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/quests/type/{type}": {
+      "get": {
+        "summary": "List quests by type",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/stats": {
+      "get": {
+        "summary": "Get server stats",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/content/validate": {
+      "get": {
+        "summary": "Validate content",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/admin/content/validate": {
+      "post": {
+        "summary": "Validate content YAML",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/admin/content/preview": {
+      "post": {
+        "summary": "Preview content YAML",
+        "responses": {},
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/game-config/{key}": {
+      "get": {
+        "summary": "Get game config value",
+        "responses": {
+          "200": {
+            "description": "GET /game-config/{key}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameConfig"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "tags": [
+          "Game Config"
+        ]
+      },
+      "put": {
+        "summary": "Update game config value",
+        "responses": {
+          "200": {
+            "description": "PUT /game-config/{key}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameConfig"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameConfigInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Game Config"
+        ]
+      }
+    },
+    "/classes/{class}/specialties": {
+      "get": {
+        "summary": "List specialties for class",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "class",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Game Data"
+        ]
+      }
+    },
+    "/races": {
+      "get": {
+        "summary": "List all races",
+        "responses": {},
+        "tags": [
+          "Game Data"
+        ]
+      }
+    },
+    "/genders": {
+      "get": {
+        "summary": "List all genders",
+        "responses": {},
+        "tags": [
+          "Game Data"
+        ]
+      }
+    },
+    "/api/backups": {
+      "get": {
+        "summary": "List backups",
+        "responses": {},
+        "tags": [
+          "Backups"
+        ]
+      },
+      "post": {
+        "summary": "Create backup",
+        "responses": {},
+        "tags": [
+          "Backups"
+        ]
+      }
+    },
+    "/api/backups/{id}/manifest": {
+      "get": {
+        "summary": "Get backup manifest",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Backups"
+        ]
+      }
+    },
+    "/api/backups/{id}/validate": {
+      "get": {
+        "summary": "Validate backup",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Backups"
+        ]
+      }
+    },
+    "/api/backups/{id}/restore": {
+      "post": {
+        "summary": "Restore from backup",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Backups"
+        ]
+      }
+    },
+    "/admin/export": {
+      "get": {
+        "summary": "Export game data",
+        "responses": {},
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/import": {
+      "post": {
+        "summary": "Import game data",
+        "responses": {},
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/import/validate": {
+      "post": {
+        "summary": "Validate import data",
+        "responses": {},
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/wipe": {
+      "post": {
+        "summary": "Wipe game data",
+        "responses": {},
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/wipe/full": {
+      "post": {
+        "summary": "Full wipe",
+        "responses": {},
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/worlds": {
+      "get": {
+        "summary": "List all worlds",
+        "responses": {},
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/active": {
+      "get": {
+        "summary": "Get active world",
+        "responses": {},
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}": {
+      "get": {
+        "summary": "Get world by ID",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/stats": {
+      "get": {
+        "summary": "Get world stats",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/content/skills": {
+      "get": {
+        "summary": "List world skills",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/content/skills/{skill_id}": {
+      "get": {
+        "summary": "Get world skill",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/content/npcs": {
+      "get": {
+        "summary": "List world NPCs",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/content/npcs/{npc_id}": {
+      "get": {
+        "summary": "Get world NPC",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "npc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/content/items": {
+      "get": {
+        "summary": "List world items",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/content/rooms": {
+      "get": {
+        "summary": "List world rooms",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/content/quests": {
+      "get": {
+        "summary": "List world quests",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    },
+    "/worlds/{world_id}/content/validate": {
+      "post": {
+        "summary": "Validate world content",
+        "responses": {},
+        "parameters": [
+          {
+            "name": "world_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Worlds"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "ssh": {
+            "type": "string"
+          },
+          "db": {
+            "type": "string"
+          }
+        }
+      },
+      "Character": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isNPC": {
+            "type": "boolean"
+          },
+          "currentRoomId": {
+            "type": "integer"
+          },
+          "startingRoomId": {
+            "type": "integer"
+          },
+          "respawnRoomId": {
+            "type": "integer"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "isImmortal": {
+            "type": "boolean"
+          },
+          "hitpoints": {
+            "type": "integer"
+          },
+          "maxHitpoints": {
+            "type": "integer"
+          },
+          "stamina": {
+            "type": "integer"
+          },
+          "maxStamina": {
+            "type": "integer"
+          },
+          "mana": {
+            "type": "integer"
+          },
+          "maxMana": {
+            "type": "integer"
+          },
+          "race": {
+            "type": "string"
+          },
+          "class": {
+            "type": "string"
+          },
+          "specialty": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer"
+          },
+          "xp": {
+            "type": "integer"
+          },
+          "constitution": {
+            "type": "integer"
+          },
+          "strength": {
+            "type": "integer"
+          },
+          "dexterity": {
+            "type": "integer"
+          },
+          "intelligence": {
+            "type": "integer"
+          },
+          "wisdom": {
+            "type": "integer"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "skillBlades": {
+            "type": "integer"
+          },
+          "skillStaves": {
+            "type": "integer"
+          },
+          "skillKnives": {
+            "type": "integer"
+          },
+          "skillMartial": {
+            "type": "integer"
+          },
+          "skillBrawling": {
+            "type": "integer"
+          },
+          "skillTech": {
+            "type": "integer"
+          },
+          "skillLightArmor": {
+            "type": "integer"
+          },
+          "skillClothArmor": {
+            "type": "integer"
+          },
+          "skillHeavyArmor": {
+            "type": "integer"
+          }
+        }
+      },
+      "CharacterInput": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "1-23 letters only"
+          },
+          "password": {
+            "type": "string"
+          },
+          "isNPC": {
+            "type": "boolean"
+          },
+          "currentRoomId": {
+            "type": "integer"
+          },
+          "startingRoomId": {
+            "type": "integer"
+          },
+          "userId": {
+            "type": "integer"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CharacterList": {
+        "type": "object",
+        "properties": {
+          "characters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Character"
+            }
+          }
+        }
+      },
+      "Room": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isStartingRoom": {
+            "type": "boolean"
+          },
+          "exits": {
+            "type": "object",
+            "description": "direction -> roomId"
+          },
+          "atmosphere": {
+            "type": "string"
+          }
+        }
+      },
+      "RoomInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isStartingRoom": {
+            "type": "boolean"
+          },
+          "exits": {
+            "type": "object"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UserInput": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AuthRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "JWT token"
+          },
+          "userId": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Skill": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "skillType": {
+            "type": "string"
+          },
+          "effectType": {
+            "type": "string"
+          },
+          "effectValue": {
+            "type": "number"
+          },
+          "cooldown": {
+            "type": "integer",
+            "description": "ticks"
+          },
+          "cooldownSeconds": {
+            "type": "integer",
+            "description": "seconds"
+          },
+          "manaCost": {
+            "type": "integer"
+          },
+          "staminaCost": {
+            "type": "integer"
+          },
+          "hpCost": {
+            "type": "integer"
+          }
+        }
+      },
+      "SkillInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "skillType": {
+            "type": "string"
+          },
+          "effectType": {
+            "type": "string"
+          },
+          "effectValue": {
+            "type": "number"
+          },
+          "cooldown": {
+            "type": "integer"
+          },
+          "manaCost": {
+            "type": "integer"
+          },
+          "staminaCost": {
+            "type": "integer"
+          }
+        }
+      },
+      "Talent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "talentType": {
+            "type": "string"
+          },
+          "effectType": {
+            "type": "string"
+          },
+          "effectValue": {
+            "type": "number"
+          },
+          "cost": {
+            "type": "integer"
+          }
+        }
+      },
+      "TalentInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "talentType": {
+            "type": "string"
+          },
+          "effectType": {
+            "type": "string"
+          },
+          "effectValue": {
+            "type": "number"
+          },
+          "cost": {
+            "type": "integer"
+          }
+        }
+      },
+      "Item": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "rarity": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer"
+          },
+          "stats": {
+            "type": "object"
+          }
+        }
+      },
+      "ItemInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "rarity": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer"
+          },
+          "stats": {
+            "type": "object"
+          }
+        }
+      },
+      "NPCTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "race": {
+            "type": "string"
+          },
+          "disposition": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer"
+          },
+          "greeting": {
+            "type": "string"
+          }
+        }
+      },
+      "Quest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "difficulty": {
+            "type": "string"
+          },
+          "questType": {
+            "type": "string"
+          },
+          "xpReward": {
+            "type": "integer"
+          }
+        }
+      },
+      "GameConfig": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "GameConfigInput": {
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "BackupManifest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "size": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
