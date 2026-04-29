@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"herbst-server/content"
 	"herbst-server/db"
 	"herbst-server/dbinit"
+	"herbst-server/events"
 	"herbst-server/middleware"
 	"herbst-server/routes"
 )
@@ -258,8 +260,17 @@ func main() {
 	// Register backup routes
 	routes.RegisterBackupRoutes(router, client)
 
+	// Initialize the event bus.
+	events.Init(slog.Default())
+
 	// Register faction routes
 	routes.RegisterFactionRoutes(router, client)
+
+	// Register event routes (HTTP bridge for game server → event bus)
+	routes.RegisterEventRoutes(router, client, slog.Default())
+
+	// Register game config routes (protected — admin management)
+	routes.RegisterGameConfigRoutes(protected, client)
 
 	// Register game export/import routes
 	routes.RegisterGameExportRoutes(router, client)

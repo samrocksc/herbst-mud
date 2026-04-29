@@ -16,7 +16,7 @@ const accentMap = {
 
 export function StatCard({ label, value, accent = 'primary', loading = false }: StatCardProps) {
   return (
-    <div className="bg-surface-muted rounded-lg p-6 text-center">
+    <div className="bg-surface-muted rounded-lg p-8 text-center">
       <div className={`text-2xl font-bold ${accentMap[accent]}`}>
         {loading ? '--' : value}
       </div>

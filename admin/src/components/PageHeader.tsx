@@ -15,7 +15,7 @@ export function PageHeader({ title, showBack, backTo, backLabel = '← Dashboard
         {showBack && backTo && (
           <Link
             to={backTo as any}
-            className="text-primary no-underline px-3 py-1.5 rounded border border-border hover:border-primary transition-colors text-sm font-medium"
+            className="no-underline px-3 py-1.5 rounded border border-border hover:border-primary transition-colors text-sm font-medium"
           >
             {backLabel}
           </Link>

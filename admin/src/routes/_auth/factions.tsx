@@ -216,26 +216,30 @@ function FactionsManagement() {
         <div className="p-4 border-b border-border">
           <Link
             to="/dashboard"
-            className="block text-primary no-underline p-2 rounded bg-surface-dark text-center mb-2 hover:bg-surface-darker"
+            className="block no-underline p-2 rounded border-2 border-black text-center text-sm font-medium bg-surface-muted text-text hover:border-primary transition-colors"
           >
             ← Dashboard
           </Link>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border">
+        <div className="flex p-3 gap-2 border-b border-border">
           <button
             onClick={() => setTab('factions')}
-            className={`flex-1 p-3 text-sm cursor-pointer border-b-2 transition-colors ${
-              tab === 'factions' ? 'border-primary text-primary' : 'border-transparent text-text-muted'
+            className={`flex-1 p-2 rounded text-sm cursor-pointer border-2 transition-colors ${
+              tab === 'factions'
+                ? 'bg-primary border-primary text-white font-medium'
+                : 'bg-surface-muted border-border text-text-muted hover:border-primary'
             }`}
           >
             Factions
           </button>
           <button
             onClick={() => setTab('categories')}
-            className={`flex-1 p-3 text-sm cursor-pointer border-b-2 transition-colors ${
-              tab === 'categories' ? 'border-primary text-primary' : 'border-transparent text-text-muted'
+            className={`flex-1 p-2 rounded text-sm cursor-pointer border-2 transition-colors ${
+              tab === 'categories'
+                ? 'bg-primary border-primary text-white font-medium'
+                : 'bg-surface-muted border-border text-text-muted hover:border-primary'
             }`}
           >
             Categories
