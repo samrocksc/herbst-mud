@@ -455,6 +455,28 @@ func UpdateNPCTemplate(id string, xpValue int) (NPCTemplate, error) {
 		map[string]any{"xp_value": xpValue})
 }
 
+// ─── Skills ──────────────────────────────────────────────────────────────
+
+// SkillRecord represents a skill record from the API
+type SkillRecord struct {
+	ID              int     `json:"id"`
+	Name            string  `json:"name"`
+	Slug            string  `json:"slug"`
+	SkillClass      string  `json:"skill_class"`
+	RequiredTag     string  `json:"required_tag"`
+	ProcChance      float64 `json:"proc_chance"`
+	ProcEvent       string  `json:"proc_event"`
+	CooldownSeconds int     `json:"cooldown_seconds"`
+}
+
+func ListSkills() ([]SkillRecord, error) {
+	return doRequest[[]SkillRecord]("GET", "/api/skills", nil)
+}
+
+func UpdateSkill(id int, body map[string]any) (SkillRecord, error) {
+	return doRequest[SkillRecord]("PUT", fmt.Sprintf("/api/skills/%d", id), body)
+}
+
 func ExportWorld() ([]byte, error) {
 	req, err := http.NewRequest("GET", BaseURL+"/admin/export", nil)
 	if err != nil {

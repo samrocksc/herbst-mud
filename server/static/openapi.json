@@ -2473,6 +2473,72 @@
           "Worlds"
         ]
       }
+    },
+    "/api/skills": {
+      "get": {
+        "summary": "List all skills",
+        "responses": {
+          "200": {
+            "description": "GET /api/skills",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Skill"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/api/skills/{id}": {
+      "put": {
+        "summary": "Update skill faction fields",
+        "responses": {
+          "200": {
+            "description": "PUT /api/skills/{id}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Skill"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillUpdateInput"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Skills"
+        ]
+      }
     }
   },
   "components": {
@@ -3010,6 +3076,62 @@
           },
           "size": {
             "type": "string"
+          }
+        }
+      },
+      "Skill": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "skill_class": {
+            "type": "string",
+            "description": "passive or active"
+          },
+          "required_tag": {
+            "type": "string",
+            "description": "Tag required to unlock this skill beyond faction membership"
+          },
+          "proc_chance": {
+            "type": "number",
+            "format": "double",
+            "description": "For passives: % chance to proc (0.15 = 15%)"
+          },
+          "proc_event": {
+            "type": "string",
+            "description": "What triggers the proc: on_hit, on_hit_received, on_crit, on_kill"
+          },
+          "cooldown_seconds": {
+            "type": "integer",
+            "description": "For actives: cooldown in seconds"
+          }
+        }
+      },
+      "SkillUpdateInput": {
+        "type": "object",
+        "properties": {
+          "skill_class": {
+            "type": "string"
+          },
+          "required_tag": {
+            "type": "string"
+          },
+          "proc_chance": {
+            "type": "number",
+            "format": "double"
+          },
+          "proc_event": {
+            "type": "string"
+          },
+          "cooldown_seconds": {
+            "type": "integer"
           }
         }
       }
