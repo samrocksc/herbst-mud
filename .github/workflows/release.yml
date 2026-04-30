@@ -11,8 +11,58 @@ permissions:
   issues: write
   pull-requests: write
 
+env:
+  GO_VERSION: "1.22"
+
 jobs:
+  build-admin-tui:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            artifact_name: herbst-admin-linux-amd64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            artifact_name: herbst-admin-linux-arm64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            artifact_name: herbst-admin-darwin-amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            artifact_name: herbst-admin-darwin-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build admin-tui
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          cd admin-tui
+          go build -o ../${{ matrix.artifact_name }} .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}
+          retention-days: 7
+
   release:
+    needs: build-admin-tui
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -60,11 +110,23 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "bump=$BUMP_TYPE" >> $GITHUB_OUTPUT
 
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: herbst-admin-*
+          merge-multiple: false
+
       - name: Create GitHub Release
         if: steps.version.outputs.version != 'v0.0.0'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           generate_release_notes: true
+          files: |
+            artifacts/herbst-admin-linux-amd64
+            artifacts/herbst-admin-linux-arm64
+            artifacts/herbst-admin-darwin-amd64
+            artifacts/herbst-admin-darwin-arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
