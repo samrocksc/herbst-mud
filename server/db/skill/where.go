@@ -939,6 +939,16 @@ func SlugHasSuffix(v string) predicate.Skill {
 	return predicate.Skill(sql.FieldHasSuffix(FieldSlug, v))
 }
 
+// SlugIsNil applies the IsNil predicate on the "slug" field.
+func SlugIsNil() predicate.Skill {
+	return predicate.Skill(sql.FieldIsNull(FieldSlug))
+}
+
+// SlugNotNil applies the NotNil predicate on the "slug" field.
+func SlugNotNil() predicate.Skill {
+	return predicate.Skill(sql.FieldNotNull(FieldSlug))
+}
+
 // SlugEqualFold applies the EqualFold predicate on the "slug" field.
 func SlugEqualFold(v string) predicate.Skill {
 	return predicate.Skill(sql.FieldEqualFold(FieldSlug, v))

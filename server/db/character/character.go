@@ -102,6 +102,8 @@ const (
 	EdgeTags = "tags"
 	// EdgeFactionMemberships holds the string denoting the faction_memberships edge name in mutations.
 	EdgeFactionMemberships = "faction_memberships"
+	// EdgeCompetencies holds the string denoting the competencies edge name in mutations.
+	EdgeCompetencies = "competencies"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -160,6 +162,13 @@ const (
 	FactionMembershipsInverseTable = "character_factions"
 	// FactionMembershipsColumn is the table column denoting the faction_memberships relation/edge.
 	FactionMembershipsColumn = "character_faction_memberships"
+	// CompetenciesTable is the table that holds the competencies relation/edge.
+	CompetenciesTable = "character_competencies"
+	// CompetenciesInverseTable is the table name for the CharacterCompetency entity.
+	// It exists in this package in order to avoid circular dependency with the "charactercompetency" package.
+	CompetenciesInverseTable = "character_competencies"
+	// CompetenciesColumn is the table column denoting the competencies relation/edge.
+	CompetenciesColumn = "character_competencies"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -571,6 +580,20 @@ func ByFactionMemberships(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newFactionMembershipsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCompetenciesCount orders the results by competencies count.
+func ByCompetenciesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCompetenciesStep(), opts...)
+	}
+}
+
+// ByCompetencies orders the results by competencies terms.
+func ByCompetencies(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCompetenciesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -625,5 +648,12 @@ func newFactionMembershipsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FactionMembershipsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FactionMembershipsTable, FactionMembershipsColumn),
+	)
+}
+func newCompetenciesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CompetenciesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CompetenciesTable, CompetenciesColumn),
 	)
 }

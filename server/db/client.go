@@ -13,10 +13,13 @@ import (
 
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
+	"herbst-server/db/competencycategory"
+	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/equipment"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
@@ -46,6 +49,8 @@ type Client struct {
 	AvailableTalent *AvailableTalentClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// CharacterCompetency is the client for interacting with the CharacterCompetency builders.
+	CharacterCompetency *CharacterCompetencyClient
 	// CharacterFaction is the client for interacting with the CharacterFaction builders.
 	CharacterFaction *CharacterFactionClient
 	// CharacterSkill is the client for interacting with the CharacterSkill builders.
@@ -54,6 +59,10 @@ type Client struct {
 	CharacterTag *CharacterTagClient
 	// CharacterTalent is the client for interacting with the CharacterTalent builders.
 	CharacterTalent *CharacterTalentClient
+	// CompetencyCategory is the client for interacting with the CompetencyCategory builders.
+	CompetencyCategory *CompetencyCategoryClient
+	// CompetencyLevelThreshold is the client for interacting with the CompetencyLevelThreshold builders.
+	CompetencyLevelThreshold *CompetencyLevelThresholdClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
 	// Faction is the client for interacting with the Faction builders.
@@ -93,10 +102,13 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AvailableTalent = NewAvailableTalentClient(c.config)
 	c.Character = NewCharacterClient(c.config)
+	c.CharacterCompetency = NewCharacterCompetencyClient(c.config)
 	c.CharacterFaction = NewCharacterFactionClient(c.config)
 	c.CharacterSkill = NewCharacterSkillClient(c.config)
 	c.CharacterTag = NewCharacterTagClient(c.config)
 	c.CharacterTalent = NewCharacterTalentClient(c.config)
+	c.CompetencyCategory = NewCompetencyCategoryClient(c.config)
+	c.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(c.config)
 	c.Equipment = NewEquipmentClient(c.config)
 	c.Faction = NewFactionClient(c.config)
 	c.FactionCategory = NewFactionCategoryClient(c.config)
@@ -200,27 +212,30 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                ctx,
-		config:             cfg,
-		AvailableTalent:    NewAvailableTalentClient(cfg),
-		Character:          NewCharacterClient(cfg),
-		CharacterFaction:   NewCharacterFactionClient(cfg),
-		CharacterSkill:     NewCharacterSkillClient(cfg),
-		CharacterTag:       NewCharacterTagClient(cfg),
-		CharacterTalent:    NewCharacterTalentClient(cfg),
-		Equipment:          NewEquipmentClient(cfg),
-		Faction:            NewFactionClient(cfg),
-		FactionCategory:    NewFactionCategoryClient(cfg),
-		FactionRequiredTag: NewFactionRequiredTagClient(cfg),
-		GameConfig:         NewGameConfigClient(cfg),
-		Gender:             NewGenderClient(cfg),
-		NPCSkill:           NewNPCSkillClient(cfg),
-		NPCTemplate:        NewNPCTemplateClient(cfg),
-		Race:               NewRaceClient(cfg),
-		Room:               NewRoomClient(cfg),
-		Skill:              NewSkillClient(cfg),
-		Talent:             NewTalentClient(cfg),
-		User:               NewUserClient(cfg),
+		ctx:                      ctx,
+		config:                   cfg,
+		AvailableTalent:          NewAvailableTalentClient(cfg),
+		Character:                NewCharacterClient(cfg),
+		CharacterCompetency:      NewCharacterCompetencyClient(cfg),
+		CharacterFaction:         NewCharacterFactionClient(cfg),
+		CharacterSkill:           NewCharacterSkillClient(cfg),
+		CharacterTag:             NewCharacterTagClient(cfg),
+		CharacterTalent:          NewCharacterTalentClient(cfg),
+		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
+		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
+		Equipment:                NewEquipmentClient(cfg),
+		Faction:                  NewFactionClient(cfg),
+		FactionCategory:          NewFactionCategoryClient(cfg),
+		FactionRequiredTag:       NewFactionRequiredTagClient(cfg),
+		GameConfig:               NewGameConfigClient(cfg),
+		Gender:                   NewGenderClient(cfg),
+		NPCSkill:                 NewNPCSkillClient(cfg),
+		NPCTemplate:              NewNPCTemplateClient(cfg),
+		Race:                     NewRaceClient(cfg),
+		Room:                     NewRoomClient(cfg),
+		Skill:                    NewSkillClient(cfg),
+		Talent:                   NewTalentClient(cfg),
+		User:                     NewUserClient(cfg),
 	}, nil
 }
 
@@ -238,27 +253,30 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                ctx,
-		config:             cfg,
-		AvailableTalent:    NewAvailableTalentClient(cfg),
-		Character:          NewCharacterClient(cfg),
-		CharacterFaction:   NewCharacterFactionClient(cfg),
-		CharacterSkill:     NewCharacterSkillClient(cfg),
-		CharacterTag:       NewCharacterTagClient(cfg),
-		CharacterTalent:    NewCharacterTalentClient(cfg),
-		Equipment:          NewEquipmentClient(cfg),
-		Faction:            NewFactionClient(cfg),
-		FactionCategory:    NewFactionCategoryClient(cfg),
-		FactionRequiredTag: NewFactionRequiredTagClient(cfg),
-		GameConfig:         NewGameConfigClient(cfg),
-		Gender:             NewGenderClient(cfg),
-		NPCSkill:           NewNPCSkillClient(cfg),
-		NPCTemplate:        NewNPCTemplateClient(cfg),
-		Race:               NewRaceClient(cfg),
-		Room:               NewRoomClient(cfg),
-		Skill:              NewSkillClient(cfg),
-		Talent:             NewTalentClient(cfg),
-		User:               NewUserClient(cfg),
+		ctx:                      ctx,
+		config:                   cfg,
+		AvailableTalent:          NewAvailableTalentClient(cfg),
+		Character:                NewCharacterClient(cfg),
+		CharacterCompetency:      NewCharacterCompetencyClient(cfg),
+		CharacterFaction:         NewCharacterFactionClient(cfg),
+		CharacterSkill:           NewCharacterSkillClient(cfg),
+		CharacterTag:             NewCharacterTagClient(cfg),
+		CharacterTalent:          NewCharacterTalentClient(cfg),
+		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
+		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
+		Equipment:                NewEquipmentClient(cfg),
+		Faction:                  NewFactionClient(cfg),
+		FactionCategory:          NewFactionCategoryClient(cfg),
+		FactionRequiredTag:       NewFactionRequiredTagClient(cfg),
+		GameConfig:               NewGameConfigClient(cfg),
+		Gender:                   NewGenderClient(cfg),
+		NPCSkill:                 NewNPCSkillClient(cfg),
+		NPCTemplate:              NewNPCTemplateClient(cfg),
+		Race:                     NewRaceClient(cfg),
+		Room:                     NewRoomClient(cfg),
+		Skill:                    NewSkillClient(cfg),
+		Talent:                   NewTalentClient(cfg),
+		User:                     NewUserClient(cfg),
 	}, nil
 }
 
@@ -288,8 +306,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AvailableTalent, c.Character, c.CharacterFaction, c.CharacterSkill,
-		c.CharacterTag, c.CharacterTalent, c.Equipment, c.Faction, c.FactionCategory,
+		c.AvailableTalent, c.Character, c.CharacterCompetency, c.CharacterFaction,
+		c.CharacterSkill, c.CharacterTag, c.CharacterTalent, c.CompetencyCategory,
+		c.CompetencyLevelThreshold, c.Equipment, c.Faction, c.FactionCategory,
 		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCSkill, c.NPCTemplate,
 		c.Race, c.Room, c.Skill, c.Talent, c.User,
 	} {
@@ -301,8 +320,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AvailableTalent, c.Character, c.CharacterFaction, c.CharacterSkill,
-		c.CharacterTag, c.CharacterTalent, c.Equipment, c.Faction, c.FactionCategory,
+		c.AvailableTalent, c.Character, c.CharacterCompetency, c.CharacterFaction,
+		c.CharacterSkill, c.CharacterTag, c.CharacterTalent, c.CompetencyCategory,
+		c.CompetencyLevelThreshold, c.Equipment, c.Faction, c.FactionCategory,
 		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCSkill, c.NPCTemplate,
 		c.Race, c.Room, c.Skill, c.Talent, c.User,
 	} {
@@ -317,6 +337,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AvailableTalent.mutate(ctx, m)
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
+	case *CharacterCompetencyMutation:
+		return c.CharacterCompetency.mutate(ctx, m)
 	case *CharacterFactionMutation:
 		return c.CharacterFaction.mutate(ctx, m)
 	case *CharacterSkillMutation:
@@ -325,6 +347,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CharacterTag.mutate(ctx, m)
 	case *CharacterTalentMutation:
 		return c.CharacterTalent.mutate(ctx, m)
+	case *CompetencyCategoryMutation:
+		return c.CompetencyCategory.mutate(ctx, m)
+	case *CompetencyLevelThresholdMutation:
+		return c.CompetencyLevelThreshold.mutate(ctx, m)
 	case *EquipmentMutation:
 		return c.Equipment.mutate(ctx, m)
 	case *FactionMutation:
@@ -757,6 +783,22 @@ func (c *CharacterClient) QueryFactionMemberships(_m *Character) *CharacterFacti
 	return query
 }
 
+// QueryCompetencies queries the competencies edge of a Character.
+func (c *CharacterClient) QueryCompetencies(_m *Character) *CharacterCompetencyQuery {
+	query := (&CharacterCompetencyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(charactercompetency.Table, charactercompetency.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.CompetenciesTable, character.CompetenciesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CharacterClient) Hooks() []Hook {
 	return c.hooks.Character
@@ -779,6 +821,171 @@ func (c *CharacterClient) mutate(ctx context.Context, m *CharacterMutation) (Val
 		return (&CharacterDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Character mutation op: %q", m.Op())
+	}
+}
+
+// CharacterCompetencyClient is a client for the CharacterCompetency schema.
+type CharacterCompetencyClient struct {
+	config
+}
+
+// NewCharacterCompetencyClient returns a client for the CharacterCompetency from the given config.
+func NewCharacterCompetencyClient(c config) *CharacterCompetencyClient {
+	return &CharacterCompetencyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `charactercompetency.Hooks(f(g(h())))`.
+func (c *CharacterCompetencyClient) Use(hooks ...Hook) {
+	c.hooks.CharacterCompetency = append(c.hooks.CharacterCompetency, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `charactercompetency.Intercept(f(g(h())))`.
+func (c *CharacterCompetencyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CharacterCompetency = append(c.inters.CharacterCompetency, interceptors...)
+}
+
+// Create returns a builder for creating a CharacterCompetency entity.
+func (c *CharacterCompetencyClient) Create() *CharacterCompetencyCreate {
+	mutation := newCharacterCompetencyMutation(c.config, OpCreate)
+	return &CharacterCompetencyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CharacterCompetency entities.
+func (c *CharacterCompetencyClient) CreateBulk(builders ...*CharacterCompetencyCreate) *CharacterCompetencyCreateBulk {
+	return &CharacterCompetencyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CharacterCompetencyClient) MapCreateBulk(slice any, setFunc func(*CharacterCompetencyCreate, int)) *CharacterCompetencyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CharacterCompetencyCreateBulk{err: fmt.Errorf("calling to CharacterCompetencyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CharacterCompetencyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CharacterCompetencyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CharacterCompetency.
+func (c *CharacterCompetencyClient) Update() *CharacterCompetencyUpdate {
+	mutation := newCharacterCompetencyMutation(c.config, OpUpdate)
+	return &CharacterCompetencyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CharacterCompetencyClient) UpdateOne(_m *CharacterCompetency) *CharacterCompetencyUpdateOne {
+	mutation := newCharacterCompetencyMutation(c.config, OpUpdateOne, withCharacterCompetency(_m))
+	return &CharacterCompetencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CharacterCompetencyClient) UpdateOneID(id int) *CharacterCompetencyUpdateOne {
+	mutation := newCharacterCompetencyMutation(c.config, OpUpdateOne, withCharacterCompetencyID(id))
+	return &CharacterCompetencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CharacterCompetency.
+func (c *CharacterCompetencyClient) Delete() *CharacterCompetencyDelete {
+	mutation := newCharacterCompetencyMutation(c.config, OpDelete)
+	return &CharacterCompetencyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CharacterCompetencyClient) DeleteOne(_m *CharacterCompetency) *CharacterCompetencyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CharacterCompetencyClient) DeleteOneID(id int) *CharacterCompetencyDeleteOne {
+	builder := c.Delete().Where(charactercompetency.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CharacterCompetencyDeleteOne{builder}
+}
+
+// Query returns a query builder for CharacterCompetency.
+func (c *CharacterCompetencyClient) Query() *CharacterCompetencyQuery {
+	return &CharacterCompetencyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCharacterCompetency},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CharacterCompetency entity by its id.
+func (c *CharacterCompetencyClient) Get(ctx context.Context, id int) (*CharacterCompetency, error) {
+	return c.Query().Where(charactercompetency.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CharacterCompetencyClient) GetX(ctx context.Context, id int) *CharacterCompetency {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacter queries the character edge of a CharacterCompetency.
+func (c *CharacterCompetencyClient) QueryCharacter(_m *CharacterCompetency) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(charactercompetency.Table, charactercompetency.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, charactercompetency.CharacterTable, charactercompetency.CharacterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCategory queries the category edge of a CharacterCompetency.
+func (c *CharacterCompetencyClient) QueryCategory(_m *CharacterCompetency) *CompetencyCategoryQuery {
+	query := (&CompetencyCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(charactercompetency.Table, charactercompetency.FieldID, id),
+			sqlgraph.To(competencycategory.Table, competencycategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, charactercompetency.CategoryTable, charactercompetency.CategoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CharacterCompetencyClient) Hooks() []Hook {
+	return c.hooks.CharacterCompetency
+}
+
+// Interceptors returns the client interceptors.
+func (c *CharacterCompetencyClient) Interceptors() []Interceptor {
+	return c.inters.CharacterCompetency
+}
+
+func (c *CharacterCompetencyClient) mutate(ctx context.Context, m *CharacterCompetencyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CharacterCompetencyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CharacterCompetencyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CharacterCompetencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CharacterCompetencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CharacterCompetency mutation op: %q", m.Op())
 	}
 }
 
@@ -1423,6 +1630,320 @@ func (c *CharacterTalentClient) mutate(ctx context.Context, m *CharacterTalentMu
 		return (&CharacterTalentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CharacterTalent mutation op: %q", m.Op())
+	}
+}
+
+// CompetencyCategoryClient is a client for the CompetencyCategory schema.
+type CompetencyCategoryClient struct {
+	config
+}
+
+// NewCompetencyCategoryClient returns a client for the CompetencyCategory from the given config.
+func NewCompetencyCategoryClient(c config) *CompetencyCategoryClient {
+	return &CompetencyCategoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `competencycategory.Hooks(f(g(h())))`.
+func (c *CompetencyCategoryClient) Use(hooks ...Hook) {
+	c.hooks.CompetencyCategory = append(c.hooks.CompetencyCategory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `competencycategory.Intercept(f(g(h())))`.
+func (c *CompetencyCategoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CompetencyCategory = append(c.inters.CompetencyCategory, interceptors...)
+}
+
+// Create returns a builder for creating a CompetencyCategory entity.
+func (c *CompetencyCategoryClient) Create() *CompetencyCategoryCreate {
+	mutation := newCompetencyCategoryMutation(c.config, OpCreate)
+	return &CompetencyCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CompetencyCategory entities.
+func (c *CompetencyCategoryClient) CreateBulk(builders ...*CompetencyCategoryCreate) *CompetencyCategoryCreateBulk {
+	return &CompetencyCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CompetencyCategoryClient) MapCreateBulk(slice any, setFunc func(*CompetencyCategoryCreate, int)) *CompetencyCategoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CompetencyCategoryCreateBulk{err: fmt.Errorf("calling to CompetencyCategoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CompetencyCategoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CompetencyCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CompetencyCategory.
+func (c *CompetencyCategoryClient) Update() *CompetencyCategoryUpdate {
+	mutation := newCompetencyCategoryMutation(c.config, OpUpdate)
+	return &CompetencyCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CompetencyCategoryClient) UpdateOne(_m *CompetencyCategory) *CompetencyCategoryUpdateOne {
+	mutation := newCompetencyCategoryMutation(c.config, OpUpdateOne, withCompetencyCategory(_m))
+	return &CompetencyCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CompetencyCategoryClient) UpdateOneID(id string) *CompetencyCategoryUpdateOne {
+	mutation := newCompetencyCategoryMutation(c.config, OpUpdateOne, withCompetencyCategoryID(id))
+	return &CompetencyCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CompetencyCategory.
+func (c *CompetencyCategoryClient) Delete() *CompetencyCategoryDelete {
+	mutation := newCompetencyCategoryMutation(c.config, OpDelete)
+	return &CompetencyCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CompetencyCategoryClient) DeleteOne(_m *CompetencyCategory) *CompetencyCategoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CompetencyCategoryClient) DeleteOneID(id string) *CompetencyCategoryDeleteOne {
+	builder := c.Delete().Where(competencycategory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CompetencyCategoryDeleteOne{builder}
+}
+
+// Query returns a query builder for CompetencyCategory.
+func (c *CompetencyCategoryClient) Query() *CompetencyCategoryQuery {
+	return &CompetencyCategoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCompetencyCategory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CompetencyCategory entity by its id.
+func (c *CompetencyCategoryClient) Get(ctx context.Context, id string) (*CompetencyCategory, error) {
+	return c.Query().Where(competencycategory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CompetencyCategoryClient) GetX(ctx context.Context, id string) *CompetencyCategory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryThresholds queries the thresholds edge of a CompetencyCategory.
+func (c *CompetencyCategoryClient) QueryThresholds(_m *CompetencyCategory) *CompetencyLevelThresholdQuery {
+	query := (&CompetencyLevelThresholdClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(competencycategory.Table, competencycategory.FieldID, id),
+			sqlgraph.To(competencylevelthreshold.Table, competencylevelthreshold.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, competencycategory.ThresholdsTable, competencycategory.ThresholdsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCharacterCompetencies queries the character_competencies edge of a CompetencyCategory.
+func (c *CompetencyCategoryClient) QueryCharacterCompetencies(_m *CompetencyCategory) *CharacterCompetencyQuery {
+	query := (&CharacterCompetencyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(competencycategory.Table, competencycategory.FieldID, id),
+			sqlgraph.To(charactercompetency.Table, charactercompetency.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, competencycategory.CharacterCompetenciesTable, competencycategory.CharacterCompetenciesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CompetencyCategoryClient) Hooks() []Hook {
+	return c.hooks.CompetencyCategory
+}
+
+// Interceptors returns the client interceptors.
+func (c *CompetencyCategoryClient) Interceptors() []Interceptor {
+	return c.inters.CompetencyCategory
+}
+
+func (c *CompetencyCategoryClient) mutate(ctx context.Context, m *CompetencyCategoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CompetencyCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CompetencyCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CompetencyCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CompetencyCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CompetencyCategory mutation op: %q", m.Op())
+	}
+}
+
+// CompetencyLevelThresholdClient is a client for the CompetencyLevelThreshold schema.
+type CompetencyLevelThresholdClient struct {
+	config
+}
+
+// NewCompetencyLevelThresholdClient returns a client for the CompetencyLevelThreshold from the given config.
+func NewCompetencyLevelThresholdClient(c config) *CompetencyLevelThresholdClient {
+	return &CompetencyLevelThresholdClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `competencylevelthreshold.Hooks(f(g(h())))`.
+func (c *CompetencyLevelThresholdClient) Use(hooks ...Hook) {
+	c.hooks.CompetencyLevelThreshold = append(c.hooks.CompetencyLevelThreshold, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `competencylevelthreshold.Intercept(f(g(h())))`.
+func (c *CompetencyLevelThresholdClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CompetencyLevelThreshold = append(c.inters.CompetencyLevelThreshold, interceptors...)
+}
+
+// Create returns a builder for creating a CompetencyLevelThreshold entity.
+func (c *CompetencyLevelThresholdClient) Create() *CompetencyLevelThresholdCreate {
+	mutation := newCompetencyLevelThresholdMutation(c.config, OpCreate)
+	return &CompetencyLevelThresholdCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CompetencyLevelThreshold entities.
+func (c *CompetencyLevelThresholdClient) CreateBulk(builders ...*CompetencyLevelThresholdCreate) *CompetencyLevelThresholdCreateBulk {
+	return &CompetencyLevelThresholdCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CompetencyLevelThresholdClient) MapCreateBulk(slice any, setFunc func(*CompetencyLevelThresholdCreate, int)) *CompetencyLevelThresholdCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CompetencyLevelThresholdCreateBulk{err: fmt.Errorf("calling to CompetencyLevelThresholdClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CompetencyLevelThresholdCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CompetencyLevelThresholdCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CompetencyLevelThreshold.
+func (c *CompetencyLevelThresholdClient) Update() *CompetencyLevelThresholdUpdate {
+	mutation := newCompetencyLevelThresholdMutation(c.config, OpUpdate)
+	return &CompetencyLevelThresholdUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CompetencyLevelThresholdClient) UpdateOne(_m *CompetencyLevelThreshold) *CompetencyLevelThresholdUpdateOne {
+	mutation := newCompetencyLevelThresholdMutation(c.config, OpUpdateOne, withCompetencyLevelThreshold(_m))
+	return &CompetencyLevelThresholdUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CompetencyLevelThresholdClient) UpdateOneID(id string) *CompetencyLevelThresholdUpdateOne {
+	mutation := newCompetencyLevelThresholdMutation(c.config, OpUpdateOne, withCompetencyLevelThresholdID(id))
+	return &CompetencyLevelThresholdUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CompetencyLevelThreshold.
+func (c *CompetencyLevelThresholdClient) Delete() *CompetencyLevelThresholdDelete {
+	mutation := newCompetencyLevelThresholdMutation(c.config, OpDelete)
+	return &CompetencyLevelThresholdDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CompetencyLevelThresholdClient) DeleteOne(_m *CompetencyLevelThreshold) *CompetencyLevelThresholdDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CompetencyLevelThresholdClient) DeleteOneID(id string) *CompetencyLevelThresholdDeleteOne {
+	builder := c.Delete().Where(competencylevelthreshold.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CompetencyLevelThresholdDeleteOne{builder}
+}
+
+// Query returns a query builder for CompetencyLevelThreshold.
+func (c *CompetencyLevelThresholdClient) Query() *CompetencyLevelThresholdQuery {
+	return &CompetencyLevelThresholdQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCompetencyLevelThreshold},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CompetencyLevelThreshold entity by its id.
+func (c *CompetencyLevelThresholdClient) Get(ctx context.Context, id string) (*CompetencyLevelThreshold, error) {
+	return c.Query().Where(competencylevelthreshold.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CompetencyLevelThresholdClient) GetX(ctx context.Context, id string) *CompetencyLevelThreshold {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCategory queries the category edge of a CompetencyLevelThreshold.
+func (c *CompetencyLevelThresholdClient) QueryCategory(_m *CompetencyLevelThreshold) *CompetencyCategoryQuery {
+	query := (&CompetencyCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(competencylevelthreshold.Table, competencylevelthreshold.FieldID, id),
+			sqlgraph.To(competencycategory.Table, competencycategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, competencylevelthreshold.CategoryTable, competencylevelthreshold.CategoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CompetencyLevelThresholdClient) Hooks() []Hook {
+	return c.hooks.CompetencyLevelThreshold
+}
+
+// Interceptors returns the client interceptors.
+func (c *CompetencyLevelThresholdClient) Interceptors() []Interceptor {
+	return c.inters.CompetencyLevelThreshold
+}
+
+func (c *CompetencyLevelThresholdClient) mutate(ctx context.Context, m *CompetencyLevelThresholdMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CompetencyLevelThresholdCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CompetencyLevelThresholdUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CompetencyLevelThresholdUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CompetencyLevelThresholdDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CompetencyLevelThreshold mutation op: %q", m.Op())
 	}
 }
 
@@ -3446,15 +3967,17 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AvailableTalent, Character, CharacterFaction, CharacterSkill, CharacterTag,
-		CharacterTalent, Equipment, Faction, FactionCategory, FactionRequiredTag,
-		GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room, Skill, Talent,
-		User []ent.Hook
+		AvailableTalent, Character, CharacterCompetency, CharacterFaction,
+		CharacterSkill, CharacterTag, CharacterTalent, CompetencyCategory,
+		CompetencyLevelThreshold, Equipment, Faction, FactionCategory,
+		FactionRequiredTag, GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room,
+		Skill, Talent, User []ent.Hook
 	}
 	inters struct {
-		AvailableTalent, Character, CharacterFaction, CharacterSkill, CharacterTag,
-		CharacterTalent, Equipment, Faction, FactionCategory, FactionRequiredTag,
-		GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room, Skill, Talent,
-		User []ent.Interceptor
+		AvailableTalent, Character, CharacterCompetency, CharacterFaction,
+		CharacterSkill, CharacterTag, CharacterTalent, CompetencyCategory,
+		CompetencyLevelThreshold, Equipment, Faction, FactionCategory,
+		FactionRequiredTag, GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room,
+		Skill, Talent, User []ent.Interceptor
 	}
 )

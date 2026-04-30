@@ -200,6 +200,14 @@ func (_c *SkillCreate) SetSlug(v string) *SkillCreate {
 	return _c
 }
 
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_c *SkillCreate) SetNillableSlug(v *string) *SkillCreate {
+	if v != nil {
+		_c.SetSlug(*v)
+	}
+	return _c
+}
+
 // SetRequiredTag sets the "required_tag" field.
 func (_c *SkillCreate) SetRequiredTag(v string) *SkillCreate {
 	_c.mutation.SetRequiredTag(v)
@@ -441,9 +449,6 @@ func (_c *SkillCreate) check() error {
 	}
 	if _, ok := _c.mutation.HpCost(); !ok {
 		return &ValidationError{Name: "hp_cost", err: errors.New(`db: missing required field "Skill.hp_cost"`)}
-	}
-	if _, ok := _c.mutation.Slug(); !ok {
-		return &ValidationError{Name: "slug", err: errors.New(`db: missing required field "Skill.slug"`)}
 	}
 	if _, ok := _c.mutation.SkillClass(); !ok {
 		return &ValidationError{Name: "skill_class", err: errors.New(`db: missing required field "Skill.skill_class"`)}

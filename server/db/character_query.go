@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
@@ -39,6 +40,7 @@ type CharacterQuery struct {
 	withTalents            *CharacterTalentQuery
 	withTags               *CharacterTagQuery
 	withFactionMemberships *CharacterFactionQuery
+	withCompetencies       *CharacterCompetencyQuery
 	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -252,6 +254,28 @@ func (_q *CharacterQuery) QueryFactionMemberships() *CharacterFactionQuery {
 	return query
 }
 
+// QueryCompetencies chains the current query on the "competencies" edge.
+func (_q *CharacterQuery) QueryCompetencies() *CharacterCompetencyQuery {
+	query := (&CharacterCompetencyClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(charactercompetency.Table, charactercompetency.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.CompetenciesTable, character.CompetenciesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Character entity from the query.
 // Returns a *NotFoundError when no Character was found.
 func (_q *CharacterQuery) First(ctx context.Context) (*Character, error) {
@@ -452,6 +476,7 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		withTalents:            _q.withTalents.Clone(),
 		withTags:               _q.withTags.Clone(),
 		withFactionMemberships: _q.withFactionMemberships.Clone(),
+		withCompetencies:       _q.withCompetencies.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -546,6 +571,17 @@ func (_q *CharacterQuery) WithFactionMemberships(opts ...func(*CharacterFactionQ
 	return _q
 }
 
+// WithCompetencies tells the query-builder to eager-load the nodes that are connected to
+// the "competencies" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithCompetencies(opts ...func(*CharacterCompetencyQuery)) *CharacterQuery {
+	query := (&CharacterCompetencyClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCompetencies = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -625,7 +661,7 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			_q.withUser != nil,
 			_q.withRoom != nil,
 			_q.withNpcTemplate != nil,
@@ -634,6 +670,7 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 			_q.withTalents != nil,
 			_q.withTags != nil,
 			_q.withFactionMemberships != nil,
+			_q.withCompetencies != nil,
 		}
 	)
 	if _q.withUser != nil || _q.withNpcTemplate != nil {
@@ -712,6 +749,13 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 			func(n *Character, e *CharacterFaction) {
 				n.Edges.FactionMemberships = append(n.Edges.FactionMemberships, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCompetencies; query != nil {
+		if err := _q.loadCompetencies(ctx, query, nodes,
+			func(n *Character) { n.Edges.Competencies = []*CharacterCompetency{} },
+			func(n *Character, e *CharacterCompetency) { n.Edges.Competencies = append(n.Edges.Competencies, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -961,6 +1005,37 @@ func (_q *CharacterQuery) loadFactionMemberships(ctx context.Context, query *Cha
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "character_faction_memberships" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadCompetencies(ctx context.Context, query *CharacterCompetencyQuery, nodes []*Character, init func(*Character), assign func(*Character, *CharacterCompetency)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.CharacterCompetency(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.CompetenciesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_competencies
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_competencies" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_competencies" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

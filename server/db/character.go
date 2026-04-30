@@ -120,9 +120,11 @@ type CharacterEdges struct {
 	Tags []*CharacterTag `json:"tags,omitempty"`
 	// FactionMemberships holds the value of the faction_memberships edge.
 	FactionMemberships []*CharacterFaction `json:"faction_memberships,omitempty"`
+	// Competencies holds the value of the competencies edge.
+	Competencies []*CharacterCompetency `json:"competencies,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -201,6 +203,15 @@ func (e CharacterEdges) FactionMembershipsOrErr() ([]*CharacterFaction, error) {
 		return e.FactionMemberships, nil
 	}
 	return nil, &NotLoadedError{edge: "faction_memberships"}
+}
+
+// CompetenciesOrErr returns the Competencies value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) CompetenciesOrErr() ([]*CharacterCompetency, error) {
+	if e.loadedTypes[8] {
+		return e.Competencies, nil
+	}
+	return nil, &NotLoadedError{edge: "competencies"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -535,6 +546,11 @@ func (_m *Character) QueryTags() *CharacterTagQuery {
 // QueryFactionMemberships queries the "faction_memberships" edge of the Character entity.
 func (_m *Character) QueryFactionMemberships() *CharacterFactionQuery {
 	return NewCharacterClient(_m.config).QueryFactionMemberships(_m)
+}
+
+// QueryCompetencies queries the "competencies" edge of the Character entity.
+func (_m *Character) QueryCompetencies() *CharacterCompetencyQuery {
+	return NewCharacterClient(_m.config).QueryCompetencies(_m)
 }
 
 // Update returns a builder for updating this Character.

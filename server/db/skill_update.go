@@ -308,6 +308,12 @@ func (_u *SkillUpdate) SetNillableSlug(v *string) *SkillUpdate {
 	return _u
 }
 
+// ClearSlug clears the value of the "slug" field.
+func (_u *SkillUpdate) ClearSlug() *SkillUpdate {
+	_u.mutation.ClearSlug()
+	return _u
+}
+
 // SetRequiredTag sets the "required_tag" field.
 func (_u *SkillUpdate) SetRequiredTag(v string) *SkillUpdate {
 	_u.mutation.SetRequiredTag(v)
@@ -616,6 +622,9 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Slug(); ok {
 		_spec.SetField(skill.FieldSlug, field.TypeString, value)
+	}
+	if _u.mutation.SlugCleared() {
+		_spec.ClearField(skill.FieldSlug, field.TypeString)
 	}
 	if value, ok := _u.mutation.RequiredTag(); ok {
 		_spec.SetField(skill.FieldRequiredTag, field.TypeString, value)
@@ -1061,6 +1070,12 @@ func (_u *SkillUpdateOne) SetNillableSlug(v *string) *SkillUpdateOne {
 	return _u
 }
 
+// ClearSlug clears the value of the "slug" field.
+func (_u *SkillUpdateOne) ClearSlug() *SkillUpdateOne {
+	_u.mutation.ClearSlug()
+	return _u
+}
+
 // SetRequiredTag sets the "required_tag" field.
 func (_u *SkillUpdateOne) SetRequiredTag(v string) *SkillUpdateOne {
 	_u.mutation.SetRequiredTag(v)
@@ -1399,6 +1414,9 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 	}
 	if value, ok := _u.mutation.Slug(); ok {
 		_spec.SetField(skill.FieldSlug, field.TypeString, value)
+	}
+	if _u.mutation.SlugCleared() {
+		_spec.ClearField(skill.FieldSlug, field.TypeString)
 	}
 	if value, ok := _u.mutation.RequiredTag(); ok {
 		_spec.SetField(skill.FieldRequiredTag, field.TypeString, value)

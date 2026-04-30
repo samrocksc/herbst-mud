@@ -112,6 +112,34 @@ var (
 			},
 		},
 	}
+	// CharacterCompetenciesColumns holds the columns for the "character_competencies" table.
+	CharacterCompetenciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "xp", Type: field.TypeInt, Default: 0},
+		{Name: "level", Type: field.TypeInt, Default: 0},
+		{Name: "character_competencies", Type: field.TypeInt},
+		{Name: "competency_category_character_competencies", Type: field.TypeString, SchemaType: map[string]string{"postgres": "varchar(64)"}},
+	}
+	// CharacterCompetenciesTable holds the schema information for the "character_competencies" table.
+	CharacterCompetenciesTable = &schema.Table{
+		Name:       "character_competencies",
+		Columns:    CharacterCompetenciesColumns,
+		PrimaryKey: []*schema.Column{CharacterCompetenciesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_competencies_characters_competencies",
+				Columns:    []*schema.Column{CharacterCompetenciesColumns[3]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "character_competencies_competency_categories_character_competencies",
+				Columns:    []*schema.Column{CharacterCompetenciesColumns[4]},
+				RefColumns: []*schema.Column{CompetencyCategoriesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// CharacterFactionsColumns holds the columns for the "character_factions" table.
 	CharacterFactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -214,6 +242,41 @@ var (
 				Columns:    []*schema.Column{CharacterTalentsColumns[3]},
 				RefColumns: []*schema.Column{TalentsColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CompetencyCategoriesColumns holds the columns for the "competency_categories" table.
+	CompetencyCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"postgres": "varchar(64)"}},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "xp_multiplier", Type: field.TypeFloat64, Default: 0.2},
+	}
+	// CompetencyCategoriesTable holds the schema information for the "competency_categories" table.
+	CompetencyCategoriesTable = &schema.Table{
+		Name:       "competency_categories",
+		Columns:    CompetencyCategoriesColumns,
+		PrimaryKey: []*schema.Column{CompetencyCategoriesColumns[0]},
+	}
+	// CompetencyLevelThresholdsColumns holds the columns for the "competency_level_thresholds" table.
+	CompetencyLevelThresholdsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"postgres": "varchar(128)"}},
+		{Name: "level", Type: field.TypeInt},
+		{Name: "xp_required", Type: field.TypeInt},
+		{Name: "damage_multiplier", Type: field.TypeFloat64, Default: 1},
+		{Name: "defense_multiplier", Type: field.TypeFloat64, Default: 1},
+		{Name: "competency_category_thresholds", Type: field.TypeString, SchemaType: map[string]string{"postgres": "varchar(64)"}},
+	}
+	// CompetencyLevelThresholdsTable holds the schema information for the "competency_level_thresholds" table.
+	CompetencyLevelThresholdsTable = &schema.Table{
+		Name:       "competency_level_thresholds",
+		Columns:    CompetencyLevelThresholdsColumns,
+		PrimaryKey: []*schema.Column{CompetencyLevelThresholdsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "competency_level_thresholds_competency_categories_thresholds",
+				Columns:    []*schema.Column{CompetencyLevelThresholdsColumns[5]},
+				RefColumns: []*schema.Column{CompetencyCategoriesColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -421,7 +484,7 @@ var (
 		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
 		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
 		{Name: "hp_cost", Type: field.TypeInt, Default: 0},
-		{Name: "slug", Type: field.TypeString, Unique: true},
+		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "required_tag", Type: field.TypeString, Nullable: true},
 		{Name: "skill_class", Type: field.TypeString, Default: "active"},
 		{Name: "proc_chance", Type: field.TypeFloat64, Default: 0},
@@ -530,10 +593,13 @@ var (
 	Tables = []*schema.Table{
 		AvailableTalentsTable,
 		CharactersTable,
+		CharacterCompetenciesTable,
 		CharacterFactionsTable,
 		CharacterSkillsTable,
 		CharacterTagsTable,
 		CharacterTalentsTable,
+		CompetencyCategoriesTable,
+		CompetencyLevelThresholdsTable,
 		EquipmentTable,
 		FactionsTable,
 		FactionCategoriesTable,
@@ -559,6 +625,8 @@ func init() {
 	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[3].RefTable = UsersTable
+	CharacterCompetenciesTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterCompetenciesTable.ForeignKeys[1].RefTable = CompetencyCategoriesTable
 	CharacterFactionsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterFactionsTable.ForeignKeys[1].RefTable = FactionsTable
 	CharacterSkillsTable.ForeignKeys[0].RefTable = CharactersTable
@@ -566,6 +634,7 @@ func init() {
 	CharacterTagsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterTalentsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterTalentsTable.ForeignKeys[1].RefTable = TalentsTable
+	CompetencyLevelThresholdsTable.ForeignKeys[0].RefTable = CompetencyCategoriesTable
 	EquipmentTable.ForeignKeys[0].RefTable = RoomsTable
 	FactionsTable.ForeignKeys[0].RefTable = FactionCategoriesTable
 	FactionRequiredTagsTable.ForeignKeys[0].RefTable = FactionsTable

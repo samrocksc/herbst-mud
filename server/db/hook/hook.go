@@ -32,6 +32,18 @@ func (f CharacterFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterMutation", m)
 }
 
+// The CharacterCompetencyFunc type is an adapter to allow the use of ordinary
+// function as CharacterCompetency mutator.
+type CharacterCompetencyFunc func(context.Context, *db.CharacterCompetencyMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterCompetencyFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterCompetencyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterCompetencyMutation", m)
+}
+
 // The CharacterFactionFunc type is an adapter to allow the use of ordinary
 // function as CharacterFaction mutator.
 type CharacterFactionFunc func(context.Context, *db.CharacterFactionMutation) (db.Value, error)
@@ -78,6 +90,30 @@ func (f CharacterTalentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Valu
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterTalentMutation", m)
+}
+
+// The CompetencyCategoryFunc type is an adapter to allow the use of ordinary
+// function as CompetencyCategory mutator.
+type CompetencyCategoryFunc func(context.Context, *db.CompetencyCategoryMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CompetencyCategoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CompetencyCategoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CompetencyCategoryMutation", m)
+}
+
+// The CompetencyLevelThresholdFunc type is an adapter to allow the use of ordinary
+// function as CompetencyLevelThreshold mutator.
+type CompetencyLevelThresholdFunc func(context.Context, *db.CompetencyLevelThresholdMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CompetencyLevelThresholdFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CompetencyLevelThresholdMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CompetencyLevelThresholdMutation", m)
 }
 
 // The EquipmentFunc type is an adapter to allow the use of ordinary
