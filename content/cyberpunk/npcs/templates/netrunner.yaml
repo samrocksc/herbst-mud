@@ -2,6 +2,7 @@ id: netrunner
 template_name: "NetRunner"
 description: "A digital ghost in the machine"
 level: 5
+xp_value: 110
 stats:
   strength: 8
   dexterity: 12

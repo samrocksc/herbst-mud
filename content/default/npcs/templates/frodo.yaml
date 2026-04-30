@@ -5,6 +5,7 @@ id: frodo
 template_name: "Frodo"
 description: "A hobbit of the Shire, quiet but determined"
 level: 8
+xp_value: 40
 class: rogue
 
 stats:

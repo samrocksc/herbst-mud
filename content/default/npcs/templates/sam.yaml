@@ -5,6 +5,7 @@ id: sam
 template_name: "Sam"
 description: "A loyal gardener and steadfast companion"
 level: 7
+xp_value: 30
 class: support
 
 stats:

@@ -25,6 +25,7 @@ type NPCTemplate struct {
 	TemplateName   string            `json:"template_name"`
 	Description    string            `json:"description"`
 	Level          int               `json:"level"`
+	XpValue        int               `json:"xp_value"`
 	Classification string            `json:"classification"`
 	Stats          StatsDef          `json:"stats"`
 	HP             HPCalc            `json:"hp"`

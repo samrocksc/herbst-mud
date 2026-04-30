@@ -5,6 +5,7 @@ id: gimli
 template_name: "Gimli"
 description: "A fierce dwarven warrior, proud and steadfast"
 level: 12
+xp_value: 160
 class: warrior
 
 stats:
