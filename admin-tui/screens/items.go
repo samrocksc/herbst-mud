@@ -20,6 +20,7 @@ type ItemsModel struct {
 	mode       string // "list", "detail", "create", "edit"
 	item       *api.EquipmentItem
 	form       itemForm
+	formField  int
 	createErr  string
 	confirmDel bool
 	width      int
@@ -37,12 +38,10 @@ type itemForm struct {
 	Effect      string
 }
 
-const (
-	slotType int = iota
-	slotWeapon
-	slotArmor
-	slotConsumable
-)
+var itemFormFields = []string{
+	"name", "description", "slot", "itemType", "level",
+	"weight", "color", "healing", "effect",
+}
 
 func (f *itemForm) reset() {
 	*f = itemForm{}
@@ -51,18 +50,66 @@ func (f *itemForm) reset() {
 func (f itemForm) slot() string { return f.Slot }
 func (f itemForm) itemType() string { return f.ItemType }
 
+func (f itemForm) fieldValue(field string) string {
+	switch field {
+	case "name":
+		return f.Name
+	case "description":
+		return f.Description
+	case "slot":
+		return f.Slot
+	case "itemType":
+		return f.ItemType
+	case "level":
+		return f.Level
+	case "weight":
+		return f.Weight
+	case "color":
+		return f.Color
+	case "healing":
+		return f.Healing
+	case "effect":
+		return f.Effect
+	}
+	return ""
+}
+
+func (f *itemForm) setFieldValue(field, val string) {
+	switch field {
+	case "name":
+		f.Name = val
+	case "description":
+		f.Description = val
+	case "slot":
+		f.Slot = val
+	case "itemType":
+		f.ItemType = val
+	case "level":
+		f.Level = val
+	case "weight":
+		f.Weight = val
+	case "color":
+		f.Color = val
+	case "healing":
+		f.Healing = val
+	case "effect":
+		f.Effect = val
+	}
+}
+
 func (f itemForm) toMap() map[string]any {
-	return map[string]any{
+	body := map[string]any{
 		"name":        f.Name,
 		"description": f.Description,
 		"slot":        f.Slot,
 		"itemType":    f.ItemType,
+		"color":       f.Color,
+		"effect":      f.Effect,
 		"level":       f.Level,
 		"weight":      f.Weight,
-		"color":       f.Color,
 		"healing":     f.Healing,
-		"effect":      f.Effect,
 	}
+	return body
 }
 
 // NewItemsScreen creates the items screen.
@@ -100,6 +147,11 @@ func (m ItemsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ItemsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Handle form input when in edit/create mode
+	if m.mode == "edit" || m.mode == "create" {
+		return m.handleFormKey(msg)
+	}
+
 	switch msg.String() {
 	case "ctrl+c":
 		return m, tea.Quit
@@ -116,7 +168,8 @@ func (m ItemsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.item = &m.items[m.selected]
 			return m, nil
 		}
-		if m.mode == "detail" {
+	case "e":
+		if m.mode == "detail" && m.item != nil {
 			m.mode = "edit"
 			m.form = itemForm{
 				Name:        m.item.Name,
@@ -129,23 +182,20 @@ func (m ItemsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				Healing:     fmt.Sprintf("%d", m.item.Healing),
 				Effect:      m.item.Effect,
 			}
+			m.formField = 0
+			m.createErr = ""
 			return m, nil
-		}
-		if m.mode == "edit" {
-			return m.handleSave()
-		}
-		if m.mode == "create" {
-			return m.handleSave()
 		}
 	case "c":
 		if m.mode == "list" {
 			m.mode = "create"
 			m.form.reset()
+			m.formField = 0
+			m.createErr = ""
 			return m, nil
 		}
-		return m, func() tea.Msg { return NavigateMsg{Screen: 6} }
 	case "d":
-		if m.mode == "detail" || m.mode == "edit" {
+		if m.mode == "detail" {
 			if m.confirmDel {
 				go func() {
 					api.DeleteItem(m.item.ID)
@@ -200,7 +250,51 @@ func (m ItemsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m ItemsModel) handleFormKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	field := itemFormFields[m.formField]
+
+	switch msg.String() {
+	case "ctrl+c":
+		return m, tea.Quit
+	case "esc":
+		if m.mode == "edit" {
+			m.mode = "detail"
+		} else {
+			m.mode = "list"
+		}
+		m.form.reset()
+		m.createErr = ""
+		return m, nil
+	case "tab":
+		m.formField = (m.formField + 1) % len(itemFormFields)
+		return m, nil
+	case "shift+tab":
+		m.formField = (m.formField - 1 + len(itemFormFields)) % len(itemFormFields)
+		return m, nil
+	case "enter":
+		return m.handleSave()
+	case "backspace":
+		cur := m.form.fieldValue(field)
+		if len(cur) > 0 {
+			m.form.setFieldValue(field, cur[:len(cur)-1])
+		}
+		return m, nil
+	}
+
+	// Regular text input
+	if len(msg.String()) == 1 {
+		cur := m.form.fieldValue(field)
+		m.form.setFieldValue(field, cur+msg.String())
+	}
+	return m, nil
+}
+
 func (m ItemsModel) handleSave() (tea.Model, tea.Cmd) {
+	if m.form.Name == "" {
+		m.createErr = "Name is required"
+		return m, nil
+	}
+
 	if m.mode == "edit" && m.item != nil {
 		updated, err := api.UpdateItem(m.item.ID, m.form.toMap())
 		if err != nil {
@@ -322,7 +416,7 @@ func (m ItemsModel) viewDetail() string {
 		"",
 		style.StyleMuted.Render(fmt.Sprintf("  Description: %s", m.item.Description)),
 		"",
-		style.StyleMuted.Render("  [Enter] edit   [D] delete   [Esc] back to list"),
+		style.StyleMuted.Render("  [E] edit   [C] create   [D] delete   [Esc] back to list"),
 	}
 	if m.confirmDel {
 		lines = append(lines, "", style.StyleDanger.Render("  Confirm DELETE? Press [D] again to confirm"))
@@ -335,21 +429,38 @@ func (m ItemsModel) viewEdit() string {
 	if m.mode == "create" {
 		modeLabel = "Create Item"
 	}
+
+	fieldLabels := []struct {
+		label string
+		field string
+	}{
+		{"Name:", "name"},
+		{"Description:", "description"},
+		{"Slot:", "slot"},
+		{"Type:", "itemType"},
+		{"Level:", "level"},
+		{"Weight:", "weight"},
+		{"Color:", "color"},
+		{"Healing:", "healing"},
+		{"Effect:", "effect"},
+	}
+
 	lines := []string{
 		style.StyleHeader.Render(modeLabel),
 		style.RenderDivider(max(80, m.width-4)),
-		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Name:"), style.StyleValue.Render(m.form.Name)),
-		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Slot:"), style.StyleValue.Render(m.form.Slot)),
-		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Type:"), style.StyleValue.Render(m.form.ItemType)),
-		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Level:"), style.StyleValue.Render(m.form.Level)),
-		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Weight:"), style.StyleValue.Render(m.form.Weight)),
-		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Color:"), style.StyleValue.Render(m.form.Color)),
-		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Healing:"), style.StyleValue.Render(m.form.Healing)),
-		fmt.Sprintf("  %-12s %s", style.StyleLabel.Render("Effect:"), style.StyleValue.Render(m.form.Effect)),
+		style.StyleMuted.Render("  [Tab] next field   [Enter] submit   [Esc] cancel"),
 		"",
-		style.StyleMuted.Render("  Edit mode — form input not yet wired in TUI"),
-		style.StyleMuted.Render("  [Enter] save (API call)   [Esc] cancel"),
 	}
+
+	for i, fl := range fieldLabels {
+		val := m.form.fieldValue(fl.field)
+		cursor := "  "
+		if i == m.formField {
+			cursor = "▸ "
+		}
+		lines = append(lines, fmt.Sprintf("%s%-14s %s", cursor, style.StyleLabel.Render(fl.label), style.StyleValue.Render(val)))
+	}
+
 	if m.createErr != "" {
 		lines = append(lines, "", style.Error(m.createErr))
 	}

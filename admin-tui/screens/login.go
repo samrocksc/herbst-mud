@@ -98,7 +98,7 @@ func (m LoginModel) View() string {
   %s  %s
 
   %s  %s
-  %s  %s
+  %s
 
 %s%s
 `,

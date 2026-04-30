@@ -75,6 +75,7 @@ type Character struct {
 	OwnerID    int    `json:"owner_id"`
 	IsNPC      bool   `json:"is_npc"`
 	Description string `json:"description"`
+	Xp         int    `json:"xp"`
 	Behavior   string `json:"behavior"`
 	Aggression string `json:"aggression"`
 }
@@ -114,9 +115,26 @@ type Quest struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Type        string   `json:"type"`
-	 Objectives  []string `json:"objectives,omitempty"`
+	Objectives  []string `json:"objectives,omitempty"`
 	Giver       string   `json:"giver,omitempty"`
 	Rewards     string   `json:"rewards,omitempty"`
+}
+
+// questsResponse wraps the server's wrapped response
+type questsResponse struct {
+	Quests []Quest `json:"quests"`
+	Count  int     `json:"count"`
+}
+
+// npcsResponse wraps the server's wrapped NPC response
+type npcsResponse struct {
+	NPCs  []Character `json:"npcs"`
+	Count int         `json:"count"`
+}
+
+// backupsResponse wraps the server's wrapped backup response
+type backupsResponse struct {
+	Backups []BackupManifest `json:"backups"`
 }
 
 // Talent represents a combat talent
@@ -303,12 +321,12 @@ func DeleteRoom(id int) error {
 // ─── NPCs ───────────────────────────────────────────────────────────────────
 
 func ListNPCs() ([]Character, error) {
-	chars, err := doRequest[[]Character]("GET", "/npcs", nil)
-	return chars, err
+	resp, err := doRequest[npcsResponse]("GET", "/npcs", nil)
+	return resp.NPCs, err
 }
 
 func CreateNPC(body map[string]any) (Character, error) {
-	return doRequest[Character]("POST", "/npcs", body)
+	return doRequest[Character]("POST", "/characters", body)
 }
 
 func UpdateNPC(id int, body map[string]any) (Character, error) {
@@ -342,7 +360,8 @@ func DeleteItem(id int) error {
 // ─── Quests ─────────────────────────────────────────────────────────────────
 
 func ListQuests() ([]Quest, error) {
-	return doRequest[[]Quest]("GET", "/content/quests", nil)
+	resp, err := doRequest[questsResponse]("GET", "/content/quests", nil)
+	return resp.Quests, err
 }
 
 // ─── Skills & Talents ────────────────────────────────────────────────────────
@@ -354,7 +373,8 @@ func ListTalents() ([]Talent, error) {
 // ─── Backup ─────────────────────────────────────────────────────────────────
 
 func ListBackups() ([]BackupManifest, error) {
-	return doRequest[[]BackupManifest]("GET", "/api/backups", nil)
+	resp, err := doRequest[backupsResponse]("GET", "/api/backups", nil)
+	return resp.Backups, err
 }
 
 func TriggerBackup() error {
