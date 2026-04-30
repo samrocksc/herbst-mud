@@ -266,6 +266,9 @@ func main() {
 	// Register faction routes
 	routes.RegisterFactionRoutes(router, client)
 
+	// Register NPC template routes (XP-008)
+	routes.RegisterNPCTemplateRoutes(router, client)
+
 	// Register event routes (HTTP bridge for game server → event bus)
 	routes.RegisterEventRoutes(router, client, slog.Default())
 

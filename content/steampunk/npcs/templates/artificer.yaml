@@ -2,6 +2,7 @@ id: artificer
 template_name: "Steam Artificer"
 description: "Master of clockwork and steam"
 level: 5
+xp_value: 65
 stats:
   strength: 10
   dexterity: 15

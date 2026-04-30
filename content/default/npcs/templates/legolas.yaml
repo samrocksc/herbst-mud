@@ -5,6 +5,7 @@ id: legolas
 template_name: "Legolas"
 description: "An elven archer with unmatched precision"
 level: 14
+xp_value: 190
 class: archer
 
 stats:

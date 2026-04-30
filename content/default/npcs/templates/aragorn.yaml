@@ -8,6 +8,7 @@ description: "A ranger of the north, wanderer and protector"
 flavor_text: "The wilds have grown restless. What brings you to these parts?"
 class: ranger
 level: 15
+xp_value: 200
 is_npc: true
 is_immortal: false
 is_invincible: false

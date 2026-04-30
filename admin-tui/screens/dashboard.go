@@ -73,10 +73,14 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, func() tea.Msg { return NavigateMsg{Screen: 6} } // screenItems
 		case "q":
 			return m, func() tea.Msg { return NavigateMsg{Screen: 7} } // screenQuests
+		case "f":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 8} } // screenFactions
+		case "s":
+			return m, func() tea.Msg { return NavigateMsg{Screen: 9} } // screenSkills
 		case "b":
-			return m, func() tea.Msg { return NavigateMsg{Screen: 8} } // screenBackup
+			return m, func() tea.Msg { return NavigateMsg{Screen: 10} } // screenBackup
 		case "w":
-			return m, func() tea.Msg { return NavigateMsg{Screen: 9} } // screenWipe
+			return m, func() tea.Msg { return NavigateMsg{Screen: 11} } // screenWipe
 		}
 	}
 	return m, nil
@@ -126,6 +130,8 @@ func (m DashboardModel) renderMenu() string {
 		"[N] NPCs",
 		"[I] Items",
 		"[Q] Quests",
+		"[F] Factions",
+		"[S] Skills",
 		"[B] Backup",
 		"[W] Wipe World",
 	}

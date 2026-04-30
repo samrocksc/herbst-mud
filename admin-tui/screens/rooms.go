@@ -280,9 +280,9 @@ func (m RoomsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, func() tea.Msg { return NavigateMsg{Screen: 7} }
 		case "b":
-			return m, func() tea.Msg { return NavigateMsg{Screen: 8} }
+			return m, func() tea.Msg { return NavigateMsg{Screen: 10} }
 		case "w":
-			return m, func() tea.Msg { return NavigateMsg{Screen: 9} }
+			return m, func() tea.Msg { return NavigateMsg{Screen: 11} }
 		}
 	}
 	return m, nil

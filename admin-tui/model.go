@@ -22,6 +22,7 @@ const (
 	screenItems
 	screenQuests
 	screenFactions
+	screenSkills
 	screenBackup
 	screenWipe
 )
@@ -36,6 +37,7 @@ var screenNames = map[screen]string{
 	screenItems:      "Items",
 	screenQuests:     "Quests",
 	screenFactions:   "Factions",
+	screenSkills:     "Skills",
 	screenBackup:     "Backup",
 	screenWipe:       "Wipe World",
 }
@@ -118,6 +120,8 @@ func (m RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.screenModel = screens.NewQuestsScreen(m.token)
 		case screenFactions:
 			m.screenModel = screens.NewFactionsScreen(m.token)
+		case screenSkills:
+			m.screenModel = screens.NewSkillsScreen(m.token)
 		case screenBackup:
 			m.screenModel = screens.NewBackupScreen(m.token)
 		case screenWipe:
@@ -152,6 +156,7 @@ func (m RootModel) renderNav() string {
 		"[I]tems",
 		"[Q]uests",
 		"[F]actions",
+		"[S]kills",
 		"[B]ackup",
 		"[W]ipe",
 		"[Esc]Back",
@@ -198,6 +203,8 @@ func screenFromKey(item string) screen {
 		return screenQuests
 	case 'F':
 		return screenFactions
+	case 'S':
+		return screenSkills
 	case 'B':
 		return screenBackup
 	case 'W':
