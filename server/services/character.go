@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"herbst-server/constants"
 	"herbst-server/db"
@@ -176,6 +177,12 @@ func (s *CharacterService) CreateCharacter(ctx context.Context, input CreateChar
 	// Apply race stat modifiers from DB
 	char, _ = dbinit.ApplyRaceToCharacter(ctx, s.client, char)
 
+	// Auto-grant first_class tag on character creation
+	if grantErr := s.GrantTag(ctx, char.ID, "first_class", "system"); grantErr != nil {
+		// Log but don't fail character creation if tag grant fails
+		fmt.Printf("Warning: failed to grant first_class tag to character %d: %v\n", char.ID, grantErr)
+	}
+
 	return char, nil
 }
 
@@ -195,4 +202,14 @@ func HashPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hash), nil
+}
+
+// GrantTag adds a tag to a character with the given source.
+func (s *CharacterService) GrantTag(ctx context.Context, characterID int, tag, source string) error {
+	_, err := s.client.CharacterTag.Create().
+		SetTag(tag).
+		SetSource(source).
+		SetCharacterID(characterID).
+		Save(ctx)
+	return err
 }
