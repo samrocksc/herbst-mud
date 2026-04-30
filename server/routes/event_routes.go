@@ -2,13 +2,19 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"herbst-server/db"
+	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
+	"herbst-server/db/competencycategory"
+	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/events"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +26,7 @@ func RegisterEventRoutes(router *gin.Engine, client *db.Client, logger *slog.Log
 	xpSvc := newXPService(client, logger)
 	bus.Subscribe(events.EventNPCDefeated, events.XPSubscriber(xpSvc, logger))
 	bus.Subscribe(events.EventCharacterDied, events.DeathPenaltySubscriber(xpSvc, logger, 10)) // 10% death penalty
+	bus.Subscribe(events.EventQuestComplete, events.QuestXPSubscriber(xpSvc, logger))
 
 	// POST /api/events — the bridge from the game server to the event bus.
 	router.POST("/api/events", handleEvent(logger))
@@ -52,6 +59,69 @@ func (w *xpServiceWrapper) ApplyDeathPenalty(ctx context.Context, characterID, p
 	newXP = char.Xp - xpLost
 	_, err = w.client.Character.UpdateOne(char).SetXp(newXP).Save(ctx)
 	return xpLost, newXP, err
+}
+
+// AwardCompetencyXP awards XP to a character's competency in a category.
+// It applies the category's xp_multiplier, upserts the character_competency record,
+// and recomputes the cached level based on thresholds.
+func (w *xpServiceWrapper) AwardCompetencyXP(ctx context.Context, characterID int, categoryID string, rawXP int) error {
+	cat, err := w.client.CompetencyCategory.Get(ctx, categoryID)
+	if err != nil {
+		return fmt.Errorf("get competency category %s: %w", categoryID, err)
+	}
+
+	multiplied := int(float64(rawXP) * cat.XpMultiplier)
+
+	cc, err := w.client.CharacterCompetency.Query().
+		Where(charactercompetency.HasCharacterWith(character.ID(characterID))).
+		Where(charactercompetency.HasCategoryWith(competencycategory.ID(categoryID))).
+		Only(ctx)
+	if err != nil {
+		// Record doesn't exist — create it
+		_, err = w.client.CharacterCompetency.Create().
+			SetXp(multiplied).
+			SetLevel(1).
+			SetCharacterID(characterID).
+			SetCategoryID(categoryID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("create character competency: %w", err)
+		}
+		w.logger.Info("competency started",
+			"character_id", characterID, "category", categoryID, "xp", multiplied)
+		return nil
+	}
+
+	// Update XP
+	cc.Xp += multiplied
+
+	// Recompute level from thresholds
+	thresholds, err := w.client.CompetencyLevelThreshold.Query().
+		Where(competencylevelthreshold.HasCategoryWith(competencycategory.ID(categoryID))).
+		Order(competencylevelthreshold.ByLevel(sql.OrderAsc())).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("query thresholds: %w", err)
+	}
+
+	newLevel := cc.Level
+	for _, t := range thresholds {
+		if cc.Xp >= t.XpRequired {
+			newLevel = t.Level
+		}
+	}
+
+	cc.Level = newLevel
+
+	_, err = w.client.CharacterCompetency.UpdateOne(cc).SetXp(cc.Xp).SetLevel(cc.Level).Save(ctx)
+	if err != nil {
+		return fmt.Errorf("update character competency: %w", err)
+	}
+
+	w.logger.Info("competency xp awarded",
+		"character_id", characterID, "category", categoryID,
+		"raw_xp", rawXP, "multiplied", multiplied, "total_xp", cc.Xp, "level", cc.Level)
+	return nil
 }
 
 // --- event handler ---
