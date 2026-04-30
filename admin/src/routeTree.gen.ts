@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
 import { Route as AuthTalentsRouteImport } from './routes/_auth/talents'
 import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
+import { Route as AuthRacesRouteImport } from './routes/_auth/races'
 import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
@@ -78,6 +79,11 @@ const AuthSkillsRoute = AuthSkillsRouteImport.update({
   path: '/skills',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthRacesRoute = AuthRacesRouteImport.update({
+  id: '/races',
+  path: '/races',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthPlayersRoute = AuthPlayersRouteImport.update({
   id: '/players',
   path: '/players',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
   '/players': typeof AuthPlayersRoute
+  '/races': typeof AuthRacesRoute
   '/skills': typeof AuthSkillsRoute
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
   '/players': typeof AuthPlayersRoute
+  '/races': typeof AuthRacesRoute
   '/skills': typeof AuthSkillsRoute
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/_auth/config': typeof AuthConfigRoute
   '/_auth/factions': typeof AuthFactionsRoute
   '/_auth/players': typeof AuthPlayersRoute
+  '/_auth/races': typeof AuthRacesRoute
   '/_auth/skills': typeof AuthSkillsRoute
   '/_auth/talents': typeof AuthTalentsRoute
   '/_auth/xp': typeof AuthXpRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/factions'
     | '/players'
+    | '/races'
     | '/skills'
     | '/talents'
     | '/xp'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/factions'
     | '/players'
+    | '/races'
     | '/skills'
     | '/talents'
     | '/xp'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/_auth/config'
     | '/_auth/factions'
     | '/_auth/players'
+    | '/_auth/races'
     | '/_auth/skills'
     | '/_auth/talents'
     | '/_auth/xp'
@@ -280,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSkillsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/races': {
+      id: '/_auth/races'
+      path: '/races'
+      fullPath: '/races'
+      preLoaderRoute: typeof AuthRacesRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/players': {
       id: '/_auth/players'
       path: '/players'
@@ -308,6 +327,7 @@ interface AuthRouteChildren {
   AuthConfigRoute: typeof AuthConfigRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
   AuthPlayersRoute: typeof AuthPlayersRoute
+  AuthRacesRoute: typeof AuthRacesRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
   AuthTalentsRoute: typeof AuthTalentsRoute
   AuthXpRoute: typeof AuthXpRoute
@@ -317,6 +337,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthConfigRoute: AuthConfigRoute,
   AuthFactionsRoute: AuthFactionsRoute,
   AuthPlayersRoute: AuthPlayersRoute,
+  AuthRacesRoute: AuthRacesRoute,
   AuthSkillsRoute: AuthSkillsRoute,
   AuthTalentsRoute: AuthTalentsRoute,
   AuthXpRoute: AuthXpRoute,
