@@ -269,6 +269,9 @@ func main() {
 	// Register NPC template routes (XP-008)
 	routes.RegisterNPCTemplateRoutes(router, client)
 
+	// Register competency routes (XP-005)
+	routes.RegisterCompetencyRoutes(router, client)
+
 	// Register event routes (HTTP bridge for game server → event bus)
 	routes.RegisterEventRoutes(router, client, slog.Default())
 
