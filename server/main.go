@@ -266,6 +266,9 @@ func main() {
 	// Register faction routes
 	routes.RegisterFactionRoutes(router, client)
 
+	// Register race routes (RACES-001)
+	routes.RegisterRaceRoutes(router, client)
+
 	// Register NPC template routes (XP-008)
 	routes.RegisterNPCTemplateRoutes(router, client)
 

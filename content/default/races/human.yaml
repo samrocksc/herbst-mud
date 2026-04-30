@@ -1,0 +1,6 @@
+name: human
+display_name: Human
+description: Versatile and adaptable, humans can excel in any profession.
+stat_modifiers: {"strength": 0, "dexterity": 0, "constitution": 0, "intelligence": 0, "wisdom": 0, "charisma": 0}
+skill_grants: []
+is_playable: true

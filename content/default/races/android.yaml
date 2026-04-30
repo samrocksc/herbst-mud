@@ -1,0 +1,6 @@
+name: android
+display_name: Android
+description: Constructed beings with enhanced physical capabilities but limited emotional range.
+stat_modifiers: {"strength": 1, "dexterity": 1, "constitution": 2, "intelligence": 1, "wisdom": 0, "charisma": -2}
+skill_grants: ["metal_detection"]
+is_playable: true

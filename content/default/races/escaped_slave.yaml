@@ -1,0 +1,6 @@
+name: escaped_slave
+display_name: Escaped Slave
+description: Survivors who escaped captivity, often with unique knowledge of their former oppressors.
+stat_modifiers: {"strength": 1, "dexterity": 2, "constitution": 0, "intelligence": 1, "wisdom": 1, "charisma": 0}
+skill_grants: ["street_sense"]
+is_playable: true

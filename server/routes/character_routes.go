@@ -17,6 +17,7 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/gameconfig"
+	racepkg "herbst-server/db/race"
 	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"herbst-server/dbinit"
@@ -693,15 +694,10 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		// Validate race
-		validRaces := map[string]bool{
-			"human":         true,
-			"mutant":        true,
-			"android":       true,
-			"escaped_slave": true,
-		}
-		if !validRaces[req.Race] {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race. Valid races: human, mutant, android, escaped_slave"})
+		// Validate race against DB
+		count, err := client.Race.Query().Where(racepkg.NameEQ(req.Race)).Only(c.Request.Context())
+		if err != nil || !count.IsPlayable {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race. Use GET /api/races to list available races."})
 			return
 		}
 

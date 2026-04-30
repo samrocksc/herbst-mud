@@ -32,43 +32,61 @@ func InitRaces(client *db.Client) error {
 		{
 			name:        "human",
 			displayName: "Human",
-			description: "A regular human survivor. Balanced and adaptable.",
+			description: "Versatile and adaptable, humans can excel in any profession.",
 			statModifiers: map[string]int{
 				"strength":     0,
 				"dexterity":    0,
 				"constitution":  0,
 				"intelligence":  0,
 				"wisdom":       0,
+				"charisma":      0,
 			},
 			skillGrants: []string{},
 			isPlayable:  true,
 		},
 		{
-			name:        "turtle",
-			displayName: "Turtle",
-			description: "A mutant turtle with a hard shell and slow but sturdy nature. +2 CON.",
+			name:        "mutant",
+			displayName: "Mutant",
+			description: "Mutants have been changed by radiation or toxic exposure, gaining unusual abilities.",
 			statModifiers: map[string]int{
-				"strength":     0,
-				"dexterity":    -1,
-				"constitution":  2,
-				"intelligence":  0,
+				"strength":     2,
+				"dexterity":   -1,
+				"constitution": 1,
+				"intelligence": 0,
 				"wisdom":       0,
+				"charisma":     -1,
 			},
-			skillGrants: []string{"shell_defense"},
+			skillGrants: []string{"radiation_resistance"},
 			isPlayable:  true,
 		},
 		{
-			name:        "mutant",
-			displayName: "Mutant",
-			description: "A strange mutant with unusual abilities. +2 INT, +1 STR.",
+			name:        "android",
+			displayName: "Android",
+			description: "Constructed beings with enhanced physical capabilities but limited emotional range.",
 			statModifiers: map[string]int{
 				"strength":     1,
-				"dexterity":    0,
-				"constitution":  0,
-				"intelligence":  2,
+				"dexterity":    1,
+				"constitution": 2,
+				"intelligence": 1,
 				"wisdom":       0,
+				"charisma":     -2,
 			},
-			skillGrants: []string{"mutant_armor"},
+			skillGrants: []string{"metal_detection"},
+			isPlayable:  true,
+		},
+		{
+			name:        "escaped_slave",
+			displayName: "Escaped Slave",
+			description: "Survivors who escaped captivity, often with unique knowledge of their former oppressors.",
+			statModifiers: map[string]int{
+				"strength":     1,
+				"dexterity":    2,
+				"constitution": 0,
+				"intelligence": 1,
+				"wisdom":       1,
+				"charisma":     0,
+			},
+			skillGrants: []string{"street_sense"},
 			isPlayable:  true,
 		},
 	}
@@ -203,6 +221,7 @@ func ApplyRaceToCharacter(ctx context.Context, client *db.Client, char *db.Chara
 	if v, ok := statMods["wisdom"]; ok {
 		updater.SetWisdom(char.Wisdom + v)
 	}
+	// Note: charisma is stored on races but Character model has no charisma field — skipped
 
 	_, err = updater.Save(ctx)
 	return char, err

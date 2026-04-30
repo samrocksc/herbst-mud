@@ -1,0 +1,6 @@
+name: mutant
+display_name: Mutant
+description: Mutants have been changed by radiation or toxic exposure, gaining unusual abilities.
+stat_modifiers: {"strength": 2, "constitution": 1, "dexterity": -1, "intelligence": 0, "wisdom": 0, "charisma": -1}
+skill_grants: ["radiation_resistance"]
+is_playable: true
