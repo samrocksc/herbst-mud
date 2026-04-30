@@ -28,6 +28,7 @@ type CharactersModel struct {
 	formLevel  string
 	formHp     string
 	formMaxHp  string
+	formXp     string
 	formRoomID string
 	formDesc   string
 	formField  int
@@ -37,7 +38,7 @@ type CharactersModel struct {
 const charsPerPage = 20
 
 var charEditFields = []string{
-	"name", "class", "race", "level", "hp", "maxHp", "roomID", "description",
+	"name", "class", "race", "level", "hp", "maxHp", "xp", "roomID", "description",
 }
 
 func (m CharactersModel) formFieldValue(field string) string {
@@ -54,6 +55,8 @@ func (m CharactersModel) formFieldValue(field string) string {
 		return m.formHp
 	case "maxHp":
 		return m.formMaxHp
+	case "xp":
+		return m.formXp
 	case "roomID":
 		return m.formRoomID
 	case "description":
@@ -76,6 +79,8 @@ func (m *CharactersModel) setFormFieldValue(field, val string) {
 		m.formHp = val
 	case "maxHp":
 		m.formMaxHp = val
+	case "xp":
+		m.formXp = val
 	case "roomID":
 		m.formRoomID = val
 	case "description":
@@ -98,6 +103,9 @@ func (m CharactersModel) formToMap() map[string]any {
 	}
 	if m.formMaxHp != "" {
 		body["max_hp"] = m.formMaxHp
+	}
+	if m.formXp != "" {
+		body["xp"] = m.formXp
 	}
 	if m.formRoomID != "" {
 		body["room_id"] = m.formRoomID
@@ -168,6 +176,7 @@ func (m CharactersModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.formLevel = fmt.Sprintf("%d", c.Level)
 			m.formHp = fmt.Sprintf("%d", c.HP)
 			m.formMaxHp = fmt.Sprintf("%d", c.MaxHP)
+			m.formXp = fmt.Sprintf("%d", c.Xp)
 			m.formRoomID = fmt.Sprintf("%d", c.RoomID)
 			m.formDesc = c.Description
 			m.formField = 0
@@ -445,6 +454,7 @@ func (m CharactersModel) viewDetail() string {
 		fmt.Sprintf("  %-14s %s", style.StyleLabel.Render("Class:"), style.StyleValue.Render(c.Class)),
 		fmt.Sprintf("  %-14s %s", style.StyleLabel.Render("Race:"), style.StyleValue.Render(c.Race)),
 		fmt.Sprintf("  %-14s %s", style.StyleLabel.Render("Level:"), style.StyleValue.Render(fmt.Sprintf("%d", c.Level))),
+		fmt.Sprintf("  %-14s %s", style.StyleLabel.Render("XP:"), style.StyleValue.Render(fmt.Sprintf("%d", c.Xp))),
 		fmt.Sprintf("  %-14s %s", style.StyleLabel.Render("HP:"), style.StyleValue.Render(fmt.Sprintf("%d/%d", c.HP, c.MaxHP))),
 		fmt.Sprintf("  %-14s %s", style.StyleLabel.Render("Room:"), style.StyleValue.Render(fmt.Sprintf("%d", c.RoomID))),
 	}
@@ -480,6 +490,7 @@ func (m CharactersModel) viewEdit() string {
 		{"Level:", "level"},
 		{"HP:", "hp"},
 		{"Max HP:", "maxHp"},
+		{"XP:", "xp"},
 		{"Room ID:", "roomID"},
 		{"Description:", "description"},
 	}

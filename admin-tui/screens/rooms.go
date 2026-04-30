@@ -17,12 +17,13 @@ type RoomsModel struct {
 	loading    bool
 	errMsg     string
 	selected   int
-	mode       string // "list", "detail", "create"
+	mode       string // "list", "detail", "create", "edit"
 	confirmDel bool
 	width      int
 	form       roomForm
 	formField  int // index into roomFormFields
 	createErr  string
+	editErr    string
 }
 
 type roomForm struct {
@@ -170,9 +171,12 @@ func (m RoomsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m RoomsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	// Handle form input when in create mode
+	// Handle form input when in create or edit mode
 	if m.mode == "create" {
 		return m.handleCreateKey(msg)
+	}
+	if m.mode == "edit" {
+		return m.handleEditKey(msg)
 	}
 
 	switch msg.String() {
@@ -195,6 +199,40 @@ func (m RoomsModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.form = roomForm.reset(m.form)
 			m.formField = 0
 			m.createErr = ""
+			return m, nil
+		}
+	case "e":
+		if m.mode == "detail" && len(m.rooms) > 0 {
+			m.mode = "edit"
+			r := m.rooms[m.selected]
+			m.form = roomForm{
+				Name:        r.Name,
+				Description: r.Description,
+				Floor:       fmt.Sprintf("%d", r.Floor),
+				IsStarting:  r.IsStarting,
+			}
+			if r.Exits != nil {
+				if v, ok := r.Exits["north"]; ok {
+					m.form.ExitNorth = fmt.Sprintf("%d", v)
+				}
+				if v, ok := r.Exits["south"]; ok {
+					m.form.ExitSouth = fmt.Sprintf("%d", v)
+				}
+				if v, ok := r.Exits["east"]; ok {
+					m.form.ExitEast = fmt.Sprintf("%d", v)
+				}
+				if v, ok := r.Exits["west"]; ok {
+					m.form.ExitWest = fmt.Sprintf("%d", v)
+				}
+				if v, ok := r.Exits["up"]; ok {
+					m.form.ExitUp = fmt.Sprintf("%d", v)
+				}
+				if v, ok := r.Exits["down"]; ok {
+					m.form.ExitDown = fmt.Sprintf("%d", v)
+				}
+			}
+			m.formField = 0
+			m.editErr = ""
 			return m, nil
 		}
 	case "d":
@@ -313,6 +351,76 @@ func (m RoomsModel) handleCreateSubmit() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m RoomsModel) handleEditKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	field := roomFormFields[m.formField]
+
+	switch msg.String() {
+	case "ctrl+c":
+		return m, tea.Quit
+	case "esc":
+		m.mode = "detail"
+		m.editErr = ""
+		return m, nil
+	case "tab":
+		m.formField = (m.formField + 1) % len(roomFormFields)
+		return m, nil
+	case "shift+tab":
+		m.formField = (m.formField - 1 + len(roomFormFields)) % len(roomFormFields)
+		return m, nil
+	case "enter":
+		return m.handleEditSubmit()
+	case "backspace":
+		cur := m.form.fieldValue(field)
+		if len(cur) > 0 && field != "isStarting" {
+			m.form.setFieldValue(field, cur[:len(cur)-1])
+		}
+		return m, nil
+	}
+
+	// Toggle boolean field
+	if field == "isStarting" {
+		if msg.String() == "y" || msg.String() == "t" {
+			m.form.IsStarting = true
+		} else if msg.String() == "n" || msg.String() == "f" {
+			m.form.IsStarting = false
+		}
+		return m, nil
+	}
+
+	// Regular text input
+	if len(msg.String()) == 1 {
+		cur := m.form.fieldValue(field)
+		m.form.setFieldValue(field, cur+msg.String())
+	}
+	return m, nil
+}
+
+func (m RoomsModel) handleEditSubmit() (tea.Model, tea.Cmd) {
+	if m.form.Name == "" {
+		m.editErr = "Name is required"
+		return m, nil
+	}
+
+	r := m.rooms[m.selected]
+	updated, err := api.UpdateRoom(r.ID, m.form.toMap())
+	if err != nil {
+		m.editErr = fmt.Sprintf("Update failed: %v", err)
+		return m, nil
+	}
+
+	// Update in master list
+	for i, rm := range m.rooms {
+		if rm.ID == updated.ID {
+			m.rooms[i] = updated
+			break
+		}
+	}
+
+	m.mode = "detail"
+	m.editErr = ""
+	return m, nil
+}
+
 func filterRooms(rooms []api.Room, id int) []api.Room {
 	result := make([]api.Room, 0, len(rooms))
 	for _, r := range rooms {
@@ -332,6 +440,8 @@ func (m RoomsModel) View() string {
 		return m.viewDetail()
 	case "create":
 		return m.viewCreate()
+	case "edit":
+		return m.viewEdit()
 	default:
 		return m.viewList()
 	}
@@ -403,8 +513,37 @@ func (m RoomsModel) viewDetail() string {
 	} else {
 		lines = append(lines, "    (no exits)")
 	}
+
+	// ASCII exit map
+	lines = append(lines, "", style.StyleLabel.Render("  Room Map:"))
+	roomLabel := fmt.Sprintf("#%d %s", r.ID, r.Name)
+	boxWidth := len(roomLabel) + 2
+	if boxWidth < 11 {
+		boxWidth = 11
+	}
+	topBorder := "  ┌" + strings.Repeat("─", boxWidth) + "┐"
+	botBorder := "  └" + strings.Repeat("─", boxWidth) + "┘"
+	midLine := "  │ " + roomLabel + strings.Repeat(" ", boxWidth-len(roomLabel)-1) + "│"
+	lines = append(lines, topBorder, midLine, botBorder)
+
+	// Build exit label line
+	if r.Exits != nil && len(r.Exits) > 0 {
+		exitParts := []string{}
+		dirAbbr := map[string]string{
+			"north": "N", "south": "S", "east": "E", "west": "W", "up": "U", "down": "D",
+		}
+		for dir, dest := range r.Exits {
+			abbr := dir
+			if a, ok := dirAbbr[dir]; ok {
+				abbr = a
+			}
+			exitParts = append(exitParts, fmt.Sprintf("%s→%d", abbr, dest))
+		}
+		lines = append(lines, "  "+strings.Join(exitParts, "  "))
+	}
+
 	lines = append(lines, "", style.StyleMuted.Render(trunc(r.Description, 80)))
-	lines = append(lines, "", style.StyleMuted.Render("  [C] create   [D] delete   [Esc] back to list"))
+	lines = append(lines, "", style.StyleMuted.Render("  [E] edit   [C] create   [D] delete   [Esc] back to list"))
 
 	if m.confirmDel {
 		lines = append(lines, "", style.StyleDanger.Render("  Confirm DELETE? Press [D] again to confirm"))
@@ -447,6 +586,46 @@ func (m RoomsModel) viewCreate() string {
 
 	if m.createErr != "" {
 		lines = append(lines, "", style.Error(m.createErr))
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func (m RoomsModel) viewEdit() string {
+	fieldLabels := []struct {
+		label string
+		field string
+	}{
+		{"Name:", "name"},
+		{"Description:", "description"},
+		{"Floor:", "floor"},
+		{"Is Starting:", "isStarting"},
+		{"Exit North:", "exitNorth"},
+		{"Exit South:", "exitSouth"},
+		{"Exit East:", "exitEast"},
+		{"Exit West:", "exitWest"},
+		{"Exit Up:", "exitUp"},
+		{"Exit Down:", "exitDown"},
+	}
+
+	lines := []string{
+		style.StyleHeader.Render("Edit Room"),
+		style.RenderDivider(max(80, m.width-4)),
+		style.StyleMuted.Render("  [Tab] next field   [Shift+Tab] prev   [Enter] submit   [Esc] cancel"),
+		"",
+	}
+
+	for i, fl := range fieldLabels {
+		val := m.form.fieldValue(fl.field)
+		cursor := "  "
+		if i == m.formField {
+			cursor = "▸ "
+		}
+		lines = append(lines, fmt.Sprintf("%s%-14s %s", cursor, style.StyleLabel.Render(fl.label), style.StyleValue.Render(val)))
+	}
+
+	if m.editErr != "" {
+		lines = append(lines, "", style.Error(m.editErr))
 	}
 
 	return strings.Join(lines, "\n")

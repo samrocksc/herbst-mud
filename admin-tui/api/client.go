@@ -75,6 +75,7 @@ type Character struct {
 	OwnerID    int    `json:"owner_id"`
 	IsNPC      bool   `json:"is_npc"`
 	Description string `json:"description"`
+	Xp         int    `json:"xp"`
 	Behavior   string `json:"behavior"`
 	Aggression string `json:"aggression"`
 }
