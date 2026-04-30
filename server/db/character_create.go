@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
@@ -645,6 +646,21 @@ func (_c *CharacterCreate) AddFactionMemberships(v ...*CharacterFaction) *Charac
 	return _c.AddFactionMembershipIDs(ids...)
 }
 
+// AddCompetencyIDs adds the "competencies" edge to the CharacterCompetency entity by IDs.
+func (_c *CharacterCreate) AddCompetencyIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddCompetencyIDs(ids...)
+	return _c
+}
+
+// AddCompetencies adds the "competencies" edges to the CharacterCompetency entity.
+func (_c *CharacterCreate) AddCompetencies(v ...*CharacterCompetency) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCompetencyIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_c *CharacterCreate) Mutation() *CharacterMutation {
 	return _c.mutation
@@ -1193,6 +1209,22 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CompetenciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.CompetenciesTable,
+			Columns: []string{character.CompetenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactercompetency.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

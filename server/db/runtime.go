@@ -5,9 +5,12 @@ package db
 import (
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
+	"herbst-server/db/competencycategory"
+	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/equipment"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/npctemplate"
@@ -152,6 +155,16 @@ func init() {
 	characterDescSkillHeavyArmor := characterFields[36].Descriptor()
 	// character.DefaultSkillHeavyArmor holds the default value on creation for the skill_heavy_armor field.
 	character.DefaultSkillHeavyArmor = characterDescSkillHeavyArmor.Default.(int)
+	charactercompetencyFields := schema.CharacterCompetency{}.Fields()
+	_ = charactercompetencyFields
+	// charactercompetencyDescXp is the schema descriptor for xp field.
+	charactercompetencyDescXp := charactercompetencyFields[0].Descriptor()
+	// charactercompetency.DefaultXp holds the default value on creation for the xp field.
+	charactercompetency.DefaultXp = charactercompetencyDescXp.Default.(int)
+	// charactercompetencyDescLevel is the schema descriptor for level field.
+	charactercompetencyDescLevel := charactercompetencyFields[1].Descriptor()
+	// charactercompetency.DefaultLevel holds the default value on creation for the level field.
+	charactercompetency.DefaultLevel = charactercompetencyDescLevel.Default.(int)
 	characterfactionFields := schema.CharacterFaction{}.Fields()
 	_ = characterfactionFields
 	// characterfactionDescReputation is the schema descriptor for reputation field.
@@ -182,6 +195,22 @@ func init() {
 	charactertalentDescSlot := charactertalentFields[0].Descriptor()
 	// charactertalent.DefaultSlot holds the default value on creation for the slot field.
 	charactertalent.DefaultSlot = charactertalentDescSlot.Default.(int)
+	competencycategoryFields := schema.CompetencyCategory{}.Fields()
+	_ = competencycategoryFields
+	// competencycategoryDescXpMultiplier is the schema descriptor for xp_multiplier field.
+	competencycategoryDescXpMultiplier := competencycategoryFields[2].Descriptor()
+	// competencycategory.DefaultXpMultiplier holds the default value on creation for the xp_multiplier field.
+	competencycategory.DefaultXpMultiplier = competencycategoryDescXpMultiplier.Default.(float64)
+	competencylevelthresholdFields := schema.CompetencyLevelThreshold{}.Fields()
+	_ = competencylevelthresholdFields
+	// competencylevelthresholdDescDamageMultiplier is the schema descriptor for damage_multiplier field.
+	competencylevelthresholdDescDamageMultiplier := competencylevelthresholdFields[3].Descriptor()
+	// competencylevelthreshold.DefaultDamageMultiplier holds the default value on creation for the damage_multiplier field.
+	competencylevelthreshold.DefaultDamageMultiplier = competencylevelthresholdDescDamageMultiplier.Default.(float64)
+	// competencylevelthresholdDescDefenseMultiplier is the schema descriptor for defense_multiplier field.
+	competencylevelthresholdDescDefenseMultiplier := competencylevelthresholdFields[4].Descriptor()
+	// competencylevelthreshold.DefaultDefenseMultiplier holds the default value on creation for the defense_multiplier field.
+	competencylevelthreshold.DefaultDefenseMultiplier = competencylevelthresholdDescDefenseMultiplier.Default.(float64)
 	equipmentFields := schema.Equipment{}.Fields()
 	_ = equipmentFields
 	// equipmentDescLevel is the schema descriptor for level field.

@@ -16,6 +16,8 @@ type Tx struct {
 	AvailableTalent *AvailableTalentClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// CharacterCompetency is the client for interacting with the CharacterCompetency builders.
+	CharacterCompetency *CharacterCompetencyClient
 	// CharacterFaction is the client for interacting with the CharacterFaction builders.
 	CharacterFaction *CharacterFactionClient
 	// CharacterSkill is the client for interacting with the CharacterSkill builders.
@@ -24,6 +26,10 @@ type Tx struct {
 	CharacterTag *CharacterTagClient
 	// CharacterTalent is the client for interacting with the CharacterTalent builders.
 	CharacterTalent *CharacterTalentClient
+	// CompetencyCategory is the client for interacting with the CompetencyCategory builders.
+	CompetencyCategory *CompetencyCategoryClient
+	// CompetencyLevelThreshold is the client for interacting with the CompetencyLevelThreshold builders.
+	CompetencyLevelThreshold *CompetencyLevelThresholdClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
 	// Faction is the client for interacting with the Faction builders.
@@ -183,10 +189,13 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.AvailableTalent = NewAvailableTalentClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
+	tx.CharacterCompetency = NewCharacterCompetencyClient(tx.config)
 	tx.CharacterFaction = NewCharacterFactionClient(tx.config)
 	tx.CharacterSkill = NewCharacterSkillClient(tx.config)
 	tx.CharacterTag = NewCharacterTagClient(tx.config)
 	tx.CharacterTalent = NewCharacterTalentClient(tx.config)
+	tx.CompetencyCategory = NewCompetencyCategoryClient(tx.config)
+	tx.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
 	tx.Faction = NewFactionClient(tx.config)
 	tx.FactionCategory = NewFactionCategoryClient(tx.config)

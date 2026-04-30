@@ -6,7 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 
+	"entgo.io/ent/dialect/sql"
 	"herbst-server/db"
+	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
+	"herbst-server/db/competencycategory"
+	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/gameconfig"
 )
 
@@ -154,4 +159,126 @@ func (s *XPAwardService) GetCharacterXP(ctx context.Context, characterID int) (x
 // QueryCharacter queries a character by ID (used by other services).
 func (s *XPAwardService) QueryCharacter(ctx context.Context, id int) (*db.Character, error) {
 	return s.client.Character.Get(ctx, id)
+}
+
+// AwardCompetencyXP awards XP to a character's competency in a category.
+// It applies the category's xp_multiplier, updates the character's competency record,
+// and recomputes the cached level based on thresholds.
+func (s *XPAwardService) AwardCompetencyXP(ctx context.Context, characterID int, categoryID string, rawXP int) error {
+	cat, err := s.client.CompetencyCategory.Get(ctx, categoryID)
+	if err != nil {
+		return fmt.Errorf("get competency category %s: %w", categoryID, err)
+	}
+
+	multiplied := int(float64(rawXP) * cat.XpMultiplier)
+
+	cc, err := s.client.CharacterCompetency.Query().
+		Where(charactercompetency.HasCharacterWith(character.ID(characterID))).
+		Where(charactercompetency.HasCategoryWith(competencycategory.ID(categoryID))).
+		Only(ctx)
+	if err != nil {
+		// Record doesn't exist — create it
+		cc, err = s.client.CharacterCompetency.Create().
+			SetXp(multiplied).
+			SetLevel(1).
+			SetCharacterID(characterID).
+			SetCategoryID(categoryID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("create character competency: %w", err)
+		}
+		s.logger.Info("competency started",
+			"character_id", characterID, "category", categoryID, "xp", multiplied)
+		return nil
+	}
+
+	// Update XP
+	cc.Xp += multiplied
+
+	// Recompute level from thresholds
+	thresholds, err := s.client.CompetencyLevelThreshold.Query().
+		Where(competencylevelthreshold.HasCategoryWith(competencycategory.ID(categoryID))).
+		Order(competencylevelthreshold.ByLevel(sql.OrderAsc())).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("query thresholds: %w", err)
+	}
+
+	newLevel := cc.Level
+	for _, t := range thresholds {
+		if cc.Xp >= t.XpRequired {
+			newLevel = t.Level
+		}
+	}
+
+	cc.Level = newLevel
+
+	_, err = s.client.CharacterCompetency.UpdateOne(cc).SetXp(cc.Xp).SetLevel(cc.Level).Save(ctx)
+	if err != nil {
+		return fmt.Errorf("update character competency: %w", err)
+	}
+
+	s.logger.Info("competency xp awarded",
+		"character_id", characterID, "category", categoryID,
+		"raw_xp", rawXP, "multiplied", multiplied, "total_xp", cc.Xp, "level", cc.Level)
+	return nil
+}
+
+// SeedCompetencyCategories creates the default competency categories and level thresholds
+// if they don't already exist. Safe to call on every startup.
+func (s *XPAwardService) SeedCompetencyCategories(ctx context.Context) error {
+	categories := []struct {
+		id   string
+		name string
+		mult float64
+	}{
+		{"blades", "Blades", 0.20},
+		{"staves", "Staves", 0.20},
+		{"knives", "Knives", 0.20},
+		{"martial", "Martial Arts", 0.20},
+		{"brawling", "Brawling", 0.20},
+		{"tech", "Tech", 0.20},
+		{"light_armor", "Light Armor", 0.20},
+		{"cloth_armor", "Cloth Armor", 0.20},
+		{"heavy_armor", "Heavy Armor", 0.20},
+	}
+
+	// Level thresholds: levels 1-10 with escalating XP costs
+	levelXP := []int{0, 100, 250, 500, 900, 1500, 2300, 3300, 4500, 6000}
+	dmgMults := []float64{1.0, 1.05, 1.10, 1.15, 1.20, 1.30, 1.40, 1.55, 1.70, 1.90}
+	defMults := []float64{1.0, 1.03, 1.06, 1.09, 1.12, 1.16, 1.22, 1.30, 1.40, 1.55}
+
+	for _, cat := range categories {
+		existing, _ := s.client.CompetencyCategory.Get(ctx, cat.id)
+		if existing != nil {
+			continue
+		}
+
+		created, err := s.client.CompetencyCategory.Create().
+			SetID(cat.id).
+			SetName(cat.name).
+			SetXpMultiplier(cat.mult).
+			Save(ctx)
+		if err != nil {
+			s.logger.Warn("failed to seed competency category", "id", cat.id, "error", err)
+			continue
+		}
+
+		// Create thresholds for levels 1-10
+		for lvl := 1; lvl <= 10; lvl++ {
+			_, err = s.client.CompetencyLevelThreshold.Create().
+				SetID(fmt.Sprintf("%s-%d", cat.id, lvl)).
+				SetLevel(lvl).
+				SetXpRequired(levelXP[lvl-1]).
+				SetDamageMultiplier(dmgMults[lvl-1]).
+				SetDefenseMultiplier(defMults[lvl-1]).
+				SetCategory(created).
+				Save(ctx)
+			if err != nil {
+				s.logger.Warn("failed to seed threshold", "id", cat.id, "level", lvl, "error", err)
+			}
+		}
+		s.logger.Info("seeded competency category", "id", cat.id, "name", cat.name)
+	}
+	return nil
 }

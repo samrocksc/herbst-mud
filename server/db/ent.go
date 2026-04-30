@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
+	"herbst-server/db/competencycategory"
+	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/equipment"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
@@ -91,25 +94,28 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			availabletalent.Table:    availabletalent.ValidColumn,
-			character.Table:          character.ValidColumn,
-			characterfaction.Table:   characterfaction.ValidColumn,
-			characterskill.Table:     characterskill.ValidColumn,
-			charactertag.Table:       charactertag.ValidColumn,
-			charactertalent.Table:    charactertalent.ValidColumn,
-			equipment.Table:          equipment.ValidColumn,
-			faction.Table:            faction.ValidColumn,
-			factioncategory.Table:    factioncategory.ValidColumn,
-			factionrequiredtag.Table: factionrequiredtag.ValidColumn,
-			gameconfig.Table:         gameconfig.ValidColumn,
-			gender.Table:             gender.ValidColumn,
-			npcskill.Table:           npcskill.ValidColumn,
-			npctemplate.Table:        npctemplate.ValidColumn,
-			race.Table:               race.ValidColumn,
-			room.Table:               room.ValidColumn,
-			skill.Table:              skill.ValidColumn,
-			talent.Table:             talent.ValidColumn,
-			user.Table:               user.ValidColumn,
+			availabletalent.Table:          availabletalent.ValidColumn,
+			character.Table:                character.ValidColumn,
+			charactercompetency.Table:      charactercompetency.ValidColumn,
+			characterfaction.Table:         characterfaction.ValidColumn,
+			characterskill.Table:           characterskill.ValidColumn,
+			charactertag.Table:             charactertag.ValidColumn,
+			charactertalent.Table:          charactertalent.ValidColumn,
+			competencycategory.Table:       competencycategory.ValidColumn,
+			competencylevelthreshold.Table: competencylevelthreshold.ValidColumn,
+			equipment.Table:                equipment.ValidColumn,
+			faction.Table:                  faction.ValidColumn,
+			factioncategory.Table:          factioncategory.ValidColumn,
+			factionrequiredtag.Table:       factionrequiredtag.ValidColumn,
+			gameconfig.Table:               gameconfig.ValidColumn,
+			gender.Table:                   gender.ValidColumn,
+			npcskill.Table:                 npcskill.ValidColumn,
+			npctemplate.Table:              npctemplate.ValidColumn,
+			race.Table:                     race.ValidColumn,
+			room.Table:                     room.ValidColumn,
+			skill.Table:                    skill.ValidColumn,
+			talent.Table:                   talent.ValidColumn,
+			user.Table:                     user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

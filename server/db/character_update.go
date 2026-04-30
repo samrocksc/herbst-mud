@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
@@ -882,6 +883,21 @@ func (_u *CharacterUpdate) AddFactionMemberships(v ...*CharacterFaction) *Charac
 	return _u.AddFactionMembershipIDs(ids...)
 }
 
+// AddCompetencyIDs adds the "competencies" edge to the CharacterCompetency entity by IDs.
+func (_u *CharacterUpdate) AddCompetencyIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddCompetencyIDs(ids...)
+	return _u
+}
+
+// AddCompetencies adds the "competencies" edges to the CharacterCompetency entity.
+func (_u *CharacterUpdate) AddCompetencies(v ...*CharacterCompetency) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCompetencyIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -1008,6 +1024,27 @@ func (_u *CharacterUpdate) RemoveFactionMemberships(v ...*CharacterFaction) *Cha
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFactionMembershipIDs(ids...)
+}
+
+// ClearCompetencies clears all "competencies" edges to the CharacterCompetency entity.
+func (_u *CharacterUpdate) ClearCompetencies() *CharacterUpdate {
+	_u.mutation.ClearCompetencies()
+	return _u
+}
+
+// RemoveCompetencyIDs removes the "competencies" edge to CharacterCompetency entities by IDs.
+func (_u *CharacterUpdate) RemoveCompetencyIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveCompetencyIDs(ids...)
+	return _u
+}
+
+// RemoveCompetencies removes "competencies" edges to CharacterCompetency entities.
+func (_u *CharacterUpdate) RemoveCompetencies(v ...*CharacterCompetency) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCompetencyIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1560,6 +1597,51 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CompetenciesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.CompetenciesTable,
+			Columns: []string{character.CompetenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactercompetency.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCompetenciesIDs(); len(nodes) > 0 && !_u.mutation.CompetenciesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.CompetenciesTable,
+			Columns: []string{character.CompetenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactercompetency.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CompetenciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.CompetenciesTable,
+			Columns: []string{character.CompetenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactercompetency.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -2434,6 +2516,21 @@ func (_u *CharacterUpdateOne) AddFactionMemberships(v ...*CharacterFaction) *Cha
 	return _u.AddFactionMembershipIDs(ids...)
 }
 
+// AddCompetencyIDs adds the "competencies" edge to the CharacterCompetency entity by IDs.
+func (_u *CharacterUpdateOne) AddCompetencyIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddCompetencyIDs(ids...)
+	return _u
+}
+
+// AddCompetencies adds the "competencies" edges to the CharacterCompetency entity.
+func (_u *CharacterUpdateOne) AddCompetencies(v ...*CharacterCompetency) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCompetencyIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -2560,6 +2657,27 @@ func (_u *CharacterUpdateOne) RemoveFactionMemberships(v ...*CharacterFaction) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFactionMembershipIDs(ids...)
+}
+
+// ClearCompetencies clears all "competencies" edges to the CharacterCompetency entity.
+func (_u *CharacterUpdateOne) ClearCompetencies() *CharacterUpdateOne {
+	_u.mutation.ClearCompetencies()
+	return _u
+}
+
+// RemoveCompetencyIDs removes the "competencies" edge to CharacterCompetency entities by IDs.
+func (_u *CharacterUpdateOne) RemoveCompetencyIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveCompetencyIDs(ids...)
+	return _u
+}
+
+// RemoveCompetencies removes "competencies" edges to CharacterCompetency entities.
+func (_u *CharacterUpdateOne) RemoveCompetencies(v ...*CharacterCompetency) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCompetencyIDs(ids...)
 }
 
 // Where appends a list predicates to the CharacterUpdate builder.
@@ -3142,6 +3260,51 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(characterfaction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CompetenciesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.CompetenciesTable,
+			Columns: []string{character.CompetenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactercompetency.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCompetenciesIDs(); len(nodes) > 0 && !_u.mutation.CompetenciesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.CompetenciesTable,
+			Columns: []string{character.CompetenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactercompetency.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CompetenciesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.CompetenciesTable,
+			Columns: []string{character.CompetenciesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(charactercompetency.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

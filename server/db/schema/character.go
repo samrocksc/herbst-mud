@@ -111,5 +111,6 @@ func (Character) Edges() []ent.Edge {
 		edge.To("talents", CharacterTalent.Type),
 		edge.To("tags", CharacterTag.Type),
 		edge.To("faction_memberships", CharacterFaction.Type),
+		edge.To("competencies", CharacterCompetency.Type),
 	}
 }

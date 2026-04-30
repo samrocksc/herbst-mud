@@ -12,6 +12,9 @@ type AvailableTalent func(*sql.Selector)
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 
+// CharacterCompetency is the predicate function for charactercompetency builders.
+type CharacterCompetency func(*sql.Selector)
+
 // CharacterFaction is the predicate function for characterfaction builders.
 type CharacterFaction func(*sql.Selector)
 
@@ -23,6 +26,12 @@ type CharacterTag func(*sql.Selector)
 
 // CharacterTalent is the predicate function for charactertalent builders.
 type CharacterTalent func(*sql.Selector)
+
+// CompetencyCategory is the predicate function for competencycategory builders.
+type CompetencyCategory func(*sql.Selector)
+
+// CompetencyLevelThreshold is the predicate function for competencylevelthreshold builders.
+type CompetencyLevelThreshold func(*sql.Selector)
 
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)

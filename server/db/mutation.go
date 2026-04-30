@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
+	"herbst-server/db/competencycategory"
+	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/equipment"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
@@ -42,25 +45,28 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAvailableTalent    = "AvailableTalent"
-	TypeCharacter          = "Character"
-	TypeCharacterFaction   = "CharacterFaction"
-	TypeCharacterSkill     = "CharacterSkill"
-	TypeCharacterTag       = "CharacterTag"
-	TypeCharacterTalent    = "CharacterTalent"
-	TypeEquipment          = "Equipment"
-	TypeFaction            = "Faction"
-	TypeFactionCategory    = "FactionCategory"
-	TypeFactionRequiredTag = "FactionRequiredTag"
-	TypeGameConfig         = "GameConfig"
-	TypeGender             = "Gender"
-	TypeNPCSkill           = "NPCSkill"
-	TypeNPCTemplate        = "NPCTemplate"
-	TypeRace               = "Race"
-	TypeRoom               = "Room"
-	TypeSkill              = "Skill"
-	TypeTalent             = "Talent"
-	TypeUser               = "User"
+	TypeAvailableTalent          = "AvailableTalent"
+	TypeCharacter                = "Character"
+	TypeCharacterCompetency      = "CharacterCompetency"
+	TypeCharacterFaction         = "CharacterFaction"
+	TypeCharacterSkill           = "CharacterSkill"
+	TypeCharacterTag             = "CharacterTag"
+	TypeCharacterTalent          = "CharacterTalent"
+	TypeCompetencyCategory       = "CompetencyCategory"
+	TypeCompetencyLevelThreshold = "CompetencyLevelThreshold"
+	TypeEquipment                = "Equipment"
+	TypeFaction                  = "Faction"
+	TypeFactionCategory          = "FactionCategory"
+	TypeFactionRequiredTag       = "FactionRequiredTag"
+	TypeGameConfig               = "GameConfig"
+	TypeGender                   = "Gender"
+	TypeNPCSkill                 = "NPCSkill"
+	TypeNPCTemplate              = "NPCTemplate"
+	TypeRace                     = "Race"
+	TypeRoom                     = "Room"
+	TypeSkill                    = "Skill"
+	TypeTalent                   = "Talent"
+	TypeUser                     = "User"
 )
 
 // AvailableTalentMutation represents an operation that mutates the AvailableTalent nodes in the graph.
@@ -716,6 +722,9 @@ type CharacterMutation struct {
 	faction_memberships        map[int]struct{}
 	removedfaction_memberships map[int]struct{}
 	clearedfaction_memberships bool
+	competencies               map[int]struct{}
+	removedcompetencies        map[int]struct{}
+	clearedcompetencies        bool
 	done                       bool
 	oldValue                   func(context.Context) (*Character, error)
 	predicates                 []predicate.Character
@@ -3104,6 +3113,60 @@ func (m *CharacterMutation) ResetFactionMemberships() {
 	m.removedfaction_memberships = nil
 }
 
+// AddCompetencyIDs adds the "competencies" edge to the CharacterCompetency entity by ids.
+func (m *CharacterMutation) AddCompetencyIDs(ids ...int) {
+	if m.competencies == nil {
+		m.competencies = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.competencies[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCompetencies clears the "competencies" edge to the CharacterCompetency entity.
+func (m *CharacterMutation) ClearCompetencies() {
+	m.clearedcompetencies = true
+}
+
+// CompetenciesCleared reports if the "competencies" edge to the CharacterCompetency entity was cleared.
+func (m *CharacterMutation) CompetenciesCleared() bool {
+	return m.clearedcompetencies
+}
+
+// RemoveCompetencyIDs removes the "competencies" edge to the CharacterCompetency entity by IDs.
+func (m *CharacterMutation) RemoveCompetencyIDs(ids ...int) {
+	if m.removedcompetencies == nil {
+		m.removedcompetencies = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.competencies, ids[i])
+		m.removedcompetencies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCompetencies returns the removed IDs of the "competencies" edge to the CharacterCompetency entity.
+func (m *CharacterMutation) RemovedCompetenciesIDs() (ids []int) {
+	for id := range m.removedcompetencies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CompetenciesIDs returns the "competencies" edge IDs in the mutation.
+func (m *CharacterMutation) CompetenciesIDs() (ids []int) {
+	for id := range m.competencies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCompetencies resets all changes to the "competencies" edge.
+func (m *CharacterMutation) ResetCompetencies() {
+	m.competencies = nil
+	m.clearedcompetencies = false
+	m.removedcompetencies = nil
+}
+
 // Where appends a list predicates to the CharacterMutation builder.
 func (m *CharacterMutation) Where(ps ...predicate.Character) {
 	m.predicates = append(m.predicates, ps...)
@@ -4185,7 +4248,7 @@ func (m *CharacterMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CharacterMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.user != nil {
 		edges = append(edges, character.EdgeUser)
 	}
@@ -4209,6 +4272,9 @@ func (m *CharacterMutation) AddedEdges() []string {
 	}
 	if m.faction_memberships != nil {
 		edges = append(edges, character.EdgeFactionMemberships)
+	}
+	if m.competencies != nil {
+		edges = append(edges, character.EdgeCompetencies)
 	}
 	return edges
 }
@@ -4259,13 +4325,19 @@ func (m *CharacterMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case character.EdgeCompetencies:
+		ids := make([]ent.Value, 0, len(m.competencies))
+		for id := range m.competencies {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CharacterMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.removedavailable_talents != nil {
 		edges = append(edges, character.EdgeAvailableTalents)
 	}
@@ -4280,6 +4352,9 @@ func (m *CharacterMutation) RemovedEdges() []string {
 	}
 	if m.removedfaction_memberships != nil {
 		edges = append(edges, character.EdgeFactionMemberships)
+	}
+	if m.removedcompetencies != nil {
+		edges = append(edges, character.EdgeCompetencies)
 	}
 	return edges
 }
@@ -4318,13 +4393,19 @@ func (m *CharacterMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case character.EdgeCompetencies:
+		ids := make([]ent.Value, 0, len(m.removedcompetencies))
+		for id := range m.removedcompetencies {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CharacterMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.cleareduser {
 		edges = append(edges, character.EdgeUser)
 	}
@@ -4349,6 +4430,9 @@ func (m *CharacterMutation) ClearedEdges() []string {
 	if m.clearedfaction_memberships {
 		edges = append(edges, character.EdgeFactionMemberships)
 	}
+	if m.clearedcompetencies {
+		edges = append(edges, character.EdgeCompetencies)
+	}
 	return edges
 }
 
@@ -4372,6 +4456,8 @@ func (m *CharacterMutation) EdgeCleared(name string) bool {
 		return m.clearedtags
 	case character.EdgeFactionMemberships:
 		return m.clearedfaction_memberships
+	case character.EdgeCompetencies:
+		return m.clearedcompetencies
 	}
 	return false
 }
@@ -4421,8 +4507,586 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 	case character.EdgeFactionMemberships:
 		m.ResetFactionMemberships()
 		return nil
+	case character.EdgeCompetencies:
+		m.ResetCompetencies()
+		return nil
 	}
 	return fmt.Errorf("unknown Character edge %s", name)
+}
+
+// CharacterCompetencyMutation represents an operation that mutates the CharacterCompetency nodes in the graph.
+type CharacterCompetencyMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	xp               *int
+	addxp            *int
+	level            *int
+	addlevel         *int
+	clearedFields    map[string]struct{}
+	character        *int
+	clearedcharacter bool
+	category         *string
+	clearedcategory  bool
+	done             bool
+	oldValue         func(context.Context) (*CharacterCompetency, error)
+	predicates       []predicate.CharacterCompetency
+}
+
+var _ ent.Mutation = (*CharacterCompetencyMutation)(nil)
+
+// charactercompetencyOption allows management of the mutation configuration using functional options.
+type charactercompetencyOption func(*CharacterCompetencyMutation)
+
+// newCharacterCompetencyMutation creates new mutation for the CharacterCompetency entity.
+func newCharacterCompetencyMutation(c config, op Op, opts ...charactercompetencyOption) *CharacterCompetencyMutation {
+	m := &CharacterCompetencyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCharacterCompetency,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCharacterCompetencyID sets the ID field of the mutation.
+func withCharacterCompetencyID(id int) charactercompetencyOption {
+	return func(m *CharacterCompetencyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CharacterCompetency
+		)
+		m.oldValue = func(ctx context.Context) (*CharacterCompetency, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CharacterCompetency.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCharacterCompetency sets the old CharacterCompetency of the mutation.
+func withCharacterCompetency(node *CharacterCompetency) charactercompetencyOption {
+	return func(m *CharacterCompetencyMutation) {
+		m.oldValue = func(context.Context) (*CharacterCompetency, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CharacterCompetencyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CharacterCompetencyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CharacterCompetencyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CharacterCompetencyMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CharacterCompetency.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetXp sets the "xp" field.
+func (m *CharacterCompetencyMutation) SetXp(i int) {
+	m.xp = &i
+	m.addxp = nil
+}
+
+// Xp returns the value of the "xp" field in the mutation.
+func (m *CharacterCompetencyMutation) Xp() (r int, exists bool) {
+	v := m.xp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldXp returns the old "xp" field's value of the CharacterCompetency entity.
+// If the CharacterCompetency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterCompetencyMutation) OldXp(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldXp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldXp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldXp: %w", err)
+	}
+	return oldValue.Xp, nil
+}
+
+// AddXp adds i to the "xp" field.
+func (m *CharacterCompetencyMutation) AddXp(i int) {
+	if m.addxp != nil {
+		*m.addxp += i
+	} else {
+		m.addxp = &i
+	}
+}
+
+// AddedXp returns the value that was added to the "xp" field in this mutation.
+func (m *CharacterCompetencyMutation) AddedXp() (r int, exists bool) {
+	v := m.addxp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetXp resets all changes to the "xp" field.
+func (m *CharacterCompetencyMutation) ResetXp() {
+	m.xp = nil
+	m.addxp = nil
+}
+
+// SetLevel sets the "level" field.
+func (m *CharacterCompetencyMutation) SetLevel(i int) {
+	m.level = &i
+	m.addlevel = nil
+}
+
+// Level returns the value of the "level" field in the mutation.
+func (m *CharacterCompetencyMutation) Level() (r int, exists bool) {
+	v := m.level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevel returns the old "level" field's value of the CharacterCompetency entity.
+// If the CharacterCompetency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterCompetencyMutation) OldLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
+	}
+	return oldValue.Level, nil
+}
+
+// AddLevel adds i to the "level" field.
+func (m *CharacterCompetencyMutation) AddLevel(i int) {
+	if m.addlevel != nil {
+		*m.addlevel += i
+	} else {
+		m.addlevel = &i
+	}
+}
+
+// AddedLevel returns the value that was added to the "level" field in this mutation.
+func (m *CharacterCompetencyMutation) AddedLevel() (r int, exists bool) {
+	v := m.addlevel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *CharacterCompetencyMutation) ResetLevel() {
+	m.level = nil
+	m.addlevel = nil
+}
+
+// SetCharacterID sets the "character" edge to the Character entity by id.
+func (m *CharacterCompetencyMutation) SetCharacterID(id int) {
+	m.character = &id
+}
+
+// ClearCharacter clears the "character" edge to the Character entity.
+func (m *CharacterCompetencyMutation) ClearCharacter() {
+	m.clearedcharacter = true
+}
+
+// CharacterCleared reports if the "character" edge to the Character entity was cleared.
+func (m *CharacterCompetencyMutation) CharacterCleared() bool {
+	return m.clearedcharacter
+}
+
+// CharacterID returns the "character" edge ID in the mutation.
+func (m *CharacterCompetencyMutation) CharacterID() (id int, exists bool) {
+	if m.character != nil {
+		return *m.character, true
+	}
+	return
+}
+
+// CharacterIDs returns the "character" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CharacterID instead. It exists only for internal usage by the builders.
+func (m *CharacterCompetencyMutation) CharacterIDs() (ids []int) {
+	if id := m.character; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCharacter resets all changes to the "character" edge.
+func (m *CharacterCompetencyMutation) ResetCharacter() {
+	m.character = nil
+	m.clearedcharacter = false
+}
+
+// SetCategoryID sets the "category" edge to the CompetencyCategory entity by id.
+func (m *CharacterCompetencyMutation) SetCategoryID(id string) {
+	m.category = &id
+}
+
+// ClearCategory clears the "category" edge to the CompetencyCategory entity.
+func (m *CharacterCompetencyMutation) ClearCategory() {
+	m.clearedcategory = true
+}
+
+// CategoryCleared reports if the "category" edge to the CompetencyCategory entity was cleared.
+func (m *CharacterCompetencyMutation) CategoryCleared() bool {
+	return m.clearedcategory
+}
+
+// CategoryID returns the "category" edge ID in the mutation.
+func (m *CharacterCompetencyMutation) CategoryID() (id string, exists bool) {
+	if m.category != nil {
+		return *m.category, true
+	}
+	return
+}
+
+// CategoryIDs returns the "category" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CategoryID instead. It exists only for internal usage by the builders.
+func (m *CharacterCompetencyMutation) CategoryIDs() (ids []string) {
+	if id := m.category; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCategory resets all changes to the "category" edge.
+func (m *CharacterCompetencyMutation) ResetCategory() {
+	m.category = nil
+	m.clearedcategory = false
+}
+
+// Where appends a list predicates to the CharacterCompetencyMutation builder.
+func (m *CharacterCompetencyMutation) Where(ps ...predicate.CharacterCompetency) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CharacterCompetencyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CharacterCompetencyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CharacterCompetency, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CharacterCompetencyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CharacterCompetencyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CharacterCompetency).
+func (m *CharacterCompetencyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CharacterCompetencyMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.xp != nil {
+		fields = append(fields, charactercompetency.FieldXp)
+	}
+	if m.level != nil {
+		fields = append(fields, charactercompetency.FieldLevel)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CharacterCompetencyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case charactercompetency.FieldXp:
+		return m.Xp()
+	case charactercompetency.FieldLevel:
+		return m.Level()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CharacterCompetencyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case charactercompetency.FieldXp:
+		return m.OldXp(ctx)
+	case charactercompetency.FieldLevel:
+		return m.OldLevel(ctx)
+	}
+	return nil, fmt.Errorf("unknown CharacterCompetency field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterCompetencyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case charactercompetency.FieldXp:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetXp(v)
+		return nil
+	case charactercompetency.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterCompetency field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CharacterCompetencyMutation) AddedFields() []string {
+	var fields []string
+	if m.addxp != nil {
+		fields = append(fields, charactercompetency.FieldXp)
+	}
+	if m.addlevel != nil {
+		fields = append(fields, charactercompetency.FieldLevel)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CharacterCompetencyMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case charactercompetency.FieldXp:
+		return m.AddedXp()
+	case charactercompetency.FieldLevel:
+		return m.AddedLevel()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterCompetencyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case charactercompetency.FieldXp:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddXp(v)
+		return nil
+	case charactercompetency.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLevel(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterCompetency numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CharacterCompetencyMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CharacterCompetencyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CharacterCompetencyMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CharacterCompetency nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CharacterCompetencyMutation) ResetField(name string) error {
+	switch name {
+	case charactercompetency.FieldXp:
+		m.ResetXp()
+		return nil
+	case charactercompetency.FieldLevel:
+		m.ResetLevel()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterCompetency field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CharacterCompetencyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.character != nil {
+		edges = append(edges, charactercompetency.EdgeCharacter)
+	}
+	if m.category != nil {
+		edges = append(edges, charactercompetency.EdgeCategory)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CharacterCompetencyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case charactercompetency.EdgeCharacter:
+		if id := m.character; id != nil {
+			return []ent.Value{*id}
+		}
+	case charactercompetency.EdgeCategory:
+		if id := m.category; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CharacterCompetencyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CharacterCompetencyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CharacterCompetencyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedcharacter {
+		edges = append(edges, charactercompetency.EdgeCharacter)
+	}
+	if m.clearedcategory {
+		edges = append(edges, charactercompetency.EdgeCategory)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CharacterCompetencyMutation) EdgeCleared(name string) bool {
+	switch name {
+	case charactercompetency.EdgeCharacter:
+		return m.clearedcharacter
+	case charactercompetency.EdgeCategory:
+		return m.clearedcategory
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CharacterCompetencyMutation) ClearEdge(name string) error {
+	switch name {
+	case charactercompetency.EdgeCharacter:
+		m.ClearCharacter()
+		return nil
+	case charactercompetency.EdgeCategory:
+		m.ClearCategory()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterCompetency unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CharacterCompetencyMutation) ResetEdge(name string) error {
+	switch name {
+	case charactercompetency.EdgeCharacter:
+		m.ResetCharacter()
+		return nil
+	case charactercompetency.EdgeCategory:
+		m.ResetCategory()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterCompetency edge %s", name)
 }
 
 // CharacterFactionMutation represents an operation that mutates the CharacterFaction nodes in the graph.
@@ -6496,6 +7160,1300 @@ func (m *CharacterTalentMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CharacterTalent edge %s", name)
+}
+
+// CompetencyCategoryMutation represents an operation that mutates the CompetencyCategory nodes in the graph.
+type CompetencyCategoryMutation struct {
+	config
+	op                            Op
+	typ                           string
+	id                            *string
+	name                          *string
+	xp_multiplier                 *float64
+	addxp_multiplier              *float64
+	clearedFields                 map[string]struct{}
+	thresholds                    map[string]struct{}
+	removedthresholds             map[string]struct{}
+	clearedthresholds             bool
+	character_competencies        map[int]struct{}
+	removedcharacter_competencies map[int]struct{}
+	clearedcharacter_competencies bool
+	done                          bool
+	oldValue                      func(context.Context) (*CompetencyCategory, error)
+	predicates                    []predicate.CompetencyCategory
+}
+
+var _ ent.Mutation = (*CompetencyCategoryMutation)(nil)
+
+// competencycategoryOption allows management of the mutation configuration using functional options.
+type competencycategoryOption func(*CompetencyCategoryMutation)
+
+// newCompetencyCategoryMutation creates new mutation for the CompetencyCategory entity.
+func newCompetencyCategoryMutation(c config, op Op, opts ...competencycategoryOption) *CompetencyCategoryMutation {
+	m := &CompetencyCategoryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCompetencyCategory,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCompetencyCategoryID sets the ID field of the mutation.
+func withCompetencyCategoryID(id string) competencycategoryOption {
+	return func(m *CompetencyCategoryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CompetencyCategory
+		)
+		m.oldValue = func(ctx context.Context) (*CompetencyCategory, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CompetencyCategory.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCompetencyCategory sets the old CompetencyCategory of the mutation.
+func withCompetencyCategory(node *CompetencyCategory) competencycategoryOption {
+	return func(m *CompetencyCategoryMutation) {
+		m.oldValue = func(context.Context) (*CompetencyCategory, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CompetencyCategoryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CompetencyCategoryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CompetencyCategory entities.
+func (m *CompetencyCategoryMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CompetencyCategoryMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CompetencyCategoryMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CompetencyCategory.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *CompetencyCategoryMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CompetencyCategoryMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the CompetencyCategory entity.
+// If the CompetencyCategory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompetencyCategoryMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CompetencyCategoryMutation) ResetName() {
+	m.name = nil
+}
+
+// SetXpMultiplier sets the "xp_multiplier" field.
+func (m *CompetencyCategoryMutation) SetXpMultiplier(f float64) {
+	m.xp_multiplier = &f
+	m.addxp_multiplier = nil
+}
+
+// XpMultiplier returns the value of the "xp_multiplier" field in the mutation.
+func (m *CompetencyCategoryMutation) XpMultiplier() (r float64, exists bool) {
+	v := m.xp_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldXpMultiplier returns the old "xp_multiplier" field's value of the CompetencyCategory entity.
+// If the CompetencyCategory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompetencyCategoryMutation) OldXpMultiplier(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldXpMultiplier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldXpMultiplier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldXpMultiplier: %w", err)
+	}
+	return oldValue.XpMultiplier, nil
+}
+
+// AddXpMultiplier adds f to the "xp_multiplier" field.
+func (m *CompetencyCategoryMutation) AddXpMultiplier(f float64) {
+	if m.addxp_multiplier != nil {
+		*m.addxp_multiplier += f
+	} else {
+		m.addxp_multiplier = &f
+	}
+}
+
+// AddedXpMultiplier returns the value that was added to the "xp_multiplier" field in this mutation.
+func (m *CompetencyCategoryMutation) AddedXpMultiplier() (r float64, exists bool) {
+	v := m.addxp_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetXpMultiplier resets all changes to the "xp_multiplier" field.
+func (m *CompetencyCategoryMutation) ResetXpMultiplier() {
+	m.xp_multiplier = nil
+	m.addxp_multiplier = nil
+}
+
+// AddThresholdIDs adds the "thresholds" edge to the CompetencyLevelThreshold entity by ids.
+func (m *CompetencyCategoryMutation) AddThresholdIDs(ids ...string) {
+	if m.thresholds == nil {
+		m.thresholds = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.thresholds[ids[i]] = struct{}{}
+	}
+}
+
+// ClearThresholds clears the "thresholds" edge to the CompetencyLevelThreshold entity.
+func (m *CompetencyCategoryMutation) ClearThresholds() {
+	m.clearedthresholds = true
+}
+
+// ThresholdsCleared reports if the "thresholds" edge to the CompetencyLevelThreshold entity was cleared.
+func (m *CompetencyCategoryMutation) ThresholdsCleared() bool {
+	return m.clearedthresholds
+}
+
+// RemoveThresholdIDs removes the "thresholds" edge to the CompetencyLevelThreshold entity by IDs.
+func (m *CompetencyCategoryMutation) RemoveThresholdIDs(ids ...string) {
+	if m.removedthresholds == nil {
+		m.removedthresholds = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.thresholds, ids[i])
+		m.removedthresholds[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedThresholds returns the removed IDs of the "thresholds" edge to the CompetencyLevelThreshold entity.
+func (m *CompetencyCategoryMutation) RemovedThresholdsIDs() (ids []string) {
+	for id := range m.removedthresholds {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ThresholdsIDs returns the "thresholds" edge IDs in the mutation.
+func (m *CompetencyCategoryMutation) ThresholdsIDs() (ids []string) {
+	for id := range m.thresholds {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetThresholds resets all changes to the "thresholds" edge.
+func (m *CompetencyCategoryMutation) ResetThresholds() {
+	m.thresholds = nil
+	m.clearedthresholds = false
+	m.removedthresholds = nil
+}
+
+// AddCharacterCompetencyIDs adds the "character_competencies" edge to the CharacterCompetency entity by ids.
+func (m *CompetencyCategoryMutation) AddCharacterCompetencyIDs(ids ...int) {
+	if m.character_competencies == nil {
+		m.character_competencies = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.character_competencies[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCharacterCompetencies clears the "character_competencies" edge to the CharacterCompetency entity.
+func (m *CompetencyCategoryMutation) ClearCharacterCompetencies() {
+	m.clearedcharacter_competencies = true
+}
+
+// CharacterCompetenciesCleared reports if the "character_competencies" edge to the CharacterCompetency entity was cleared.
+func (m *CompetencyCategoryMutation) CharacterCompetenciesCleared() bool {
+	return m.clearedcharacter_competencies
+}
+
+// RemoveCharacterCompetencyIDs removes the "character_competencies" edge to the CharacterCompetency entity by IDs.
+func (m *CompetencyCategoryMutation) RemoveCharacterCompetencyIDs(ids ...int) {
+	if m.removedcharacter_competencies == nil {
+		m.removedcharacter_competencies = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.character_competencies, ids[i])
+		m.removedcharacter_competencies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCharacterCompetencies returns the removed IDs of the "character_competencies" edge to the CharacterCompetency entity.
+func (m *CompetencyCategoryMutation) RemovedCharacterCompetenciesIDs() (ids []int) {
+	for id := range m.removedcharacter_competencies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CharacterCompetenciesIDs returns the "character_competencies" edge IDs in the mutation.
+func (m *CompetencyCategoryMutation) CharacterCompetenciesIDs() (ids []int) {
+	for id := range m.character_competencies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCharacterCompetencies resets all changes to the "character_competencies" edge.
+func (m *CompetencyCategoryMutation) ResetCharacterCompetencies() {
+	m.character_competencies = nil
+	m.clearedcharacter_competencies = false
+	m.removedcharacter_competencies = nil
+}
+
+// Where appends a list predicates to the CompetencyCategoryMutation builder.
+func (m *CompetencyCategoryMutation) Where(ps ...predicate.CompetencyCategory) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CompetencyCategoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CompetencyCategoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CompetencyCategory, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CompetencyCategoryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CompetencyCategoryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CompetencyCategory).
+func (m *CompetencyCategoryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CompetencyCategoryMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.name != nil {
+		fields = append(fields, competencycategory.FieldName)
+	}
+	if m.xp_multiplier != nil {
+		fields = append(fields, competencycategory.FieldXpMultiplier)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CompetencyCategoryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case competencycategory.FieldName:
+		return m.Name()
+	case competencycategory.FieldXpMultiplier:
+		return m.XpMultiplier()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CompetencyCategoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case competencycategory.FieldName:
+		return m.OldName(ctx)
+	case competencycategory.FieldXpMultiplier:
+		return m.OldXpMultiplier(ctx)
+	}
+	return nil, fmt.Errorf("unknown CompetencyCategory field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CompetencyCategoryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case competencycategory.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case competencycategory.FieldXpMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetXpMultiplier(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyCategory field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CompetencyCategoryMutation) AddedFields() []string {
+	var fields []string
+	if m.addxp_multiplier != nil {
+		fields = append(fields, competencycategory.FieldXpMultiplier)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CompetencyCategoryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case competencycategory.FieldXpMultiplier:
+		return m.AddedXpMultiplier()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CompetencyCategoryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case competencycategory.FieldXpMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddXpMultiplier(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyCategory numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CompetencyCategoryMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CompetencyCategoryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CompetencyCategoryMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CompetencyCategory nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CompetencyCategoryMutation) ResetField(name string) error {
+	switch name {
+	case competencycategory.FieldName:
+		m.ResetName()
+		return nil
+	case competencycategory.FieldXpMultiplier:
+		m.ResetXpMultiplier()
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyCategory field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CompetencyCategoryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.thresholds != nil {
+		edges = append(edges, competencycategory.EdgeThresholds)
+	}
+	if m.character_competencies != nil {
+		edges = append(edges, competencycategory.EdgeCharacterCompetencies)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CompetencyCategoryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case competencycategory.EdgeThresholds:
+		ids := make([]ent.Value, 0, len(m.thresholds))
+		for id := range m.thresholds {
+			ids = append(ids, id)
+		}
+		return ids
+	case competencycategory.EdgeCharacterCompetencies:
+		ids := make([]ent.Value, 0, len(m.character_competencies))
+		for id := range m.character_competencies {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CompetencyCategoryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedthresholds != nil {
+		edges = append(edges, competencycategory.EdgeThresholds)
+	}
+	if m.removedcharacter_competencies != nil {
+		edges = append(edges, competencycategory.EdgeCharacterCompetencies)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CompetencyCategoryMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case competencycategory.EdgeThresholds:
+		ids := make([]ent.Value, 0, len(m.removedthresholds))
+		for id := range m.removedthresholds {
+			ids = append(ids, id)
+		}
+		return ids
+	case competencycategory.EdgeCharacterCompetencies:
+		ids := make([]ent.Value, 0, len(m.removedcharacter_competencies))
+		for id := range m.removedcharacter_competencies {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CompetencyCategoryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedthresholds {
+		edges = append(edges, competencycategory.EdgeThresholds)
+	}
+	if m.clearedcharacter_competencies {
+		edges = append(edges, competencycategory.EdgeCharacterCompetencies)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CompetencyCategoryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case competencycategory.EdgeThresholds:
+		return m.clearedthresholds
+	case competencycategory.EdgeCharacterCompetencies:
+		return m.clearedcharacter_competencies
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CompetencyCategoryMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CompetencyCategory unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CompetencyCategoryMutation) ResetEdge(name string) error {
+	switch name {
+	case competencycategory.EdgeThresholds:
+		m.ResetThresholds()
+		return nil
+	case competencycategory.EdgeCharacterCompetencies:
+		m.ResetCharacterCompetencies()
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyCategory edge %s", name)
+}
+
+// CompetencyLevelThresholdMutation represents an operation that mutates the CompetencyLevelThreshold nodes in the graph.
+type CompetencyLevelThresholdMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *string
+	level                 *int
+	addlevel              *int
+	xp_required           *int
+	addxp_required        *int
+	damage_multiplier     *float64
+	adddamage_multiplier  *float64
+	defense_multiplier    *float64
+	adddefense_multiplier *float64
+	clearedFields         map[string]struct{}
+	category              *string
+	clearedcategory       bool
+	done                  bool
+	oldValue              func(context.Context) (*CompetencyLevelThreshold, error)
+	predicates            []predicate.CompetencyLevelThreshold
+}
+
+var _ ent.Mutation = (*CompetencyLevelThresholdMutation)(nil)
+
+// competencylevelthresholdOption allows management of the mutation configuration using functional options.
+type competencylevelthresholdOption func(*CompetencyLevelThresholdMutation)
+
+// newCompetencyLevelThresholdMutation creates new mutation for the CompetencyLevelThreshold entity.
+func newCompetencyLevelThresholdMutation(c config, op Op, opts ...competencylevelthresholdOption) *CompetencyLevelThresholdMutation {
+	m := &CompetencyLevelThresholdMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCompetencyLevelThreshold,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCompetencyLevelThresholdID sets the ID field of the mutation.
+func withCompetencyLevelThresholdID(id string) competencylevelthresholdOption {
+	return func(m *CompetencyLevelThresholdMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CompetencyLevelThreshold
+		)
+		m.oldValue = func(ctx context.Context) (*CompetencyLevelThreshold, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CompetencyLevelThreshold.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCompetencyLevelThreshold sets the old CompetencyLevelThreshold of the mutation.
+func withCompetencyLevelThreshold(node *CompetencyLevelThreshold) competencylevelthresholdOption {
+	return func(m *CompetencyLevelThresholdMutation) {
+		m.oldValue = func(context.Context) (*CompetencyLevelThreshold, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CompetencyLevelThresholdMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CompetencyLevelThresholdMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of CompetencyLevelThreshold entities.
+func (m *CompetencyLevelThresholdMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CompetencyLevelThresholdMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CompetencyLevelThresholdMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CompetencyLevelThreshold.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLevel sets the "level" field.
+func (m *CompetencyLevelThresholdMutation) SetLevel(i int) {
+	m.level = &i
+	m.addlevel = nil
+}
+
+// Level returns the value of the "level" field in the mutation.
+func (m *CompetencyLevelThresholdMutation) Level() (r int, exists bool) {
+	v := m.level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevel returns the old "level" field's value of the CompetencyLevelThreshold entity.
+// If the CompetencyLevelThreshold object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompetencyLevelThresholdMutation) OldLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
+	}
+	return oldValue.Level, nil
+}
+
+// AddLevel adds i to the "level" field.
+func (m *CompetencyLevelThresholdMutation) AddLevel(i int) {
+	if m.addlevel != nil {
+		*m.addlevel += i
+	} else {
+		m.addlevel = &i
+	}
+}
+
+// AddedLevel returns the value that was added to the "level" field in this mutation.
+func (m *CompetencyLevelThresholdMutation) AddedLevel() (r int, exists bool) {
+	v := m.addlevel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *CompetencyLevelThresholdMutation) ResetLevel() {
+	m.level = nil
+	m.addlevel = nil
+}
+
+// SetXpRequired sets the "xp_required" field.
+func (m *CompetencyLevelThresholdMutation) SetXpRequired(i int) {
+	m.xp_required = &i
+	m.addxp_required = nil
+}
+
+// XpRequired returns the value of the "xp_required" field in the mutation.
+func (m *CompetencyLevelThresholdMutation) XpRequired() (r int, exists bool) {
+	v := m.xp_required
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldXpRequired returns the old "xp_required" field's value of the CompetencyLevelThreshold entity.
+// If the CompetencyLevelThreshold object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompetencyLevelThresholdMutation) OldXpRequired(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldXpRequired is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldXpRequired requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldXpRequired: %w", err)
+	}
+	return oldValue.XpRequired, nil
+}
+
+// AddXpRequired adds i to the "xp_required" field.
+func (m *CompetencyLevelThresholdMutation) AddXpRequired(i int) {
+	if m.addxp_required != nil {
+		*m.addxp_required += i
+	} else {
+		m.addxp_required = &i
+	}
+}
+
+// AddedXpRequired returns the value that was added to the "xp_required" field in this mutation.
+func (m *CompetencyLevelThresholdMutation) AddedXpRequired() (r int, exists bool) {
+	v := m.addxp_required
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetXpRequired resets all changes to the "xp_required" field.
+func (m *CompetencyLevelThresholdMutation) ResetXpRequired() {
+	m.xp_required = nil
+	m.addxp_required = nil
+}
+
+// SetDamageMultiplier sets the "damage_multiplier" field.
+func (m *CompetencyLevelThresholdMutation) SetDamageMultiplier(f float64) {
+	m.damage_multiplier = &f
+	m.adddamage_multiplier = nil
+}
+
+// DamageMultiplier returns the value of the "damage_multiplier" field in the mutation.
+func (m *CompetencyLevelThresholdMutation) DamageMultiplier() (r float64, exists bool) {
+	v := m.damage_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageMultiplier returns the old "damage_multiplier" field's value of the CompetencyLevelThreshold entity.
+// If the CompetencyLevelThreshold object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompetencyLevelThresholdMutation) OldDamageMultiplier(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageMultiplier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageMultiplier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageMultiplier: %w", err)
+	}
+	return oldValue.DamageMultiplier, nil
+}
+
+// AddDamageMultiplier adds f to the "damage_multiplier" field.
+func (m *CompetencyLevelThresholdMutation) AddDamageMultiplier(f float64) {
+	if m.adddamage_multiplier != nil {
+		*m.adddamage_multiplier += f
+	} else {
+		m.adddamage_multiplier = &f
+	}
+}
+
+// AddedDamageMultiplier returns the value that was added to the "damage_multiplier" field in this mutation.
+func (m *CompetencyLevelThresholdMutation) AddedDamageMultiplier() (r float64, exists bool) {
+	v := m.adddamage_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDamageMultiplier resets all changes to the "damage_multiplier" field.
+func (m *CompetencyLevelThresholdMutation) ResetDamageMultiplier() {
+	m.damage_multiplier = nil
+	m.adddamage_multiplier = nil
+}
+
+// SetDefenseMultiplier sets the "defense_multiplier" field.
+func (m *CompetencyLevelThresholdMutation) SetDefenseMultiplier(f float64) {
+	m.defense_multiplier = &f
+	m.adddefense_multiplier = nil
+}
+
+// DefenseMultiplier returns the value of the "defense_multiplier" field in the mutation.
+func (m *CompetencyLevelThresholdMutation) DefenseMultiplier() (r float64, exists bool) {
+	v := m.defense_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefenseMultiplier returns the old "defense_multiplier" field's value of the CompetencyLevelThreshold entity.
+// If the CompetencyLevelThreshold object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompetencyLevelThresholdMutation) OldDefenseMultiplier(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefenseMultiplier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefenseMultiplier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefenseMultiplier: %w", err)
+	}
+	return oldValue.DefenseMultiplier, nil
+}
+
+// AddDefenseMultiplier adds f to the "defense_multiplier" field.
+func (m *CompetencyLevelThresholdMutation) AddDefenseMultiplier(f float64) {
+	if m.adddefense_multiplier != nil {
+		*m.adddefense_multiplier += f
+	} else {
+		m.adddefense_multiplier = &f
+	}
+}
+
+// AddedDefenseMultiplier returns the value that was added to the "defense_multiplier" field in this mutation.
+func (m *CompetencyLevelThresholdMutation) AddedDefenseMultiplier() (r float64, exists bool) {
+	v := m.adddefense_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDefenseMultiplier resets all changes to the "defense_multiplier" field.
+func (m *CompetencyLevelThresholdMutation) ResetDefenseMultiplier() {
+	m.defense_multiplier = nil
+	m.adddefense_multiplier = nil
+}
+
+// SetCategoryID sets the "category" edge to the CompetencyCategory entity by id.
+func (m *CompetencyLevelThresholdMutation) SetCategoryID(id string) {
+	m.category = &id
+}
+
+// ClearCategory clears the "category" edge to the CompetencyCategory entity.
+func (m *CompetencyLevelThresholdMutation) ClearCategory() {
+	m.clearedcategory = true
+}
+
+// CategoryCleared reports if the "category" edge to the CompetencyCategory entity was cleared.
+func (m *CompetencyLevelThresholdMutation) CategoryCleared() bool {
+	return m.clearedcategory
+}
+
+// CategoryID returns the "category" edge ID in the mutation.
+func (m *CompetencyLevelThresholdMutation) CategoryID() (id string, exists bool) {
+	if m.category != nil {
+		return *m.category, true
+	}
+	return
+}
+
+// CategoryIDs returns the "category" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CategoryID instead. It exists only for internal usage by the builders.
+func (m *CompetencyLevelThresholdMutation) CategoryIDs() (ids []string) {
+	if id := m.category; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCategory resets all changes to the "category" edge.
+func (m *CompetencyLevelThresholdMutation) ResetCategory() {
+	m.category = nil
+	m.clearedcategory = false
+}
+
+// Where appends a list predicates to the CompetencyLevelThresholdMutation builder.
+func (m *CompetencyLevelThresholdMutation) Where(ps ...predicate.CompetencyLevelThreshold) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CompetencyLevelThresholdMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CompetencyLevelThresholdMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CompetencyLevelThreshold, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CompetencyLevelThresholdMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CompetencyLevelThresholdMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CompetencyLevelThreshold).
+func (m *CompetencyLevelThresholdMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CompetencyLevelThresholdMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.level != nil {
+		fields = append(fields, competencylevelthreshold.FieldLevel)
+	}
+	if m.xp_required != nil {
+		fields = append(fields, competencylevelthreshold.FieldXpRequired)
+	}
+	if m.damage_multiplier != nil {
+		fields = append(fields, competencylevelthreshold.FieldDamageMultiplier)
+	}
+	if m.defense_multiplier != nil {
+		fields = append(fields, competencylevelthreshold.FieldDefenseMultiplier)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CompetencyLevelThresholdMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case competencylevelthreshold.FieldLevel:
+		return m.Level()
+	case competencylevelthreshold.FieldXpRequired:
+		return m.XpRequired()
+	case competencylevelthreshold.FieldDamageMultiplier:
+		return m.DamageMultiplier()
+	case competencylevelthreshold.FieldDefenseMultiplier:
+		return m.DefenseMultiplier()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CompetencyLevelThresholdMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case competencylevelthreshold.FieldLevel:
+		return m.OldLevel(ctx)
+	case competencylevelthreshold.FieldXpRequired:
+		return m.OldXpRequired(ctx)
+	case competencylevelthreshold.FieldDamageMultiplier:
+		return m.OldDamageMultiplier(ctx)
+	case competencylevelthreshold.FieldDefenseMultiplier:
+		return m.OldDefenseMultiplier(ctx)
+	}
+	return nil, fmt.Errorf("unknown CompetencyLevelThreshold field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CompetencyLevelThresholdMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case competencylevelthreshold.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
+	case competencylevelthreshold.FieldXpRequired:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetXpRequired(v)
+		return nil
+	case competencylevelthreshold.FieldDamageMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageMultiplier(v)
+		return nil
+	case competencylevelthreshold.FieldDefenseMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefenseMultiplier(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyLevelThreshold field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CompetencyLevelThresholdMutation) AddedFields() []string {
+	var fields []string
+	if m.addlevel != nil {
+		fields = append(fields, competencylevelthreshold.FieldLevel)
+	}
+	if m.addxp_required != nil {
+		fields = append(fields, competencylevelthreshold.FieldXpRequired)
+	}
+	if m.adddamage_multiplier != nil {
+		fields = append(fields, competencylevelthreshold.FieldDamageMultiplier)
+	}
+	if m.adddefense_multiplier != nil {
+		fields = append(fields, competencylevelthreshold.FieldDefenseMultiplier)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CompetencyLevelThresholdMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case competencylevelthreshold.FieldLevel:
+		return m.AddedLevel()
+	case competencylevelthreshold.FieldXpRequired:
+		return m.AddedXpRequired()
+	case competencylevelthreshold.FieldDamageMultiplier:
+		return m.AddedDamageMultiplier()
+	case competencylevelthreshold.FieldDefenseMultiplier:
+		return m.AddedDefenseMultiplier()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CompetencyLevelThresholdMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case competencylevelthreshold.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLevel(v)
+		return nil
+	case competencylevelthreshold.FieldXpRequired:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddXpRequired(v)
+		return nil
+	case competencylevelthreshold.FieldDamageMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDamageMultiplier(v)
+		return nil
+	case competencylevelthreshold.FieldDefenseMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDefenseMultiplier(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyLevelThreshold numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CompetencyLevelThresholdMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CompetencyLevelThresholdMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CompetencyLevelThresholdMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CompetencyLevelThreshold nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CompetencyLevelThresholdMutation) ResetField(name string) error {
+	switch name {
+	case competencylevelthreshold.FieldLevel:
+		m.ResetLevel()
+		return nil
+	case competencylevelthreshold.FieldXpRequired:
+		m.ResetXpRequired()
+		return nil
+	case competencylevelthreshold.FieldDamageMultiplier:
+		m.ResetDamageMultiplier()
+		return nil
+	case competencylevelthreshold.FieldDefenseMultiplier:
+		m.ResetDefenseMultiplier()
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyLevelThreshold field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CompetencyLevelThresholdMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.category != nil {
+		edges = append(edges, competencylevelthreshold.EdgeCategory)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CompetencyLevelThresholdMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case competencylevelthreshold.EdgeCategory:
+		if id := m.category; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CompetencyLevelThresholdMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CompetencyLevelThresholdMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CompetencyLevelThresholdMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedcategory {
+		edges = append(edges, competencylevelthreshold.EdgeCategory)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CompetencyLevelThresholdMutation) EdgeCleared(name string) bool {
+	switch name {
+	case competencylevelthreshold.EdgeCategory:
+		return m.clearedcategory
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CompetencyLevelThresholdMutation) ClearEdge(name string) error {
+	switch name {
+	case competencylevelthreshold.EdgeCategory:
+		m.ClearCategory()
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyLevelThreshold unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CompetencyLevelThresholdMutation) ResetEdge(name string) error {
+	switch name {
+	case competencylevelthreshold.EdgeCategory:
+		m.ResetCategory()
+		return nil
+	}
+	return fmt.Errorf("unknown CompetencyLevelThreshold edge %s", name)
 }
 
 // EquipmentMutation represents an operation that mutates the Equipment nodes in the graph.
@@ -14860,9 +16818,22 @@ func (m *SkillMutation) OldSlug(ctx context.Context) (v string, err error) {
 	return oldValue.Slug, nil
 }
 
+// ClearSlug clears the value of the "slug" field.
+func (m *SkillMutation) ClearSlug() {
+	m.slug = nil
+	m.clearedFields[skill.FieldSlug] = struct{}{}
+}
+
+// SlugCleared returns if the "slug" field was cleared in this mutation.
+func (m *SkillMutation) SlugCleared() bool {
+	_, ok := m.clearedFields[skill.FieldSlug]
+	return ok
+}
+
 // ResetSlug resets all changes to the "slug" field.
 func (m *SkillMutation) ResetSlug() {
 	m.slug = nil
+	delete(m.clearedFields, skill.FieldSlug)
 }
 
 // SetRequiredTag sets the "required_tag" field.
@@ -15758,6 +17729,9 @@ func (m *SkillMutation) ClearedFields() []string {
 	if m.FieldCleared(skill.FieldScalingStat) {
 		fields = append(fields, skill.FieldScalingStat)
 	}
+	if m.FieldCleared(skill.FieldSlug) {
+		fields = append(fields, skill.FieldSlug)
+	}
 	if m.FieldCleared(skill.FieldRequiredTag) {
 		fields = append(fields, skill.FieldRequiredTag)
 	}
@@ -15783,6 +17757,9 @@ func (m *SkillMutation) ClearField(name string) error {
 		return nil
 	case skill.FieldScalingStat:
 		m.ClearScalingStat()
+		return nil
+	case skill.FieldSlug:
+		m.ClearSlug()
 		return nil
 	case skill.FieldRequiredTag:
 		m.ClearRequiredTag()
