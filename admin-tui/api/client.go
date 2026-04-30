@@ -436,6 +436,25 @@ func DeleteFactionCategory(id int) error {
 	return err
 }
 
+// ─── NPC Templates ─────────────────────────────────────────────────────────
+
+// NPCTemplate represents an NPC template record
+type NPCTemplate struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Level   int    `json:"level"`
+	XpValue int    `json:"xp_value"`
+}
+
+func GetNPCTemplates() ([]NPCTemplate, error) {
+	return doRequest[[]NPCTemplate]("GET", "/api/npc-templates", nil)
+}
+
+func UpdateNPCTemplate(id string, xpValue int) (NPCTemplate, error) {
+	return doRequest[NPCTemplate]("PUT", fmt.Sprintf("/api/npc-templates/%s", id),
+		map[string]any{"xp_value": xpValue})
+}
+
 func ExportWorld() ([]byte, error) {
 	req, err := http.NewRequest("GET", BaseURL+"/admin/export", nil)
 	if err != nil {
