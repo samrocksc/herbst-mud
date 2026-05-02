@@ -18,11 +18,13 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
+import { Route as AuthWeaponSkillsRouteImport } from './routes/_auth/weapon-skills'
 import { Route as AuthTalentsRouteImport } from './routes/_auth/talents'
 import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
 import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
+import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
 
 const NpcsRoute = NpcsRouteImport.update({
   id: '/npcs',
@@ -68,6 +70,11 @@ const AuthXpRoute = AuthXpRouteImport.update({
   path: '/xp',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthWeaponSkillsRoute = AuthWeaponSkillsRouteImport.update({
+  id: '/weapon-skills',
+  path: '/weapon-skills',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthTalentsRoute = AuthTalentsRouteImport.update({
   id: '/talents',
   path: '/talents',
@@ -93,6 +100,11 @@ const AuthConfigRoute = AuthConfigRouteImport.update({
   path: '/config',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthAbilitiesRoute = AuthAbilitiesRouteImport.update({
+  id: '/abilities',
+  path: '/abilities',
+  getParentRoute: () => AuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,11 +114,13 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
+  '/abilities': typeof AuthAbilitiesRoute
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
   '/players': typeof AuthPlayersRoute
   '/skills': typeof AuthSkillsRoute
   '/talents': typeof AuthTalentsRoute
+  '/weapon-skills': typeof AuthWeaponSkillsRoute
   '/xp': typeof AuthXpRoute
 }
 export interface FileRoutesByTo {
@@ -117,11 +131,13 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
+  '/abilities': typeof AuthAbilitiesRoute
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
   '/players': typeof AuthPlayersRoute
   '/skills': typeof AuthSkillsRoute
   '/talents': typeof AuthTalentsRoute
+  '/weapon-skills': typeof AuthWeaponSkillsRoute
   '/xp': typeof AuthXpRoute
 }
 export interface FileRoutesById {
@@ -134,11 +150,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
+  '/_auth/abilities': typeof AuthAbilitiesRoute
   '/_auth/config': typeof AuthConfigRoute
   '/_auth/factions': typeof AuthFactionsRoute
   '/_auth/players': typeof AuthPlayersRoute
   '/_auth/skills': typeof AuthSkillsRoute
   '/_auth/talents': typeof AuthTalentsRoute
+  '/_auth/weapon-skills': typeof AuthWeaponSkillsRoute
   '/_auth/xp': typeof AuthXpRoute
 }
 export interface FileRouteTypes {
@@ -151,11 +169,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/map'
     | '/npcs'
+    | '/abilities'
     | '/config'
     | '/factions'
     | '/players'
     | '/skills'
     | '/talents'
+    | '/weapon-skills'
     | '/xp'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -166,11 +186,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/map'
     | '/npcs'
+    | '/abilities'
     | '/config'
     | '/factions'
     | '/players'
     | '/skills'
     | '/talents'
+    | '/weapon-skills'
     | '/xp'
   id:
     | '__root__'
@@ -182,11 +204,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/map'
     | '/npcs'
+    | '/_auth/abilities'
     | '/_auth/config'
     | '/_auth/factions'
     | '/_auth/players'
     | '/_auth/skills'
     | '/_auth/talents'
+    | '/_auth/weapon-skills'
     | '/_auth/xp'
   fileRoutesById: FileRoutesById
 }
@@ -266,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthXpRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/weapon-skills': {
+      id: '/_auth/weapon-skills'
+      path: '/weapon-skills'
+      fullPath: '/weapon-skills'
+      preLoaderRoute: typeof AuthWeaponSkillsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/talents': {
       id: '/_auth/talents'
       path: '/talents'
@@ -301,24 +332,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthConfigRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/abilities': {
+      id: '/_auth/abilities'
+      path: '/abilities'
+      fullPath: '/abilities'
+      preLoaderRoute: typeof AuthAbilitiesRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
 interface AuthRouteChildren {
+  AuthAbilitiesRoute: typeof AuthAbilitiesRoute
   AuthConfigRoute: typeof AuthConfigRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
   AuthPlayersRoute: typeof AuthPlayersRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
   AuthTalentsRoute: typeof AuthTalentsRoute
+  AuthWeaponSkillsRoute: typeof AuthWeaponSkillsRoute
   AuthXpRoute: typeof AuthXpRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthAbilitiesRoute: AuthAbilitiesRoute,
   AuthConfigRoute: AuthConfigRoute,
   AuthFactionsRoute: AuthFactionsRoute,
   AuthPlayersRoute: AuthPlayersRoute,
   AuthSkillsRoute: AuthSkillsRoute,
   AuthTalentsRoute: AuthTalentsRoute,
+  AuthWeaponSkillsRoute: AuthWeaponSkillsRoute,
   AuthXpRoute: AuthXpRoute,
 }
 

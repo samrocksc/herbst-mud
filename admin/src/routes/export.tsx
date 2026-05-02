@@ -30,7 +30,7 @@ function ExportPage() {
     setMessage('')
     
     try {
-      const response = await fetch('http://localhost:8080/admin/export')
+      const response = await fetch(`\${window.location.origin}/admin/export`)
       if (!response.ok) {
         throw new Error('Export failed: ' + response.statusText)
       }
@@ -71,7 +71,7 @@ function ExportPage() {
       const data: ExportData = JSON.parse(text)
       
       // Validate the file
-      const response = await fetch('http://localhost:8080/admin/import/validate', {
+      const response = await fetch(`${window.location.origin}/admin/import/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: text
@@ -104,7 +104,7 @@ function ExportPage() {
     setMessage('')
 
     try {
-      const response = await fetch('http://localhost:8080/admin/import', {
+      const response = await fetch(`${window.location.origin}/admin/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(importData)
@@ -132,7 +132,7 @@ function ExportPage() {
     setMessage('')
 
     try {
-      const response = await fetch('http://localhost:8080/admin/wipe/full', {
+      const response = await fetch(`${window.location.origin}/admin/wipe/full`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}) // Full wipe uses POST body

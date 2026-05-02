@@ -54,7 +54,7 @@ function FactionsManagement() {
 
   const fetchFactions = useCallback(async () => {
     const token = localStorage.getItem('token')
-    const res = await fetch('http://localhost:8080/api/factions', {
+    const res = await fetch(`${window.location.origin}/api/factions`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     const data = await res.json()
@@ -63,7 +63,7 @@ function FactionsManagement() {
 
   const fetchCategories = useCallback(async () => {
     const token = localStorage.getItem('token')
-    const res = await fetch('http://localhost:8080/api/faction-categories', {
+    const res = await fetch(`${window.location.origin}/api/faction-categories`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     const data = await res.json()
@@ -89,7 +89,7 @@ function FactionsManagement() {
     setSaving(true)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:8080/api/factions', {
+      const res = await fetch(`${window.location.origin}/api/factions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ function FactionsManagement() {
     setSaving(true)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:8080/api/factions/${editingFaction.id}`, {
+      const res = await fetch(`${window.location.origin}/api/factions/${editingFaction.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ function FactionsManagement() {
   const handleDeleteFaction = useCallback(async (id: number) => {
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:8080/api/factions/${id}`, {
+      const res = await fetch(`${window.location.origin}/api/factions/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -158,7 +158,7 @@ function FactionsManagement() {
     }
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:8080/api/faction-categories', {
+      const res = await fetch(`${window.location.origin}/api/faction-categories`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -181,7 +181,7 @@ function FactionsManagement() {
     if (!confirm(`Delete this category? Factions in it will lose their category.`)) return
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:8080/api/faction-categories/${id}`, {
+      const res = await fetch(`${window.location.origin}/api/faction-categories/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })

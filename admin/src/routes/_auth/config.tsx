@@ -41,7 +41,7 @@ function ConfigManagement() {
     setError(null)
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch('http://localhost:8080/api/game-configs', {
+      const res = await fetch(`${window.location.origin}/api/game-configs`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -62,7 +62,7 @@ function ConfigManagement() {
     setSaving(true)
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch('http://localhost:8080/api/game-configs', {
+      const res = await fetch(`${window.location.origin}/api/game-configs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -87,7 +87,7 @@ function ConfigManagement() {
     setSaving(true)
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch(`http://localhost:8080/api/game-configs/${editing.key}`, {
+      const res = await fetch(`${window.location.origin}/api/game-configs/${editing.key}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ value: form.value }),
@@ -110,7 +110,7 @@ function ConfigManagement() {
     if (!deleteTarget) return
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch(`http://localhost:8080/api/game-configs/${deleteTarget.key}`, {
+      const res = await fetch(`${window.location.origin}/api/game-configs/${deleteTarget.key}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })

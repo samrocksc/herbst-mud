@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTalents, useCreateTalent, useUpdateTalent, useDeleteTalent, type Talent, type TalentInput } from '../../hooks/useTalents'
+import { PageHeader } from '../../components/PageHeader'
 
 export const Route = createFileRoute('/_auth/talents')({
   component: TalentsManagement,
@@ -239,12 +240,11 @@ function TalentsManagement() {
 
   return (
     <div className="management-page">
-      <div className="page-header">
-        <h2>Talents Management</h2>
-        <button onClick={() => { setEditingTalent(null); setShowForm(true) }}>
-          + Add Talent
-        </button>
-      </div>
+      <PageHeader
+        title="Talents Management"
+        backTo="/dashboard"
+        actions={<button className="btn-primary" onClick={() => { setEditingTalent(null); setShowForm(true) }}>+ Add Talent</button>}
+      />
 
       {showForm && (
         <TalentForm

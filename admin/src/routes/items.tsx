@@ -61,7 +61,7 @@ function ItemManager() {
       return
     }
 
-    fetch('http://localhost:8080/equipment')
+    fetch(`\${window.location.origin}/equipment`)
       .then(res => res.json())
       .then(data => {
         setItems(Array.isArray(data) ? data : [])
@@ -89,7 +89,7 @@ function ItemManager() {
     try {
       const token = localStorage.getItem('token')
 
-      const response = await fetch('http://localhost:8080/equipment', {
+      const response = await fetch(`${window.location.origin}/equipment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ function ItemManager() {
       }
 
       // Refresh item list
-      const itemsResponse = await fetch('http://localhost:8080/equipment')
+      const itemsResponse = await fetch(`\${window.location.origin}/equipment`)
       const itemsData = await itemsResponse.json()
       setItems(Array.isArray(itemsData) ? itemsData : [])
 
@@ -134,7 +134,7 @@ function ItemManager() {
     try {
       const token = localStorage.getItem('token')
 
-      const response = await fetch(`http://localhost:8080/equipment/${editingItem.id}`, {
+      const response = await fetch(`${window.location.origin}/equipment/${editingItem.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ function ItemManager() {
       }
 
       // Refresh item list
-      const itemsResponse = await fetch('http://localhost:8080/equipment')
+      const itemsResponse = await fetch(`\${window.location.origin}/equipment`)
       const itemsData = await itemsResponse.json()
       setItems(Array.isArray(itemsData) ? itemsData : [])
 
@@ -166,7 +166,7 @@ function ItemManager() {
     try {
       const token = localStorage.getItem('token')
 
-      const response = await fetch(`http://localhost:8080/equipment/${itemId}`, {
+      const response = await fetch(`${window.location.origin}/equipment/${itemId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -178,7 +178,7 @@ function ItemManager() {
       }
 
       // Refresh item list
-      const itemsResponse = await fetch('http://localhost:8080/equipment')
+      const itemsResponse = await fetch(`\${window.location.origin}/equipment`)
       const itemsData = await itemsResponse.json()
       setItems(Array.isArray(itemsData) ? itemsData : [])
       setSelectedItem(null)

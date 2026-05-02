@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import { useSkills, useCreateSkill, useUpdateSkill, useDeleteSkill, type Skill, type SkillInput } from '../../hooks/useSkills'
+import { PageHeader } from '../../components/PageHeader'
 
 export const Route = createFileRoute('/_auth/skills')({
   component: SkillsManagement,
@@ -271,12 +272,11 @@ function SkillsManagement() {
 
   return (
     <div className="management-page">
-      <div className="page-header">
-        <h2>Skills & Talents Management</h2>
-        <button onClick={() => { setEditingSkill(null); setShowForm(true) }}>
-          + Add Skill
-        </button>
-      </div>
+      <PageHeader
+        title="Skills &amp; Talents Management"
+        backTo="/dashboard"
+        actions={<button className="btn-primary" onClick={() => { setEditingSkill(null); setShowForm(true) }}>+ Add Skill</button>}
+      />
 
       <div className="filters-bar">
         <div className="filter-group">

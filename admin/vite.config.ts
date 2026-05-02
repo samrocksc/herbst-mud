@@ -19,13 +19,16 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/users': 'http://localhost:8080',
       '/rooms': 'http://localhost:8080',
       '/npcs': 'http://localhost:8080',
       '/equipment': 'http://localhost:8080',
-      '/skills': 'http://localhost:8080',
+      '/skills': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/skills/, '/api/skills'),
+      },
       '/talents': 'http://localhost:8080',
       '/characters': 'http://localhost:8080',
       '/worlds': 'http://localhost:8080',

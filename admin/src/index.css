@@ -36,9 +36,9 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light;
+  color: #111827;
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -94,7 +94,7 @@ button:focus-visible {
 }
 
 .auth-layout header {
-  background-color: #1a1a1a;
+  background-color: var(--color-surface-dark);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -103,21 +103,21 @@ button:focus-visible {
 
 .auth-layout nav a {
   margin-left: 1rem;
-  color: #646cff;
+  color: var(--color-primary);
   text-decoration: none;
 }
 
 .auth-layout nav a:hover {
-  color: #535bf2;
+  color: var(--color-primary-hover);
 }
 
 .login-container {
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
-  border: 1px solid #333;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background-color: #1a1a1a;
+  background-color: var(--color-surface);
 }
 
 .login-container form div {
@@ -133,9 +133,9 @@ button:focus-visible {
   width: 100%;
   padding: 0.5rem;
   border-radius: 4px;
-  border: 1px solid #333;
-  background-color: #242424;
-  color: white;
+  border: 2px solid #d1d5db;
+  background-color: #ffffff;
+  color: #111827;
 }
 
 .dashboard {
@@ -150,10 +150,10 @@ button:focus-visible {
 }
 
 .card {
-  border: 1px solid #333;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1.5rem;
-  background-color: #1a1a1a;
+  background-color: var(--color-surface);
 }
 
 .card h3 {
@@ -254,10 +254,10 @@ button:focus-visible {
 .item-card,
 .room-card,
 .npc-card {
-  border: 1px solid #333;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1.5rem;
-  background-color: #1a1a1a;
+  background-color: var(--color-surface);
 }
 
 .item-color {
@@ -294,22 +294,6 @@ button:focus-visible {
   border-radius: 4px;
   font-size: 0.8em;
   margin-bottom: 1rem;
-}
-
-.item-actions,
-.room-actions,
-.npc-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.item-actions button,
-.room-actions button,
-.npc-actions button {
-  flex: 1;
-  padding: 0.5rem;
-  font-size: 0.9em;
 }
 
 button.danger {
@@ -434,48 +418,6 @@ button.danger:hover {
 
 .skill-actions button.danger:hover {
   background: #b91c1c;
-}
-
-/* Map Builder */
-.map-container {
-  display: flex;
-  gap: 2rem;
-}
-
-.map-sidebar {
-  flex: 0 0 250px;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 1rem;
-  background-color: #1a1a1a;
-}
-
-.map-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.map-cell.has-room:hover {
-  border-color: #646cff;
-}
-
-.map-cell.selected {
-  border: 2px solid #646cff;
-  box-shadow: 0 0 10px rgba(100, 108, 255, 0.5);
-}
-
-.map-legend {
-  margin-top: 1rem;
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.9em;
-}
-
-.room-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
 }
 
 /* Players Table */
@@ -762,8 +704,8 @@ button.danger:hover {
 }
 
 .tag {
-  background-color: #333;
-  color: #aaa;
+  background-color: var(--color-surface-muted);
+  color: var(--color-text);
   padding: 0.1rem 0.4rem;
   border-radius: 3px;
   font-size: 0.75em;
@@ -866,8 +808,8 @@ button.danger:hover {
 }
 
 .stat-card {
-  background: #1a1a1a;
-  border: 1px solid #333;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
@@ -1048,13 +990,13 @@ button.danger:hover {
 }
 .form-row textarea { min-height: 80px; resize: vertical; }
 
-.btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; border: 2px solid #111827; background: #ffffff; color: #646cff; }
-.btn-primary { background: #ffffff; color: #646cff; border-color: #111827; }
-.btn-primary:hover { background: #f3f4f6; border-color: #535bf2; }
-.btn-danger { background: #ffffff; color: #646cff; border-color: #111827; }
-.btn-danger:hover { background: #fef2f2; border-color: #dc2626; }
-.btn-secondary { background: #ffffff; color: #646cff; border-color: #111827; }
-.btn-secondary:hover { background: #f3f4f6; border-color: #535bf2; }
+.btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; border: 2px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
+.btn-primary { background: var(--color-primary); color: #ffffff; border-color: var(--color-primary); }
+.btn-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.btn-danger { background: var(--color-danger); color: #ffffff; border-color: var(--color-danger); }
+.btn-danger:hover { background: var(--color-danger-hover); border-color: var(--color-danger-hover); }
+.btn-secondary { background: var(--color-surface-muted); color: var(--color-text); border-color: var(--color-border); }
+.btn-secondary:hover { background: var(--color-border); border-color: var(--color-border-dark); }
 
 .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .skill-card {

@@ -1,7 +1,7 @@
-interface StatGridProps {
+type StatGridProps = Readonly<{
   children: React.ReactNode
   cols?: number
-}
+}>
 
 export function StatGrid({ children, cols = 5 }: StatGridProps) {
   const colClass = cols === 4

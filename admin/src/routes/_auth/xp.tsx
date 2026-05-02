@@ -47,8 +47,8 @@ function XPManagement() {
     try {
       // Fetch characters (players only, not NPCs)
       const [charRes, configRes] = await Promise.all([
-        fetch('http://localhost:8080/characters', { headers }),
-        fetch('http://localhost:8080/api/game-configs', { headers }),
+        fetch(`${window.location.origin}/characters`, { headers }),
+        fetch(`${window.location.origin}/api/game-configs`, { headers }),
       ])
       if (!charRes.ok) throw new Error(`Characters: HTTP ${charRes.status}`)
       if (!configRes.ok) throw new Error(`Configs: HTTP ${configRes.status}`)
@@ -79,14 +79,14 @@ function XPManagement() {
     try {
       const existing = configs.find((c) => c.key === 'xp_thresholds')
       if (existing) {
-        const res = await fetch(`http://localhost:8080/api/game-configs/${existing.id}`, {
+        const res = await fetch(`${window.location.origin}/api/game-configs/${existing.key}`, {
           method: 'PUT',
           headers,
           body: JSON.stringify({ key: 'xp_thresholds', value: xpThresholds }),
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
       } else {
-        const res = await fetch('http://localhost:8080/api/game-configs', {
+        const res = await fetch(`${window.location.origin}/api/game-configs`, {
           method: 'POST',
           headers,
           body: JSON.stringify({ key: 'xp_thresholds', value: xpThresholds }),
@@ -107,14 +107,14 @@ function XPManagement() {
     try {
       const existing = configs.find((c) => c.key === 'death_penalty_percent')
       if (existing) {
-        const res = await fetch(`http://localhost:8080/api/game-configs/${existing.id}`, {
+        const res = await fetch(`${window.location.origin}/api/game-configs/${existing.key}`, {
           method: 'PUT',
           headers,
           body: JSON.stringify({ key: 'death_penalty_percent', value: deathPenalty }),
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
       } else {
-        const res = await fetch('http://localhost:8080/api/game-configs', {
+        const res = await fetch(`${window.location.origin}/api/game-configs`, {
           method: 'POST',
           headers,
           body: JSON.stringify({ key: 'death_penalty_percent', value: deathPenalty }),

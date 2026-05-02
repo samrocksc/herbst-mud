@@ -1,9 +1,9 @@
-interface StatCardProps {
+type StatCardProps = Readonly<{
   label: string
   value: string | number
   accent?: 'primary' | 'warning' | 'accent' | 'secondary' | 'success' | 'danger'
   loading?: boolean
-}
+}>
 
 const accentMap = {
   primary: 'text-primary',

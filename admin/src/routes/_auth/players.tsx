@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useUsers, useResetPassword, type User } from '../../hooks/useUsers'
+import { PageHeader } from '../../components/PageHeader'
 
 export const Route = createFileRoute('/_auth/players')({
   component: PlayersManagement,
@@ -45,9 +46,7 @@ function PlayersManagement() {
 
   return (
     <div className="management-page">
-      <div className="page-header">
-        <h2>Players Management</h2>
-      </div>
+      <PageHeader title="Players Management" backTo="/dashboard" />
 
       {resetSuccess && <div className="success-message">{resetSuccess}</div>}
       {resetError && <div className="error-message">{resetError}</div>}

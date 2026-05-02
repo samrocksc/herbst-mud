@@ -71,8 +71,8 @@ function NPCManager() {
     }
 
     Promise.all([
-      fetch('http://localhost:8080/npcs').then(res => res.json()),
-      fetch('http://localhost:8080/rooms').then(res => res.json())
+      fetch(`\${window.location.origin}/npcs`).then(res => res.json()),
+      fetch(`\${window.location.origin}/rooms`).then(res => res.json())
     ])
       .then(([npcsData, roomsData]) => {
         setNpcs(npcsData.npcs || [])
@@ -86,7 +86,7 @@ function NPCManager() {
   }, [navigate])
 
   const refreshNPCs = useCallback(async () => {
-    const npcsResponse = await fetch('http://localhost:8080/npcs')
+    const npcsResponse = await fetch(`\${window.location.origin}/npcs`)
     const npcsData = await npcsResponse.json()
     setNpcs(npcsData.npcs || [])
   }, [])
@@ -101,7 +101,7 @@ function NPCManager() {
     try {
       const token = localStorage.getItem('token')
 
-      const response = await fetch('http://localhost:8080/characters', {
+      const response = await fetch(`${window.location.origin}/characters`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +151,7 @@ function NPCManager() {
     try {
       const token = localStorage.getItem('token')
 
-      const response = await fetch(`http://localhost:8080/characters/${editingNPC.id}`, {
+      const response = await fetch(`${window.location.origin}/characters/${editingNPC.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ function NPCManager() {
     try {
       const token = localStorage.getItem('token')
 
-      const response = await fetch(`http://localhost:8080/characters/${npcId}`, {
+      const response = await fetch(`${window.location.origin}/characters/${npcId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

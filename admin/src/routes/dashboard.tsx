@@ -30,19 +30,23 @@ function Dashboard() {
 
     const fetchStats = async () => {
       try {
-        const [roomsRes, npcsRes, skillsRes] = await Promise.all([
-          fetch('http://localhost:8080/rooms'),
-          fetch('http://localhost:8080/npcs'),
-          fetch('http://localhost:8080/skills')
+        const [roomsRes, npcsRes, skillsRes, equipmentRes, charactersRes] = await Promise.all([
+          fetch(`${window.location.origin}/rooms`),
+          fetch(`${window.location.origin}/npcs`),
+          fetch(`${window.location.origin}/skills`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+          fetch(`${window.location.origin}/equipment`),
+          fetch(`${window.location.origin}/characters`),
         ])
         const roomsData = await roomsRes.json()
         const npcsData = await npcsRes.json()
         const skillsData = await skillsRes.json()
+        const equipmentData = await equipmentRes.json()
+        const charactersData = await charactersRes.json()
         setStats({
           rooms: Array.isArray(roomsData) ? roomsData.length : 0,
           npcs: npcsData.npcs?.length || 0,
-          items: 0,
-          players: 0,
+          items: Array.isArray(equipmentData) ? equipmentData.length : 0,
+          players: Array.isArray(charactersData) ? charactersData.length : 0,
           skills: skillsData.count || 0
         })
       } catch (err) {
@@ -94,8 +98,8 @@ function Dashboard() {
           <ToolCard to="/items" emoji="📦" title="Item Manager" desc="Create, edit, and manage items and equipment" />
           <ToolCard to="/export" emoji="💾" title="Export / Import" desc="Backup and restore game world data" />
           <ToolCard to="/players" emoji="🎮" title="Player Manager" desc="Manage players and reset passwords" />
-          <ToolCard to="/skills" emoji="⚡" title="Skills Manager" desc="Create, edit, and manage skills" />
-          <ToolCard to="/talents" emoji="🎯" title="Talents Manager" desc="Manage talent specializations" />
+          <ToolCard to="/abilities" emoji="⚡" title="Abilities Manager" desc="Create, edit, and manage abilities" />
+          <ToolCard to="/weapon-skills" emoji="🎯" title="Weapon Skills Manager" desc="Manage weapon skill specializations" />
           <ToolCard to="/factions" emoji="⚔️" title="Factions Manager" desc="Manage factions, categories, and member standing" />
         </div>
       </div>

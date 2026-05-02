@@ -1,6 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-const API_BASE = 'http://localhost:8080'
+const API_BASE = `${window.location.origin}`
+
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 export interface Skill {
   id: number
@@ -57,7 +62,7 @@ export function useSkills(filters?: { type?: string; tag?: string }) {
       if (filters?.tag) params.append('tag', filters.tag)
       
       const url = `${API_BASE}/skills${params.toString() ? '?' + params.toString() : ''}`
-      const response = await fetch(url)
+      const response = await fetch(url, { headers: authHeaders() })
       if (!response.ok) throw new Error('Failed to fetch skills')
       const data = await response.json()
       return data.skills ?? []
@@ -70,7 +75,7 @@ export function useSkill(id: number | null) {
     queryKey: ['skill', id],
     queryFn: async (): Promise<Skill | null> => {
       if (!id) return null
-      const response = await fetch(`${API_BASE}/skills/${id}`)
+      const response = await fetch(`${API_BASE}/skills/${id}`, { headers: authHeaders() })
       if (!response.ok) throw new Error('Failed to fetch skill')
       return response.json()
     },
@@ -85,7 +90,7 @@ export function useCreateSkill() {
       const body = parseSkillForApi(input)
       const response = await fetch(`${API_BASE}/skills`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(body)
       })
       if (!response.ok) throw new Error('Failed to create skill')
@@ -104,7 +109,7 @@ export function useUpdateSkill() {
       const body = parseSkillForApi(input)
       const response = await fetch(`${API_BASE}/skills/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(body)
       })
       if (!response.ok) throw new Error('Failed to update skill')
@@ -122,7 +127,8 @@ export function useDeleteSkill() {
   return useMutation({
     mutationFn: async (id: number): Promise<void> => {
       const response = await fetch(`${API_BASE}/skills/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: authHeaders()
       })
       if (!response.ok) throw new Error('Failed to delete skill')
     },

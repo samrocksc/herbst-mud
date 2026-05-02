@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 
-interface ModalProps {
+type ModalProps = Readonly<{
   isOpen: boolean
   onClose: () => void
   title: string
   children: React.ReactNode
-}
+}>
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   useEffect(() => {
