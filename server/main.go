@@ -177,6 +177,13 @@ func main() {
 	// Set up Gin router
 	router := gin.Default()
 	
+	// Prevent CDN/proxy caching of dynamic API responses (fixes #317:
+	// NPC endpoint returns 304 from non-local due to DO App Platform CDN)
+	router.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Cache-Control", "no-store")
+		c.Next()
+	})
+
 	// CORS middleware - configurable origins for security
 	allowedOrigins := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")
 	router.Use(func(c *gin.Context) {
@@ -265,6 +272,9 @@ func main() {
 
 	// Register faction routes
 	routes.RegisterFactionRoutes(router, client)
+
+	// Register race routes (RACES-001)
+	routes.RegisterRaceRoutes(router, client)
 
 	// Register tag routes (TAG-001)
 	routes.RegisterTagRoutes(router, client)
