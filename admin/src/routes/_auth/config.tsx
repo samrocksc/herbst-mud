@@ -19,6 +19,57 @@ type ConfigForm = Readonly<{
   value: string
 }>
 
+/** Human-readable labels for known config keys */
+const KEY_LABELS: Readonly<Record<string, string>> = {
+  xp_thresholds: 'XP Thresholds',
+  death_penalty_percent: 'Death Penalty (%)',
+  starting_room_id: 'Starting Room ID',
+  max_level: 'Max Level',
+  campaign_type: 'Campaign Type',
+  corpse_rot_minutes: 'Corpse Rot Minutes',
+  xp_per_kill: 'XP Per Kill',
+  respawn_room_id: 'Respawn Room ID',
+  max_inventory_size: 'Max Inventory Size',
+  pvp_enabled: 'PvP Enabled',
+  death_penalty_type: 'Death Penalty Type',
+  starting_hp: 'Starting HP',
+  starting_mana: 'Starting Mana',
+  starting_gold: 'Starting Gold',
+  regen_tick_seconds: 'Regen Tick (seconds)',
+}
+
+/**
+ * Convert a raw config key to a human-readable label.
+ * If an explicit mapping exists in KEY_LABELS, use it.
+ * Otherwise, split on underscores and title-case each word.
+ */
+function humanizeKey(raw: string): string {
+  if (KEY_LABELS[raw]) return KEY_LABELS[raw]
+  return raw
+    .split('_')
+    .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ')
+}
+
+/**
+ * Attempt to parse a string as JSON. Returns the parsed object/array
+ * if successful, or null if it's not valid JSON (i.e. it's a plain string/number).
+ */
+function tryParseJSON(value: string): unknown | null {
+  try {
+    const parsed = JSON.parse(value)
+    if (typeof parsed === 'object' && parsed !== null) return parsed
+    return null
+  } catch {
+    return null
+  }
+}
+
+/** Format a parsed JSON object/array with 2-space indentation */
+function formatJSON(value: unknown): string {
+  return JSON.stringify(value, null, 2)
+}
+
 const PRESETS = [
   { label: 'XP Thresholds', key: 'xp_thresholds', value: '{"1":100,"2":300,"3":600,"4":1000,"5":1500}' },
   { label: 'Death Penalty %', key: 'death_penalty_percent', value: '10' },
@@ -27,6 +78,68 @@ const PRESETS = [
   { label: 'Max Level', key: 'max_level', value: '100' },
   { label: 'Starting Room ID', key: 'starting_room_id', value: '1' },
 ]
+
+/** Renders a config value cell: pretty-prints JSON objects/arrays, truncates long plain strings */
+function ConfigValueCell({ value }: { value: string }) {
+  const parsed = tryParseJSON(value)
+
+  if (parsed !== null) {
+    const formatted = formatJSON(parsed)
+    const isLong = formatted.split('\n').length > 4
+    const [expanded, setExpanded] = useState(false)
+
+    return (
+      <div className="text-xs">
+        <pre className={`font-mono text-text-secondary whitespace-pre-wrap m-0 ${!expanded ? 'max-h-16 overflow-hidden' : ''}`}>
+          {formatted}
+        </pre>
+        {isLong && (
+          <button
+            type="button"
+            className="text-primary text-xs mt-1 hover:underline cursor-pointer"
+            onClick={() => setExpanded(e => !e)}
+          >
+            {expanded ? 'Show less' : 'Show more'}
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <span className="inline-block max-w-md overflow-hidden text-ellipsis whitespace-nowrap text-text-secondary text-xs">
+      {value.length > 60 ? value.slice(0, 60) + '…' : value}
+    </span>
+  )
+}
+
+/** Collapsible JSON preview shown above the textarea in the edit modal */
+function CollapsibleJSONPreview({ value }: { value: string }) {
+  const parsed = tryParseJSON(value)
+  const [expanded, setExpanded] = useState(false)
+
+  if (parsed === null) return null
+
+  const formatted = formatJSON(parsed)
+
+  return (
+    <div className="mb-3">
+      <button
+        type="button"
+        className="text-xs text-primary hover:underline cursor-pointer flex items-center gap-1 mb-1"
+        onClick={() => setExpanded(e => !e)}
+      >
+        <span className={`inline-block transition-transform ${expanded ? 'rotate-90' : ''}`}>▶</span>
+        {expanded ? 'Collapse JSON preview' : 'Expand JSON preview'}
+      </button>
+      {expanded && (
+        <pre className="bg-surface-muted border-2 border-border rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-auto max-h-64">
+          {formatted}
+        </pre>
+      )}
+    </div>
+  )
+}
 
 function ConfigManagement() {
   const [configs, setConfigs] = useState<GameConfig[]>([])
@@ -177,20 +290,17 @@ function ConfigManagement() {
               header: 'Key',
               accessor: 'key',
               render: (_, row): ReactNode => (
-                <code className="text-primary text-sm">{row.key}</code>
+                <div>
+                  <span className="text-text text-sm font-medium">{humanizeKey(row.key)}</span>
+                  <br />
+                  <code className="text-primary text-xs">{row.key}</code>
+                </div>
               ),
             },
             {
               header: 'Value',
               accessor: 'value',
-              render: (val) => {
-                const v = val as string
-                return (
-                  <span className="inline-block max-w-md overflow-hidden text-ellipsis whitespace-nowrap text-text-secondary text-xs">
-                    {v.length > 60 ? v.slice(0, 60) + '…' : v}
-                  </span>
-                )
-              },
+              render: (val) => <ConfigValueCell value={val as string} />,
             },
             {
               header: 'Actions',
@@ -213,7 +323,7 @@ function ConfigManagement() {
       {(showForm || editing) && (
         <div className="modal-overlay" onClick={() => { setShowForm(false); setEditing(null) }}>
           <div className="modal-content max-w-2xl" onClick={e => e.stopPropagation()}>
-            <h3>{editing ? `Edit: ${editing.key}` : 'New Game Config'}</h3>
+            <h3>{editing ? `Edit: ${humanizeKey(editing.key)}` : 'New Game Config'}</h3>
             <form onSubmit={editing ? handleUpdate : handleCreate}>
               <div className="form-group">
                 <label>Key</label>
@@ -232,6 +342,7 @@ function ConfigManagement() {
               </div>
               <div className="form-group">
                 <label>Value (JSON or plain)</label>
+                <CollapsibleJSONPreview value={form.value} />
                 <textarea
                   value={form.value}
                   onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
