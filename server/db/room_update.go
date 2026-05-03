@@ -91,6 +91,81 @@ func (_u *RoomUpdate) SetNillableAtmosphere(v *room.Atmosphere) *RoomUpdate {
 	return _u
 }
 
+// SetPosX sets the "posX" field.
+func (_u *RoomUpdate) SetPosX(v int) *RoomUpdate {
+	_u.mutation.ResetPosX()
+	_u.mutation.SetPosX(v)
+	return _u
+}
+
+// SetNillablePosX sets the "posX" field if the given value is not nil.
+func (_u *RoomUpdate) SetNillablePosX(v *int) *RoomUpdate {
+	if v != nil {
+		_u.SetPosX(*v)
+	}
+	return _u
+}
+
+// AddPosX adds value to the "posX" field.
+func (_u *RoomUpdate) AddPosX(v int) *RoomUpdate {
+	_u.mutation.AddPosX(v)
+	return _u
+}
+
+// ClearPosX clears the value of the "posX" field.
+func (_u *RoomUpdate) ClearPosX() *RoomUpdate {
+	_u.mutation.ClearPosX()
+	return _u
+}
+
+// SetPosY sets the "posY" field.
+func (_u *RoomUpdate) SetPosY(v int) *RoomUpdate {
+	_u.mutation.ResetPosY()
+	_u.mutation.SetPosY(v)
+	return _u
+}
+
+// SetNillablePosY sets the "posY" field if the given value is not nil.
+func (_u *RoomUpdate) SetNillablePosY(v *int) *RoomUpdate {
+	if v != nil {
+		_u.SetPosY(*v)
+	}
+	return _u
+}
+
+// AddPosY adds value to the "posY" field.
+func (_u *RoomUpdate) AddPosY(v int) *RoomUpdate {
+	_u.mutation.AddPosY(v)
+	return _u
+}
+
+// ClearPosY clears the value of the "posY" field.
+func (_u *RoomUpdate) ClearPosY() *RoomUpdate {
+	_u.mutation.ClearPosY()
+	return _u
+}
+
+// SetVersion sets the "version" field.
+func (_u *RoomUpdate) SetVersion(v int) *RoomUpdate {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_u *RoomUpdate) SetNillableVersion(v *int) *RoomUpdate {
+	if v != nil {
+		_u.SetVersion(*v)
+	}
+	return _u
+}
+
+// AddVersion adds value to the "version" field.
+func (_u *RoomUpdate) AddVersion(v int) *RoomUpdate {
+	_u.mutation.AddVersion(v)
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *RoomUpdate) AddCharacterIDs(ids ...int) *RoomUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -231,6 +306,30 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Atmosphere(); ok {
 		_spec.SetField(room.FieldAtmosphere, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.PosX(); ok {
+		_spec.SetField(room.FieldPosX, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPosX(); ok {
+		_spec.AddField(room.FieldPosX, field.TypeInt, value)
+	}
+	if _u.mutation.PosXCleared() {
+		_spec.ClearField(room.FieldPosX, field.TypeInt)
+	}
+	if value, ok := _u.mutation.PosY(); ok {
+		_spec.SetField(room.FieldPosY, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPosY(); ok {
+		_spec.AddField(room.FieldPosY, field.TypeInt, value)
+	}
+	if _u.mutation.PosYCleared() {
+		_spec.ClearField(room.FieldPosY, field.TypeInt)
+	}
+	if value, ok := _u.mutation.Version(); ok {
+		_spec.SetField(room.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedVersion(); ok {
+		_spec.AddField(room.FieldVersion, field.TypeInt, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -404,6 +503,81 @@ func (_u *RoomUpdateOne) SetNillableAtmosphere(v *room.Atmosphere) *RoomUpdateOn
 	return _u
 }
 
+// SetPosX sets the "posX" field.
+func (_u *RoomUpdateOne) SetPosX(v int) *RoomUpdateOne {
+	_u.mutation.ResetPosX()
+	_u.mutation.SetPosX(v)
+	return _u
+}
+
+// SetNillablePosX sets the "posX" field if the given value is not nil.
+func (_u *RoomUpdateOne) SetNillablePosX(v *int) *RoomUpdateOne {
+	if v != nil {
+		_u.SetPosX(*v)
+	}
+	return _u
+}
+
+// AddPosX adds value to the "posX" field.
+func (_u *RoomUpdateOne) AddPosX(v int) *RoomUpdateOne {
+	_u.mutation.AddPosX(v)
+	return _u
+}
+
+// ClearPosX clears the value of the "posX" field.
+func (_u *RoomUpdateOne) ClearPosX() *RoomUpdateOne {
+	_u.mutation.ClearPosX()
+	return _u
+}
+
+// SetPosY sets the "posY" field.
+func (_u *RoomUpdateOne) SetPosY(v int) *RoomUpdateOne {
+	_u.mutation.ResetPosY()
+	_u.mutation.SetPosY(v)
+	return _u
+}
+
+// SetNillablePosY sets the "posY" field if the given value is not nil.
+func (_u *RoomUpdateOne) SetNillablePosY(v *int) *RoomUpdateOne {
+	if v != nil {
+		_u.SetPosY(*v)
+	}
+	return _u
+}
+
+// AddPosY adds value to the "posY" field.
+func (_u *RoomUpdateOne) AddPosY(v int) *RoomUpdateOne {
+	_u.mutation.AddPosY(v)
+	return _u
+}
+
+// ClearPosY clears the value of the "posY" field.
+func (_u *RoomUpdateOne) ClearPosY() *RoomUpdateOne {
+	_u.mutation.ClearPosY()
+	return _u
+}
+
+// SetVersion sets the "version" field.
+func (_u *RoomUpdateOne) SetVersion(v int) *RoomUpdateOne {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_u *RoomUpdateOne) SetNillableVersion(v *int) *RoomUpdateOne {
+	if v != nil {
+		_u.SetVersion(*v)
+	}
+	return _u
+}
+
+// AddVersion adds value to the "version" field.
+func (_u *RoomUpdateOne) AddVersion(v int) *RoomUpdateOne {
+	_u.mutation.AddVersion(v)
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *RoomUpdateOne) AddCharacterIDs(ids ...int) *RoomUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -574,6 +748,30 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 	}
 	if value, ok := _u.mutation.Atmosphere(); ok {
 		_spec.SetField(room.FieldAtmosphere, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.PosX(); ok {
+		_spec.SetField(room.FieldPosX, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPosX(); ok {
+		_spec.AddField(room.FieldPosX, field.TypeInt, value)
+	}
+	if _u.mutation.PosXCleared() {
+		_spec.ClearField(room.FieldPosX, field.TypeInt)
+	}
+	if value, ok := _u.mutation.PosY(); ok {
+		_spec.SetField(room.FieldPosY, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPosY(); ok {
+		_spec.AddField(room.FieldPosY, field.TypeInt, value)
+	}
+	if _u.mutation.PosYCleared() {
+		_spec.ClearField(room.FieldPosY, field.TypeInt)
+	}
+	if value, ok := _u.mutation.Version(); ok {
+		_spec.SetField(room.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedVersion(); ok {
+		_spec.AddField(room.FieldVersion, field.TypeInt, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{

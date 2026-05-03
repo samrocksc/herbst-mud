@@ -313,6 +313,18 @@ func init() {
 	roomDescIsStartingRoom := roomFields[2].Descriptor()
 	// room.DefaultIsStartingRoom holds the default value on creation for the isStartingRoom field.
 	room.DefaultIsStartingRoom = roomDescIsStartingRoom.Default.(bool)
+	// roomDescPosX is the schema descriptor for posX field.
+	roomDescPosX := roomFields[5].Descriptor()
+	// room.DefaultPosX holds the default value on creation for the posX field.
+	room.DefaultPosX = roomDescPosX.Default.(int)
+	// roomDescPosY is the schema descriptor for posY field.
+	roomDescPosY := roomFields[6].Descriptor()
+	// room.DefaultPosY holds the default value on creation for the posY field.
+	room.DefaultPosY = roomDescPosY.Default.(int)
+	// roomDescVersion is the schema descriptor for version field.
+	roomDescVersion := roomFields[7].Descriptor()
+	// room.DefaultVersion holds the default value on creation for the version field.
+	room.DefaultVersion = roomDescVersion.Default.(int)
 	skillFields := schema.Skill{}.Fields()
 	_ = skillFields
 	// skillDescCost is the schema descriptor for cost field.

@@ -15317,6 +15317,12 @@ type RoomMutation struct {
 	isStartingRoom    *bool
 	exits             *map[string]int
 	atmosphere        *room.Atmosphere
+	posX              *int
+	addposX           *int
+	posY              *int
+	addposY           *int
+	version           *int
+	addversion        *int
 	clearedFields     map[string]struct{}
 	characters        map[int]struct{}
 	removedcharacters map[int]struct{}
@@ -15607,6 +15613,202 @@ func (m *RoomMutation) ResetAtmosphere() {
 	m.atmosphere = nil
 }
 
+// SetPosX sets the "posX" field.
+func (m *RoomMutation) SetPosX(i int) {
+	m.posX = &i
+	m.addposX = nil
+}
+
+// PosX returns the value of the "posX" field in the mutation.
+func (m *RoomMutation) PosX() (r int, exists bool) {
+	v := m.posX
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPosX returns the old "posX" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldPosX(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPosX is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPosX requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPosX: %w", err)
+	}
+	return oldValue.PosX, nil
+}
+
+// AddPosX adds i to the "posX" field.
+func (m *RoomMutation) AddPosX(i int) {
+	if m.addposX != nil {
+		*m.addposX += i
+	} else {
+		m.addposX = &i
+	}
+}
+
+// AddedPosX returns the value that was added to the "posX" field in this mutation.
+func (m *RoomMutation) AddedPosX() (r int, exists bool) {
+	v := m.addposX
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPosX clears the value of the "posX" field.
+func (m *RoomMutation) ClearPosX() {
+	m.posX = nil
+	m.addposX = nil
+	m.clearedFields[room.FieldPosX] = struct{}{}
+}
+
+// PosXCleared returns if the "posX" field was cleared in this mutation.
+func (m *RoomMutation) PosXCleared() bool {
+	_, ok := m.clearedFields[room.FieldPosX]
+	return ok
+}
+
+// ResetPosX resets all changes to the "posX" field.
+func (m *RoomMutation) ResetPosX() {
+	m.posX = nil
+	m.addposX = nil
+	delete(m.clearedFields, room.FieldPosX)
+}
+
+// SetPosY sets the "posY" field.
+func (m *RoomMutation) SetPosY(i int) {
+	m.posY = &i
+	m.addposY = nil
+}
+
+// PosY returns the value of the "posY" field in the mutation.
+func (m *RoomMutation) PosY() (r int, exists bool) {
+	v := m.posY
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPosY returns the old "posY" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldPosY(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPosY is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPosY requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPosY: %w", err)
+	}
+	return oldValue.PosY, nil
+}
+
+// AddPosY adds i to the "posY" field.
+func (m *RoomMutation) AddPosY(i int) {
+	if m.addposY != nil {
+		*m.addposY += i
+	} else {
+		m.addposY = &i
+	}
+}
+
+// AddedPosY returns the value that was added to the "posY" field in this mutation.
+func (m *RoomMutation) AddedPosY() (r int, exists bool) {
+	v := m.addposY
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPosY clears the value of the "posY" field.
+func (m *RoomMutation) ClearPosY() {
+	m.posY = nil
+	m.addposY = nil
+	m.clearedFields[room.FieldPosY] = struct{}{}
+}
+
+// PosYCleared returns if the "posY" field was cleared in this mutation.
+func (m *RoomMutation) PosYCleared() bool {
+	_, ok := m.clearedFields[room.FieldPosY]
+	return ok
+}
+
+// ResetPosY resets all changes to the "posY" field.
+func (m *RoomMutation) ResetPosY() {
+	m.posY = nil
+	m.addposY = nil
+	delete(m.clearedFields, room.FieldPosY)
+}
+
+// SetVersion sets the "version" field.
+func (m *RoomMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *RoomMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *RoomMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *RoomMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *RoomMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
 func (m *RoomMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -15749,7 +15951,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
@@ -15764,6 +15966,15 @@ func (m *RoomMutation) Fields() []string {
 	}
 	if m.atmosphere != nil {
 		fields = append(fields, room.FieldAtmosphere)
+	}
+	if m.posX != nil {
+		fields = append(fields, room.FieldPosX)
+	}
+	if m.posY != nil {
+		fields = append(fields, room.FieldPosY)
+	}
+	if m.version != nil {
+		fields = append(fields, room.FieldVersion)
 	}
 	return fields
 }
@@ -15783,6 +15994,12 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.Exits()
 	case room.FieldAtmosphere:
 		return m.Atmosphere()
+	case room.FieldPosX:
+		return m.PosX()
+	case room.FieldPosY:
+		return m.PosY()
+	case room.FieldVersion:
+		return m.Version()
 	}
 	return nil, false
 }
@@ -15802,6 +16019,12 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldExits(ctx)
 	case room.FieldAtmosphere:
 		return m.OldAtmosphere(ctx)
+	case room.FieldPosX:
+		return m.OldPosX(ctx)
+	case room.FieldPosY:
+		return m.OldPosY(ctx)
+	case room.FieldVersion:
+		return m.OldVersion(ctx)
 	}
 	return nil, fmt.Errorf("unknown Room field %s", name)
 }
@@ -15846,6 +16069,27 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAtmosphere(v)
 		return nil
+	case room.FieldPosX:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPosX(v)
+		return nil
+	case room.FieldPosY:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPosY(v)
+		return nil
+	case room.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)
 }
@@ -15853,13 +16097,31 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *RoomMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addposX != nil {
+		fields = append(fields, room.FieldPosX)
+	}
+	if m.addposY != nil {
+		fields = append(fields, room.FieldPosY)
+	}
+	if m.addversion != nil {
+		fields = append(fields, room.FieldVersion)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *RoomMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case room.FieldPosX:
+		return m.AddedPosX()
+	case room.FieldPosY:
+		return m.AddedPosY()
+	case room.FieldVersion:
+		return m.AddedVersion()
+	}
 	return nil, false
 }
 
@@ -15868,6 +16130,27 @@ func (m *RoomMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *RoomMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case room.FieldPosX:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPosX(v)
+		return nil
+	case room.FieldPosY:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPosY(v)
+		return nil
+	case room.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Room numeric field %s", name)
 }
@@ -15875,7 +16158,14 @@ func (m *RoomMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *RoomMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(room.FieldPosX) {
+		fields = append(fields, room.FieldPosX)
+	}
+	if m.FieldCleared(room.FieldPosY) {
+		fields = append(fields, room.FieldPosY)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -15888,6 +16178,14 @@ func (m *RoomMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *RoomMutation) ClearField(name string) error {
+	switch name {
+	case room.FieldPosX:
+		m.ClearPosX()
+		return nil
+	case room.FieldPosY:
+		m.ClearPosY()
+		return nil
+	}
 	return fmt.Errorf("unknown Room nullable field %s", name)
 }
 
@@ -15909,6 +16207,15 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldAtmosphere:
 		m.ResetAtmosphere()
+		return nil
+	case room.FieldPosX:
+		m.ResetPosX()
+		return nil
+	case room.FieldPosY:
+		m.ResetPosY()
+		return nil
+	case room.FieldVersion:
+		m.ResetVersion()
 		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)

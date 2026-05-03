@@ -31,6 +31,14 @@ func (Room) Fields() []ent.Field {
 		field.Enum("atmosphere").
 			Values("air", "water", "wind").
 			Default("air"),
+		field.Int("posX").
+			Default(0).
+			Optional(),
+		field.Int("posY").
+			Default(0).
+			Optional(),
+		field.Int("version").
+			Default(1),
 	}
 }
 

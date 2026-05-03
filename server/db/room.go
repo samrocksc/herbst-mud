@@ -27,6 +27,12 @@ type Room struct {
 	Exits map[string]int `json:"exits,omitempty"`
 	// Atmosphere holds the value of the "atmosphere" field.
 	Atmosphere room.Atmosphere `json:"atmosphere,omitempty"`
+	// PosX holds the value of the "posX" field.
+	PosX int `json:"posX,omitempty"`
+	// PosY holds the value of the "posY" field.
+	PosY int `json:"posY,omitempty"`
+	// Version holds the value of the "version" field.
+	Version int `json:"version,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomQuery when eager-loading is set.
 	Edges        RoomEdges `json:"edges"`
@@ -71,7 +77,7 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case room.FieldIsStartingRoom:
 			values[i] = new(sql.NullBool)
-		case room.FieldID:
+		case room.FieldID, room.FieldPosX, room.FieldPosY, room.FieldVersion:
 			values[i] = new(sql.NullInt64)
 		case room.FieldName, room.FieldDescription, room.FieldAtmosphere:
 			values[i] = new(sql.NullString)
@@ -127,6 +133,24 @@ func (_m *Room) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field atmosphere", values[i])
 			} else if value.Valid {
 				_m.Atmosphere = room.Atmosphere(value.String)
+			}
+		case room.FieldPosX:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field posX", values[i])
+			} else if value.Valid {
+				_m.PosX = int(value.Int64)
+			}
+		case room.FieldPosY:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field posY", values[i])
+			} else if value.Valid {
+				_m.PosY = int(value.Int64)
+			}
+		case room.FieldVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field version", values[i])
+			} else if value.Valid {
+				_m.Version = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -188,6 +212,15 @@ func (_m *Room) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("atmosphere=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Atmosphere))
+	builder.WriteString(", ")
+	builder.WriteString("posX=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PosX))
+	builder.WriteString(", ")
+	builder.WriteString("posY=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PosY))
+	builder.WriteString(", ")
+	builder.WriteString("version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Version))
 	builder.WriteByte(')')
 	return builder.String()
 }

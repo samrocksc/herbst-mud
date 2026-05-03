@@ -19,6 +19,8 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			Description string            `json:"description" binding:"required"`
 			IsStartingRoom bool           `json:"isStartingRoom"`
 			Exits       map[string]int    `json:"exits"`
+			PosX        int               `json:"posX"`
+			PosY        int               `json:"posY"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -26,13 +28,15 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		room, err := client.Room.
+		roomBuilder := client.Room.
 			Create().
 			SetName(req.Name).
 			SetDescription(req.Description).
 			SetIsStartingRoom(req.IsStartingRoom).
 			SetExits(req.Exits).
-			Save(c.Request.Context())
+			SetPosX(req.PosX).
+			SetPosY(req.PosY)
+		room, err := roomBuilder.Save(c.Request.Context())
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -70,7 +74,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusOK, room)
 	})
 
-	// Update a room by ID
+	// Update a room by ID (optimistic locking via version field)
 	router.PUT("/rooms/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -79,14 +83,34 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		var req struct {
-			Name        string            `json:"name"`
-			Description string            `json:"description"`
+			Name           string         `json:"name"`
+			Description    string         `json:"description"`
 			IsStartingRoom bool           `json:"isStartingRoom"`
-			Exits       map[string]int    `json:"exits"`
+			Exits          map[string]int `json:"exits"`
+			PosX           *int           `json:"posX"`
+			PosY           *int           `json:"posY"`
+			Version        int            `json:"version"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Fetch current room to check version (optimistic locking)
+		currentRoom, err := client.Room.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+			return
+		}
+
+		// If version is provided (>= 1), verify it matches the current version
+		if req.Version > 0 && currentRoom.Version != req.Version {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":      "Conflict: room has been modified by another editor",
+				"current":    currentRoom,
+				"yourVersion": req.Version,
+			})
 			return
 		}
 
@@ -104,6 +128,15 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		if req.Exits != nil {
 			updater.SetExits(req.Exits)
 		}
+		if req.PosX != nil {
+			updater.SetPosX(*req.PosX)
+		}
+		if req.PosY != nil {
+			updater.SetPosY(*req.PosY)
+		}
+
+		// Increment version on every save
+		updater.AddVersion(1)
 
 		room, err := updater.Save(c.Request.Context())
 		if err != nil {

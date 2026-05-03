@@ -24,6 +24,12 @@ const (
 	FieldExits = "exits"
 	// FieldAtmosphere holds the string denoting the atmosphere field in the database.
 	FieldAtmosphere = "atmosphere"
+	// FieldPosX holds the string denoting the posx field in the database.
+	FieldPosX = "posx"
+	// FieldPosY holds the string denoting the posy field in the database.
+	FieldPosY = "posy"
+	// FieldVersion holds the string denoting the version field in the database.
+	FieldVersion = "version"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
@@ -54,6 +60,9 @@ var Columns = []string{
 	FieldIsStartingRoom,
 	FieldExits,
 	FieldAtmosphere,
+	FieldPosX,
+	FieldPosY,
+	FieldVersion,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -69,6 +78,12 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsStartingRoom holds the default value on creation for the "isStartingRoom" field.
 	DefaultIsStartingRoom bool
+	// DefaultPosX holds the default value on creation for the "posX" field.
+	DefaultPosX int
+	// DefaultPosY holds the default value on creation for the "posY" field.
+	DefaultPosY int
+	// DefaultVersion holds the default value on creation for the "version" field.
+	DefaultVersion int
 )
 
 // Atmosphere defines the type for the "atmosphere" enum field.
@@ -124,6 +139,21 @@ func ByIsStartingRoom(opts ...sql.OrderTermOption) OrderOption {
 // ByAtmosphere orders the results by the atmosphere field.
 func ByAtmosphere(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAtmosphere, opts...).ToFunc()
+}
+
+// ByPosX orders the results by the posX field.
+func ByPosX(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPosX, opts...).ToFunc()
+}
+
+// ByPosY orders the results by the posY field.
+func ByPosY(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPosY, opts...).ToFunc()
+}
+
+// ByVersion orders the results by the version field.
+func ByVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVersion, opts...).ToFunc()
 }
 
 // ByCharactersCount orders the results by characters count.

@@ -488,6 +488,8 @@ function MapBuilder() {
                   roomItems={roomItems}
                   rooms={rooms}
                   onSelect={setSelectedRoom}
+                  isDragging={isDragging}
+                  onDragEnd={handleRoomDragEnd}
                 />
               )
             })}

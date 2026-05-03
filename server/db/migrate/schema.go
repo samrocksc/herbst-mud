@@ -461,6 +461,9 @@ var (
 		{Name: "is_starting_room", Type: field.TypeBool, Default: false},
 		{Name: "exits", Type: field.TypeJSON},
 		{Name: "atmosphere", Type: field.TypeEnum, Enums: []string{"air", "water", "wind"}, Default: "air"},
+		{Name: "posx", Type: field.TypeInt, Nullable: true, Default: 0},
+		{Name: "posy", Type: field.TypeInt, Nullable: true, Default: 0},
+		{Name: "version", Type: field.TypeInt, Default: 1},
 	}
 	// RoomsTable holds the schema information for the "rooms" table.
 	RoomsTable = &schema.Table{

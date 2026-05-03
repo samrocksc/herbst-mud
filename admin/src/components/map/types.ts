@@ -5,6 +5,9 @@ export type Room = Readonly<{
   isStartingRoom?: boolean
   exits: Record<string, number>
   atmosphere?: string
+  posX?: number
+  posY?: number
+  version?: number
 }>
 
 export type NPC = Readonly<{

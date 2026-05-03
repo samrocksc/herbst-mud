@@ -67,6 +67,48 @@ func (_c *RoomCreate) SetNillableAtmosphere(v *room.Atmosphere) *RoomCreate {
 	return _c
 }
 
+// SetPosX sets the "posX" field.
+func (_c *RoomCreate) SetPosX(v int) *RoomCreate {
+	_c.mutation.SetPosX(v)
+	return _c
+}
+
+// SetNillablePosX sets the "posX" field if the given value is not nil.
+func (_c *RoomCreate) SetNillablePosX(v *int) *RoomCreate {
+	if v != nil {
+		_c.SetPosX(*v)
+	}
+	return _c
+}
+
+// SetPosY sets the "posY" field.
+func (_c *RoomCreate) SetPosY(v int) *RoomCreate {
+	_c.mutation.SetPosY(v)
+	return _c
+}
+
+// SetNillablePosY sets the "posY" field if the given value is not nil.
+func (_c *RoomCreate) SetNillablePosY(v *int) *RoomCreate {
+	if v != nil {
+		_c.SetPosY(*v)
+	}
+	return _c
+}
+
+// SetVersion sets the "version" field.
+func (_c *RoomCreate) SetVersion(v int) *RoomCreate {
+	_c.mutation.SetVersion(v)
+	return _c
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_c *RoomCreate) SetNillableVersion(v *int) *RoomCreate {
+	if v != nil {
+		_c.SetVersion(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_c *RoomCreate) AddCharacterIDs(ids ...int) *RoomCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -140,6 +182,18 @@ func (_c *RoomCreate) defaults() {
 		v := room.DefaultAtmosphere
 		_c.mutation.SetAtmosphere(v)
 	}
+	if _, ok := _c.mutation.PosX(); !ok {
+		v := room.DefaultPosX
+		_c.mutation.SetPosX(v)
+	}
+	if _, ok := _c.mutation.PosY(); !ok {
+		v := room.DefaultPosY
+		_c.mutation.SetPosY(v)
+	}
+	if _, ok := _c.mutation.Version(); !ok {
+		v := room.DefaultVersion
+		_c.mutation.SetVersion(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -163,6 +217,9 @@ func (_c *RoomCreate) check() error {
 		if err := room.AtmosphereValidator(v); err != nil {
 			return &ValidationError{Name: "atmosphere", err: fmt.Errorf(`db: validator failed for field "Room.atmosphere": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Version(); !ok {
+		return &ValidationError{Name: "version", err: errors.New(`db: missing required field "Room.version"`)}
 	}
 	return nil
 }
@@ -209,6 +266,18 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Atmosphere(); ok {
 		_spec.SetField(room.FieldAtmosphere, field.TypeEnum, value)
 		_node.Atmosphere = value
+	}
+	if value, ok := _c.mutation.PosX(); ok {
+		_spec.SetField(room.FieldPosX, field.TypeInt, value)
+		_node.PosX = value
+	}
+	if value, ok := _c.mutation.PosY(); ok {
+		_spec.SetField(room.FieldPosY, field.TypeInt, value)
+		_node.PosY = value
+	}
+	if value, ok := _c.mutation.Version(); ok {
+		_spec.SetField(room.FieldVersion, field.TypeInt, value)
+		_node.Version = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

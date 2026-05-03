@@ -69,6 +69,21 @@ func IsStartingRoom(v bool) predicate.Room {
 	return predicate.Room(sql.FieldEQ(FieldIsStartingRoom, v))
 }
 
+// PosX applies equality check predicate on the "posX" field. It's identical to PosXEQ.
+func PosX(v int) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldPosX, v))
+}
+
+// PosY applies equality check predicate on the "posY" field. It's identical to PosYEQ.
+func PosY(v int) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldPosY, v))
+}
+
+// Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
+func Version(v int) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldVersion, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Room {
 	return predicate.Room(sql.FieldEQ(FieldName, v))
@@ -227,6 +242,146 @@ func AtmosphereIn(vs ...Atmosphere) predicate.Room {
 // AtmosphereNotIn applies the NotIn predicate on the "atmosphere" field.
 func AtmosphereNotIn(vs ...Atmosphere) predicate.Room {
 	return predicate.Room(sql.FieldNotIn(FieldAtmosphere, vs...))
+}
+
+// PosXEQ applies the EQ predicate on the "posX" field.
+func PosXEQ(v int) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldPosX, v))
+}
+
+// PosXNEQ applies the NEQ predicate on the "posX" field.
+func PosXNEQ(v int) predicate.Room {
+	return predicate.Room(sql.FieldNEQ(FieldPosX, v))
+}
+
+// PosXIn applies the In predicate on the "posX" field.
+func PosXIn(vs ...int) predicate.Room {
+	return predicate.Room(sql.FieldIn(FieldPosX, vs...))
+}
+
+// PosXNotIn applies the NotIn predicate on the "posX" field.
+func PosXNotIn(vs ...int) predicate.Room {
+	return predicate.Room(sql.FieldNotIn(FieldPosX, vs...))
+}
+
+// PosXGT applies the GT predicate on the "posX" field.
+func PosXGT(v int) predicate.Room {
+	return predicate.Room(sql.FieldGT(FieldPosX, v))
+}
+
+// PosXGTE applies the GTE predicate on the "posX" field.
+func PosXGTE(v int) predicate.Room {
+	return predicate.Room(sql.FieldGTE(FieldPosX, v))
+}
+
+// PosXLT applies the LT predicate on the "posX" field.
+func PosXLT(v int) predicate.Room {
+	return predicate.Room(sql.FieldLT(FieldPosX, v))
+}
+
+// PosXLTE applies the LTE predicate on the "posX" field.
+func PosXLTE(v int) predicate.Room {
+	return predicate.Room(sql.FieldLTE(FieldPosX, v))
+}
+
+// PosXIsNil applies the IsNil predicate on the "posX" field.
+func PosXIsNil() predicate.Room {
+	return predicate.Room(sql.FieldIsNull(FieldPosX))
+}
+
+// PosXNotNil applies the NotNil predicate on the "posX" field.
+func PosXNotNil() predicate.Room {
+	return predicate.Room(sql.FieldNotNull(FieldPosX))
+}
+
+// PosYEQ applies the EQ predicate on the "posY" field.
+func PosYEQ(v int) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldPosY, v))
+}
+
+// PosYNEQ applies the NEQ predicate on the "posY" field.
+func PosYNEQ(v int) predicate.Room {
+	return predicate.Room(sql.FieldNEQ(FieldPosY, v))
+}
+
+// PosYIn applies the In predicate on the "posY" field.
+func PosYIn(vs ...int) predicate.Room {
+	return predicate.Room(sql.FieldIn(FieldPosY, vs...))
+}
+
+// PosYNotIn applies the NotIn predicate on the "posY" field.
+func PosYNotIn(vs ...int) predicate.Room {
+	return predicate.Room(sql.FieldNotIn(FieldPosY, vs...))
+}
+
+// PosYGT applies the GT predicate on the "posY" field.
+func PosYGT(v int) predicate.Room {
+	return predicate.Room(sql.FieldGT(FieldPosY, v))
+}
+
+// PosYGTE applies the GTE predicate on the "posY" field.
+func PosYGTE(v int) predicate.Room {
+	return predicate.Room(sql.FieldGTE(FieldPosY, v))
+}
+
+// PosYLT applies the LT predicate on the "posY" field.
+func PosYLT(v int) predicate.Room {
+	return predicate.Room(sql.FieldLT(FieldPosY, v))
+}
+
+// PosYLTE applies the LTE predicate on the "posY" field.
+func PosYLTE(v int) predicate.Room {
+	return predicate.Room(sql.FieldLTE(FieldPosY, v))
+}
+
+// PosYIsNil applies the IsNil predicate on the "posY" field.
+func PosYIsNil() predicate.Room {
+	return predicate.Room(sql.FieldIsNull(FieldPosY))
+}
+
+// PosYNotNil applies the NotNil predicate on the "posY" field.
+func PosYNotNil() predicate.Room {
+	return predicate.Room(sql.FieldNotNull(FieldPosY))
+}
+
+// VersionEQ applies the EQ predicate on the "version" field.
+func VersionEQ(v int) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldVersion, v))
+}
+
+// VersionNEQ applies the NEQ predicate on the "version" field.
+func VersionNEQ(v int) predicate.Room {
+	return predicate.Room(sql.FieldNEQ(FieldVersion, v))
+}
+
+// VersionIn applies the In predicate on the "version" field.
+func VersionIn(vs ...int) predicate.Room {
+	return predicate.Room(sql.FieldIn(FieldVersion, vs...))
+}
+
+// VersionNotIn applies the NotIn predicate on the "version" field.
+func VersionNotIn(vs ...int) predicate.Room {
+	return predicate.Room(sql.FieldNotIn(FieldVersion, vs...))
+}
+
+// VersionGT applies the GT predicate on the "version" field.
+func VersionGT(v int) predicate.Room {
+	return predicate.Room(sql.FieldGT(FieldVersion, v))
+}
+
+// VersionGTE applies the GTE predicate on the "version" field.
+func VersionGTE(v int) predicate.Room {
+	return predicate.Room(sql.FieldGTE(FieldVersion, v))
+}
+
+// VersionLT applies the LT predicate on the "version" field.
+func VersionLT(v int) predicate.Room {
+	return predicate.Room(sql.FieldLT(FieldVersion, v))
+}
+
+// VersionLTE applies the LTE predicate on the "version" field.
+func VersionLTE(v int) predicate.Room {
+	return predicate.Room(sql.FieldLTE(FieldVersion, v))
 }
 
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
