@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Button } from './Button'
 import { DashboardIcon } from './icons/DashboardIcon'
 import { XpIcon } from './icons/XpIcon'
 import { ConfigIcon } from './icons/ConfigIcon'
@@ -12,6 +11,8 @@ import { SkillsIcon } from './icons/SkillsIcon'
 import { PlayersIcon } from './icons/PlayersIcon'
 import { MapIcon } from './icons/MapIcon'
 import { NPCsIcon } from './icons/NPCsIcon'
+import { ChevronLeftIcon } from './icons/ChevronIcons'
+import { ChevronRightIcon } from './icons/ChevronIcons'
 
 const STORAGE_KEY = 'sidebar-collapsed'
 
@@ -28,6 +29,7 @@ const navItems = [
   { label: 'NPCs', path: '/npcs', Icon: NPCsIcon },
 ]
 
+/** Toggle button for collapsing/expanding the sidebar. Named component for DevTools clarity. */
 function SidebarCollapseToggle({
   collapsed,
   onToggle,
@@ -36,16 +38,25 @@ function SidebarCollapseToggle({
   onToggle: () => void
 }>) {
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    <button
       onClick={onToggle}
-      title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      className="w-8 h-8 text-primary text-lg font-light leading-none"
+      title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      className={[
+        'flex-shrink-0 flex items-center justify-center',
+        'w-8 h-8 rounded',
+        'hover:bg-surface-muted',
+        'transition-colors duration-200',
+        'focus:outline-none focus:ring-2 focus:ring-[#646cff]',
+      ].join(' ')}
+      style={{ color: '#646cff' }}
     >
-      {collapsed ? '›' : '‹'}
-    </Button>
+      {collapsed ? (
+        <ChevronRightIcon stroke="#646cff" />
+      ) : (
+        <ChevronLeftIcon stroke="#646cff" />
+      )}
+    </button>
   )
 }
 
