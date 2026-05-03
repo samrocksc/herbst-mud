@@ -58,6 +58,7 @@ function MapBuilder() {
   const [creating, setCreating] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', description: '', exits: {} as Record<string, string> })
   const [newRoomForm, setNewRoomForm] = useState({ name: '', description: '' })
 
@@ -139,19 +140,29 @@ function MapBuilder() {
       for (const [dir, targetId] of Object.entries(room.exits || {})) {
         if (targetId && dir !== 'up' && dir !== 'down') {
           const offset = DIRECTION_OFFSETS[dir] || { dx: 150, dy: 0 }
-          positionRoom(targetId, x + offset.dx, y + offset.dy)
+          const targetRoom = rooms.find(r => r.id === targetId)
+          // Use server-provided position for targets that have custom positions
+          const targetX = targetRoom?.posX != null ? targetRoom.posX : x + offset.dx
+          const targetY = targetRoom?.posY != null ? targetRoom.posY : y + offset.dy
+          positionRoom(targetId, targetX, targetY)
         }
       }
     }
 
     const startRoom = rooms.find(r => r.isStartingRoom) || rooms[0]
-    if (startRoom) positionRoom(startRoom.id, 400, 300)
+    if (startRoom) {
+      const startX = startRoom.posX != null ? startRoom.posX : 400
+      const startY = startRoom.posY != null ? startRoom.posY : 300
+      positionRoom(startRoom.id, startX, startY)
+    }
 
     let orphanX = 800
     for (const room of rooms) {
       const roomZ = zLevels.get(room.id) || 0
       if (roomZ === currentZLevel && !positioned.has(room.id)) {
-        positions.set(room.id, { x: orphanX, y: 300 })
+        const orphanPosX = room.posX != null ? room.posX : orphanX
+        const orphanPosY = room.posY != null ? room.posY : 300
+        positions.set(room.id, { x: orphanPosX, y: orphanPosY })
         orphanX += 150
       }
     }
@@ -170,9 +181,12 @@ function MapBuilder() {
     []
   )
 
+  const [conflictInfo, setConflictInfo] = useState<{ current: Room; yourVersion: number } | null>(null)
+
   const handleSaveRoom = useCallback(async () => {
     if (!editingRoom) return
     setSaving(true)
+    setConflictInfo(null)
     try {
       const token = localStorage.getItem('token')
       const exits: Record<string, number> = {}
@@ -184,8 +198,16 @@ function MapBuilder() {
       const response = await fetch(`${window.location.origin}/rooms/${editingRoom.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name: editForm.name, description: editForm.description, exits }),
+        body: JSON.stringify({ name: editForm.name, description: editForm.description, exits, version: editingRoom.version }),
       })
+
+      if (response.status === 409) {
+        const conflictData = await response.json()
+        setConflictInfo({ current: conflictData.current, yourVersion: conflictData.yourVersion })
+        setSaving(false)
+        return
+      }
+
       if (!response.ok) throw new Error('Failed to save room')
 
       const oldExits = editingRoom.exits || {}
@@ -202,7 +224,7 @@ function MapBuilder() {
             await fetch(`${window.location.origin}/rooms/${newTargetId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-              body: JSON.stringify({ ...targetRoom, exits: updatedTargetExits }),
+              body: JSON.stringify({ ...targetRoom, exits: updatedTargetExits, version: targetRoom.version }),
             })
           }
         }
@@ -214,7 +236,7 @@ function MapBuilder() {
             await fetch(`${window.location.origin}/rooms/${oldTargetId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-              body: JSON.stringify({ ...oldTargetRoom, exits: remainingExits || {} }),
+              body: JSON.stringify({ ...oldTargetRoom, exits: remainingExits || {}, version: oldTargetRoom.version }),
             })
           }
         }
@@ -232,6 +254,60 @@ function MapBuilder() {
       setSaving(false)
     }
   }, [editingRoom, editForm, rooms])
+
+  /** Discard local edits and reload the room from the server's current state. */
+  const handleReloadRoom = useCallback(async () => {
+    if (!conflictInfo) return
+    try {
+      const response = await fetch(`${window.location.origin}/rooms`)
+      if (!response.ok) return
+      const roomsData = await response.json()
+      setRooms(roomsData)
+      const reloaded = roomsData.find((r: Room) => r.id === conflictInfo.current.id)
+      if (reloaded) handleEditRoom(reloaded)
+    } catch (err) {
+      console.error('Reload error:', err)
+    }
+    setConflictInfo(null)
+  }, [conflictInfo, handleEditRoom])
+
+  /** Force-save by using the server's current version number. */
+  const handleOverwriteRoom = useCallback(async () => {
+    if (!conflictInfo || !editingRoom) return
+    setSaving(true)
+    setConflictInfo(null)
+    try {
+      const token = localStorage.getItem('token')
+      const exits: Record<string, number> = {}
+      for (const [dir, id] of Object.entries(editForm.exits)) {
+        const numId = parseInt(id)
+        if (!isNaN(numId)) exits[dir] = numId
+      }
+
+      const response = await fetch(`${window.location.origin}/rooms/${editingRoom.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          name: editForm.name,
+          description: editForm.description,
+          exits,
+          version: conflictInfo.current.version ?? 0,
+        }),
+      })
+      if (!response.ok) throw new Error('Failed to overwrite room')
+
+      const roomsResponse = await fetch(`${window.location.origin}/rooms`)
+      const roomsData = await roomsResponse.json()
+      setRooms(roomsData)
+      setEditingRoom(null)
+      setSelectedRoom(null)
+    } catch (err) {
+      console.error('Overwrite error:', err)
+      alert('Failed to overwrite room')
+    } finally {
+      setSaving(false)
+    }
+  }, [conflictInfo, editingRoom, editForm])
 
   const handleCreateRoom = useCallback(
     async (fromRoom: Room | null, direction: string) => {
@@ -305,6 +381,36 @@ function MapBuilder() {
       alert('Failed to delete room')
     }
   }, [])
+
+  /** Snap a value to the nearest grid step (e.g., 20px). */
+  const snapToGrid = useCallback((value: number, step: number = 20) => {
+    return Math.round(value / step) * step
+  }, [])
+
+  /** Persist a room's new position after dragging. */
+  const handleRoomDragEnd = useCallback(async (roomId: number, posX: number, posY: number) => {
+    const snappedX = snapToGrid(posX)
+    const snappedY = snapToGrid(posY)
+
+    setRooms(prev => prev.map(r =>
+      r.id === roomId ? { ...r, posX: snappedX, posY: snappedY } : r
+    ))
+
+    setIsDragging(false)
+
+    try {
+      const token = localStorage.getItem('token')
+      const room = rooms.find(r => r.id === roomId)
+      if (!room) return
+      await fetch(`${window.location.origin}/rooms/${roomId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ posX: snappedX, posY: snappedY, version: room.version }),
+      })
+    } catch (err) {
+      console.error('Position save error:', err)
+    }
+  }, [rooms, snapToGrid])
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
@@ -380,6 +486,7 @@ function MapBuilder() {
                   isSelected={isSelected}
                   roomNpcs={roomNpcs}
                   roomItems={roomItems}
+                  rooms={rooms}
                   onSelect={setSelectedRoom}
                 />
               )

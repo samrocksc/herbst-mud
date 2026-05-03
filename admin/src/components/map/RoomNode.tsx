@@ -1,4 +1,5 @@
 import type { Room, NPC, Equipment } from './types'
+import { DirectionShortLabels } from './DirectionUtils'
 
 type RoomNodeProps = {
   room: Room
@@ -6,11 +7,18 @@ type RoomNodeProps = {
   isSelected: boolean
   roomNpcs: NPC[]
   roomItems: Equipment[]
+  rooms: Room[]
   onSelect: (room: Room) => void
 }
 
-export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, onSelect }: RoomNodeProps) {
+export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, onSelect }: RoomNodeProps) {
   const isColored = room.isStartingRoom || isSelected
+
+  /** Resolve a room ID to its name, falling back to "Unknown Room" */
+  function resolveRoomName(roomId: number): string {
+    const found = rooms.find((r) => r.id === roomId)
+    return found ? found.name : 'Unknown Room'
+  }
 
   return (
     <div
@@ -53,18 +61,28 @@ export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, onSelect 
           </span>
         )}
       </div>
-      <div className="flex justify-center gap-0.5 mt-0.5">
-        {room.exits?.up && (
-          <span className={`text-[8px] ${isColored ? 'text-white/90' : 'text-warning'}`}>
-            ▲{room.exits.up}
-          </span>
-        )}
-        {room.exits?.down && (
-          <span className={`text-[8px] ${isColored ? 'text-white/80' : 'text-success'}`}>
-            ▼{room.exits.down}
-          </span>
-        )}
-      </div>
+      {room.exits && (
+        <div className="flex flex-col items-center gap-0.5 mt-0.5">
+          {Object.entries(room.exits).map(([dir, targetId]) => {
+            const label = DirectionShortLabels[dir as keyof typeof DirectionShortLabels] ?? dir
+            const targetName = resolveRoomName(targetId)
+            return (
+              <span
+                key={dir}
+                className={`text-[8px] leading-tight ${
+                  dir === 'up'
+                    ? isColored ? 'text-white/90' : 'text-warning'
+                    : dir === 'down'
+                      ? isColored ? 'text-white/80' : 'text-success'
+                      : isColored ? 'text-white/70' : 'text-text-muted'
+                }`}
+              >
+                {label}: {targetName}
+              </span>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
