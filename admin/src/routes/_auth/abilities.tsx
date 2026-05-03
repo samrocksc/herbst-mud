@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useAbilities, useCreateAbility, useUpdateAbility, useDeleteAbility, type Ability, type AbilityInput } from '../../hooks/useAbilities'
+import { useTags } from '../../hooks/useTags'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
+import { TagInput } from '../../components/TagInput'
 
 export const Route = createFileRoute('/_auth/abilities')({
   component: AbilitiesManagement,
@@ -42,6 +44,8 @@ function AbilityForm({
   onCancel: () => void
   isLoading: boolean
 }) {
+  const { tags: availableTags } = useTags()
+
   const [formData, setFormData] = useState<AbilityInput>(() => {
     if (ability) {
       return {
@@ -53,6 +57,11 @@ function AbilityForm({
     }
     return EMPTY_ABILITY
   })
+
+  /** Convert between TagInput (string[]) and the form field (string) */
+  const selectedTags = formData.required_tag
+    ? formData.required_tag.split(',').map((t) => t.trim()).filter(Boolean)
+    : []
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,11 +106,11 @@ function AbilityForm({
         </div>
 
         <div className="form-row">
-          <label>Required Tag (optional):</label>
-          <input
-            type="text"
-            value={formData.required_tag}
-            onChange={(e) => setFormData({ ...formData, required_tag: e.target.value })}
+          <TagInput
+            label="Required Tag (optional)"
+            value={selectedTags}
+            onChange={(tags) => setFormData({ ...formData, required_tag: tags.join(', ') })}
+            availableTags={availableTags.map((t) => t.name)}
             placeholder="e.g., sword, fire, healing"
           />
         </div>
