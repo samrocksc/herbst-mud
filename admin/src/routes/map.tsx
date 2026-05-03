@@ -26,6 +26,7 @@ function MapBuilder() {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
   const [zoom, setZoom] = useState(1)
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
   const [currentZLevel, setCurrentZLevel] = useState(0)
   const [saving, setSaving] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -279,6 +280,13 @@ function MapBuilder() {
     }
   }, [])
 
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault()
+    const dx = e.shiftKey ? e.deltaY : e.deltaX
+    const dy = e.shiftKey ? 0 : e.deltaY
+    setPanOffset(prev => ({ x: prev.x - dx, y: prev.y - dy }))
+  }, [])
+
   if (loading) return <div className="p-8 text-text">Loading map...</div>
   if (error) return <div className="p-8 text-danger">Error: {error}</div>
 
@@ -325,10 +333,10 @@ function MapBuilder() {
       <div className="flex-1 overflow-hidden relative">
         <MapToolbar currentZLevel={currentZLevel} zoom={zoom} setZoom={setZoom} />
 
-        <div className="mt-[50px] h-[calc(100%-50px)] overflow-auto p-6">
+        <div className="mt-[50px] h-[calc(100%-50px)] overflow-hidden p-6" onWheel={handleWheel}>
           <div
             className="relative w-[3000px] h-[3000px]"
-            style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
+            style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
           >
             <ExitLines rooms={rooms} nodePositions={nodePositions} />
 
