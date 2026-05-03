@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, KeyboardEvent } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import type { KeyboardEvent } from 'react'
 import { Button } from './Button'
 
 export type TagInputProps = Readonly<{
@@ -105,11 +106,6 @@ export function TagInput({
   const showDropdown = isOpen && !disabled && (
     suggestions.length > 0 || inputIsNewTag
   )
-
-  const dropdownOptions = [
-    ...suggestions,
-    ...(inputIsNewTag ? [`Create "${inputValue}"`] : []),
-  ]
 
   return (
     <div ref={containerRef} className="tag-input-container">

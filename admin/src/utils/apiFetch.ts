@@ -33,7 +33,7 @@ async function apiFetch<T = unknown>(input: RequestInfo, init?: RequestInit): Pr
   try {
     const parsed = JSON.parse(text)
     // Unwrap known { key: [...] } response shapes from the backend
-    for (const key of ['talents', 'skills', 'npcs', 'characters', 'abilities', 'users', 'items', 'rooms']) {
+    for (const key of ['talents', 'skills', 'npcs', 'characters', 'abilities', 'users', 'items', 'rooms', 'races']) {
       if (Object.prototype.hasOwnProperty.call(parsed, key) && Array.isArray(parsed[key])) {
         return parsed[key] as T
       }

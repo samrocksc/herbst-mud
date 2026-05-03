@@ -92,7 +92,7 @@ function TagForm({
 }
 
 function TagsManagement() {
-  const { tags, loading, error, createTag, updateTag, deleteTag } = useTags()
+  const { tags, error, createTag, updateTag, deleteTag } = useTags()
   const [showForm, setShowForm] = useState(false)
   const [editingTag, setEditingTag] = useState<Tag | null>(null)
   const [saving, setSaving] = useState(false)
@@ -144,9 +144,9 @@ function TagsManagement() {
     {
       header: 'Color',
       accessor: 'color',
-      render: (val) => val ? (
-        <code style={{ fontSize: '0.75rem', color: 'var(--color-accent)' }}>{val}</code>
-      ) : '—',
+      render: (val: unknown) => val ? (
+        <code style={{ fontSize: '0.75rem', color: 'var(--color-accent)' }}>{String(val)}</code>
+      ) : <span className="text-muted">—</span>,
     },
     {
       header: '',
@@ -215,7 +215,6 @@ function TagsManagement() {
         columns={columns}
         data={tags}
         getKey={(row) => row.id}
-        loading={loading}
         emptyMessage="No tags yet. Create one above."
       />
 
