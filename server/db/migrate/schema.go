@@ -8,6 +8,21 @@ import (
 )
 
 var (
+	// AchievementsColumns holds the columns for the "achievements" table.
+	AchievementsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "icon", Type: field.TypeString, Nullable: true},
+		{Name: "xp_reward", Type: field.TypeInt, Default: 0},
+		{Name: "criteria", Type: field.TypeString, Nullable: true},
+	}
+	// AchievementsTable holds the schema information for the "achievements" table.
+	AchievementsTable = &schema.Table{
+		Name:       "achievements",
+		Columns:    AchievementsColumns,
+		PrimaryKey: []*schema.Column{AchievementsColumns[0]},
+	}
 	// AvailableTalentsColumns holds the columns for the "available_talents" table.
 	AvailableTalentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -607,6 +622,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AchievementsTable,
 		AvailableTalentsTable,
 		CharactersTable,
 		CharacterCompetenciesTable,

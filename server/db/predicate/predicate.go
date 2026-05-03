@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Achievement is the predicate function for achievement builders.
+type Achievement func(*sql.Selector)
+
 // AvailableTalent is the predicate function for availabletalent builders.
 type AvailableTalent func(*sql.Selector)
 

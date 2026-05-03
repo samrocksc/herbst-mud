@@ -25,6 +25,7 @@ import { Route as AuthRacesRouteImport } from './routes/_auth/races'
 import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
+import { Route as AuthAchievementsRouteImport } from './routes/_auth/achievements'
 import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
 
 const NpcsRoute = NpcsRouteImport.update({
@@ -106,6 +107,11 @@ const AuthConfigRoute = AuthConfigRouteImport.update({
   path: '/config',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthAchievementsRoute = AuthAchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthAbilitiesRoute = AuthAbilitiesRouteImport.update({
   id: '/abilities',
   path: '/abilities',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
   '/abilities': typeof AuthAbilitiesRoute
+  '/achievements': typeof AuthAchievementsRoute
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
   '/players': typeof AuthPlayersRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
   '/abilities': typeof AuthAbilitiesRoute
+  '/achievements': typeof AuthAchievementsRoute
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
   '/players': typeof AuthPlayersRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/map': typeof MapRoute
   '/npcs': typeof NpcsRoute
   '/_auth/abilities': typeof AuthAbilitiesRoute
+  '/_auth/achievements': typeof AuthAchievementsRoute
   '/_auth/config': typeof AuthConfigRoute
   '/_auth/factions': typeof AuthFactionsRoute
   '/_auth/players': typeof AuthPlayersRoute
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/npcs'
     | '/abilities'
+    | '/achievements'
     | '/config'
     | '/factions'
     | '/players'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/npcs'
     | '/abilities'
+    | '/achievements'
     | '/config'
     | '/factions'
     | '/players'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/npcs'
     | '/_auth/abilities'
+    | '/_auth/achievements'
     | '/_auth/config'
     | '/_auth/factions'
     | '/_auth/players'
@@ -351,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthConfigRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/achievements': {
+      id: '/_auth/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AuthAchievementsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/abilities': {
       id: '/_auth/abilities'
       path: '/abilities'
@@ -363,6 +382,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthRouteChildren {
   AuthAbilitiesRoute: typeof AuthAbilitiesRoute
+  AuthAchievementsRoute: typeof AuthAchievementsRoute
   AuthConfigRoute: typeof AuthConfigRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
   AuthPlayersRoute: typeof AuthPlayersRoute
@@ -375,6 +395,7 @@ interface AuthRouteChildren {
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthAbilitiesRoute: AuthAbilitiesRoute,
+  AuthAchievementsRoute: AuthAchievementsRoute,
   AuthConfigRoute: AuthConfigRoute,
   AuthFactionsRoute: AuthFactionsRoute,
   AuthPlayersRoute: AuthPlayersRoute,

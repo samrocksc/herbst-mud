@@ -8,6 +8,18 @@ import (
 	"herbst-server/db"
 )
 
+// The AchievementFunc type is an adapter to allow the use of ordinary
+// function as Achievement mutator.
+type AchievementFunc func(context.Context, *db.AchievementMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AchievementFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AchievementMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AchievementMutation", m)
+}
+
 // The AvailableTalentFunc type is an adapter to allow the use of ordinary
 // function as AvailableTalent mutator.
 type AvailableTalentFunc func(context.Context, *db.AvailableTalentMutation) (db.Value, error)

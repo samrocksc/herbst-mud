@@ -181,12 +181,10 @@ function MapBuilder() {
     []
   )
 
-  const [conflictInfo, setConflictInfo] = useState<{ current: Room; yourVersion: number } | null>(null)
 
   const handleSaveRoom = useCallback(async () => {
     if (!editingRoom) return
     setSaving(true)
-    setConflictInfo(null)
     try {
       const token = localStorage.getItem('token')
       const exits: Record<string, number> = {}
@@ -200,13 +198,6 @@ function MapBuilder() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name: editForm.name, description: editForm.description, exits, version: editingRoom.version }),
       })
-
-      if (response.status === 409) {
-        const conflictData = await response.json()
-        setConflictInfo({ current: conflictData.current, yourVersion: conflictData.yourVersion })
-        setSaving(false)
-        return
-      }
 
       if (!response.ok) throw new Error('Failed to save room')
 
@@ -254,60 +245,6 @@ function MapBuilder() {
       setSaving(false)
     }
   }, [editingRoom, editForm, rooms])
-
-  /** Discard local edits and reload the room from the server's current state. */
-  const handleReloadRoom = useCallback(async () => {
-    if (!conflictInfo) return
-    try {
-      const response = await fetch(`${window.location.origin}/rooms`)
-      if (!response.ok) return
-      const roomsData = await response.json()
-      setRooms(roomsData)
-      const reloaded = roomsData.find((r: Room) => r.id === conflictInfo.current.id)
-      if (reloaded) handleEditRoom(reloaded)
-    } catch (err) {
-      console.error('Reload error:', err)
-    }
-    setConflictInfo(null)
-  }, [conflictInfo, handleEditRoom])
-
-  /** Force-save by using the server's current version number. */
-  const handleOverwriteRoom = useCallback(async () => {
-    if (!conflictInfo || !editingRoom) return
-    setSaving(true)
-    setConflictInfo(null)
-    try {
-      const token = localStorage.getItem('token')
-      const exits: Record<string, number> = {}
-      for (const [dir, id] of Object.entries(editForm.exits)) {
-        const numId = parseInt(id)
-        if (!isNaN(numId)) exits[dir] = numId
-      }
-
-      const response = await fetch(`${window.location.origin}/rooms/${editingRoom.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          name: editForm.name,
-          description: editForm.description,
-          exits,
-          version: conflictInfo.current.version ?? 0,
-        }),
-      })
-      if (!response.ok) throw new Error('Failed to overwrite room')
-
-      const roomsResponse = await fetch(`${window.location.origin}/rooms`)
-      const roomsData = await roomsResponse.json()
-      setRooms(roomsData)
-      setEditingRoom(null)
-      setSelectedRoom(null)
-    } catch (err) {
-      console.error('Overwrite error:', err)
-      alert('Failed to overwrite room')
-    } finally {
-      setSaving(false)
-    }
-  }, [conflictInfo, editingRoom, editForm])
 
   const handleCreateRoom = useCallback(
     async (fromRoom: Room | null, direction: string) => {

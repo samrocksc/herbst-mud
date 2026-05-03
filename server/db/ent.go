@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/achievement"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
 	"herbst-server/db/charactercompetency"
@@ -95,6 +96,7 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			achievement.Table:              achievement.ValidColumn,
 			availabletalent.Table:          availabletalent.ValidColumn,
 			character.Table:                character.ValidColumn,
 			charactercompetency.Table:      charactercompetency.ValidColumn,

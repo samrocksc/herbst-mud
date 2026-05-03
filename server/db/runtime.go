@@ -3,6 +3,7 @@
 package db
 
 import (
+	"herbst-server/db/achievement"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
 	"herbst-server/db/charactercompetency"
@@ -27,6 +28,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	achievementFields := schema.Achievement{}.Fields()
+	_ = achievementFields
+	// achievementDescDescription is the schema descriptor for description field.
+	achievementDescDescription := achievementFields[1].Descriptor()
+	// achievement.DefaultDescription holds the default value on creation for the description field.
+	achievement.DefaultDescription = achievementDescDescription.Default.(string)
+	// achievementDescXpReward is the schema descriptor for xp_reward field.
+	achievementDescXpReward := achievementFields[3].Descriptor()
+	// achievement.DefaultXpReward holds the default value on creation for the xp_reward field.
+	achievement.DefaultXpReward = achievementDescXpReward.Default.(int)
 	availabletalentFields := schema.AvailableTalent{}.Fields()
 	_ = availabletalentFields
 	// availabletalentDescUnlockReason is the schema descriptor for unlock_reason field.
