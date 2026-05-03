@@ -248,6 +248,18 @@ func (f SkillFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SkillMutation", m)
 }
 
+// The TagFunc type is an adapter to allow the use of ordinary
+// function as Tag mutator.
+type TagFunc func(context.Context, *db.TagMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TagFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.TagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TagMutation", m)
+}
+
 // The TalentFunc type is an adapter to allow the use of ordinary
 // function as Talent mutator.
 type TalentFunc func(context.Context, *db.TalentMutation) (db.Value, error)

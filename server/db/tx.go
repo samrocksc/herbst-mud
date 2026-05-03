@@ -52,6 +52,8 @@ type Tx struct {
 	Room *RoomClient
 	// Skill is the client for interacting with the Skill builders.
 	Skill *SkillClient
+	// Tag is the client for interacting with the Tag builders.
+	Tag *TagClient
 	// Talent is the client for interacting with the Talent builders.
 	Talent *TalentClient
 	// User is the client for interacting with the User builders.
@@ -207,6 +209,7 @@ func (tx *Tx) init() {
 	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
 	tx.Skill = NewSkillClient(tx.config)
+	tx.Tag = NewTagClient(tx.config)
 	tx.Talent = NewTalentClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

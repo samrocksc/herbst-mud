@@ -506,6 +506,18 @@ var (
 			},
 		},
 	}
+	// TagsColumns holds the columns for the "tags" table.
+	TagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "color", Type: field.TypeString, Nullable: true},
+	}
+	// TagsTable holds the schema information for the "tags" table.
+	TagsTable = &schema.Table{
+		Name:       "tags",
+		Columns:    TagsColumns,
+		PrimaryKey: []*schema.Column{TagsColumns[0]},
+	}
 	// TalentsColumns holds the columns for the "talents" table.
 	TalentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -611,6 +623,7 @@ var (
 		RacesTable,
 		RoomsTable,
 		SkillsTable,
+		TagsTable,
 		TalentsTable,
 		UsersTable,
 		NpcTemplateNpcSkillsTable,

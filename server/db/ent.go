@@ -26,6 +26,7 @@ import (
 	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/skill"
+	"herbst-server/db/tag"
 	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"reflect"
@@ -114,6 +115,7 @@ func checkColumn(t, c string) error {
 			race.Table:                     race.ValidColumn,
 			room.Table:                     room.ValidColumn,
 			skill.Table:                    skill.ValidColumn,
+			tag.Table:                      tag.ValidColumn,
 			talent.Table:                   talent.ValidColumn,
 			user.Table:                     user.ValidColumn,
 		})

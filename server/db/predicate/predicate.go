@@ -66,6 +66,9 @@ type Room func(*sql.Selector)
 // Skill is the predicate function for skill builders.
 type Skill func(*sql.Selector)
 
+// Tag is the predicate function for tag builders.
+type Tag func(*sql.Selector)
+
 // Talent is the predicate function for talent builders.
 type Talent func(*sql.Selector)
 
