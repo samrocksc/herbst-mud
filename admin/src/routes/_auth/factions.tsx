@@ -267,7 +267,7 @@ function FactionsManagement() {
                     key={f.id}
                     onClick={() => { setSelectedFaction(f); setEditingFaction(null); setShowCreateForm(false); }}
                     className={`p-2 cursor-pointer rounded text-xs ${
-                      selectedFaction?.id === f.id ? 'text-primary bg-surface-dark' : 'text-text'
+                      selectedFaction?.id === f.id ? 'text-primary bg-primary/20 font-medium' : 'text-text'
                     }`}
                   >
                     <div className="font-bold">{f.name}</div>
@@ -539,7 +539,7 @@ function FactionsManagement() {
             <div className="bg-surface-muted rounded-lg border border-border overflow-hidden">
               <table className="w-full text-text text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-surface-dark">
+                  <tr className="border-b border-border bg-surface-muted">
                     <th className="text-left p-3">ID</th>
                     <th className="text-left p-3">Name</th>
                     <th className="text-left p-3">Description</th>

@@ -62,7 +62,7 @@ export function RoomDetailPanel({
               {roomNpcs.map((npc) => (
                 <div
                   key={npc.id}
-                  className="p-1 bg-surface-dark rounded mb-1 text-xs text-text"
+                  className="p-1 bg-surface-muted rounded mb-1 text-xs text-text"
                 >
                   {npc.name}{' '}
                   <span className="text-text-muted">
@@ -81,7 +81,7 @@ export function RoomDetailPanel({
               {roomItems.map((item) => (
                 <div
                   key={item.id}
-                  className="p-1 bg-surface-dark rounded mb-1 text-xs text-text"
+                  className="p-1 bg-surface-muted rounded mb-1 text-xs text-text"
                 >
                   {item.name}
                 </div>
@@ -109,7 +109,7 @@ export function RoomDetailPanel({
                         ? dir === 'up'
                           ? 'bg-warning/20 border border-warning'
                           : 'bg-success/20 border border-success'
-                        : 'bg-surface-dark',
+                        : 'bg-surface-muted',
                     ].join(' ')}
                   >
                     <strong>{dir}</strong> → {targetRoom.name}
@@ -124,7 +124,7 @@ export function RoomDetailPanel({
                 return (
                   <div
                     key={dir}
-                    className="p-1 my-1 rounded text-xs bg-surface-dark"
+                    className="p-1 my-1 rounded text-xs bg-surface-muted"
                   >
                     <strong>{dir}</strong> →{' '}
                     <span className="text-text-muted">Room #{targetId}</span>

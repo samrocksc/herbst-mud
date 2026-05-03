@@ -216,7 +216,7 @@ function ItemManager() {
         <div className="p-4 border-b border-border">
           <Link
             to="/dashboard"
-            className="block text-primary no-underline p-2 rounded bg-surface-dark text-center mb-2 hover:bg-surface-darker"
+            className="block text-primary no-underline p-2 rounded bg-surface-muted border border-border text-center mb-2 hover:bg-surface hover:border-primary"
           >
             ← Dashboard
           </Link>

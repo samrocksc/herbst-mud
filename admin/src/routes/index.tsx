@@ -17,7 +17,7 @@ function Home() {
   }, [navigate])
 
   return (
-    <div className="min-h-screen bg-surface-dark flex flex-col items-center justify-center text-text">
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center text-text">
       <h1 className="text-4xl mb-4 text-primary">Herbst MUD Admin</h1>
       <p className="text-text-muted mb-8">Welcome to the administrative backend for Herbst MUD.</p>
       <Link
