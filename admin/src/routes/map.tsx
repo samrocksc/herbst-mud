@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { MapSidebar } from '../components/map/MapSidebar'
 import { MapToolbar } from '../components/map/MapToolbar'
 import { RoomNode } from '../components/map/RoomNode'
@@ -27,6 +27,32 @@ function MapBuilder() {
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
   const [zoom, setZoom] = useState(1)
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
+  const viewportRef = useRef<HTMLDivElement>(null)
+
+  /**
+   * Zoom toward the center of the viewport.
+   * Adjusts panOffset so the world point under the viewport center
+   * stays stationary when the scale changes.
+   */
+  const handleZoom = useCallback((delta: number) => {
+    const viewport = viewportRef.current
+    if (!viewport) return
+
+    setZoom(prevZoom => {
+      const nextZoom = Math.min(Math.max(prevZoom + delta, 0.5), 2)
+      if (nextZoom === prevZoom) return prevZoom
+
+      const cx = viewport.clientWidth / 2
+      const cy = viewport.clientHeight / 2
+
+      setPanOffset(prev => ({
+        x: cx - (cx - prev.x) * (nextZoom / prevZoom),
+        y: cy - (cy - prev.y) * (nextZoom / prevZoom),
+      }))
+
+      return nextZoom
+    })
+  }, [])
   const [currentZLevel, setCurrentZLevel] = useState(0)
   const [saving, setSaving] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -331,9 +357,9 @@ function MapBuilder() {
       )}
 
       <div className="flex-1 overflow-hidden relative">
-        <MapToolbar currentZLevel={currentZLevel} zoom={zoom} setZoom={setZoom} />
+        <MapToolbar currentZLevel={currentZLevel} zoom={zoom} onZoom={handleZoom} />
 
-        <div className="mt-[50px] h-[calc(100%-50px)] overflow-hidden p-6" onWheel={handleWheel}>
+        <div ref={viewportRef} className="mt-[50px] h-[calc(100%-50px)] overflow-hidden p-6" onWheel={handleWheel}>
           <div
             className="relative w-[3000px] h-[3000px]"
             style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
