@@ -1,6 +1,9 @@
 import { Link } from '@tanstack/react-router'
-import type { Room } from './types'
-import type { NPC } from './types'
+import { Button } from '../Button'
+import { DashboardIcon } from '../icons/DashboardIcon'
+import { NPCsIcon } from '../icons/NPCsIcon'
+import { ItemsIcon } from '../icons/ItemsIcon'
+import type { Room, NPC } from './types'
 
 type MapSidebarProps = {
   rooms: Room[]
@@ -24,66 +27,120 @@ export function MapSidebar({
   setShowCreateModal,
 }: MapSidebarProps) {
   const zLevelRange = Array.from(new Set(Array.from(zLevels.values()))).sort((a, b) => a - b)
+  const roomsOnFloor = Array.from(zLevels.values()).filter((z) => z === currentZLevel).length
 
   return (
-    <div className="w-[220px] bg-surface-muted border-r border-border flex flex-col">
-      <div className="p-4 border-b border-border">
+    <div className="w-[220px] bg-surface-muted border-r border-border flex flex-col flex-shrink-0">
+      {/* Dashboard + secondary nav */}
+      <div className="p-3 border-b border-border flex flex-col gap-1">
         <Link
           to="/dashboard"
-          className="block text-primary no-underline p-2 rounded bg-surface-dark text-center mb-2 hover:bg-surface-darker"
+          activeProps={{
+            className: 'bg-primary/10 text-primary border-l-4 border-primary font-semibold',
+          }}
+          inactiveProps={{
+            className: 'text-text-muted hover:bg-surface-muted hover:text-text',
+          }}
+          className="flex items-center gap-3 px-3 py-2 rounded text-sm no-underline transition-colors"
         >
-          ← Dashboard
+          <span className="flex-shrink-0">
+            <DashboardIcon stroke="currentColor" />
+          </span>
+          <span className="whitespace-nowrap">Dashboard</span>
         </Link>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="w-full p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover"
+        <Link
+          to="/npcs"
+          activeProps={{
+            className: 'bg-primary/10 text-primary border-l-4 border-primary font-semibold',
+          }}
+          inactiveProps={{
+            className: 'text-text-muted hover:bg-surface-muted hover:text-text',
+          }}
+          className="flex items-center gap-3 px-3 py-2 rounded text-sm no-underline transition-colors"
         >
-          + Add Room
-        </button>
+          <span className="flex-shrink-0">
+            <NPCsIcon stroke="currentColor" />
+          </span>
+          <span className="whitespace-nowrap">NPCs</span>
+        </Link>
+        <Link
+          to="/items"
+          activeProps={{
+            className: 'bg-primary/10 text-primary border-l-4 border-primary font-semibold',
+          }}
+          inactiveProps={{
+            className: 'text-text-muted hover:bg-surface-muted hover:text-text',
+          }}
+          className="flex items-center gap-3 px-3 py-2 rounded text-sm no-underline transition-colors"
+        >
+          <span className="flex-shrink-0">
+            <ItemsIcon stroke="currentColor" />
+          </span>
+          <span className="whitespace-nowrap">Items</span>
+        </Link>
       </div>
 
+      {/* Add Room button */}
       <div className="p-3 border-b border-border">
-        <label className="text-text-muted text-xs block mb-2">Floor (Z-Level)</label>
+        <Button
+          variant="primary"
+          size="md"
+          fullWidth
+          onClick={() => setShowCreateModal(true)}
+        >
+          + Add Room
+        </Button>
+      </div>
+
+      {/* Floor selector */}
+      <div className="p-3 border-b border-border">
+        <label className="text-text-muted text-xs block mb-2">
+          Floor (Z-Level)
+        </label>
         <div className="flex gap-1 flex-wrap">
-          {zLevelRange.map(z => (
-            <button
+          {zLevelRange.map((z) => (
+            <Button
               key={z}
+              variant={currentZLevel === z ? 'primary' : 'secondary'}
+              size="sm"
               onClick={() => setCurrentZLevel(z)}
-              className={`px-2 py-1 rounded text-xs cursor-pointer ${
-                currentZLevel === z
-                  ? 'bg-primary border-primary-hover border'
-                  : 'bg-surface-dark border-border border'
-              } text-white`}
             >
               {z === 0 ? 'G' : z > 0 ? `+${z}` : `${z}`}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
+      {/* Stats */}
       <div className="p-3 text-text-muted text-xs border-b border-border">
         <div>Total: {rooms.length} rooms</div>
-        <div>
-          Floor {currentZLevel}: {Array.from(zLevels.values()).filter(z => z === currentZLevel).length}
-        </div>
+        <div>Floor {currentZLevel}: {roomsOnFloor}</div>
         <div>NPCs: {npcs.length}</div>
       </div>
 
+      {/* Room list */}
       <div className="flex-1 overflow-y-auto p-3">
-        <h4 className="m-0 mb-2 text-text-muted text-xs">Rooms on Floor {currentZLevel}</h4>
+        <h4 className="m-0 mb-2 text-text-muted text-xs font-semibold uppercase tracking-wide">
+          Rooms on Floor {currentZLevel}
+        </h4>
         <div className="flex flex-col gap-1">
           {rooms
-            .filter(r => (zLevels.get(r.id) || 0) === currentZLevel)
-            .map(room => (
+            .filter((r) => (zLevels.get(r.id) || 0) === currentZLevel)
+            .map((room) => (
               <div
                 key={room.id}
                 onClick={() => setSelectedRoom(room)}
-                className={`p-2 cursor-pointer rounded text-xs room-node ${
-                  selectedRoom?.id === room.id ? 'room-node--selected' : ''
-                }`}
+                className={[
+                  'p-2 rounded text-xs cursor-pointer transition-colors',
+                  selectedRoom?.id === room.id
+                    ? 'bg-primary/10 text-text border border-primary/30'
+                    : 'text-text-muted hover:bg-surface hover:text-text',
+                ].join(' ')}
               >
-                <span className="truncate">{room.name}</span>
-                {room.isStartingRoom && <span> ⭐</span>}
+                <span className="truncate block">{room.name}</span>
+                {room.isStartingRoom && (
+                  <span className="text-warning text-[10px]"> ⭐</span>
+                )}
               </div>
             ))}
         </div>

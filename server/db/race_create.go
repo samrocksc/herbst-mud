@@ -79,6 +79,20 @@ func (_c *RaceCreate) SetNillableIsPlayable(v *bool) *RaceCreate {
 	return _c
 }
 
+// SetColor sets the "color" field.
+func (_c *RaceCreate) SetColor(v string) *RaceCreate {
+	_c.mutation.SetColor(v)
+	return _c
+}
+
+// SetNillableColor sets the "color" field if the given value is not nil.
+func (_c *RaceCreate) SetNillableColor(v *string) *RaceCreate {
+	if v != nil {
+		_c.SetColor(*v)
+	}
+	return _c
+}
+
 // Mutation returns the RaceMutation object of the builder.
 func (_c *RaceCreate) Mutation() *RaceMutation {
 	return _c.mutation
@@ -183,6 +197,10 @@ func (_c *RaceCreate) createSpec() (*Race, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsPlayable(); ok {
 		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)
 		_node.IsPlayable = value
+	}
+	if value, ok := _c.mutation.Color(); ok {
+		_spec.SetField(race.FieldColor, field.TypeString, value)
+		_node.Color = value
 	}
 	return _node, _spec
 }

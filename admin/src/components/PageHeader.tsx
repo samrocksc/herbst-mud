@@ -1,11 +1,12 @@
 import { Link } from '@tanstack/react-router'
+import type { ReactNode } from 'react'
 
 type PageHeaderProps = Readonly<{
   title: string
   showBack?: boolean
   backTo?: string
   backLabel?: string
-  actions?: React.ReactNode
+  actions?: ReactNode
 }>
 
 export function PageHeader({ title, showBack, backTo, backLabel = '← Dashboard', actions }: PageHeaderProps) {

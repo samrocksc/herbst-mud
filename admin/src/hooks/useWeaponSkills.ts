@@ -1,119 +1,66 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
 
-const API_BASE = `${window.location.origin}`
+const API = `${window.location.origin}`
 
-export interface WeaponSkill {
+// Trainable skill multiplier (e.g. "Pizza Making", "One-Handed", "Fist Fights")
+// Name + description + category only. Effects/costs/cooldowns belong on Abilities.
+export type TrainableSkill = Readonly<{
   id: number
   name: string
   description: string
   skill_category: string
-  effect_type: string
-  effect_value: number
-  effect_duration: number
-  cooldown: number
-  mana_cost: number
-  stamina_cost: number
   requirements: string
-}
+}>
 
-export interface WeaponSkillInput {
+export type TrainableSkillInput = Readonly<{
   id?: number
   name: string
   description: string
   skill_category: string
-  effect_type: string
-  effect_value: number
-  effect_duration: number
-  cooldown: number
-  mana_cost: number
-  stamina_cost: number
   requirements: string
-}
-
-function parseWeaponSkillForApi(input: WeaponSkillInput): Record<string, unknown> {
-  return {
-    name: input.name,
-    description: input.description,
-    skill_category: input.skill_category,
-    effect_type: input.effect_type,
-    effect_value: input.effect_value,
-    effect_duration: input.effect_duration,
-    cooldown: input.cooldown,
-    mana_cost: input.mana_cost,
-    stamina_cost: input.stamina_cost,
-    requirements: input.requirements,
-  }
-}
+}>
 
 export function useWeaponSkills() {
   return useQuery({
     queryKey: ['weapon-skills'],
-    queryFn: async (): Promise<WeaponSkill[]> => {
-      const response = await fetch(`${API_BASE}/talents`)
-      if (!response.ok) throw new Error('Failed to fetch weapon skills')
-      const data = await response.json()
-      return data.talents ?? []
-    }
+    queryFn: () => apiGet<TrainableSkill[]>(`${API}/talents`),
   })
 }
 
 export function useWeaponSkill(id: number | null) {
   return useQuery({
     queryKey: ['weapon-skill', id],
-    queryFn: async (): Promise<WeaponSkill | null> => {
-      if (!id) return null
-      const response = await fetch(`${API_BASE}/talents/${id}`)
-      if (!response.ok) throw new Error('Failed to fetch weapon skill')
-      return response.json()
-    },
+    queryFn: () => (id ? apiGet<TrainableSkill>(`${API}/talents/${id}`) : null),
     enabled: !!id,
   })
 }
 
 export function useCreateWeaponSkill() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (input: WeaponSkillInput): Promise<WeaponSkill> => {
-      const body = parseWeaponSkillForApi(input)
-      const response = await fetch(`${API_BASE}/talents`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      if (!response.ok) throw new Error('Failed to create weapon skill')
-      return response.json()
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['weapon-skills'] }),
+    mutationFn: (input: TrainableSkillInput) =>
+      apiPost<TrainableSkill>(`${API}/talents`, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['weapon-skills'] }),
   })
 }
 
 export function useUpdateWeaponSkill() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, input }: { id: number; input: WeaponSkillInput }): Promise<WeaponSkill> => {
-      const body = parseWeaponSkillForApi(input)
-      const response = await fetch(`${API_BASE}/talents/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      if (!response.ok) throw new Error('Failed to update weapon skill')
-      return response.json()
-    },
+    mutationFn: ({ id, input }: { id: number; input: TrainableSkillInput }) =>
+      apiPut<TrainableSkill>(`${API}/talents/${id}`, input),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['weapon-skills'] })
-      queryClient.invalidateQueries({ queryKey: ['weapon-skill', id] })
+      qc.invalidateQueries({ queryKey: ['weapon-skills'] })
+      qc.invalidateQueries({ queryKey: ['weapon-skill', id] })
     },
   })
 }
 
 export function useDeleteWeaponSkill() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: number): Promise<void> => {
-      const response = await fetch(`${API_BASE}/talents/${id}`, { method: 'DELETE' })
-      if (!response.ok) throw new Error('Failed to delete weapon skill')
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['weapon-skills'] }),
+    mutationFn: (id: number) => apiDelete(`${API}/talents/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['weapon-skills'] }),
   })
 }

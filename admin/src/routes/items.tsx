@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useEffect, useState, useCallback } from 'react'
+import { Button } from '../components/Button'
 
 export const Route = createFileRoute('/items')({
   component: ItemManager,
 })
 
-interface Item {
+type Item = Readonly<{
   id: number
   name: string
   description: string
@@ -17,9 +18,9 @@ interface Item {
   color: string
   isVisible: boolean
   itemType: string
-}
+}>
 
-interface ItemForm {
+type ItemForm = Readonly<{
   name: string
   description: string
   slot: string
@@ -28,7 +29,7 @@ interface ItemForm {
   isImmovable: boolean
   isVisible: boolean
   itemType: string
-}
+}>
 
 const SLOTS = ['weapon', 'head', 'chest', 'legs', 'feet', 'hands', 'accessory', 'none']
 const ITEM_TYPES = ['weapon', 'armor', 'consumable', 'key', 'misc']
@@ -61,7 +62,7 @@ function ItemManager() {
       return
     }
 
-    fetch(`\${window.location.origin}/equipment`)
+    fetch(`${window.location.origin}/equipment`)
       .then(res => res.json())
       .then(data => {
         setItems(Array.isArray(data) ? data : [])
@@ -103,7 +104,7 @@ function ItemManager() {
       }
 
       // Refresh item list
-      const itemsResponse = await fetch(`\${window.location.origin}/equipment`)
+      const itemsResponse = await fetch(`${window.location.origin}/equipment`)
       const itemsData = await itemsResponse.json()
       setItems(Array.isArray(itemsData) ? itemsData : [])
 
@@ -148,7 +149,7 @@ function ItemManager() {
       }
 
       // Refresh item list
-      const itemsResponse = await fetch(`\${window.location.origin}/equipment`)
+      const itemsResponse = await fetch(`${window.location.origin}/equipment`)
       const itemsData = await itemsResponse.json()
       setItems(Array.isArray(itemsData) ? itemsData : [])
 
@@ -178,7 +179,7 @@ function ItemManager() {
       }
 
       // Refresh item list
-      const itemsResponse = await fetch(`\${window.location.origin}/equipment`)
+      const itemsResponse = await fetch(`${window.location.origin}/equipment`)
       const itemsData = await itemsResponse.json()
       setItems(Array.isArray(itemsData) ? itemsData : [])
       setSelectedItem(null)
@@ -219,18 +220,6 @@ function ItemManager() {
           >
             ← Dashboard
           </Link>
-          <Link
-            to="/map"
-            className="block text-text-muted no-underline p-2 rounded bg-surface-dark text-center mb-2 hover:bg-surface-darker"
-          >
-            Map Builder
-          </Link>
-          <Link
-            to="/npcs"
-            className="block text-text-muted no-underline p-2 rounded bg-surface-dark text-center hover:bg-surface-darker"
-          >
-            NPC Manager
-          </Link>
         </div>
 
         <div className="p-3 border-b border-border">
@@ -261,7 +250,7 @@ function ItemManager() {
                   setShowCreateForm(false)
                 }}
                 className={`p-2 cursor-pointer rounded text-xs ${
-                  selectedItem?.id === item.id ? 'text-primary bg-surface-dark' : 'text-text'
+                  selectedItem?.id === item.id ? 'bg-primary/20 text-primary font-medium' : 'text-text'
                 }`}
               >
                 <div className="font-bold">{item.name}</div>
@@ -278,7 +267,7 @@ function ItemManager() {
 
         {/* Create Item Button */}
         <div className="p-3 border-t border-border">
-          <button
+          <Button
             onClick={() => {
               setShowCreateForm(true)
               setSelectedItem(null)
@@ -294,10 +283,11 @@ function ItemManager() {
                 itemType: 'misc'
               })
             }}
-            className="w-full p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover"
+            variant="primary"
+            fullWidth
           >
             + Add Item
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -404,19 +394,21 @@ function ItemManager() {
               </div>
 
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={handleCreateItem}
                   disabled={saving}
-                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70"
+                  variant="primary"
+                  fullWidth
                 >
                   {saving ? 'Creating...' : 'Create Item'}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setShowCreateForm(false)}
-                  className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted cursor-pointer"
+                  variant="secondary"
+                  fullWidth
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -508,19 +500,21 @@ function ItemManager() {
               </div>
 
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={handleUpdateItem}
                   disabled={saving}
-                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70"
+                  variant="primary"
+                  fullWidth
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setEditingItem(null)}
-                  className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted cursor-pointer"
+                  variant="secondary"
+                  fullWidth
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -528,12 +522,14 @@ function ItemManager() {
           <div className="max-w-[600px] mx-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="m-0 text-text">{selectedItem.name}</h2>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Close"
                 onClick={() => setSelectedItem(null)}
-                className="bg-transparent border-none text-text-muted cursor-pointer text-xl"
               >
                 ×
-              </button>
+              </Button>
             </div>
 
             <div className="bg-surface-muted rounded-lg p-4 border border-border">
@@ -576,13 +572,14 @@ function ItemManager() {
               </div>
 
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={() => startEditing(selectedItem)}
-                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover"
+                  variant="primary"
+                  fullWidth
                 >
                   Edit Item
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => {
                     if (confirmDelete === selectedItem.id) {
                       handleDeleteItem(selectedItem.id)
@@ -590,14 +587,11 @@ function ItemManager() {
                       setConfirmDelete(selectedItem.id)
                     }
                   }}
-                  className={`flex-1 p-2 border-none rounded text-white cursor-pointer ${
-                    confirmDelete === selectedItem.id
-                      ? 'bg-warning hover:bg-warning/80'
-                      : 'bg-danger hover:bg-danger-hover'
-                  }`}
+                  variant="danger"
+                  fullWidth
                 >
                   {confirmDelete === selectedItem.id ? 'Confirm Delete?' : 'Delete Item'}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

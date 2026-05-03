@@ -1,17 +1,18 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState, useCallback } from 'react'
+import { Button } from '../../components/Button'
 
 export const Route = createFileRoute('/_auth/factions')({
   component: FactionsManagement,
 })
 
-interface FactionCategory {
+type FactionCategory = Readonly<{
   id: number
   name: string
   description?: string
-}
+}>
 
-interface Faction {
+type Faction = Readonly<{
   id: number
   name: string
   description?: string
@@ -20,15 +21,15 @@ interface Faction {
   members?: number[]
   is_universal?: boolean
   created_at?: string
-}
+}>
 
-interface FactionForm {
+type FactionForm = Readonly<{
   name: string
   description: string
   category_id: number | ''
   standing: number
   is_universal: boolean
-}
+}>
 
 function FactionsManagement() {
   const [factions, setFactions] = useState<Faction[]>([])
@@ -224,26 +225,22 @@ function FactionsManagement() {
 
         {/* Tabs */}
         <div className="flex p-3 gap-2 border-b border-border">
-          <button
+          <Button
+            variant={tab === 'factions' ? 'primary' : 'secondary'}
+            size="sm"
+            fullWidth
             onClick={() => setTab('factions')}
-            className={`flex-1 p-2 rounded text-sm cursor-pointer border-2 transition-colors ${
-              tab === 'factions'
-                ? 'bg-primary border-primary text-white font-medium'
-                : 'bg-surface-muted border-border text-text-muted hover:border-primary'
-            }`}
           >
             Factions
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={tab === 'categories' ? 'primary' : 'secondary'}
+            size="sm"
+            fullWidth
             onClick={() => setTab('categories')}
-            className={`flex-1 p-2 rounded text-sm cursor-pointer border-2 transition-colors ${
-              tab === 'categories'
-                ? 'bg-primary border-primary text-white font-medium'
-                : 'bg-surface-muted border-border text-text-muted hover:border-primary'
-            }`}
           >
             Categories
-          </button>
+          </Button>
         </div>
 
         {tab === 'factions' && (
@@ -286,17 +283,19 @@ function FactionsManagement() {
             </div>
 
             <div className="p-3 border-t border-border">
-              <button
+              <Button
+                variant="primary"
+                size="md"
+                fullWidth
                 onClick={() => {
                   setShowCreateForm(true)
                   setSelectedFaction(null)
                   setEditingFaction(null)
                   setForm({ name: '', description: '', category_id: '', standing: 0, is_universal: false })
                 }}
-                className="w-full p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover"
               >
                 + Add Faction
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -326,12 +325,14 @@ function FactionsManagement() {
             </div>
 
             <div className="p-3 border-t border-border">
-              <button
+              <Button
+                variant="primary"
+                size="md"
+                fullWidth
                 onClick={() => setShowCreateCategory(true)}
-                className="w-full p-2 bg-primary border-2 border-black rounded text-white cursor-pointer hover:bg-primary-hover"
               >
                 + Add Category
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -382,14 +383,12 @@ function FactionsManagement() {
                 </label>
               </div>
               <div className="flex gap-2">
-                <button onClick={handleCreateFaction} disabled={saving}
-                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white disabled:opacity-70">
+                <Button variant="primary" size="md" fullWidth onClick={handleCreateFaction} disabled={saving}>
                   {saving ? 'Creating...' : 'Create Faction'}
-                </button>
-                <button onClick={() => setShowCreateForm(false)}
-                  className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted">
+                </Button>
+                <Button variant="secondary" size="md" fullWidth onClick={() => setShowCreateForm(false)}>
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -437,14 +436,12 @@ function FactionsManagement() {
                 </label>
               </div>
               <div className="flex gap-2">
-                <button onClick={handleUpdateFaction} disabled={saving}
-                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white disabled:opacity-70">
+                <Button variant="primary" size="md" fullWidth onClick={handleUpdateFaction} disabled={saving}>
                   {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-                <button onClick={() => setEditingFaction(null)}
-                  className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted">
+                </Button>
+                <Button variant="secondary" size="md" fullWidth onClick={() => setEditingFaction(null)}>
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -476,34 +473,27 @@ function FactionsManagement() {
                 <span>{selectedFaction.members?.join(', ') || 'none'}</span>
               </div>
               <div className="flex gap-2 mt-4">
-                <button onClick={() => startEditing(selectedFaction)}
-                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer">
+                <Button variant="primary" size="md" fullWidth onClick={() => startEditing(selectedFaction)}>
                   Edit
-                </button>
-                <button onClick={() => setConfirmDelete(selectedFaction.id)}
-                  className="flex-1 p-2 bg-danger border border-border rounded text-text-muted cursor-pointer">
-                  Delete
-                </button>
-                <button onClick={() => setSelectedFaction(null)}
-                  className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted cursor-pointer">
+                </Button>
+                <Button
+                  variant={confirmDelete === selectedFaction.id ? 'secondary' : 'danger'}
+                  size="md"
+                  fullWidth
+                  onClick={() => {
+                    if (confirmDelete === selectedFaction.id) {
+                      handleDeleteFaction(selectedFaction.id)
+                    } else {
+                      setConfirmDelete(selectedFaction.id)
+                    }
+                  }}
+                >
+                  {confirmDelete === selectedFaction.id ? 'Confirm Delete?' : 'Delete'}
+                </Button>
+                <Button variant="secondary" size="md" fullWidth onClick={() => setSelectedFaction(null)}>
                   Close
-                </button>
+                </Button>
               </div>
-              {confirmDelete === selectedFaction.id && (
-                <div className="mt-3 p-3 bg-danger/20 border border-danger rounded">
-                  <p className="text-text text-sm mb-2">Confirm deletion of "{selectedFaction.name}"?</p>
-                  <div className="flex gap-2">
-                    <button onClick={() => handleDeleteFaction(selectedFaction.id)}
-                      className="flex-1 p-2 bg-danger text-white rounded cursor-pointer">
-                      Confirm Delete
-                    </button>
-                    <button onClick={() => setConfirmDelete(null)}
-                      className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted">
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -532,14 +522,12 @@ function FactionsManagement() {
                   className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y" />
               </div>
               <div className="flex gap-2">
-                <button onClick={handleCreateCategory}
-                  className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer">
+                <Button variant="primary" size="md" fullWidth onClick={handleCreateCategory}>
                   Create Category
-                </button>
-                <button onClick={() => setShowCreateCategory(false)}
-                  className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted">
+                </Button>
+                <Button variant="secondary" size="md" fullWidth onClick={() => setShowCreateCategory(false)}>
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -565,10 +553,9 @@ function FactionsManagement() {
                       <td className="p-3 font-bold">{c.name}</td>
                       <td className="p-3 text-text-muted">{c.description || '—'}</td>
                       <td className="p-3 text-right">
-                        <button onClick={() => handleDeleteCategory(c.id)}
-                          className="text-danger text-xs hover:underline cursor-pointer bg-transparent border-0 p-0">
+                        <Button variant="danger" size="sm" onClick={() => handleDeleteCategory(c.id)}>
                           Delete
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}

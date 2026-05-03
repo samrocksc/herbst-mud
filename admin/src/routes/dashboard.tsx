@@ -3,18 +3,19 @@ import { useEffect, useState } from 'react'
 import { StatCard } from '../components/StatCard'
 import { StatGrid } from '../components/StatGrid'
 import { PageHeader } from '../components/PageHeader'
+import { Button } from '../components/Button'
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
 })
 
-interface Stats {
+type Stats = Readonly<{
   rooms: number
   npcs: number
   items: number
   players: number
   skills: number
-}
+}>
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -33,7 +34,7 @@ function Dashboard() {
         const [roomsRes, npcsRes, skillsRes, equipmentRes, charactersRes] = await Promise.all([
           fetch(`${window.location.origin}/rooms`),
           fetch(`${window.location.origin}/npcs`),
-          fetch(`${window.location.origin}/skills`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+          fetch(`${window.location.origin}/talents`),
           fetch(`${window.location.origin}/equipment`),
           fetch(`${window.location.origin}/characters`),
         ])
@@ -72,9 +73,9 @@ function Dashboard() {
         <PageHeader
           title="Herbst MUD Admin"
           actions={
-            <button onClick={handleLogout} className="bg-danger text-text-inverse border-border-dark hover:bg-danger-hover">
+            <Button onClick={handleLogout} variant="danger">
               Logout
-            </button>
+            </Button>
           }
         />
 
@@ -99,7 +100,7 @@ function Dashboard() {
           <ToolCard to="/export" emoji="💾" title="Export / Import" desc="Backup and restore game world data" />
           <ToolCard to="/players" emoji="🎮" title="Player Manager" desc="Manage players and reset passwords" />
           <ToolCard to="/abilities" emoji="⚡" title="Abilities Manager" desc="Create, edit, and manage abilities" />
-          <ToolCard to="/weapon-skills" emoji="🎯" title="Weapon Skills Manager" desc="Manage weapon skill specializations" />
+          <ToolCard to="/skills" emoji="🎯" title="Skills Manager" desc="Manage trainable skill specializations" />
           <ToolCard to="/factions" emoji="⚔️" title="Factions Manager" desc="Manage factions, categories, and member standing" />
         </div>
       </div>

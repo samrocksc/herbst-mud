@@ -27,7 +27,9 @@ type Race struct {
 	// JSON array: ["swim", "shell_defense"]
 	SkillGrants string `json:"skill_grants,omitempty"`
 	// false = NPC-only race
-	IsPlayable   bool `json:"is_playable,omitempty"`
+	IsPlayable bool `json:"is_playable,omitempty"`
+	// Hex color for UI display, e.g. '#8b5cf6'
+	Color        string `json:"color,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -40,7 +42,7 @@ func (*Race) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case race.FieldID:
 			values[i] = new(sql.NullInt64)
-		case race.FieldName, race.FieldDisplayName, race.FieldDescription, race.FieldStatModifiers, race.FieldSkillGrants:
+		case race.FieldName, race.FieldDisplayName, race.FieldDescription, race.FieldStatModifiers, race.FieldSkillGrants, race.FieldColor:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -99,6 +101,12 @@ func (_m *Race) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsPlayable = value.Bool
 			}
+		case race.FieldColor:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field color", values[i])
+			} else if value.Valid {
+				_m.Color = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -152,6 +160,9 @@ func (_m *Race) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_playable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsPlayable))
+	builder.WriteString(", ")
+	builder.WriteString("color=")
+	builder.WriteString(_m.Color)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -445,6 +445,7 @@ var (
 		{Name: "stat_modifiers", Type: field.TypeString, Nullable: true},
 		{Name: "skill_grants", Type: field.TypeString, Nullable: true},
 		{Name: "is_playable", Type: field.TypeBool, Default: true},
+		{Name: "color", Type: field.TypeString, Nullable: true},
 	}
 	// RacesTable holds the schema information for the "races" table.
 	RacesTable = &schema.Table{

@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
+import type { ReactNode } from 'react'
+import { Button } from './Button'
 
 type ModalProps = Readonly<{
   isOpen: boolean
   onClose: () => void
   title: string
-  children: React.ReactNode
+  children: ReactNode
 }>
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
@@ -41,12 +43,9 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         {/* Header */}
         <div className="sticky top-0 flex items-center justify-between p-4 border-b border-border bg-surface-muted">
           <h2 className="m-0 text-text text-lg">{title}</h2>
-          <button
-            onClick={onClose}
-            className="bg-transparent border-none text-text-muted cursor-pointer text-2xl leading-none hover:text-text"
-          >
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
             ×
-          </button>
+          </Button>
         </div>
 
         {/* Content */}

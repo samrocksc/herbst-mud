@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 const API_BASE = `${window.location.origin}`
 
-export interface Room {
+export type Room = Readonly<{
   id: number
   name: string
   description: string
@@ -12,9 +12,9 @@ export interface Room {
   x?: number
   y?: number
   zLevel?: number
-}
+}>
 
-export interface RoomInput {
+export type RoomInput = Readonly<{
   name: string
   description: string
   isStartingRoom?: boolean
@@ -23,7 +23,7 @@ export interface RoomInput {
   x?: number
   y?: number
   zLevel?: number
-}
+}>
 
 export function useRooms() {
   return useQuery({

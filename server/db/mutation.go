@@ -14608,6 +14608,7 @@ type RaceMutation struct {
 	stat_modifiers *string
 	skill_grants   *string
 	is_playable    *bool
+	color          *string
 	clearedFields  map[string]struct{}
 	done           bool
 	oldValue       func(context.Context) (*Race, error)
@@ -14954,6 +14955,55 @@ func (m *RaceMutation) ResetIsPlayable() {
 	m.is_playable = nil
 }
 
+// SetColor sets the "color" field.
+func (m *RaceMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *RaceMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "color" field's value of the Race entity.
+// If the Race object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RaceMutation) OldColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ClearColor clears the value of the "color" field.
+func (m *RaceMutation) ClearColor() {
+	m.color = nil
+	m.clearedFields[race.FieldColor] = struct{}{}
+}
+
+// ColorCleared returns if the "color" field was cleared in this mutation.
+func (m *RaceMutation) ColorCleared() bool {
+	_, ok := m.clearedFields[race.FieldColor]
+	return ok
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *RaceMutation) ResetColor() {
+	m.color = nil
+	delete(m.clearedFields, race.FieldColor)
+}
+
 // Where appends a list predicates to the RaceMutation builder.
 func (m *RaceMutation) Where(ps ...predicate.Race) {
 	m.predicates = append(m.predicates, ps...)
@@ -14988,7 +15038,7 @@ func (m *RaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RaceMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, race.FieldName)
 	}
@@ -15006,6 +15056,9 @@ func (m *RaceMutation) Fields() []string {
 	}
 	if m.is_playable != nil {
 		fields = append(fields, race.FieldIsPlayable)
+	}
+	if m.color != nil {
+		fields = append(fields, race.FieldColor)
 	}
 	return fields
 }
@@ -15027,6 +15080,8 @@ func (m *RaceMutation) Field(name string) (ent.Value, bool) {
 		return m.SkillGrants()
 	case race.FieldIsPlayable:
 		return m.IsPlayable()
+	case race.FieldColor:
+		return m.Color()
 	}
 	return nil, false
 }
@@ -15048,6 +15103,8 @@ func (m *RaceMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldSkillGrants(ctx)
 	case race.FieldIsPlayable:
 		return m.OldIsPlayable(ctx)
+	case race.FieldColor:
+		return m.OldColor(ctx)
 	}
 	return nil, fmt.Errorf("unknown Race field %s", name)
 }
@@ -15099,6 +15156,13 @@ func (m *RaceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsPlayable(v)
 		return nil
+	case race.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Race field %s", name)
 }
@@ -15135,6 +15199,9 @@ func (m *RaceMutation) ClearedFields() []string {
 	if m.FieldCleared(race.FieldSkillGrants) {
 		fields = append(fields, race.FieldSkillGrants)
 	}
+	if m.FieldCleared(race.FieldColor) {
+		fields = append(fields, race.FieldColor)
+	}
 	return fields
 }
 
@@ -15154,6 +15221,9 @@ func (m *RaceMutation) ClearField(name string) error {
 		return nil
 	case race.FieldSkillGrants:
 		m.ClearSkillGrants()
+		return nil
+	case race.FieldColor:
+		m.ClearColor()
 		return nil
 	}
 	return fmt.Errorf("unknown Race nullable field %s", name)
@@ -15180,6 +15250,9 @@ func (m *RaceMutation) ResetField(name string) error {
 		return nil
 	case race.FieldIsPlayable:
 		m.ResetIsPlayable()
+		return nil
+	case race.FieldColor:
+		m.ResetColor()
 		return nil
 	}
 	return fmt.Errorf("unknown Race field %s", name)

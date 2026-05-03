@@ -1,20 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useCallback, useEffect } from 'react'
+import type { ReactNode } from 'react'
+import { Button } from '../../components/Button'
+import { DataTable } from '../../components/DataTable'
 
 export const Route = createFileRoute('/_auth/config')({
   component: ConfigManagement,
 })
 
-interface GameConfig {
+type GameConfig = Readonly<{
   id: number
   key: string
   value: string
-}
+}>
 
-interface ConfigForm {
+type ConfigForm = Readonly<{
   key: string
   value: string
-}
+}>
 
 const PRESETS = [
   { label: 'XP Thresholds', key: 'xp_thresholds', value: '{"1":100,"2":300,"3":600,"4":1000,"5":1500}' },
@@ -149,82 +152,73 @@ function ConfigManagement() {
     <div className="management-page">
       <div className="page-header">
         <h2>Game Configs</h2>
-        <button className="btn-primary" onClick={startCreate}>+ New Config</button>
+        <Button variant="primary" onClick={startCreate}>+ New Config</Button>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
 
-      <div className="toolbar-row" style={{ marginBottom: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+      <div className="flex items-center gap-3 mb-4">
         <input
           type="text"
           placeholder="Search keys or values..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, padding: '0.5rem 0.75rem', background: 'var(--surface-muted)', border: '2px solid var(--border)', color: 'var(--text)', borderRadius: '4px' }}
+          className="flex-1 px-3 py-2 bg-surface-muted border-2 border-border color-text rounded"
         />
-        <button className="btn-secondary" onClick={fetchConfigs}>Refresh</button>
+        <Button variant="secondary" onClick={fetchConfigs}>Refresh</Button>
       </div>
 
       {loading ? (
         <div className="loading">Loading configs...</div>
       ) : (
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Key</th>
-              <th>Value</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
-                  {configs.length === 0 ? 'No configs found. Create one below.' : 'No configs match your search.'}
-                </td>
-              </tr>
-            ) : (
-              filtered.map(cfg => (
-                <tr key={cfg.id}>
-                  <td>
-                    <code style={{ color: 'var(--primary)', fontSize: '0.9rem' }}>{cfg.key}</code>
-                  </td>
-                  <td>
-                    <span style={{
-                      display: 'inline-block',
-                      maxWidth: '400px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      color: 'var(--text-secondary)',
-                      fontSize: '0.85rem',
-                    }}>
-                      {cfg.value.length > 60 ? cfg.value.slice(0, 60) + '…' : cfg.value}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn-small" onClick={() => startEdit(cfg)}>Edit</button>
-                      <button className="btn-small btn-danger" onClick={() => setDeleteTarget(cfg)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <DataTable
+          columns={[
+            {
+              header: 'Key',
+              accessor: 'key',
+              render: (_, row): ReactNode => (
+                <code className="text-primary text-sm">{row.key}</code>
+              ),
+            },
+            {
+              header: 'Value',
+              accessor: 'value',
+              render: (val) => {
+                const v = val as string
+                return (
+                  <span className="inline-block max-w-md overflow-hidden text-ellipsis whitespace-nowrap text-text-secondary text-xs">
+                    {v.length > 60 ? v.slice(0, 60) + '…' : v}
+                  </span>
+                )
+              },
+            },
+            {
+              header: 'Actions',
+              accessor: '_actions',
+              render: (_, row): ReactNode => (
+                <div className="flex gap-2">
+                  <Button variant="accent" size="sm" onClick={() => startEdit(row)}>Edit</Button>
+                  <Button variant="danger" size="sm" onClick={() => setDeleteTarget(row)}>Delete</Button>
+                </div>
+              ),
+            },
+          ]}
+          data={filtered}
+          getKey={(row) => row.id}
+          emptyMessage={configs.length === 0 ? 'No configs found. Create one below.' : 'No configs match your search.'}
+        />
       )}
 
       {/* Create / Edit Form Modal */}
       {(showForm || editing) && (
         <div className="modal-overlay" onClick={() => { setShowForm(false); setEditing(null) }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '560px' }}>
+          <div className="modal-content max-w-2xl" onClick={e => e.stopPropagation()}>
             <h3>{editing ? `Edit: ${editing.key}` : 'New Game Config'}</h3>
             <form onSubmit={editing ? handleUpdate : handleCreate}>
               <div className="form-group">
                 <label>Key</label>
                 {editing ? (
-                  <code style={{ display: 'block', padding: '0.5rem', background: 'var(--surface-muted)', borderRadius: '4px' }}>{editing.key}</code>
+                  <code className="block p-2 bg-surface-muted rounded">{editing.key}</code>
                 ) : (
                   <input
                     type="text"
@@ -232,7 +226,7 @@ function ConfigManagement() {
                     onChange={e => setForm(f => ({ ...f, key: e.target.value }))}
                     placeholder="e.g. xp_thresholds"
                     required
-                    style={{ width: '100%', padding: '0.5rem', background: 'var(--surface-muted)', border: '2px solid var(--border)', color: 'var(--text)', borderRadius: '4px' }}
+                    className="w-full p-2 bg-surface-muted border-2 border-border color-text rounded"
                   />
                 )}
               </div>
@@ -241,27 +235,27 @@ function ConfigManagement() {
                 <textarea
                   value={form.value}
                   onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
+                  className="w-full p-2 bg-surface-muted border-2 border-border color-text rounded font-mono text-sm"
                   rows={6}
                   placeholder='{"key": "value"} or plain text'
                   required
-                  style={{ width: '100%', padding: '0.5rem', background: 'var(--surface-muted)', border: '2px solid var(--border)', color: 'var(--text)', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.85rem' }}
                 />
               </div>
               {!editing && (
                 <div className="form-group">
                   <label>Presets</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div className="flex flex-wrap gap-2">
                     {PRESETS.map(p => (
-                      <button type="button" key={p.key} className="btn-small" onClick={() => applyPreset(p)}>
+                      <Button type="button" key={p.key} variant="ghost" size="sm" onClick={() => applyPreset(p)}>
                         {p.label}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditing(null) }}>Cancel</button>
-                <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving…' : (editing ? 'Update' : 'Create')}</button>
+              <div className="flex gap-3 justify-end mt-4">
+                <Button type="button" variant="secondary" onClick={() => { setShowForm(false); setEditing(null) }}>Cancel</Button>
+                <Button type="submit" variant="primary" disabled={saving}>{saving ? 'Saving…' : (editing ? 'Update' : 'Create')}</Button>
               </div>
             </form>
           </div>
@@ -271,12 +265,12 @@ function ConfigManagement() {
       {/* Delete Confirmation */}
       {deleteTarget && (
         <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+          <div className="modal-content max-w-md" onClick={e => e.stopPropagation()}>
             <h3>Delete Config?</h3>
             <p>Are you sure you want to delete <code>{deleteTarget.key}</code>? This cannot be undone.</p>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-              <button className="btn-secondary" onClick={() => setDeleteTarget(null)}>Cancel</button>
-              <button className="btn-danger" onClick={handleDelete}>Delete</button>
+            <div className="flex gap-3 justify-end mt-4">
+              <Button variant="secondary" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+              <Button variant="danger" onClick={handleDelete}>Delete</Button>
             </div>
           </div>
         </div>

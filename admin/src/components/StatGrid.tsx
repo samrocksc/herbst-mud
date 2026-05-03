@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react'
+
 type StatGridProps = Readonly<{
-  children: React.ReactNode
+  children: ReactNode
   cols?: number
 }>
 

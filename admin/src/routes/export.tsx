@@ -1,18 +1,19 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useRef } from 'react'
+import { Button } from '../components/Button'
 
 export const Route = createFileRoute('/export')({
   component: ExportPage,
 })
 
-interface ExportData {
+type ExportData = Readonly<{
   version: string
   exported_at: string
   rooms: unknown[]
   npcs: unknown[]
   skills: unknown[]
   items: unknown[]
-}
+}>
 
 function ExportPage() {
   const navigate = useNavigate()
@@ -167,17 +168,18 @@ function ExportPage() {
       <div className="max-w-[1200px] mx-auto">
         <div className="flex justify-between items-center mb-8 border-b border-border pb-4">
           <div className="flex items-center gap-4">
-            <button 
+            <Button
               onClick={() => navigate({ to: '/dashboard' })}
-              className="px-4 py-2 bg-surface-muted border border-border rounded text-text hover:bg-surface"
+              variant="secondary"
+              size="sm"
             >
               ← Back
-            </button>
+            </Button>
             <h1 className="text-primary">Game Export / Import</h1>
           </div>
-          <button onClick={handleLogout} className="px-4 py-2 bg-danger border-2 border-black rounded text-white cursor-pointer hover:opacity-80">
+          <Button onClick={handleLogout} variant="danger">
             Logout
-          </button>
+          </Button>
         </div>
 
         {message && (
@@ -206,13 +208,14 @@ function ExportPage() {
               <div>• Items in rooms and on NPCs</div>
             </div>
 
-            <button
+            <Button
               onClick={handleExport}
               disabled={loading}
-              className="w-full px-4 py-3 bg-primary border-2 border-black rounded text-white font-bold cursor-pointer hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
+              size="sm"
             >
               {loading ? 'Exporting...' : '📥 Export to JSON'}
-            </button>
+            </Button>
 
             {exportPreview && (
               <div className="mt-4 p-4 bg-surface rounded border border-border">
@@ -257,13 +260,14 @@ function ExportPage() {
             />
 
             {!showImportConfirm ? (
-              <button
+              <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
-                className="w-full px-4 py-3 bg-accent border-2 border-black rounded text-white font-bold cursor-pointer hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="primary"
+                size="sm"
               >
                 {loading ? 'Validating...' : '📤 Select JSON File'}
-              </button>
+              </Button>
             ) : (
               <div className="space-y-3">
                 <div className="p-4 bg-yellow-900/30 border border-yellow-600 rounded">
@@ -273,23 +277,25 @@ function ExportPage() {
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <button
+                  <Button
                     onClick={handleImport}
                     disabled={loading}
-                    className="flex-1 px-4 py-3 bg-danger border-2 border-black rounded text-white font-bold cursor-pointer hover:opacity-80"
+                    variant="danger"
+                    fullWidth
                   >
                     {loading ? 'Importing...' : '✓ Confirm Import'}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => {
                       setShowImportConfirm(false)
                       setImportData(null)
                       if (fileInputRef.current) fileInputRef.current.value = ''
                     }}
-                    className="flex-1 px-4 py-3 bg-surface border border-border rounded text-text cursor-pointer hover:bg-surface-muted"
+                    variant="secondary"
+                    fullWidth
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -332,13 +338,14 @@ function ExportPage() {
             </div>
 
             {!showWipeConfirm ? (
-              <button
+              <Button
                 onClick={() => setShowWipeConfirm(true)}
                 disabled={loading}
-                className="w-full px-4 py-3 bg-red-700 border-2 border-black rounded text-white font-bold cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="danger"
+                fullWidth
               >
                 🗑️ Wipe & Reload Game World
-              </button>
+              </Button>
             ) : (
               <div className="space-y-3">
                 <div className="p-4 bg-red-900/50 border border-red-600 rounded">
@@ -351,19 +358,21 @@ function ExportPage() {
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <button
+                  <Button
                     onClick={handleWipe}
                     disabled={loading}
-                    className="flex-1 px-6 py-4 bg-red-600 border-2 border-black rounded text-white font-bold cursor-pointer hover:bg-red-500 text-lg"
+                    variant="danger"
+                    fullWidth
                   >
                     {loading ? 'Wiping...' : '☠️ YES - WIPE EVERYTHING'}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => setShowWipeConfirm(false)}
-                    className="flex-1 px-6 py-4 bg-surface border border-border rounded text-text cursor-pointer hover:bg-surface-muted font-bold"
+                    variant="secondary"
+                    fullWidth
                   >
                     Cancel - Keep My Data
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

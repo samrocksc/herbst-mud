@@ -123,6 +123,26 @@ func (_u *RaceUpdate) SetNillableIsPlayable(v *bool) *RaceUpdate {
 	return _u
 }
 
+// SetColor sets the "color" field.
+func (_u *RaceUpdate) SetColor(v string) *RaceUpdate {
+	_u.mutation.SetColor(v)
+	return _u
+}
+
+// SetNillableColor sets the "color" field if the given value is not nil.
+func (_u *RaceUpdate) SetNillableColor(v *string) *RaceUpdate {
+	if v != nil {
+		_u.SetColor(*v)
+	}
+	return _u
+}
+
+// ClearColor clears the value of the "color" field.
+func (_u *RaceUpdate) ClearColor() *RaceUpdate {
+	_u.mutation.ClearColor()
+	return _u
+}
+
 // Mutation returns the RaceMutation object of the builder.
 func (_u *RaceUpdate) Mutation() *RaceMutation {
 	return _u.mutation
@@ -187,6 +207,12 @@ func (_u *RaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsPlayable(); ok {
 		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Color(); ok {
+		_spec.SetField(race.FieldColor, field.TypeString, value)
+	}
+	if _u.mutation.ColorCleared() {
+		_spec.ClearField(race.FieldColor, field.TypeString)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -304,6 +330,26 @@ func (_u *RaceUpdateOne) SetNillableIsPlayable(v *bool) *RaceUpdateOne {
 	return _u
 }
 
+// SetColor sets the "color" field.
+func (_u *RaceUpdateOne) SetColor(v string) *RaceUpdateOne {
+	_u.mutation.SetColor(v)
+	return _u
+}
+
+// SetNillableColor sets the "color" field if the given value is not nil.
+func (_u *RaceUpdateOne) SetNillableColor(v *string) *RaceUpdateOne {
+	if v != nil {
+		_u.SetColor(*v)
+	}
+	return _u
+}
+
+// ClearColor clears the value of the "color" field.
+func (_u *RaceUpdateOne) ClearColor() *RaceUpdateOne {
+	_u.mutation.ClearColor()
+	return _u
+}
+
 // Mutation returns the RaceMutation object of the builder.
 func (_u *RaceUpdateOne) Mutation() *RaceMutation {
 	return _u.mutation
@@ -398,6 +444,12 @@ func (_u *RaceUpdateOne) sqlSave(ctx context.Context) (_node *Race, err error) {
 	}
 	if value, ok := _u.mutation.IsPlayable(); ok {
 		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Color(); ok {
+		_spec.SetField(race.FieldColor, field.TypeString, value)
+	}
+	if _u.mutation.ColorCleared() {
+		_spec.ClearField(race.FieldColor, field.TypeString)
 	}
 	_node = &Race{config: _u.config}
 	_spec.Assign = _node.assignValues

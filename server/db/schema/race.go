@@ -29,6 +29,9 @@ func (Race) Fields() []ent.Field {
 		field.Bool("is_playable").
 			Default(true).
 			Comment("false = NPC-only race"),
+		field.String("color").
+			Optional().
+			Comment("Hex color for UI display, e.g. '#8b5cf6'"),
 	}
 }
 

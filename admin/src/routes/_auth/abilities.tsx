@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useAbilities, useCreateAbility, useUpdateAbility, useDeleteAbility, type Ability, type AbilityInput } from '../../hooks/useAbilities'
 import { PageHeader } from '../../components/PageHeader'
+import { DataTable, type Column } from '../../components/DataTable'
+import { Button } from '../../components/Button'
 
 export const Route = createFileRoute('/_auth/abilities')({
   component: AbilitiesManagement,
@@ -270,12 +272,12 @@ function AbilityForm({
         </div>
 
         <div className="form-actions">
-          <button type="submit" disabled={isLoading}>
+          <Button type="submit" variant="primary" disabled={isLoading}>
             {isLoading ? 'Saving...' : ability ? 'Update Ability' : 'Create Ability'}
-          </button>
-          <button type="button" className="btn-cancel" onClick={onCancel}>
+          </Button>
+          <Button variant="secondary" onClick={onCancel}>
             Cancel
-          </button>
+          </Button>
         </div>
       </form>
     </div>
@@ -298,22 +300,70 @@ function DeleteConfirmation({
       <div className="modal-content modal-sm" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Delete Ability</h3>
-          <button className="modal-close" onClick={onCancel}>×</button>
+          <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Close">×</Button>
         </div>
         <div className="modal-body">
           <p>Are you sure you want to delete <strong>{ability.name}</strong>?</p>
           <p className="text-muted">This action cannot be undone.</p>
         </div>
         <div className="modal-footer">
-          <button className="btn-danger" onClick={onConfirm} disabled={isLoading}>
+          <Button variant="danger" onClick={onConfirm} disabled={isLoading}>
             {isLoading ? 'Deleting...' : 'Delete'}
-          </button>
-          <button className="btn-cancel" onClick={onCancel}>Cancel</button>
+          </Button>
+          <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         </div>
       </div>
     </div>
   )
 }
+
+// ─── Table column definitions ─────────────────────────────────────────────────
+
+const BASE_COLUMNS: Column<Ability>[] = [
+  {
+    header: 'Name',
+    accessor: 'name',
+    render: (_: unknown, row: Ability) => <strong>{row.name}</strong>,
+  },
+  { header: 'Description', accessor: 'description' },
+  {
+    header: 'Type',
+    accessor: 'skill_type',
+    render: (val: unknown) => <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>,
+  },
+  {
+    header: 'Effects',
+    accessor: 'effect_type',
+    render: (_: unknown, row: Ability) => {
+      const parts: React.ReactNode[] = []
+      if (row.effect_type) {
+        parts.push(<span key="et" className="talent-effect">{row.effect_type}</span>)
+      }
+      if (row.effect_value > 0) {
+        parts.push(<span key="ev" className="talent-effect-value"> {row.effect_value}</span>)
+      }
+      if (row.effect_duration > 0) {
+        parts.push(<span key="ed" className="text-muted"> ({row.effect_duration}t)</span>)
+      }
+      if (row.proc_chance > 0) {
+        parts.push(<span key="pc" className="text-muted"> proc {Math.round(row.proc_chance * 100)}%</span>)
+      }
+      return parts.length > 0 ? parts : <span className="text-muted">—</span>
+    },
+  },
+  {
+    header: 'Costs',
+    accessor: 'mana_cost',
+    render: (_: unknown, row: Ability) => {
+      const parts: React.ReactNode[] = []
+      if (row.mana_cost > 0) parts.push(<span key="mp" className="cost-badge" title="Mana Cost">MP: {row.mana_cost}</span>)
+      if (row.stamina_cost > 0) parts.push(<span key="sp" className="cost-badge" title="Stamina Cost">SP: {row.stamina_cost}</span>)
+      if (row.hp_cost > 0) parts.push(<span key="hp" className="cost-badge" title="HP Cost">HP: {row.hp_cost}</span>)
+      if (row.cooldown_seconds > 0) parts.push(<span key="cd" className="cost-badge" title="Cooldown">CD: {row.cooldown_seconds}s</span>)
+      return parts.length > 0 ? parts : <span className="text-muted">—</span>
+    },
+  },
+]
 
 function AbilitiesManagement() {
   const [filterType, setFilterType] = useState<string>('')
@@ -356,6 +406,20 @@ function AbilitiesManagement() {
     setEditingAbility(null)
   }
 
+  const columns: Column<Ability>[] = [
+    ...BASE_COLUMNS,
+    {
+      header: 'Actions',
+      accessor: '_actions',
+      render: (_: unknown, row: Ability) => (
+        <>
+          <Button variant="accent" size="sm" onClick={() => handleEdit(row)}>Edit</Button>
+          <Button variant="danger" size="sm" className="ml-2" onClick={() => setDeletingAbility(row)}>Delete</Button>
+        </>
+      ),
+    },
+  ]
+
   if (isLoading) return <div className="loading">Loading abilities...</div>
   if (error) return <div className="error">Failed to load abilities: {error.message}</div>
 
@@ -364,7 +428,7 @@ function AbilitiesManagement() {
       <PageHeader
         title="Abilities"
         backTo="/dashboard"
-        actions={<button className="btn-primary" onClick={() => { setEditingAbility(null); setShowForm(true) }}>+ Add Ability</button>}
+        actions={<Button variant="primary" onClick={() => { setEditingAbility(null); setShowForm(true) }}>+ Add Ability</Button>}
       />
 
       <div className="filters-bar">
@@ -380,9 +444,9 @@ function AbilitiesManagement() {
           </select>
         </div>
         {filterType && (
-          <button className="btn-clear-filters" onClick={() => setFilterType('')}>
+          <Button variant="ghost" size="sm" onClick={() => setFilterType('')}>
             Clear Filters
-          </button>
+          </Button>
         )}
       </div>
 
@@ -395,63 +459,12 @@ function AbilitiesManagement() {
         />
       )}
 
-      <div className="table-container">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Type</th>
-              <th>Effects</th>
-              <th>Costs</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {abilities?.map((ability) => (
-              <tr key={ability.id}>
-                <td><strong>{ability.name}</strong></td>
-                <td className="text-muted">{ability.description || '-'}</td>
-                <td>
-                  <span className={`talent-effect talent-effect-${ability.skill_type}`}>
-                    {ability.skill_type}
-                  </span>
-                </td>
-                <td>
-                  {ability.effect_type && (
-                    <span className="talent-effect">{ability.effect_type}</span>
-                  )}
-                  {ability.effect_value > 0 && (
-                    <span className="talent-effect-value"> {ability.effect_value}</span>
-                  )}
-                  {ability.effect_duration > 0 && (
-                    <span className="text-muted"> ({ability.effect_duration}t)</span>
-                  )}
-                  {ability.proc_chance > 0 && (
-                    <span className="text-muted"> proc {Math.round(ability.proc_chance * 100)}%</span>
-                  )}
-                </td>
-                <td>
-                  {ability.mana_cost > 0 && <span className="cost-badge" title="Mana Cost">MP: {ability.mana_cost}</span>}
-                  {ability.stamina_cost > 0 && <span className="cost-badge" title="Stamina Cost">SP: {ability.stamina_cost}</span>}
-                  {ability.hp_cost > 0 && <span className="cost-badge" title="HP Cost">HP: {ability.hp_cost}</span>}
-                  {ability.cooldown_seconds > 0 && <span className="cost-badge" title="Cooldown">CD: {ability.cooldown_seconds}s</span>}
-                </td>
-                <td>
-                  <button onClick={() => handleEdit(ability)}>Edit</button>
-                  <button className="danger" onClick={() => setDeletingAbility(ability)}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {(!abilities || abilities.length === 0) && (
-          <div className="empty-state">
-            <p>No abilities found. {filterType ? 'Try clearing filters.' : 'Create your first ability!'}</p>
-          </div>
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        data={abilities ?? []}
+        getKey={(row) => row.id}
+        emptyMessage={filterType ? 'No abilities match this filter.' : 'No abilities found. Create your first ability!'}
+      />
 
       {deletingAbility && (
         <DeleteConfirmation

@@ -23,6 +23,8 @@ const (
 	FieldSkillGrants = "skill_grants"
 	// FieldIsPlayable holds the string denoting the is_playable field in the database.
 	FieldIsPlayable = "is_playable"
+	// FieldColor holds the string denoting the color field in the database.
+	FieldColor = "color"
 	// Table holds the table name of the race in the database.
 	Table = "races"
 )
@@ -36,6 +38,7 @@ var Columns = []string{
 	FieldStatModifiers,
 	FieldSkillGrants,
 	FieldIsPlayable,
+	FieldColor,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -89,4 +92,9 @@ func BySkillGrants(opts ...sql.OrderTermOption) OrderOption {
 // ByIsPlayable orders the results by the is_playable field.
 func ByIsPlayable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPlayable, opts...).ToFunc()
+}
+
+// ByColor orders the results by the color field.
+func ByColor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldColor, opts...).ToFunc()
 }

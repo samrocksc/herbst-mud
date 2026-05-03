@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { useTalents, useCreateTalent, useUpdateTalent, useDeleteTalent, type Talent, type TalentInput } from '../../hooks/useTalents'
 import { PageHeader } from '../../components/PageHeader'
+import { DataTable, type Column } from '../../components/DataTable'
+import { Button } from '../../components/Button'
 
 export const Route = createFileRoute('/_auth/talents')({
   component: TalentsManagement,
@@ -152,12 +155,12 @@ function TalentForm({
         </div>
 
         <div className="form-actions">
-          <button type="submit" disabled={isLoading}>
+          <Button type="submit" variant="primary" disabled={isLoading}>
             {isLoading ? 'Saving...' : talent ? 'Update Talent' : 'Create Talent'}
-          </button>
-          <button type="button" className="btn-cancel" onClick={onCancel}>
+          </Button>
+          <Button variant="secondary" onClick={onCancel}>
             Cancel
-          </button>
+          </Button>
         </div>
       </form>
     </div>
@@ -180,22 +183,66 @@ function DeleteConfirmation({
       <div className="modal-content modal-sm" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Delete Talent</h3>
-          <button className="modal-close" onClick={onCancel}>×</button>
+          <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Close">×</Button>
         </div>
         <div className="modal-body">
           <p>Are you sure you want to delete <strong>{talent.name}</strong>?</p>
           <p className="text-muted">This action cannot be undone.</p>
         </div>
         <div className="modal-footer">
-          <button className="btn-danger" onClick={onConfirm} disabled={isLoading}>
+          <Button variant="danger" onClick={onConfirm} disabled={isLoading}>
             {isLoading ? 'Deleting...' : 'Delete'}
-          </button>
-          <button className="btn-cancel" onClick={onCancel}>Cancel</button>
+          </Button>
+          <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         </div>
       </div>
     </div>
   )
 }
+
+// ─── Table column definitions ─────────────────────────────────────────────────
+
+const BASE_COLUMNS: Column<Talent>[] = [
+  {
+    header: 'Name',
+    accessor: 'name',
+    render: (_, row) => <strong>{row.name}</strong>,
+  },
+  {
+    header: 'Description',
+    accessor: 'description',
+  },
+  {
+    header: 'Effect',
+    accessor: 'effect_type',
+    render: (_: unknown, row: Talent) => {
+      const parts: ReactNode[] = [
+        <span key="et" className={`talent-effect talent-effect-${row.effect_type}`}>{row.effect_type}</span>,
+      ]
+      if (row.effect_value > 0) {
+        parts.push(<span key="ev" className="talent-effect-value"> {row.effect_value}{row.effect_duration > 0 ? ` (${row.effect_duration}t)` : ''}</span>)
+      }
+      return parts
+    },
+  },
+  {
+    header: 'Requirements',
+    accessor: 'requirements',
+  },
+  {
+    header: 'Costs',
+    accessor: 'mana_cost',
+    render: (_: unknown, row: Talent) => {
+      const parts: ReactNode[] = []
+      parts.push(<span key="mp" className="cost-badge" title="Mana Cost">MP: {row.mana_cost}</span>)
+      parts.push(<span key="sp" className="cost-badge" title="Stamina Cost">SP: {row.stamina_cost}</span>)
+      if (row.cooldown > 0) {
+        parts.push(<span key="cd" className="cost-badge" title="Cooldown">CD: {row.cooldown}</span>)
+      }
+      return parts
+    },
+  },
+]
 
 function TalentsManagement() {
   const [showForm, setShowForm] = useState(false)
@@ -218,11 +265,6 @@ function TalentsManagement() {
     setEditingTalent(null)
   }
 
-  const handleEdit = (talent: Talent) => {
-    setEditingTalent(talent)
-    setShowForm(true)
-  }
-
   const handleDelete = async () => {
     if (deletingTalent) {
       await deleteTalent.mutateAsync(deletingTalent.id)
@@ -235,6 +277,20 @@ function TalentsManagement() {
     setEditingTalent(null)
   }
 
+  const columns: Column<Talent>[] = [
+    ...BASE_COLUMNS,
+    {
+      header: 'Actions',
+      accessor: '_actions',
+      render: (_: unknown, row: Talent) => (
+        <>
+          <Button variant="accent" size="sm" onClick={() => { setEditingTalent(row); setShowForm(true) }}>Edit</Button>
+          <Button variant="danger" size="sm" className="ml-2" onClick={() => setDeletingTalent(row)}>Delete</Button>
+        </>
+      ),
+    },
+  ]
+
   if (isLoading) return <div className="loading">Loading talents...</div>
   if (error) return <div className="error">Failed to load talents: {error.message}</div>
 
@@ -243,7 +299,7 @@ function TalentsManagement() {
       <PageHeader
         title="Talents Management"
         backTo="/dashboard"
-        actions={<button className="btn-primary" onClick={() => { setEditingTalent(null); setShowForm(true) }}>+ Add Talent</button>}
+        actions={<Button variant="primary" onClick={() => { setEditingTalent(null); setShowForm(true) }}>+ Add Talent</Button>}
       />
 
       {showForm && (
@@ -255,59 +311,12 @@ function TalentsManagement() {
         />
       )}
 
-      <div className="table-container">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Effect</th>
-              <th>Requirements</th>
-              <th>Costs</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {talents?.map((talent) => (
-              <tr key={talent.id}>
-                <td>
-                  <strong>{talent.name}</strong>
-                </td>
-                <td className="text-muted">{talent.description || '-'}</td>
-                <td>
-                  <span className={`talent-effect talent-effect-${talent.effect_type}`}>
-                    {talent.effect_type}
-                  </span>
-                  {talent.effect_value > 0 && (
-                    <span className="talent-effect-value">
-                      {talent.effect_value}
-                      {talent.effect_duration > 0 && ` (${talent.effect_duration}t)`}
-                    </span>
-                  )}
-                </td>
-                <td className="text-muted">{talent.requirements || '-'}</td>
-                <td>
-                  <span className="cost-badge" title="Mana Cost">MP: {talent.mana_cost}</span>
-                  <span className="cost-badge" title="Stamina Cost">SP: {talent.stamina_cost}</span>
-                  {talent.cooldown > 0 && (
-                    <span className="cost-badge" title="Cooldown">CD: {talent.cooldown}</span>
-                  )}
-                </td>
-                <td>
-                  <button onClick={() => handleEdit(talent)}>Edit</button>
-                  <button className="danger" onClick={() => setDeletingTalent(talent)}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {(!talents || talents.length === 0) && (
-          <div className="empty-state">
-            <p>No talents found. Create your first talent!</p>
-          </div>
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        data={talents ?? []}
+        getKey={(row: Talent) => row.id}
+        emptyMessage="No talents found. Create your first talent!"
+      />
 
       {deletingTalent && (
         <DeleteConfirmation

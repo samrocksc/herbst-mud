@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useUsers, useResetPassword, type User } from '../../hooks/useUsers'
 import { PageHeader } from '../../components/PageHeader'
+import { DataTable, type Column } from '../../components/DataTable'
+import { Button } from '../../components/Button'
 
 export const Route = createFileRoute('/_auth/players')({
   component: PlayersManagement,
@@ -26,11 +28,6 @@ function PlayersManagement() {
     }
   }
 
-  const handleRowClick = (user: User) => {
-    setSelectedUser(user)
-    setShowDetail(true)
-  }
-
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -40,6 +37,41 @@ function PlayersManagement() {
       minute: '2-digit'
     })
   }
+
+  const columns: Column<User>[] = [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Email', accessor: 'email' },
+    {
+      header: 'Role',
+      accessor: 'is_admin',
+      render: (val: unknown) =>
+        val
+          ? <span className="badge badge-admin">Admin</span>
+          : <span className="badge badge-player">Player</span>,
+    },
+    {
+      header: 'Created',
+      accessor: 'created_at',
+      render: (val: unknown) => formatDate(String(val ?? '')),
+    },
+    {
+      header: 'Actions',
+      accessor: '_actions',
+      render: (_: unknown, row: User) => (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleResetPassword(row)
+          }}
+          disabled={resetPassword.isPending}
+        >
+          Reset Password
+        </Button>
+      ),
+    },
+  ]
 
   if (isLoading) return <div className="loading">Loading players...</div>
   if (error) return <div className="error">Failed to load players: {error.message}</div>
@@ -51,51 +83,20 @@ function PlayersManagement() {
       {resetSuccess && <div className="success-message">{resetSuccess}</div>}
       {resetError && <div className="error-message">{resetError}</div>}
 
-      <div className="players-table-container">
-        <table className="players-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Email</th>
-              <th>Admin</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users?.map((user) => (
-              <tr key={user.id} onClick={() => handleRowClick(user)} className="clickable-row">
-                <td>{user.id}</td>
-                <td>{user.email}</td>
-                <td>
-                  {user.is_admin ? (
-                    <span className="badge badge-admin">Admin</span>
-                  ) : (
-                    <span className="badge badge-player">Player</span>
-                  )}
-                </td>
-                <td>{formatDate(user.created_at)}</td>
-                <td onClick={(e) => e.stopPropagation()}>
-                  <button
-                    className="btn-reset"
-                    onClick={() => handleResetPassword(user)}
-                    disabled={resetPassword.isPending}
-                  >
-                    Reset Password
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={users ?? []}
+        getKey={(row: User) => row.id}
+        onRowClick={(row: User) => { setSelectedUser(row); setShowDetail(true) }}
+        emptyMessage="No players found."
+      />
 
       {showDetail && selectedUser && (
         <div className="modal-overlay" onClick={() => setShowDetail(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Player Details</h3>
-              <button className="modal-close" onClick={() => setShowDetail(false)}>×</button>
+              <Button variant="ghost" size="sm" aria-label="Close" onClick={() => setShowDetail(false)}>×</Button>
             </div>
             <div className="modal-body">
               <div className="detail-row">
@@ -120,12 +121,12 @@ function PlayersManagement() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn-reset" onClick={() => handleResetPassword(selectedUser)}>
+              <Button variant="secondary" size="sm" onClick={() => handleResetPassword(selectedUser)}>
                 Reset Password
-              </button>
-              <button className="btn-cancel" onClick={() => setShowDetail(false)}>
+              </Button>
+              <Button variant="secondary" onClick={() => setShowDetail(false)}>
                 Close
-              </button>
+              </Button>
             </div>
           </div>
         </div>

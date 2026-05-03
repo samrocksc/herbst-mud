@@ -1,13 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
 
-const API_BASE = `${window.location.origin}`
+const API = `${window.location.origin}`
 
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
-export interface Ability {
+export type Ability = Readonly<{
   id: number
   name: string
   description: string
@@ -30,9 +26,9 @@ export interface Ability {
   proc_chance: number
   proc_event: string
   faction_skills: number | null
-}
+}>
 
-export interface AbilityInput {
+export type AbilityInput = Readonly<{
   id?: number
   name: string
   description: string
@@ -53,9 +49,9 @@ export interface AbilityInput {
   proc_event: string
   skill_class: string
   required_tag: string
-}
+}>
 
-function parseAbilityForApi(input: AbilityInput): Record<string, unknown> {
+function parseForApi(input: AbilityInput): Record<string, unknown> {
   return {
     name: input.name,
     description: input.description,
@@ -85,13 +81,9 @@ export function useAbilities(filters?: { type?: string }) {
     queryFn: async (): Promise<Ability[]> => {
       const params = new URLSearchParams()
       if (filters?.type) params.append('type', filters.type)
-
-      const url = `${API_BASE}/skills${params.toString() ? '?' + params.toString() : ''}`
-      const response = await fetch(url, { headers: authHeaders() })
-      if (!response.ok) throw new Error('Failed to fetch abilities')
-      const data = await response.json()
-      return data.skills ?? []
-    }
+      const url = `${API}/skills${params.toString() ? '?' + params.toString() : ''}`
+      return apiGet<Ability[]>(url)
+    },
   })
 }
 
@@ -100,65 +92,37 @@ export function useAbility(id: number | null) {
     queryKey: ['ability', id],
     queryFn: async (): Promise<Ability | null> => {
       if (!id) return null
-      const response = await fetch(`${API_BASE}/skills/${id}`, { headers: authHeaders() })
-      if (!response.ok) throw new Error('Failed to fetch ability')
-      return response.json()
+      return apiGet<Ability>(`${API}/skills/${id}`)
     },
-    enabled: !!id
+    enabled: !!id,
   })
 }
 
 export function useCreateAbility() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (input: AbilityInput): Promise<Ability> => {
-      const body = parseAbilityForApi(input)
-      const response = await fetch(`${API_BASE}/skills`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body)
-      })
-      if (!response.ok) throw new Error('Failed to create ability')
-      return response.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['abilities'] })
-    }
+    mutationFn: (input: AbilityInput) =>
+      apiPost<Ability>(`${API}/skills`, parseForApi(input)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['abilities'] }),
   })
 }
 
 export function useUpdateAbility() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, input }: { id: number; input: AbilityInput }): Promise<Ability> => {
-      const body = parseAbilityForApi(input)
-      const response = await fetch(`${API_BASE}/skills/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body)
-      })
-      if (!response.ok) throw new Error('Failed to update ability')
-      return response.json()
-    },
+    mutationFn: ({ id, input }: { id: number; input: AbilityInput }) =>
+      apiPut<Ability>(`${API}/skills/${id}`, parseForApi(input)),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['abilities'] })
-      queryClient.invalidateQueries({ queryKey: ['ability', id] })
-    }
+      qc.invalidateQueries({ queryKey: ['abilities'] })
+      qc.invalidateQueries({ queryKey: ['ability', id] })
+    },
   })
 }
 
 export function useDeleteAbility() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: number): Promise<void> => {
-      const response = await fetch(`${API_BASE}/skills/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders()
-      })
-      if (!response.ok) throw new Error('Failed to delete ability')
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['abilities'] })
-    }
+    mutationFn: (id: number) => apiDelete(`${API}/skills/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['abilities'] }),
   })
 }

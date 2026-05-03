@@ -1,52 +1,36 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost } from '../utils/apiFetch'
 
-const API_BASE = `${window.location.origin}`
+const API = `${window.location.origin}`
 
-export interface User {
+export type User = Readonly<{
   id: number
   email: string
   is_admin: boolean
   created_at: string
   character_name?: string
-}
+}>
 
 export function useUsers() {
   return useQuery({
     queryKey: ['users'],
-    queryFn: async (): Promise<User[]> => {
-      const response = await fetch(`${API_BASE}/users`)
-      if (!response.ok) throw new Error('Failed to fetch users')
-      return response.json()
-    }
+    queryFn: () => apiGet<User[]>(`${API}/users`),
   })
 }
 
 export function useUser(id: number | null) {
   return useQuery({
     queryKey: ['user', id],
-    queryFn: async (): Promise<User | null> => {
-      if (!id) return null
-      const response = await fetch(`${API_BASE}/users/${id}`)
-      if (!response.ok) throw new Error('Failed to fetch user')
-      return response.json()
-    },
-    enabled: !!id
+    queryFn: () => (id ? apiGet<User>(`${API}/users/${id}`) : null),
+    enabled: !!id,
   })
 }
 
 export function useResetPassword() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: number): Promise<{ message: string }> => {
-      const response = await fetch(`${API_BASE}/users/${id}/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      if (!response.ok) throw new Error('Failed to reset password')
-      return response.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
-    }
+    mutationFn: (id: number) =>
+      apiPost<{ message: string }>(`${API}/users/${id}/reset-password`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   })
 }

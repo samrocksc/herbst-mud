@@ -1,4 +1,5 @@
 import { Modal } from '../Modal'
+import { Button } from '../Button'
 
 type CreateRoomModalProps = {
   isOpen: boolean
@@ -24,7 +25,9 @@ export function CreateRoomModal({
         <input
           type="text"
           value={newRoomForm.name}
-          onChange={e => setNewRoomForm({ ...newRoomForm, name: e.target.value })}
+          onChange={(e) =>
+            setNewRoomForm({ ...newRoomForm, name: e.target.value })
+          }
           placeholder="Enter room name"
           className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
         />
@@ -33,26 +36,27 @@ export function CreateRoomModal({
         <label className="text-text-muted text-xs block mb-1">Description</label>
         <textarea
           value={newRoomForm.description}
-          onChange={e => setNewRoomForm({ ...newRoomForm, description: e.target.value })}
+          onChange={(e) =>
+            setNewRoomForm({ ...newRoomForm, description: e.target.value })
+          }
           placeholder="Enter room description"
           rows={4}
           className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y"
         />
       </div>
       <div className="flex gap-2">
-        <button
+        <Button
+          variant="primary"
+          size="md"
+          fullWidth
           onClick={onCreate}
           disabled={creating}
-          className="flex-1 p-2 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70"
         >
           {creating ? 'Creating...' : 'Create Room'}
-        </button>
-        <button
-          onClick={onClose}
-          className="flex-1 p-2 bg-surface-dark border border-border rounded text-text-muted cursor-pointer"
-        >
+        </Button>
+        <Button variant="secondary" size="md" fullWidth onClick={onClose}>
           Cancel
-        </button>
+        </Button>
       </div>
     </Modal>
   )

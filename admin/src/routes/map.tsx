@@ -8,6 +8,8 @@ import { RoomDetailPanel } from '../components/map/RoomDetailPanel'
 import { RoomEditor } from '../components/map/RoomEditor'
 import { CreateRoomModal } from '../components/map/CreateRoomModal'
 import { DIRECTION_OFFSETS, OPPOSITE_DIR, ALL_DIRECTIONS } from '../components/map/DirectionUtils'
+import { MenuIcon } from '../components/icons/MenuIcon'
+import { Button } from '../components/Button'
 import type { Room, NPC, Equipment } from '../components/map/types'
 
 export const Route = createFileRoute('/map')({
@@ -28,6 +30,7 @@ function MapBuilder() {
   const [saving, setSaving] = useState(false)
   const [creating, setCreating] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', description: '', exits: {} as Record<string, string> })
   const [newRoomForm, setNewRoomForm] = useState({ name: '', description: '' })
 
@@ -281,16 +284,43 @@ function MapBuilder() {
 
   return (
     <div className="flex h-screen bg-surface">
-      <MapSidebar
-        rooms={rooms}
-        npcs={npcs}
-        zLevels={zLevels}
-        currentZLevel={currentZLevel}
-        selectedRoom={selectedRoom}
-        setCurrentZLevel={setCurrentZLevel}
-        setSelectedRoom={setSelectedRoom}
-        setShowCreateModal={setShowCreateModal}
-      />
+      {/* Mobile hamburger */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open map sidebar"
+        className="fixed top-3 left-3 z-50 p-2 bg-surface border border-border text-text-muted hover:bg-surface-muted hover:text-text lg:hidden"
+      >
+        <MenuIcon stroke="currentColor" />
+      </Button>
+
+      {/* Sidebar overlay (mobile) / always-visible (desktop) */}
+      <div className={['lg:block lg:relative lg:inset-auto lg:z-auto', sidebarOpen ? 'block' : 'hidden'].join(' ')}>
+        <div className="fixed inset-y-0 left-0 z-40 lg:static">
+          <MapSidebar
+            rooms={rooms}
+            npcs={npcs}
+            zLevels={zLevels}
+            currentZLevel={currentZLevel}
+            selectedRoom={selectedRoom}
+            setCurrentZLevel={setCurrentZLevel}
+            setSelectedRoom={(room) => {
+              setSelectedRoom(room)
+              setSidebarOpen(false)
+            }}
+            setShowCreateModal={setShowCreateModal}
+          />
+        </div>
+      </div>
+
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       <div className="flex-1 overflow-hidden relative">
         <MapToolbar currentZLevel={currentZLevel} zoom={zoom} setZoom={setZoom} />

@@ -7,7 +7,7 @@ function authHeaders(): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-export interface Skill {
+export type Skill = Readonly<{
   id: number
   name: string
   description: string
@@ -20,9 +20,9 @@ export interface Skill {
   stamina_cost: number
   classless: boolean
   effects?: Record<string, unknown>
-}
+}>
 
-export interface SkillInput {
+export type SkillInput = Readonly<{
   id?: number
   name: string
   description: string
@@ -35,7 +35,7 @@ export interface SkillInput {
   stamina_cost: number
   classless: boolean
   effects?: string
-}
+}>
 
 function parseSkillForApi(input: SkillInput): Omit<Skill, 'id'> {
   return {

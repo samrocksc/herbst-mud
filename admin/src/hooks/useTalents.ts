@@ -2,7 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 const API_BASE = `${window.location.origin}`
 
-export interface Talent {
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+export type Talent = Readonly<{
   id: number
   name: string
   description: string
@@ -13,9 +18,9 @@ export interface Talent {
   cooldown: number
   mana_cost: number
   stamina_cost: number
-}
+}>
 
-export interface TalentInput {
+export type TalentInput = Readonly<{
   id?: number
   name: string
   description: string
@@ -26,7 +31,7 @@ export interface TalentInput {
   cooldown: number
   mana_cost: number
   stamina_cost: number
-}
+}>
 
 function parseTalentForApi(input: TalentInput): Omit<Talent, 'id'> {
   return {
@@ -50,7 +55,7 @@ export function useTalents(filters?: { effectType?: string }) {
       if (filters?.effectType) params.append('effectType', filters.effectType)
 
       const url = `${API_BASE}/talents${params.toString() ? '?' + params.toString() : ''}`
-      const response = await fetch(url)
+      const response = await fetch(url, { headers: authHeaders() })
       if (!response.ok) throw new Error('Failed to fetch talents')
       const data = await response.json()
       return data.talents ?? []
@@ -63,7 +68,7 @@ export function useTalent(id: number | null) {
     queryKey: ['talent', id],
     queryFn: async (): Promise<Talent | null> => {
       if (!id) return null
-      const response = await fetch(`${API_BASE}/talents/${id}`)
+      const response = await fetch(`${API_BASE}/talents/${id}`, { headers: authHeaders() })
       if (!response.ok) throw new Error('Failed to fetch talent')
       return response.json()
     },
@@ -78,7 +83,7 @@ export function useCreateTalent() {
       const body = parseTalentForApi(input)
       const response = await fetch(`${API_BASE}/talents`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(body),
       })
       if (!response.ok) throw new Error('Failed to create talent')
@@ -95,7 +100,7 @@ export function useUpdateTalent() {
       const body = parseTalentForApi(input)
       const response = await fetch(`${API_BASE}/talents/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(body),
       })
       if (!response.ok) throw new Error('Failed to update talent')
@@ -112,7 +117,7 @@ export function useDeleteTalent() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: number): Promise<void> => {
-      const response = await fetch(`${API_BASE}/talents/${id}`, { method: 'DELETE' })
+      const response = await fetch(`${API_BASE}/talents/${id}`, { method: 'DELETE', headers: authHeaders() })
       if (!response.ok) throw new Error('Failed to delete talent')
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['talents'] }),

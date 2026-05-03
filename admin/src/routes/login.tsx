@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { Button } from '../components/Button'
 
 export const Route = createFileRoute('/login')({
   component: Login,
@@ -70,12 +71,13 @@ function Login() {
             className="w-full p-2 bg-surface border border-border rounded text-text"
           />
         </div>
-        <button
+        <Button
           type="submit" disabled={loading}
-          className="w-full py-3 bg-primary border-2 border-black rounded text-white cursor-pointer disabled:opacity-70 hover:bg-primary-hover"
+          variant="primary"
+          fullWidth
         >
           {loading ? 'Logging in...' : 'Login'}
-        </button>
+        </Button>
       </form>
     </div>
   )
