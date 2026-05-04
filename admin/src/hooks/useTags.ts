@@ -11,6 +11,20 @@ export type TagInput = Readonly<{
   color: string
 }>
 
+export type TagUsage = Readonly<{
+  id: number
+  name: string
+  type: string
+}>
+
+export type TagUsageReport = Readonly<{
+  tag_name: string
+  total_usages: number
+  skills: TagUsage[]
+  factions: TagUsage[]
+  characters: TagUsage[]
+}>
+
 const API = '/api/tags'
 
 function getToken() {
@@ -78,4 +92,18 @@ export function useTags() {
   }, [])
 
   return { tags, loading, error, createTag, updateTag, deleteTag, refetch: fetchTags }
+}
+
+export async function fetchTagUsages(id: number): Promise<TagUsageReport> {
+  const res = await fetch(`${API}/${id}/usages`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+    },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(err.error ?? `HTTP ${res.status}`)
+  }
+  return res.json() as Promise<TagUsageReport>
 }

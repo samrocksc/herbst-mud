@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useTags, type Tag, type TagInput } from '../../hooks/useTags'
+import { useTags, type Tag, type TagInput, fetchTagUsages, type TagUsageReport } from '../../hooks/useTags'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
@@ -17,6 +17,87 @@ function ColorDot({ color }: { color: string }) {
       className="inline-block w-3 h-3 rounded-full shrink-0"
       style={{ backgroundColor: color || DEFAULT_COLOR }}
     />
+  )
+}
+
+function TagUsagesPanel({
+  tag,
+  report,
+  onClose,
+}: {
+  tag: Tag
+  report: TagUsageReport
+  onClose: () => void
+}) {
+  const hasUsages =
+    report.skills.length > 0 || report.factions.length > 0 || report.characters.length > 0
+
+  return (
+    <div className="form-card" style={{ marginTop: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ margin: 0 }}>
+          <ColorDot color={tag.color} />
+          <span style={{ marginLeft: '0.5rem' }}>{tag.name}</span>
+        </h3>
+        <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close usages panel">
+          ×
+        </Button>
+      </div>
+
+      {!hasUsages && (
+        <div className="empty-state">
+          <p className="text-muted">This tag is orphaned — no entities reference it.</p>
+        </div>
+      )}
+
+      {report.skills.length > 0 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0' }}>Skills ({report.skills.length})</h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {report.skills.map((s) => (
+              <li key={`skill-${s.id}`} style={{ padding: '0.25rem 0' }}>
+                <span className="badge badge-accent" style={{ marginRight: '0.5rem' }}>skill</span>
+                <a href={`/abilities?id=${s.id}`} style={{ color: 'var(--color-accent)' }}>
+                  {s.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {report.factions.length > 0 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0' }}>Factions ({report.factions.length})</h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {report.factions.map((f) => (
+              <li key={`faction-${f.id}`} style={{ padding: '0.25rem 0' }}>
+                <span className="badge badge-primary" style={{ marginRight: '0.5rem' }}>faction</span>
+                <a href={`/factions?id=${f.id}`} style={{ color: 'var(--color-primary)' }}>
+                  {f.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {report.characters.length > 0 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0' }}>Characters ({report.characters.length})</h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {report.characters.map((ch) => (
+              <li key={`char-${ch.id}`} style={{ padding: '0.25rem 0' }}>
+                <span className="badge badge-success" style={{ marginRight: '0.5rem' }}>character</span>
+                <a href={`/characters?id=${ch.id}`} style={{ color: 'var(--color-success)' }}>
+                  {ch.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -98,6 +179,9 @@ function TagsManagement() {
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [selectedTag, setSelectedTag] = useState<Tag | null>(null)
+  const [usageReport, setUsageReport] = useState<TagUsageReport | null>(null)
+  const [loadingUsages, setLoadingUsages] = useState(false)
 
   const handleCreate = async (input: TagInput) => {
     setSaving(true)
@@ -115,6 +199,10 @@ function TagsManagement() {
     try {
       await updateTag(editingTag.id, input)
       setEditingTag(null)
+      // Refresh usage panel if open
+      if (selectedTag?.id === editingTag.id) {
+        await handleViewUsages(editingTag)
+      }
     } finally {
       setSaving(false)
     }
@@ -125,8 +213,37 @@ function TagsManagement() {
     try {
       await deleteTag(id)
       setConfirmDelete(null)
+      if (selectedTag?.id === id) {
+        setSelectedTag(null)
+        setUsageReport(null)
+      }
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleViewUsages = async (tag: Tag) => {
+    if (selectedTag?.id === tag.id) {
+      // Toggle off if already open
+      setSelectedTag(null)
+      setUsageReport(null)
+      return
+    }
+    setLoadingUsages(true)
+    setSelectedTag(tag)
+    try {
+      const report = await fetchTagUsages(tag.id)
+      setUsageReport(report)
+    } catch (e) {
+      setUsageReport({
+        tag_name: tag.name,
+        total_usages: 0,
+        skills: [],
+        factions: [],
+        characters: [],
+      })
+    } finally {
+      setLoadingUsages(false)
     }
   }
 
@@ -147,6 +264,23 @@ function TagsManagement() {
       render: (val: unknown) => val ? (
         <code style={{ fontSize: '0.75rem', color: 'var(--color-accent)' }}>{String(val)}</code>
       ) : <span className="text-muted">—</span>,
+    },
+    {
+      header: 'Usage',
+      accessor: 'id',
+      render: (_, row) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => { e.stopPropagation(); void handleViewUsages(row) }}
+          aria-label={`View usages for ${row.name}`}
+        >
+          {selectedTag?.id === row.id && loadingUsages
+            ? 'Loading…'
+            : 'View Usages'
+          }
+        </Button>
+      ),
     },
     {
       header: '',
@@ -217,6 +351,14 @@ function TagsManagement() {
         getKey={(row) => row.id}
         emptyMessage="No tags yet. Create one above."
       />
+
+      {selectedTag && usageReport && (
+        <TagUsagesPanel
+          tag={selectedTag}
+          report={usageReport}
+          onClose={() => { setSelectedTag(null); setUsageReport(null) }}
+        />
+      )}
 
       {confirmDelete !== null && (
         <div className="modal-overlay">
