@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '../../components/Button'
+import { DataTable, type Column } from '../../components/DataTable'
 
 export const Route = createFileRoute('/_auth/factions')({
   component: FactionsManagement,
@@ -193,6 +194,22 @@ function FactionsManagement() {
       alert('Failed to delete category')
     }
   }, [fetchCategories])
+
+  const categoryColumns: Column<FactionCategory>[] = [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Name', accessor: 'name', className: 'font-bold' },
+    { header: 'Description', accessor: 'description' },
+    {
+      header: '',
+      accessor: 'id',
+      align: 'right',
+      render: (_, row) => (
+        <Button variant="danger" size="sm" onClick={() => handleDeleteCategory(row.id)}>
+          Delete
+        </Button>
+      ),
+    },
+  ]
 
   const startEditing = (faction: Faction) => {
     setEditingFaction(faction)
@@ -536,39 +553,12 @@ function FactionsManagement() {
         {tab === 'categories' && !showCreateCategory && (
           <div className="max-w-[600px] mx-auto">
             <h2 className="mt-0 mb-4 text-text">Faction Categories</h2>
-            <div className="bg-surface-muted rounded-lg border border-border overflow-hidden">
-              <table className="w-full text-text text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-surface-muted">
-                    <th className="text-left p-3">ID</th>
-                    <th className="text-left p-3">Name</th>
-                    <th className="text-left p-3">Description</th>
-                    <th className="text-right p-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {categories.map(c => (
-                    <tr key={c.id} className="border-b border-border last:border-0">
-                      <td className="p-3">{c.id}</td>
-                      <td className="p-3 font-bold">{c.name}</td>
-                      <td className="p-3 text-text-muted">{c.description || '—'}</td>
-                      <td className="p-3 text-right">
-                        <Button variant="danger" size="sm" onClick={() => handleDeleteCategory(c.id)}>
-                          Delete
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  {categories.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="p-8 text-center text-text-muted">
-                        No categories yet
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={categoryColumns}
+              data={categories}
+              getKey={(c) => c.id}
+              emptyMessage="No categories yet"
+            />
           </div>
         )}
       </div>

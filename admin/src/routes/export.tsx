@@ -9,10 +9,10 @@ export const Route = createFileRoute('/export')({
 type ExportData = Readonly<{
   version: string
   exported_at: string
-  rooms: unknown[]
-  npcs: unknown[]
-  skills: unknown[]
-  items: unknown[]
+  rooms: readonly unknown[]
+  npcs: readonly unknown[]
+  skills: readonly unknown[]
+  items: readonly unknown[]
 }>
 
 function ExportPage() {
