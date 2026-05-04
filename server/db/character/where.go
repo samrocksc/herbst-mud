@@ -4,6 +4,7 @@ package character
 
 import (
 	"herbst-server/db/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -157,6 +158,11 @@ func Level(v int) predicate.Character {
 // Xp applies equality check predicate on the "xp" field. It's identical to XpEQ.
 func Xp(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldXp, v))
+}
+
+// DiedAt applies equality check predicate on the "died_at" field. It's identical to DiedAtEQ.
+func DiedAt(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldDiedAt, v))
 }
 
 // Constitution applies equality check predicate on the "constitution" field. It's identical to ConstitutionEQ.
@@ -1147,6 +1153,56 @@ func XpLT(v int) predicate.Character {
 // XpLTE applies the LTE predicate on the "xp" field.
 func XpLTE(v int) predicate.Character {
 	return predicate.Character(sql.FieldLTE(FieldXp, v))
+}
+
+// DiedAtEQ applies the EQ predicate on the "died_at" field.
+func DiedAtEQ(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldDiedAt, v))
+}
+
+// DiedAtNEQ applies the NEQ predicate on the "died_at" field.
+func DiedAtNEQ(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldDiedAt, v))
+}
+
+// DiedAtIn applies the In predicate on the "died_at" field.
+func DiedAtIn(vs ...time.Time) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldDiedAt, vs...))
+}
+
+// DiedAtNotIn applies the NotIn predicate on the "died_at" field.
+func DiedAtNotIn(vs ...time.Time) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldDiedAt, vs...))
+}
+
+// DiedAtGT applies the GT predicate on the "died_at" field.
+func DiedAtGT(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldDiedAt, v))
+}
+
+// DiedAtGTE applies the GTE predicate on the "died_at" field.
+func DiedAtGTE(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldDiedAt, v))
+}
+
+// DiedAtLT applies the LT predicate on the "died_at" field.
+func DiedAtLT(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldDiedAt, v))
+}
+
+// DiedAtLTE applies the LTE predicate on the "died_at" field.
+func DiedAtLTE(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldDiedAt, v))
+}
+
+// DiedAtIsNil applies the IsNil predicate on the "died_at" field.
+func DiedAtIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldDiedAt))
+}
+
+// DiedAtNotNil applies the NotNil predicate on the "died_at" field.
+func DiedAtNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldDiedAt))
 }
 
 // ConstitutionEQ applies the EQ predicate on the "constitution" field.

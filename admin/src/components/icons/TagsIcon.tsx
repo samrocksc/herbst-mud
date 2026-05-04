@@ -2,6 +2,8 @@ export function TagsIcon({ className = '' }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -10,8 +12,9 @@ export function TagsIcon({ className = '' }: { className?: string }) {
       strokeLinejoin="round"
       className={className}
     >
-      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-      <line x1="7" y1="7" x2="7.01" y2="7" />
+      <path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z" />
+      <path d="M6 9.01V9" />
+      <path d="m15 5 6.3 6.29a2.4 2.4 0 0 1 0 3.42l-3.58 3.58a2.4 2.4 0 0 1-3.42 0L8 12" />
     </svg>
   )
 }

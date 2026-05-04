@@ -35,9 +35,9 @@ type NPCTemplate struct {
 	TradesWith []string `json:"trades_with,omitempty"`
 	// Greeting holds the value of the "greeting" field.
 	Greeting string `json:"greeting,omitempty"`
-	// Array of room IDs where this NPC can respawn
+	// Array of room IDs where this NPC can respawn (nil or empty = no respawn)
 	RespawnRooms []string `json:"respawn_rooms,omitempty"`
-	// Seconds before this NPC respawns after death (0 = no respawn)
+	// Seconds before this NPC respawns after death (0 = immediate, nil = default 60)
 	RespawnCooldown int `json:"respawn_cooldown,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NPCTemplateQuery when eager-loading is set.

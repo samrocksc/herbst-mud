@@ -74,6 +74,7 @@ var (
 		{Name: "specialty", Type: field.TypeString, Nullable: true},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "xp", Type: field.TypeInt, Default: 0},
+		{Name: "died_at", Type: field.TypeTime, Nullable: true},
 		{Name: "constitution", Type: field.TypeInt, Default: 10},
 		{Name: "gender", Type: field.TypeString, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true},
@@ -103,25 +104,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[37]},
+				Columns:    []*schema.Column{CharactersColumns[38]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[38]},
+				Columns:    []*schema.Column{CharactersColumns[39]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[39]},
+				Columns:    []*schema.Column{CharactersColumns[40]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[40]},
+				Columns:    []*schema.Column{CharactersColumns[41]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -458,8 +459,8 @@ var (
 		{Name: "skills", Type: field.TypeJSON},
 		{Name: "trades_with", Type: field.TypeJSON},
 		{Name: "greeting", Type: field.TypeString, Size: 2147483647},
-		{Name: "respawn_rooms", Type: field.TypeJSON},
-		{Name: "respawn_cooldown", Type: field.TypeInt, Default: 60},
+		{Name: "respawn_rooms", Type: field.TypeJSON, Nullable: true},
+		{Name: "respawn_cooldown", Type: field.TypeInt, Nullable: true, Default: 60},
 	}
 	// NpcTemplatesTable holds the schema information for the "npc_templates" table.
 	NpcTemplatesTable = &schema.Table{

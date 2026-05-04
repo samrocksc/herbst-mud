@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/room"
 	"herbst-server/db/user"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -61,6 +62,8 @@ type Character struct {
 	Level int `json:"level,omitempty"`
 	// Current accumulated experience points
 	Xp int `json:"xp,omitempty"`
+	// When this NPC died (nil if alive or a player character)
+	DiedAt *time.Time `json:"died_at,omitempty"`
 	// Constitution holds the value of the "constitution" field.
 	Constitution int `json:"constitution,omitempty"`
 	// Gender holds the value of the "gender" field.
@@ -225,6 +228,8 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case character.FieldName, character.FieldPassword, character.FieldNpcSkillID, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
+		case character.FieldDiedAt:
+			values[i] = new(sql.NullTime)
 		case character.ForeignKeys[0]: // character_npc_template
 			values[i] = new(sql.NullString)
 		case character.ForeignKeys[1]: // room_characters
@@ -377,6 +382,13 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field xp", values[i])
 			} else if value.Valid {
 				_m.Xp = int(value.Int64)
+			}
+		case character.FieldDiedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field died_at", values[i])
+			} else if value.Valid {
+				_m.DiedAt = new(time.Time)
+				*_m.DiedAt = value.Time
 			}
 		case character.FieldConstitution:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -638,6 +650,11 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("xp=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Xp))
+	builder.WriteString(", ")
+	if v := _m.DiedAt; v != nil {
+		builder.WriteString("died_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("constitution=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Constitution))

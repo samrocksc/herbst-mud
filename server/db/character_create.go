@@ -16,6 +16,7 @@ import (
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -294,6 +295,20 @@ func (_c *CharacterCreate) SetXp(v int) *CharacterCreate {
 func (_c *CharacterCreate) SetNillableXp(v *int) *CharacterCreate {
 	if v != nil {
 		_c.SetXp(*v)
+	}
+	return _c
+}
+
+// SetDiedAt sets the "died_at" field.
+func (_c *CharacterCreate) SetDiedAt(v time.Time) *CharacterCreate {
+	_c.mutation.SetDiedAt(v)
+	return _c
+}
+
+// SetNillableDiedAt sets the "died_at" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableDiedAt(v *time.Time) *CharacterCreate {
+	if v != nil {
+		_c.SetDiedAt(*v)
 	}
 	return _c
 }
@@ -1020,6 +1035,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Xp(); ok {
 		_spec.SetField(character.FieldXp, field.TypeInt, value)
 		_node.Xp = value
+	}
+	if value, ok := _c.mutation.DiedAt(); ok {
+		_spec.SetField(character.FieldDiedAt, field.TypeTime, value)
+		_node.DiedAt = &value
 	}
 	if value, ok := _c.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)

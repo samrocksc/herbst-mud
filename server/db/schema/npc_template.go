@@ -34,11 +34,12 @@ func (NPCTemplate) Fields() []ent.Field {
 		field.Strings("trades_with"),
 		field.Text("greeting"),
 		field.JSON("respawn_rooms", []string{}).
-			Default(DefaultRespawnRooms).
-			Comment("Array of room IDs where this NPC can respawn"),
+			Optional().
+			Comment("Array of room IDs where this NPC can respawn (nil or empty = no respawn)"),
 		field.Int("respawn_cooldown").
+			Optional().
 			Default(60).
-			Comment("Seconds before this NPC respawns after death (0 = no respawn)"),
+			Comment("Seconds before this NPC respawns after death (0 = immediate, nil = default 60)"),
 	}
 }
 

@@ -84,8 +84,6 @@ var (
 	DefaultLevel int
 	// DefaultXpValue holds the default value on creation for the "xp_value" field.
 	DefaultXpValue int
-	// DefaultRespawnRooms holds the default value on creation for the "respawn_rooms" field.
-	DefaultRespawnRooms []string
 	// DefaultRespawnCooldown holds the default value on creation for the "respawn_cooldown" field.
 	DefaultRespawnCooldown int
 )

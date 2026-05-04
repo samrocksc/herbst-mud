@@ -24,7 +24,7 @@ func RegisterEventRoutes(router *gin.Engine, client *db.Client, logger *slog.Log
 
 	// Wire up subscribers — these stay in memory for the lifetime of the process.
 	xpSvc := newXPService(client, logger)
-	bus.Subscribe(events.EventNPCDefeated, events.XPSubscriber(xpSvc, logger))
+	bus.Subscribe(events.EventNPCDefeated, events.DefeatXPSubscriber(xpSvc, client, logger))
 	bus.Subscribe(events.EventCharacterDied, events.DeathPenaltySubscriber(xpSvc, logger, 10)) // 10% death penalty
 	bus.Subscribe(events.EventQuestComplete, events.QuestXPSubscriber(xpSvc, logger))
 

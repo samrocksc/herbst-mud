@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/constants"
@@ -21,6 +22,7 @@ import (
 	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"herbst-server/dbinit"
+	"herbst-server/events"
 	"herbst-server/services"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -1586,7 +1588,8 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		var req struct {
-			Damage int `json:"damage" binding:"required"`
+			Damage     int `json:"damage" binding:"required"`
+			AttackerID int `json:"attacker_id"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -1639,16 +1642,47 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			newHP = 0
 		}
 
-		// Update character HP
-		updatedChar, err := client.Character.UpdateOneID(id).
-			SetHitpoints(newHP).
-			Save(c.Request.Context())
+		// Update character HP (and died_at if NPC is defeated)
+		builder := client.Character.UpdateOneID(id).
+			SetHitpoints(newHP)
+		if newHP == 0 && char.IsNPC {
+			builder.SetDiedAt(time.Now())
+		}
+		updatedChar, err := builder.Save(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		// Log damage contribution for XP split later
+		if req.AttackerID > 0 {
+			_, err = client.DamageLog.Create().
+				SetAttackerID(req.AttackerID).
+				SetTargetID(id).
+				SetDamage(req.Damage).
+				Save(c.Request.Context())
+			if err != nil {
+				log.Printf("ERROR: failed to log damage: %v", err)
+				// non-fatal — combat still proceeds
+			}
+		}
+
 		defeated := newHP == 0
+
+		// Publish defeat event when an NPC hits 0 HP
+		if defeated && updatedChar.IsNPC {
+			// Default: derive xp from level * 100
+			baseXP := updatedChar.Level * 100
+			events.Publish(events.Event{
+				Type:    events.EventNPCDefeated,
+				Payload: map[string]interface{}{
+					"npc_id":    updatedChar.ID,
+					"npc_level": updatedChar.Level,
+					"base_xp":   baseXP,
+				},
+				Timestamp: time.Now().UnixMilli(),
+			})
+		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"id":       updatedChar.ID,

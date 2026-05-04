@@ -171,6 +171,12 @@ func (_u *NPCTemplateUpdate) AppendRespawnRooms(v []string) *NPCTemplateUpdate {
 	return _u
 }
 
+// ClearRespawnRooms clears the value of the "respawn_rooms" field.
+func (_u *NPCTemplateUpdate) ClearRespawnRooms() *NPCTemplateUpdate {
+	_u.mutation.ClearRespawnRooms()
+	return _u
+}
+
 // SetRespawnCooldown sets the "respawn_cooldown" field.
 func (_u *NPCTemplateUpdate) SetRespawnCooldown(v int) *NPCTemplateUpdate {
 	_u.mutation.ResetRespawnCooldown()
@@ -189,6 +195,12 @@ func (_u *NPCTemplateUpdate) SetNillableRespawnCooldown(v *int) *NPCTemplateUpda
 // AddRespawnCooldown adds value to the "respawn_cooldown" field.
 func (_u *NPCTemplateUpdate) AddRespawnCooldown(v int) *NPCTemplateUpdate {
 	_u.mutation.AddRespawnCooldown(v)
+	return _u
+}
+
+// ClearRespawnCooldown clears the value of the "respawn_cooldown" field.
+func (_u *NPCTemplateUpdate) ClearRespawnCooldown() *NPCTemplateUpdate {
+	_u.mutation.ClearRespawnCooldown()
 	return _u
 }
 
@@ -328,11 +340,17 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			sqljson.Append(u, npctemplate.FieldRespawnRooms, value)
 		})
 	}
+	if _u.mutation.RespawnRoomsCleared() {
+		_spec.ClearField(npctemplate.FieldRespawnRooms, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.RespawnCooldown(); ok {
 		_spec.SetField(npctemplate.FieldRespawnCooldown, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedRespawnCooldown(); ok {
 		_spec.AddField(npctemplate.FieldRespawnCooldown, field.TypeInt, value)
+	}
+	if _u.mutation.RespawnCooldownCleared() {
+		_spec.ClearField(npctemplate.FieldRespawnCooldown, field.TypeInt)
 	}
 	if _u.mutation.NpcSkillsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -541,6 +559,12 @@ func (_u *NPCTemplateUpdateOne) AppendRespawnRooms(v []string) *NPCTemplateUpdat
 	return _u
 }
 
+// ClearRespawnRooms clears the value of the "respawn_rooms" field.
+func (_u *NPCTemplateUpdateOne) ClearRespawnRooms() *NPCTemplateUpdateOne {
+	_u.mutation.ClearRespawnRooms()
+	return _u
+}
+
 // SetRespawnCooldown sets the "respawn_cooldown" field.
 func (_u *NPCTemplateUpdateOne) SetRespawnCooldown(v int) *NPCTemplateUpdateOne {
 	_u.mutation.ResetRespawnCooldown()
@@ -559,6 +583,12 @@ func (_u *NPCTemplateUpdateOne) SetNillableRespawnCooldown(v *int) *NPCTemplateU
 // AddRespawnCooldown adds value to the "respawn_cooldown" field.
 func (_u *NPCTemplateUpdateOne) AddRespawnCooldown(v int) *NPCTemplateUpdateOne {
 	_u.mutation.AddRespawnCooldown(v)
+	return _u
+}
+
+// ClearRespawnCooldown clears the value of the "respawn_cooldown" field.
+func (_u *NPCTemplateUpdateOne) ClearRespawnCooldown() *NPCTemplateUpdateOne {
+	_u.mutation.ClearRespawnCooldown()
 	return _u
 }
 
@@ -728,11 +758,17 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 			sqljson.Append(u, npctemplate.FieldRespawnRooms, value)
 		})
 	}
+	if _u.mutation.RespawnRoomsCleared() {
+		_spec.ClearField(npctemplate.FieldRespawnRooms, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.RespawnCooldown(); ok {
 		_spec.SetField(npctemplate.FieldRespawnCooldown, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedRespawnCooldown(); ok {
 		_spec.AddField(npctemplate.FieldRespawnCooldown, field.TypeInt, value)
+	}
+	if _u.mutation.RespawnCooldownCleared() {
+		_spec.ClearField(npctemplate.FieldRespawnCooldown, field.TypeInt)
 	}
 	if _u.mutation.NpcSkillsCleared() {
 		edge := &sqlgraph.EdgeSpec{

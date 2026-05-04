@@ -459,6 +459,16 @@ func GreetingContainsFold(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldContainsFold(FieldGreeting, v))
 }
 
+// RespawnRoomsIsNil applies the IsNil predicate on the "respawn_rooms" field.
+func RespawnRoomsIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldRespawnRooms))
+}
+
+// RespawnRoomsNotNil applies the NotNil predicate on the "respawn_rooms" field.
+func RespawnRoomsNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldRespawnRooms))
+}
+
 // RespawnCooldownEQ applies the EQ predicate on the "respawn_cooldown" field.
 func RespawnCooldownEQ(v int) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldRespawnCooldown, v))
@@ -497,6 +507,16 @@ func RespawnCooldownLT(v int) predicate.NPCTemplate {
 // RespawnCooldownLTE applies the LTE predicate on the "respawn_cooldown" field.
 func RespawnCooldownLTE(v int) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldLTE(FieldRespawnCooldown, v))
+}
+
+// RespawnCooldownIsNil applies the IsNil predicate on the "respawn_cooldown" field.
+func RespawnCooldownIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldRespawnCooldown))
+}
+
+// RespawnCooldownNotNil applies the NotNil predicate on the "respawn_cooldown" field.
+func RespawnCooldownNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldRespawnCooldown))
 }
 
 // HasNpcSkills applies the HasEdge predicate on the "npc_skills" edge.

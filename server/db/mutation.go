@@ -1295,6 +1295,7 @@ type CharacterMutation struct {
 	addlevel                   *int
 	xp                         *int
 	addxp                      *int
+	died_at                    *time.Time
 	constitution               *int
 	addconstitution            *int
 	gender                     *string
@@ -2466,6 +2467,55 @@ func (m *CharacterMutation) AddedXp() (r int, exists bool) {
 func (m *CharacterMutation) ResetXp() {
 	m.xp = nil
 	m.addxp = nil
+}
+
+// SetDiedAt sets the "died_at" field.
+func (m *CharacterMutation) SetDiedAt(t time.Time) {
+	m.died_at = &t
+}
+
+// DiedAt returns the value of the "died_at" field in the mutation.
+func (m *CharacterMutation) DiedAt() (r time.Time, exists bool) {
+	v := m.died_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDiedAt returns the old "died_at" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldDiedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDiedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDiedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDiedAt: %w", err)
+	}
+	return oldValue.DiedAt, nil
+}
+
+// ClearDiedAt clears the value of the "died_at" field.
+func (m *CharacterMutation) ClearDiedAt() {
+	m.died_at = nil
+	m.clearedFields[character.FieldDiedAt] = struct{}{}
+}
+
+// DiedAtCleared returns if the "died_at" field was cleared in this mutation.
+func (m *CharacterMutation) DiedAtCleared() bool {
+	_, ok := m.clearedFields[character.FieldDiedAt]
+	return ok
+}
+
+// ResetDiedAt resets all changes to the "died_at" field.
+func (m *CharacterMutation) ResetDiedAt() {
+	m.died_at = nil
+	delete(m.clearedFields, character.FieldDiedAt)
 }
 
 // SetConstitution sets the "constitution" field.
@@ -3826,7 +3876,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 37)
+	fields := make([]string, 0, 38)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -3889,6 +3939,9 @@ func (m *CharacterMutation) Fields() []string {
 	}
 	if m.xp != nil {
 		fields = append(fields, character.FieldXp)
+	}
+	if m.died_at != nil {
+		fields = append(fields, character.FieldDiedAt)
 	}
 	if m.constitution != nil {
 		fields = append(fields, character.FieldConstitution)
@@ -3988,6 +4041,8 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.Level()
 	case character.FieldXp:
 		return m.Xp()
+	case character.FieldDiedAt:
+		return m.DiedAt()
 	case character.FieldConstitution:
 		return m.Constitution()
 	case character.FieldGender:
@@ -4071,6 +4126,8 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldLevel(ctx)
 	case character.FieldXp:
 		return m.OldXp(ctx)
+	case character.FieldDiedAt:
+		return m.OldDiedAt(ctx)
 	case character.FieldConstitution:
 		return m.OldConstitution(ctx)
 	case character.FieldGender:
@@ -4258,6 +4315,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetXp(v)
+		return nil
+	case character.FieldDiedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDiedAt(v)
 		return nil
 	case character.FieldConstitution:
 		v, ok := value.(int)
@@ -4713,6 +4777,9 @@ func (m *CharacterMutation) ClearedFields() []string {
 	if m.FieldCleared(character.FieldSpecialty) {
 		fields = append(fields, character.FieldSpecialty)
 	}
+	if m.FieldCleared(character.FieldDiedAt) {
+		fields = append(fields, character.FieldDiedAt)
+	}
 	if m.FieldCleared(character.FieldGender) {
 		fields = append(fields, character.FieldGender)
 	}
@@ -4741,6 +4808,9 @@ func (m *CharacterMutation) ClearField(name string) error {
 		return nil
 	case character.FieldSpecialty:
 		m.ClearSpecialty()
+		return nil
+	case character.FieldDiedAt:
+		m.ClearDiedAt()
 		return nil
 	case character.FieldGender:
 		m.ClearGender()
@@ -4818,6 +4888,9 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldXp:
 		m.ResetXp()
+		return nil
+	case character.FieldDiedAt:
+		m.ResetDiedAt()
 		return nil
 	case character.FieldConstitution:
 		m.ResetConstitution()
@@ -15426,10 +15499,24 @@ func (m *NPCTemplateMutation) AppendedRespawnRooms() ([]string, bool) {
 	return m.appendrespawn_rooms, true
 }
 
+// ClearRespawnRooms clears the value of the "respawn_rooms" field.
+func (m *NPCTemplateMutation) ClearRespawnRooms() {
+	m.respawn_rooms = nil
+	m.appendrespawn_rooms = nil
+	m.clearedFields[npctemplate.FieldRespawnRooms] = struct{}{}
+}
+
+// RespawnRoomsCleared returns if the "respawn_rooms" field was cleared in this mutation.
+func (m *NPCTemplateMutation) RespawnRoomsCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldRespawnRooms]
+	return ok
+}
+
 // ResetRespawnRooms resets all changes to the "respawn_rooms" field.
 func (m *NPCTemplateMutation) ResetRespawnRooms() {
 	m.respawn_rooms = nil
 	m.appendrespawn_rooms = nil
+	delete(m.clearedFields, npctemplate.FieldRespawnRooms)
 }
 
 // SetRespawnCooldown sets the "respawn_cooldown" field.
@@ -15482,10 +15569,24 @@ func (m *NPCTemplateMutation) AddedRespawnCooldown() (r int, exists bool) {
 	return *v, true
 }
 
+// ClearRespawnCooldown clears the value of the "respawn_cooldown" field.
+func (m *NPCTemplateMutation) ClearRespawnCooldown() {
+	m.respawn_cooldown = nil
+	m.addrespawn_cooldown = nil
+	m.clearedFields[npctemplate.FieldRespawnCooldown] = struct{}{}
+}
+
+// RespawnCooldownCleared returns if the "respawn_cooldown" field was cleared in this mutation.
+func (m *NPCTemplateMutation) RespawnCooldownCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldRespawnCooldown]
+	return ok
+}
+
 // ResetRespawnCooldown resets all changes to the "respawn_cooldown" field.
 func (m *NPCTemplateMutation) ResetRespawnCooldown() {
 	m.respawn_cooldown = nil
 	m.addrespawn_cooldown = nil
+	delete(m.clearedFields, npctemplate.FieldRespawnCooldown)
 }
 
 // AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by ids.
@@ -15825,7 +15926,14 @@ func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *NPCTemplateMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(npctemplate.FieldRespawnRooms) {
+		fields = append(fields, npctemplate.FieldRespawnRooms)
+	}
+	if m.FieldCleared(npctemplate.FieldRespawnCooldown) {
+		fields = append(fields, npctemplate.FieldRespawnCooldown)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -15838,6 +15946,14 @@ func (m *NPCTemplateMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *NPCTemplateMutation) ClearField(name string) error {
+	switch name {
+	case npctemplate.FieldRespawnRooms:
+		m.ClearRespawnRooms()
+		return nil
+	case npctemplate.FieldRespawnCooldown:
+		m.ClearRespawnCooldown()
+		return nil
+	}
 	return fmt.Errorf("unknown NPCTemplate nullable field %s", name)
 }
 

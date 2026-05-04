@@ -17,6 +17,7 @@ import (
 	"herbst-server/db/predicate"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -422,6 +423,26 @@ func (_u *CharacterUpdate) SetNillableXp(v *int) *CharacterUpdate {
 // AddXp adds value to the "xp" field.
 func (_u *CharacterUpdate) AddXp(v int) *CharacterUpdate {
 	_u.mutation.AddXp(v)
+	return _u
+}
+
+// SetDiedAt sets the "died_at" field.
+func (_u *CharacterUpdate) SetDiedAt(v time.Time) *CharacterUpdate {
+	_u.mutation.SetDiedAt(v)
+	return _u
+}
+
+// SetNillableDiedAt sets the "died_at" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableDiedAt(v *time.Time) *CharacterUpdate {
+	if v != nil {
+		_u.SetDiedAt(*v)
+	}
+	return _u
+}
+
+// ClearDiedAt clears the value of the "died_at" field.
+func (_u *CharacterUpdate) ClearDiedAt() *CharacterUpdate {
+	_u.mutation.ClearDiedAt()
 	return _u
 }
 
@@ -1195,6 +1216,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedXp(); ok {
 		_spec.AddField(character.FieldXp, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DiedAt(); ok {
+		_spec.SetField(character.FieldDiedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DiedAtCleared() {
+		_spec.ClearField(character.FieldDiedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)
@@ -2058,6 +2085,26 @@ func (_u *CharacterUpdateOne) AddXp(v int) *CharacterUpdateOne {
 	return _u
 }
 
+// SetDiedAt sets the "died_at" field.
+func (_u *CharacterUpdateOne) SetDiedAt(v time.Time) *CharacterUpdateOne {
+	_u.mutation.SetDiedAt(v)
+	return _u
+}
+
+// SetNillableDiedAt sets the "died_at" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableDiedAt(v *time.Time) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetDiedAt(*v)
+	}
+	return _u
+}
+
+// ClearDiedAt clears the value of the "died_at" field.
+func (_u *CharacterUpdateOne) ClearDiedAt() *CharacterUpdateOne {
+	_u.mutation.ClearDiedAt()
+	return _u
+}
+
 // SetConstitution sets the "constitution" field.
 func (_u *CharacterUpdateOne) SetConstitution(v int) *CharacterUpdateOne {
 	_u.mutation.ResetConstitution()
@@ -2858,6 +2905,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.AddedXp(); ok {
 		_spec.AddField(character.FieldXp, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DiedAt(); ok {
+		_spec.SetField(character.FieldDiedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DiedAtCleared() {
+		_spec.ClearField(character.FieldDiedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)

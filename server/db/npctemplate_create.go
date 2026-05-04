@@ -186,10 +186,6 @@ func (_c *NPCTemplateCreate) defaults() {
 		v := npctemplate.DefaultXpValue
 		_c.mutation.SetXpValue(v)
 	}
-	if _, ok := _c.mutation.RespawnRooms(); !ok {
-		v := npctemplate.DefaultRespawnRooms
-		_c.mutation.SetRespawnRooms(v)
-	}
 	if _, ok := _c.mutation.RespawnCooldown(); !ok {
 		v := npctemplate.DefaultRespawnCooldown
 		_c.mutation.SetRespawnCooldown(v)
@@ -229,12 +225,6 @@ func (_c *NPCTemplateCreate) check() error {
 	}
 	if _, ok := _c.mutation.Greeting(); !ok {
 		return &ValidationError{Name: "greeting", err: errors.New(`db: missing required field "NPCTemplate.greeting"`)}
-	}
-	if _, ok := _c.mutation.RespawnRooms(); !ok {
-		return &ValidationError{Name: "respawn_rooms", err: errors.New(`db: missing required field "NPCTemplate.respawn_rooms"`)}
-	}
-	if _, ok := _c.mutation.RespawnCooldown(); !ok {
-		return &ValidationError{Name: "respawn_cooldown", err: errors.New(`db: missing required field "NPCTemplate.respawn_cooldown"`)}
 	}
 	return nil
 }

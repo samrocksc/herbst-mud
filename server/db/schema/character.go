@@ -59,6 +59,10 @@ func (Character) Fields() []ent.Field {
 		field.Int("xp").
 			Default(0).
 			Comment("Current accumulated experience points"),
+		field.Time("died_at").
+			Optional().
+			Nillable().
+			Comment("When this NPC died (nil if alive or a player character)"),
 		field.Int("constitution").
 			Default(10),
 		field.String("gender").

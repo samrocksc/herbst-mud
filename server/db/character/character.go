@@ -54,6 +54,8 @@ const (
 	FieldLevel = "level"
 	// FieldXp holds the string denoting the xp field in the database.
 	FieldXp = "xp"
+	// FieldDiedAt holds the string denoting the died_at field in the database.
+	FieldDiedAt = "died_at"
 	// FieldConstitution holds the string denoting the constitution field in the database.
 	FieldConstitution = "constitution"
 	// FieldGender holds the string denoting the gender field in the database.
@@ -195,6 +197,7 @@ var Columns = []string{
 	FieldSpecialty,
 	FieldLevel,
 	FieldXp,
+	FieldDiedAt,
 	FieldConstitution,
 	FieldGender,
 	FieldDescription,
@@ -408,6 +411,11 @@ func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 // ByXp orders the results by the xp field.
 func ByXp(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldXp, opts...).ToFunc()
+}
+
+// ByDiedAt orders the results by the died_at field.
+func ByDiedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDiedAt, opts...).ToFunc()
 }
 
 // ByConstitution orders the results by the constitution field.
