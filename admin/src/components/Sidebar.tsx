@@ -13,6 +13,8 @@ import { NPCsIcon } from './icons/NPCsIcon'
 import { ChevronLeftIcon } from './icons/ChevronIcons'
 import { ChevronRightIcon } from './icons/ChevronIcons'
 
+import { TagsIcon } from './icons/TagsIcon'
+
 const STORAGE_KEY = 'sidebar-collapsed'
 
 const navItems = [
@@ -23,6 +25,7 @@ const navItems = [
   { label: 'Items', path: '/items', Icon: ItemsIcon },
   { label: 'Abilities', path: '/abilities', Icon: AbilitiesIcon },
   { label: 'Skills', path: '/skills', Icon: SkillsIcon },
+  { label: 'Tags', path: '/tags', Icon: TagsIcon },
   { label: 'Players', path: '/players', Icon: PlayersIcon },
   { label: 'Map', path: '/map', Icon: MapIcon },
   { label: 'NPCs', path: '/npcs', Icon: NPCsIcon },
