@@ -12,6 +12,7 @@ import (
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/db/damagelog"
 	"herbst-server/db/equipment"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/npctemplate"
@@ -222,6 +223,12 @@ func init() {
 	competencylevelthresholdDescDefenseMultiplier := competencylevelthresholdFields[4].Descriptor()
 	// competencylevelthreshold.DefaultDefenseMultiplier holds the default value on creation for the defense_multiplier field.
 	competencylevelthreshold.DefaultDefenseMultiplier = competencylevelthresholdDescDefenseMultiplier.Default.(float64)
+	damagelogFields := schema.DamageLog{}.Fields()
+	_ = damagelogFields
+	// damagelogDescCreatedAt is the schema descriptor for created_at field.
+	damagelogDescCreatedAt := damagelogFields[3].Descriptor()
+	// damagelog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	damagelog.DefaultCreatedAt = damagelogDescCreatedAt.Default.(func() time.Time)
 	equipmentFields := schema.Equipment{}.Fields()
 	_ = equipmentFields
 	// equipmentDescLevel is the schema descriptor for level field.
@@ -312,6 +319,14 @@ func init() {
 	npctemplateDescXpValue := npctemplateFields[6].Descriptor()
 	// npctemplate.DefaultXpValue holds the default value on creation for the xp_value field.
 	npctemplate.DefaultXpValue = npctemplateDescXpValue.Default.(int)
+	// npctemplateDescRespawnRooms is the schema descriptor for respawn_rooms field.
+	npctemplateDescRespawnRooms := npctemplateFields[10].Descriptor()
+	// npctemplate.DefaultRespawnRooms holds the default value on creation for the respawn_rooms field.
+	npctemplate.DefaultRespawnRooms = npctemplateDescRespawnRooms.Default.([]string)
+	// npctemplateDescRespawnCooldown is the schema descriptor for respawn_cooldown field.
+	npctemplateDescRespawnCooldown := npctemplateFields[11].Descriptor()
+	// npctemplate.DefaultRespawnCooldown holds the default value on creation for the respawn_cooldown field.
+	npctemplate.DefaultRespawnCooldown = npctemplateDescRespawnCooldown.Default.(int)
 	raceFields := schema.Race{}.Fields()
 	_ = raceFields
 	// raceDescIsPlayable is the schema descriptor for is_playable field.

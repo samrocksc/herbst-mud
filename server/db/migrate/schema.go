@@ -295,6 +295,20 @@ var (
 			},
 		},
 	}
+	// DamageLogsColumns holds the columns for the "damage_logs" table.
+	DamageLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "attacker_id", Type: field.TypeInt},
+		{Name: "target_id", Type: field.TypeInt},
+		{Name: "damage", Type: field.TypeInt},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// DamageLogsTable holds the schema information for the "damage_logs" table.
+	DamageLogsTable = &schema.Table{
+		Name:       "damage_logs",
+		Columns:    DamageLogsColumns,
+		PrimaryKey: []*schema.Column{DamageLogsColumns[0]},
+	}
 	// EquipmentColumns holds the columns for the "equipment" table.
 	EquipmentColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -444,6 +458,8 @@ var (
 		{Name: "skills", Type: field.TypeJSON},
 		{Name: "trades_with", Type: field.TypeJSON},
 		{Name: "greeting", Type: field.TypeString, Size: 2147483647},
+		{Name: "respawn_rooms", Type: field.TypeJSON},
+		{Name: "respawn_cooldown", Type: field.TypeInt, Default: 60},
 	}
 	// NpcTemplatesTable holds the schema information for the "npc_templates" table.
 	NpcTemplatesTable = &schema.Table{
@@ -632,6 +648,7 @@ var (
 		CharacterTalentsTable,
 		CompetencyCategoriesTable,
 		CompetencyLevelThresholdsTable,
+		DamageLogsTable,
 		EquipmentTable,
 		FactionsTable,
 		FactionCategoriesTable,

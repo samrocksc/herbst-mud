@@ -98,6 +98,26 @@ func (_c *NPCTemplateCreate) SetGreeting(v string) *NPCTemplateCreate {
 	return _c
 }
 
+// SetRespawnRooms sets the "respawn_rooms" field.
+func (_c *NPCTemplateCreate) SetRespawnRooms(v []string) *NPCTemplateCreate {
+	_c.mutation.SetRespawnRooms(v)
+	return _c
+}
+
+// SetRespawnCooldown sets the "respawn_cooldown" field.
+func (_c *NPCTemplateCreate) SetRespawnCooldown(v int) *NPCTemplateCreate {
+	_c.mutation.SetRespawnCooldown(v)
+	return _c
+}
+
+// SetNillableRespawnCooldown sets the "respawn_cooldown" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableRespawnCooldown(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetRespawnCooldown(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *NPCTemplateCreate) SetID(v string) *NPCTemplateCreate {
 	_c.mutation.SetID(v)
@@ -166,6 +186,14 @@ func (_c *NPCTemplateCreate) defaults() {
 		v := npctemplate.DefaultXpValue
 		_c.mutation.SetXpValue(v)
 	}
+	if _, ok := _c.mutation.RespawnRooms(); !ok {
+		v := npctemplate.DefaultRespawnRooms
+		_c.mutation.SetRespawnRooms(v)
+	}
+	if _, ok := _c.mutation.RespawnCooldown(); !ok {
+		v := npctemplate.DefaultRespawnCooldown
+		_c.mutation.SetRespawnCooldown(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -201,6 +229,12 @@ func (_c *NPCTemplateCreate) check() error {
 	}
 	if _, ok := _c.mutation.Greeting(); !ok {
 		return &ValidationError{Name: "greeting", err: errors.New(`db: missing required field "NPCTemplate.greeting"`)}
+	}
+	if _, ok := _c.mutation.RespawnRooms(); !ok {
+		return &ValidationError{Name: "respawn_rooms", err: errors.New(`db: missing required field "NPCTemplate.respawn_rooms"`)}
+	}
+	if _, ok := _c.mutation.RespawnCooldown(); !ok {
+		return &ValidationError{Name: "respawn_cooldown", err: errors.New(`db: missing required field "NPCTemplate.respawn_cooldown"`)}
 	}
 	return nil
 }
@@ -272,6 +306,14 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Greeting(); ok {
 		_spec.SetField(npctemplate.FieldGreeting, field.TypeString, value)
 		_node.Greeting = value
+	}
+	if value, ok := _c.mutation.RespawnRooms(); ok {
+		_spec.SetField(npctemplate.FieldRespawnRooms, field.TypeJSON, value)
+		_node.RespawnRooms = value
+	}
+	if value, ok := _c.mutation.RespawnCooldown(); ok {
+		_spec.SetField(npctemplate.FieldRespawnCooldown, field.TypeInt, value)
+		_node.RespawnCooldown = value
 	}
 	if nodes := _c.mutation.NpcSkillsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -21,6 +21,7 @@ import (
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/db/damagelog"
 	"herbst-server/db/equipment"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
@@ -67,6 +68,8 @@ type Client struct {
 	CompetencyCategory *CompetencyCategoryClient
 	// CompetencyLevelThreshold is the client for interacting with the CompetencyLevelThreshold builders.
 	CompetencyLevelThreshold *CompetencyLevelThresholdClient
+	// DamageLog is the client for interacting with the DamageLog builders.
+	DamageLog *DamageLogClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
 	// Faction is the client for interacting with the Faction builders.
@@ -116,6 +119,7 @@ func (c *Client) init() {
 	c.CharacterTalent = NewCharacterTalentClient(c.config)
 	c.CompetencyCategory = NewCompetencyCategoryClient(c.config)
 	c.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(c.config)
+	c.DamageLog = NewDamageLogClient(c.config)
 	c.Equipment = NewEquipmentClient(c.config)
 	c.Faction = NewFactionClient(c.config)
 	c.FactionCategory = NewFactionCategoryClient(c.config)
@@ -232,6 +236,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CharacterTalent:          NewCharacterTalentClient(cfg),
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
 		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
+		DamageLog:                NewDamageLogClient(cfg),
 		Equipment:                NewEquipmentClient(cfg),
 		Faction:                  NewFactionClient(cfg),
 		FactionCategory:          NewFactionCategoryClient(cfg),
@@ -275,6 +280,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CharacterTalent:          NewCharacterTalentClient(cfg),
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
 		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
+		DamageLog:                NewDamageLogClient(cfg),
 		Equipment:                NewEquipmentClient(cfg),
 		Faction:                  NewFactionClient(cfg),
 		FactionCategory:          NewFactionCategoryClient(cfg),
@@ -320,9 +326,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Achievement, c.AvailableTalent, c.Character, c.CharacterCompetency,
 		c.CharacterFaction, c.CharacterSkill, c.CharacterTag, c.CharacterTalent,
-		c.CompetencyCategory, c.CompetencyLevelThreshold, c.Equipment, c.Faction,
-		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCSkill,
-		c.NPCTemplate, c.Race, c.Room, c.Skill, c.Tag, c.Talent, c.User,
+		c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog, c.Equipment,
+		c.Faction, c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender,
+		c.NPCSkill, c.NPCTemplate, c.Race, c.Room, c.Skill, c.Tag, c.Talent, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -334,9 +340,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Achievement, c.AvailableTalent, c.Character, c.CharacterCompetency,
 		c.CharacterFaction, c.CharacterSkill, c.CharacterTag, c.CharacterTalent,
-		c.CompetencyCategory, c.CompetencyLevelThreshold, c.Equipment, c.Faction,
-		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCSkill,
-		c.NPCTemplate, c.Race, c.Room, c.Skill, c.Tag, c.Talent, c.User,
+		c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog, c.Equipment,
+		c.Faction, c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender,
+		c.NPCSkill, c.NPCTemplate, c.Race, c.Room, c.Skill, c.Tag, c.Talent, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -365,6 +371,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CompetencyCategory.mutate(ctx, m)
 	case *CompetencyLevelThresholdMutation:
 		return c.CompetencyLevelThreshold.mutate(ctx, m)
+	case *DamageLogMutation:
+		return c.DamageLog.mutate(ctx, m)
 	case *EquipmentMutation:
 		return c.Equipment.mutate(ctx, m)
 	case *FactionMutation:
@@ -2093,6 +2101,139 @@ func (c *CompetencyLevelThresholdClient) mutate(ctx context.Context, m *Competen
 		return (&CompetencyLevelThresholdDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CompetencyLevelThreshold mutation op: %q", m.Op())
+	}
+}
+
+// DamageLogClient is a client for the DamageLog schema.
+type DamageLogClient struct {
+	config
+}
+
+// NewDamageLogClient returns a client for the DamageLog from the given config.
+func NewDamageLogClient(c config) *DamageLogClient {
+	return &DamageLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `damagelog.Hooks(f(g(h())))`.
+func (c *DamageLogClient) Use(hooks ...Hook) {
+	c.hooks.DamageLog = append(c.hooks.DamageLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `damagelog.Intercept(f(g(h())))`.
+func (c *DamageLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DamageLog = append(c.inters.DamageLog, interceptors...)
+}
+
+// Create returns a builder for creating a DamageLog entity.
+func (c *DamageLogClient) Create() *DamageLogCreate {
+	mutation := newDamageLogMutation(c.config, OpCreate)
+	return &DamageLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DamageLog entities.
+func (c *DamageLogClient) CreateBulk(builders ...*DamageLogCreate) *DamageLogCreateBulk {
+	return &DamageLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DamageLogClient) MapCreateBulk(slice any, setFunc func(*DamageLogCreate, int)) *DamageLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DamageLogCreateBulk{err: fmt.Errorf("calling to DamageLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DamageLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DamageLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DamageLog.
+func (c *DamageLogClient) Update() *DamageLogUpdate {
+	mutation := newDamageLogMutation(c.config, OpUpdate)
+	return &DamageLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DamageLogClient) UpdateOne(_m *DamageLog) *DamageLogUpdateOne {
+	mutation := newDamageLogMutation(c.config, OpUpdateOne, withDamageLog(_m))
+	return &DamageLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DamageLogClient) UpdateOneID(id int) *DamageLogUpdateOne {
+	mutation := newDamageLogMutation(c.config, OpUpdateOne, withDamageLogID(id))
+	return &DamageLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DamageLog.
+func (c *DamageLogClient) Delete() *DamageLogDelete {
+	mutation := newDamageLogMutation(c.config, OpDelete)
+	return &DamageLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DamageLogClient) DeleteOne(_m *DamageLog) *DamageLogDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DamageLogClient) DeleteOneID(id int) *DamageLogDeleteOne {
+	builder := c.Delete().Where(damagelog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DamageLogDeleteOne{builder}
+}
+
+// Query returns a query builder for DamageLog.
+func (c *DamageLogClient) Query() *DamageLogQuery {
+	return &DamageLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDamageLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DamageLog entity by its id.
+func (c *DamageLogClient) Get(ctx context.Context, id int) (*DamageLog, error) {
+	return c.Query().Where(damagelog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DamageLogClient) GetX(ctx context.Context, id int) *DamageLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DamageLogClient) Hooks() []Hook {
+	return c.hooks.DamageLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *DamageLogClient) Interceptors() []Interceptor {
+	return c.inters.DamageLog
+}
+
+func (c *DamageLogClient) mutate(ctx context.Context, m *DamageLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DamageLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DamageLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DamageLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DamageLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown DamageLog mutation op: %q", m.Op())
 	}
 }
 
@@ -4251,14 +4392,14 @@ type (
 	hooks struct {
 		Achievement, AvailableTalent, Character, CharacterCompetency, CharacterFaction,
 		CharacterSkill, CharacterTag, CharacterTalent, CompetencyCategory,
-		CompetencyLevelThreshold, Equipment, Faction, FactionCategory,
+		CompetencyLevelThreshold, DamageLog, Equipment, Faction, FactionCategory,
 		FactionRequiredTag, GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room,
 		Skill, Tag, Talent, User []ent.Hook
 	}
 	inters struct {
 		Achievement, AvailableTalent, Character, CharacterCompetency, CharacterFaction,
 		CharacterSkill, CharacterTag, CharacterTalent, CompetencyCategory,
-		CompetencyLevelThreshold, Equipment, Faction, FactionCategory,
+		CompetencyLevelThreshold, DamageLog, Equipment, Faction, FactionCategory,
 		FactionRequiredTag, GameConfig, Gender, NPCSkill, NPCTemplate, Race, Room,
 		Skill, Tag, Talent, User []ent.Interceptor
 	}

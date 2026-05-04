@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
+// DefaultRespawnRooms is the default value for the respawn_rooms field.
+var DefaultRespawnRooms = []string{}
+
 // NPCTemplate holds the schema definition for the NPC Template entity.
 type NPCTemplate struct {
 	ent.Schema
@@ -30,6 +33,12 @@ func (NPCTemplate) Fields() []ent.Field {
 		field.JSON("skills", map[string]int{}),
 		field.Strings("trades_with"),
 		field.Text("greeting"),
+		field.JSON("respawn_rooms", []string{}).
+			Default(DefaultRespawnRooms).
+			Comment("Array of room IDs where this NPC can respawn"),
+		field.Int("respawn_cooldown").
+			Default(60).
+			Comment("Seconds before this NPC respawns after death (0 = no respawn)"),
 	}
 }
 

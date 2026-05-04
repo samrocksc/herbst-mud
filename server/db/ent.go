@@ -16,6 +16,7 @@ import (
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/db/damagelog"
 	"herbst-server/db/equipment"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
@@ -106,6 +107,7 @@ func checkColumn(t, c string) error {
 			charactertalent.Table:          charactertalent.ValidColumn,
 			competencycategory.Table:       competencycategory.ValidColumn,
 			competencylevelthreshold.Table: competencylevelthreshold.ValidColumn,
+			damagelog.Table:                damagelog.ValidColumn,
 			equipment.Table:                equipment.ValidColumn,
 			faction.Table:                  faction.ValidColumn,
 			factioncategory.Table:          factioncategory.ValidColumn,

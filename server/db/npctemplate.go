@@ -35,6 +35,10 @@ type NPCTemplate struct {
 	TradesWith []string `json:"trades_with,omitempty"`
 	// Greeting holds the value of the "greeting" field.
 	Greeting string `json:"greeting,omitempty"`
+	// Array of room IDs where this NPC can respawn
+	RespawnRooms []string `json:"respawn_rooms,omitempty"`
+	// Seconds before this NPC respawns after death (0 = no respawn)
+	RespawnCooldown int `json:"respawn_cooldown,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NPCTemplateQuery when eager-loading is set.
 	Edges        NPCTemplateEdges `json:"edges"`
@@ -64,9 +68,9 @@ func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case npctemplate.FieldSkills, npctemplate.FieldTradesWith:
+		case npctemplate.FieldSkills, npctemplate.FieldTradesWith, npctemplate.FieldRespawnRooms:
 			values[i] = new([]byte)
-		case npctemplate.FieldLevel, npctemplate.FieldXpValue:
+		case npctemplate.FieldLevel, npctemplate.FieldXpValue, npctemplate.FieldRespawnCooldown:
 			values[i] = new(sql.NullInt64)
 		case npctemplate.FieldID, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldRace, npctemplate.FieldDisposition, npctemplate.FieldGreeting:
 			values[i] = new(sql.NullString)
@@ -149,6 +153,20 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Greeting = value.String
 			}
+		case npctemplate.FieldRespawnRooms:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field respawn_rooms", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.RespawnRooms); err != nil {
+					return fmt.Errorf("unmarshal field respawn_rooms: %w", err)
+				}
+			}
+		case npctemplate.FieldRespawnCooldown:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field respawn_cooldown", values[i])
+			} else if value.Valid {
+				_m.RespawnCooldown = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -216,6 +234,12 @@ func (_m *NPCTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("greeting=")
 	builder.WriteString(_m.Greeting)
+	builder.WriteString(", ")
+	builder.WriteString("respawn_rooms=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RespawnRooms))
+	builder.WriteString(", ")
+	builder.WriteString("respawn_cooldown=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RespawnCooldown))
 	builder.WriteByte(')')
 	return builder.String()
 }

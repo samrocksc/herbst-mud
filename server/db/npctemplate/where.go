@@ -94,6 +94,11 @@ func Greeting(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldGreeting, v))
 }
 
+// RespawnCooldown applies equality check predicate on the "respawn_cooldown" field. It's identical to RespawnCooldownEQ.
+func RespawnCooldown(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRespawnCooldown, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldName, v))
@@ -452,6 +457,46 @@ func GreetingEqualFold(v string) predicate.NPCTemplate {
 // GreetingContainsFold applies the ContainsFold predicate on the "greeting" field.
 func GreetingContainsFold(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldContainsFold(FieldGreeting, v))
+}
+
+// RespawnCooldownEQ applies the EQ predicate on the "respawn_cooldown" field.
+func RespawnCooldownEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRespawnCooldown, v))
+}
+
+// RespawnCooldownNEQ applies the NEQ predicate on the "respawn_cooldown" field.
+func RespawnCooldownNEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldRespawnCooldown, v))
+}
+
+// RespawnCooldownIn applies the In predicate on the "respawn_cooldown" field.
+func RespawnCooldownIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldRespawnCooldown, vs...))
+}
+
+// RespawnCooldownNotIn applies the NotIn predicate on the "respawn_cooldown" field.
+func RespawnCooldownNotIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldRespawnCooldown, vs...))
+}
+
+// RespawnCooldownGT applies the GT predicate on the "respawn_cooldown" field.
+func RespawnCooldownGT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldRespawnCooldown, v))
+}
+
+// RespawnCooldownGTE applies the GTE predicate on the "respawn_cooldown" field.
+func RespawnCooldownGTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldRespawnCooldown, v))
+}
+
+// RespawnCooldownLT applies the LT predicate on the "respawn_cooldown" field.
+func RespawnCooldownLT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldRespawnCooldown, v))
+}
+
+// RespawnCooldownLTE applies the LTE predicate on the "respawn_cooldown" field.
+func RespawnCooldownLTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldRespawnCooldown, v))
 }
 
 // HasNpcSkills applies the HasEdge predicate on the "npc_skills" edge.

@@ -128,6 +128,18 @@ func (f CompetencyLevelThresholdFunc) Mutate(ctx context.Context, m db.Mutation)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CompetencyLevelThresholdMutation", m)
 }
 
+// The DamageLogFunc type is an adapter to allow the use of ordinary
+// function as DamageLog mutator.
+type DamageLogFunc func(context.Context, *db.DamageLogMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DamageLogFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.DamageLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.DamageLogMutation", m)
+}
+
 // The EquipmentFunc type is an adapter to allow the use of ordinary
 // function as Equipment mutator.
 type EquipmentFunc func(context.Context, *db.EquipmentMutation) (db.Value, error)

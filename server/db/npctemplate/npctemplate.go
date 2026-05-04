@@ -32,6 +32,10 @@ const (
 	FieldTradesWith = "trades_with"
 	// FieldGreeting holds the string denoting the greeting field in the database.
 	FieldGreeting = "greeting"
+	// FieldRespawnRooms holds the string denoting the respawn_rooms field in the database.
+	FieldRespawnRooms = "respawn_rooms"
+	// FieldRespawnCooldown holds the string denoting the respawn_cooldown field in the database.
+	FieldRespawnCooldown = "respawn_cooldown"
 	// EdgeNpcSkills holds the string denoting the npc_skills edge name in mutations.
 	EdgeNpcSkills = "npc_skills"
 	// Table holds the table name of the npctemplate in the database.
@@ -55,6 +59,8 @@ var Columns = []string{
 	FieldSkills,
 	FieldTradesWith,
 	FieldGreeting,
+	FieldRespawnRooms,
+	FieldRespawnCooldown,
 }
 
 var (
@@ -78,6 +84,10 @@ var (
 	DefaultLevel int
 	// DefaultXpValue holds the default value on creation for the "xp_value" field.
 	DefaultXpValue int
+	// DefaultRespawnRooms holds the default value on creation for the "respawn_rooms" field.
+	DefaultRespawnRooms []string
+	// DefaultRespawnCooldown holds the default value on creation for the "respawn_cooldown" field.
+	DefaultRespawnCooldown int
 )
 
 // Disposition defines the type for the "disposition" enum field.
@@ -148,6 +158,11 @@ func ByXpValue(opts ...sql.OrderTermOption) OrderOption {
 // ByGreeting orders the results by the greeting field.
 func ByGreeting(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGreeting, opts...).ToFunc()
+}
+
+// ByRespawnCooldown orders the results by the respawn_cooldown field.
+func ByRespawnCooldown(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRespawnCooldown, opts...).ToFunc()
 }
 
 // ByNpcSkillsCount orders the results by npc_skills count.

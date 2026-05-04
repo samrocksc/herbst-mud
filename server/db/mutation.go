@@ -16,6 +16,7 @@ import (
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/db/damagelog"
 	"herbst-server/db/equipment"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
@@ -57,6 +58,7 @@ const (
 	TypeCharacterTalent          = "CharacterTalent"
 	TypeCompetencyCategory       = "CompetencyCategory"
 	TypeCompetencyLevelThreshold = "CompetencyLevelThreshold"
+	TypeDamageLog                = "DamageLog"
 	TypeEquipment                = "Equipment"
 	TypeFaction                  = "Faction"
 	TypeFactionCategory          = "FactionCategory"
@@ -9079,6 +9081,596 @@ func (m *CompetencyLevelThresholdMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown CompetencyLevelThreshold edge %s", name)
 }
 
+// DamageLogMutation represents an operation that mutates the DamageLog nodes in the graph.
+type DamageLogMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	attacker_id    *int
+	addattacker_id *int
+	target_id      *int
+	addtarget_id   *int
+	damage         *int
+	adddamage      *int
+	created_at     *time.Time
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*DamageLog, error)
+	predicates     []predicate.DamageLog
+}
+
+var _ ent.Mutation = (*DamageLogMutation)(nil)
+
+// damagelogOption allows management of the mutation configuration using functional options.
+type damagelogOption func(*DamageLogMutation)
+
+// newDamageLogMutation creates new mutation for the DamageLog entity.
+func newDamageLogMutation(c config, op Op, opts ...damagelogOption) *DamageLogMutation {
+	m := &DamageLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDamageLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDamageLogID sets the ID field of the mutation.
+func withDamageLogID(id int) damagelogOption {
+	return func(m *DamageLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DamageLog
+		)
+		m.oldValue = func(ctx context.Context) (*DamageLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DamageLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDamageLog sets the old DamageLog of the mutation.
+func withDamageLog(node *DamageLog) damagelogOption {
+	return func(m *DamageLogMutation) {
+		m.oldValue = func(context.Context) (*DamageLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DamageLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DamageLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DamageLogMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DamageLogMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DamageLog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetAttackerID sets the "attacker_id" field.
+func (m *DamageLogMutation) SetAttackerID(i int) {
+	m.attacker_id = &i
+	m.addattacker_id = nil
+}
+
+// AttackerID returns the value of the "attacker_id" field in the mutation.
+func (m *DamageLogMutation) AttackerID() (r int, exists bool) {
+	v := m.attacker_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttackerID returns the old "attacker_id" field's value of the DamageLog entity.
+// If the DamageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DamageLogMutation) OldAttackerID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttackerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttackerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttackerID: %w", err)
+	}
+	return oldValue.AttackerID, nil
+}
+
+// AddAttackerID adds i to the "attacker_id" field.
+func (m *DamageLogMutation) AddAttackerID(i int) {
+	if m.addattacker_id != nil {
+		*m.addattacker_id += i
+	} else {
+		m.addattacker_id = &i
+	}
+}
+
+// AddedAttackerID returns the value that was added to the "attacker_id" field in this mutation.
+func (m *DamageLogMutation) AddedAttackerID() (r int, exists bool) {
+	v := m.addattacker_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAttackerID resets all changes to the "attacker_id" field.
+func (m *DamageLogMutation) ResetAttackerID() {
+	m.attacker_id = nil
+	m.addattacker_id = nil
+}
+
+// SetTargetID sets the "target_id" field.
+func (m *DamageLogMutation) SetTargetID(i int) {
+	m.target_id = &i
+	m.addtarget_id = nil
+}
+
+// TargetID returns the value of the "target_id" field in the mutation.
+func (m *DamageLogMutation) TargetID() (r int, exists bool) {
+	v := m.target_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetID returns the old "target_id" field's value of the DamageLog entity.
+// If the DamageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DamageLogMutation) OldTargetID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetID: %w", err)
+	}
+	return oldValue.TargetID, nil
+}
+
+// AddTargetID adds i to the "target_id" field.
+func (m *DamageLogMutation) AddTargetID(i int) {
+	if m.addtarget_id != nil {
+		*m.addtarget_id += i
+	} else {
+		m.addtarget_id = &i
+	}
+}
+
+// AddedTargetID returns the value that was added to the "target_id" field in this mutation.
+func (m *DamageLogMutation) AddedTargetID() (r int, exists bool) {
+	v := m.addtarget_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTargetID resets all changes to the "target_id" field.
+func (m *DamageLogMutation) ResetTargetID() {
+	m.target_id = nil
+	m.addtarget_id = nil
+}
+
+// SetDamage sets the "damage" field.
+func (m *DamageLogMutation) SetDamage(i int) {
+	m.damage = &i
+	m.adddamage = nil
+}
+
+// Damage returns the value of the "damage" field in the mutation.
+func (m *DamageLogMutation) Damage() (r int, exists bool) {
+	v := m.damage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamage returns the old "damage" field's value of the DamageLog entity.
+// If the DamageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DamageLogMutation) OldDamage(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamage: %w", err)
+	}
+	return oldValue.Damage, nil
+}
+
+// AddDamage adds i to the "damage" field.
+func (m *DamageLogMutation) AddDamage(i int) {
+	if m.adddamage != nil {
+		*m.adddamage += i
+	} else {
+		m.adddamage = &i
+	}
+}
+
+// AddedDamage returns the value that was added to the "damage" field in this mutation.
+func (m *DamageLogMutation) AddedDamage() (r int, exists bool) {
+	v := m.adddamage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDamage resets all changes to the "damage" field.
+func (m *DamageLogMutation) ResetDamage() {
+	m.damage = nil
+	m.adddamage = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DamageLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DamageLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DamageLog entity.
+// If the DamageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DamageLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DamageLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the DamageLogMutation builder.
+func (m *DamageLogMutation) Where(ps ...predicate.DamageLog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DamageLogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DamageLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DamageLog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DamageLogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DamageLogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DamageLog).
+func (m *DamageLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DamageLogMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.attacker_id != nil {
+		fields = append(fields, damagelog.FieldAttackerID)
+	}
+	if m.target_id != nil {
+		fields = append(fields, damagelog.FieldTargetID)
+	}
+	if m.damage != nil {
+		fields = append(fields, damagelog.FieldDamage)
+	}
+	if m.created_at != nil {
+		fields = append(fields, damagelog.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DamageLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case damagelog.FieldAttackerID:
+		return m.AttackerID()
+	case damagelog.FieldTargetID:
+		return m.TargetID()
+	case damagelog.FieldDamage:
+		return m.Damage()
+	case damagelog.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DamageLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case damagelog.FieldAttackerID:
+		return m.OldAttackerID(ctx)
+	case damagelog.FieldTargetID:
+		return m.OldTargetID(ctx)
+	case damagelog.FieldDamage:
+		return m.OldDamage(ctx)
+	case damagelog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DamageLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DamageLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case damagelog.FieldAttackerID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttackerID(v)
+		return nil
+	case damagelog.FieldTargetID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetID(v)
+		return nil
+	case damagelog.FieldDamage:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamage(v)
+		return nil
+	case damagelog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DamageLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DamageLogMutation) AddedFields() []string {
+	var fields []string
+	if m.addattacker_id != nil {
+		fields = append(fields, damagelog.FieldAttackerID)
+	}
+	if m.addtarget_id != nil {
+		fields = append(fields, damagelog.FieldTargetID)
+	}
+	if m.adddamage != nil {
+		fields = append(fields, damagelog.FieldDamage)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DamageLogMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case damagelog.FieldAttackerID:
+		return m.AddedAttackerID()
+	case damagelog.FieldTargetID:
+		return m.AddedTargetID()
+	case damagelog.FieldDamage:
+		return m.AddedDamage()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DamageLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case damagelog.FieldAttackerID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAttackerID(v)
+		return nil
+	case damagelog.FieldTargetID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTargetID(v)
+		return nil
+	case damagelog.FieldDamage:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDamage(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DamageLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DamageLogMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DamageLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DamageLogMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown DamageLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DamageLogMutation) ResetField(name string) error {
+	switch name {
+	case damagelog.FieldAttackerID:
+		m.ResetAttackerID()
+		return nil
+	case damagelog.FieldTargetID:
+		m.ResetTargetID()
+		return nil
+	case damagelog.FieldDamage:
+		m.ResetDamage()
+		return nil
+	case damagelog.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DamageLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DamageLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DamageLogMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DamageLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DamageLogMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DamageLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DamageLogMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DamageLogMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown DamageLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DamageLogMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown DamageLog edge %s", name)
+}
+
 // EquipmentMutation represents an operation that mutates the Equipment nodes in the graph.
 type EquipmentMutation struct {
 	config
@@ -14278,28 +14870,32 @@ func (m *NPCSkillMutation) ResetEdge(name string) error {
 // NPCTemplateMutation represents an operation that mutates the NPCTemplate nodes in the graph.
 type NPCTemplateMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *string
-	name              *string
-	description       *string
-	race              *string
-	disposition       *npctemplate.Disposition
-	level             *int
-	addlevel          *int
-	xp_value          *int
-	addxp_value       *int
-	skills            *map[string]int
-	trades_with       *[]string
-	appendtrades_with []string
-	greeting          *string
-	clearedFields     map[string]struct{}
-	npc_skills        map[int]struct{}
-	removednpc_skills map[int]struct{}
-	clearednpc_skills bool
-	done              bool
-	oldValue          func(context.Context) (*NPCTemplate, error)
-	predicates        []predicate.NPCTemplate
+	op                  Op
+	typ                 string
+	id                  *string
+	name                *string
+	description         *string
+	race                *string
+	disposition         *npctemplate.Disposition
+	level               *int
+	addlevel            *int
+	xp_value            *int
+	addxp_value         *int
+	skills              *map[string]int
+	trades_with         *[]string
+	appendtrades_with   []string
+	greeting            *string
+	respawn_rooms       *[]string
+	appendrespawn_rooms []string
+	respawn_cooldown    *int
+	addrespawn_cooldown *int
+	clearedFields       map[string]struct{}
+	npc_skills          map[int]struct{}
+	removednpc_skills   map[int]struct{}
+	clearednpc_skills   bool
+	done                bool
+	oldValue            func(context.Context) (*NPCTemplate, error)
+	predicates          []predicate.NPCTemplate
 }
 
 var _ ent.Mutation = (*NPCTemplateMutation)(nil)
@@ -14785,6 +15381,113 @@ func (m *NPCTemplateMutation) ResetGreeting() {
 	m.greeting = nil
 }
 
+// SetRespawnRooms sets the "respawn_rooms" field.
+func (m *NPCTemplateMutation) SetRespawnRooms(s []string) {
+	m.respawn_rooms = &s
+	m.appendrespawn_rooms = nil
+}
+
+// RespawnRooms returns the value of the "respawn_rooms" field in the mutation.
+func (m *NPCTemplateMutation) RespawnRooms() (r []string, exists bool) {
+	v := m.respawn_rooms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRespawnRooms returns the old "respawn_rooms" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldRespawnRooms(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRespawnRooms is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRespawnRooms requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRespawnRooms: %w", err)
+	}
+	return oldValue.RespawnRooms, nil
+}
+
+// AppendRespawnRooms adds s to the "respawn_rooms" field.
+func (m *NPCTemplateMutation) AppendRespawnRooms(s []string) {
+	m.appendrespawn_rooms = append(m.appendrespawn_rooms, s...)
+}
+
+// AppendedRespawnRooms returns the list of values that were appended to the "respawn_rooms" field in this mutation.
+func (m *NPCTemplateMutation) AppendedRespawnRooms() ([]string, bool) {
+	if len(m.appendrespawn_rooms) == 0 {
+		return nil, false
+	}
+	return m.appendrespawn_rooms, true
+}
+
+// ResetRespawnRooms resets all changes to the "respawn_rooms" field.
+func (m *NPCTemplateMutation) ResetRespawnRooms() {
+	m.respawn_rooms = nil
+	m.appendrespawn_rooms = nil
+}
+
+// SetRespawnCooldown sets the "respawn_cooldown" field.
+func (m *NPCTemplateMutation) SetRespawnCooldown(i int) {
+	m.respawn_cooldown = &i
+	m.addrespawn_cooldown = nil
+}
+
+// RespawnCooldown returns the value of the "respawn_cooldown" field in the mutation.
+func (m *NPCTemplateMutation) RespawnCooldown() (r int, exists bool) {
+	v := m.respawn_cooldown
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRespawnCooldown returns the old "respawn_cooldown" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldRespawnCooldown(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRespawnCooldown is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRespawnCooldown requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRespawnCooldown: %w", err)
+	}
+	return oldValue.RespawnCooldown, nil
+}
+
+// AddRespawnCooldown adds i to the "respawn_cooldown" field.
+func (m *NPCTemplateMutation) AddRespawnCooldown(i int) {
+	if m.addrespawn_cooldown != nil {
+		*m.addrespawn_cooldown += i
+	} else {
+		m.addrespawn_cooldown = &i
+	}
+}
+
+// AddedRespawnCooldown returns the value that was added to the "respawn_cooldown" field in this mutation.
+func (m *NPCTemplateMutation) AddedRespawnCooldown() (r int, exists bool) {
+	v := m.addrespawn_cooldown
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRespawnCooldown resets all changes to the "respawn_cooldown" field.
+func (m *NPCTemplateMutation) ResetRespawnCooldown() {
+	m.respawn_cooldown = nil
+	m.addrespawn_cooldown = nil
+}
+
 // AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by ids.
 func (m *NPCTemplateMutation) AddNpcSkillIDs(ids ...int) {
 	if m.npc_skills == nil {
@@ -14873,7 +15576,7 @@ func (m *NPCTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NPCTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 11)
 	if m.name != nil {
 		fields = append(fields, npctemplate.FieldName)
 	}
@@ -14901,6 +15604,12 @@ func (m *NPCTemplateMutation) Fields() []string {
 	if m.greeting != nil {
 		fields = append(fields, npctemplate.FieldGreeting)
 	}
+	if m.respawn_rooms != nil {
+		fields = append(fields, npctemplate.FieldRespawnRooms)
+	}
+	if m.respawn_cooldown != nil {
+		fields = append(fields, npctemplate.FieldRespawnCooldown)
+	}
 	return fields
 }
 
@@ -14927,6 +15636,10 @@ func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.TradesWith()
 	case npctemplate.FieldGreeting:
 		return m.Greeting()
+	case npctemplate.FieldRespawnRooms:
+		return m.RespawnRooms()
+	case npctemplate.FieldRespawnCooldown:
+		return m.RespawnCooldown()
 	}
 	return nil, false
 }
@@ -14954,6 +15667,10 @@ func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldTradesWith(ctx)
 	case npctemplate.FieldGreeting:
 		return m.OldGreeting(ctx)
+	case npctemplate.FieldRespawnRooms:
+		return m.OldRespawnRooms(ctx)
+	case npctemplate.FieldRespawnCooldown:
+		return m.OldRespawnCooldown(ctx)
 	}
 	return nil, fmt.Errorf("unknown NPCTemplate field %s", name)
 }
@@ -15026,6 +15743,20 @@ func (m *NPCTemplateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetGreeting(v)
 		return nil
+	case npctemplate.FieldRespawnRooms:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRespawnRooms(v)
+		return nil
+	case npctemplate.FieldRespawnCooldown:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRespawnCooldown(v)
+		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate field %s", name)
 }
@@ -15040,6 +15771,9 @@ func (m *NPCTemplateMutation) AddedFields() []string {
 	if m.addxp_value != nil {
 		fields = append(fields, npctemplate.FieldXpValue)
 	}
+	if m.addrespawn_cooldown != nil {
+		fields = append(fields, npctemplate.FieldRespawnCooldown)
+	}
 	return fields
 }
 
@@ -15052,6 +15786,8 @@ func (m *NPCTemplateMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedLevel()
 	case npctemplate.FieldXpValue:
 		return m.AddedXpValue()
+	case npctemplate.FieldRespawnCooldown:
+		return m.AddedRespawnCooldown()
 	}
 	return nil, false
 }
@@ -15074,6 +15810,13 @@ func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddXpValue(v)
+		return nil
+	case npctemplate.FieldRespawnCooldown:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRespawnCooldown(v)
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate numeric field %s", name)
@@ -15128,6 +15871,12 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 		return nil
 	case npctemplate.FieldGreeting:
 		m.ResetGreeting()
+		return nil
+	case npctemplate.FieldRespawnRooms:
+		m.ResetRespawnRooms()
+		return nil
+	case npctemplate.FieldRespawnCooldown:
+		m.ResetRespawnCooldown()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate field %s", name)
