@@ -17,6 +17,7 @@ func RegisterNPCTemplateRoutes(r *gin.Engine, client *db.Client) {
 	templates.Use(middleware.AdminMiddleware())
 	{
 		templates.GET("/npc-templates", listNPCTemplates(client))
+		templates.POST("/npc-templates", createNPCTemplate(client))
 		templates.PUT("/npc-templates/:id", updateNPCTemplate(client))
 	}
 }
@@ -54,6 +55,71 @@ func listNPCTemplates(client *db.Client) gin.HandlerFunc {
 			}
 		}
 		c.JSON(http.StatusOK, result)
+	}
+}
+
+func createNPCTemplate(client *db.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req struct {
+			ID              string         `json:"id"`
+			Name            string         `json:"name"`
+			Description     string         `json:"description"`
+			Race            string         `json:"race"`
+			Disposition     string         `json:"disposition"`
+			Level           int            `json:"level"`
+			XpValue         int            `json:"xp_value"`
+			Skills          map[string]int `json:"skills"`
+			TradesWith      []string       `json:"trades_with"`
+			Greeting        string         `json:"greeting"`
+			RespawnRooms    []string       `json:"respawn_rooms"`
+			RespawnCooldown int            `json:"respawn_cooldown"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if req.ID == "" || req.Name == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "id and name are required"})
+			return
+		}
+
+		builder := client.NPCTemplate.Create().
+			SetID(req.ID).
+			SetName(req.Name).
+			SetDescription(req.Description).
+			SetRace(req.Race).
+			SetLevel(req.Level).
+			SetXpValue(req.XpValue).
+			SetSkills(req.Skills).
+			SetTradesWith(req.TradesWith).
+			SetGreeting(req.Greeting).
+			SetRespawnRooms(req.RespawnRooms).
+			SetRespawnCooldown(req.RespawnCooldown)
+
+		if req.Disposition != "" {
+			switch req.Disposition {
+			case "hostile", "friendly", "neutral":
+				builder.SetDisposition(npctemplate.Disposition(req.Disposition))
+			default:
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid disposition: " + req.Disposition})
+				return
+			}
+		}
+
+		created, err := builder.Save(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, npcTemplateView{
+			ID:              created.ID,
+			Name:            created.Name,
+			Level:           created.Level,
+			XpValue:         created.XpValue,
+			RespawnRooms:    created.RespawnRooms,
+			RespawnCooldown: created.RespawnCooldown,
+		})
 	}
 }
 

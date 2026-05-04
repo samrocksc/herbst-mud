@@ -50,9 +50,9 @@ function SidebarCollapseToggle({
         'w-8 h-8 rounded',
         'hover:bg-surface-muted',
         'transition-colors duration-200',
-        'focus:outline-none focus:ring-2 focus:ring-[#646cff]',
+        'focus:outline-none focus:ring-2 focus:ring-primary',
       ].join(' ')}
-      style={{ color: '#646cff' }}
+      style={{ color: 'var(--color-primary)' }}
     >
       {collapsed ? (
         <ChevronRightIcon stroke="#646cff" />
