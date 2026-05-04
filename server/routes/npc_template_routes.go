@@ -25,10 +25,12 @@ func RegisterNPCTemplateRoutes(r *gin.Engine, client *db.Client) {
 
 // npcTemplateView is the JSON shape returned by the API.
 type npcTemplateView struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Level   int    `json:"level"`
-	XpValue int    `json:"xp_value"`
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	Level           int      `json:"level"`
+	XpValue         int      `json:"xp_value"`
+	RespawnRooms    []string `json:"respawn_rooms"`
+	RespawnCooldown int      `json:"respawn_cooldown"`
 }
 
 func listNPCTemplates(client *db.Client) gin.HandlerFunc {
@@ -43,10 +45,12 @@ func listNPCTemplates(client *db.Client) gin.HandlerFunc {
 		result := make([]npcTemplateView, len(templates))
 		for i, t := range templates {
 			result[i] = npcTemplateView{
-				ID:      t.ID,
-				Name:    t.Name,
-				Level:   t.Level,
-				XpValue: t.XpValue,
+				ID:              t.ID,
+				Name:            t.Name,
+				Level:           t.Level,
+				XpValue:         t.XpValue,
+				RespawnRooms:    t.RespawnRooms,
+				RespawnCooldown: t.RespawnCooldown,
 			}
 		}
 		c.JSON(http.StatusOK, result)
@@ -62,7 +66,9 @@ func updateNPCTemplate(client *db.Client) gin.HandlerFunc {
 		}
 
 		var req struct {
-			XpValue *int `json:"xp_value"`
+			XpValue         *int      `json:"xp_value"`
+			RespawnRooms    *[]string `json:"respawn_rooms"`
+			RespawnCooldown *int      `json:"respawn_cooldown"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -73,19 +79,28 @@ func updateNPCTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		updated, err := client.NPCTemplate.UpdateOneID(id).
-			SetXpValue(*req.XpValue).
-			Save(c.Request.Context())
+		builder := client.NPCTemplate.UpdateOneID(id).
+			SetXpValue(*req.XpValue)
+		if req.RespawnRooms != nil {
+			builder.SetRespawnRooms(*req.RespawnRooms)
+		}
+		if req.RespawnCooldown != nil {
+			builder.SetRespawnCooldown(*req.RespawnCooldown)
+		}
+
+		updated, err := builder.Save(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, npcTemplateView{
-			ID:      updated.ID,
-			Name:    updated.Name,
-			Level:   updated.Level,
-			XpValue: updated.XpValue,
+			ID:              updated.ID,
+			Name:            updated.Name,
+			Level:           updated.Level,
+			XpValue:         updated.XpValue,
+			RespawnRooms:    updated.RespawnRooms,
+			RespawnCooldown: updated.RespawnCooldown,
 		})
 	}
 }

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as NpcsRouteImport } from './routes/npcs'
+import { Route as NpcTemplatesRouteImport } from './routes/npc-templates'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ItemsRouteImport } from './routes/items'
@@ -31,6 +32,11 @@ import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
 const NpcsRoute = NpcsRouteImport.update({
   id: '/npcs',
   path: '/npcs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NpcTemplatesRoute = NpcTemplatesRouteImport.update({
+  id: '/npc-templates',
+  path: '/npc-templates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapRoute = MapRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/npc-templates': typeof NpcTemplatesRoute
   '/npcs': typeof NpcsRoute
   '/abilities': typeof AuthAbilitiesRoute
   '/achievements': typeof AuthAchievementsRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/npc-templates': typeof NpcTemplatesRoute
   '/npcs': typeof NpcsRoute
   '/abilities': typeof AuthAbilitiesRoute
   '/achievements': typeof AuthAchievementsRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/npc-templates': typeof NpcTemplatesRoute
   '/npcs': typeof NpcsRoute
   '/_auth/abilities': typeof AuthAbilitiesRoute
   '/_auth/achievements': typeof AuthAchievementsRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/login'
     | '/map'
+    | '/npc-templates'
     | '/npcs'
     | '/abilities'
     | '/achievements'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/login'
     | '/map'
+    | '/npc-templates'
     | '/npcs'
     | '/abilities'
     | '/achievements'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/login'
     | '/map'
+    | '/npc-templates'
     | '/npcs'
     | '/_auth/abilities'
     | '/_auth/achievements'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   ItemsRoute: typeof ItemsRoute
   LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
+  NpcTemplatesRoute: typeof NpcTemplatesRoute
   NpcsRoute: typeof NpcsRoute
 }
 
@@ -256,6 +269,13 @@ declare module '@tanstack/react-router' {
       path: '/npcs'
       fullPath: '/npcs'
       preLoaderRoute: typeof NpcsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/npc-templates': {
+      id: '/npc-templates'
+      path: '/npc-templates'
+      fullPath: '/npc-templates'
+      preLoaderRoute: typeof NpcTemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/map': {
@@ -416,6 +436,7 @@ const rootRouteChildren: RootRouteChildren = {
   ItemsRoute: ItemsRoute,
   LoginRoute: LoginRoute,
   MapRoute: MapRoute,
+  NpcTemplatesRoute: NpcTemplatesRoute,
   NpcsRoute: NpcsRoute,
 }
 export const routeTree = rootRouteImport

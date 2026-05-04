@@ -291,6 +291,10 @@ func main() {
 	// Register event routes (HTTP bridge for game server → event bus)
 	routes.RegisterEventRoutes(router, client, slog.Default())
 
+	// Start the respawn ticker (checks dead NPCs every 10s)
+	respawnSvc := events.NewRespawnService(client, slog.Default())
+	respawnSvc.Start()
+
 	// Register game config routes (protected — admin management)
 	routes.RegisterGameConfigRoutes(protected, client)
 

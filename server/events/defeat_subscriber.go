@@ -179,6 +179,7 @@ func (s *RespawnService) processRespawns() error {
 	deadNPCs, err := s.client.Character.Query().
 		Where(character.IsNPCEQ(true)).
 		Where(character.HitpointsEQ(0)).
+		Where(character.DiedAtNotNil()).
 		WithNpcTemplate().
 		All(ctx)
 	if err != nil {
@@ -190,6 +191,16 @@ func (s *RespawnService) processRespawns() error {
 		if template == nil {
 			s.logger.Warn("dead NPC has no template, skipping respawn", "npc_id", npc.ID)
 			continue
+		}
+
+		cooldown := template.RespawnCooldown
+		if cooldown == 0 {
+			continue // 0 = no respawn
+		}
+
+		elapsed := time.Since(*npc.DiedAt).Seconds()
+		if elapsed < float64(cooldown) {
+			continue // still on cooldown
 		}
 
 		rooms := template.RespawnRooms
@@ -211,10 +222,11 @@ func (s *RespawnService) processRespawns() error {
 			continue
 		}
 
-		// Restore NPC
+		// Restore NPC (and clear died_at)
 		_, err = s.client.Character.UpdateOne(npc).
 			SetHitpoints(npc.MaxHitpoints).
 			SetCurrentRoomId(roomID).
+			ClearDiedAt().
 			Save(ctx)
 		if err != nil {
 			s.logger.Error("failed to respawn NPC", "npc_id", npc.ID, "room", roomID, "error", err)

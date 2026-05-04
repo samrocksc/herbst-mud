@@ -29,6 +29,7 @@ const navItems = [
   { label: 'Players', path: '/players', Icon: PlayersIcon },
   { label: 'Map', path: '/map', Icon: MapIcon },
   { label: 'NPCs', path: '/npcs', Icon: NPCsIcon },
+  { label: 'NPC Templates', path: '/npc-templates', Icon: NPCsIcon },
 ]
 
 /** Toggle button for collapsing/expanding the sidebar. Named component for DevTools clarity. */
