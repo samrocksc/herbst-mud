@@ -41,6 +41,9 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
+		req.PosX = max(0, req.PosX)
+		req.PosY = max(0, req.PosY)
+
 		roomBuilder := client.Room.
 			Create().
 			SetName(req.Name).
@@ -142,10 +145,10 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			updater.SetExits(req.Exits)
 		}
 		if req.PosX != nil {
-			updater.SetPosX(*req.PosX)
+			updater.SetPosX(max(0, *req.PosX))
 		}
 		if req.PosY != nil {
-			updater.SetPosY(*req.PosY)
+			updater.SetPosY(max(0, *req.PosY))
 		}
 
 		// Increment version on every save
