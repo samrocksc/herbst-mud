@@ -21,10 +21,10 @@ function MapBuilder() {
     if (!localStorage.getItem('token')) state.navigate({ to: '/login' })
   }, [state.navigate])
 
-  if (state.roomsLoading) return <div className="p-8 text-text">Loading map...</div>
-
   const getNPCsInRoom = useCallback((roomId: number) => state.npcs.filter(n => n.currentRoomId === roomId), [state.npcs])
   const getEquipmentInRoom = useCallback((_roomId: number) => state.roomEquipment, [state.roomEquipment])
+
+  if (state.roomsLoading) return <div className="p-8 text-text">Loading map...</div>
 
   return (
     <div className="flex h-screen bg-surface">
