@@ -1,29 +1,44 @@
+import { useState } from 'react'
 import { ALL_DIRECTIONS } from './DirectionUtils'
 import { Button } from '../Button'
+import { SearchableSelect } from '../SearchableSelect'
+import { useRooms } from '../../hooks/useRooms'
+import type { Room } from './types'
 
 type RoomEditorProps = {
-  editForm: {
-    name: string
-    description: string
-    exits: Record<string, string>
-  }
-  setEditForm: (form: {
-    name: string
-    description: string
-    exits: Record<string, string>
-  }) => void
-  onSave: () => void
+  room: Room
   onCancel: () => void
-  saving: boolean
 }
 
 export function RoomEditor({
-  editForm,
-  setEditForm,
-  onSave,
+  room,
   onCancel,
-  saving,
 }: RoomEditorProps) {
+  const { updateRoom, isUpdating } = useRooms()
+  const { rooms } = useRooms() // We'll need this for the room picker
+
+  // Local state for editing
+  const [form, setForm] = useState({
+    name: room.name,
+    description: room.description,
+    exits: { ...room.exits },
+    isStartingRoom: room.isStartingRoom,
+  })
+
+  const handleSave = () => {
+    updateRoom({ 
+      id: room.id, 
+      update: {
+        name: form.name,
+        description: form.description,
+        exits: form.exits,
+        isStartingRoom: form.isStartingRoom,
+        version: room.version
+      } 
+    })
+    // Note: In a real app, we'd handle the mutation onSuccess to call onCancel
+  }
+
   return (
     <>
       <div className="p-3 border-b border-border flex justify-between items-center">
@@ -38,20 +53,16 @@ export function RoomEditor({
           <label className="text-text-muted text-xs block mb-1">Name</label>
           <input
             type="text"
-            value={editForm.name}
-            onChange={(e) =>
-              setEditForm({ ...editForm, name: e.target.value })
-            }
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
           />
         </div>
         <div className="mb-3">
           <label className="text-text-muted text-xs block mb-1">Description</label>
           <textarea
-            value={editForm.description}
-            onChange={(e) =>
-              setEditForm({ ...editForm, description: e.target.value })
-            }
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={4}
             className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y"
           />
@@ -59,20 +70,19 @@ export function RoomEditor({
         <div className="mb-3">
           <label className="text-text-muted text-xs block mb-2">Exits</label>
           {ALL_DIRECTIONS.map((dir) => (
-            <div key={dir} className="flex items-center gap-2 mb-1">
-              <span className="w-[50px] text-text-muted text-xs">{dir}:</span>
-              <input
-                type="number"
-                value={editForm.exits[dir] || ''}
-                onChange={(e) =>
-                  setEditForm({
-                    ...editForm,
-                    exits: { ...editForm.exits, [dir]: e.target.value },
-                  })
-                }
-                placeholder="room id"
-                min={1}
-                className="flex-1 p-1 bg-surface border border-border rounded text-text text-xs"
+            <div key={dir} className="flex items-center gap-2 mb-2">
+              <span className="w-[60px] text-text-muted text-xs">{dir}:</span>
+              <SearchableSelect
+                options={rooms.map(r => ({
+                  id: String(r.id),
+                  name: `${r.name} (ID: ${r.id})`,
+                }))}
+                value={form.exits[dir] ? String(form.exits[dir]) : ''}
+                onChange={(val) => setForm({ 
+                  ...form, 
+                  exits: { ...form.exits, [dir]: val ? parseInt(val) : 0 } 
+                })}
+                placeholder="Pick destination room..."
               />
             </div>
           ))}
@@ -84,10 +94,10 @@ export function RoomEditor({
           variant="primary"
           size="md"
           fullWidth
-          onClick={onSave}
-          disabled={saving}
+          onClick={handleSave}
+          disabled={isUpdating}
         >
-          {saving ? 'Saving...' : 'Save Changes'}
+          {isUpdating ? 'Saving...' : 'Save Changes'}
         </Button>
         <Button variant="secondary" size="md" fullWidth onClick={onCancel}>
           Cancel

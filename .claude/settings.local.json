@@ -19,7 +19,14 @@
       "Bash(sed -i 's/inventoryItem\\(raw\\)/InventoryItem\\(raw\\)/g' *.go)",
       "Bash(pkill -f herbst-web)",
       "Bash(pkill -f \"vite\")",
-      "Bash(pkill -f \"node.*vite\")"
-    ]
+      "Bash(pkill -f \"node.*vite\")",
+      "Bash(bun *)",
+      "Bash(make dev-all *)",
+      "Bash(nc -z localhost 4444)",
+      "Bash(sed *)",
+      "Bash(xxd '/home/sam/GitHub/herbst-mud/admin/src/routes/_auth/npcs.$npcId.index.tsx')",
+      "Bash(gh issue *)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

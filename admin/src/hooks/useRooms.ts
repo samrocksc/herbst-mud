@@ -1,119 +1,73 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPut, apiPost, apiDelete } from '../utils/apiFetch'
 
-const API_BASE = `${window.location.origin}`
-
-export type Room = Readonly<{
+type Room = Readonly<{
   id: number
   name: string
   description: string
   isStartingRoom: boolean
   exits: Record<string, number>
-  atmosphere?: string
-  x?: number
-  y?: number
-  zLevel?: number
+  posX: number
+  posY: number
+  version: number
 }>
 
-export type RoomInput = Readonly<{
+type RoomInput = {
   name: string
   description: string
-  isStartingRoom?: boolean
-  exits?: Record<string, number>
-  atmosphere?: string
-  x?: number
-  y?: number
-  zLevel?: number
-}>
+  isStartingRoom: boolean
+  exits: Record<string, number>
+  posX: number
+  posY: number
+}
+
+type RoomUpdate = Partial<RoomInput> & {
+  version?: number
+}
+
+const API_BASE = `${window.location.origin}`
 
 export function useRooms() {
-  return useQuery({
+  const queryClient = useQueryClient()
+
+  const roomsQuery = useQuery<Room[]>({
     queryKey: ['rooms'],
-    queryFn: async (): Promise<Room[]> => {
-      const response = await fetch(`${API_BASE}/rooms`)
-      if (!response.ok) throw new Error('Failed to fetch rooms')
-      return response.json()
-    }
+    queryFn: () => apiGet<Room[]>(`${API_BASE}/rooms`),
   })
-}
 
-export function useRoom(id: number | null) {
-  return useQuery({
-    queryKey: ['room', id],
-    queryFn: async (): Promise<Room | null> => {
-      if (!id) return null
-      const response = await fetch(`${API_BASE}/rooms/${id}`)
-      if (!response.ok) throw new Error('Failed to fetch room')
-      return response.json()
-    },
-    enabled: !!id
-  })
-}
-
-export function useCreateRoom() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async (room: RoomInput): Promise<Room> => {
-      const response = await fetch(`${API_BASE}/rooms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(room)
-      })
-      if (!response.ok) throw new Error('Failed to create room')
-      return response.json()
-    },
+  const createMutation = useMutation({
+    mutationFn: (input: RoomInput) => apiPost<Room>(`${API_BASE}/rooms`, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
-    }
-  })
-}
-
-export function useUpdateRoom() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ id, room }: { id: number; room: RoomInput }): Promise<Room> => {
-      const response = await fetch(`${API_BASE}/rooms/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(room)
-      })
-      if (!response.ok) throw new Error('Failed to update room')
-      return response.json()
     },
-    onSuccess: (_, { id }) => {
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, update }: { id: number; update: RoomUpdate }) => 
+      apiPut(`${API_BASE}/rooms/${id}`, update),
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
-      queryClient.invalidateQueries({ queryKey: ['room', id] })
-    }
-  })
-}
-
-export function useDeleteRoom() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async (id: number): Promise<void> => {
-      const response = await fetch(`${API_BASE}/rooms/${id}`, {
-        method: 'DELETE'
-      })
-      if (!response.ok) throw new Error('Failed to delete room')
+      queryClient.invalidateQueries({ queryKey: ['rooms', variables.id] })
     },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiDelete(`${API_BASE}/rooms/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
-    }
+    },
   })
-}
 
-// Helper to get all available directions
-export const DIRECTIONS = ['north', 'south', 'east', 'west', 'up', 'down'] as const
-export type Direction = typeof DIRECTIONS[number]
-
-// Get opposite direction
-export function getOppositeDirection(dir: Direction): Direction {
-  const opposites: Record<Direction, Direction> = {
-    north: 'south',
-    south: 'north',
-    east: 'west',
-    west: 'east',
-    up: 'down',
-    down: 'up'
+  return {
+    rooms: roomsQuery.data ?? [],
+    isLoading: roomsQuery.isLoading,
+    isError: roomsQuery.isError,
+    error: roomsQuery.error,
+    createRoom: createMutation.mutate,
+    updateRoom: updateMutation.mutate,
+    deleteRoom: deleteMutation.mutate,
+    isUpdating: updateMutation.isPending,
+    isCreating: createMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   }
-  return opposites[dir]
 }
