@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/equipment"
+	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/room"
 	"time"
@@ -26,6 +27,26 @@ type EquipmentUpdate struct {
 // Where appends a list predicates to the EquipmentUpdate builder.
 func (_u *EquipmentUpdate) Where(ps ...predicate.Equipment) *EquipmentUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetEquipmentTemplateID sets the "equipment_template_id" field.
+func (_u *EquipmentUpdate) SetEquipmentTemplateID(v string) *EquipmentUpdate {
+	_u.mutation.SetEquipmentTemplateID(v)
+	return _u
+}
+
+// SetNillableEquipmentTemplateID sets the "equipment_template_id" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableEquipmentTemplateID(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetEquipmentTemplateID(*v)
+	}
+	return _u
+}
+
+// ClearEquipmentTemplateID clears the value of the "equipment_template_id" field.
+func (_u *EquipmentUpdate) ClearEquipmentTemplateID() *EquipmentUpdate {
+	_u.mutation.ClearEquipmentTemplateID()
 	return _u
 }
 
@@ -437,6 +458,11 @@ func (_u *EquipmentUpdate) SetRoom(v *Room) *EquipmentUpdate {
 	return _u.SetRoomID(v.ID)
 }
 
+// SetEquipmentTemplate sets the "equipmentTemplate" edge to the EquipmentTemplate entity.
+func (_u *EquipmentUpdate) SetEquipmentTemplate(v *EquipmentTemplate) *EquipmentUpdate {
+	return _u.SetEquipmentTemplateID(v.ID)
+}
+
 // Mutation returns the EquipmentMutation object of the builder.
 func (_u *EquipmentUpdate) Mutation() *EquipmentMutation {
 	return _u.mutation
@@ -445,6 +471,12 @@ func (_u *EquipmentUpdate) Mutation() *EquipmentMutation {
 // ClearRoom clears the "room" edge to the Room entity.
 func (_u *EquipmentUpdate) ClearRoom() *EquipmentUpdate {
 	_u.mutation.ClearRoom()
+	return _u
+}
+
+// ClearEquipmentTemplate clears the "equipmentTemplate" edge to the EquipmentTemplate entity.
+func (_u *EquipmentUpdate) ClearEquipmentTemplate() *EquipmentUpdate {
+	_u.mutation.ClearEquipmentTemplate()
 	return _u
 }
 
@@ -612,6 +644,35 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.EquipmentTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipment.EquipmentTemplateTable,
+			Columns: []string{equipment.EquipmentTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EquipmentTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipment.EquipmentTemplateTable,
+			Columns: []string{equipment.EquipmentTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{equipment.Label}
@@ -630,6 +691,26 @@ type EquipmentUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *EquipmentMutation
+}
+
+// SetEquipmentTemplateID sets the "equipment_template_id" field.
+func (_u *EquipmentUpdateOne) SetEquipmentTemplateID(v string) *EquipmentUpdateOne {
+	_u.mutation.SetEquipmentTemplateID(v)
+	return _u
+}
+
+// SetNillableEquipmentTemplateID sets the "equipment_template_id" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableEquipmentTemplateID(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetEquipmentTemplateID(*v)
+	}
+	return _u
+}
+
+// ClearEquipmentTemplateID clears the value of the "equipment_template_id" field.
+func (_u *EquipmentUpdateOne) ClearEquipmentTemplateID() *EquipmentUpdateOne {
+	_u.mutation.ClearEquipmentTemplateID()
+	return _u
 }
 
 // SetName sets the "name" field.
@@ -1040,6 +1121,11 @@ func (_u *EquipmentUpdateOne) SetRoom(v *Room) *EquipmentUpdateOne {
 	return _u.SetRoomID(v.ID)
 }
 
+// SetEquipmentTemplate sets the "equipmentTemplate" edge to the EquipmentTemplate entity.
+func (_u *EquipmentUpdateOne) SetEquipmentTemplate(v *EquipmentTemplate) *EquipmentUpdateOne {
+	return _u.SetEquipmentTemplateID(v.ID)
+}
+
 // Mutation returns the EquipmentMutation object of the builder.
 func (_u *EquipmentUpdateOne) Mutation() *EquipmentMutation {
 	return _u.mutation
@@ -1048,6 +1134,12 @@ func (_u *EquipmentUpdateOne) Mutation() *EquipmentMutation {
 // ClearRoom clears the "room" edge to the Room entity.
 func (_u *EquipmentUpdateOne) ClearRoom() *EquipmentUpdateOne {
 	_u.mutation.ClearRoom()
+	return _u
+}
+
+// ClearEquipmentTemplate clears the "equipmentTemplate" edge to the EquipmentTemplate entity.
+func (_u *EquipmentUpdateOne) ClearEquipmentTemplate() *EquipmentUpdateOne {
+	_u.mutation.ClearEquipmentTemplate()
 	return _u
 }
 
@@ -1238,6 +1330,35 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(room.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EquipmentTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipment.EquipmentTemplateTable,
+			Columns: []string{equipment.EquipmentTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EquipmentTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipment.EquipmentTemplateTable,
+			Columns: []string{equipment.EquipmentTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

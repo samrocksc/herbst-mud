@@ -1,109 +1,116 @@
 import { useState, useEffect, useCallback } from 'react'
+import type { ApiError } from '../api'
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-
-export type ApiState<T> = Readonly<{
-  data: T | null
+export type QueryState<T> = Readonly<{
+  data: T
   loading: boolean
-  error: string | null
+  error: ApiError | null
+  refetch: () => void
 }>
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
+export type MutationState = Readonly<{
+  loading: boolean
+  error: ApiError | null
+}>
 
-/** Build a standard RequestInit with auth headers. */
-function buildRequest(
-  method: string,
-  body?: unknown,
-): RequestInit {
-  const token = localStorage.getItem('token') ?? ''
-  const init: RequestInit = {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    } as Record<string, string>,
-  }
-  if (body !== undefined) {
-    ;(init.headers as Record<string, string>)['Content-Type'] = 'application/json'
-    init.body = JSON.stringify(body)
-  }
-  return init
-}
-
-/** Wrap fetch with auth and JSON parsing, throwing on non-OK status. */
-async function apiFetch<T>(input: string | URL | Request, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init)
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'HTTP error')
-    throw new Error(`${res.status} ${res.statusText}: ${text}`)
-  }
-  return (await res.json()) as T
-}
-
-// ─── Query hook (GET) ─────────────────────────────────────────────────────
-
-export function useApiQuery<T>(endpoint: string): Readonly<ApiState<T> & { refetch: () => void }> {
-  const [data, setData] = useState<T | null>(null)
+/**
+ * Generic GET query hook.
+ * Automatically fetches on mount and provides a refetch trigger.
+ * Supply an initialData value so `data` is never undefined.
+ */
+export function useApiQuery<T>(
+  endpoint: string,
+  initialData: T,
+): QueryState<T> {
+  const [data, setData] = useState<T>(initialData)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ApiError | null>(null)
 
-  const refetch = useCallback(() => {
-    let cancelled = false
+  const fetchData = useCallback(async () => {
     setLoading(true)
     setError(null)
-    void (async () => {
-      try {
-        const result = await apiFetch<T>(`${window.location.origin}${endpoint}`, buildRequest('GET'))
-        if (!cancelled) setData(result)
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Unknown error')
-      } finally {
-        if (!cancelled) setLoading(false)
+    try {
+      const res = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token') ?? ''}` },
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }))
+        throw new Error(err.error ?? `HTTP ${res.status}`)
       }
-    })()
-    return () => { cancelled = true }
+      const payload = await res.json()
+      setData(payload)
+    } catch (e: unknown) {
+      setError({
+        message: e instanceof Error ? e.message : 'Unknown error',
+        status: e instanceof Response ? e.status : undefined,
+      })
+    } finally {
+      setLoading(false)
+    }
   }, [endpoint])
 
   useEffect(() => {
-    const cleanup = refetch()
-    return cleanup
-  }, [refetch])
+    void fetchData()
+  }, [fetchData])
 
-  return { data, loading, error, refetch }
+  return { data, loading, error, refetch: fetchData }
 }
 
-// ─── Mutation hook (POST / PUT / DELETE / PATCH) ───────────────────────────
-
-export function useApiMutation<T, Body = unknown>(
-  method: string,
+/**
+ * Generic mutation hook for POST / PUT / DELETE.
+ * Returns a mutate function and loading / error state.
+ */
+export function useApiMutation<T>(
   endpoint: string,
+  method: 'POST' | 'PUT' | 'DELETE',
 ): Readonly<{
-  mutate: (body?: Body) => Promise<T | null>
+  mutate: (body?: unknown) => Promise<T | null>
   loading: boolean
-  error: string | null
+  error: ApiError | null
+  reset: () => void
 }> {
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ApiError | null>(null)
 
   const mutate = useCallback(
-    async (body?: Body): Promise<T | null> => {
+    async (body?: unknown) => {
       setLoading(true)
       setError(null)
       try {
-        const result = await apiFetch<T>(
-          `${window.location.origin}${endpoint}`,
-          buildRequest(method, body),
-        )
-        return result
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Unknown error'
-        setError(msg)
-        return null
+        const headers: Record<string, string> = {
+          Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
+        }
+        if (method !== 'DELETE') {
+          headers['Content-Type'] = 'application/json'
+        }
+        const res = await fetch(endpoint, {
+          method,
+          headers,
+          body: body ? JSON.stringify(body) : undefined,
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: res.statusText }))
+          throw new Error(err.error ?? `HTTP ${res.status}`)
+        }
+        if (res.status === 204) return null
+        return (await res.json()) as T
+      } catch (e: unknown) {
+        const err: ApiError = {
+          message: e instanceof Error ? e.message : 'Unknown error',
+          status: e instanceof Response ? e.status : undefined,
+        }
+        setError(err)
+        throw err
       } finally {
         setLoading(false)
       }
     },
-    [method, endpoint],
+    [endpoint, method],
   )
 
-  return { mutate, loading, error }
+  const reset = useCallback(() => {
+    setError(null)
+  }, [])
+
+  return { mutate, loading, error, reset }
 }

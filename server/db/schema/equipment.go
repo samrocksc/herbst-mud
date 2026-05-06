@@ -14,6 +14,9 @@ type Equipment struct {
 // Fields of the Equipment.
 func (Equipment) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("equipment_template_id").
+			Optional().
+			Comment("FK to equipment_template"),
 		field.String("name"),
 		field.String("description"),
 		field.String("slot"), // e.g., "head", "chest", "weapon", "legs"
@@ -91,5 +94,9 @@ func (Equipment) Edges() []ent.Edge {
 		edge.From("room", Room.Type).
 			Ref("equipment").
 			Unique(),
+		edge.From("equipmentTemplate", EquipmentTemplate.Type).
+			Ref("equipment").
+			Unique().
+			Field("equipment_template_id"),
 	}
 }

@@ -1,4 +1,4 @@
-export function ItemsIcon({ className, stroke }: { className?: string; stroke?: string }) {
+export function ItemsIcon({ className, stroke }: Readonly<{ className?: string; stroke?: string }>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

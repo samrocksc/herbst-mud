@@ -36,6 +36,8 @@ type Tx struct {
 	DamageLog *DamageLogClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
+	// EquipmentTemplate is the client for interacting with the EquipmentTemplate builders.
+	EquipmentTemplate *EquipmentTemplateClient
 	// Faction is the client for interacting with the Faction builders.
 	Faction *FactionClient
 	// FactionCategory is the client for interacting with the FactionCategory builders.
@@ -205,6 +207,7 @@ func (tx *Tx) init() {
 	tx.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(tx.config)
 	tx.DamageLog = NewDamageLogClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
+	tx.EquipmentTemplate = NewEquipmentTemplateClient(tx.config)
 	tx.Faction = NewFactionClient(tx.config)
 	tx.FactionCategory = NewFactionCategoryClient(tx.config)
 	tx.FactionRequiredTag = NewFactionRequiredTagClient(tx.config)

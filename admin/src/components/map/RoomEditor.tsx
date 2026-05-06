@@ -62,7 +62,7 @@ export function RoomEditor({
             <div key={dir} className="flex items-center gap-2 mb-1">
               <span className="w-[50px] text-text-muted text-xs">{dir}:</span>
               <input
-                type="text"
+                type="number"
                 value={editForm.exits[dir] || ''}
                 onChange={(e) =>
                   setEditForm({
@@ -71,6 +71,7 @@ export function RoomEditor({
                   })
                 }
                 placeholder="room id"
+                min={1}
                 className="flex-1 p-1 bg-surface border border-border rounded text-text text-xs"
               />
             </div>

@@ -17,8 +17,10 @@ func RegisterNPCTemplateRoutes(r *gin.Engine, client *db.Client) {
 	templates.Use(middleware.AdminMiddleware())
 	{
 		templates.GET("/npc-templates", listNPCTemplates(client))
+		templates.GET("/npc-templates/:id", getNPCTemplate(client))
 		templates.POST("/npc-templates", createNPCTemplate(client))
 		templates.PUT("/npc-templates/:id", updateNPCTemplate(client))
+		templates.DELETE("/npc-templates/:id", deleteNPCTemplate(client))
 	}
 }
 
@@ -26,12 +28,18 @@ func RegisterNPCTemplateRoutes(r *gin.Engine, client *db.Client) {
 
 // npcTemplateView is the JSON shape returned by the API.
 type npcTemplateView struct {
-	ID              string   `json:"id"`
-	Name            string   `json:"name"`
-	Level           int      `json:"level"`
-	XpValue         int      `json:"xp_value"`
-	RespawnRooms    []string `json:"respawn_rooms"`
-	RespawnCooldown int      `json:"respawn_cooldown"`
+	ID              string         `json:"id"`
+	Name            string         `json:"name"`
+	Description     string         `json:"description"`
+	Race            string         `json:"race"`
+	Disposition     string         `json:"disposition"`
+	Level           int            `json:"level"`
+	XpValue         int            `json:"xp_value"`
+	Skills          map[string]int `json:"skills"`
+	TradesWith      []string       `json:"trades_with"`
+	Greeting        string         `json:"greeting"`
+	RespawnRooms    []string       `json:"respawn_rooms"`
+	RespawnCooldown int            `json:"respawn_cooldown"`
 }
 
 func listNPCTemplates(client *db.Client) gin.HandlerFunc {
@@ -48,13 +56,52 @@ func listNPCTemplates(client *db.Client) gin.HandlerFunc {
 			result[i] = npcTemplateView{
 				ID:              t.ID,
 				Name:            t.Name,
+				Description:     t.Description,
+				Race:            t.Race,
+				Disposition:     string(t.Disposition),
 				Level:           t.Level,
 				XpValue:         t.XpValue,
+				Skills:          t.Skills,
+				TradesWith:      t.TradesWith,
+				Greeting:        t.Greeting,
 				RespawnRooms:    t.RespawnRooms,
 				RespawnCooldown: t.RespawnCooldown,
 			}
 		}
 		c.JSON(http.StatusOK, result)
+	}
+}
+
+func getNPCTemplate(client *db.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		if id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid npc template id"})
+			return
+		}
+
+		tmpl, err := client.NPCTemplate.Query().
+			Where(npctemplate.IDEQ(id)).
+			Only(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "npc template not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, npcTemplateView{
+			ID:              tmpl.ID,
+			Name:            tmpl.Name,
+			Description:     tmpl.Description,
+			Race:            tmpl.Race,
+			Disposition:     string(tmpl.Disposition),
+			Level:           tmpl.Level,
+			XpValue:         tmpl.XpValue,
+			Skills:          tmpl.Skills,
+			TradesWith:      tmpl.TradesWith,
+			Greeting:        tmpl.Greeting,
+			RespawnRooms:    tmpl.RespawnRooms,
+			RespawnCooldown: tmpl.RespawnCooldown,
+		})
 	}
 }
 
@@ -115,12 +162,34 @@ func createNPCTemplate(client *db.Client) gin.HandlerFunc {
 		c.JSON(http.StatusCreated, npcTemplateView{
 			ID:              created.ID,
 			Name:            created.Name,
+			Description:     created.Description,
+			Race:            created.Race,
+			Disposition:     string(created.Disposition),
 			Level:           created.Level,
 			XpValue:         created.XpValue,
+			Skills:          created.Skills,
+			TradesWith:      created.TradesWith,
+			Greeting:        created.Greeting,
 			RespawnRooms:    created.RespawnRooms,
 			RespawnCooldown: created.RespawnCooldown,
 		})
 	}
+}
+
+// updateNPCTemplateRequest accepts all template fields as optional pointers.
+// Only non-nil fields are applied.
+type updateNPCTemplateRequest struct {
+	Name            *string         `json:"name"`
+	Description     *string         `json:"description"`
+	Race            *string         `json:"race"`
+	Disposition     *string         `json:"disposition"`
+	Level           *int            `json:"level"`
+	XpValue         *int            `json:"xp_value"`
+	Skills          *map[string]int `json:"skills"`
+	TradesWith      *[]string       `json:"trades_with"`
+	Greeting        *string         `json:"greeting"`
+	RespawnRooms    *[]string       `json:"respawn_rooms"`
+	RespawnCooldown *int            `json:"respawn_cooldown"`
 }
 
 func updateNPCTemplate(client *db.Client) gin.HandlerFunc {
@@ -131,30 +200,55 @@ func updateNPCTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		var req struct {
-			XpValue         *int      `json:"xp_value"`
-			RespawnRooms    *[]string `json:"respawn_rooms"`
-			RespawnCooldown *int      `json:"respawn_cooldown"`
-		}
+		var req updateNPCTemplateRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		if req.XpValue == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "xp_value is required"})
-			return
-		}
 
-		builder := client.NPCTemplate.UpdateOneID(id).
-			SetXpValue(*req.XpValue)
+		updater := client.NPCTemplate.UpdateOneID(id)
+
+		if req.Name != nil {
+			updater.SetName(*req.Name)
+		}
+		if req.Description != nil {
+			updater.SetDescription(*req.Description)
+		}
+		if req.Race != nil {
+			updater.SetRace(*req.Race)
+		}
+		if req.Disposition != nil {
+			switch *req.Disposition {
+			case "hostile", "friendly", "neutral":
+				updater.SetDisposition(npctemplate.Disposition(*req.Disposition))
+			default:
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid disposition: " + *req.Disposition})
+				return
+			}
+		}
+		if req.Level != nil {
+			updater.SetLevel(*req.Level)
+		}
+		if req.XpValue != nil {
+			updater.SetXpValue(*req.XpValue)
+		}
+		if req.Skills != nil {
+			updater.SetSkills(*req.Skills)
+		}
+		if req.TradesWith != nil {
+			updater.SetTradesWith(*req.TradesWith)
+		}
+		if req.Greeting != nil {
+			updater.SetGreeting(*req.Greeting)
+		}
 		if req.RespawnRooms != nil {
-			builder.SetRespawnRooms(*req.RespawnRooms)
+			updater.SetRespawnRooms(*req.RespawnRooms)
 		}
 		if req.RespawnCooldown != nil {
-			builder.SetRespawnCooldown(*req.RespawnCooldown)
+			updater.SetRespawnCooldown(*req.RespawnCooldown)
 		}
 
-		updated, err := builder.Save(c.Request.Context())
+		updated, err := updater.Save(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -163,10 +257,35 @@ func updateNPCTemplate(client *db.Client) gin.HandlerFunc {
 		c.JSON(http.StatusOK, npcTemplateView{
 			ID:              updated.ID,
 			Name:            updated.Name,
+			Description:     updated.Description,
+			Race:            updated.Race,
+			Disposition:     string(updated.Disposition),
 			Level:           updated.Level,
 			XpValue:         updated.XpValue,
+			Skills:          updated.Skills,
+			TradesWith:      updated.TradesWith,
+			Greeting:        updated.Greeting,
 			RespawnRooms:    updated.RespawnRooms,
 			RespawnCooldown: updated.RespawnCooldown,
 		})
+	}
+}
+
+// deleteNPCTemplate removes an NPC template by ID.
+func deleteNPCTemplate(client *db.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		if id == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid npc template id"})
+			return
+		}
+
+		err := client.NPCTemplate.DeleteOneID(id).Exec(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "npc template not found"})
+			return
+		}
+
+		c.JSON(http.StatusNoContent, nil)
 	}
 }

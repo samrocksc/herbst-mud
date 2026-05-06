@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/character"
 	"herbst-server/db/npcskill"
 	"herbst-server/db/npctemplate"
 
@@ -137,6 +138,21 @@ func (_c *NPCTemplateCreate) AddNpcSkills(v ...*NPCSkill) *NPCTemplateCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddNpcSkillIDs(ids...)
+}
+
+// AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
+func (_c *NPCTemplateCreate) AddCharacterIDs(ids ...int) *NPCTemplateCreate {
+	_c.mutation.AddCharacterIDs(ids...)
+	return _c
+}
+
+// AddCharacters adds the "characters" edges to the Character entity.
+func (_c *NPCTemplateCreate) AddCharacters(v ...*Character) *NPCTemplateCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCharacterIDs(ids...)
 }
 
 // Mutation returns the NPCTemplateMutation object of the builder.
@@ -314,6 +330,22 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   npctemplate.CharactersTable,
+			Columns: []string{npctemplate.CharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

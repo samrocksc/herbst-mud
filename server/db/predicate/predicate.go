@@ -42,6 +42,9 @@ type DamageLog func(*sql.Selector)
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)
 
+// EquipmentTemplate is the predicate function for equipmenttemplate builders.
+type EquipmentTemplate func(*sql.Selector)
+
 // Faction is the predicate function for faction builders.
 type Faction func(*sql.Selector)
 

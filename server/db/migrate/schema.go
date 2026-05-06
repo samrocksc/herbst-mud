@@ -61,6 +61,8 @@ var (
 		{Name: "respawn_room_id", Type: field.TypeInt, Default: 5},
 		{Name: "is_admin", Type: field.TypeBool, Default: false},
 		{Name: "is_immortal", Type: field.TypeBool, Default: false},
+		{Name: "is_instance", Type: field.TypeBool, Default: false},
+		{Name: "instance_number", Type: field.TypeInt, Default: 0},
 		{Name: "npc_skill_id", Type: field.TypeString, Nullable: true},
 		{Name: "npc_skill_cooldown", Type: field.TypeInt, Default: 0},
 		{Name: "hitpoints", Type: field.TypeInt, Default: 100},
@@ -92,7 +94,7 @@ var (
 		{Name: "skill_cloth_armor", Type: field.TypeInt, Default: 0},
 		{Name: "skill_heavy_armor", Type: field.TypeInt, Default: 0},
 		{Name: "current_room_id", Type: field.TypeInt},
-		{Name: "character_npc_template", Type: field.TypeString, Nullable: true},
+		{Name: "npc_template_id", Type: field.TypeString, Nullable: true},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
 		{Name: "user_characters", Type: field.TypeInt, Nullable: true},
 	}
@@ -104,25 +106,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[38]},
+				Columns:    []*schema.Column{CharactersColumns[40]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[39]},
+				Columns:    []*schema.Column{CharactersColumns[41]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[40]},
+				Columns:    []*schema.Column{CharactersColumns[42]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[41]},
+				Columns:    []*schema.Column{CharactersColumns[43]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -336,6 +338,7 @@ var (
 		{Name: "contained_items", Type: field.TypeString, Default: ""},
 		{Name: "reveal_condition", Type: field.TypeString, Default: ""},
 		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "equipment_template_id", Type: field.TypeString, Nullable: true},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -345,12 +348,47 @@ var (
 		PrimaryKey: []*schema.Column{EquipmentColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "equipment_rooms_equipment",
+				Symbol:     "equipment_equipment_templates_equipment",
 				Columns:    []*schema.Column{EquipmentColumns[24]},
+				RefColumns: []*schema.Column{EquipmentTemplatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "equipment_rooms_equipment",
+				Columns:    []*schema.Column{EquipmentColumns[25]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// EquipmentTemplatesColumns holds the columns for the "equipment_templates" table.
+	EquipmentTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "slot", Type: field.TypeString},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "weight", Type: field.TypeInt, Default: 0},
+		{Name: "item_type", Type: field.TypeString, Default: "misc"},
+		{Name: "stats", Type: field.TypeJSON, Nullable: true},
+		{Name: "color", Type: field.TypeString, Default: ""},
+		{Name: "is_visible", Type: field.TypeBool, Default: true},
+		{Name: "is_immovable", Type: field.TypeBool, Default: false},
+		{Name: "effect_type", Type: field.TypeString, Default: ""},
+		{Name: "effect_value", Type: field.TypeInt, Default: 0},
+		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
+		{Name: "is_container", Type: field.TypeBool, Default: false},
+		{Name: "container_capacity", Type: field.TypeInt, Default: 0},
+		{Name: "is_locked", Type: field.TypeBool, Default: false},
+		{Name: "key_item_id", Type: field.TypeString, Nullable: true},
+		{Name: "reveal_condition", Type: field.TypeString, Default: ""},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+	}
+	// EquipmentTemplatesTable holds the schema information for the "equipment_templates" table.
+	EquipmentTemplatesTable = &schema.Table{
+		Name:       "equipment_templates",
+		Columns:    EquipmentTemplatesColumns,
+		PrimaryKey: []*schema.Column{EquipmentTemplatesColumns[0]},
 	}
 	// FactionsColumns holds the columns for the "factions" table.
 	FactionsColumns = []*schema.Column{
@@ -651,6 +689,7 @@ var (
 		CompetencyLevelThresholdsTable,
 		DamageLogsTable,
 		EquipmentTable,
+		EquipmentTemplatesTable,
 		FactionsTable,
 		FactionCategoriesTable,
 		FactionRequiredTagsTable,
@@ -686,7 +725,8 @@ func init() {
 	CharacterTalentsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterTalentsTable.ForeignKeys[1].RefTable = TalentsTable
 	CompetencyLevelThresholdsTable.ForeignKeys[0].RefTable = CompetencyCategoriesTable
-	EquipmentTable.ForeignKeys[0].RefTable = RoomsTable
+	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTemplatesTable
+	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
 	FactionsTable.ForeignKeys[0].RefTable = FactionCategoriesTable
 	FactionRequiredTagsTable.ForeignKeys[0].RefTable = FactionsTable
 	SkillsTable.ForeignKeys[0].RefTable = FactionsTable

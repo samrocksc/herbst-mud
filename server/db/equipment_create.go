@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/equipment"
+	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/room"
 	"time"
 
@@ -19,6 +20,20 @@ type EquipmentCreate struct {
 	config
 	mutation *EquipmentMutation
 	hooks    []Hook
+}
+
+// SetEquipmentTemplateID sets the "equipment_template_id" field.
+func (_c *EquipmentCreate) SetEquipmentTemplateID(v string) *EquipmentCreate {
+	_c.mutation.SetEquipmentTemplateID(v)
+	return _c
+}
+
+// SetNillableEquipmentTemplateID sets the "equipment_template_id" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableEquipmentTemplateID(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetEquipmentTemplateID(*v)
+	}
+	return _c
 }
 
 // SetName sets the "name" field.
@@ -338,6 +353,11 @@ func (_c *EquipmentCreate) SetRoom(v *Room) *EquipmentCreate {
 	return _c.SetRoomID(v.ID)
 }
 
+// SetEquipmentTemplate sets the "equipmentTemplate" edge to the EquipmentTemplate entity.
+func (_c *EquipmentCreate) SetEquipmentTemplate(v *EquipmentTemplate) *EquipmentCreate {
+	return _c.SetEquipmentTemplateID(v.ID)
+}
+
 // Mutation returns the EquipmentMutation object of the builder.
 func (_c *EquipmentCreate) Mutation() *EquipmentMutation {
 	return _c.mutation
@@ -638,6 +658,23 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.room_equipment = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EquipmentTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipment.EquipmentTemplateTable,
+			Columns: []string{equipment.EquipmentTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.EquipmentTemplateID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -24,7 +24,7 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    # API reverse proxy to web service
+    # Auth endpoint (not under /api in the backend)
     location /users {
         proxy_pass http://web:8080;
         proxy_http_version 1.1;
@@ -33,73 +33,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    location /rooms {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /npcs {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        etag off;
-        add_header Cache-Control "no-store" always;
-        proxy_hide_header ETag;
-    }
-
-    location /equipment {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /skills {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /talents {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /characters {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /worlds {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /game-configs {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
+    # Health check
     location /healthz {
         proxy_pass http://web:8080;
         proxy_http_version 1.1;
@@ -108,14 +42,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    location /admin {
-        proxy_pass http://web:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
+    # All API routes — frontend calls /api/*, backend serves /api/*
     location /api {
         proxy_pass http://web:8080;
         proxy_http_version 1.1;
@@ -124,7 +51,16 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # SPA fallback
+    # Admin endpoints
+    location /admin {
+        proxy_pass http://web:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # SPA fallback — serves index.html for all client-side routes
     location / {
         try_files $uri $uri/ /index.html;
     }

@@ -837,7 +837,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		})
 	})
 
-	// Get character skills
+	// Get character skills (with faction eligibility info)
 	router.GET("/characters/:id/skills", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -867,20 +867,64 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			}
 		}
 
+		// Get eligibility info for faction-based skills
+		skillSvc := services.NewSkillEligibilityService(client)
+		skillsWithElig, err := skillSvc.SkillsForCharacterWithEligibility(c.Request.Context(), id)
+		if err != nil {
+			log.Printf("[skills] eligibility check failed for character %d: %v", id, err)
+			// Don't fail the entire request — just omit faction skills eligibility
+		}
+
+		// Build faction skills list with eligibility
+		factionSkills := make([]gin.H, 0)
+		if err == nil {
+			for _, swe := range skillsWithElig {
+				sk := swe.Skill
+				el := swe.Eligibility
+				entry := gin.H{
+					"id":             sk.ID,
+					"name":           sk.Name,
+					"slug":           sk.Slug,
+					"skill_type":     sk.SkillType,
+					"skill_class":    sk.SkillClass,
+					"effect_type":    sk.EffectType,
+					"effect_value":   sk.EffectValue,
+					"effect_duration": sk.EffectDuration,
+					"scaling_stat":   sk.ScalingStat,
+					"scaling_percent_per_point": sk.ScalingPercentPerPoint,
+					"proc_chance":    sk.ProcChance,
+					"proc_event":     sk.ProcEvent,
+					"cooldown_seconds": sk.CooldownSeconds,
+					"mana_cost":      sk.ManaCost,
+					"stamina_cost":   sk.StaminaCost,
+					"hp_cost":        sk.HpCost,
+					"required_tag":  sk.RequiredTag,
+					"eligible":       el.Eligible,
+					"reason":         el.Reason,
+				}
+				if sk.Edges.Faction != nil {
+					entry["faction_id"] = sk.Edges.Faction.ID
+					entry["faction_name"] = sk.Edges.Faction.Name
+				}
+				factionSkills = append(factionSkills, entry)
+			}
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"id":            char.ID,
-			"name":          char.Name,
+			"id":   char.ID,
+			"name": char.Name,
 			"skills": gin.H{
-				"blades":        gin.H{"level": char.SkillBlades, "bonus": calcBonus(char.SkillBlades)},
-				"staves":        gin.H{"level": char.SkillStaves, "bonus": calcBonus(char.SkillStaves)},
-				"knives":        gin.H{"level": char.SkillKnives, "bonus": calcBonus(char.SkillKnives)},
-				"martial":       gin.H{"level": char.SkillMartial, "bonus": calcBonus(char.SkillMartial)},
-				"brawling":      gin.H{"level": char.SkillBrawling, "bonus": calcBonus(char.SkillBrawling)},
-				"tech":          gin.H{"level": char.SkillTech, "bonus": calcBonus(char.SkillTech)},
+				"blades":       gin.H{"level": char.SkillBlades, "bonus": calcBonus(char.SkillBlades)},
+				"staves":       gin.H{"level": char.SkillStaves, "bonus": calcBonus(char.SkillStaves)},
+				"knives":       gin.H{"level": char.SkillKnives, "bonus": calcBonus(char.SkillKnives)},
+				"martial":      gin.H{"level": char.SkillMartial, "bonus": calcBonus(char.SkillMartial)},
+				"brawling":     gin.H{"level": char.SkillBrawling, "bonus": calcBonus(char.SkillBrawling)},
+				"tech":         gin.H{"level": char.SkillTech, "bonus": calcBonus(char.SkillTech)},
 				"light_armor":  gin.H{"level": char.SkillLightArmor, "bonus": calcBonus(char.SkillLightArmor)},
 				"cloth_armor":  gin.H{"level": char.SkillClothArmor, "bonus": calcBonus(char.SkillClothArmor)},
 				"heavy_armor":  gin.H{"level": char.SkillHeavyArmor, "bonus": calcBonus(char.SkillHeavyArmor)},
 			},
+			"faction_skills": factionSkills,
 		})
 	})
 

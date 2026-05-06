@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/character"
 	"herbst-server/db/npcskill"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
@@ -219,6 +220,21 @@ func (_u *NPCTemplateUpdate) AddNpcSkills(v ...*NPCSkill) *NPCTemplateUpdate {
 	return _u.AddNpcSkillIDs(ids...)
 }
 
+// AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
+func (_u *NPCTemplateUpdate) AddCharacterIDs(ids ...int) *NPCTemplateUpdate {
+	_u.mutation.AddCharacterIDs(ids...)
+	return _u
+}
+
+// AddCharacters adds the "characters" edges to the Character entity.
+func (_u *NPCTemplateUpdate) AddCharacters(v ...*Character) *NPCTemplateUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCharacterIDs(ids...)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_u *NPCTemplateUpdate) Mutation() *NPCTemplateMutation {
 	return _u.mutation
@@ -243,6 +259,27 @@ func (_u *NPCTemplateUpdate) RemoveNpcSkills(v ...*NPCSkill) *NPCTemplateUpdate 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNpcSkillIDs(ids...)
+}
+
+// ClearCharacters clears all "characters" edges to the Character entity.
+func (_u *NPCTemplateUpdate) ClearCharacters() *NPCTemplateUpdate {
+	_u.mutation.ClearCharacters()
+	return _u
+}
+
+// RemoveCharacterIDs removes the "characters" edge to Character entities by IDs.
+func (_u *NPCTemplateUpdate) RemoveCharacterIDs(ids ...int) *NPCTemplateUpdate {
+	_u.mutation.RemoveCharacterIDs(ids...)
+	return _u
+}
+
+// RemoveCharacters removes "characters" edges to Character entities.
+func (_u *NPCTemplateUpdate) RemoveCharacters(v ...*Character) *NPCTemplateUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCharacterIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -390,6 +427,51 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CharactersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   npctemplate.CharactersTable,
+			Columns: []string{npctemplate.CharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCharactersIDs(); len(nodes) > 0 && !_u.mutation.CharactersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   npctemplate.CharactersTable,
+			Columns: []string{npctemplate.CharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CharactersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   npctemplate.CharactersTable,
+			Columns: []string{npctemplate.CharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -607,6 +689,21 @@ func (_u *NPCTemplateUpdateOne) AddNpcSkills(v ...*NPCSkill) *NPCTemplateUpdateO
 	return _u.AddNpcSkillIDs(ids...)
 }
 
+// AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
+func (_u *NPCTemplateUpdateOne) AddCharacterIDs(ids ...int) *NPCTemplateUpdateOne {
+	_u.mutation.AddCharacterIDs(ids...)
+	return _u
+}
+
+// AddCharacters adds the "characters" edges to the Character entity.
+func (_u *NPCTemplateUpdateOne) AddCharacters(v ...*Character) *NPCTemplateUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCharacterIDs(ids...)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_u *NPCTemplateUpdateOne) Mutation() *NPCTemplateMutation {
 	return _u.mutation
@@ -631,6 +728,27 @@ func (_u *NPCTemplateUpdateOne) RemoveNpcSkills(v ...*NPCSkill) *NPCTemplateUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNpcSkillIDs(ids...)
+}
+
+// ClearCharacters clears all "characters" edges to the Character entity.
+func (_u *NPCTemplateUpdateOne) ClearCharacters() *NPCTemplateUpdateOne {
+	_u.mutation.ClearCharacters()
+	return _u
+}
+
+// RemoveCharacterIDs removes the "characters" edge to Character entities by IDs.
+func (_u *NPCTemplateUpdateOne) RemoveCharacterIDs(ids ...int) *NPCTemplateUpdateOne {
+	_u.mutation.RemoveCharacterIDs(ids...)
+	return _u
+}
+
+// RemoveCharacters removes "characters" edges to Character entities.
+func (_u *NPCTemplateUpdateOne) RemoveCharacters(v ...*Character) *NPCTemplateUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCharacterIDs(ids...)
 }
 
 // Where appends a list predicates to the NPCTemplateUpdate builder.
@@ -808,6 +926,51 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CharactersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   npctemplate.CharactersTable,
+			Columns: []string{npctemplate.CharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCharactersIDs(); len(nodes) > 0 && !_u.mutation.CharactersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   npctemplate.CharactersTable,
+			Columns: []string{npctemplate.CharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CharactersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   npctemplate.CharactersTable,
+			Columns: []string{npctemplate.CharactersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

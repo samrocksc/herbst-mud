@@ -29,6 +29,15 @@ func (Character) Fields() []ent.Field {
 		field.Bool("is_immortal").
 			Default(false).
 			Comment("Character cannot be killed - takes damage but never dies"),
+		field.Bool("is_instance").
+			Default(false).
+			Comment("True if this NPC is an instance of a template"),
+		field.Int("instance_number").
+			Default(0).
+			Comment("Auto-incremented instance number per template"),
+		field.String("npc_template_id").
+			Optional().
+			Comment("Foreign key to npc_template ID"),
 		field.String("npc_skill_id").
 			Optional().
 			Comment("NPC skill identifier (e.g., 'druid_heal')"),
@@ -109,7 +118,8 @@ func (Character) Edges() []ent.Edge {
 			Required().
 			Unique(),
 		edge.To("npcTemplate", NPCTemplate.Type).
-			Unique(),
+			Unique().
+			Field("npc_template_id"),
 		edge.To("available_talents", AvailableTalent.Type),
 		edge.To("skills", CharacterSkill.Type),
 		edge.To("talents", CharacterTalent.Type),

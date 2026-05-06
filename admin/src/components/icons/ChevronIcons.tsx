@@ -1,4 +1,4 @@
-export function ChevronLeftIcon({ className, stroke }: { className?: string; stroke?: string }) {
+export function ChevronLeftIcon({ className, stroke }: Readonly<{ className?: string; stroke?: string }>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -17,7 +17,7 @@ export function ChevronLeftIcon({ className, stroke }: { className?: string; str
   )
 }
 
-export function ChevronRightIcon({ className, stroke }: { className?: string; stroke?: string }) {
+export function ChevronRightIcon({ className, stroke }: Readonly<{ className?: string; stroke?: string }>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

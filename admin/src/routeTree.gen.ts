@@ -9,11 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as NpcsRouteImport } from './routes/npcs'
 import { Route as NpcTemplatesRouteImport } from './routes/npc-templates'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ItemsRouteImport } from './routes/items'
 import { Route as ExportRouteImport } from './routes/export'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
@@ -24,16 +22,17 @@ import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
 import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
 import { Route as AuthRacesRouteImport } from './routes/_auth/races'
 import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
+import { Route as AuthNpcsRouteImport } from './routes/_auth/npcs'
+import { Route as AuthItemsRouteImport } from './routes/_auth/items'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
 import { Route as AuthAchievementsRouteImport } from './routes/_auth/achievements'
 import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
+import { Route as AuthNpcsNpcIdRouteImport } from './routes/_auth/npcs.$npcId'
+import { Route as AuthItemsItemIdRouteImport } from './routes/_auth/items.$itemId'
+import { Route as AuthNpcsNpcIdInstancesInstanceIdRouteImport } from './routes/_auth/npcs.$npcId.instances.$instanceId'
+import { Route as AuthItemsItemIdInstancesInstanceIdRouteImport } from './routes/_auth/items.$itemId.instances.$instanceId'
 
-const NpcsRoute = NpcsRouteImport.update({
-  id: '/npcs',
-  path: '/npcs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const NpcTemplatesRoute = NpcTemplatesRouteImport.update({
   id: '/npc-templates',
   path: '/npc-templates',
@@ -47,11 +46,6 @@ const MapRoute = MapRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ItemsRoute = ItemsRouteImport.update({
-  id: '/items',
-  path: '/items',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExportRoute = ExportRouteImport.update({
@@ -103,6 +97,16 @@ const AuthPlayersRoute = AuthPlayersRouteImport.update({
   path: '/players',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthNpcsRoute = AuthNpcsRouteImport.update({
+  id: '/npcs',
+  path: '/npcs',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthItemsRoute = AuthItemsRouteImport.update({
+  id: '/items',
+  path: '/items',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthFactionsRoute = AuthFactionsRouteImport.update({
   id: '/factions',
   path: '/factions',
@@ -123,46 +127,76 @@ const AuthAbilitiesRoute = AuthAbilitiesRouteImport.update({
   path: '/abilities',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthNpcsNpcIdRoute = AuthNpcsNpcIdRouteImport.update({
+  id: '/$npcId',
+  path: '/$npcId',
+  getParentRoute: () => AuthNpcsRoute,
+} as any)
+const AuthItemsItemIdRoute = AuthItemsItemIdRouteImport.update({
+  id: '/$itemId',
+  path: '/$itemId',
+  getParentRoute: () => AuthItemsRoute,
+} as any)
+const AuthNpcsNpcIdInstancesInstanceIdRoute =
+  AuthNpcsNpcIdInstancesInstanceIdRouteImport.update({
+    id: '/instances/$instanceId',
+    path: '/instances/$instanceId',
+    getParentRoute: () => AuthNpcsNpcIdRoute,
+  } as any)
+const AuthItemsItemIdInstancesInstanceIdRoute =
+  AuthItemsItemIdInstancesInstanceIdRouteImport.update({
+    id: '/instances/$instanceId',
+    path: '/instances/$instanceId',
+    getParentRoute: () => AuthItemsItemIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/export': typeof ExportRoute
-  '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npc-templates': typeof NpcTemplatesRoute
-  '/npcs': typeof NpcsRoute
   '/abilities': typeof AuthAbilitiesRoute
   '/achievements': typeof AuthAchievementsRoute
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
+  '/items': typeof AuthItemsRouteWithChildren
+  '/npcs': typeof AuthNpcsRouteWithChildren
   '/players': typeof AuthPlayersRoute
   '/races': typeof AuthRacesRoute
   '/skills': typeof AuthSkillsRoute
   '/tags': typeof AuthTagsRoute
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
+  '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
+  '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
+  '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
+  '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/export': typeof ExportRoute
-  '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npc-templates': typeof NpcTemplatesRoute
-  '/npcs': typeof NpcsRoute
   '/abilities': typeof AuthAbilitiesRoute
   '/achievements': typeof AuthAchievementsRoute
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
+  '/items': typeof AuthItemsRouteWithChildren
+  '/npcs': typeof AuthNpcsRouteWithChildren
   '/players': typeof AuthPlayersRoute
   '/races': typeof AuthRacesRoute
   '/skills': typeof AuthSkillsRoute
   '/tags': typeof AuthTagsRoute
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
+  '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
+  '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
+  '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
+  '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,21 +204,25 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/export': typeof ExportRoute
-  '/items': typeof ItemsRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/npc-templates': typeof NpcTemplatesRoute
-  '/npcs': typeof NpcsRoute
   '/_auth/abilities': typeof AuthAbilitiesRoute
   '/_auth/achievements': typeof AuthAchievementsRoute
   '/_auth/config': typeof AuthConfigRoute
   '/_auth/factions': typeof AuthFactionsRoute
+  '/_auth/items': typeof AuthItemsRouteWithChildren
+  '/_auth/npcs': typeof AuthNpcsRouteWithChildren
   '/_auth/players': typeof AuthPlayersRoute
   '/_auth/races': typeof AuthRacesRoute
   '/_auth/skills': typeof AuthSkillsRoute
   '/_auth/tags': typeof AuthTagsRoute
   '/_auth/talents': typeof AuthTalentsRoute
   '/_auth/xp': typeof AuthXpRoute
+  '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
+  '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
+  '/_auth/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
+  '/_auth/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -192,62 +230,74 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/export'
-    | '/items'
     | '/login'
     | '/map'
     | '/npc-templates'
-    | '/npcs'
     | '/abilities'
     | '/achievements'
     | '/config'
     | '/factions'
+    | '/items'
+    | '/npcs'
     | '/players'
     | '/races'
     | '/skills'
     | '/tags'
     | '/talents'
     | '/xp'
+    | '/items/$itemId'
+    | '/npcs/$npcId'
+    | '/items/$itemId/instances/$instanceId'
+    | '/npcs/$npcId/instances/$instanceId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
     | '/export'
-    | '/items'
     | '/login'
     | '/map'
     | '/npc-templates'
-    | '/npcs'
     | '/abilities'
     | '/achievements'
     | '/config'
     | '/factions'
+    | '/items'
+    | '/npcs'
     | '/players'
     | '/races'
     | '/skills'
     | '/tags'
     | '/talents'
     | '/xp'
+    | '/items/$itemId'
+    | '/npcs/$npcId'
+    | '/items/$itemId/instances/$instanceId'
+    | '/npcs/$npcId/instances/$instanceId'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/dashboard'
     | '/export'
-    | '/items'
     | '/login'
     | '/map'
     | '/npc-templates'
-    | '/npcs'
     | '/_auth/abilities'
     | '/_auth/achievements'
     | '/_auth/config'
     | '/_auth/factions'
+    | '/_auth/items'
+    | '/_auth/npcs'
     | '/_auth/players'
     | '/_auth/races'
     | '/_auth/skills'
     | '/_auth/tags'
     | '/_auth/talents'
     | '/_auth/xp'
+    | '/_auth/items/$itemId'
+    | '/_auth/npcs/$npcId'
+    | '/_auth/items/$itemId/instances/$instanceId'
+    | '/_auth/npcs/$npcId/instances/$instanceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -255,22 +305,13 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   ExportRoute: typeof ExportRoute
-  ItemsRoute: typeof ItemsRoute
   LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
   NpcTemplatesRoute: typeof NpcTemplatesRoute
-  NpcsRoute: typeof NpcsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/npcs': {
-      id: '/npcs'
-      path: '/npcs'
-      fullPath: '/npcs'
-      preLoaderRoute: typeof NpcsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/npc-templates': {
       id: '/npc-templates'
       path: '/npc-templates'
@@ -290,13 +331,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/items': {
-      id: '/items'
-      path: '/items'
-      fullPath: '/items'
-      preLoaderRoute: typeof ItemsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/export': {
@@ -369,6 +403,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPlayersRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/npcs': {
+      id: '/_auth/npcs'
+      path: '/npcs'
+      fullPath: '/npcs'
+      preLoaderRoute: typeof AuthNpcsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/items': {
+      id: '/_auth/items'
+      path: '/items'
+      fullPath: '/items'
+      preLoaderRoute: typeof AuthItemsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/factions': {
       id: '/_auth/factions'
       path: '/factions'
@@ -397,14 +445,93 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAbilitiesRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/npcs/$npcId': {
+      id: '/_auth/npcs/$npcId'
+      path: '/$npcId'
+      fullPath: '/npcs/$npcId'
+      preLoaderRoute: typeof AuthNpcsNpcIdRouteImport
+      parentRoute: typeof AuthNpcsRoute
+    }
+    '/_auth/items/$itemId': {
+      id: '/_auth/items/$itemId'
+      path: '/$itemId'
+      fullPath: '/items/$itemId'
+      preLoaderRoute: typeof AuthItemsItemIdRouteImport
+      parentRoute: typeof AuthItemsRoute
+    }
+    '/_auth/npcs/$npcId/instances/$instanceId': {
+      id: '/_auth/npcs/$npcId/instances/$instanceId'
+      path: '/instances/$instanceId'
+      fullPath: '/npcs/$npcId/instances/$instanceId'
+      preLoaderRoute: typeof AuthNpcsNpcIdInstancesInstanceIdRouteImport
+      parentRoute: typeof AuthNpcsNpcIdRoute
+    }
+    '/_auth/items/$itemId/instances/$instanceId': {
+      id: '/_auth/items/$itemId/instances/$instanceId'
+      path: '/instances/$instanceId'
+      fullPath: '/items/$itemId/instances/$instanceId'
+      preLoaderRoute: typeof AuthItemsItemIdInstancesInstanceIdRouteImport
+      parentRoute: typeof AuthItemsItemIdRoute
+    }
   }
 }
+
+interface AuthItemsItemIdRouteChildren {
+  AuthItemsItemIdInstancesInstanceIdRoute: typeof AuthItemsItemIdInstancesInstanceIdRoute
+}
+
+const AuthItemsItemIdRouteChildren: AuthItemsItemIdRouteChildren = {
+  AuthItemsItemIdInstancesInstanceIdRoute:
+    AuthItemsItemIdInstancesInstanceIdRoute,
+}
+
+const AuthItemsItemIdRouteWithChildren = AuthItemsItemIdRoute._addFileChildren(
+  AuthItemsItemIdRouteChildren,
+)
+
+interface AuthItemsRouteChildren {
+  AuthItemsItemIdRoute: typeof AuthItemsItemIdRouteWithChildren
+}
+
+const AuthItemsRouteChildren: AuthItemsRouteChildren = {
+  AuthItemsItemIdRoute: AuthItemsItemIdRouteWithChildren,
+}
+
+const AuthItemsRouteWithChildren = AuthItemsRoute._addFileChildren(
+  AuthItemsRouteChildren,
+)
+
+interface AuthNpcsNpcIdRouteChildren {
+  AuthNpcsNpcIdInstancesInstanceIdRoute: typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+}
+
+const AuthNpcsNpcIdRouteChildren: AuthNpcsNpcIdRouteChildren = {
+  AuthNpcsNpcIdInstancesInstanceIdRoute: AuthNpcsNpcIdInstancesInstanceIdRoute,
+}
+
+const AuthNpcsNpcIdRouteWithChildren = AuthNpcsNpcIdRoute._addFileChildren(
+  AuthNpcsNpcIdRouteChildren,
+)
+
+interface AuthNpcsRouteChildren {
+  AuthNpcsNpcIdRoute: typeof AuthNpcsNpcIdRouteWithChildren
+}
+
+const AuthNpcsRouteChildren: AuthNpcsRouteChildren = {
+  AuthNpcsNpcIdRoute: AuthNpcsNpcIdRouteWithChildren,
+}
+
+const AuthNpcsRouteWithChildren = AuthNpcsRoute._addFileChildren(
+  AuthNpcsRouteChildren,
+)
 
 interface AuthRouteChildren {
   AuthAbilitiesRoute: typeof AuthAbilitiesRoute
   AuthAchievementsRoute: typeof AuthAchievementsRoute
   AuthConfigRoute: typeof AuthConfigRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
+  AuthItemsRoute: typeof AuthItemsRouteWithChildren
+  AuthNpcsRoute: typeof AuthNpcsRouteWithChildren
   AuthPlayersRoute: typeof AuthPlayersRoute
   AuthRacesRoute: typeof AuthRacesRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
@@ -418,6 +545,8 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthAchievementsRoute: AuthAchievementsRoute,
   AuthConfigRoute: AuthConfigRoute,
   AuthFactionsRoute: AuthFactionsRoute,
+  AuthItemsRoute: AuthItemsRouteWithChildren,
+  AuthNpcsRoute: AuthNpcsRouteWithChildren,
   AuthPlayersRoute: AuthPlayersRoute,
   AuthRacesRoute: AuthRacesRoute,
   AuthSkillsRoute: AuthSkillsRoute,
@@ -433,11 +562,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   DashboardRoute: DashboardRoute,
   ExportRoute: ExportRoute,
-  ItemsRoute: ItemsRoute,
   LoginRoute: LoginRoute,
   MapRoute: MapRoute,
   NpcTemplatesRoute: NpcTemplatesRoute,
-  NpcsRoute: NpcsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

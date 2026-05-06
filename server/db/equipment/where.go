@@ -55,6 +55,11 @@ func IDLTE(id int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldLTE(FieldID, id))
 }
 
+// EquipmentTemplateID applies equality check predicate on the "equipment_template_id" field. It's identical to EquipmentTemplateIDEQ.
+func EquipmentTemplateID(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldEquipmentTemplateID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldName, v))
@@ -168,6 +173,81 @@ func RevealCondition(v string) predicate.Equipment {
 // ExpiresAt applies equality check predicate on the "expiresAt" field. It's identical to ExpiresAtEQ.
 func ExpiresAt(v time.Time) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldExpiresAt, v))
+}
+
+// EquipmentTemplateIDEQ applies the EQ predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEQ(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDNEQ applies the NEQ predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDNEQ(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNEQ(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDIn applies the In predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldIn(FieldEquipmentTemplateID, vs...))
+}
+
+// EquipmentTemplateIDNotIn applies the NotIn predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDNotIn(vs ...string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotIn(FieldEquipmentTemplateID, vs...))
+}
+
+// EquipmentTemplateIDGT applies the GT predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDGT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGT(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDGTE applies the GTE predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDGTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldGTE(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDLT applies the LT predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDLT(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLT(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDLTE applies the LTE predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDLTE(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldLTE(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDContains applies the Contains predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDContains(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContains(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDHasPrefix applies the HasPrefix predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDHasPrefix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasPrefix(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDHasSuffix applies the HasSuffix predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDHasSuffix(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldHasSuffix(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDIsNil applies the IsNil predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDIsNil() predicate.Equipment {
+	return predicate.Equipment(sql.FieldIsNull(FieldEquipmentTemplateID))
+}
+
+// EquipmentTemplateIDNotNil applies the NotNil predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDNotNil() predicate.Equipment {
+	return predicate.Equipment(sql.FieldNotNull(FieldEquipmentTemplateID))
+}
+
+// EquipmentTemplateIDEqualFold applies the EqualFold predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDEqualFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldEqualFold(FieldEquipmentTemplateID, v))
+}
+
+// EquipmentTemplateIDContainsFold applies the ContainsFold predicate on the "equipment_template_id" field.
+func EquipmentTemplateIDContainsFold(v string) predicate.Equipment {
+	return predicate.Equipment(sql.FieldContainsFold(FieldEquipmentTemplateID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -1235,6 +1315,29 @@ func HasRoom() predicate.Equipment {
 func HasRoomWith(preds ...predicate.Room) predicate.Equipment {
 	return predicate.Equipment(func(s *sql.Selector) {
 		step := newRoomStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEquipmentTemplate applies the HasEdge predicate on the "equipmentTemplate" edge.
+func HasEquipmentTemplate() predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, EquipmentTemplateTable, EquipmentTemplateColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEquipmentTemplateWith applies the HasEdge predicate on the "equipmentTemplate" edge with a given conditions (other predicates).
+func HasEquipmentTemplateWith(preds ...predicate.EquipmentTemplate) predicate.Equipment {
+	return predicate.Equipment(func(s *sql.Selector) {
+		step := newEquipmentTemplateStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

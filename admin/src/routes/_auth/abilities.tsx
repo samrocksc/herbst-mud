@@ -1,15 +1,66 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useAbilities, useCreateAbility, useUpdateAbility, useDeleteAbility, type Ability, type AbilityInput } from '../../hooks/useAbilities'
+import {
+  useAbilities,
+  useCreateAbility,
+  useUpdateAbility,
+  useDeleteAbility,
+  type Ability,
+  type AbilityInput,
+} from '../../hooks/useAbilities'
 import { useTags } from '../../hooks/useTags'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
 import { TagInput } from '../../components/TagInput'
+import {
+  FormField,
+  NumberField,
+  TextareaField,
+  SelectField,
+} from '../../components/FormFields'
 
 export const Route = createFileRoute('/_auth/abilities')({
   component: AbilitiesManagement,
 })
+
+const SKILL_TYPE_OPTS = [
+  { value: 'combat', label: 'Combat' },
+  { value: 'magic', label: 'Magic' },
+  { value: 'utility', label: 'Utility' },
+  { value: 'healing', label: 'Healing' },
+  { value: 'support', label: 'Support' },
+]
+
+const EFFECT_TYPE_OPTS = [
+  { value: '', label: '— None —' },
+  { value: 'damage', label: 'Damage' },
+  { value: 'heal', label: 'Heal' },
+  { value: 'buff', label: 'Buff' },
+  { value: 'debuff', label: 'Debuff' },
+  { value: 'dot', label: 'Damage over Time' },
+  { value: 'hot', label: 'Heal over Time' },
+  { value: 'concentrate', label: 'Concentrate' },
+  { value: 'haymaker', label: 'Haymaker' },
+  { value: 'scream', label: 'Scream' },
+  { value: 'slap', label: 'Slap' },
+  { value: 'backoff', label: 'Back-off' },
+]
+
+const SCALING_STAT_OPTS = [
+  { value: '', label: '— None —' },
+  { value: 'STR', label: 'Strength (STR)' },
+  { value: 'DEX', label: 'Dexterity (DEX)' },
+  { value: 'INT', label: 'Intelligence (INT)' },
+  { value: 'WIS', label: 'Wisdom (WIS)' },
+  { value: 'CON', label: 'Constitution (CON)' },
+]
+
+const SKILL_CLASS_OPTS = [
+  { value: 'active', label: 'Active' },
+  { value: 'passive', label: 'Passive' },
+  { value: 'toggle', label: 'Toggle' },
+]
 
 const EMPTY_ABILITY: AbilityInput = {
   name: '',
@@ -37,31 +88,39 @@ function AbilityForm({
   ability,
   onSubmit,
   onCancel,
-  isLoading
-}: {
+  isLoading,
+}: Readonly<{
   ability: Ability | null
   onSubmit: (data: AbilityInput) => void
   onCancel: () => void
   isLoading: boolean
-}) {
+}>) {
   const { tags: availableTags } = useTags()
 
   const [formData, setFormData] = useState<AbilityInput>(() => {
     if (ability) {
+      let reqNum = 1
+      if (typeof ability.requirements === 'number') {
+        reqNum = ability.requirements
+      } else if (typeof ability.requirements === 'string') {
+        const n = parseInt(ability.requirements, 10)
+        if (!isNaN(n)) reqNum = n
+      }
       return {
         ...ability,
-        requirements: ability.requirements ?? 1,
+        requirements: reqNum,
         scaling_percent_per_point: ability.scaling_percent_per_point ?? 0,
         proc_chance: ability.proc_chance ?? 0,
-      }
+      } as AbilityInput
     }
     return EMPTY_ABILITY
   })
 
-  /** Convert between TagInput (string[]) and the form field (string) */
   const selectedTags = formData.required_tag
     ? formData.required_tag.split(',').map((t) => t.trim()).filter(Boolean)
     : []
+
+  const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,222 +128,131 @@ function AbilityForm({
   }
 
   return (
-    <div className="form-card">
-      <h3>{ability ? 'Edit Ability' : 'Add New Ability'}</h3>
-      <form onSubmit={handleSubmit}>
-        <div className="form-row">
-          <label>Name:</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
+    <div className="form-card space-y-3">
+      <h3 className="mt-0 mb-0 text-text text-base font-semibold">
+        {ability ? 'Edit Ability' : 'Add New Ability'}
+      </h3>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <FormField label="Name" value={formData.name} onChange={(v) => set({ name: v })} />
+
+        <TextareaField
+          label="Description"
+          value={formData.description}
+          onChange={(v) => set({ description: v })}
+          rows={3}
+        />
+
+        <SelectField
+          label="Skill Type"
+          value={formData.skill_type}
+          onChange={(v) => set({ skill_type: v })}
+          options={SKILL_TYPE_OPTS}
+        />
+
+        <TagInput
+          label="Required Tag (optional)"
+          value={selectedTags}
+          onChange={(tags) => set({ required_tag: tags.join(', ') })}
+          availableTags={availableTags.map((t) => t.name)}
+          placeholder="e.g., sword, fire, healing"
+        />
+
+        <div className="grid grid-cols-3 gap-3">
+          <NumberField
+            label="Level Req"
+            value={formData.requirements}
+            onChange={(v) => set({ requirements: v })}
+          />
+          <NumberField
+            label="Cost"
+            value={formData.cost}
+            onChange={(v) => set({ cost: v })}
+          />
+          <NumberField
+            label="Cooldown (s)"
+            value={formData.cooldown_seconds}
+            onChange={(v) => set({ cooldown_seconds: v })}
           />
         </div>
 
-        <div className="form-row">
-          <label>Description:</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={3}
+        <SelectField
+          label="Effect Type"
+          value={formData.effect_type}
+          onChange={(v) => set({ effect_type: v })}
+          options={EFFECT_TYPE_OPTS}
+        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <NumberField
+            label="Effect Value"
+            value={formData.effect_value}
+            onChange={(v) => set({ effect_value: v })}
+          />
+          <NumberField
+            label="Effect Duration (ticks)"
+            value={formData.effect_duration}
+            onChange={(v) => set({ effect_duration: v })}
           />
         </div>
 
-        <div className="form-row">
-          <label>Skill Type:</label>
-          <select
-            value={formData.skill_type}
-            onChange={(e) => setFormData({ ...formData, skill_type: e.target.value })}
-          >
-            <option value="combat">Combat</option>
-            <option value="magic">Magic</option>
-            <option value="utility">Utility</option>
-            <option value="healing">Healing</option>
-            <option value="support">Support</option>
-          </select>
-        </div>
-
-        <div className="form-row">
-          <TagInput
-            label="Required Tag (optional)"
-            value={selectedTags}
-            onChange={(tags) => setFormData({ ...formData, required_tag: tags.join(', ') })}
-            availableTags={availableTags.map((t) => t.name)}
-            placeholder="e.g., sword, fire, healing"
+        <div className="grid grid-cols-3 gap-3">
+          <NumberField
+            label="Mana Cost"
+            value={formData.mana_cost}
+            onChange={(v) => set({ mana_cost: v })}
+          />
+          <NumberField
+            label="Stamina Cost"
+            value={formData.stamina_cost}
+            onChange={(v) => set({ stamina_cost: v })}
+          />
+          <NumberField
+            label="HP Cost"
+            value={formData.hp_cost}
+            onChange={(v) => set({ hp_cost: v })}
           />
         </div>
 
-        <div className="form-row-group">
-          <div className="form-row">
-            <label>Level Req:</label>
-            <input
-              type="number"
-              min="1"
-              max="100"
-              value={formData.requirements}
-              onChange={(e) => setFormData({ ...formData, requirements: parseInt(e.target.value) || 1 })}
-            />
-          </div>
-          <div className="form-row">
-            <label>Cost:</label>
-            <input
-              type="number"
-              min="0"
-              value={formData.cost}
-              onChange={(e) => setFormData({ ...formData, cost: parseInt(e.target.value) || 0 })}
-            />
-          </div>
-          <div className="form-row">
-            <label>Cooldown (s):</label>
-            <input
-              type="number"
-              min="0"
-              value={formData.cooldown_seconds}
-              onChange={(e) => setFormData({ ...formData, cooldown_seconds: parseInt(e.target.value) || 0 })}
-            />
-          </div>
+        <div className="grid grid-cols-2 gap-3">
+          <SelectField
+            label="Scaling Stat"
+            value={formData.scaling_stat}
+            onChange={(v) => set({ scaling_stat: v })}
+            options={SCALING_STAT_OPTS}
+          />
+          <NumberField
+            label="Scaling %/point"
+            value={formData.scaling_percent_per_point}
+            onChange={(v) => set({ scaling_percent_per_point: v })}
+          />
         </div>
 
-        <div className="form-row">
-          <label>Effect Type:</label>
-          <select
-            value={formData.effect_type}
-            onChange={(e) => setFormData({ ...formData, effect_type: e.target.value })}
-          >
-            <option value="">— None —</option>
-            <option value="damage">Damage</option>
-            <option value="heal">Heal</option>
-            <option value="buff">Buff</option>
-            <option value="debuff">Debuff</option>
-            <option value="dot">Damage over Time</option>
-            <option value="hot">Heal over Time</option>
-            <option value="concentrate">Concentrate</option>
-            <option value="haymaker">Haymaker</option>
-            <option value="scream">Scream</option>
-            <option value="slap">Slap</option>
-            <option value="backoff">Back-off</option>
-          </select>
+        <div className="grid grid-cols-2 gap-3">
+          <NumberField
+            label="Proc Chance (0–1)"
+            value={formData.proc_chance}
+            onChange={(v) => set({ proc_chance: v })}
+          />
+          <FormField
+            label="Proc Event"
+            value={formData.proc_event}
+            onChange={(v) => set({ proc_event: v })}
+            placeholder="e.g., on_hit, on_crit"
+          />
         </div>
 
-        <div className="form-row-group">
-          <div className="form-row">
-            <label>Effect Value:</label>
-            <input
-              type="number"
-              min="0"
-              value={formData.effect_value}
-              onChange={(e) => setFormData({ ...formData, effect_value: parseInt(e.target.value) || 0 })}
-            />
-          </div>
-          <div className="form-row">
-            <label>Effect Duration (ticks):</label>
-            <input
-              type="number"
-              min="0"
-              value={formData.effect_duration}
-              onChange={(e) => setFormData({ ...formData, effect_duration: parseInt(e.target.value) || 0 })}
-            />
-          </div>
-        </div>
+        <SelectField
+          label="Skill Class"
+          value={formData.skill_class}
+          onChange={(v) => set({ skill_class: v })}
+          options={SKILL_CLASS_OPTS}
+        />
 
-        <div className="form-row-group">
-          <div className="form-row">
-            <label>Mana Cost:</label>
-            <input
-              type="number"
-              min="0"
-              value={formData.mana_cost}
-              onChange={(e) => setFormData({ ...formData, mana_cost: parseInt(e.target.value) || 0 })}
-            />
-          </div>
-          <div className="form-row">
-            <label>Stamina Cost:</label>
-            <input
-              type="number"
-              min="0"
-              value={formData.stamina_cost}
-              onChange={(e) => setFormData({ ...formData, stamina_cost: parseInt(e.target.value) || 0 })}
-            />
-          </div>
-          <div className="form-row">
-            <label>HP Cost:</label>
-            <input
-              type="number"
-              min="0"
-              value={formData.hp_cost}
-              onChange={(e) => setFormData({ ...formData, hp_cost: parseInt(e.target.value) || 0 })}
-            />
-          </div>
-        </div>
-
-        <div className="form-row-group">
-          <div className="form-row">
-            <label>Scaling Stat:</label>
-            <select
-              value={formData.scaling_stat}
-              onChange={(e) => setFormData({ ...formData, scaling_stat: e.target.value })}
-            >
-              <option value="">— None —</option>
-              <option value="STR">Strength (STR)</option>
-              <option value="DEX">Dexterity (DEX)</option>
-              <option value="INT">Intelligence (INT)</option>
-              <option value="WIS">Wisdom (WIS)</option>
-              <option value="CON">Constitution (CON)</option>
-            </select>
-          </div>
-          <div className="form-row">
-            <label>Scaling %/point:</label>
-            <input
-              type="number"
-              min="0"
-              step="0.1"
-              value={formData.scaling_percent_per_point}
-              onChange={(e) => setFormData({ ...formData, scaling_percent_per_point: parseFloat(e.target.value) || 0 })}
-            />
-          </div>
-        </div>
-
-        <div className="form-row-group">
-          <div className="form-row">
-            <label>Proc Chance (0–1):</label>
-            <input
-              type="number"
-              min="0"
-              max="1"
-              step="0.01"
-              value={formData.proc_chance}
-              onChange={(e) => setFormData({ ...formData, proc_chance: parseFloat(e.target.value) || 0 })}
-            />
-          </div>
-          <div className="form-row">
-            <label>Proc Event:</label>
-            <input
-              type="text"
-              value={formData.proc_event}
-              onChange={(e) => setFormData({ ...formData, proc_event: e.target.value })}
-              placeholder="e.g., on_hit, on_crit"
-            />
-          </div>
-        </div>
-
-        <div className="form-row">
-          <label>Skill Class:</label>
-          <select
-            value={formData.skill_class}
-            onChange={(e) => setFormData({ ...formData, skill_class: e.target.value })}
-          >
-            <option value="active">Active</option>
-            <option value="passive">Passive</option>
-            <option value="toggle">Toggle</option>
-          </select>
-        </div>
-
-        <div className="form-actions">
-          <Button type="submit" variant="primary" disabled={isLoading}>
+        <div className="flex gap-2 pt-1">
+          <Button type="submit" variant="primary" disabled={isLoading} fullWidth>
             {isLoading ? 'Saving...' : ability ? 'Update Ability' : 'Create Ability'}
           </Button>
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel} fullWidth>
             Cancel
           </Button>
         </div>
@@ -297,36 +265,40 @@ function DeleteConfirmation({
   ability,
   onConfirm,
   onCancel,
-  isLoading
-}: {
+  isLoading,
+}: Readonly<{
   ability: Ability
   onConfirm: () => void
   onCancel: () => void
   isLoading: boolean
-}) {
+}>) {
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal-content modal-sm" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Delete Ability</h3>
-          <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Close">×</Button>
+          <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Close">
+            ×
+          </Button>
         </div>
         <div className="modal-body">
-          <p>Are you sure you want to delete <strong>{ability.name}</strong>?</p>
+          <p>
+            Are you sure you want to delete <strong>{ability.name}</strong>?
+          </p>
           <p className="text-muted">This action cannot be undone.</p>
         </div>
         <div className="modal-footer">
           <Button variant="danger" onClick={onConfirm} disabled={isLoading}>
             {isLoading ? 'Deleting...' : 'Delete'}
           </Button>
-          <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+          <Button variant="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
         </div>
       </div>
     </div>
   )
 }
-
-// ─── Table column definitions ─────────────────────────────────────────────────
 
 const BASE_COLUMNS: Column<Ability>[] = [
   {
@@ -338,25 +310,19 @@ const BASE_COLUMNS: Column<Ability>[] = [
   {
     header: 'Type',
     accessor: 'skill_type',
-    render: (val: unknown) => <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>,
+    render: (val: unknown) => (
+      <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>
+    ),
   },
   {
     header: 'Effects',
     accessor: 'effect_type',
     render: (_: unknown, row: Ability) => {
       const parts: React.ReactNode[] = []
-      if (row.effect_type) {
-        parts.push(<span key="et" className="talent-effect">{row.effect_type}</span>)
-      }
-      if (row.effect_value > 0) {
-        parts.push(<span key="ev" className="talent-effect-value"> {row.effect_value}</span>)
-      }
-      if (row.effect_duration > 0) {
-        parts.push(<span key="ed" className="text-muted"> ({row.effect_duration}t)</span>)
-      }
-      if (row.proc_chance > 0) {
-        parts.push(<span key="pc" className="text-muted"> proc {Math.round(row.proc_chance * 100)}%</span>)
-      }
+      if (row.effect_type) parts.push(<span key="et" className="talent-effect">{row.effect_type}</span>)
+      if (row.effect_value > 0) parts.push(<span key="ev" className="talent-effect-value"> {row.effect_value}</span>)
+      if (row.effect_duration > 0) parts.push(<span key="ed" className="text-muted"> ({row.effect_duration}t)</span>)
+      if (row.proc_chance > 0) parts.push(<span key="pc" className="text-muted"> proc {Math.round(row.proc_chance * 100)}%</span>)
       return parts.length > 0 ? parts : <span className="text-muted">—</span>
     },
   },
@@ -385,7 +351,7 @@ function AbilitiesManagement() {
   const deleteAbility = useDeleteAbility()
 
   const { data: abilities, isLoading, error } = useAbilities({
-    type: filterType || undefined
+    type: filterType || undefined,
   })
 
   const handleSubmit = async (formData: AbilityInput) => {
@@ -422,8 +388,17 @@ function AbilitiesManagement() {
       accessor: '_actions',
       render: (_: unknown, row: Ability) => (
         <>
-          <Button variant="accent" size="sm" onClick={() => handleEdit(row)}>Edit</Button>
-          <Button variant="danger" size="sm" className="ml-2" onClick={() => setDeletingAbility(row)}>Delete</Button>
+          <Button variant="accent" size="sm" onClick={() => handleEdit(row)}>
+            Edit
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            className="ml-2"
+            onClick={() => setDeletingAbility(row)}
+          >
+            Delete
+          </Button>
         </>
       ),
     },
@@ -437,7 +412,17 @@ function AbilitiesManagement() {
       <PageHeader
         title="Abilities"
         backTo="/dashboard"
-        actions={<Button variant="primary" onClick={() => { setEditingAbility(null); setShowForm(true) }}>+ Add Ability</Button>}
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => {
+              setEditingAbility(null)
+              setShowForm(true)
+            }}
+          >
+            + Add Ability
+          </Button>
+        }
       />
 
       <div className="filters-bar">
@@ -472,7 +457,11 @@ function AbilitiesManagement() {
         columns={columns}
         data={abilities ?? []}
         getKey={(row) => row.id}
-        emptyMessage={filterType ? 'No abilities match this filter.' : 'No abilities found. Create your first ability!'}
+        emptyMessage={
+          filterType
+            ? 'No abilities match this filter.'
+            : 'No abilities found. Create your first ability!'
+        }
       />
 
       {deletingAbility && (

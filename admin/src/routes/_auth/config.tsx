@@ -163,8 +163,8 @@ function ConfigManagement() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       setConfigs(data)
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error')
     } finally {
       setLoading(false)
     }
@@ -190,8 +190,9 @@ function ConfigManagement() {
       setShowForm(false)
       setForm({ key: '', value: '' })
       fetchConfigs()
-    } catch (e: any) {
-      alert(`Failed to create config: ${e.message}`)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unknown error'
+      alert(`Failed to create config: ${message}`)
     } finally {
       setSaving(false)
     }
@@ -215,8 +216,9 @@ function ConfigManagement() {
       setEditing(null)
       setForm({ key: '', value: '' })
       fetchConfigs()
-    } catch (e: any) {
-      alert(`Failed to update config: ${e.message}`)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unknown error'
+      alert(`Failed to update config: ${message}`)
     } finally {
       setSaving(false)
     }
@@ -233,8 +235,9 @@ function ConfigManagement() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setDeleteTarget(null)
       fetchConfigs()
-    } catch (e: any) {
-      alert(`Failed to delete: ${e.message}`)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unknown error'
+      alert(`Failed to delete: ${message}`)
     }
   }
 

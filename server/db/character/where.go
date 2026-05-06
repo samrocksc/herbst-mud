@@ -95,6 +95,21 @@ func IsImmortal(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsImmortal, v))
 }
 
+// IsInstance applies equality check predicate on the "is_instance" field. It's identical to IsInstanceEQ.
+func IsInstance(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsInstance, v))
+}
+
+// InstanceNumber applies equality check predicate on the "instance_number" field. It's identical to InstanceNumberEQ.
+func InstanceNumber(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldInstanceNumber, v))
+}
+
+// NpcTemplateID applies equality check predicate on the "npc_template_id" field. It's identical to NpcTemplateIDEQ.
+func NpcTemplateID(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldNpcTemplateID, v))
+}
+
 // NpcSkillID applies equality check predicate on the "npc_skill_id" field. It's identical to NpcSkillIDEQ.
 func NpcSkillID(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldNpcSkillID, v))
@@ -513,6 +528,131 @@ func IsImmortalEQ(v bool) predicate.Character {
 // IsImmortalNEQ applies the NEQ predicate on the "is_immortal" field.
 func IsImmortalNEQ(v bool) predicate.Character {
 	return predicate.Character(sql.FieldNEQ(FieldIsImmortal, v))
+}
+
+// IsInstanceEQ applies the EQ predicate on the "is_instance" field.
+func IsInstanceEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsInstance, v))
+}
+
+// IsInstanceNEQ applies the NEQ predicate on the "is_instance" field.
+func IsInstanceNEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldIsInstance, v))
+}
+
+// InstanceNumberEQ applies the EQ predicate on the "instance_number" field.
+func InstanceNumberEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldInstanceNumber, v))
+}
+
+// InstanceNumberNEQ applies the NEQ predicate on the "instance_number" field.
+func InstanceNumberNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldInstanceNumber, v))
+}
+
+// InstanceNumberIn applies the In predicate on the "instance_number" field.
+func InstanceNumberIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldInstanceNumber, vs...))
+}
+
+// InstanceNumberNotIn applies the NotIn predicate on the "instance_number" field.
+func InstanceNumberNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldInstanceNumber, vs...))
+}
+
+// InstanceNumberGT applies the GT predicate on the "instance_number" field.
+func InstanceNumberGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldInstanceNumber, v))
+}
+
+// InstanceNumberGTE applies the GTE predicate on the "instance_number" field.
+func InstanceNumberGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldInstanceNumber, v))
+}
+
+// InstanceNumberLT applies the LT predicate on the "instance_number" field.
+func InstanceNumberLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldInstanceNumber, v))
+}
+
+// InstanceNumberLTE applies the LTE predicate on the "instance_number" field.
+func InstanceNumberLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldInstanceNumber, v))
+}
+
+// NpcTemplateIDEQ applies the EQ predicate on the "npc_template_id" field.
+func NpcTemplateIDEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDNEQ applies the NEQ predicate on the "npc_template_id" field.
+func NpcTemplateIDNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDIn applies the In predicate on the "npc_template_id" field.
+func NpcTemplateIDIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldNpcTemplateID, vs...))
+}
+
+// NpcTemplateIDNotIn applies the NotIn predicate on the "npc_template_id" field.
+func NpcTemplateIDNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldNpcTemplateID, vs...))
+}
+
+// NpcTemplateIDGT applies the GT predicate on the "npc_template_id" field.
+func NpcTemplateIDGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDGTE applies the GTE predicate on the "npc_template_id" field.
+func NpcTemplateIDGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDLT applies the LT predicate on the "npc_template_id" field.
+func NpcTemplateIDLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDLTE applies the LTE predicate on the "npc_template_id" field.
+func NpcTemplateIDLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDContains applies the Contains predicate on the "npc_template_id" field.
+func NpcTemplateIDContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDHasPrefix applies the HasPrefix predicate on the "npc_template_id" field.
+func NpcTemplateIDHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDHasSuffix applies the HasSuffix predicate on the "npc_template_id" field.
+func NpcTemplateIDHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDIsNil applies the IsNil predicate on the "npc_template_id" field.
+func NpcTemplateIDIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldNpcTemplateID))
+}
+
+// NpcTemplateIDNotNil applies the NotNil predicate on the "npc_template_id" field.
+func NpcTemplateIDNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldNpcTemplateID))
+}
+
+// NpcTemplateIDEqualFold applies the EqualFold predicate on the "npc_template_id" field.
+func NpcTemplateIDEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldNpcTemplateID, v))
+}
+
+// NpcTemplateIDContainsFold applies the ContainsFold predicate on the "npc_template_id" field.
+func NpcTemplateIDContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldNpcTemplateID, v))
 }
 
 // NpcSkillIDEQ applies the EQ predicate on the "npc_skill_id" field.

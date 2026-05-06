@@ -18,6 +18,7 @@ import (
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/damagelog"
 	"herbst-server/db/equipment"
+	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/factionrequiredtag"
@@ -60,6 +61,7 @@ const (
 	TypeCompetencyLevelThreshold = "CompetencyLevelThreshold"
 	TypeDamageLog                = "DamageLog"
 	TypeEquipment                = "Equipment"
+	TypeEquipmentTemplate        = "EquipmentTemplate"
 	TypeFaction                  = "Faction"
 	TypeFactionCategory          = "FactionCategory"
 	TypeFactionRequiredTag       = "FactionRequiredTag"
@@ -1273,6 +1275,9 @@ type CharacterMutation struct {
 	addrespawnRoomId           *int
 	is_admin                   *bool
 	is_immortal                *bool
+	is_instance                *bool
+	instance_number            *int
+	addinstance_number         *int
 	npc_skill_id               *string
 	npc_skill_cooldown         *int
 	addnpc_skill_cooldown      *int
@@ -1793,6 +1798,147 @@ func (m *CharacterMutation) OldIsImmortal(ctx context.Context) (v bool, err erro
 // ResetIsImmortal resets all changes to the "is_immortal" field.
 func (m *CharacterMutation) ResetIsImmortal() {
 	m.is_immortal = nil
+}
+
+// SetIsInstance sets the "is_instance" field.
+func (m *CharacterMutation) SetIsInstance(b bool) {
+	m.is_instance = &b
+}
+
+// IsInstance returns the value of the "is_instance" field in the mutation.
+func (m *CharacterMutation) IsInstance() (r bool, exists bool) {
+	v := m.is_instance
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsInstance returns the old "is_instance" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldIsInstance(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsInstance is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsInstance requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsInstance: %w", err)
+	}
+	return oldValue.IsInstance, nil
+}
+
+// ResetIsInstance resets all changes to the "is_instance" field.
+func (m *CharacterMutation) ResetIsInstance() {
+	m.is_instance = nil
+}
+
+// SetInstanceNumber sets the "instance_number" field.
+func (m *CharacterMutation) SetInstanceNumber(i int) {
+	m.instance_number = &i
+	m.addinstance_number = nil
+}
+
+// InstanceNumber returns the value of the "instance_number" field in the mutation.
+func (m *CharacterMutation) InstanceNumber() (r int, exists bool) {
+	v := m.instance_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInstanceNumber returns the old "instance_number" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldInstanceNumber(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInstanceNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInstanceNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInstanceNumber: %w", err)
+	}
+	return oldValue.InstanceNumber, nil
+}
+
+// AddInstanceNumber adds i to the "instance_number" field.
+func (m *CharacterMutation) AddInstanceNumber(i int) {
+	if m.addinstance_number != nil {
+		*m.addinstance_number += i
+	} else {
+		m.addinstance_number = &i
+	}
+}
+
+// AddedInstanceNumber returns the value that was added to the "instance_number" field in this mutation.
+func (m *CharacterMutation) AddedInstanceNumber() (r int, exists bool) {
+	v := m.addinstance_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetInstanceNumber resets all changes to the "instance_number" field.
+func (m *CharacterMutation) ResetInstanceNumber() {
+	m.instance_number = nil
+	m.addinstance_number = nil
+}
+
+// SetNpcTemplateID sets the "npc_template_id" field.
+func (m *CharacterMutation) SetNpcTemplateID(s string) {
+	m.npcTemplate = &s
+}
+
+// NpcTemplateID returns the value of the "npc_template_id" field in the mutation.
+func (m *CharacterMutation) NpcTemplateID() (r string, exists bool) {
+	v := m.npcTemplate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNpcTemplateID returns the old "npc_template_id" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldNpcTemplateID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNpcTemplateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNpcTemplateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNpcTemplateID: %w", err)
+	}
+	return oldValue.NpcTemplateID, nil
+}
+
+// ClearNpcTemplateID clears the value of the "npc_template_id" field.
+func (m *CharacterMutation) ClearNpcTemplateID() {
+	m.npcTemplate = nil
+	m.clearedFields[character.FieldNpcTemplateID] = struct{}{}
+}
+
+// NpcTemplateIDCleared returns if the "npc_template_id" field was cleared in this mutation.
+func (m *CharacterMutation) NpcTemplateIDCleared() bool {
+	_, ok := m.clearedFields[character.FieldNpcTemplateID]
+	return ok
+}
+
+// ResetNpcTemplateID resets all changes to the "npc_template_id" field.
+func (m *CharacterMutation) ResetNpcTemplateID() {
+	m.npcTemplate = nil
+	delete(m.clearedFields, character.FieldNpcTemplateID)
 }
 
 // SetNpcSkillID sets the "npc_skill_id" field.
@@ -3479,27 +3625,15 @@ func (m *CharacterMutation) ResetRoom() {
 	m.clearedroom = false
 }
 
-// SetNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by id.
-func (m *CharacterMutation) SetNpcTemplateID(id string) {
-	m.npcTemplate = &id
-}
-
 // ClearNpcTemplate clears the "npcTemplate" edge to the NPCTemplate entity.
 func (m *CharacterMutation) ClearNpcTemplate() {
 	m.clearednpcTemplate = true
+	m.clearedFields[character.FieldNpcTemplateID] = struct{}{}
 }
 
 // NpcTemplateCleared reports if the "npcTemplate" edge to the NPCTemplate entity was cleared.
 func (m *CharacterMutation) NpcTemplateCleared() bool {
-	return m.clearednpcTemplate
-}
-
-// NpcTemplateID returns the "npcTemplate" edge ID in the mutation.
-func (m *CharacterMutation) NpcTemplateID() (id string, exists bool) {
-	if m.npcTemplate != nil {
-		return *m.npcTemplate, true
-	}
-	return
+	return m.NpcTemplateIDCleared() || m.clearednpcTemplate
 }
 
 // NpcTemplateIDs returns the "npcTemplate" edge IDs in the mutation.
@@ -3876,7 +4010,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 38)
+	fields := make([]string, 0, 41)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -3900,6 +4034,15 @@ func (m *CharacterMutation) Fields() []string {
 	}
 	if m.is_immortal != nil {
 		fields = append(fields, character.FieldIsImmortal)
+	}
+	if m.is_instance != nil {
+		fields = append(fields, character.FieldIsInstance)
+	}
+	if m.instance_number != nil {
+		fields = append(fields, character.FieldInstanceNumber)
+	}
+	if m.npcTemplate != nil {
+		fields = append(fields, character.FieldNpcTemplateID)
 	}
 	if m.npc_skill_id != nil {
 		fields = append(fields, character.FieldNpcSkillID)
@@ -4015,6 +4158,12 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.IsAdmin()
 	case character.FieldIsImmortal:
 		return m.IsImmortal()
+	case character.FieldIsInstance:
+		return m.IsInstance()
+	case character.FieldInstanceNumber:
+		return m.InstanceNumber()
+	case character.FieldNpcTemplateID:
+		return m.NpcTemplateID()
 	case character.FieldNpcSkillID:
 		return m.NpcSkillID()
 	case character.FieldNpcSkillCooldown:
@@ -4100,6 +4249,12 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldIsAdmin(ctx)
 	case character.FieldIsImmortal:
 		return m.OldIsImmortal(ctx)
+	case character.FieldIsInstance:
+		return m.OldIsInstance(ctx)
+	case character.FieldInstanceNumber:
+		return m.OldInstanceNumber(ctx)
+	case character.FieldNpcTemplateID:
+		return m.OldNpcTemplateID(ctx)
 	case character.FieldNpcSkillID:
 		return m.OldNpcSkillID(ctx)
 	case character.FieldNpcSkillCooldown:
@@ -4224,6 +4379,27 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsImmortal(v)
+		return nil
+	case character.FieldIsInstance:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsInstance(v)
+		return nil
+	case character.FieldInstanceNumber:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInstanceNumber(v)
+		return nil
+	case character.FieldNpcTemplateID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNpcTemplateID(v)
 		return nil
 	case character.FieldNpcSkillID:
 		v, ok := value.(string)
@@ -4449,6 +4625,9 @@ func (m *CharacterMutation) AddedFields() []string {
 	if m.addrespawnRoomId != nil {
 		fields = append(fields, character.FieldRespawnRoomId)
 	}
+	if m.addinstance_number != nil {
+		fields = append(fields, character.FieldInstanceNumber)
+	}
 	if m.addnpc_skill_cooldown != nil {
 		fields = append(fields, character.FieldNpcSkillCooldown)
 	}
@@ -4530,6 +4709,8 @@ func (m *CharacterMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedStartingRoomId()
 	case character.FieldRespawnRoomId:
 		return m.AddedRespawnRoomId()
+	case character.FieldInstanceNumber:
+		return m.AddedInstanceNumber()
 	case character.FieldNpcSkillCooldown:
 		return m.AddedNpcSkillCooldown()
 	case character.FieldHitpoints:
@@ -4598,6 +4779,13 @@ func (m *CharacterMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRespawnRoomId(v)
+		return nil
+	case character.FieldInstanceNumber:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddInstanceNumber(v)
 		return nil
 	case character.FieldNpcSkillCooldown:
 		v, ok := value.(int)
@@ -4771,6 +4959,9 @@ func (m *CharacterMutation) ClearedFields() []string {
 	if m.FieldCleared(character.FieldPassword) {
 		fields = append(fields, character.FieldPassword)
 	}
+	if m.FieldCleared(character.FieldNpcTemplateID) {
+		fields = append(fields, character.FieldNpcTemplateID)
+	}
 	if m.FieldCleared(character.FieldNpcSkillID) {
 		fields = append(fields, character.FieldNpcSkillID)
 	}
@@ -4802,6 +4993,9 @@ func (m *CharacterMutation) ClearField(name string) error {
 	switch name {
 	case character.FieldPassword:
 		m.ClearPassword()
+		return nil
+	case character.FieldNpcTemplateID:
+		m.ClearNpcTemplateID()
 		return nil
 	case character.FieldNpcSkillID:
 		m.ClearNpcSkillID()
@@ -4849,6 +5043,15 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldIsImmortal:
 		m.ResetIsImmortal()
+		return nil
+	case character.FieldIsInstance:
+		m.ResetIsInstance()
+		return nil
+	case character.FieldInstanceNumber:
+		m.ResetInstanceNumber()
+		return nil
+	case character.FieldNpcTemplateID:
+		m.ResetNpcTemplateID()
 		return nil
 	case character.FieldNpcSkillID:
 		m.ResetNpcSkillID()
@@ -9747,45 +9950,47 @@ func (m *DamageLogMutation) ResetEdge(name string) error {
 // EquipmentMutation represents an operation that mutates the Equipment nodes in the graph.
 type EquipmentMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	name                 *string
-	description          *string
-	slot                 *string
-	level                *int
-	addlevel             *int
-	weight               *int
-	addweight            *int
-	isEquipped           *bool
-	isImmovable          *bool
-	color                *string
-	isVisible            *bool
-	itemType             *string
-	ownerId              *int
-	addownerId           *int
-	effect_type          *string
-	effect_value         *int
-	addeffect_value      *int
-	effect_duration      *int
-	addeffect_duration   *int
-	healing              *int
-	addhealing           *int
-	effect               *string
-	isContainer          *bool
-	containerCapacity    *int
-	addcontainerCapacity *int
-	isLocked             *bool
-	keyItemID            *string
-	containedItems       *string
-	revealCondition      *string
-	expiresAt            *time.Time
-	clearedFields        map[string]struct{}
-	room                 *int
-	clearedroom          bool
-	done                 bool
-	oldValue             func(context.Context) (*Equipment, error)
-	predicates           []predicate.Equipment
+	op                       Op
+	typ                      string
+	id                       *int
+	name                     *string
+	description              *string
+	slot                     *string
+	level                    *int
+	addlevel                 *int
+	weight                   *int
+	addweight                *int
+	isEquipped               *bool
+	isImmovable              *bool
+	color                    *string
+	isVisible                *bool
+	itemType                 *string
+	ownerId                  *int
+	addownerId               *int
+	effect_type              *string
+	effect_value             *int
+	addeffect_value          *int
+	effect_duration          *int
+	addeffect_duration       *int
+	healing                  *int
+	addhealing               *int
+	effect                   *string
+	isContainer              *bool
+	containerCapacity        *int
+	addcontainerCapacity     *int
+	isLocked                 *bool
+	keyItemID                *string
+	containedItems           *string
+	revealCondition          *string
+	expiresAt                *time.Time
+	clearedFields            map[string]struct{}
+	room                     *int
+	clearedroom              bool
+	equipmentTemplate        *string
+	clearedequipmentTemplate bool
+	done                     bool
+	oldValue                 func(context.Context) (*Equipment, error)
+	predicates               []predicate.Equipment
 }
 
 var _ ent.Mutation = (*EquipmentMutation)(nil)
@@ -9884,6 +10089,55 @@ func (m *EquipmentMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetEquipmentTemplateID sets the "equipment_template_id" field.
+func (m *EquipmentMutation) SetEquipmentTemplateID(s string) {
+	m.equipmentTemplate = &s
+}
+
+// EquipmentTemplateID returns the value of the "equipment_template_id" field in the mutation.
+func (m *EquipmentMutation) EquipmentTemplateID() (r string, exists bool) {
+	v := m.equipmentTemplate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEquipmentTemplateID returns the old "equipment_template_id" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEquipmentTemplateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEquipmentTemplateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEquipmentTemplateID: %w", err)
+	}
+	return oldValue.EquipmentTemplateID, nil
+}
+
+// ClearEquipmentTemplateID clears the value of the "equipment_template_id" field.
+func (m *EquipmentMutation) ClearEquipmentTemplateID() {
+	m.equipmentTemplate = nil
+	m.clearedFields[equipment.FieldEquipmentTemplateID] = struct{}{}
+}
+
+// EquipmentTemplateIDCleared returns if the "equipment_template_id" field was cleared in this mutation.
+func (m *EquipmentMutation) EquipmentTemplateIDCleared() bool {
+	_, ok := m.clearedFields[equipment.FieldEquipmentTemplateID]
+	return ok
+}
+
+// ResetEquipmentTemplateID resets all changes to the "equipment_template_id" field.
+func (m *EquipmentMutation) ResetEquipmentTemplateID() {
+	m.equipmentTemplate = nil
+	delete(m.clearedFields, equipment.FieldEquipmentTemplateID)
 }
 
 // SetName sets the "name" field.
@@ -10933,6 +11187,33 @@ func (m *EquipmentMutation) ResetRoom() {
 	m.clearedroom = false
 }
 
+// ClearEquipmentTemplate clears the "equipmentTemplate" edge to the EquipmentTemplate entity.
+func (m *EquipmentMutation) ClearEquipmentTemplate() {
+	m.clearedequipmentTemplate = true
+	m.clearedFields[equipment.FieldEquipmentTemplateID] = struct{}{}
+}
+
+// EquipmentTemplateCleared reports if the "equipmentTemplate" edge to the EquipmentTemplate entity was cleared.
+func (m *EquipmentMutation) EquipmentTemplateCleared() bool {
+	return m.EquipmentTemplateIDCleared() || m.clearedequipmentTemplate
+}
+
+// EquipmentTemplateIDs returns the "equipmentTemplate" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EquipmentTemplateID instead. It exists only for internal usage by the builders.
+func (m *EquipmentMutation) EquipmentTemplateIDs() (ids []string) {
+	if id := m.equipmentTemplate; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEquipmentTemplate resets all changes to the "equipmentTemplate" edge.
+func (m *EquipmentMutation) ResetEquipmentTemplate() {
+	m.equipmentTemplate = nil
+	m.clearedequipmentTemplate = false
+}
+
 // Where appends a list predicates to the EquipmentMutation builder.
 func (m *EquipmentMutation) Where(ps ...predicate.Equipment) {
 	m.predicates = append(m.predicates, ps...)
@@ -10967,7 +11248,10 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 24)
+	if m.equipmentTemplate != nil {
+		fields = append(fields, equipment.FieldEquipmentTemplateID)
+	}
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -11045,6 +11329,8 @@ func (m *EquipmentMutation) Fields() []string {
 // schema.
 func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case equipment.FieldEquipmentTemplateID:
+		return m.EquipmentTemplateID()
 	case equipment.FieldName:
 		return m.Name()
 	case equipment.FieldDescription:
@@ -11100,6 +11386,8 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case equipment.FieldEquipmentTemplateID:
+		return m.OldEquipmentTemplateID(ctx)
 	case equipment.FieldName:
 		return m.OldName(ctx)
 	case equipment.FieldDescription:
@@ -11155,6 +11443,13 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case equipment.FieldEquipmentTemplateID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEquipmentTemplateID(v)
+		return nil
 	case equipment.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -11433,6 +11728,9 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *EquipmentMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(equipment.FieldEquipmentTemplateID) {
+		fields = append(fields, equipment.FieldEquipmentTemplateID)
+	}
 	if m.FieldCleared(equipment.FieldOwnerId) {
 		fields = append(fields, equipment.FieldOwnerId)
 	}
@@ -11456,6 +11754,9 @@ func (m *EquipmentMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *EquipmentMutation) ClearField(name string) error {
 	switch name {
+	case equipment.FieldEquipmentTemplateID:
+		m.ClearEquipmentTemplateID()
+		return nil
 	case equipment.FieldOwnerId:
 		m.ClearOwnerId()
 		return nil
@@ -11473,6 +11774,9 @@ func (m *EquipmentMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *EquipmentMutation) ResetField(name string) error {
 	switch name {
+	case equipment.FieldEquipmentTemplateID:
+		m.ResetEquipmentTemplateID()
+		return nil
 	case equipment.FieldName:
 		m.ResetName()
 		return nil
@@ -11548,9 +11852,12 @@ func (m *EquipmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EquipmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.room != nil {
 		edges = append(edges, equipment.EdgeRoom)
+	}
+	if m.equipmentTemplate != nil {
+		edges = append(edges, equipment.EdgeEquipmentTemplate)
 	}
 	return edges
 }
@@ -11563,13 +11870,17 @@ func (m *EquipmentMutation) AddedIDs(name string) []ent.Value {
 		if id := m.room; id != nil {
 			return []ent.Value{*id}
 		}
+	case equipment.EdgeEquipmentTemplate:
+		if id := m.equipmentTemplate; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EquipmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -11581,9 +11892,12 @@ func (m *EquipmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EquipmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedroom {
 		edges = append(edges, equipment.EdgeRoom)
+	}
+	if m.clearedequipmentTemplate {
+		edges = append(edges, equipment.EdgeEquipmentTemplate)
 	}
 	return edges
 }
@@ -11594,6 +11908,8 @@ func (m *EquipmentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case equipment.EdgeRoom:
 		return m.clearedroom
+	case equipment.EdgeEquipmentTemplate:
+		return m.clearedequipmentTemplate
 	}
 	return false
 }
@@ -11604,6 +11920,9 @@ func (m *EquipmentMutation) ClearEdge(name string) error {
 	switch name {
 	case equipment.EdgeRoom:
 		m.ClearRoom()
+		return nil
+	case equipment.EdgeEquipmentTemplate:
+		m.ClearEquipmentTemplate()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment unique edge %s", name)
@@ -11616,8 +11935,1636 @@ func (m *EquipmentMutation) ResetEdge(name string) error {
 	case equipment.EdgeRoom:
 		m.ResetRoom()
 		return nil
+	case equipment.EdgeEquipmentTemplate:
+		m.ResetEquipmentTemplate()
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment edge %s", name)
+}
+
+// EquipmentTemplateMutation represents an operation that mutates the EquipmentTemplate nodes in the graph.
+type EquipmentTemplateMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *string
+	name                  *string
+	description           *string
+	slot                  *string
+	level                 *int
+	addlevel              *int
+	weight                *int
+	addweight             *int
+	item_type             *string
+	stats                 *map[string]int
+	color                 *string
+	is_visible            *bool
+	is_immovable          *bool
+	effect_type           *string
+	effect_value          *int
+	addeffect_value       *int
+	effect_duration       *int
+	addeffect_duration    *int
+	is_container          *bool
+	container_capacity    *int
+	addcontainer_capacity *int
+	is_locked             *bool
+	key_item_id           *string
+	reveal_condition      *string
+	expires_at            *time.Time
+	clearedFields         map[string]struct{}
+	equipment             map[int]struct{}
+	removedequipment      map[int]struct{}
+	clearedequipment      bool
+	done                  bool
+	oldValue              func(context.Context) (*EquipmentTemplate, error)
+	predicates            []predicate.EquipmentTemplate
+}
+
+var _ ent.Mutation = (*EquipmentTemplateMutation)(nil)
+
+// equipmenttemplateOption allows management of the mutation configuration using functional options.
+type equipmenttemplateOption func(*EquipmentTemplateMutation)
+
+// newEquipmentTemplateMutation creates new mutation for the EquipmentTemplate entity.
+func newEquipmentTemplateMutation(c config, op Op, opts ...equipmenttemplateOption) *EquipmentTemplateMutation {
+	m := &EquipmentTemplateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEquipmentTemplate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEquipmentTemplateID sets the ID field of the mutation.
+func withEquipmentTemplateID(id string) equipmenttemplateOption {
+	return func(m *EquipmentTemplateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EquipmentTemplate
+		)
+		m.oldValue = func(ctx context.Context) (*EquipmentTemplate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EquipmentTemplate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEquipmentTemplate sets the old EquipmentTemplate of the mutation.
+func withEquipmentTemplate(node *EquipmentTemplate) equipmenttemplateOption {
+	return func(m *EquipmentTemplateMutation) {
+		m.oldValue = func(context.Context) (*EquipmentTemplate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EquipmentTemplateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EquipmentTemplateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EquipmentTemplate entities.
+func (m *EquipmentTemplateMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EquipmentTemplateMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EquipmentTemplate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *EquipmentTemplateMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *EquipmentTemplateMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *EquipmentTemplateMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *EquipmentTemplateMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *EquipmentTemplateMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *EquipmentTemplateMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetSlot sets the "slot" field.
+func (m *EquipmentTemplateMutation) SetSlot(s string) {
+	m.slot = &s
+}
+
+// Slot returns the value of the "slot" field in the mutation.
+func (m *EquipmentTemplateMutation) Slot() (r string, exists bool) {
+	v := m.slot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlot returns the old "slot" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldSlot(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlot: %w", err)
+	}
+	return oldValue.Slot, nil
+}
+
+// ResetSlot resets all changes to the "slot" field.
+func (m *EquipmentTemplateMutation) ResetSlot() {
+	m.slot = nil
+}
+
+// SetLevel sets the "level" field.
+func (m *EquipmentTemplateMutation) SetLevel(i int) {
+	m.level = &i
+	m.addlevel = nil
+}
+
+// Level returns the value of the "level" field in the mutation.
+func (m *EquipmentTemplateMutation) Level() (r int, exists bool) {
+	v := m.level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevel returns the old "level" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
+	}
+	return oldValue.Level, nil
+}
+
+// AddLevel adds i to the "level" field.
+func (m *EquipmentTemplateMutation) AddLevel(i int) {
+	if m.addlevel != nil {
+		*m.addlevel += i
+	} else {
+		m.addlevel = &i
+	}
+}
+
+// AddedLevel returns the value that was added to the "level" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedLevel() (r int, exists bool) {
+	v := m.addlevel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *EquipmentTemplateMutation) ResetLevel() {
+	m.level = nil
+	m.addlevel = nil
+}
+
+// SetWeight sets the "weight" field.
+func (m *EquipmentTemplateMutation) SetWeight(i int) {
+	m.weight = &i
+	m.addweight = nil
+}
+
+// Weight returns the value of the "weight" field in the mutation.
+func (m *EquipmentTemplateMutation) Weight() (r int, exists bool) {
+	v := m.weight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWeight returns the old "weight" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldWeight(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWeight: %w", err)
+	}
+	return oldValue.Weight, nil
+}
+
+// AddWeight adds i to the "weight" field.
+func (m *EquipmentTemplateMutation) AddWeight(i int) {
+	if m.addweight != nil {
+		*m.addweight += i
+	} else {
+		m.addweight = &i
+	}
+}
+
+// AddedWeight returns the value that was added to the "weight" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedWeight() (r int, exists bool) {
+	v := m.addweight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetWeight resets all changes to the "weight" field.
+func (m *EquipmentTemplateMutation) ResetWeight() {
+	m.weight = nil
+	m.addweight = nil
+}
+
+// SetItemType sets the "item_type" field.
+func (m *EquipmentTemplateMutation) SetItemType(s string) {
+	m.item_type = &s
+}
+
+// ItemType returns the value of the "item_type" field in the mutation.
+func (m *EquipmentTemplateMutation) ItemType() (r string, exists bool) {
+	v := m.item_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemType returns the old "item_type" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldItemType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemType: %w", err)
+	}
+	return oldValue.ItemType, nil
+}
+
+// ResetItemType resets all changes to the "item_type" field.
+func (m *EquipmentTemplateMutation) ResetItemType() {
+	m.item_type = nil
+}
+
+// SetStats sets the "stats" field.
+func (m *EquipmentTemplateMutation) SetStats(value map[string]int) {
+	m.stats = &value
+}
+
+// Stats returns the value of the "stats" field in the mutation.
+func (m *EquipmentTemplateMutation) Stats() (r map[string]int, exists bool) {
+	v := m.stats
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStats returns the old "stats" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldStats(ctx context.Context) (v map[string]int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStats is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStats requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStats: %w", err)
+	}
+	return oldValue.Stats, nil
+}
+
+// ClearStats clears the value of the "stats" field.
+func (m *EquipmentTemplateMutation) ClearStats() {
+	m.stats = nil
+	m.clearedFields[equipmenttemplate.FieldStats] = struct{}{}
+}
+
+// StatsCleared returns if the "stats" field was cleared in this mutation.
+func (m *EquipmentTemplateMutation) StatsCleared() bool {
+	_, ok := m.clearedFields[equipmenttemplate.FieldStats]
+	return ok
+}
+
+// ResetStats resets all changes to the "stats" field.
+func (m *EquipmentTemplateMutation) ResetStats() {
+	m.stats = nil
+	delete(m.clearedFields, equipmenttemplate.FieldStats)
+}
+
+// SetColor sets the "color" field.
+func (m *EquipmentTemplateMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *EquipmentTemplateMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "color" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *EquipmentTemplateMutation) ResetColor() {
+	m.color = nil
+}
+
+// SetIsVisible sets the "is_visible" field.
+func (m *EquipmentTemplateMutation) SetIsVisible(b bool) {
+	m.is_visible = &b
+}
+
+// IsVisible returns the value of the "is_visible" field in the mutation.
+func (m *EquipmentTemplateMutation) IsVisible() (r bool, exists bool) {
+	v := m.is_visible
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsVisible returns the old "is_visible" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldIsVisible(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsVisible is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsVisible requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsVisible: %w", err)
+	}
+	return oldValue.IsVisible, nil
+}
+
+// ResetIsVisible resets all changes to the "is_visible" field.
+func (m *EquipmentTemplateMutation) ResetIsVisible() {
+	m.is_visible = nil
+}
+
+// SetIsImmovable sets the "is_immovable" field.
+func (m *EquipmentTemplateMutation) SetIsImmovable(b bool) {
+	m.is_immovable = &b
+}
+
+// IsImmovable returns the value of the "is_immovable" field in the mutation.
+func (m *EquipmentTemplateMutation) IsImmovable() (r bool, exists bool) {
+	v := m.is_immovable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsImmovable returns the old "is_immovable" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldIsImmovable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsImmovable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsImmovable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsImmovable: %w", err)
+	}
+	return oldValue.IsImmovable, nil
+}
+
+// ResetIsImmovable resets all changes to the "is_immovable" field.
+func (m *EquipmentTemplateMutation) ResetIsImmovable() {
+	m.is_immovable = nil
+}
+
+// SetEffectType sets the "effect_type" field.
+func (m *EquipmentTemplateMutation) SetEffectType(s string) {
+	m.effect_type = &s
+}
+
+// EffectType returns the value of the "effect_type" field in the mutation.
+func (m *EquipmentTemplateMutation) EffectType() (r string, exists bool) {
+	v := m.effect_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectType returns the old "effect_type" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldEffectType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectType: %w", err)
+	}
+	return oldValue.EffectType, nil
+}
+
+// ResetEffectType resets all changes to the "effect_type" field.
+func (m *EquipmentTemplateMutation) ResetEffectType() {
+	m.effect_type = nil
+}
+
+// SetEffectValue sets the "effect_value" field.
+func (m *EquipmentTemplateMutation) SetEffectValue(i int) {
+	m.effect_value = &i
+	m.addeffect_value = nil
+}
+
+// EffectValue returns the value of the "effect_value" field in the mutation.
+func (m *EquipmentTemplateMutation) EffectValue() (r int, exists bool) {
+	v := m.effect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectValue returns the old "effect_value" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldEffectValue(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectValue: %w", err)
+	}
+	return oldValue.EffectValue, nil
+}
+
+// AddEffectValue adds i to the "effect_value" field.
+func (m *EquipmentTemplateMutation) AddEffectValue(i int) {
+	if m.addeffect_value != nil {
+		*m.addeffect_value += i
+	} else {
+		m.addeffect_value = &i
+	}
+}
+
+// AddedEffectValue returns the value that was added to the "effect_value" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedEffectValue() (r int, exists bool) {
+	v := m.addeffect_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectValue resets all changes to the "effect_value" field.
+func (m *EquipmentTemplateMutation) ResetEffectValue() {
+	m.effect_value = nil
+	m.addeffect_value = nil
+}
+
+// SetEffectDuration sets the "effect_duration" field.
+func (m *EquipmentTemplateMutation) SetEffectDuration(i int) {
+	m.effect_duration = &i
+	m.addeffect_duration = nil
+}
+
+// EffectDuration returns the value of the "effect_duration" field in the mutation.
+func (m *EquipmentTemplateMutation) EffectDuration() (r int, exists bool) {
+	v := m.effect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectDuration returns the old "effect_duration" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldEffectDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectDuration: %w", err)
+	}
+	return oldValue.EffectDuration, nil
+}
+
+// AddEffectDuration adds i to the "effect_duration" field.
+func (m *EquipmentTemplateMutation) AddEffectDuration(i int) {
+	if m.addeffect_duration != nil {
+		*m.addeffect_duration += i
+	} else {
+		m.addeffect_duration = &i
+	}
+}
+
+// AddedEffectDuration returns the value that was added to the "effect_duration" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedEffectDuration() (r int, exists bool) {
+	v := m.addeffect_duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEffectDuration resets all changes to the "effect_duration" field.
+func (m *EquipmentTemplateMutation) ResetEffectDuration() {
+	m.effect_duration = nil
+	m.addeffect_duration = nil
+}
+
+// SetIsContainer sets the "is_container" field.
+func (m *EquipmentTemplateMutation) SetIsContainer(b bool) {
+	m.is_container = &b
+}
+
+// IsContainer returns the value of the "is_container" field in the mutation.
+func (m *EquipmentTemplateMutation) IsContainer() (r bool, exists bool) {
+	v := m.is_container
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsContainer returns the old "is_container" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldIsContainer(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsContainer is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsContainer requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsContainer: %w", err)
+	}
+	return oldValue.IsContainer, nil
+}
+
+// ResetIsContainer resets all changes to the "is_container" field.
+func (m *EquipmentTemplateMutation) ResetIsContainer() {
+	m.is_container = nil
+}
+
+// SetContainerCapacity sets the "container_capacity" field.
+func (m *EquipmentTemplateMutation) SetContainerCapacity(i int) {
+	m.container_capacity = &i
+	m.addcontainer_capacity = nil
+}
+
+// ContainerCapacity returns the value of the "container_capacity" field in the mutation.
+func (m *EquipmentTemplateMutation) ContainerCapacity() (r int, exists bool) {
+	v := m.container_capacity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContainerCapacity returns the old "container_capacity" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldContainerCapacity(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContainerCapacity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContainerCapacity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContainerCapacity: %w", err)
+	}
+	return oldValue.ContainerCapacity, nil
+}
+
+// AddContainerCapacity adds i to the "container_capacity" field.
+func (m *EquipmentTemplateMutation) AddContainerCapacity(i int) {
+	if m.addcontainer_capacity != nil {
+		*m.addcontainer_capacity += i
+	} else {
+		m.addcontainer_capacity = &i
+	}
+}
+
+// AddedContainerCapacity returns the value that was added to the "container_capacity" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedContainerCapacity() (r int, exists bool) {
+	v := m.addcontainer_capacity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetContainerCapacity resets all changes to the "container_capacity" field.
+func (m *EquipmentTemplateMutation) ResetContainerCapacity() {
+	m.container_capacity = nil
+	m.addcontainer_capacity = nil
+}
+
+// SetIsLocked sets the "is_locked" field.
+func (m *EquipmentTemplateMutation) SetIsLocked(b bool) {
+	m.is_locked = &b
+}
+
+// IsLocked returns the value of the "is_locked" field in the mutation.
+func (m *EquipmentTemplateMutation) IsLocked() (r bool, exists bool) {
+	v := m.is_locked
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsLocked returns the old "is_locked" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldIsLocked(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsLocked is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsLocked requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsLocked: %w", err)
+	}
+	return oldValue.IsLocked, nil
+}
+
+// ResetIsLocked resets all changes to the "is_locked" field.
+func (m *EquipmentTemplateMutation) ResetIsLocked() {
+	m.is_locked = nil
+}
+
+// SetKeyItemID sets the "key_item_id" field.
+func (m *EquipmentTemplateMutation) SetKeyItemID(s string) {
+	m.key_item_id = &s
+}
+
+// KeyItemID returns the value of the "key_item_id" field in the mutation.
+func (m *EquipmentTemplateMutation) KeyItemID() (r string, exists bool) {
+	v := m.key_item_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKeyItemID returns the old "key_item_id" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldKeyItemID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKeyItemID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKeyItemID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKeyItemID: %w", err)
+	}
+	return oldValue.KeyItemID, nil
+}
+
+// ClearKeyItemID clears the value of the "key_item_id" field.
+func (m *EquipmentTemplateMutation) ClearKeyItemID() {
+	m.key_item_id = nil
+	m.clearedFields[equipmenttemplate.FieldKeyItemID] = struct{}{}
+}
+
+// KeyItemIDCleared returns if the "key_item_id" field was cleared in this mutation.
+func (m *EquipmentTemplateMutation) KeyItemIDCleared() bool {
+	_, ok := m.clearedFields[equipmenttemplate.FieldKeyItemID]
+	return ok
+}
+
+// ResetKeyItemID resets all changes to the "key_item_id" field.
+func (m *EquipmentTemplateMutation) ResetKeyItemID() {
+	m.key_item_id = nil
+	delete(m.clearedFields, equipmenttemplate.FieldKeyItemID)
+}
+
+// SetRevealCondition sets the "reveal_condition" field.
+func (m *EquipmentTemplateMutation) SetRevealCondition(s string) {
+	m.reveal_condition = &s
+}
+
+// RevealCondition returns the value of the "reveal_condition" field in the mutation.
+func (m *EquipmentTemplateMutation) RevealCondition() (r string, exists bool) {
+	v := m.reveal_condition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevealCondition returns the old "reveal_condition" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldRevealCondition(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevealCondition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevealCondition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevealCondition: %w", err)
+	}
+	return oldValue.RevealCondition, nil
+}
+
+// ResetRevealCondition resets all changes to the "reveal_condition" field.
+func (m *EquipmentTemplateMutation) ResetRevealCondition() {
+	m.reveal_condition = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *EquipmentTemplateMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *EquipmentTemplateMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (m *EquipmentTemplateMutation) ClearExpiresAt() {
+	m.expires_at = nil
+	m.clearedFields[equipmenttemplate.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
+func (m *EquipmentTemplateMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[equipmenttemplate.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *EquipmentTemplateMutation) ResetExpiresAt() {
+	m.expires_at = nil
+	delete(m.clearedFields, equipmenttemplate.FieldExpiresAt)
+}
+
+// AddEquipmentIDs adds the "equipment" edge to the Equipment entity by ids.
+func (m *EquipmentTemplateMutation) AddEquipmentIDs(ids ...int) {
+	if m.equipment == nil {
+		m.equipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.equipment[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEquipment clears the "equipment" edge to the Equipment entity.
+func (m *EquipmentTemplateMutation) ClearEquipment() {
+	m.clearedequipment = true
+}
+
+// EquipmentCleared reports if the "equipment" edge to the Equipment entity was cleared.
+func (m *EquipmentTemplateMutation) EquipmentCleared() bool {
+	return m.clearedequipment
+}
+
+// RemoveEquipmentIDs removes the "equipment" edge to the Equipment entity by IDs.
+func (m *EquipmentTemplateMutation) RemoveEquipmentIDs(ids ...int) {
+	if m.removedequipment == nil {
+		m.removedequipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.equipment, ids[i])
+		m.removedequipment[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEquipment returns the removed IDs of the "equipment" edge to the Equipment entity.
+func (m *EquipmentTemplateMutation) RemovedEquipmentIDs() (ids []int) {
+	for id := range m.removedequipment {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EquipmentIDs returns the "equipment" edge IDs in the mutation.
+func (m *EquipmentTemplateMutation) EquipmentIDs() (ids []int) {
+	for id := range m.equipment {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEquipment resets all changes to the "equipment" edge.
+func (m *EquipmentTemplateMutation) ResetEquipment() {
+	m.equipment = nil
+	m.clearedequipment = false
+	m.removedequipment = nil
+}
+
+// Where appends a list predicates to the EquipmentTemplateMutation builder.
+func (m *EquipmentTemplateMutation) Where(ps ...predicate.EquipmentTemplate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EquipmentTemplateMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EquipmentTemplateMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EquipmentTemplate, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EquipmentTemplateMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EquipmentTemplateMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EquipmentTemplate).
+func (m *EquipmentTemplateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EquipmentTemplateMutation) Fields() []string {
+	fields := make([]string, 0, 19)
+	if m.name != nil {
+		fields = append(fields, equipmenttemplate.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, equipmenttemplate.FieldDescription)
+	}
+	if m.slot != nil {
+		fields = append(fields, equipmenttemplate.FieldSlot)
+	}
+	if m.level != nil {
+		fields = append(fields, equipmenttemplate.FieldLevel)
+	}
+	if m.weight != nil {
+		fields = append(fields, equipmenttemplate.FieldWeight)
+	}
+	if m.item_type != nil {
+		fields = append(fields, equipmenttemplate.FieldItemType)
+	}
+	if m.stats != nil {
+		fields = append(fields, equipmenttemplate.FieldStats)
+	}
+	if m.color != nil {
+		fields = append(fields, equipmenttemplate.FieldColor)
+	}
+	if m.is_visible != nil {
+		fields = append(fields, equipmenttemplate.FieldIsVisible)
+	}
+	if m.is_immovable != nil {
+		fields = append(fields, equipmenttemplate.FieldIsImmovable)
+	}
+	if m.effect_type != nil {
+		fields = append(fields, equipmenttemplate.FieldEffectType)
+	}
+	if m.effect_value != nil {
+		fields = append(fields, equipmenttemplate.FieldEffectValue)
+	}
+	if m.effect_duration != nil {
+		fields = append(fields, equipmenttemplate.FieldEffectDuration)
+	}
+	if m.is_container != nil {
+		fields = append(fields, equipmenttemplate.FieldIsContainer)
+	}
+	if m.container_capacity != nil {
+		fields = append(fields, equipmenttemplate.FieldContainerCapacity)
+	}
+	if m.is_locked != nil {
+		fields = append(fields, equipmenttemplate.FieldIsLocked)
+	}
+	if m.key_item_id != nil {
+		fields = append(fields, equipmenttemplate.FieldKeyItemID)
+	}
+	if m.reveal_condition != nil {
+		fields = append(fields, equipmenttemplate.FieldRevealCondition)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, equipmenttemplate.FieldExpiresAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case equipmenttemplate.FieldName:
+		return m.Name()
+	case equipmenttemplate.FieldDescription:
+		return m.Description()
+	case equipmenttemplate.FieldSlot:
+		return m.Slot()
+	case equipmenttemplate.FieldLevel:
+		return m.Level()
+	case equipmenttemplate.FieldWeight:
+		return m.Weight()
+	case equipmenttemplate.FieldItemType:
+		return m.ItemType()
+	case equipmenttemplate.FieldStats:
+		return m.Stats()
+	case equipmenttemplate.FieldColor:
+		return m.Color()
+	case equipmenttemplate.FieldIsVisible:
+		return m.IsVisible()
+	case equipmenttemplate.FieldIsImmovable:
+		return m.IsImmovable()
+	case equipmenttemplate.FieldEffectType:
+		return m.EffectType()
+	case equipmenttemplate.FieldEffectValue:
+		return m.EffectValue()
+	case equipmenttemplate.FieldEffectDuration:
+		return m.EffectDuration()
+	case equipmenttemplate.FieldIsContainer:
+		return m.IsContainer()
+	case equipmenttemplate.FieldContainerCapacity:
+		return m.ContainerCapacity()
+	case equipmenttemplate.FieldIsLocked:
+		return m.IsLocked()
+	case equipmenttemplate.FieldKeyItemID:
+		return m.KeyItemID()
+	case equipmenttemplate.FieldRevealCondition:
+		return m.RevealCondition()
+	case equipmenttemplate.FieldExpiresAt:
+		return m.ExpiresAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case equipmenttemplate.FieldName:
+		return m.OldName(ctx)
+	case equipmenttemplate.FieldDescription:
+		return m.OldDescription(ctx)
+	case equipmenttemplate.FieldSlot:
+		return m.OldSlot(ctx)
+	case equipmenttemplate.FieldLevel:
+		return m.OldLevel(ctx)
+	case equipmenttemplate.FieldWeight:
+		return m.OldWeight(ctx)
+	case equipmenttemplate.FieldItemType:
+		return m.OldItemType(ctx)
+	case equipmenttemplate.FieldStats:
+		return m.OldStats(ctx)
+	case equipmenttemplate.FieldColor:
+		return m.OldColor(ctx)
+	case equipmenttemplate.FieldIsVisible:
+		return m.OldIsVisible(ctx)
+	case equipmenttemplate.FieldIsImmovable:
+		return m.OldIsImmovable(ctx)
+	case equipmenttemplate.FieldEffectType:
+		return m.OldEffectType(ctx)
+	case equipmenttemplate.FieldEffectValue:
+		return m.OldEffectValue(ctx)
+	case equipmenttemplate.FieldEffectDuration:
+		return m.OldEffectDuration(ctx)
+	case equipmenttemplate.FieldIsContainer:
+		return m.OldIsContainer(ctx)
+	case equipmenttemplate.FieldContainerCapacity:
+		return m.OldContainerCapacity(ctx)
+	case equipmenttemplate.FieldIsLocked:
+		return m.OldIsLocked(ctx)
+	case equipmenttemplate.FieldKeyItemID:
+		return m.OldKeyItemID(ctx)
+	case equipmenttemplate.FieldRevealCondition:
+		return m.OldRevealCondition(ctx)
+	case equipmenttemplate.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown EquipmentTemplate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EquipmentTemplateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case equipmenttemplate.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case equipmenttemplate.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case equipmenttemplate.FieldSlot:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlot(v)
+		return nil
+	case equipmenttemplate.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
+	case equipmenttemplate.FieldWeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWeight(v)
+		return nil
+	case equipmenttemplate.FieldItemType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemType(v)
+		return nil
+	case equipmenttemplate.FieldStats:
+		v, ok := value.(map[string]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStats(v)
+		return nil
+	case equipmenttemplate.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
+	case equipmenttemplate.FieldIsVisible:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsVisible(v)
+		return nil
+	case equipmenttemplate.FieldIsImmovable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsImmovable(v)
+		return nil
+	case equipmenttemplate.FieldEffectType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectType(v)
+		return nil
+	case equipmenttemplate.FieldEffectValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectValue(v)
+		return nil
+	case equipmenttemplate.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectDuration(v)
+		return nil
+	case equipmenttemplate.FieldIsContainer:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsContainer(v)
+		return nil
+	case equipmenttemplate.FieldContainerCapacity:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContainerCapacity(v)
+		return nil
+	case equipmenttemplate.FieldIsLocked:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsLocked(v)
+		return nil
+	case equipmenttemplate.FieldKeyItemID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKeyItemID(v)
+		return nil
+	case equipmenttemplate.FieldRevealCondition:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevealCondition(v)
+		return nil
+	case equipmenttemplate.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EquipmentTemplate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EquipmentTemplateMutation) AddedFields() []string {
+	var fields []string
+	if m.addlevel != nil {
+		fields = append(fields, equipmenttemplate.FieldLevel)
+	}
+	if m.addweight != nil {
+		fields = append(fields, equipmenttemplate.FieldWeight)
+	}
+	if m.addeffect_value != nil {
+		fields = append(fields, equipmenttemplate.FieldEffectValue)
+	}
+	if m.addeffect_duration != nil {
+		fields = append(fields, equipmenttemplate.FieldEffectDuration)
+	}
+	if m.addcontainer_capacity != nil {
+		fields = append(fields, equipmenttemplate.FieldContainerCapacity)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EquipmentTemplateMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case equipmenttemplate.FieldLevel:
+		return m.AddedLevel()
+	case equipmenttemplate.FieldWeight:
+		return m.AddedWeight()
+	case equipmenttemplate.FieldEffectValue:
+		return m.AddedEffectValue()
+	case equipmenttemplate.FieldEffectDuration:
+		return m.AddedEffectDuration()
+	case equipmenttemplate.FieldContainerCapacity:
+		return m.AddedContainerCapacity()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EquipmentTemplateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case equipmenttemplate.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLevel(v)
+		return nil
+	case equipmenttemplate.FieldWeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWeight(v)
+		return nil
+	case equipmenttemplate.FieldEffectValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectValue(v)
+		return nil
+	case equipmenttemplate.FieldEffectDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEffectDuration(v)
+		return nil
+	case equipmenttemplate.FieldContainerCapacity:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddContainerCapacity(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EquipmentTemplate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EquipmentTemplateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(equipmenttemplate.FieldStats) {
+		fields = append(fields, equipmenttemplate.FieldStats)
+	}
+	if m.FieldCleared(equipmenttemplate.FieldKeyItemID) {
+		fields = append(fields, equipmenttemplate.FieldKeyItemID)
+	}
+	if m.FieldCleared(equipmenttemplate.FieldExpiresAt) {
+		fields = append(fields, equipmenttemplate.FieldExpiresAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EquipmentTemplateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EquipmentTemplateMutation) ClearField(name string) error {
+	switch name {
+	case equipmenttemplate.FieldStats:
+		m.ClearStats()
+		return nil
+	case equipmenttemplate.FieldKeyItemID:
+		m.ClearKeyItemID()
+		return nil
+	case equipmenttemplate.FieldExpiresAt:
+		m.ClearExpiresAt()
+		return nil
+	}
+	return fmt.Errorf("unknown EquipmentTemplate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EquipmentTemplateMutation) ResetField(name string) error {
+	switch name {
+	case equipmenttemplate.FieldName:
+		m.ResetName()
+		return nil
+	case equipmenttemplate.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case equipmenttemplate.FieldSlot:
+		m.ResetSlot()
+		return nil
+	case equipmenttemplate.FieldLevel:
+		m.ResetLevel()
+		return nil
+	case equipmenttemplate.FieldWeight:
+		m.ResetWeight()
+		return nil
+	case equipmenttemplate.FieldItemType:
+		m.ResetItemType()
+		return nil
+	case equipmenttemplate.FieldStats:
+		m.ResetStats()
+		return nil
+	case equipmenttemplate.FieldColor:
+		m.ResetColor()
+		return nil
+	case equipmenttemplate.FieldIsVisible:
+		m.ResetIsVisible()
+		return nil
+	case equipmenttemplate.FieldIsImmovable:
+		m.ResetIsImmovable()
+		return nil
+	case equipmenttemplate.FieldEffectType:
+		m.ResetEffectType()
+		return nil
+	case equipmenttemplate.FieldEffectValue:
+		m.ResetEffectValue()
+		return nil
+	case equipmenttemplate.FieldEffectDuration:
+		m.ResetEffectDuration()
+		return nil
+	case equipmenttemplate.FieldIsContainer:
+		m.ResetIsContainer()
+		return nil
+	case equipmenttemplate.FieldContainerCapacity:
+		m.ResetContainerCapacity()
+		return nil
+	case equipmenttemplate.FieldIsLocked:
+		m.ResetIsLocked()
+		return nil
+	case equipmenttemplate.FieldKeyItemID:
+		m.ResetKeyItemID()
+		return nil
+	case equipmenttemplate.FieldRevealCondition:
+		m.ResetRevealCondition()
+		return nil
+	case equipmenttemplate.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	}
+	return fmt.Errorf("unknown EquipmentTemplate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EquipmentTemplateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.equipment != nil {
+		edges = append(edges, equipmenttemplate.EdgeEquipment)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EquipmentTemplateMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case equipmenttemplate.EdgeEquipment:
+		ids := make([]ent.Value, 0, len(m.equipment))
+		for id := range m.equipment {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EquipmentTemplateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedequipment != nil {
+		edges = append(edges, equipmenttemplate.EdgeEquipment)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EquipmentTemplateMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case equipmenttemplate.EdgeEquipment:
+		ids := make([]ent.Value, 0, len(m.removedequipment))
+		for id := range m.removedequipment {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EquipmentTemplateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedequipment {
+		edges = append(edges, equipmenttemplate.EdgeEquipment)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EquipmentTemplateMutation) EdgeCleared(name string) bool {
+	switch name {
+	case equipmenttemplate.EdgeEquipment:
+		return m.clearedequipment
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EquipmentTemplateMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EquipmentTemplate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EquipmentTemplateMutation) ResetEdge(name string) error {
+	switch name {
+	case equipmenttemplate.EdgeEquipment:
+		m.ResetEquipment()
+		return nil
+	}
+	return fmt.Errorf("unknown EquipmentTemplate edge %s", name)
 }
 
 // FactionMutation represents an operation that mutates the Faction nodes in the graph.
@@ -14966,6 +16913,9 @@ type NPCTemplateMutation struct {
 	npc_skills          map[int]struct{}
 	removednpc_skills   map[int]struct{}
 	clearednpc_skills   bool
+	characters          map[int]struct{}
+	removedcharacters   map[int]struct{}
+	clearedcharacters   bool
 	done                bool
 	oldValue            func(context.Context) (*NPCTemplate, error)
 	predicates          []predicate.NPCTemplate
@@ -15643,6 +17593,60 @@ func (m *NPCTemplateMutation) ResetNpcSkills() {
 	m.removednpc_skills = nil
 }
 
+// AddCharacterIDs adds the "characters" edge to the Character entity by ids.
+func (m *NPCTemplateMutation) AddCharacterIDs(ids ...int) {
+	if m.characters == nil {
+		m.characters = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.characters[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCharacters clears the "characters" edge to the Character entity.
+func (m *NPCTemplateMutation) ClearCharacters() {
+	m.clearedcharacters = true
+}
+
+// CharactersCleared reports if the "characters" edge to the Character entity was cleared.
+func (m *NPCTemplateMutation) CharactersCleared() bool {
+	return m.clearedcharacters
+}
+
+// RemoveCharacterIDs removes the "characters" edge to the Character entity by IDs.
+func (m *NPCTemplateMutation) RemoveCharacterIDs(ids ...int) {
+	if m.removedcharacters == nil {
+		m.removedcharacters = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.characters, ids[i])
+		m.removedcharacters[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCharacters returns the removed IDs of the "characters" edge to the Character entity.
+func (m *NPCTemplateMutation) RemovedCharactersIDs() (ids []int) {
+	for id := range m.removedcharacters {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CharactersIDs returns the "characters" edge IDs in the mutation.
+func (m *NPCTemplateMutation) CharactersIDs() (ids []int) {
+	for id := range m.characters {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCharacters resets all changes to the "characters" edge.
+func (m *NPCTemplateMutation) ResetCharacters() {
+	m.characters = nil
+	m.clearedcharacters = false
+	m.removedcharacters = nil
+}
+
 // Where appends a list predicates to the NPCTemplateMutation builder.
 func (m *NPCTemplateMutation) Where(ps ...predicate.NPCTemplate) {
 	m.predicates = append(m.predicates, ps...)
@@ -16000,9 +18004,12 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NPCTemplateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.npc_skills != nil {
 		edges = append(edges, npctemplate.EdgeNpcSkills)
+	}
+	if m.characters != nil {
+		edges = append(edges, npctemplate.EdgeCharacters)
 	}
 	return edges
 }
@@ -16017,15 +18024,24 @@ func (m *NPCTemplateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case npctemplate.EdgeCharacters:
+		ids := make([]ent.Value, 0, len(m.characters))
+		for id := range m.characters {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NPCTemplateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removednpc_skills != nil {
 		edges = append(edges, npctemplate.EdgeNpcSkills)
+	}
+	if m.removedcharacters != nil {
+		edges = append(edges, npctemplate.EdgeCharacters)
 	}
 	return edges
 }
@@ -16040,15 +18056,24 @@ func (m *NPCTemplateMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case npctemplate.EdgeCharacters:
+		ids := make([]ent.Value, 0, len(m.removedcharacters))
+		for id := range m.removedcharacters {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NPCTemplateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearednpc_skills {
 		edges = append(edges, npctemplate.EdgeNpcSkills)
+	}
+	if m.clearedcharacters {
+		edges = append(edges, npctemplate.EdgeCharacters)
 	}
 	return edges
 }
@@ -16059,6 +18084,8 @@ func (m *NPCTemplateMutation) EdgeCleared(name string) bool {
 	switch name {
 	case npctemplate.EdgeNpcSkills:
 		return m.clearednpc_skills
+	case npctemplate.EdgeCharacters:
+		return m.clearedcharacters
 	}
 	return false
 }
@@ -16077,6 +18104,9 @@ func (m *NPCTemplateMutation) ResetEdge(name string) error {
 	switch name {
 	case npctemplate.EdgeNpcSkills:
 		m.ResetNpcSkills()
+		return nil
+	case npctemplate.EdgeCharacters:
+		m.ResetCharacters()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate edge %s", name)

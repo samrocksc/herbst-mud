@@ -10,14 +10,17 @@ type RoomNodeProps = {
   rooms: Room[]
   onSelect: (room: Room) => void
   isDragging: boolean
+  onDragStart: (roomId: number) => void
   onDragEnd: (roomId: number, x: number, y: number) => void
 }
 
-export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, onSelect, isDragging, onDragEnd }: RoomNodeProps) {
+const DRAG_THRESHOLD = 5 // pixels — below this it's a click, not a drag
+
+export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, onSelect, isDragging, onDragStart, onDragEnd }: RoomNodeProps) {
   const isColored = room.isStartingRoom || isSelected
 
   // --- Drag support ---
-  const dragRef = { startMouseX: 0, startMouseY: 0, startPosX: 0, startPosY: 0 }
+  const dragRef = { startMouseX: 0, startMouseY: 0, startPosX: 0, startPosY: 0, didDrag: false }
 
   function handleMouseDown(e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest('button')) return
@@ -26,6 +29,7 @@ export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, on
     dragRef.startMouseY = e.clientY
     dragRef.startPosX = pos.x
     dragRef.startPosY = pos.y
+    dragRef.didDrag = false
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
   }
@@ -33,19 +37,26 @@ export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, on
   function handleMouseMove(e: MouseEvent) {
     const dx = e.clientX - dragRef.startMouseX
     const dy = e.clientY - dragRef.startMouseY
-    const nodeEl = (e.currentTarget as HTMLElement)
-    nodeEl.style.left = `${dragRef.startPosX + dx}px`
-    nodeEl.style.top = `${dragRef.startPosY + dy}px`
+    if (!dragRef.didDrag && Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return
+
+    if (!dragRef.didDrag) {
+      dragRef.didDrag = true
+      onDragStart(room.id)
+    }
+    const nodeEl = document.querySelector(`[data-room-id="${room.id}"]`) as HTMLElement
+    if (nodeEl) {
+      nodeEl.style.left = `${dragRef.startPosX + dx}px`
+      nodeEl.style.top = `${dragRef.startPosY + dy}px`
+    }
   }
 
   function handleMouseUp(e: MouseEvent) {
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
+    if (!dragRef.didDrag) return
     const dx = e.clientX - dragRef.startMouseX
     const dy = e.clientY - dragRef.startMouseY
-    const newX = dragRef.startPosX + dx
-    const newY = dragRef.startPosY + dy
-    onDragEnd(room.id, newX, newY)
+    onDragEnd(room.id, dragRef.startPosX + dx, dragRef.startPosY + dy)
   }
 
   /** Resolve a room ID to its name, falling back to "Unknown Room" */
@@ -54,9 +65,20 @@ export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, on
     return found ? found.name : 'Unknown Room'
   }
 
+  /** Check if a target room still exists. Used to filter phantom exits. */
+  function targetExists(roomId: number): boolean {
+    return rooms.some((r) => r.id === roomId)
+  }
+
+  // Filter to only valid exits (target room still exists)
+  const validExits: Array<[string, number]> = room.exits
+    ? (Object.entries(room.exits) as Array<[string, number]>).filter(([, targetId]) => targetExists(targetId))
+    : []
+
   return (
     <div
-      onClick={() => onSelect(room)}
+      data-room-id={room.id}
+      onClick={() => { if (!dragRef.didDrag) onSelect(room) }}
       onMouseDown={handleMouseDown}
       className={`room-node absolute w-[120px] min-h-[65px] p-2 rounded-lg cursor-grab transition-all select-none ${
         isDragging ? 'opacity-50 cursor-grabbing' : ''
@@ -98,9 +120,9 @@ export function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, on
           </span>
         )}
       </div>
-      {room.exits && (
+      {validExits.length > 0 && (
         <div className="flex flex-col items-center gap-0.5 mt-0.5">
-          {Object.entries(room.exits).map(([dir, targetId]) => {
+          {validExits.map(([dir, targetId]) => {
             const label = DirectionShortLabels[dir as keyof typeof DirectionShortLabels] ?? dir
             const targetName = resolveRoomName(targetId)
             return (

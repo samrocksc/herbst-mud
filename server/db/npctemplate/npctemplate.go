@@ -38,6 +38,8 @@ const (
 	FieldRespawnCooldown = "respawn_cooldown"
 	// EdgeNpcSkills holds the string denoting the npc_skills edge name in mutations.
 	EdgeNpcSkills = "npc_skills"
+	// EdgeCharacters holds the string denoting the characters edge name in mutations.
+	EdgeCharacters = "characters"
 	// Table holds the table name of the npctemplate in the database.
 	Table = "npc_templates"
 	// NpcSkillsTable is the table that holds the npc_skills relation/edge. The primary key declared below.
@@ -45,6 +47,13 @@ const (
 	// NpcSkillsInverseTable is the table name for the NPCSkill entity.
 	// It exists in this package in order to avoid circular dependency with the "npcskill" package.
 	NpcSkillsInverseTable = "npc_skills"
+	// CharactersTable is the table that holds the characters relation/edge.
+	CharactersTable = "characters"
+	// CharactersInverseTable is the table name for the Character entity.
+	// It exists in this package in order to avoid circular dependency with the "character" package.
+	CharactersInverseTable = "characters"
+	// CharactersColumn is the table column denoting the characters relation/edge.
+	CharactersColumn = "npc_template_id"
 )
 
 // Columns holds all SQL columns for npctemplate fields.
@@ -176,10 +185,31 @@ func ByNpcSkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newNpcSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCharactersCount orders the results by characters count.
+func ByCharactersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCharactersStep(), opts...)
+	}
+}
+
+// ByCharacters orders the results by characters terms.
+func ByCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newNpcSkillsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NpcSkillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, NpcSkillsTable, NpcSkillsPrimaryKey...),
+	)
+}
+func newCharactersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CharactersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, CharactersTable, CharactersColumn),
 	)
 }

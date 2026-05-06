@@ -5,6 +5,7 @@ package db
 import (
 	"fmt"
 	"herbst-server/db/equipment"
+	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/room"
 	"strings"
 	"time"
@@ -18,6 +19,8 @@ type Equipment struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// FK to equipment_template
+	EquipmentTemplateID string `json:"equipment_template_id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
@@ -75,9 +78,11 @@ type Equipment struct {
 type EquipmentEdges struct {
 	// Room holds the value of the room edge.
 	Room *Room `json:"room,omitempty"`
+	// EquipmentTemplate holds the value of the equipmentTemplate edge.
+	EquipmentTemplate *EquipmentTemplate `json:"equipmentTemplate,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // RoomOrErr returns the Room value or an error if the edge
@@ -91,6 +96,17 @@ func (e EquipmentEdges) RoomOrErr() (*Room, error) {
 	return nil, &NotLoadedError{edge: "room"}
 }
 
+// EquipmentTemplateOrErr returns the EquipmentTemplate value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EquipmentEdges) EquipmentTemplateOrErr() (*EquipmentTemplate, error) {
+	if e.EquipmentTemplate != nil {
+		return e.EquipmentTemplate, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: equipmenttemplate.Label}
+	}
+	return nil, &NotLoadedError{edge: "equipmentTemplate"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -100,7 +116,7 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition:
+		case equipment.FieldEquipmentTemplateID, equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition:
 			values[i] = new(sql.NullString)
 		case equipment.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -127,6 +143,12 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case equipment.FieldEquipmentTemplateID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field equipment_template_id", values[i])
+			} else if value.Valid {
+				_m.EquipmentTemplateID = value.String
+			}
 		case equipment.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -292,6 +314,11 @@ func (_m *Equipment) QueryRoom() *RoomQuery {
 	return NewEquipmentClient(_m.config).QueryRoom(_m)
 }
 
+// QueryEquipmentTemplate queries the "equipmentTemplate" edge of the Equipment entity.
+func (_m *Equipment) QueryEquipmentTemplate() *EquipmentTemplateQuery {
+	return NewEquipmentClient(_m.config).QueryEquipmentTemplate(_m)
+}
+
 // Update returns a builder for updating this Equipment.
 // Note that you need to call Equipment.Unwrap() before calling this method if this Equipment
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -315,6 +342,9 @@ func (_m *Equipment) String() string {
 	var builder strings.Builder
 	builder.WriteString("Equipment(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("equipment_template_id=")
+	builder.WriteString(_m.EquipmentTemplateID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

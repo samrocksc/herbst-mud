@@ -1,4 +1,7 @@
+/** Race data hook refactored to use the centralized apiFetch. */
+
 import { useState, useEffect, useCallback } from 'react'
+import { apiFetch } from '../api'
 
 export type Race = Readonly<{
   id: number
@@ -23,31 +26,6 @@ export type RaceInput = Readonly<{
 
 const API = '/api/races'
 
-function getToken() {
-  return localStorage.getItem('token') ?? ''
-}
-
-async function apiFetch(path: string, opts?: RequestInit) {
-  const res = await fetch(path, {
-    ...opts,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      ...opts?.headers,
-    },
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error ?? `HTTP ${res.status}`)
-  }
-  if (res.status === 204) return null
-  return res.json()
-}
-
-/**
- * Parses a RaceInput for the API, converting stat_modifiers from string to
- * JSON and setting defaults for display_name.
- */
 function parseRaceForApi(input: RaceInput) {
   const body: Record<string, unknown> = {
     name: input.name,
@@ -84,21 +62,21 @@ export function useRaces() {
 
   const createRace = useCallback(async (input: RaceInput): Promise<Race> => {
     const body = parseRaceForApi(input)
-    const data = await apiFetch(API, {
+    const data = (await apiFetch(API, {
       method: 'POST',
       body: JSON.stringify(body),
-    }) as Race
+    })) as Race
     setRaces(prev => [...prev, data])
     return data
   }, [])
 
   const updateRace = useCallback(async (id: number, input: RaceInput): Promise<Race> => {
     const body = parseRaceForApi(input)
-    const data = await apiFetch(`${API}/${id}`, {
+    const data = (await apiFetch(`${API}/${id}`, {
       method: 'PUT',
       body: JSON.stringify(body),
-    }) as Race
-    setRaces(prev => prev.map(r => r.id === id ? data : r))
+    })) as Race
+    setRaces(prev => prev.map(r => (r.id === id ? data : r)))
     return data
   }, [])
 

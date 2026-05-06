@@ -36,6 +36,12 @@ type Character struct {
 	IsAdmin bool `json:"is_admin,omitempty"`
 	// Character cannot be killed - takes damage but never dies
 	IsImmortal bool `json:"is_immortal,omitempty"`
+	// True if this NPC is an instance of a template
+	IsInstance bool `json:"is_instance,omitempty"`
+	// Auto-incremented instance number per template
+	InstanceNumber int `json:"instance_number,omitempty"`
+	// Foreign key to npc_template ID
+	NpcTemplateID string `json:"npc_template_id,omitempty"`
 	// NPC skill identifier (e.g., 'druid_heal')
 	NpcSkillID string `json:"npc_skill_id,omitempty"`
 	// Current cooldown ticks on NPC skill
@@ -98,11 +104,10 @@ type Character struct {
 	SkillHeavyArmor int `json:"skill_heavy_armor,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
-	Edges                  CharacterEdges `json:"edges"`
-	character_npc_template *string
-	room_characters        *int
-	user_characters        *int
-	selectValues           sql.SelectValues
+	Edges           CharacterEdges `json:"edges"`
+	room_characters *int
+	user_characters *int
+	selectValues    sql.SelectValues
 }
 
 // CharacterEdges holds the relations/edges for other nodes in the graph.
@@ -222,19 +227,17 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsImmortal:
+		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsImmortal, character.FieldIsInstance:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldXp, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldInstanceNumber, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldXp, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
-		case character.FieldName, character.FieldPassword, character.FieldNpcSkillID, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
+		case character.FieldName, character.FieldPassword, character.FieldNpcTemplateID, character.FieldNpcSkillID, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
 		case character.FieldDiedAt:
 			values[i] = new(sql.NullTime)
-		case character.ForeignKeys[0]: // character_npc_template
-			values[i] = new(sql.NullString)
-		case character.ForeignKeys[1]: // room_characters
+		case character.ForeignKeys[0]: // room_characters
 			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[2]: // user_characters
+		case character.ForeignKeys[1]: // user_characters
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -304,6 +307,24 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_immortal", values[i])
 			} else if value.Valid {
 				_m.IsImmortal = value.Bool
+			}
+		case character.FieldIsInstance:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_instance", values[i])
+			} else if value.Valid {
+				_m.IsInstance = value.Bool
+			}
+		case character.FieldInstanceNumber:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field instance_number", values[i])
+			} else if value.Valid {
+				_m.InstanceNumber = int(value.Int64)
+			}
+		case character.FieldNpcTemplateID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field npc_template_id", values[i])
+			} else if value.Valid {
+				_m.NpcTemplateID = value.String
 			}
 		case character.FieldNpcSkillID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -487,20 +508,13 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				_m.SkillHeavyArmor = int(value.Int64)
 			}
 		case character.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field character_npc_template", values[i])
-			} else if value.Valid {
-				_m.character_npc_template = new(string)
-				*_m.character_npc_template = value.String
-			}
-		case character.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_characters", value)
 			} else if value.Valid {
 				_m.room_characters = new(int)
 				*_m.room_characters = int(value.Int64)
 			}
-		case character.ForeignKeys[2]:
+		case character.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_characters", value)
 			} else if value.Valid {
@@ -611,6 +625,15 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_immortal=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsImmortal))
+	builder.WriteString(", ")
+	builder.WriteString("is_instance=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsInstance))
+	builder.WriteString(", ")
+	builder.WriteString("instance_number=")
+	builder.WriteString(fmt.Sprintf("%v", _m.InstanceNumber))
+	builder.WriteString(", ")
+	builder.WriteString("npc_template_id=")
+	builder.WriteString(_m.NpcTemplateID)
 	builder.WriteString(", ")
 	builder.WriteString("npc_skill_id=")
 	builder.WriteString(_m.NpcSkillID)

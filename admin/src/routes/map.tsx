@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { logError } from '../utils/log'
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
 import { MapSidebar } from '../components/map/MapSidebar'
 import { MapToolbar } from '../components/map/MapToolbar'
 import { RoomNode } from '../components/map/RoomNode'
-import { ExitLines } from '../components/map/ExitLines'
+import { ExitLines, resolveOverlaps } from '../components/map/ExitLines'
 import { RoomDetailPanel } from '../components/map/RoomDetailPanel'
 import { RoomEditor } from '../components/map/RoomEditor'
 import { CreateRoomModal } from '../components/map/CreateRoomModal'
@@ -15,6 +17,10 @@ import type { Room, NPC, Equipment } from '../components/map/types'
 export const Route = createFileRoute('/map')({
   component: MapBuilder,
 })
+
+const API = `${window.location.origin}`
+const GRID = 20
+const ORPHAN_COLS = 5
 
 function MapBuilder() {
   const navigate = useNavigate()
@@ -28,31 +34,6 @@ function MapBuilder() {
   const [zoom, setZoom] = useState(1)
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
   const viewportRef = useRef<HTMLDivElement>(null)
-
-  /**
-   * Zoom toward the center of the viewport.
-   * Adjusts panOffset so the world point under the viewport center
-   * stays stationary when the scale changes.
-   */
-  const handleZoom = useCallback((delta: number) => {
-    const viewport = viewportRef.current
-    if (!viewport) return
-
-    setZoom(prevZoom => {
-      const nextZoom = Math.min(Math.max(prevZoom + delta, 0.5), 2)
-      if (nextZoom === prevZoom) return prevZoom
-
-      const cx = viewport.clientWidth / 2
-      const cy = viewport.clientHeight / 2
-
-      setPanOffset(prev => ({
-        x: cx - (cx - prev.x) * (nextZoom / prevZoom),
-        y: cy - (cy - prev.y) * (nextZoom / prevZoom),
-      }))
-
-      return nextZoom
-    })
-  }, [])
   const [currentZLevel, setCurrentZLevel] = useState(0)
   const [saving, setSaving] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -61,17 +42,22 @@ function MapBuilder() {
   const [isDragging, setIsDragging] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', description: '', exits: {} as Record<string, string> })
   const [newRoomForm, setNewRoomForm] = useState({ name: '', description: '' })
+  const [pendingExit, setPendingExit] = useState<{ room: Room; dir: string } | null>(null)
+
+  // Keep pre-drag positions for rollback on PUT failure
+  const dragSnapshot = useRef<Map<number, { x: number; y: number }>>(new Map())
 
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) navigate({ to: '/login' })
   }, [navigate])
 
+  // ── Data loading ──────────────────────────────────────────────────────────
+
   useEffect(() => {
-    const controller = new AbortController()
     Promise.all([
-      fetch(`${window.location.origin}/rooms`, { signal: controller.signal }).then(res => res.json()),
-      fetch(`${window.location.origin}/npcs`, { signal: controller.signal }).then(res => res.json()),
+      apiGet<Room[]>(`${API}/rooms`),
+      apiGet<{ npcs: NPC[] }>(`${API}/npcs`),
     ])
       .then(([roomsData, npcsData]) => {
         setRooms(roomsData)
@@ -79,24 +65,20 @@ function MapBuilder() {
         setLoading(false)
       })
       .catch(err => {
-        if (err.name !== 'AbortError') {
-          setError(err.message)
-          setLoading(false)
-        }
+        setError(err instanceof Error ? err.message : String(err))
+        setLoading(false)
       })
-    return () => controller.abort()
   }, [])
 
   useEffect(() => {
     if (!selectedRoom) return
     const roomId = selectedRoom.id
-    const controller = new AbortController()
-    fetch(`${window.location.origin}/rooms/${roomId}/equipment`, { signal: controller.signal })
-      .then(res => res.json())
-      .then(data => setRoomEquipment(prev => ({ ...prev, [roomId]: data.equipment || [] })))
+    apiGet<Equipment[]>(`${API}/rooms/${roomId}/equipment`)
+      .then(data => setRoomEquipment(prev => ({ ...prev, [roomId]: data })))
       .catch(() => {})
-    return () => controller.abort()
   }, [selectedRoom?.id])
+
+  // ── Z-levels ──────────────────────────────────────────────────────────────
 
   const zLevels = useMemo(() => {
     const zLevelsMap = new Map<number, number>()
@@ -125,6 +107,8 @@ function MapBuilder() {
   const getNPCsInRoom = useCallback((roomId: number) => npcs.filter(npc => npc.currentRoomId === roomId), [npcs])
   const getEquipmentInRoom = useCallback((roomId: number) => roomEquipment[roomId] || [], [roomEquipment])
 
+  // ── Layout ────────────────────────────────────────────────────────────────
+
   const nodePositions = useMemo(() => {
     const positions = new Map<number, { x: number; y: number }>()
     const positioned = new Set<number>()
@@ -141,7 +125,6 @@ function MapBuilder() {
         if (targetId && dir !== 'up' && dir !== 'down') {
           const offset = DIRECTION_OFFSETS[dir] || { dx: 150, dy: 0 }
           const targetRoom = rooms.find(r => r.id === targetId)
-          // Use server-provided position for targets that have custom positions
           const targetX = targetRoom?.posX != null ? targetRoom.posX : x + offset.dx
           const targetY = targetRoom?.posY != null ? targetRoom.posY : y + offset.dy
           positionRoom(targetId, targetX, targetY)
@@ -156,18 +139,24 @@ function MapBuilder() {
       positionRoom(startRoom.id, startX, startY)
     }
 
-    let orphanX = 800
+    // Orphan rooms: 5-column grid with row wrapping
+    let orphanIdx = 0
     for (const room of rooms) {
       const roomZ = zLevels.get(room.id) || 0
       if (roomZ === currentZLevel && !positioned.has(room.id)) {
-        const orphanPosX = room.posX != null ? room.posX : orphanX
-        const orphanPosY = room.posY != null ? room.posY : 300
-        positions.set(room.id, { x: orphanPosX, y: orphanPosY })
-        orphanX += 150
+        const col = orphanIdx % ORPHAN_COLS
+        const row = Math.floor(orphanIdx / ORPHAN_COLS)
+        const x = room.posX != null ? room.posX : 800 + col * 180
+        const y = room.posY != null ? room.posY : 300 + row * 120
+        positions.set(room.id, { x, y })
+        orphanIdx++
       }
     }
-    return positions
+
+    return resolveOverlaps(positions, 50)
   }, [rooms, zLevels, currentZLevel])
+
+  // ── Room editing ──────────────────────────────────────────────────────────
 
   const handleEditRoom = useCallback(
     (room: Room) => {
@@ -175,31 +164,64 @@ function MapBuilder() {
       setEditForm({
         name: room.name,
         description: room.description,
-        exits: Object.fromEntries(Object.entries(room.exits || {}).map(([dir, id]) => [dir, String(id)])),
+        exits: Object.fromEntries(
+          Object.entries(room.exits || {}).map(([dir, id]) => [dir, String(id)])
+        ),
       })
     },
     []
   )
 
+  // ── Relayout ──────────────────────────────────────────────────────────────
+
+  const handleRelayout = useCallback(() => {
+    const current = nodePositions
+    const clean = resolveOverlaps(new Map(current), 50)
+    const updates: { roomId: number; posX: number; posY: number }[] = []
+
+    for (const [roomId, pos] of clean) {
+      // Snap to grid after force resolution
+      const sx = Math.round(pos.x / GRID) * GRID
+      const sy = Math.round(pos.y / GRID) * GRID
+      const room = rooms.find((r) => r.id === roomId)
+      if (room && (room.posX !== sx || room.posY !== sy)) {
+        updates.push({ roomId, posX: sx, posY: sy })
+      }
+    }
+    if (updates.length === 0) return
+
+    setRooms((prev) =>
+      prev.map((r) => {
+        const u = updates.find((u) => u.roomId === r.id)
+        return u ? { ...r, posX: u.posX, posY: u.posY } : r
+      }),
+    )
+
+    for (const { roomId, posX, posY } of updates) {
+      apiPut(`${API}/rooms/${roomId}`, { posX, posY }).catch((err) =>
+        logError('Relayout save:', err),
+      )
+    }
+  }, [nodePositions, rooms])
+
+  // ── Save room ─────────────────────────────────────────────────────────────
 
   const handleSaveRoom = useCallback(async () => {
     if (!editingRoom) return
     setSaving(true)
     try {
-      const token = localStorage.getItem('token')
       const exits: Record<string, number> = {}
       for (const [dir, id] of Object.entries(editForm.exits)) {
-        const numId = parseInt(id)
+        const numId = parseInt(id, 10)
         if (!isNaN(numId)) exits[dir] = numId
       }
 
-      const response = await fetch(`${window.location.origin}/rooms/${editingRoom.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name: editForm.name, description: editForm.description, exits, version: editingRoom.version }),
+      await apiPut(`${API}/rooms/${editingRoom.id}`, {
+        name: editForm.name,
+        description: editForm.description,
+        exits,
+        version: editingRoom.version,
       })
-
-      if (!response.ok) throw new Error('Failed to save room')
 
       const oldExits = editingRoom.exits || {}
 
@@ -212,10 +234,10 @@ function MapBuilder() {
           const targetRoom = rooms.find(r => r.id === newTargetId)
           if (targetRoom && reverseDir) {
             const updatedTargetExits = { ...targetRoom.exits, [reverseDir]: editingRoom.id }
-            await fetch(`${window.location.origin}/rooms/${newTargetId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-              body: JSON.stringify({ ...targetRoom, exits: updatedTargetExits, version: targetRoom.version }),
+            await apiPut(`${API}/rooms/${newTargetId}`, {
+              ...targetRoom,
+              exits: updatedTargetExits,
+              version: targetRoom.version,
             })
           }
         }
@@ -224,71 +246,60 @@ function MapBuilder() {
           const oldTargetRoom = rooms.find(r => r.id === oldTargetId)
           if (oldTargetRoom && reverseDir && oldTargetRoom.exits?.[reverseDir] === editingRoom.id) {
             const { [reverseDir]: _, ...remainingExits } = oldTargetRoom.exits
-            await fetch(`${window.location.origin}/rooms/${oldTargetId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-              body: JSON.stringify({ ...oldTargetRoom, exits: remainingExits || {}, version: oldTargetRoom.version }),
+            await apiPut(`${API}/rooms/${oldTargetId}`, {
+              ...oldTargetRoom,
+              exits: remainingExits || {},
+              version: oldTargetRoom.version,
             })
           }
         }
       }
 
-      const roomsResponse = await fetch(`${window.location.origin}/rooms`)
-      const roomsData = await roomsResponse.json()
+      const roomsData = await apiGet<Room[]>(`${API}/rooms`)
       setRooms(roomsData)
       setEditingRoom(null)
       setSelectedRoom(null)
     } catch (err) {
-      console.error('Save error:', err)
+      logError('Save error:', err)
       alert('Failed to save room')
     } finally {
       setSaving(false)
     }
   }, [editingRoom, editForm, rooms])
 
+  // ── Create room ───────────────────────────────────────────────────────────
+
   const handleCreateRoom = useCallback(
     async (fromRoom: Room | null, direction: string) => {
       setCreating(true)
       try {
-        const token = localStorage.getItem('token')
         const newRoomName = newRoomForm.name || `New Room ${rooms.length + 1}`
         const newRoomDesc = newRoomForm.description || 'A newly created room.'
 
-        const createResponse = await fetch(`${window.location.origin}/rooms`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ name: newRoomName, description: newRoomDesc, exits: {} }),
+        const newRoom = await apiPost<Room>(`${API}/rooms`, {
+          name: newRoomName,
+          description: newRoomDesc,
+          exits: {},
         })
-        if (!createResponse.ok) throw new Error('Failed to create room')
-        const newRoom = await createResponse.json()
 
         if (fromRoom && direction) {
           const updatedExits = { ...fromRoom.exits, [direction]: newRoom.id }
-          await fetch(`${window.location.origin}/rooms/${fromRoom.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ ...fromRoom, exits: updatedExits }),
-          })
+          await apiPut(`${API}/rooms/${fromRoom.id}`, { ...fromRoom, exits: updatedExits })
           const reverseDirection = OPPOSITE_DIR[direction]
-          await fetch(`${window.location.origin}/rooms/${newRoom.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({
-              name: newRoomName,
-              description: newRoomDesc,
-              exits: { [reverseDirection]: fromRoom.id },
-            }),
+          await apiPut(`${API}/rooms/${newRoom.id}`, {
+            name: newRoomName,
+            description: newRoomDesc,
+            exits: { [reverseDirection]: fromRoom.id },
           })
         }
 
-        const roomsResponse = await fetch(`${window.location.origin}/rooms`)
-        const roomsData = await roomsResponse.json()
+        const roomsData = await apiGet<Room[]>(`${API}/rooms`)
         setRooms(roomsData)
         setSelectedRoom(roomsData.find((r: Room) => r.id === newRoom.id) || null)
         setShowCreateModal(false)
         setNewRoomForm({ name: '', description: '' })
       } catch (err) {
-        console.error('Create room error:', err)
+        logError('Create room error:', err)
         alert('Failed to create room')
       } finally {
         setCreating(false)
@@ -298,63 +309,114 @@ function MapBuilder() {
   )
 
   const handleCreateStandaloneRoom = useCallback(async () => {
-    await handleCreateRoom(null, '')
-  }, [handleCreateRoom])
+    if (pendingExit) {
+      await handleCreateRoom(pendingExit.room, pendingExit.dir)
+      setPendingExit(null)
+    } else {
+      await handleCreateRoom(null, '')
+    }
+  }, [handleCreateRoom, pendingExit])
+
+  // ── Delete room ───────────────────────────────────────────────────────────
 
   const handleDeleteRoom = useCallback(async (roomId: number) => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${window.location.origin}/rooms/${roomId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!response.ok) throw new Error('Failed to delete room')
-      const roomsResponse = await fetch(`${window.location.origin}/rooms`)
-      const roomsData = await roomsResponse.json()
+      await apiDelete(`${API}/rooms/${roomId}`)
+      const roomsData = await apiGet<Room[]>(`${API}/rooms`)
       setRooms(roomsData)
       setSelectedRoom(null)
     } catch (err) {
-      console.error('Delete room error:', err)
+      logError('Delete room error:', err)
       alert('Failed to delete room')
     }
   }, [])
 
-  /** Snap a value to the nearest grid step (e.g., 20px). */
-  const snapToGrid = useCallback((value: number, step: number = 20) => {
-    return Math.round(value / step) * step
+  // ── Zoom ──────────────────────────────────────────────────────────────────
+
+  const handleZoom = useCallback((delta: number) => {
+    const viewport = viewportRef.current
+    if (!viewport) return
+
+    setZoom(prevZoom => {
+      const nextZoom = Math.min(Math.max(prevZoom + delta, 0.5), 2)
+      if (nextZoom === prevZoom) return prevZoom
+
+      const cx = viewport.clientWidth / 2
+      const cy = viewport.clientHeight / 2
+
+      setPanOffset(prev => ({
+        x: cx - (cx - prev.x) * (nextZoom / prevZoom),
+        y: cy - (cy - prev.y) * (nextZoom / prevZoom),
+      }))
+
+      return nextZoom
+    })
   }, [])
 
-  /** Persist a room's new position after dragging. */
-  const handleRoomDragEnd = useCallback(async (roomId: number, posX: number, posY: number) => {
-    const snappedX = snapToGrid(posX)
-    const snappedY = snapToGrid(posY)
-
-    setRooms(prev => prev.map(r =>
-      r.id === roomId ? { ...r, posX: snappedX, posY: snappedY } : r
-    ))
-
-    setIsDragging(false)
-
-    try {
-      const token = localStorage.getItem('token')
-      const room = rooms.find(r => r.id === roomId)
-      if (!room) return
-      await fetch(`${window.location.origin}/rooms/${roomId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ posX: snappedX, posY: snappedY, version: room.version }),
-      })
-    } catch (err) {
-      console.error('Position save error:', err)
-    }
-  }, [rooms, snapToGrid])
+  // ── Pan / scroll ──────────────────────────────────────────────────────────
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
+    // Ctrl+Scroll = zoom
+    if (e.ctrlKey) {
+      e.preventDefault()
+      handleZoom(e.deltaY < 0 ? 0.1 : -0.1)
+      return
+    }
     e.preventDefault()
     const dx = e.shiftKey ? e.deltaY : e.deltaX
     const dy = e.shiftKey ? 0 : e.deltaY
     setPanOffset(prev => ({ x: prev.x - dx, y: prev.y - dy }))
+  }, [handleZoom])
+
+  // ── Drag ──────────────────────────────────────────────────────────────────
+
+  const handleDragStart = useCallback((_roomId: number) => {
+    // Snapshot all room positions before drag for rollback
+    dragSnapshot.current = new Map(
+      rooms.map(r => [r.id, { x: r.posX ?? 0, y: r.posY ?? 0 }])
+    )
+    setIsDragging(true)
+  }, [rooms])
+
+  const handleRoomDragEnd = useCallback(async (roomId: number, posX: number, posY: number) => {
+    const snappedX = Math.round(posX / GRID) * GRID
+    const snappedY = Math.round(posY / GRID) * GRID
+
+    // Optimistic update
+    setRooms(prev => prev.map(r =>
+      r.id === roomId ? { ...r, posX: snappedX, posY: snappedY } : r
+    ))
+    setIsDragging(false)
+
+    try {
+      const room = rooms.find(r => r.id === roomId)
+      if (!room) return
+      await apiPut(`${API}/rooms/${roomId}`, {
+        posX: snappedX,
+        posY: snappedY,
+        version: room.version,
+      })
+    } catch (err) {
+      // Rollback: restore pre-drag positions
+      const snap = dragSnapshot.current
+      if (snap.size > 0) {
+        setRooms(prev => prev.map(r => {
+          const orig = snap.get(r.id)
+          return orig ? { ...r, posX: orig.x, posY: orig.y } : r
+        }))
+      }
+      logError('Position save error:', err)
+    }
+  }, [rooms])
+
+  // ── Reset view ────────────────────────────────────────────────────────────
+
+  const handleResetView = useCallback(() => {
+    setZoom(1)
+    setPanOffset({ x: 0, y: 0 })
   }, [])
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) return <div className="p-8 text-text">Loading map...</div>
   if (error) return <div className="p-8 text-danger">Error: {error}</div>
@@ -400,7 +462,13 @@ function MapBuilder() {
       )}
 
       <div className="flex-1 overflow-hidden relative">
-        <MapToolbar currentZLevel={currentZLevel} zoom={zoom} onZoom={handleZoom} />
+        <MapToolbar
+          currentZLevel={currentZLevel}
+          zoom={zoom}
+          onZoom={handleZoom}
+          onResetView={handleResetView}
+          onRelayout={handleRelayout}
+        />
 
         <div ref={viewportRef} className="mt-[50px] h-[calc(100%-50px)] overflow-hidden p-6" onWheel={handleWheel}>
           <div
@@ -426,6 +494,7 @@ function MapBuilder() {
                   rooms={rooms}
                   onSelect={setSelectedRoom}
                   isDragging={isDragging}
+                  onDragStart={handleDragStart}
                   onDragEnd={handleRoomDragEnd}
                 />
               )
@@ -448,11 +517,14 @@ function MapBuilder() {
             selectedRoom={selectedRoom}
             rooms={rooms}
             zLevels={zLevels}
-            npcs={npcs}
-            roomEquipment={roomEquipment}
             onSelectRoom={setSelectedRoom}
             onEditRoom={handleEditRoom}
             onDeleteRoom={handleDeleteRoom}
+            onAddRoom={(room, dir) => {
+              setNewRoomForm({ name: '', description: '' })
+              setPendingExit({ room, dir })
+              setShowCreateModal(true)
+            }}
           />
         ) : (
           <div className="flex-1 flex flex-col justify-center items-center text-text-muted text-center p-4">
@@ -470,7 +542,10 @@ function MapBuilder() {
 
       <CreateRoomModal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false)
+          setPendingExit(null)
+        }}
         newRoomForm={newRoomForm}
         setNewRoomForm={setNewRoomForm}
         onCreate={handleCreateStandaloneRoom}

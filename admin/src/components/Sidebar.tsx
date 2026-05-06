@@ -29,7 +29,6 @@ const navItems = [
   { label: 'Players', path: '/players', Icon: PlayersIcon },
   { label: 'Map', path: '/map', Icon: MapIcon },
   { label: 'NPCs', path: '/npcs', Icon: NPCsIcon },
-  { label: 'NPC Templates', path: '/npc-templates', Icon: NPCsIcon },
 ]
 
 /** Toggle button for collapsing/expanding the sidebar. Named component for DevTools clarity. */
@@ -55,9 +54,9 @@ function SidebarCollapseToggle({
       style={{ color: 'var(--color-primary)' }}
     >
       {collapsed ? (
-        <ChevronRightIcon stroke="#646cff" />
+        <ChevronRightIcon stroke="var(--color-primary)" />
       ) : (
-        <ChevronLeftIcon stroke="#646cff" />
+        <ChevronLeftIcon stroke="var(--color-primary)" />
       )}
     </button>
   )

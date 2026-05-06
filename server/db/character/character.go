@@ -28,6 +28,12 @@ const (
 	FieldIsAdmin = "is_admin"
 	// FieldIsImmortal holds the string denoting the is_immortal field in the database.
 	FieldIsImmortal = "is_immortal"
+	// FieldIsInstance holds the string denoting the is_instance field in the database.
+	FieldIsInstance = "is_instance"
+	// FieldInstanceNumber holds the string denoting the instance_number field in the database.
+	FieldInstanceNumber = "instance_number"
+	// FieldNpcTemplateID holds the string denoting the npc_template_id field in the database.
+	FieldNpcTemplateID = "npc_template_id"
 	// FieldNpcSkillID holds the string denoting the npc_skill_id field in the database.
 	FieldNpcSkillID = "npc_skill_id"
 	// FieldNpcSkillCooldown holds the string denoting the npc_skill_cooldown field in the database.
@@ -128,7 +134,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "npctemplate" package.
 	NpcTemplateInverseTable = "npc_templates"
 	// NpcTemplateColumn is the table column denoting the npcTemplate relation/edge.
-	NpcTemplateColumn = "character_npc_template"
+	NpcTemplateColumn = "npc_template_id"
 	// AvailableTalentsTable is the table that holds the available_talents relation/edge.
 	AvailableTalentsTable = "available_talents"
 	// AvailableTalentsInverseTable is the table name for the AvailableTalent entity.
@@ -184,6 +190,9 @@ var Columns = []string{
 	FieldRespawnRoomId,
 	FieldIsAdmin,
 	FieldIsImmortal,
+	FieldIsInstance,
+	FieldInstanceNumber,
+	FieldNpcTemplateID,
 	FieldNpcSkillID,
 	FieldNpcSkillCooldown,
 	FieldHitpoints,
@@ -219,7 +228,6 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "characters"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"character_npc_template",
 	"room_characters",
 	"user_characters",
 }
@@ -248,6 +256,10 @@ var (
 	DefaultIsAdmin bool
 	// DefaultIsImmortal holds the default value on creation for the "is_immortal" field.
 	DefaultIsImmortal bool
+	// DefaultIsInstance holds the default value on creation for the "is_instance" field.
+	DefaultIsInstance bool
+	// DefaultInstanceNumber holds the default value on creation for the "instance_number" field.
+	DefaultInstanceNumber int
 	// DefaultNpcSkillCooldown holds the default value on creation for the "npc_skill_cooldown" field.
 	DefaultNpcSkillCooldown int
 	// DefaultHitpoints holds the default value on creation for the "hitpoints" field.
@@ -346,6 +358,21 @@ func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 // ByIsImmortal orders the results by the is_immortal field.
 func ByIsImmortal(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsImmortal, opts...).ToFunc()
+}
+
+// ByIsInstance orders the results by the is_instance field.
+func ByIsInstance(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsInstance, opts...).ToFunc()
+}
+
+// ByInstanceNumber orders the results by the instance_number field.
+func ByInstanceNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInstanceNumber, opts...).ToFunc()
+}
+
+// ByNpcTemplateID orders the results by the npc_template_id field.
+func ByNpcTemplateID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNpcTemplateID, opts...).ToFunc()
 }
 
 // ByNpcSkillID orders the results by the npc_skill_id field.

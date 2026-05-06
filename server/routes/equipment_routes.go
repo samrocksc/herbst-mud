@@ -113,6 +113,14 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 	router.GET("/equipment", func(c *gin.Context) {
 		query := client.Equipment.Query()
 
+		// Filter by room if roomId query param is provided
+		if roomIDStr := c.Query("roomId"); roomIDStr != "" {
+			roomID, err := strconv.Atoi(roomIDStr)
+			if err == nil {
+				query = query.Where(equipment.HasRoomWith(room.IDEQ(roomID)))
+			}
+		}
+
 		// Filter by owner if ownerId query param is provided
 		if ownerID := c.Query("ownerId"); ownerID != "" {
 			id, err := strconv.Atoi(ownerID)
@@ -272,6 +280,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			Color           string         `json:"color"`
 			IsVisible       bool           `json:"isVisible"`
 			ItemType        string         `json:"itemType"`
+			OwnerID         *int           `json:"ownerId,omitempty"`
 			RevealCondition map[string]any `json:"revealCondition,omitempty"`
 		}
 
@@ -287,6 +296,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			Color:       eq.Color,
 			IsVisible:   eq.IsVisible,
 			ItemType:    eq.ItemType,
+			OwnerID:     eq.OwnerId,
 		}
 
 		revealMutex.RLock()
@@ -318,6 +328,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			IsVisible       *bool          `json:"isVisible"`
 			ItemType        string         `json:"itemType"`
 			RoomID          *int           `json:"roomId"`
+			OwnerID         *int           `json:"ownerId"`
 			RevealCondition map[string]any `json:"revealCondition"`
 			// Corpse rotting (GitHub #22)
 			ExpiresAt *time.Time `json:"expiresAt,omitempty"`
@@ -366,6 +377,9 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			} else {
 				updater.SetRoomID(*req.RoomID)
 			}
+		}
+		if req.OwnerID != nil {
+			updater.SetOwnerId(*req.OwnerID)
 		}
 
 		// Update expiry time (GitHub #22)

@@ -16,24 +16,50 @@ export default defineConfig({
       credentials: false
     },
     proxy: {
+      // All API routes — frontend calls /api/*, backend serves /api/*
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
-      '/users': 'http://localhost:8080',
+      // Unprotected backend routes that are fetched bare (not under /api).
+      // Caution: Vite proxies prefix-match. Any path that is also an SPA
+      // route (or has SPA sub-routes) must use bypass to distinguish.
       '/rooms': 'http://localhost:8080',
-      '/npcs': 'http://localhost:8080',
+      '/npcs': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        bypass(req) {
+          // Only proxy exact /npcs (dashboard stats); /npcs/* are SPA routes
+          if (req.url !== '/npcs') return '/index.html'
+        },
+      },
+      '/characters': 'http://localhost:8080',
       '/equipment': 'http://localhost:8080',
+      '/talents': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        bypass(req) {
+          // /talents is also a sidebar SPA page.
+          // API data fetch → no text/html Accept; SPA page load → text/html.
+          const accept = req.headers.accept ?? ''
+          if (accept.includes('text/html')) return '/index.html'
+        },
+      },
       '/skills': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/skills/, '/api/skills'),
+        bypass(req) {
+          // /skills is also a sidebar SPA page.
+          // API data fetch → no text/html Accept; SPA page load → text/html.
+          const accept = req.headers.accept ?? ''
+          if (accept.includes('text/html')) return '/index.html'
+        },
       },
-      '/talents': 'http://localhost:8080',
-      '/characters': 'http://localhost:8080',
-      '/worlds': 'http://localhost:8080',
-      '/game-configs': 'http://localhost:8080',
+      // Auth endpoint
+      '/users': 'http://localhost:8080',
+      // Health endpoint
       '/healthz': 'http://localhost:8080',
+      // Admin routes
       '/admin': 'http://localhost:8080',
     }
   }

@@ -169,6 +169,61 @@ func (_u *CharacterUpdate) SetNillableIsImmortal(v *bool) *CharacterUpdate {
 	return _u
 }
 
+// SetIsInstance sets the "is_instance" field.
+func (_u *CharacterUpdate) SetIsInstance(v bool) *CharacterUpdate {
+	_u.mutation.SetIsInstance(v)
+	return _u
+}
+
+// SetNillableIsInstance sets the "is_instance" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableIsInstance(v *bool) *CharacterUpdate {
+	if v != nil {
+		_u.SetIsInstance(*v)
+	}
+	return _u
+}
+
+// SetInstanceNumber sets the "instance_number" field.
+func (_u *CharacterUpdate) SetInstanceNumber(v int) *CharacterUpdate {
+	_u.mutation.ResetInstanceNumber()
+	_u.mutation.SetInstanceNumber(v)
+	return _u
+}
+
+// SetNillableInstanceNumber sets the "instance_number" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableInstanceNumber(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetInstanceNumber(*v)
+	}
+	return _u
+}
+
+// AddInstanceNumber adds value to the "instance_number" field.
+func (_u *CharacterUpdate) AddInstanceNumber(v int) *CharacterUpdate {
+	_u.mutation.AddInstanceNumber(v)
+	return _u
+}
+
+// SetNpcTemplateID sets the "npc_template_id" field.
+func (_u *CharacterUpdate) SetNpcTemplateID(v string) *CharacterUpdate {
+	_u.mutation.SetNpcTemplateID(v)
+	return _u
+}
+
+// SetNillableNpcTemplateID sets the "npc_template_id" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableNpcTemplateID(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetNpcTemplateID(*v)
+	}
+	return _u
+}
+
+// ClearNpcTemplateID clears the value of the "npc_template_id" field.
+func (_u *CharacterUpdate) ClearNpcTemplateID() *CharacterUpdate {
+	_u.mutation.ClearNpcTemplateID()
+	return _u
+}
+
 // SetNpcSkillID sets the "npc_skill_id" field.
 func (_u *CharacterUpdate) SetNpcSkillID(v string) *CharacterUpdate {
 	_u.mutation.SetNpcSkillID(v)
@@ -810,20 +865,6 @@ func (_u *CharacterUpdate) SetRoom(v *Room) *CharacterUpdate {
 	return _u.SetRoomID(v.ID)
 }
 
-// SetNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID.
-func (_u *CharacterUpdate) SetNpcTemplateID(id string) *CharacterUpdate {
-	_u.mutation.SetNpcTemplateID(id)
-	return _u
-}
-
-// SetNillableNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID if the given value is not nil.
-func (_u *CharacterUpdate) SetNillableNpcTemplateID(id *string) *CharacterUpdate {
-	if id != nil {
-		_u = _u.SetNpcTemplateID(*id)
-	}
-	return _u
-}
-
 // SetNpcTemplate sets the "npcTemplate" edge to the NPCTemplate entity.
 func (_u *CharacterUpdate) SetNpcTemplate(v *NPCTemplate) *CharacterUpdate {
 	return _u.SetNpcTemplateID(v.ID)
@@ -1144,6 +1185,15 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsImmortal(); ok {
 		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsInstance(); ok {
+		_spec.SetField(character.FieldIsInstance, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.InstanceNumber(); ok {
+		_spec.SetField(character.FieldInstanceNumber, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedInstanceNumber(); ok {
+		_spec.AddField(character.FieldInstanceNumber, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.NpcSkillID(); ok {
 		_spec.SetField(character.FieldNpcSkillID, field.TypeString, value)
@@ -1828,6 +1878,61 @@ func (_u *CharacterUpdateOne) SetNillableIsImmortal(v *bool) *CharacterUpdateOne
 	return _u
 }
 
+// SetIsInstance sets the "is_instance" field.
+func (_u *CharacterUpdateOne) SetIsInstance(v bool) *CharacterUpdateOne {
+	_u.mutation.SetIsInstance(v)
+	return _u
+}
+
+// SetNillableIsInstance sets the "is_instance" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableIsInstance(v *bool) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetIsInstance(*v)
+	}
+	return _u
+}
+
+// SetInstanceNumber sets the "instance_number" field.
+func (_u *CharacterUpdateOne) SetInstanceNumber(v int) *CharacterUpdateOne {
+	_u.mutation.ResetInstanceNumber()
+	_u.mutation.SetInstanceNumber(v)
+	return _u
+}
+
+// SetNillableInstanceNumber sets the "instance_number" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableInstanceNumber(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetInstanceNumber(*v)
+	}
+	return _u
+}
+
+// AddInstanceNumber adds value to the "instance_number" field.
+func (_u *CharacterUpdateOne) AddInstanceNumber(v int) *CharacterUpdateOne {
+	_u.mutation.AddInstanceNumber(v)
+	return _u
+}
+
+// SetNpcTemplateID sets the "npc_template_id" field.
+func (_u *CharacterUpdateOne) SetNpcTemplateID(v string) *CharacterUpdateOne {
+	_u.mutation.SetNpcTemplateID(v)
+	return _u
+}
+
+// SetNillableNpcTemplateID sets the "npc_template_id" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableNpcTemplateID(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetNpcTemplateID(*v)
+	}
+	return _u
+}
+
+// ClearNpcTemplateID clears the value of the "npc_template_id" field.
+func (_u *CharacterUpdateOne) ClearNpcTemplateID() *CharacterUpdateOne {
+	_u.mutation.ClearNpcTemplateID()
+	return _u
+}
+
 // SetNpcSkillID sets the "npc_skill_id" field.
 func (_u *CharacterUpdateOne) SetNpcSkillID(v string) *CharacterUpdateOne {
 	_u.mutation.SetNpcSkillID(v)
@@ -2469,20 +2574,6 @@ func (_u *CharacterUpdateOne) SetRoom(v *Room) *CharacterUpdateOne {
 	return _u.SetRoomID(v.ID)
 }
 
-// SetNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID.
-func (_u *CharacterUpdateOne) SetNpcTemplateID(id string) *CharacterUpdateOne {
-	_u.mutation.SetNpcTemplateID(id)
-	return _u
-}
-
-// SetNillableNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID if the given value is not nil.
-func (_u *CharacterUpdateOne) SetNillableNpcTemplateID(id *string) *CharacterUpdateOne {
-	if id != nil {
-		_u = _u.SetNpcTemplateID(*id)
-	}
-	return _u
-}
-
 // SetNpcTemplate sets the "npcTemplate" edge to the NPCTemplate entity.
 func (_u *CharacterUpdateOne) SetNpcTemplate(v *NPCTemplate) *CharacterUpdateOne {
 	return _u.SetNpcTemplateID(v.ID)
@@ -2833,6 +2924,15 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.IsImmortal(); ok {
 		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsInstance(); ok {
+		_spec.SetField(character.FieldIsInstance, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.InstanceNumber(); ok {
+		_spec.SetField(character.FieldInstanceNumber, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedInstanceNumber(); ok {
+		_spec.AddField(character.FieldInstanceNumber, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.NpcSkillID(); ok {
 		_spec.SetField(character.FieldNpcSkillID, field.TypeString, value)

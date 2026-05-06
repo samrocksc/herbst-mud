@@ -1,33 +1,30 @@
 import { useState } from 'react'
-import type { Room, NPC, Equipment } from './types'
+import type { Room } from './types'
 import { ALL_DIRECTIONS } from './DirectionUtils'
 import { Button } from '../Button'
+import { NPCInstanceManager } from './NPCInstanceManager'
+import { ItemInstanceManager } from './ItemInstanceManager'
 
 type RoomDetailPanelProps = {
   selectedRoom: Room
   rooms: Room[]
   zLevels: Map<number, number>
-  npcs: NPC[]
-  roomEquipment: Record<number, Equipment[]>
   onSelectRoom: (room: Room | null) => void
   onEditRoom: (room: Room) => void
   onDeleteRoom: (roomId: number) => void
+  onAddRoom?: (room: Room, dir: string) => void
 }
 
 export function RoomDetailPanel({
   selectedRoom,
   rooms,
   zLevels,
-  npcs,
-  roomEquipment,
   onSelectRoom,
   onEditRoom,
   onDeleteRoom,
+  onAddRoom,
 }: RoomDetailPanelProps) {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
-
-  const roomNpcs = npcs.filter((npc) => npc.currentRoomId === selectedRoom.id)
-  const roomItems = roomEquipment[selectedRoom.id] || []
 
   return (
     <>
@@ -55,40 +52,8 @@ export function RoomDetailPanel({
         </div>
         <div className="text-text mb-3 text-sm">{selectedRoom.description}</div>
 
-        {roomNpcs.length > 0 && (
-          <div className="mb-3">
-            <strong className="text-warning text-xs">NPCs:</strong>
-            <div className="mt-1">
-              {roomNpcs.map((npc) => (
-                <div
-                  key={npc.id}
-                  className="p-1 bg-surface-muted rounded mb-1 text-xs text-text"
-                >
-                  {npc.name}{' '}
-                  <span className="text-text-muted">
-                    ({npc.race} {npc.class} lv.{npc.level})
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {roomItems.length > 0 && (
-          <div className="mb-3">
-            <strong className="text-success text-xs">Items:</strong>
-            <div className="mt-1">
-              {roomItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-1 bg-surface-muted rounded mb-1 text-xs text-text"
-                >
-                  {item.name}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <NPCInstanceManager roomId={selectedRoom.id} />
+        <ItemInstanceManager roomId={selectedRoom.id} />
 
         <div className="mb-3">
           <strong className="text-accent text-xs">Exits:</strong>
@@ -132,10 +97,21 @@ export function RoomDetailPanel({
                 )
               } else {
                 return (
-                  <div key={dir} className="flex items-center gap-2 my-1">
+                  <div key={dir} className="flex items-center gap-1 my-1">
                     <div className="flex-1 p-1 rounded text-xs bg-surface-muted border border-border text-text-muted">
                       <strong>{dir}</strong> → none
                     </div>
+                    {onAddRoom && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="!px-1 !py-0.5"
+                        onClick={() => onAddRoom(selectedRoom, dir)}
+                        aria-label={`Add room to the ${dir}`}
+                      >
+                        +
+                      </Button>
+                    )}
                   </div>
                 )
               }

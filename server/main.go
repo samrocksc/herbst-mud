@@ -285,6 +285,11 @@ func main() {
 	// Register NPC template routes (XP-008)
 	routes.RegisterNPCTemplateRoutes(router, client)
 
+	// Register NPC instance routes (NPC-004)
+	routes.RegisterNPCInstanceRoutes(router, client)
+	// Register item instance routes (NPC-005)
+	routes.RegisterItemInstanceRoutes(router, client)
+
 	// Register competency routes (XP-005)
 	routes.RegisterCompetencyRoutes(router, client)
 

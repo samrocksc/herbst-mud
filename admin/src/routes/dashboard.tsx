@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { logError } from '../utils/log'
 import { useEffect, useState } from 'react'
 import { StatCard } from '../components/StatCard'
 import { StatGrid } from '../components/StatGrid'
@@ -51,7 +52,7 @@ function Dashboard() {
           skills: skillsData.count || 0
         })
       } catch (err) {
-        console.error('Failed to fetch stats:', err)
+        logError('Failed to fetch stats:', err)
       } finally {
         setLoading(false)
       }

@@ -11,7 +11,7 @@ export type Ability = Readonly<{
   cost: number
   cooldown: number
   cooldown_seconds: number
-  requirements: number
+  requirements: string
   effect_type: string
   effect_value: number
   effect_duration: number
@@ -81,7 +81,7 @@ export function useAbilities(filters?: { type?: string }) {
     queryFn: async (): Promise<Ability[]> => {
       const params = new URLSearchParams()
       if (filters?.type) params.append('type', filters.type)
-      const url = `${API}/skills${params.toString() ? '?' + params.toString() : ''}`
+      const url = `${API}/api/skills${params.toString() ? '?' + params.toString() : ''}`
       return apiGet<Ability[]>(url)
     },
   })
@@ -92,7 +92,7 @@ export function useAbility(id: number | null) {
     queryKey: ['ability', id],
     queryFn: async (): Promise<Ability | null> => {
       if (!id) return null
-      return apiGet<Ability>(`${API}/skills/${id}`)
+      return apiGet<Ability>(`${API}/api/skills/${id}`)
     },
     enabled: !!id,
   })
@@ -102,7 +102,7 @@ export function useCreateAbility() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: AbilityInput) =>
-      apiPost<Ability>(`${API}/skills`, parseForApi(input)),
+      apiPost<Ability>(`${API}/api/skills`, parseForApi(input)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['abilities'] }),
   })
 }
@@ -111,7 +111,7 @@ export function useUpdateAbility() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: AbilityInput }) =>
-      apiPut<Ability>(`${API}/skills/${id}`, parseForApi(input)),
+      apiPut<Ability>(`${API}/api/skills/${id}`, parseForApi(input)),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ['abilities'] })
       qc.invalidateQueries({ queryKey: ['ability', id] })
@@ -122,7 +122,7 @@ export function useUpdateAbility() {
 export function useDeleteAbility() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => apiDelete(`${API}/skills/${id}`),
+    mutationFn: (id: number) => apiDelete(`${API}/api/skills/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['abilities'] }),
   })
 }

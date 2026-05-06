@@ -152,6 +152,18 @@ func (f EquipmentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EquipmentMutation", m)
 }
 
+// The EquipmentTemplateFunc type is an adapter to allow the use of ordinary
+// function as EquipmentTemplate mutator.
+type EquipmentTemplateFunc func(context.Context, *db.EquipmentTemplateMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EquipmentTemplateFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.EquipmentTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EquipmentTemplateMutation", m)
+}
+
 // The FactionFunc type is an adapter to allow the use of ordinary
 // function as Faction mutator.
 type FactionFunc func(context.Context, *db.FactionMutation) (db.Value, error)

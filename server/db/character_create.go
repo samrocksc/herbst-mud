@@ -117,6 +117,48 @@ func (_c *CharacterCreate) SetNillableIsImmortal(v *bool) *CharacterCreate {
 	return _c
 }
 
+// SetIsInstance sets the "is_instance" field.
+func (_c *CharacterCreate) SetIsInstance(v bool) *CharacterCreate {
+	_c.mutation.SetIsInstance(v)
+	return _c
+}
+
+// SetNillableIsInstance sets the "is_instance" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableIsInstance(v *bool) *CharacterCreate {
+	if v != nil {
+		_c.SetIsInstance(*v)
+	}
+	return _c
+}
+
+// SetInstanceNumber sets the "instance_number" field.
+func (_c *CharacterCreate) SetInstanceNumber(v int) *CharacterCreate {
+	_c.mutation.SetInstanceNumber(v)
+	return _c
+}
+
+// SetNillableInstanceNumber sets the "instance_number" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableInstanceNumber(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetInstanceNumber(*v)
+	}
+	return _c
+}
+
+// SetNpcTemplateID sets the "npc_template_id" field.
+func (_c *CharacterCreate) SetNpcTemplateID(v string) *CharacterCreate {
+	_c.mutation.SetNpcTemplateID(v)
+	return _c
+}
+
+// SetNillableNpcTemplateID sets the "npc_template_id" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableNpcTemplateID(v *string) *CharacterCreate {
+	if v != nil {
+		_c.SetNpcTemplateID(*v)
+	}
+	return _c
+}
+
 // SetNpcSkillID sets the "npc_skill_id" field.
 func (_c *CharacterCreate) SetNpcSkillID(v string) *CharacterCreate {
 	_c.mutation.SetNpcSkillID(v)
@@ -567,20 +609,6 @@ func (_c *CharacterCreate) SetRoom(v *Room) *CharacterCreate {
 	return _c.SetRoomID(v.ID)
 }
 
-// SetNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID.
-func (_c *CharacterCreate) SetNpcTemplateID(id string) *CharacterCreate {
-	_c.mutation.SetNpcTemplateID(id)
-	return _c
-}
-
-// SetNillableNpcTemplateID sets the "npcTemplate" edge to the NPCTemplate entity by ID if the given value is not nil.
-func (_c *CharacterCreate) SetNillableNpcTemplateID(id *string) *CharacterCreate {
-	if id != nil {
-		_c = _c.SetNpcTemplateID(*id)
-	}
-	return _c
-}
-
 // SetNpcTemplate sets the "npcTemplate" edge to the NPCTemplate entity.
 func (_c *CharacterCreate) SetNpcTemplate(v *NPCTemplate) *CharacterCreate {
 	return _c.SetNpcTemplateID(v.ID)
@@ -727,6 +755,14 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultIsImmortal
 		_c.mutation.SetIsImmortal(v)
 	}
+	if _, ok := _c.mutation.IsInstance(); !ok {
+		v := character.DefaultIsInstance
+		_c.mutation.SetIsInstance(v)
+	}
+	if _, ok := _c.mutation.InstanceNumber(); !ok {
+		v := character.DefaultInstanceNumber
+		_c.mutation.SetInstanceNumber(v)
+	}
 	if _, ok := _c.mutation.NpcSkillCooldown(); !ok {
 		v := character.DefaultNpcSkillCooldown
 		_c.mutation.SetNpcSkillCooldown(v)
@@ -851,6 +887,12 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsImmortal(); !ok {
 		return &ValidationError{Name: "is_immortal", err: errors.New(`db: missing required field "Character.is_immortal"`)}
+	}
+	if _, ok := _c.mutation.IsInstance(); !ok {
+		return &ValidationError{Name: "is_instance", err: errors.New(`db: missing required field "Character.is_instance"`)}
+	}
+	if _, ok := _c.mutation.InstanceNumber(); !ok {
+		return &ValidationError{Name: "instance_number", err: errors.New(`db: missing required field "Character.instance_number"`)}
 	}
 	if _, ok := _c.mutation.NpcSkillCooldown(); !ok {
 		return &ValidationError{Name: "npc_skill_cooldown", err: errors.New(`db: missing required field "Character.npc_skill_cooldown"`)}
@@ -983,6 +1025,14 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsImmortal(); ok {
 		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
 		_node.IsImmortal = value
+	}
+	if value, ok := _c.mutation.IsInstance(); ok {
+		_spec.SetField(character.FieldIsInstance, field.TypeBool, value)
+		_node.IsInstance = value
+	}
+	if value, ok := _c.mutation.InstanceNumber(); ok {
+		_spec.SetField(character.FieldInstanceNumber, field.TypeInt, value)
+		_node.InstanceNumber = value
 	}
 	if value, ok := _c.mutation.NpcSkillID(); ok {
 		_spec.SetField(character.FieldNpcSkillID, field.TypeString, value)
@@ -1152,7 +1202,7 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.character_npc_template = &nodes[0]
+		_node.NpcTemplateID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.AvailableTalentsIDs(); len(nodes) > 0 {

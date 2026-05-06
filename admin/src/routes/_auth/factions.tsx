@@ -1,7 +1,15 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { logError } from '../../utils/log'
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '../../components/Button'
 import { DataTable, type Column } from '../../components/DataTable'
+import {
+  FormField,
+  NumberField,
+  TextareaField,
+  SelectField,
+  CheckboxField,
+} from '../../components/FormFields'
 
 export const Route = createFileRoute('/_auth/factions')({
   component: FactionsManagement,
@@ -32,6 +40,68 @@ type FactionForm = Readonly<{
   is_universal: boolean
 }>
 
+const EMPTY_FORM: FactionForm = {
+  name: '',
+  description: '',
+  category_id: '',
+  standing: 0,
+  is_universal: false,
+}
+
+function FactionFormFields({
+  form,
+  setForm,
+  categories,
+}: Readonly<{
+  form: FactionForm
+  setForm: (f: FactionForm) => void
+  categories: FactionCategory[]
+}>) {
+  const set = (patch: Partial<FactionForm>) => setForm({ ...form, ...patch })
+  const catOptions = [
+    { value: '', label: 'None' },
+    ...categories.map((c) => ({ value: String(c.id), label: c.name })),
+  ]
+
+  return (
+    <div className="bg-surface-muted rounded-lg p-4 border border-border space-y-3">
+      <FormField
+        label="Name"
+        value={form.name}
+        onChange={(v) => set({ name: v })}
+        placeholder="Faction name"
+      />
+
+      <TextareaField
+        label="Description"
+        value={form.description}
+        onChange={(v) => set({ description: v })}
+        rows={3}
+      />
+
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Category"
+          value={String(form.category_id)}
+          onChange={(v) => set({ category_id: v ? Number(v) : '' })}
+          options={catOptions}
+        />
+        <NumberField
+          label="Standing"
+          value={form.standing}
+          onChange={(v) => set({ standing: v })}
+        />
+      </div>
+
+      <CheckboxField
+        label="Universal (applies to all characters)"
+        checked={form.is_universal}
+        onChange={(v) => set({ is_universal: v })}
+      />
+    </div>
+  )
+}
+
 function FactionsManagement() {
   const [factions, setFactions] = useState<Faction[]>([])
   const [categories, setCategories] = useState<FactionCategory[]>([])
@@ -46,13 +116,7 @@ function FactionsManagement() {
   const [categoryName, setCategoryName] = useState('')
   const [categoryDesc, setCategoryDesc] = useState('')
   const [tab, setTab] = useState<'factions' | 'categories'>('factions')
-  const [form, setForm] = useState<FactionForm>({
-    name: '',
-    description: '',
-    category_id: '',
-    standing: 0,
-    is_universal: false,
-  })
+  const [form, setForm] = useState<FactionForm>(EMPTY_FORM)
 
   const fetchFactions = useCallback(async () => {
     const token = localStorage.getItem('token')
@@ -78,9 +142,10 @@ function FactionsManagement() {
     setLoading(false)
   }, [fetchFactions, fetchCategories])
 
-  const filteredFactions = factions.filter(f =>
-    f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (f.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+  const filteredFactions = factions.filter(
+    (f) =>
+      f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (f.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false),
   )
 
   const handleCreateFaction = useCallback(async () => {
@@ -101,10 +166,10 @@ function FactionsManagement() {
       })
       if (!res.ok) throw new Error('Failed to create faction')
       await fetchFactions()
-      setForm({ name: '', description: '', category_id: '', standing: 0, is_universal: false })
+      setForm(EMPTY_FORM)
       setShowCreateForm(false)
     } catch (err) {
-      console.error(err)
+      logError('Error', err)
       alert('Failed to create faction')
     } finally {
       setSaving(false)
@@ -116,42 +181,48 @@ function FactionsManagement() {
     setSaving(true)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${window.location.origin}/api/factions/${editingFaction.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${window.location.origin}/api/factions/${editingFaction.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ...form, category_id: form.category_id || null }),
         },
-        body: JSON.stringify({ ...form, category_id: form.category_id || null }),
-      })
+      )
       if (!res.ok) throw new Error('Failed to update faction')
       await fetchFactions()
       setEditingFaction(null)
       setSelectedFaction(null)
     } catch (err) {
-      console.error(err)
+      logError('Error', err)
       alert('Failed to update faction')
     } finally {
       setSaving(false)
     }
   }, [editingFaction, form, fetchFactions])
 
-  const handleDeleteFaction = useCallback(async (id: number) => {
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${window.location.origin}/api/factions/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error('Failed to delete')
-      await fetchFactions()
-      setSelectedFaction(null)
-      setConfirmDelete(null)
-    } catch (err) {
-      console.error(err)
-      alert('Failed to delete faction')
-    }
-  }, [fetchFactions])
+  const handleDeleteFaction = useCallback(
+    async (id: number) => {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${window.location.origin}/api/factions/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to delete')
+        await fetchFactions()
+        setSelectedFaction(null)
+        setConfirmDelete(null)
+      } catch (err) {
+        logError('Error', err)
+        alert('Failed to delete faction')
+      }
+    },
+    [fetchFactions],
+  )
 
   const handleCreateCategory = useCallback(async () => {
     if (!categoryName) {
@@ -174,26 +245,29 @@ function FactionsManagement() {
       setCategoryDesc('')
       setShowCreateCategory(false)
     } catch (err) {
-      console.error(err)
+      logError('Error', err)
       alert('Failed to create category')
     }
   }, [categoryName, categoryDesc, fetchCategories])
 
-  const handleDeleteCategory = useCallback(async (id: number) => {
-    if (!confirm(`Delete this category? Factions in it will lose their category.`)) return
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${window.location.origin}/api/faction-categories/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error('Failed to delete')
-      await fetchCategories()
-    } catch (err) {
-      console.error(err)
-      alert('Failed to delete category')
-    }
-  }, [fetchCategories])
+  const handleDeleteCategory = useCallback(
+    async (id: number) => {
+      if (!confirm(`Delete this category? Factions in it will lose their category.`)) return
+      try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${window.location.origin}/api/faction-categories/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to delete')
+        await fetchCategories()
+      } catch (err) {
+        logError('Error', err)
+        alert('Failed to delete category')
+      }
+    },
+    [fetchCategories],
+  )
 
   const categoryColumns: Column<FactionCategory>[] = [
     { header: 'ID', accessor: 'id' },
@@ -240,7 +314,6 @@ function FactionsManagement() {
           </Link>
         </div>
 
-        {/* Tabs */}
         <div className="flex p-3 gap-2 border-b border-border">
           <Button
             variant={tab === 'factions' ? 'primary' : 'secondary'}
@@ -266,7 +339,6 @@ function FactionsManagement() {
               <h2 className="m-0 text-text text-lg">Factions</h2>
               <p className="text-text-muted text-xs mt-1 mb-0">{factions.length} factions</p>
             </div>
-
             <div className="p-3 border-b border-border">
               <input
                 type="text"
@@ -276,15 +348,20 @@ function FactionsManagement() {
                 className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
               />
             </div>
-
             <div className="flex-1 overflow-y-auto p-3">
               <div className="flex flex-col gap-1">
-                {filteredFactions.map(f => (
+                {filteredFactions.map((f) => (
                   <div
                     key={f.id}
-                    onClick={() => { setSelectedFaction(f); setEditingFaction(null); setShowCreateForm(false); }}
+                    onClick={() => {
+                      setSelectedFaction(f)
+                      setEditingFaction(null)
+                      setShowCreateForm(false)
+                    }}
                     className={`p-2 cursor-pointer rounded text-xs ${
-                      selectedFaction?.id === f.id ? 'text-primary bg-primary/20 font-medium' : 'text-text'
+                      selectedFaction?.id === f.id
+                        ? 'text-primary bg-primary/20 font-medium'
+                        : 'text-text'
                     }`}
                   >
                     <div className="font-bold">{f.name}</div>
@@ -298,7 +375,6 @@ function FactionsManagement() {
                 )}
               </div>
             </div>
-
             <div className="p-3 border-t border-border">
               <Button
                 variant="primary"
@@ -308,7 +384,7 @@ function FactionsManagement() {
                   setShowCreateForm(true)
                   setSelectedFaction(null)
                   setEditingFaction(null)
-                  setForm({ name: '', description: '', category_id: '', standing: 0, is_universal: false })
+                  setForm(EMPTY_FORM)
                 }}
               >
                 + Add Faction
@@ -321,16 +397,14 @@ function FactionsManagement() {
           <>
             <div className="p-3 border-b border-border">
               <h2 className="m-0 text-text text-lg">Categories</h2>
-              <p className="text-text-muted text-xs mt-1 mb-0">{categories.length} categories</p>
+              <p className="text-text-muted text-xs mt-1 mb-0">
+                {categories.length} categories
+              </p>
             </div>
-
             <div className="flex-1 overflow-y-auto p-3">
               <div className="flex flex-col gap-1">
-                {categories.map(c => (
-                  <div
-                    key={c.id}
-                    className="p-2 rounded text-xs text-text"
-                  >
+                {categories.map((c) => (
+                  <div key={c.id} className="p-2 rounded text-xs text-text">
                     <div className="font-bold">{c.name}</div>
                     <div className="text-text-muted text-xs">{c.description || '—'}</div>
                   </div>
@@ -340,7 +414,6 @@ function FactionsManagement() {
                 )}
               </div>
             </div>
-
             <div className="p-3 border-t border-border">
               <Button
                 variant="primary"
@@ -360,53 +433,14 @@ function FactionsManagement() {
         {tab === 'factions' && showCreateForm && (
           <div className="max-w-[600px] mx-auto">
             <h2 className="mt-0 mb-4 text-text">Create Faction</h2>
-            <div className="bg-surface-muted rounded-lg p-4 border border-border">
-              <div className="mb-4">
-                <label className="text-text-muted text-xs block mb-1">Name *</label>
-                <input type="text" value={form.name}
-                  onChange={e => setForm({ ...form, name: e.target.value })}
-                  placeholder="Faction name"
-                  className="w-full p-2 bg-surface border border-border rounded text-text text-sm" />
-              </div>
-              <div className="mb-4">
-                <label className="text-text-muted text-xs block mb-1">Description</label>
-                <textarea value={form.description} rows={3}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                  className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y" />
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="text-text-muted text-xs block mb-1">Category</label>
-                  <select value={form.category_id}
-                    onChange={e => setForm({ ...form, category_id: e.target.value ? Number(e.target.value) : '' })}
-                    className="w-full p-2 bg-surface border border-border rounded text-text text-sm">
-                    <option value="">None</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-text-muted text-xs block mb-1">Standing</label>
-                  <input type="number" value={form.standing}
-                    onChange={e => setForm({ ...form, standing: parseInt(e.target.value) || 0 })}
-                    className="w-full p-2 bg-surface border border-border rounded text-text text-sm" />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="flex items-center gap-2 text-text-muted text-xs cursor-pointer">
-                  <input type="checkbox" checked={form.is_universal}
-                    onChange={e => setForm({ ...form, is_universal: e.target.checked })}
-                    className="cursor-pointer" />
-                  Universal (applies to all characters)
-                </label>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="primary" size="md" fullWidth onClick={handleCreateFaction} disabled={saving}>
-                  {saving ? 'Creating...' : 'Create Faction'}
-                </Button>
-                <Button variant="secondary" size="md" fullWidth onClick={() => setShowCreateForm(false)}>
-                  Cancel
-                </Button>
-              </div>
+            <FactionFormFields form={form} setForm={setForm} categories={categories} />
+            <div className="flex gap-2 mt-3">
+              <Button variant="primary" size="md" fullWidth onClick={handleCreateFaction} disabled={saving}>
+                {saving ? 'Creating...' : 'Create Faction'}
+              </Button>
+              <Button variant="secondary" size="md" fullWidth onClick={() => setShowCreateForm(false)}>
+                Cancel
+              </Button>
             </div>
           </div>
         )}
@@ -414,52 +448,14 @@ function FactionsManagement() {
         {tab === 'factions' && editingFaction && !showCreateForm && (
           <div className="max-w-[600px] mx-auto">
             <h2 className="mt-0 mb-4 text-text">Edit Faction</h2>
-            <div className="bg-surface-muted rounded-lg p-4 border border-border">
-              <div className="mb-4">
-                <label className="text-text-muted text-xs block mb-1">Name *</label>
-                <input type="text" value={form.name}
-                  onChange={e => setForm({ ...form, name: e.target.value })}
-                  className="w-full p-2 bg-surface border border-border rounded text-text text-sm" />
-              </div>
-              <div className="mb-4">
-                <label className="text-text-muted text-xs block mb-1">Description</label>
-                <textarea value={form.description} rows={3}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                  className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y" />
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="text-text-muted text-xs block mb-1">Category</label>
-                  <select value={form.category_id}
-                    onChange={e => setForm({ ...form, category_id: e.target.value ? Number(e.target.value) : '' })}
-                    className="w-full p-2 bg-surface border border-border rounded text-text text-sm">
-                    <option value="">None</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-text-muted text-xs block mb-1">Standing</label>
-                  <input type="number" value={form.standing}
-                    onChange={e => setForm({ ...form, standing: parseInt(e.target.value) || 0 })}
-                    className="w-full p-2 bg-surface border border-border rounded text-text text-sm" />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="flex items-center gap-2 text-text-muted text-xs cursor-pointer">
-                  <input type="checkbox" checked={form.is_universal}
-                    onChange={e => setForm({ ...form, is_universal: e.target.checked })}
-                    className="cursor-pointer" />
-                  Universal
-                </label>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="primary" size="md" fullWidth onClick={handleUpdateFaction} disabled={saving}>
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </Button>
-                <Button variant="secondary" size="md" fullWidth onClick={() => setEditingFaction(null)}>
-                  Cancel
-                </Button>
-              </div>
+            <FactionFormFields form={form} setForm={setForm} categories={categories} />
+            <div className="flex gap-2 mt-3">
+              <Button variant="primary" size="md" fullWidth onClick={handleUpdateFaction} disabled={saving}>
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button variant="secondary" size="md" fullWidth onClick={() => setEditingFaction(null)}>
+                Cancel
+              </Button>
             </div>
           </div>
         )}
@@ -467,29 +463,14 @@ function FactionsManagement() {
         {tab === 'factions' && selectedFaction && !showCreateForm && !editingFaction && (
           <div className="max-w-[600px] mx-auto">
             <h2 className="mt-0 mb-4 text-text">{selectedFaction.name}</h2>
-            <div className="bg-surface-muted rounded-lg p-4 border border-border">
-              <div className="detail-row">
-                <label>ID</label><span>{selectedFaction.id}</span>
-              </div>
-              <div className="detail-row">
-                <label>Name</label><span>{selectedFaction.name}</span>
-              </div>
-              <div className="detail-row">
-                <label>Description</label>
-                <span>{selectedFaction.description || '—'}</span>
-              </div>
-              <div className="detail-row">
-                <label>Standing</label><span>{selectedFaction.standing}</span>
-              </div>
-              <div className="detail-row">
-                <label>Universal</label>
-                <span>{selectedFaction.is_universal ? 'Yes' : 'No'}</span>
-              </div>
-              <div className="detail-row">
-                <label>Members</label>
-                <span>{selectedFaction.members?.join(', ') || 'none'}</span>
-              </div>
-              <div className="flex gap-2 mt-4">
+            <div className="bg-surface-muted rounded-lg p-4 border border-border space-y-2">
+              <DetailRow label="ID" value={String(selectedFaction.id)} />
+              <DetailRow label="Name" value={selectedFaction.name} />
+              <DetailRow label="Description" value={selectedFaction.description || '—'} />
+              <DetailRow label="Standing" value={String(selectedFaction.standing)} />
+              <DetailRow label="Universal" value={selectedFaction.is_universal ? 'Yes' : 'No'} />
+              <DetailRow label="Members" value={selectedFaction.members?.join(', ') || 'none'} />
+              <div className="flex gap-2 mt-3">
                 <Button variant="primary" size="md" fullWidth onClick={() => startEditing(selectedFaction)}>
                   Edit
                 </Button>
@@ -524,20 +505,19 @@ function FactionsManagement() {
         {tab === 'categories' && showCreateCategory && (
           <div className="max-w-[500px] mx-auto">
             <h2 className="mt-0 mb-4 text-text">Create Category</h2>
-            <div className="bg-surface-muted rounded-lg p-4 border border-border">
-              <div className="mb-4">
-                <label className="text-text-muted text-xs block mb-1">Name *</label>
-                <input type="text" value={categoryName}
-                  onChange={e => setCategoryName(e.target.value)}
-                  placeholder="Category name"
-                  className="w-full p-2 bg-surface border border-border rounded text-text text-sm" />
-              </div>
-              <div className="mb-4">
-                <label className="text-text-muted text-xs block mb-1">Description</label>
-                <textarea value={categoryDesc} rows={2}
-                  onChange={e => setCategoryDesc(e.target.value)}
-                  className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y" />
-              </div>
+            <div className="bg-surface-muted rounded-lg p-4 border border-border space-y-3">
+              <FormField
+                label="Name"
+                value={categoryName}
+                onChange={setCategoryName}
+                placeholder="Category name"
+              />
+              <TextareaField
+                label="Description"
+                value={categoryDesc}
+                onChange={setCategoryDesc}
+                rows={2}
+              />
               <div className="flex gap-2">
                 <Button variant="primary" size="md" fullWidth onClick={handleCreateCategory}>
                   Create Category
@@ -562,6 +542,15 @@ function FactionsManagement() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function DetailRow({ label, value }: Readonly<{ label: string; value: string }>) {
+  return (
+    <div className="detail-row">
+      <label>{label}</label>
+      <span>{value}</span>
     </div>
   )
 }

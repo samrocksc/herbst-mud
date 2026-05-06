@@ -673,7 +673,7 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 			_q.withCompetencies != nil,
 		}
 	)
-	if _q.withUser != nil || _q.withNpcTemplate != nil {
+	if _q.withUser != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -827,10 +827,7 @@ func (_q *CharacterQuery) loadNpcTemplate(ctx context.Context, query *NPCTemplat
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*Character)
 	for i := range nodes {
-		if nodes[i].character_npc_template == nil {
-			continue
-		}
-		fk := *nodes[i].character_npc_template
+		fk := nodes[i].NpcTemplateID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -847,7 +844,7 @@ func (_q *CharacterQuery) loadNpcTemplate(ctx context.Context, query *NPCTemplat
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "character_npc_template" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "npc_template_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -1069,6 +1066,9 @@ func (_q *CharacterQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withRoom != nil {
 			_spec.Node.AddColumnOnce(character.FieldCurrentRoomId)
+		}
+		if _q.withNpcTemplate != nil {
+			_spec.Node.AddColumnOnce(character.FieldNpcTemplateID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

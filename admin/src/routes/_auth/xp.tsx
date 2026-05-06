@@ -42,13 +42,13 @@ type GameConfig = Readonly<{
 
 function normalizeChar(c: RawCharacter): Character {
   return {
-    id: c.ID ?? 0,
-    name: c.Name ?? '',
-    xp: c.Xp ?? 0,
-    level: c.Level ?? 1,
-    class: c.Class ?? 'unknown',
-    race: c.Race ?? 'unknown',
-    isNPC: c.IsNPC ?? false,
+    id: Number(c.id ?? c.ID ?? 0),
+    name: String(c.name ?? c.Name ?? ''),
+    xp: Number(c.xp ?? c.Xp ?? 0),
+    level: Number(c.level ?? c.Level ?? 1),
+    class: String(c.class ?? c.Class ?? 'unknown'),
+    race: String(c.race ?? c.Race ?? 'unknown'),
+    isNPC: Boolean(c.isNPC ?? c.IsNPC ?? false),
   }
 }
 

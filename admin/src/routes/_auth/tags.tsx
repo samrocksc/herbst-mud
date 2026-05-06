@@ -9,13 +9,14 @@ export const Route = createFileRoute('/_auth/tags')({
   component: TagsManagement,
 })
 
-const DEFAULT_COLOR = '#8b5cf6'
+const DEFAULT_COLOR = 'var(--color-tag-default)'
 
 function ColorDot({ color }: { color: string }) {
+  const dotStyle = { '--dot-color': color || DEFAULT_COLOR } as React.CSSProperties
   return (
     <span
-      className="inline-block w-3 h-3 rounded-full shrink-0"
-      style={{ backgroundColor: color || DEFAULT_COLOR }}
+      className="inline-block w-3 h-3 rounded-full shrink-0 bg-(--dot-color)"
+      style={dotStyle}
     />
   )
 }
@@ -33,11 +34,11 @@ function TagUsagesPanel({
     report.skills.length > 0 || report.factions.length > 0 || report.characters.length > 0
 
   return (
-    <div className="form-card" style={{ marginTop: '1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ margin: 0 }}>
+    <div className="form-card mt-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="m-0">
           <ColorDot color={tag.color} />
-          <span style={{ marginLeft: '0.5rem' }}>{tag.name}</span>
+          <span className="ml-2">{tag.name}</span>
         </h3>
         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close usages panel">
           ×
@@ -51,13 +52,13 @@ function TagUsagesPanel({
       )}
 
       {report.skills.length > 0 && (
-        <div style={{ marginBottom: '1rem' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0' }}>Skills ({report.skills.length})</h4>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <div className="mb-4">
+          <h4 className="m-0 mb-2">Skills ({report.skills.length})</h4>
+          <ul className="list-none p-0 m-0">
             {report.skills.map((s) => (
-              <li key={`skill-${s.id}`} style={{ padding: '0.25rem 0' }}>
-                <span className="badge badge-accent" style={{ marginRight: '0.5rem' }}>skill</span>
-                <a href={`/abilities?id=${s.id}`} style={{ color: 'var(--color-accent)' }}>
+              <li key={`skill-${s.id}`} className="py-1">
+                <span className="badge badge-accent mr-2">skill</span>
+                <a href={`/abilities?id=${s.id}`} className="text-accent">
                   {s.name}
                 </a>
               </li>
@@ -67,13 +68,13 @@ function TagUsagesPanel({
       )}
 
       {report.factions.length > 0 && (
-        <div style={{ marginBottom: '1rem' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0' }}>Factions ({report.factions.length})</h4>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <div className="mb-4">
+          <h4 className="m-0 mb-2">Factions ({report.factions.length})</h4>
+          <ul className="list-none p-0 m-0">
             {report.factions.map((f) => (
-              <li key={`faction-${f.id}`} style={{ padding: '0.25rem 0' }}>
-                <span className="badge badge-primary" style={{ marginRight: '0.5rem' }}>faction</span>
-                <a href={`/factions?id=${f.id}`} style={{ color: 'var(--color-primary)' }}>
+              <li key={`faction-${f.id}`} className="py-1">
+                <span className="badge badge-primary mr-2">faction</span>
+                <a href={`/factions?id=${f.id}`} className="text-primary">
                   {f.name}
                 </a>
               </li>
@@ -83,13 +84,13 @@ function TagUsagesPanel({
       )}
 
       {report.characters.length > 0 && (
-        <div style={{ marginBottom: '1rem' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0' }}>Characters ({report.characters.length})</h4>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <div className="mb-4">
+          <h4 className="m-0 mb-2">Characters ({report.characters.length})</h4>
+          <ul className="list-none p-0 m-0">
             {report.characters.map((ch) => (
-              <li key={`char-${ch.id}`} style={{ padding: '0.25rem 0' }}>
-                <span className="badge badge-success" style={{ marginRight: '0.5rem' }}>character</span>
-                <a href={`/characters?id=${ch.id}`} style={{ color: 'var(--color-success)' }}>
+              <li key={`char-${ch.id}`} className="py-1">
+                <span className="badge badge-success mr-2">character</span>
+                <a href={`/characters?id=${ch.id}`} className="text-success">
                   {ch.name}
                 </a>
               </li>
@@ -140,20 +141,20 @@ function TagForm({
 
         <div className="form-row">
           <label>Color:</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="flex items-center gap-2">
             <input
               type="color"
               value={form.color || DEFAULT_COLOR}
               onChange={(e) => setForm({ ...form, color: e.target.value })}
-              style={{ width: '2.5rem', height: '2rem', padding: '2px', cursor: 'pointer' }}
+              className="w-10 h-8 p-0.5 cursor-pointer"
             />
             <input
               type="text"
               value={form.color}
               onChange={(e) => setForm({ ...form, color: e.target.value })}
-              placeholder="#8b5cf6"
+              placeholder="CSS color / hex"
               pattern="^#[0-9a-fA-F]{6}$"
-              style={{ width: '7rem' }}
+              className="w-28"
             />
             <ColorDot color={form.color} />
           </div>
@@ -252,7 +253,7 @@ function TagsManagement() {
       header: 'Name',
       accessor: 'name',
       render: (_, row) => (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span className="inline-flex items-center gap-2">
           <ColorDot color={row.color} />
           {row.name}
         </span>
@@ -262,7 +263,7 @@ function TagsManagement() {
       header: 'Color',
       accessor: 'color',
       render: (val: unknown) => val ? (
-        <code style={{ fontSize: '0.75rem', color: 'var(--color-accent)' }}>{String(val)}</code>
+        <code className="text-xs text-accent">{String(val)}</code>
       ) : <span className="text-muted">—</span>,
     },
     {
@@ -287,7 +288,7 @@ function TagsManagement() {
       accessor: 'id',
       align: 'right',
       render: (_, row) => (
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+        <div className="flex gap-2 justify-end">
           <Button
             variant="ghost"
             size="sm"

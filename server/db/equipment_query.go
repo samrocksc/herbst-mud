@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"herbst-server/db/equipment"
+	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/room"
 	"math"
@@ -19,12 +20,13 @@ import (
 // EquipmentQuery is the builder for querying Equipment entities.
 type EquipmentQuery struct {
 	config
-	ctx        *QueryContext
-	order      []equipment.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Equipment
-	withRoom   *RoomQuery
-	withFKs    bool
+	ctx                   *QueryContext
+	order                 []equipment.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.Equipment
+	withRoom              *RoomQuery
+	withEquipmentTemplate *EquipmentTemplateQuery
+	withFKs               bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (_q *EquipmentQuery) QueryRoom() *RoomQuery {
 			sqlgraph.From(equipment.Table, equipment.FieldID, selector),
 			sqlgraph.To(room.Table, room.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, equipment.RoomTable, equipment.RoomColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEquipmentTemplate chains the current query on the "equipmentTemplate" edge.
+func (_q *EquipmentQuery) QueryEquipmentTemplate() *EquipmentTemplateQuery {
+	query := (&EquipmentTemplateClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, selector),
+			sqlgraph.To(equipmenttemplate.Table, equipmenttemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, equipment.EquipmentTemplateTable, equipment.EquipmentTemplateColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +294,13 @@ func (_q *EquipmentQuery) Clone() *EquipmentQuery {
 		return nil
 	}
 	return &EquipmentQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]equipment.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Equipment{}, _q.predicates...),
-		withRoom:   _q.withRoom.Clone(),
+		config:                _q.config,
+		ctx:                   _q.ctx.Clone(),
+		order:                 append([]equipment.OrderOption{}, _q.order...),
+		inters:                append([]Interceptor{}, _q.inters...),
+		predicates:            append([]predicate.Equipment{}, _q.predicates...),
+		withRoom:              _q.withRoom.Clone(),
+		withEquipmentTemplate: _q.withEquipmentTemplate.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -293,18 +318,29 @@ func (_q *EquipmentQuery) WithRoom(opts ...func(*RoomQuery)) *EquipmentQuery {
 	return _q
 }
 
+// WithEquipmentTemplate tells the query-builder to eager-load the nodes that are connected to
+// the "equipmentTemplate" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EquipmentQuery) WithEquipmentTemplate(opts ...func(*EquipmentTemplateQuery)) *EquipmentQuery {
+	query := (&EquipmentTemplateClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEquipmentTemplate = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		EquipmentTemplateID string `json:"equipment_template_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Equipment.Query().
-//		GroupBy(equipment.FieldName).
+//		GroupBy(equipment.FieldEquipmentTemplateID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *EquipmentQuery) GroupBy(field string, fields ...string) *EquipmentGroupBy {
@@ -322,11 +358,11 @@ func (_q *EquipmentQuery) GroupBy(field string, fields ...string) *EquipmentGrou
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		EquipmentTemplateID string `json:"equipment_template_id,omitempty"`
 //	}
 //
 //	client.Equipment.Query().
-//		Select(equipment.FieldName).
+//		Select(equipment.FieldEquipmentTemplateID).
 //		Scan(ctx, &v)
 func (_q *EquipmentQuery) Select(fields ...string) *EquipmentSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -372,8 +408,9 @@ func (_q *EquipmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Eq
 		nodes       = []*Equipment{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withRoom != nil,
+			_q.withEquipmentTemplate != nil,
 		}
 	)
 	if _q.withRoom != nil {
@@ -403,6 +440,12 @@ func (_q *EquipmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Eq
 	if query := _q.withRoom; query != nil {
 		if err := _q.loadRoom(ctx, query, nodes, nil,
 			func(n *Equipment, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEquipmentTemplate; query != nil {
+		if err := _q.loadEquipmentTemplate(ctx, query, nodes, nil,
+			func(n *Equipment, e *EquipmentTemplate) { n.Edges.EquipmentTemplate = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -441,6 +484,35 @@ func (_q *EquipmentQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes 
 	}
 	return nil
 }
+func (_q *EquipmentQuery) loadEquipmentTemplate(ctx context.Context, query *EquipmentTemplateQuery, nodes []*Equipment, init func(*Equipment), assign func(*Equipment, *EquipmentTemplate)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Equipment)
+	for i := range nodes {
+		fk := nodes[i].EquipmentTemplateID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(equipmenttemplate.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "equipment_template_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *EquipmentQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -466,6 +538,9 @@ func (_q *EquipmentQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != equipment.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withEquipmentTemplate != nil {
+			_spec.Node.AddColumnOnce(equipment.FieldEquipmentTemplateID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

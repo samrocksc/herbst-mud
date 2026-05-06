@@ -12,6 +12,8 @@ const (
 	Label = "equipment"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldEquipmentTemplateID holds the string denoting the equipment_template_id field in the database.
+	FieldEquipmentTemplateID = "equipment_template_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -60,6 +62,8 @@ const (
 	FieldExpiresAt = "expires_at"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
+	// EdgeEquipmentTemplate holds the string denoting the equipmenttemplate edge name in mutations.
+	EdgeEquipmentTemplate = "equipmentTemplate"
 	// Table holds the table name of the equipment in the database.
 	Table = "equipment"
 	// RoomTable is the table that holds the room relation/edge.
@@ -69,11 +73,19 @@ const (
 	RoomInverseTable = "rooms"
 	// RoomColumn is the table column denoting the room relation/edge.
 	RoomColumn = "room_equipment"
+	// EquipmentTemplateTable is the table that holds the equipmentTemplate relation/edge.
+	EquipmentTemplateTable = "equipment"
+	// EquipmentTemplateInverseTable is the table name for the EquipmentTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "equipmenttemplate" package.
+	EquipmentTemplateInverseTable = "equipment_templates"
+	// EquipmentTemplateColumn is the table column denoting the equipmentTemplate relation/edge.
+	EquipmentTemplateColumn = "equipment_template_id"
 )
 
 // Columns holds all SQL columns for equipment fields.
 var Columns = []string{
 	FieldID,
+	FieldEquipmentTemplateID,
 	FieldName,
 	FieldDescription,
 	FieldSlot,
@@ -163,6 +175,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByEquipmentTemplateID orders the results by the equipment_template_id field.
+func ByEquipmentTemplateID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEquipmentTemplateID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -286,10 +303,24 @@ func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByEquipmentTemplateField orders the results by equipmentTemplate field.
+func ByEquipmentTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEquipmentTemplateStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newRoomStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RoomInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+	)
+}
+func newEquipmentTemplateStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EquipmentTemplateInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, EquipmentTemplateTable, EquipmentTemplateColumn),
 	)
 }

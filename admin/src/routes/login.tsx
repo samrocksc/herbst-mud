@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { logError } from '../utils/log'
 import { useState } from 'react'
 import { Button } from '../components/Button'
 
@@ -39,7 +40,7 @@ function Login() {
       window.location.href = '/dashboard'
     } catch (err) {
       setError('Connection error. Please try again.')
-      console.error('Login error:', err)
+      logError('Login error:', err)
     } finally {
       setLoading(false)
     }
