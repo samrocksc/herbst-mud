@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPut, apiPost, apiDelete } from '../utils/apiFetch'
+import { logError } from '../utils/log'
 
 type Room = Readonly<{
   id: number
@@ -43,16 +44,52 @@ export function useRooms() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, update }: { id: number; update: RoomUpdate }) => 
+    mutationFn: ({ id, update }: { id: number; update: RoomUpdate }) =>
       apiPut(`${API_BASE}/rooms/${id}`, update),
-    onSuccess: (_, variables) => {
+    onMutate: async ({ id, update }) => {
+      await queryClient.cancelQueries({ queryKey: ['rooms'] })
+      const previousRooms = queryClient.getQueryData<Room[]>(['rooms'])
+      queryClient.setQueryData<Room[]>(['rooms'], (old) =>
+        old?.map(r => r.id === id ? { ...r, ...update } as Room : r)
+      )
+      return { previousRooms }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousRooms) {
+        queryClient.setQueryData(['rooms'], context.previousRooms)
+      }
+      logError('Position save error:', _err)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
-      queryClient.invalidateQueries({ queryKey: ['rooms', variables.id] })
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiDelete(`${API_BASE}/rooms/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    },
+  })
+
+  const cleanupMutation = useMutation({
+    mutationFn: () => apiPost<{ cleaned: number }>(`${API_BASE}/rooms/cleanup-orphan-exits`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    },
+  })
+
+  const bidirectionalExitMutation = useMutation({
+    mutationFn: ({ roomId, direction, targetRoomId }: { roomId: number; direction: string; targetRoomId: number }) =>
+      apiPost<{ source: Room; target: Room }>(`${API_BASE}/rooms/${roomId}/exits/bidirectional`, { direction, targetRoomId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    },
+  })
+
+  const removeBidirectionalExitMutation = useMutation({
+    mutationFn: ({ roomId, direction }: { roomId: number; direction: string }) =>
+      apiDelete(`${API_BASE}/rooms/${roomId}/exits/bidirectional?direction=${encodeURIComponent(direction)}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
     },
@@ -69,5 +106,8 @@ export function useRooms() {
     isUpdating: updateMutation.isPending,
     isCreating: createMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    cleanupOrphanExits: cleanupMutation.mutate,
+    createBidirectionalExit: bidirectionalExitMutation.mutateAsync,
+    removeBidirectionalExit: removeBidirectionalExitMutation.mutateAsync,
   }
 }

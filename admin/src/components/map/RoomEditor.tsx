@@ -10,42 +10,60 @@ type RoomEditorProps = {
   onCancel: () => void
 }
 
-export function RoomEditor({
-  room,
-  onCancel,
-}: RoomEditorProps) {
-  const { updateRoom, isUpdating } = useRooms()
-  const { rooms } = useRooms() // We'll need this for the room picker
-
-  // Local state for editing
+export function RoomEditor({ room, onCancel }: RoomEditorProps) {
+  const { rooms, updateRoom, isUpdating, createBidirectionalExit, removeBidirectionalExit } = useRooms()
   const [form, setForm] = useState({
     name: room.name,
     description: room.description,
     exits: { ...room.exits },
     isStartingRoom: room.isStartingRoom,
   })
+  const [saving, setSaving] = useState(false)
+
+  const handleExitChange = async (dir: string, val: string) => {
+    if (val) {
+      const targetId = parseInt(val)
+      const oldTargetId = form.exits[dir]
+
+      if (oldTargetId && oldTargetId !== targetId) {
+        await removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {})
+      }
+
+      setForm(f => ({ ...f, exits: { ...f.exits, [dir]: targetId } }))
+      try {
+        await createBidirectionalExit({ roomId: room.id, direction: dir, targetRoomId: targetId })
+      } catch {
+        setForm(f => ({ ...f, exits: { ...f.exits, [dir]: oldTargetId } }))
+      }
+    } else {
+      const oldTargetId = form.exits[dir]
+      const { [dir]: _, ...rest } = form.exits
+      setForm(f => ({ ...f, exits: rest }))
+      if (oldTargetId) {
+        removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {})
+      }
+    }
+  }
 
   const handleSave = () => {
-    updateRoom({ 
-      id: room.id, 
+    setSaving(true)
+    updateRoom({
+      id: room.id,
       update: {
         name: form.name,
         description: form.description,
-        exits: form.exits,
         isStartingRoom: form.isStartingRoom,
-        version: room.version
-      } 
+        version: room.version,
+      },
     })
-    // Note: In a real app, we'd handle the mutation onSuccess to call onCancel
+    onCancel()
   }
 
   return (
     <>
       <div className="p-3 border-b border-border flex justify-between items-center">
         <h3 className="m-0 text-text text-base font-semibold">Edit Room</h3>
-        <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Close">
-          ×
-        </Button>
+        <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Close">×</Button>
       </div>
 
       <div className="p-3 flex-1 overflow-y-auto">
@@ -78,30 +96,28 @@ export function RoomEditor({
                   name: `${r.name} (ID: ${r.id})`,
                 }))}
                 value={form.exits[dir] ? String(form.exits[dir]) : ''}
-                onChange={(val) => setForm({ 
-                  ...form, 
-                  exits: { ...form.exits, [dir]: val ? parseInt(val) : 0 } 
-                })}
-                placeholder="Pick destination room..."
+                onChange={(val) => handleExitChange(dir, val)}
+                placeholder="Pick destination..."
               />
+              {form.exits[dir] && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="!px-1 !py-0.5 text-danger"
+                  onClick={() => handleExitChange(dir, '')}
+                  aria-label={`Remove ${dir} exit`}
+                >×</Button>
+              )}
             </div>
           ))}
         </div>
       </div>
 
       <div className="p-3 border-t border-border flex gap-2">
-        <Button
-          variant="primary"
-          size="md"
-          fullWidth
-          onClick={handleSave}
-          disabled={isUpdating}
-        >
-          {isUpdating ? 'Saving...' : 'Save Changes'}
+        <Button variant="primary" size="md" fullWidth onClick={handleSave} disabled={isUpdating || saving}>
+          {isUpdating || saving ? 'Saving...' : 'Save Changes'}
         </Button>
-        <Button variant="secondary" size="md" fullWidth onClick={onCancel}>
-          Cancel
-        </Button>
+        <Button variant="secondary" size="md" fullWidth onClick={onCancel}>Cancel</Button>
       </div>
     </>
   )

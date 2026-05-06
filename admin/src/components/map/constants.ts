@@ -1,0 +1,9 @@
+export const GRID = 20
+export const ORPHAN_COLS = 5
+export const DRAG_THRESHOLD = 5
+export const CANVAS_W = 3000
+export const CANVAS_H = 3000
+export const MIN_ZOOM = 0.5
+export const MAX_ZOOM = 2.0
+export const ZOOM_STEP = 0.25
+export const ZOOM_FINE_STEP = 0.1

@@ -10,17 +10,30 @@ import (
 	"herbst-server/db/room"
 )
 
+var oppositeDir = map[string]string{
+	"north":     "south",
+	"south":     "north",
+	"east":      "west",
+	"west":      "east",
+	"northeast": "southwest",
+	"southwest": "northeast",
+	"northwest": "southeast",
+	"southeast": "northwest",
+	"up":        "down",
+	"down":      "up",
+}
+
 // RegisterRoomRoutes registers all room-related routes
 func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 	// Create a new room
 	router.POST("/rooms", func(c *gin.Context) {
 		var req struct {
-			Name        string            `json:"name" binding:"required"`
-			Description string            `json:"description" binding:"required"`
+			Name           string         `json:"name" binding:"required"`
+			Description    string         `json:"description" binding:"required"`
 			IsStartingRoom bool           `json:"isStartingRoom"`
-			Exits       map[string]int    `json:"exits"`
-			PosX        int               `json:"posX"`
-			PosY        int               `json:"posY"`
+			Exits          map[string]int `json:"exits"`
+			PosX           int            `json:"posX"`
+			PosY           int            `json:"posY"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -147,7 +160,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		c.JSON(http.StatusOK, room)
 	})
 
-	// Delete a room by ID
+	// Delete a room by ID (transaction-wrapped with cascade cleanup)
 	router.DELETE("/rooms/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -156,43 +169,47 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		ctx := c.Request.Context()
+		tx, err := client.Tx(ctx)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+			return
+		}
+		defer func() { _ = tx.Rollback() }()
+
+		txClient := tx.Client()
 
 		// Get the starting room ID for relocating characters
-		startingRooms, err := client.Room.Query().
+		startingRooms, err := txClient.Room.Query().
 			Where(room.IsStartingRoom(true)).
 			All(ctx)
 		if err != nil || len(startingRooms) == 0 {
-			// Fallback to room ID 5 if no starting room set
 			startingRooms = []*db.Room{{ID: 5}}
 		}
 		defaultRoomID := startingRooms[0].ID
 
 		// Move any characters in this room to the starting room
-		_, err = client.Character.Update().
+		_, err = txClient.Character.Update().
 			Where(character.CurrentRoomIdEQ(id)).
 			SetCurrentRoomId(defaultRoomID).
 			Save(ctx)
 		if err != nil {
+			_ = tx.Rollback()
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to relocate characters"})
 			return
 		}
 
 		// Remove this room from all other rooms' exits
-		allRooms, err := client.Room.Query().All(ctx)
+		allRooms, err := txClient.Room.Query().All(ctx)
 		if err != nil {
+			_ = tx.Rollback()
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query rooms"})
 			return
 		}
 
 		for _, r := range allRooms {
-			if r.ID == id {
-				continue // Skip the room being deleted
-			}
-			if r.Exits == nil {
+			if r.ID == id || r.Exits == nil {
 				continue
 			}
-
-			// Check if any exit points to the room being deleted
 			needsUpdate := false
 			newExits := make(map[string]int)
 			for dir, targetID := range r.Exits {
@@ -202,26 +219,249 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 					needsUpdate = true
 				}
 			}
-
 			if needsUpdate {
-				_, err = client.Room.UpdateOneID(r.ID).
+				_, err = txClient.Room.UpdateOneID(r.ID).
 					SetExits(newExits).
+					AddVersion(1).
 					Save(ctx)
 				if err != nil {
-					// Log but continue
-					continue
+					_ = tx.Rollback()
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clean up orphan exits"})
+					return
 				}
 			}
 		}
 
 		// Now delete the room
-		err = client.Room.DeleteOneID(id).Exec(ctx)
+		err = txClient.Room.DeleteOneID(id).Exec(ctx)
 		if err != nil {
+			_ = tx.Rollback()
 			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 			return
 		}
 
+		if err := tx.Commit(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+			return
+		}
+
 		c.JSON(http.StatusNoContent, nil)
+	})
+
+	// Clean up orphan exits (exits pointing to non-existent rooms)
+	router.POST("/rooms/cleanup-orphan-exits", func(c *gin.Context) {
+		ctx := c.Request.Context()
+		allRooms, err := client.Room.Query().All(ctx)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		roomIDs := make(map[int]bool)
+		for _, r := range allRooms {
+			roomIDs[r.ID] = true
+		}
+
+		cleaned := 0
+		for _, r := range allRooms {
+			if r.Exits == nil {
+				continue
+			}
+			newExits := make(map[string]int)
+			changed := false
+			for dir, targetID := range r.Exits {
+				if roomIDs[targetID] {
+					newExits[dir] = targetID
+				} else {
+					changed = true
+				}
+			}
+			if changed {
+				_, err := client.Room.UpdateOneID(r.ID).
+					SetExits(newExits).
+					AddVersion(1).
+					Save(ctx)
+				if err != nil {
+					continue
+				}
+				cleaned += len(r.Exits) - len(newExits)
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{"cleaned": cleaned})
+	})
+
+	// Create a bidirectional exit (transaction-wrapped)
+	router.POST("/rooms/:id/exits/bidirectional", func(c *gin.Context) {
+		sourceID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid source room ID"})
+			return
+		}
+
+		var req struct {
+			Direction    string `json:"direction" binding:"required"`
+			TargetRoomID int   `json:"targetRoomId" binding:"required"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		reverseDir, ok := oppositeDir[req.Direction]
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown direction: " + req.Direction})
+			return
+		}
+
+		ctx := c.Request.Context()
+		tx, err := client.Tx(ctx)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+			return
+		}
+		defer func() { _ = tx.Rollback() }()
+
+		txClient := tx.Client()
+
+		// Fetch source room
+		sourceRoom, err := txClient.Room.Get(ctx, sourceID)
+		if err != nil {
+			_ = tx.Rollback()
+			c.JSON(http.StatusNotFound, gin.H{"error": "Source room not found"})
+			return
+		}
+
+		// Fetch target room
+		targetRoom, err := txClient.Room.Get(ctx, req.TargetRoomID)
+		if err != nil {
+			_ = tx.Rollback()
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target room not found"})
+			return
+		}
+
+		// Add exit to source room
+		sourceExits := sourceRoom.Exits
+		if sourceExits == nil {
+			sourceExits = make(map[string]int)
+		}
+		sourceExits[req.Direction] = req.TargetRoomID
+
+		sourceRoom, err = txClient.Room.UpdateOneID(sourceID).
+			SetExits(sourceExits).
+			AddVersion(1).
+			Save(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update source room"})
+			return
+		}
+
+		// Add reverse exit to target room
+		targetExits := targetRoom.Exits
+		if targetExits == nil {
+			targetExits = make(map[string]int)
+		}
+		targetExits[reverseDir] = sourceID
+
+		targetRoom, err = txClient.Room.UpdateOneID(req.TargetRoomID).
+			SetExits(targetExits).
+			AddVersion(1).
+			Save(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update target room"})
+			return
+		}
+
+		if err := tx.Commit(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"source": sourceRoom, "target": targetRoom})
+	})
+
+	// Delete a bidirectional exit (transaction-wrapped)
+	router.DELETE("/rooms/:id/exits/bidirectional", func(c *gin.Context) {
+		sourceID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid source room ID"})
+			return
+		}
+
+		direction := c.Query("direction")
+		if direction == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "direction query parameter is required"})
+			return
+		}
+
+		reverseDir, ok := oppositeDir[direction]
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown direction: " + direction})
+			return
+		}
+
+		ctx := c.Request.Context()
+		tx, err := client.Tx(ctx)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+			return
+		}
+		defer func() { _ = tx.Rollback() }()
+
+		txClient := tx.Client()
+
+		// Fetch source room
+		sourceRoom, err := txClient.Room.Get(ctx, sourceID)
+		if err != nil {
+			_ = tx.Rollback()
+			c.JSON(http.StatusNotFound, gin.H{"error": "Source room not found"})
+			return
+		}
+
+		// Remove exit from source room
+		sourceExits := sourceRoom.Exits
+		if sourceExits == nil {
+			sourceExits = make(map[string]int)
+		}
+		targetID, hasTarget := sourceExits[direction]
+		delete(sourceExits, direction)
+
+		sourceRoom, err = txClient.Room.UpdateOneID(sourceID).
+			SetExits(sourceExits).
+			AddVersion(1).
+			Save(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update source room"})
+			return
+		}
+
+		// Remove reverse exit from target room
+		if hasTarget && targetID > 0 {
+			targetRoom, err := txClient.Room.Get(ctx, targetID)
+			if err == nil && targetRoom.Exits != nil {
+				targetExits := targetRoom.Exits
+				delete(targetExits, reverseDir)
+				_, err = txClient.Room.UpdateOneID(targetID).
+					SetExits(targetExits).
+					AddVersion(1).
+					Save(ctx)
+				if err != nil {
+					_ = tx.Rollback()
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update target room"})
+					return
+				}
+			}
+		}
+
+		if err := tx.Commit(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"source": sourceRoom})
 	})
 
 	// Get characters in a room (for displaying NPCs vs players)
@@ -244,14 +484,14 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		result := make([]gin.H, len(characters))
 		for i, char := range characters {
 			result[i] = gin.H{
-				"id":       char.ID,
-				"name":     char.Name,
-				"isNPC":    char.IsNPC,
-				"level":    char.Level,
-				"class":    char.Class,
-				"race":     char.Race,
-				"hp":       char.Hitpoints,
-				"maxHp":    char.MaxHitpoints,
+				"id":    char.ID,
+				"name":  char.Name,
+				"isNPC": char.IsNPC,
+				"level": char.Level,
+				"class": char.Class,
+				"race":  char.Race,
+				"hp":    char.Hitpoints,
+				"maxHp": char.MaxHitpoints,
 			}
 		}
 
@@ -316,14 +556,14 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 
 		// Build look response
 		c.JSON(http.StatusOK, gin.H{
-			"id":           room.ID,
-			"name":         room.Name,
-			"description":  room.Description,
-			"exits":        room.Exits,
-			"z_level":      0, // Default z-level
-			"items":        visibleItems,
-			"npcs":         npcs,
-			"players":      players,
+			"id":          room.ID,
+			"name":        room.Name,
+			"description": room.Description,
+			"exits":       room.Exits,
+			"z_level":     0, // Default z-level
+			"items":       visibleItems,
+			"npcs":        npcs,
+			"players":     players,
 		})
 	})
 }

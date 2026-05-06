@@ -6,9 +6,10 @@ type MapToolbarProps = {
   onZoom: (delta: number) => void
   onResetView?: () => void
   onRelayout?: () => void
+  onCleanupOrphanExits?: () => void
 }
 
-export function MapToolbar({ currentZLevel, zoom, onZoom, onResetView, onRelayout }: MapToolbarProps) {
+export function MapToolbar({ currentZLevel, zoom, onZoom, onResetView, onRelayout, onCleanupOrphanExits }: MapToolbarProps) {
   return (
     <div className="absolute top-0 left-0 right-0 p-3 bg-surface-muted border-b border-border flex justify-between items-center z-10">
       <h1 className="m-0 text-text text-lg">Map Builder — Floor {currentZLevel}</h1>
@@ -21,6 +22,9 @@ export function MapToolbar({ currentZLevel, zoom, onZoom, onResetView, onRelayou
         )}
         {onRelayout && (
           <Button variant="ghost" size="sm" onClick={onRelayout} title="Auto-relax overlapping nodes">✨</Button>
+        )}
+        {onCleanupOrphanExits && (
+          <Button variant="ghost" size="sm" onClick={onCleanupOrphanExits} title="Remove exits pointing to deleted rooms">🧹</Button>
         )}
       </div>
     </div>

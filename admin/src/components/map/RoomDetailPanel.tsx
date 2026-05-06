@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import type { Room } from './types'
 import { ALL_DIRECTIONS } from './DirectionUtils'
 import { Button } from '../Button'
@@ -15,7 +15,7 @@ type RoomDetailPanelProps = {
   onAddRoom?: (room: Room, dir: string) => void
 }
 
-export function RoomDetailPanel({
+export const RoomDetailPanel = memo(function RoomDetailPanel({
   selectedRoom,
   rooms,
   zLevels,
@@ -142,4 +142,4 @@ export function RoomDetailPanel({
       </div>
     </>
   )
-}
+})
