@@ -30,6 +30,7 @@ import { Route as AuthAchievementsRouteImport } from './routes/_auth/achievement
 import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
 import { Route as AuthNpcsNpcIdRouteImport } from './routes/_auth/npcs.$npcId'
 import { Route as AuthItemsItemIdRouteImport } from './routes/_auth/items.$itemId'
+import { Route as AuthNpcsNpcIdIndexRouteImport } from './routes/_auth/npcs.$npcId.index'
 import { Route as AuthNpcsNpcIdInstancesInstanceIdRouteImport } from './routes/_auth/npcs.$npcId.instances.$instanceId'
 import { Route as AuthItemsItemIdInstancesInstanceIdRouteImport } from './routes/_auth/items.$itemId.instances.$instanceId'
 
@@ -137,6 +138,11 @@ const AuthItemsItemIdRoute = AuthItemsItemIdRouteImport.update({
   path: '/$itemId',
   getParentRoute: () => AuthItemsRoute,
 } as any)
+const AuthNpcsNpcIdIndexRoute = AuthNpcsNpcIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthNpcsNpcIdRoute,
+} as any)
 const AuthNpcsNpcIdInstancesInstanceIdRoute =
   AuthNpcsNpcIdInstancesInstanceIdRouteImport.update({
     id: '/instances/$instanceId',
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/xp': typeof AuthXpRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
+  '/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
 }
@@ -194,7 +201,7 @@ export interface FileRoutesByTo {
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
-  '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
+  '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
 }
@@ -221,6 +228,7 @@ export interface FileRoutesById {
   '/_auth/xp': typeof AuthXpRoute
   '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
+  '/_auth/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
   '/_auth/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/_auth/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
 }
@@ -247,6 +255,7 @@ export interface FileRouteTypes {
     | '/xp'
     | '/items/$itemId'
     | '/npcs/$npcId'
+    | '/npcs/$npcId/'
     | '/items/$itemId/instances/$instanceId'
     | '/npcs/$npcId/instances/$instanceId'
   fileRoutesByTo: FileRoutesByTo
@@ -296,6 +305,7 @@ export interface FileRouteTypes {
     | '/_auth/xp'
     | '/_auth/items/$itemId'
     | '/_auth/npcs/$npcId'
+    | '/_auth/npcs/$npcId/'
     | '/_auth/items/$itemId/instances/$instanceId'
     | '/_auth/npcs/$npcId/instances/$instanceId'
   fileRoutesById: FileRoutesById
@@ -459,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthItemsItemIdRouteImport
       parentRoute: typeof AuthItemsRoute
     }
+    '/_auth/npcs/$npcId/': {
+      id: '/_auth/npcs/$npcId/'
+      path: '/'
+      fullPath: '/npcs/$npcId/'
+      preLoaderRoute: typeof AuthNpcsNpcIdIndexRouteImport
+      parentRoute: typeof AuthNpcsNpcIdRoute
+    }
     '/_auth/npcs/$npcId/instances/$instanceId': {
       id: '/_auth/npcs/$npcId/instances/$instanceId'
       path: '/instances/$instanceId'
@@ -502,10 +519,12 @@ const AuthItemsRouteWithChildren = AuthItemsRoute._addFileChildren(
 )
 
 interface AuthNpcsNpcIdRouteChildren {
+  AuthNpcsNpcIdIndexRoute: typeof AuthNpcsNpcIdIndexRoute
   AuthNpcsNpcIdInstancesInstanceIdRoute: typeof AuthNpcsNpcIdInstancesInstanceIdRoute
 }
 
 const AuthNpcsNpcIdRouteChildren: AuthNpcsNpcIdRouteChildren = {
+  AuthNpcsNpcIdIndexRoute: AuthNpcsNpcIdIndexRoute,
   AuthNpcsNpcIdInstancesInstanceIdRoute: AuthNpcsNpcIdInstancesInstanceIdRoute,
 }
 

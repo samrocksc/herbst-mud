@@ -10,9 +10,12 @@ import {
   FormField,
   NumberField,
   TextareaField,
-  SelectField,
   FormError,
 } from '../../components/FormFields'
+
+export const Route = createFileRoute('/_auth/npcs/$npcId/')({
+  component: NpcTemplateDetail,
+})
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -81,9 +84,9 @@ function buildInstanceColumns(npcId: string): Column<NPCInstance>[] {
       accessor: 'name',
       render: (_: unknown, row: NPCInstance) => (
         <Link
-          to=\"/npcs/$npcId/instances/$instanceId\"
+          to="/npcs/$npcId/instances/$instanceId"
           params={{ npcId, instanceId: String(row.id) }}
-          className=\"no-underline text-primary hover:underline font-bold\"
+          className="no-underline text-primary hover:underline font-bold"
         >
           {row.name}
         </Link>
@@ -94,8 +97,8 @@ function buildInstanceColumns(npcId: string): Column<NPCInstance>[] {
       accessor: 'room_id',
       render: (_: unknown, row: NPCInstance) => (
         <Link
-          to=\"/map\"
-          className=\"text-primary no-underline hover:underline text-xs\"
+          to="/map"
+          className="text-primary no-underline hover:underline text-xs"
         >
           Room #{row.room_id}
         </Link>
@@ -164,7 +167,7 @@ function editFormToPayload(form: EditForm) {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-function NpcTemplateDetail() {
+export function NpcTemplateDetail() {
   const { npcId } = Route.useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -268,18 +271,18 @@ function NpcTemplateDetail() {
 
   if (templateQuery.isLoading) {
     return (
-      <div className=\"p-8\">
-        <PageHeader title=\"Loading...\" backTo=\"/npcs\" />
-        <div className=\"text-text-muted\">Loading NPC template...</div>
+      <div className="p-8">
+        <PageHeader title="Loading..." backTo="/npcs" />
+        <div className="text-text-muted">Loading NPC template...</div>
       </div>
     )
   }
 
   if (templateQuery.error || !templateQuery.data) {
     return (
-      <div className=\"p-8\">
-        <PageHeader title=\"Error\" backTo=\"/npcs\" />
-        <div className=\"text-danger\">
+      <div className="p-8">
+        <PageHeader title="Error" backTo="/npcs" />
+        <div className="text-danger">
           Failed to load template: {templateQuery.error?.message ?? 'Unknown error'}
         </div>
       </div>
@@ -289,34 +292,34 @@ function NpcTemplateDetail() {
   const template = templateQuery.data
 
   return (
-    <div className=\"p-8\">
+    <div className="p-8">
       <PageHeader
         title={template.name}
-        backTo=\"/npcs\"
+        backTo="/npcs"
         actions={
-          <div className=\"flex items-center gap-2\">
+          <div className="flex items-center gap-2">
             {editing ? (
               <>
                 <Button
-                  variant=\"primary\"
-                  size=\"sm\"
+                  variant="primary"
+                  size="sm"
                   onClick={handleSave}
                   disabled={updateMutation.isPending}
                 >
                   {updateMutation.isPending ? 'Saving...' : 'Save'}
                 </Button>
-                <Button variant=\"secondary\" size=\"sm\" onClick={cancelEditing}>
+                <Button variant="secondary" size="sm" onClick={cancelEditing}>
                   Cancel
                 </Button>
               </>
             ) : (
               <>
-                <Button variant=\"primary\" size=\"sm\" onClick={startEditing}>
+                <Button variant="primary" size="sm" onClick={startEditing}>
                   Edit
                 </Button>
                 <Button
-                  variant=\"danger\"
-                  size=\"sm\"
+                  variant="danger"
+                  size="sm"
                   onClick={handleDelete}
                   disabled={deleteMutation.isPending}
                 >
@@ -327,7 +330,7 @@ function NpcTemplateDetail() {
                       : 'Delete'}
                 </Button>
                 {confirmDelete && (
-                  <Button variant=\"secondary\" size=\"sm\" onClick={() => setConfirmDelete(false)}>
+                  <Button variant="secondary" size="sm" onClick={() => setConfirmDelete(false)}>
                     Cancel
                   </Button>
                 )}
@@ -337,8 +340,8 @@ function NpcTemplateDetail() {
         }
       />
 
-      <div className=\"max-w-2xl\">
-        <div className=\"bg-surface-muted rounded-lg p-6 border border-border mb-6\">
+      <div className="max-w-2xl">
+        <div className="bg-surface-muted rounded-lg p-6 border border-border mb-6">
           {editing && form ? (
             <TemplateEditForm
               form={form}
@@ -347,35 +350,35 @@ function NpcTemplateDetail() {
             />
           ) : (
             <>
-              <h2 className=\"mt-0 mb-4 text-text text-lg font-semibold\">Template Stats</h2>
-              <div className=\"grid grid-cols-2 gap-x-6 gap-y-3\">
-                <DetailField label=\"ID\" value={template.id} />
-                <DetailField label=\"Name\" value={template.name} />
-                <DetailField label=\"Race\" value={template.race} />
-                <DetailField label=\"Disposition\" value={template.disposition} />
-                <DetailField label=\"Level\" value={String(template.level)} />
-                <DetailField label=\"XP Value\" value={String(template.xp_value)} />
-                <DetailField label=\"Respawn Cooldown\" value={\`${template.respawn_cooldown}s\`} />
-                <DetailField label=\"Respawn Rooms\" value={(template.respawn_rooms ?? []).join(', ') || '—'} />
-                <DetailField label=\"Greeting\" value={template.greeting || '—'} />
-                <DetailField label=\"Trades With\" value={(template.trades_with ?? []).join(', ') || '—'} />
+              <h2 className="mt-0 mb-4 text-text text-lg font-semibold">Template Stats</h2>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                <DetailField label="ID" value={template.id} />
+                <DetailField label="Name" value={template.name} />
+                <DetailField label="Race" value={template.race} />
+                <DetailField label="Disposition" value={template.disposition} />
+                <DetailField label="Level" value={String(template.level)} />
+                <DetailField label="XP Value" value={String(template.xp_value)} />
+                <DetailField label="Respawn Cooldown" value={`${template.respawn_cooldown}s`} />
+                <DetailField label="Respawn Rooms" value={(template.respawn_rooms ?? []).join(', ') || '—'} />
+                <DetailField label="Greeting" value={template.greeting || '—'} />
+                <DetailField label="Trades With" value={(template.trades_with ?? []).join(', ') || '—'} />
               </div>
 
               {template.description && (
-                <div className=\"mt-4 pt-4 border-t border-border\">
-                  <span className=\"text-text-muted text-xs block mb-1\">Description</span>
-                  <span className=\"text-text text-sm\">{template.description}</span>
+                <div className="mt-4 pt-4 border-t border-border">
+                  <span className="text-text-muted text-xs block mb-1">Description</span>
+                  <span className="text-text text-sm">{template.description}</span>
                 </div>
               )}
 
               {Object.keys(template.skills).length > 0 && (
-                <div className=\"mt-4 pt-4 border-t border-border\">
-                  <span className=\"text-text-muted text-xs block mb-2\">Skills</span>
-                  <div className=\"grid grid-cols-3 gap-x-4 gap-y-1\">
+                <div className="mt-4 pt-4 border-t border-border">
+                  <span className="text-text-muted text-xs block mb-2">Skills</span>
+                  <div className="grid grid-cols-3 gap-x-4 gap-y-1">
                     {Object.entries(template.skills).map(([skill, value]) => (
-                      <div key={skill} className=\"flex justify-between text-sm\">
-                        <span className=\"text-text-muted\">{skill}</span>
-                        <span className=\"text-text font-medium\">{value}</span>
+                      <div key={skill} className="flex justify-between text-sm">
+                        <span className="text-text-muted">{skill}</span>
+                        <span className="text-text font-medium">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -386,20 +389,20 @@ function NpcTemplateDetail() {
         </div>
       </div>
 
-      <div className=\"mt-6\">
-        <div className=\"flex items-center justify-between mb-4\">
-          <h2 className=\"m-0 text-text text-lg font-semibold\">NPC Instances</h2>
-          <Button variant=\"primary\" size=\"sm\" onClick={() => setShowSpawnModal(true)} disabled={editing}>
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="m-0 text-text text-lg font-semibold">NPC Instances</h2>
+          <Button variant="primary" size="sm" onClick={() => setShowSpawnModal(true)} disabled={editing}>
             + Add Instance
           </Button>
         </div>
 
         {instancesQuery.isLoading && (
-          <div className=\"p-8 text-text-muted text-center text-xs\">Loading instances...</div>
+          <div className="p-8 text-text-muted text-center text-xs">Loading instances...</div>
         )}
 
         {instancesQuery.isError && (
-          <div className=\"p-4 bg-danger/10 border border-danger rounded text-danger text-xs\">
+          <div className="p-4 bg-danger/10 border border-danger rounded text-danger text-xs">
             Failed to load instances: {instancesQuery.error?.message ?? 'Unknown error'}
           </div>
         )}
@@ -409,74 +412,74 @@ function NpcTemplateDetail() {
             columns={buildInstanceColumns(npcId)}
             data={templateInstances}
             getKey={(row) => row.id}
-            emptyMessage=\"No instances of this template.\"
-            variant=\"dark\"
+            emptyMessage="No instances of this template."
+            variant="dark"
           />
         )}
       </div>
 
       {deleteMutation.isError && (
-        <div className=\"mt-3 text-danger text-sm\">
+        <div className="mt-3 text-danger text-sm">
           Failed to delete: {(deleteMutation.error as Error)?.message}
         </div>
       )}
 
-      <Modal isOpen={showSpawnModal} onClose={handleSpawnModalClose} title=\"Add NPC Instance\">
-        <div className=\"flex flex-col gap-4\">
+      <Modal isOpen={showSpawnModal} onClose={handleSpawnModalClose} title="Add NPC Instance">
+        <div className="flex flex-col gap-4">
           <div>
-            <label className=\"text-text-muted text-xs block mb-1\">Room ID *</label>
+            <label className="text-text-muted text-xs block mb-1">Room ID *</label>
             <input
-              type=\"text\"
-              inputMode=\"numeric\"
+              type="text"
+              inputMode="numeric"
               value={spawnForm.room_id || ''}
               onChange={(e) =>
                 setSpawnForm({ ...spawnForm, room_id: parseInt(e.target.value) || 0 })
               }
-              placeholder=\"Enter room number\"
-              className=\"w-full p-2 bg-surface border border-border rounded text-text text-sm\"
+              placeholder="Enter room number"
+              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
             />
           </div>
 
           <div>
-            <label className=\"text-text-muted text-xs block mb-1\">Instance Number *</label>
+            <label className="text-text-muted text-xs block mb-1">Instance Number *</label>
             <input
-              type=\"text\"
-              inputMode=\"numeric\"
+              type="text"
+              inputMode="numeric"
               value={spawnForm.instance_number || ''}
               onChange={(e) =>
                 setSpawnForm({ ...spawnForm, instance_number: parseInt(e.target.value) || 1 })
               }
-              placeholder=\"1\"
-              className=\"w-full p-2 bg-surface border border-border rounded text-text text-sm\"
+              placeholder="1"
+              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
             />
           </div>
 
           <div>
-            <label className=\"text-text-muted text-xs block mb-1\">
-              Instance Name <span className=\"text-text-muted\">(optional, defaults to template name)</span>
+            <label className="text-text-muted text-xs block mb-1">
+              Instance Name <span className="text-text-muted">(optional, defaults to template name)</span>
             </label>
             <input
-              type=\"text\"
+              type="text"
               value={spawnForm.instance_name}
               onChange={(e) =>
                 setSpawnForm({ ...spawnForm, instance_name: e.target.value })
               }
               placeholder={template.name}
-              className=\"w-full p-2 bg-surface border border-border rounded text-text text-sm\"
+              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
             />
           </div>
 
           {spawnMutation.isError && (
-            <div className=\"p-2 bg-danger/10 border border-danger rounded text-danger text-xs\">
+            <div className="p-2 bg-danger/10 border border-danger rounded text-danger text-xs">
               Failed to spawn instance: {spawnMutation.error?.message ?? 'Unknown error'}
             </div>
           )}
 
-          <div className=\"flex gap-2\">
-            <Button variant=\"primary\" onClick={handleSpawn} disabled={spawnMutation.isPending}>
+          <div className="flex gap-2">
+            <Button variant="primary" onClick={handleSpawn} disabled={spawnMutation.isPending}>
               {spawnMutation.isPending ? 'Spawning...' : 'Spawn'}
             </Button>
-            <Button variant=\"secondary\" onClick={handleSpawnModalClose}>
+            <Button variant="secondary" onClick={handleSpawnModalClose}>
               Cancel
             </Button>
           </div>
@@ -489,8 +492,8 @@ function NpcTemplateDetail() {
 function DetailField({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div>
-      <span className=\"text-text-muted text-xs block mb-0.5\">{label}</span>
-      <span className=\"text-text text-sm font-medium\">{value}</span>
+      <span className="text-text-muted text-xs block mb-0.5">{label}</span>
+      <span className="text-text text-sm font-medium">{value}</span>
     </div>
   )
 }
@@ -501,61 +504,61 @@ function TemplateEditForm({ form, onChange, saveError }: Readonly<{
   saveError: string | null;
 }>) {
   return (
-    <div className=\"space-y-4\">
-      <div className=\"grid grid-cols-2 gap-4\">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
         <FormField
-          label=\"Name\"
+          label="Name"
           value={form.name}
           onChange={(val) => onChange({ ...form, name: val })}
         />
         <FormField
-          label=\"Race\"
+          label="Race"
           value={form.race}
           onChange={(val) => onChange({ ...form, race: val })}
         />
         <FormField
-          label=\"Disposition\"
+          label="Disposition"
           value={form.disposition}
           onChange={(val) => onChange({ ...form, disposition: val })}
         />
         <NumberField
-          label=\"Level\"
+          label="Level"
           value={form.level}
           onChange={(val) => onChange({ ...form, level: val })}
         />
         <NumberField
-          label=\"XP Value\"
+          label="XP Value"
           value={form.xp_value}
           onChange={(val) => onChange({ ...form, xp_value: val })}
         />
         <NumberField
-          label=\"Respawn Cooldown (s)\"
+          label="Respawn Cooldown (s)"
           value={form.respawn_cooldown}
           onChange={(val) => onChange({ ...form, respawn_cooldown: val })}
         />
         <TextareaField
-          label=\"Greeting\"
+          label="Greeting"
           value={form.greeting}
           onChange={(val) => onChange({ ...form, greeting: val })}
         />
         <TextareaField
-          label=\"Trades With (one per line)\"
+          label="Trades With (one per line)"
           value={form.trades_with}
           onChange={(val) => onChange({ ...form, trades_with: val })}
         />
         <TextareaField
-          label=\"Respawn Rooms (one per line)\"
+          label="Respawn Rooms (one per line)"
           value={form.respawn_rooms}
           onChange={(val) => onChange({ ...form, respawn_rooms: val })}
         />
         <TextareaField
-          label=\"Skills (skill:value, one per line)\"
+          label="Skills (skill:value, one per line)"
           value={form.skills}
           onChange={(val) => onChange({ ...form, skills: val })}
         />
       </div>
       <TextareaField
-        label=\"Description\"
+        label="Description"
         value={form.description}
         onChange={(val) => onChange({ ...form, description: val })}
       />
