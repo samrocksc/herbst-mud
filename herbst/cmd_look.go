@@ -93,7 +93,10 @@ func (m *model) handleLookAt(target string) {
 				m.AppendMessage(fmt.Sprintf("[%s]\nAn NPC you can see here.\n\nLevel: %d", char.Name, char.Level), "info")
 				return
 			}
-			m.AppendMessage(fmt.Sprintf("[%s]\nA player adventurer.\n\nLevel: %d", char.Name, char.Level), "info")
+			desc := fmt.Sprintf("[%s]\nA player adventurer.\n\nLevel: %d", char.Name, char.Level)
+			equipped := fetchEquippedItems(char.ID)
+			desc += formatCharacterEquipment(equipped)
+			m.AppendMessage(desc, "info")
 			return
 		}
 	}
