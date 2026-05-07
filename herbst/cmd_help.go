@@ -17,7 +17,7 @@ func (m *model) handleHelpCommand(_ *model, args []string) {
   peer <dir> - Peek at adjacent room
   take/get <item> - Pick up an item
   drop <item> - Drop an item
-  inventory/i - Show your inventory
+  inventory/inv/i - Show your inventory
   equip <item> - Equip an item from inventory
   equip talent <id> <slot> - Equip talent to slot 1-4
   equip potion <id> - Equip potion to R slot
