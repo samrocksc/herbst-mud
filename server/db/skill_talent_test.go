@@ -413,19 +413,14 @@ func TestCharacterSkill(t *testing.T) {
 	charSkill, err := client.CharacterSkill.Create().
 		SetCharacterID(char.ID).
 		SetSkillID(sk.ID).
-		SetLevel(5).
-		SetExperience(100).
+		SetSlot(1).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("failed to create character skill: %v", err)
 	}
 
-	if charSkill.Level != 5 {
-		t.Errorf("expected level 5, got %d", charSkill.Level)
-	}
-
-	if charSkill.Experience != 100 {
-		t.Errorf("expected experience 100, got %d", charSkill.Experience)
+	if charSkill.Slot != 1 {
+		t.Errorf("expected slot 1, got %d", charSkill.Slot)
 	}
 
 	// Query skills for character

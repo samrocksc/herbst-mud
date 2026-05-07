@@ -142,12 +142,14 @@ func TestGizmoNPCInFountainRoom(t *testing.T) {
 	}
 
 	// Verify Gizmo is in the fountain room
-	roomChars, err := client.Room.Query().Where(room.NameEQ("The Fountain")).Only(ctx)
+	fountainRoom, err := client.Room.Query().Where(room.NameEQ("The Fountain")).Only(ctx)
 	if err != nil {
 		t.Fatalf("failed to get fountain room: %v", err)
 	}
 
-	characters, err := roomChars.QueryCharacters().All(ctx)
+	characters, err := client.Character.Query().
+		Where(character.CurrentRoomIdEQ(fountainRoom.ID)).
+		All(ctx)
 	if err != nil {
 		t.Fatalf("failed to query characters in fountain: %v", err)
 	}

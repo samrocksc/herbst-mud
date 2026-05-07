@@ -17,25 +17,29 @@ func init() {
 
 // Helper to generate a valid JWT token for testing
 func generateTestToken(userID uint, email string, isAdmin bool) string {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id":  userID,
-		"email":    email,
-		"is_admin": isAdmin,
-		"exp":      time.Now().Add(time.Hour).Unix(),
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
+		UserID:  userID,
+		Email:   email,
+		IsAdmin: isAdmin,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		},
 	})
-	tokenString, _ := token.SignedString(jwtSecret)
+	tokenString, _ := token.SignedString(getJWTSecret())
 	return tokenString
 }
 
 // Helper to generate an expired JWT token for testing
 func generateExpiredToken() string {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id":  1,
-		"email":    "test@example.com",
-		"is_admin": false,
-		"exp":      time.Now().Add(-time.Hour).Unix(), // Expired 1 hour ago
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
+		UserID:  1,
+		Email:   "test@example.com",
+		IsAdmin: false,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(-time.Hour)),
+		},
 	})
-	tokenString, _ := token.SignedString(jwtSecret)
+	tokenString, _ := token.SignedString(getJWTSecret())
 	return tokenString
 }
 
@@ -82,8 +86,8 @@ func TestAuthMiddleware_ValidToken(t *testing.T) {
 
 	AuthMiddleware()(c)
 
-	// Should pass through
-	assert.Equal(t, 0, w.Code)
+	// Should pass through (Gin test context returns 200 when no handler writes a response)
+	assert.Equal(t, http.StatusOK, w.Code)
 	
 	// Check context values
 	userID, exists := c.Get("user_id")
@@ -152,7 +156,7 @@ func TestAdminMiddleware_AdminUser(t *testing.T) {
 	AdminMiddleware()(c)
 
 	// Should pass through without writing response
-	assert.Equal(t, 0, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 }
 
 func TestOptionalAuthMiddleware_NoHeader(t *testing.T) {
@@ -163,7 +167,7 @@ func TestOptionalAuthMiddleware_NoHeader(t *testing.T) {
 	OptionalAuthMiddleware()(c)
 
 	// Should pass through without setting user info
-	assert.Equal(t, 0, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 }
 
 func TestOptionalAuthMiddleware_InvalidToken(t *testing.T) {
@@ -175,7 +179,7 @@ func TestOptionalAuthMiddleware_InvalidToken(t *testing.T) {
 	OptionalAuthMiddleware()(c)
 
 	// Should pass through (optional auth doesn't fail on invalid token)
-	assert.Equal(t, 0, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 }
 
 func TestOptionalAuthMiddleware_ValidToken(t *testing.T) {
