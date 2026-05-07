@@ -133,13 +133,14 @@ function AbilityForm({
         {ability ? 'Edit Ability' : 'Add New Ability'}
       </h3>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <FormField label="Name" value={formData.name} onChange={(v) => set({ name: v })} />
+        <FormField label="Name" value={formData.name} onChange={(v) => set({ name: v })} tooltip="The command name players type, e.g. 'concentrate'" />
 
         <TextareaField
           label="Description"
           value={formData.description}
           onChange={(v) => set({ description: v })}
           rows={3}
+          tooltip="Flavor text shown to players when they examine or help this ability"
         />
 
         <SelectField
@@ -147,6 +148,7 @@ function AbilityForm({
           value={formData.skill_type}
           onChange={(v) => set({ skill_type: v })}
           options={SKILL_TYPE_OPTS}
+          tooltip="Category: combat=direct attack, magic=spell, utility=non-combat, healing=restore HP, support=buff allies"
         />
 
         <TagInput
@@ -155,6 +157,7 @@ function AbilityForm({
           onChange={(tags) => set({ required_tag: tags.join(', ') })}
           availableTags={availableTags.map((t) => t.name)}
           placeholder="e.g., sword, fire, healing"
+          tooltip="Comma-separated item tags. Character must have an item with this tag equipped to use this ability"
         />
 
         <div className="grid grid-cols-3 gap-3">
@@ -162,16 +165,19 @@ function AbilityForm({
             label="Level Req"
             value={formData.requirements}
             onChange={(v) => set({ requirements: v })}
+            tooltip="Minimum character level to learn this ability"
           />
           <NumberField
             label="Cost"
             value={formData.cost}
             onChange={(v) => set({ cost: v })}
+            tooltip="Legacy flat energy cost. Prefer mana_cost/stamina_cost for new abilities"
           />
           <NumberField
             label="Cooldown (s)"
             value={formData.cooldown_seconds}
             onChange={(v) => set({ cooldown_seconds: v })}
+            tooltip="Seconds before ability can be reused. Back-off=10s, Haymaker=6s"
           />
         </div>
 
@@ -180,6 +186,7 @@ function AbilityForm({
           value={formData.effect_type}
           onChange={(v) => set({ effect_type: v })}
           options={EFFECT_TYPE_OPTS}
+          tooltip="What happens on use: damage/heal/buff/debuff, or special: concentrate/haymaker/scream/slap/backoff"
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -187,11 +194,13 @@ function AbilityForm({
             label="Effect Value"
             value={formData.effect_value}
             onChange={(v) => set({ effect_value: v })}
+            tooltip="Base magnitude. Scales with Scaling Stat if set"
           />
           <NumberField
             label="Effect Duration (ticks)"
             value={formData.effect_duration}
             onChange={(v) => set({ effect_duration: v })}
+            tooltip="Combat ticks the effect lasts. 1=one round, 4=Concentrate's full duration"
           />
         </div>
 
@@ -200,16 +209,19 @@ function AbilityForm({
             label="Mana Cost"
             value={formData.mana_cost}
             onChange={(v) => set({ mana_cost: v })}
+            tooltip="MP drained on activation. Mages rely on this pool. If mana < cost, ability fails"
           />
           <NumberField
             label="Stamina Cost"
             value={formData.stamina_cost}
             onChange={(v) => set({ stamina_cost: v })}
+            tooltip="SP drained on activation. Fighters use this resource"
           />
           <NumberField
             label="HP Cost"
             value={formData.hp_cost}
             onChange={(v) => set({ hp_cost: v })}
+            tooltip="Self-damage to cast. Berserker and blood magic abilities"
           />
         </div>
 
@@ -219,11 +231,13 @@ function AbilityForm({
             value={formData.scaling_stat}
             onChange={(v) => set({ scaling_stat: v })}
             options={SCALING_STAT_OPTS}
+            tooltip="Which character stat boosts the effect. STR=damage, WIS=healing, DEX=dodge"
           />
           <NumberField
             label="Scaling %/point"
             value={formData.scaling_percent_per_point}
             onChange={(v) => set({ scaling_percent_per_point: v })}
+            tooltip="Percentage of stat value added per point. 0.05=5%. Formula: final = base + (stat × pct × base)"
           />
         </div>
 
@@ -232,12 +246,14 @@ function AbilityForm({
             label="Proc Chance (0–1)"
             value={formData.proc_chance}
             onChange={(v) => set({ proc_chance: v })}
+            tooltip="0.0–1.0 chance the effect triggers on the proc_event. 0.3=30%"
           />
           <FormField
             label="Proc Event"
             value={formData.proc_event}
             onChange={(v) => set({ proc_event: v })}
             placeholder="e.g., on_hit, on_crit"
+            tooltip="When to roll proc_chance: on_hit=attack lands, on_crit=critical, on_dodge=dodging, on_kill=enemy death"
           />
         </div>
 
@@ -246,6 +262,7 @@ function AbilityForm({
           value={formData.skill_class}
           onChange={(v) => set({ skill_class: v })}
           options={SKILL_CLASS_OPTS}
+          tooltip="active=press button, passive=always on, toggle=on/off switch"
         />
 
         <div className="flex gap-2 pt-1">

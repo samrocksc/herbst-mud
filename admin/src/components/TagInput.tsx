@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import type { KeyboardEvent } from 'react'
 import { Button } from './Button'
+import { TooltipIcon } from './Tooltip'
 
 export type TagInputProps = Readonly<{
   /** Current selected tags */
@@ -15,6 +16,8 @@ export type TagInputProps = Readonly<{
   disabled?: boolean
   /** Label shown above the input */
   label?: string
+  /** Optional tooltip explaining this field */
+  tooltip?: string
 }>
 
 /**
@@ -32,6 +35,7 @@ export function TagInput({
   placeholder = 'Add a tag…',
   disabled = false,
   label,
+  tooltip,
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -109,7 +113,12 @@ export function TagInput({
 
   return (
     <div ref={containerRef} className="tag-input-container">
-      {label && <label className="form-label">{label}</label>}
+      {label && (
+        <label className="form-label">
+          {label}
+          {tooltip && <TooltipIcon content={tooltip} />}
+        </label>
+      )}
 
       {/* Selected chips */}
       {value.length > 0 && (

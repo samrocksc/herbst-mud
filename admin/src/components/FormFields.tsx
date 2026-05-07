@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react'
+import { TooltipIcon } from './Tooltip'
 
 // ─── Shared input style (the 56-copy-paste winner) ───────────────────────
 
@@ -9,12 +10,14 @@ const inputClass = 'w-full p-2 bg-surface border border-border rounded text-text
 type FieldLabelProps = Readonly<{
   htmlFor?: string
   children: ReactNode
+  tooltip?: string
 }>
 
-function FieldLabel({ htmlFor, children }: FieldLabelProps) {
+function FieldLabel({ htmlFor, children, tooltip }: FieldLabelProps) {
   return (
     <label htmlFor={htmlFor} className="text-text-muted text-xs block mb-1">
       {children}
+      {tooltip && <TooltipIcon content={tooltip} />}
     </label>
   )
 }
@@ -28,13 +31,14 @@ type FormFieldProps = Readonly<{
   value: string
   onChange: (value: string) => void
   disabled?: boolean
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'className' | 'id'>>
+  tooltip?: string
+}> & Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'className' | 'id'>
 
-export function FormField({ label, id, placeholder, value, onChange, disabled, ...rest }: FormFieldProps) {
+export function FormField({ label, id, placeholder, value, onChange, disabled, tooltip, ...rest }: FormFieldProps) {
   const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
   return (
     <div>
-      <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
+      <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
       <input
         id={fieldId}
         type="text"
@@ -60,13 +64,14 @@ type NumberFieldProps = Readonly<{
   min?: number
   max?: number
   disabled?: boolean
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'className' | 'id' | 'type'>>
+  tooltip?: string
+}> & Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'className' | 'id' | 'type'>
 
-export function NumberField({ label, id, placeholder, value, onChange, min, max, disabled, ...rest }: NumberFieldProps) {
+export function NumberField({ label, id, placeholder, value, onChange, min, max, disabled, tooltip, ...rest }: NumberFieldProps) {
   const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
   return (
     <div>
-      <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
+      <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
       <input
         id={fieldId}
         type="text"
@@ -102,13 +107,14 @@ type TextareaFieldProps = Readonly<{
   onChange: (value: string) => void
   rows?: number
   disabled?: boolean
-} & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value' | 'className' | 'id'>>
+  tooltip?: string
+}> & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value' | 'className' | 'id'>
 
-export function TextareaField({ label, id, placeholder, value, onChange, rows = 3, disabled, ...rest }: TextareaFieldProps) {
+export function TextareaField({ label, id, placeholder, value, onChange, rows = 3, disabled, tooltip, ...rest }: TextareaFieldProps) {
   const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
   return (
     <div>
-      <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
+      <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
       <textarea
         id={fieldId}
         value={value}
@@ -138,13 +144,14 @@ type SelectFieldProps = Readonly<{
   options: SelectOption[]
   placeholder?: string
   disabled?: boolean
-} & Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'value' | 'className' | 'id'>>
+  tooltip?: string
+}> & Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'value' | 'className' | 'id'>
 
-export function SelectField({ label, id, value, onChange, options, placeholder, disabled, ...rest }: SelectFieldProps) {
+export function SelectField({ label, id, value, onChange, options, placeholder, disabled, tooltip, ...rest }: SelectFieldProps) {
   const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
   return (
     <div>
-      <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
+      <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
       <select
         id={fieldId}
         value={value}
