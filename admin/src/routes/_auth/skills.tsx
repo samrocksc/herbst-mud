@@ -11,6 +11,8 @@ import {
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
+import { FormField, TextareaField } from '../../components/FormFields'
+import { TooltipIcon } from '../../components/Tooltip'
 
 export const Route = createFileRoute('/_auth/skills')({
   component: TrainableSkillsManagement,
@@ -56,27 +58,27 @@ function SkillForm({
           onSubmit(formData)
         }}
       >
-        <div className="form-row">
-          <label>Name:</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-        </div>
+        <FormField
+          label="Name"
+          value={formData.name}
+          onChange={(v) => setFormData({ ...formData, name: v })}
+          tooltip="Trainable skill name. e.g. 'Blades', 'Fire Magic', 'Pizza Making'"
+          required
+        />
+
+        <TextareaField
+          label="Description"
+          value={formData.description}
+          onChange={(v) => setFormData({ ...formData, description: v })}
+          rows={3}
+          tooltip="Flavor text shown to players"
+        />
 
         <div className="form-row">
-          <label>Description:</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={3}
-          />
-        </div>
-
-        <div className="form-row">
-          <label>Category:</label>
+          <label className="flex items-center">
+            Category
+            <TooltipIcon content="Determines which abilities get bonuses. Blades → sword abilities, Fire Magic → fire spells" />
+          </label>
           <select
             value={formData.skill_category}
             onChange={(e) => setFormData({ ...formData, skill_category: e.target.value })}
@@ -114,15 +116,13 @@ function SkillForm({
           </select>
         </div>
 
-        <div className="form-row">
-          <label>Requirements:</label>
-          <input
-            type="text"
-            value={formData.requirements}
-            onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-            placeholder="e.g. level:5, str:10"
-          />
-        </div>
+        <FormField
+          label="Requirements"
+          value={formData.requirements}
+          onChange={(v) => setFormData({ ...formData, requirements: v })}
+          placeholder="e.g. level:5, str:10"
+          tooltip="Format: level:5,str:10. Character must meet ALL conditions to train this skill"
+        />
 
         <div className="form-actions">
           <Button type="submit" variant="primary" disabled={isLoading}>
