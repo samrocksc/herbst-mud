@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// handleEquipCommand shows the equip screen with slots for talents and potion
+// handleEquipCommand shows the equip screen or equips items/talents/potions
 func (m *model) handleEquipCommand(cmd string) {
 	if m.currentCharacterID == 0 {
 		m.AppendMessage("You need to be playing to use this command.", "error")
@@ -26,8 +26,16 @@ func (m *model) handleEquipCommand(cmd string) {
 		m.handleEquipTalent(parts[2:])
 	case "potion":
 		m.handleEquipPotion(parts[2:])
+	case "clear":
+		if len(parts) >= 3 {
+			m.handleEquipClear(parts[2])
+		} else {
+			m.AppendMessage("Usage: equip clear <slot>", "error")
+		}
 	default:
-		m.showEquipScreen()
+		// Treat as item name — equip an inventory item
+		itemName := strings.Join(parts[1:], " ")
+		m.handleEquipItemCommand(itemName)
 	}
 }
 

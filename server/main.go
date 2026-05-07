@@ -264,6 +264,9 @@ func main() {
 	// Register equipment routes (GitHub #89 - Item system)
 	routes.RegisterEquipmentRoutes(router, client)
 
+	// Register equipment equip/unequip routes (EQUIP-003)
+	routes.RegisterEquipmentEquipRoutes(router, client)
+
 	// Register backup routes
 	routes.RegisterBackupRoutes(router, client)
 
