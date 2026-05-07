@@ -92,7 +92,6 @@ func (m *model) performCombatAttack() {
 		return
 	}
 
-	// Get modifiers
 	dexMod := m.getDexModifier()
 	strMod := m.getStrModifier()
 
@@ -101,27 +100,27 @@ func (m *model) performCombatAttack() {
 	targetAC := m.calculateAC(m.combatTarget)
 
 	if isFumble {
-		// Critical miss - automatic failure
-		m.addCombatLog(fmt.Sprintf("🎲 FUMBLE! Natural 1 - You stumble badly!"))
+		m.addCombatLog("🎲 FUMBLE! Natural 1 - You stumble badly!")
 		return
 	}
 
 	if toHit < targetAC && !isCrit {
-		// Miss
 		m.addCombatLog(fmt.Sprintf("🎲 Miss! (d20=%d + %d DEX = %d vs AC %d)",
 			roll, dexMod, toHit, targetAC))
 		return
 	}
 
-	// Hit - roll damage (d6 + STR)
-	damageRoll, damage := dice.Roll(6, 1, strMod)
-	if damage < 1 {
-		damage = 1
-	}
+	// Calculate weapon damage (replaces bare fists if weapon equipped)
+	wpnResult := m.calculateWeaponDamage(strMod)
+	damage := wpnResult.TotalDamage
 
 	if isCrit {
 		damage *= 2
-		m.addCombatLog(fmt.Sprintf("🎲 CRITICAL HIT! Natural 20!"))
+		m.addCombatLog("🎲 CRITICAL HIT! Natural 20!")
+	}
+
+	if damage < 1 {
+		damage = 1
 	}
 
 	// Apply damage
@@ -131,36 +130,83 @@ func (m *model) performCombatAttack() {
 		m.combatTarget.HP = 0
 	}
 
-	// Log the hit
-	if isCrit {
-		m.addCombatLog(fmt.Sprintf("⚔ Critical hit! %d damage (d6=%d + %d STR, doubled!)",
-			damage, damageRoll, strMod))
-	} else {
-		m.addCombatLog(fmt.Sprintf("⚔ Hit! %d damage (d6=%d + %d STR)",
-			damage, damageRoll, strMod))
-	}
+	// Build combat message
+	m.logWeaponHit(wpnResult, damage, isCrit)
 
-	// Check if target is defeated
 	if m.combatTarget.HP <= 0 {
-		m.addCombatLog(fmt.Sprintf("✦ %s has been defeated!", m.combatTarget.Name))
-		m.AppendMessage(fmt.Sprintf("⚔ You defeated %s!", m.combatTarget.Name), "success")
-
-		// Fire XP event for NPC defeat
-		if m.combatTarget.IsNPC && m.combatTarget.XpValue > 0 {
-			FireDefeatEvent(m.currentCharacterID, m.combatTarget.XpValue)
-		}
-
-		// Generate corpse
-		// Generate corpse with victim's equipment
-		m.generateCorpse(m.combatTarget)
-		
-		
-		// Heal NPC back to max HP so they can be fought again (respawn)
-		if m.combatTarget.IsNPC {
-			healCharacter(m.combatTarget.ID, m.combatTarget.MaxHP)
-		}
-		m.exitCombat()
+		m.handleTargetDefeat()
 	}
+}
+
+// logWeaponHit adds combat log messages for a weapon hit.
+func (m *model) logWeaponHit(wpn WeaponDamageResult, damage int, isCrit bool) {
+	if wpn.IsUntrained {
+		m.addCombatLog("⚠ Untrained with this weapon - half damage!")
+	}
+	if wpn.WeaponName == "fists" {
+		if isCrit {
+			m.addCombatLog(fmt.Sprintf("⚔ Critical hit! %d damage (fists, doubled!)",
+				damage))
+		} else {
+			m.addCombatLog(fmt.Sprintf("⚔ Hit! %d damage (fists)", damage))
+		}
+		return
+	}
+	verb := damageVerb(wpn.WeaponName)
+	if isCrit {
+		m.addCombatLog(fmt.Sprintf("⚔ Critical %s with %s! %d damage (doubled!)",
+			verb, wpn.WeaponName, damage))
+	} else {
+		m.addCombatLog(fmt.Sprintf("⚔ You %s %s with %s for %d damage!",
+			verb, m.combatTarget.Name, wpn.WeaponName, damage))
+	}
+	if wpn.OffHandDmg > 0 {
+		m.addCombatLog(fmt.Sprintf("  + %d off-hand damage", wpn.OffHandDmg))
+	}
+}
+
+// damageVerb returns a combat verb based on weapon name.
+func damageVerb(weaponName string) string {
+	switch {
+	case containsAny(weaponName, "sword", "blade", "saber", "cutlass"):
+		return "slash"
+	case containsAny(weaponName, "dagger", "knife", "shiv", "stiletto"):
+		return "stab"
+	case containsAny(weaponName, "staff", "club", "mace", "hammer"):
+		return "bludgeon"
+	case containsAny(weaponName, "spear", "pike", "lance"):
+		return "pierce"
+	default:
+		return "strike"
+	}
+}
+
+// containsAny checks if s contains any of the substrings (case-insensitive).
+func containsAny(s string, substrings ...string) bool {
+	sLower := strings.ToLower(s)
+	for _, sub := range substrings {
+		if strings.Contains(sLower, sub) {
+			return true
+		}
+	}
+	return false
+}
+
+// handleTargetDefeat processes defeating a combat target.
+func (m *model) handleTargetDefeat() {
+	m.addCombatLog(fmt.Sprintf("✦ %s has been defeated!", m.combatTarget.Name))
+	m.AppendMessage(fmt.Sprintf("⚔ You defeated %s!", m.combatTarget.Name), "success")
+
+	if m.combatTarget.IsNPC && m.combatTarget.XpValue > 0 {
+		FireDefeatEvent(m.currentCharacterID, m.combatTarget.XpValue)
+	}
+
+	m.generateCorpse(m.combatTarget)
+
+	if m.combatTarget.IsNPC {
+		healCharacter(m.combatTarget.ID, m.combatTarget.MaxHP)
+	}
+	m.exitCombat()
 }
 
 // getDexModifier returns the DEX modifier for the player
@@ -176,11 +222,16 @@ func (m *model) getStrModifier() int {
 	return (strength - 10) / 2
 }
 
-// calculateAC returns target's armor class
+// calculateAC returns target's armor class including equipped armor.
 func (m *model) calculateAC(target *RoomCharacter) int {
-	// Base AC = 10 + level/2 (simple formula)
 	baseAC := 10 + target.Level/2
-	return baseAC
+	if target.IsNPC {
+		return baseAC
+	}
+	// For players: add armor AC from equipped items
+	skills := m.fetchCharacterSkills()
+	armor := m.calculateArmorAC(m.currentCharacterID, skills)
+	return baseAC + armor.TotalAC
 }
 
 // performCombatDefend handles the defend action
@@ -211,10 +262,9 @@ func (m *model) enemyTurnWithDefense(defending bool) {
 		return
 	}
 
-	// Enemy rolls to hit
 	enemyDexMod := m.combatTarget.Level / 3
 	roll, toHit, isCrit, isFumble := dice.RollWithCrit(enemyDexMod)
-	playerAC := 10 + m.getDexModifier()
+	playerAC := m.calculatePlayerAC()
 
 	if defending {
 		playerAC += 5 // Defense bonus
@@ -231,13 +281,8 @@ func (m *model) enemyTurnWithDefense(defending bool) {
 		return
 	}
 
-	// Enemy hits - roll damage
-	baseDamage := m.combatTarget.Level + 2
-	damage := baseDamage
-	if isCrit {
-		damage *= 2
-		m.addCombatLog(fmt.Sprintf("🎲 %s CRITS!", m.combatTarget.Name))
-	}
+	// Enemy hits - calculate NPC damage
+	damage := m.calculateNPCDamage(m.combatTarget, isCrit)
 
 	// Apply damage
 	applyDamageToCharacter(m.currentCharacterID, damage)
@@ -249,31 +294,12 @@ func (m *model) enemyTurnWithDefense(defending bool) {
 	if defending {
 		m.addCombatLog(fmt.Sprintf("⚔ %s attacks! Blocked for %d damage!",
 			m.combatTarget.Name, damage))
-	} else if isCrit {
-		m.addCombatLog(fmt.Sprintf("⚔ %s critical hit! %d damage!",
-			m.combatTarget.Name, damage))
 	} else {
-		m.addCombatLog(fmt.Sprintf("⚔ %s hits for %d damage!",
-			m.combatTarget.Name, damage))
+		m.logEnemyHit(damage, isCrit)
 	}
 
-	// Check if player is defeated
 	if m.characterHP <= 0 {
-		m.addCombatLog("☠ You have been defeated!")
-		m.AppendMessage("☠ You have been defeated! Respawning...", "error")
-		
-		// Generate player corpse in current room with equipment
-		playerAsChar := &RoomCharacter{
-			ID:    m.currentCharacterID,
-			Name:  m.currentCharacterName,
-			HP:    0,
-			MaxHP: m.characterMaxHP,
-			IsNPC: false,
-		}
-		m.generateCorpse(playerAsChar)
-		
-		m.exitCombat()
-		m.respawnPlayer()
+		m.handlePlayerDefeat()
 	}
 }
 
@@ -443,23 +469,19 @@ func (m *model) enemyTurnWithDice() {
 	}
 
 	// Attempt NPC skill usage (happens before regular attack)
-	// This makes combat more dynamic - NPC might heal instead of attacking
 	if m.attemptNPCSkill(m.combatTarget) {
-		// NPC used a skill (like healing) - check if combat ended
 		if !m.inCombat || m.combatTarget.HP <= 0 {
 			return
 		}
-		// After using skill, NPC might still attack this tick
-		// 50% chance to still attack after healing
 		if rand.Float64() < 0.5 {
 			return
 		}
 	}
 
 	// Enemy rolls to hit player
-	enemyDexMod := m.combatTarget.Level / 3 // Simple enemy stat approximation
+	enemyDexMod := m.combatTarget.Level / 3
 	roll, toHit, isCrit, isFumble := dice.RollWithCrit(enemyDexMod)
-	playerAC := 10 + m.getDexModifier() // Player AC = 10 + DEX mod
+	playerAC := m.calculatePlayerAC()
 
 	if isFumble {
 		m.addCombatLog(fmt.Sprintf("🎲 %s FUMBLES! (rolled 1)", m.combatTarget.Name))
@@ -472,13 +494,8 @@ func (m *model) enemyTurnWithDice() {
 		return
 	}
 
-	// Enemy hits - roll damage
-	baseDamage := m.combatTarget.Level + 2
-	damage := baseDamage
-	if isCrit {
-		damage *= 2
-		m.addCombatLog(fmt.Sprintf("🎲 %s CRITS!", m.combatTarget.Name))
-	}
+	// Enemy hits - check for NPC weapon
+	damage := m.calculateNPCDamage(m.combatTarget, isCrit)
 
 	// Apply damage
 	applyDamageToCharacter(m.currentCharacterID, damage)
@@ -487,6 +504,40 @@ func (m *model) enemyTurnWithDice() {
 		m.characterHP = 0
 	}
 
+	m.logEnemyHit(damage, isCrit)
+
+	if m.characterHP <= 0 {
+		m.handlePlayerDefeat()
+	}
+}
+
+// calculateNPCDamage computes damage for an NPC attack.
+func (m *model) calculateNPCDamage(target *RoomCharacter, isCrit bool) int {
+	items := m.fetchEquippedCombatItems(target.ID)
+	if len(items) > 0 {
+		weapon := findMainHandWeapon(items)
+		if weapon != nil {
+			enemyStrMod := target.Level / 3
+			totalMod := weapon.DamageBonus + enemyStrMod
+			_, dmg := dice.Roll(weapon.DamageDiceSides, weapon.DamageDiceCount, totalMod)
+			if dmg < 1 {
+				dmg = 1
+			}
+			if isCrit {
+				dmg *= 2
+			}
+			return dmg
+		}
+	}
+	baseDamage := target.Level + 2
+	if isCrit {
+		baseDamage *= 2
+	}
+	return baseDamage
+}
+
+// logEnemyHit adds combat log messages for an enemy hit on the player.
+func (m *model) logEnemyHit(damage int, isCrit bool) {
 	if isCrit {
 		m.addCombatLog(fmt.Sprintf("⚔ %s critical hit! %d damage!",
 			m.combatTarget.Name, damage))
@@ -494,25 +545,24 @@ func (m *model) enemyTurnWithDice() {
 		m.addCombatLog(fmt.Sprintf("⚔ %s hits for %d damage!",
 			m.combatTarget.Name, damage))
 	}
+}
 
-	// Check if player is defeated
-	if m.characterHP <= 0 {
-		m.addCombatLog("☠ You have been defeated!")
-		m.AppendMessage("☠ You have been defeated! Respawning...", "error")
-		
-		// Generate player corpse in current room with equipment
-		playerAsChar := &RoomCharacter{
-			ID:    m.currentCharacterID,
-			Name:  m.currentCharacterName,
-			HP:    0,
-			MaxHP: m.characterMaxHP,
-			IsNPC: false,
-		}
-		m.generateCorpse(playerAsChar)
-		
-		m.exitCombat()
-		m.respawnPlayer()
+// handlePlayerDefeat processes player being defeated.
+func (m *model) handlePlayerDefeat() {
+	m.addCombatLog("☠ You have been defeated!")
+	m.AppendMessage("☠ You have been defeated! Respawning...", "error")
+
+	playerAsChar := &RoomCharacter{
+		ID:    m.currentCharacterID,
+		Name:  m.currentCharacterName,
+		HP:    0,
+		MaxHP: m.characterMaxHP,
+		IsNPC: false,
 	}
+	m.generateCorpse(playerAsChar)
+
+	m.exitCombat()
+	m.respawnPlayer()
 }
 
 // checkCombatEnd checks if combat should end
