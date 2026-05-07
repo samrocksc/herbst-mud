@@ -32,6 +32,7 @@ import { Route as AuthAchievementsRouteImport } from './routes/_auth/achievement
 import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
 import { Route as AuthNpcsNpcIdRouteImport } from './routes/_auth/npcs.$npcId'
 import { Route as AuthItemsItemIdRouteImport } from './routes/_auth/items.$itemId'
+import { Route as AuthCharactersCharacterIdRouteImport } from './routes/_auth/characters.$characterId'
 import { Route as AuthNpcsNpcIdIndexRouteImport } from './routes/_auth/npcs.$npcId.index'
 import { Route as AuthNpcsNpcIdInstancesInstanceIdRouteImport } from './routes/_auth/npcs.$npcId.instances.$instanceId'
 import { Route as AuthItemsItemIdInstancesInstanceIdRouteImport } from './routes/_auth/items.$itemId.instances.$instanceId'
@@ -150,6 +151,12 @@ const AuthItemsItemIdRoute = AuthItemsItemIdRouteImport.update({
   path: '/$itemId',
   getParentRoute: () => AuthItemsRoute,
 } as any)
+const AuthCharactersCharacterIdRoute =
+  AuthCharactersCharacterIdRouteImport.update({
+    id: '/characters/$characterId',
+    path: '/characters/$characterId',
+    getParentRoute: () => AuthRoute,
+  } as any)
 const AuthNpcsNpcIdIndexRoute = AuthNpcsNpcIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
   '/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
@@ -216,6 +224,7 @@ export interface FileRoutesByTo {
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
@@ -244,6 +253,7 @@ export interface FileRoutesById {
   '/_auth/talents': typeof AuthTalentsRoute
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/_auth/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
   '/_auth/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/talents'
     | '/xp'
     | '/docs/ability-system'
+    | '/characters/$characterId'
     | '/items/$itemId'
     | '/npcs/$npcId'
     | '/npcs/$npcId/'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/talents'
     | '/xp'
     | '/docs/ability-system'
+    | '/characters/$characterId'
     | '/items/$itemId'
     | '/npcs/$npcId'
     | '/items/$itemId/instances/$instanceId'
@@ -327,6 +339,7 @@ export interface FileRouteTypes {
     | '/_auth/talents'
     | '/_auth/xp'
     | '/docs/ability-system'
+    | '/_auth/characters/$characterId'
     | '/_auth/items/$itemId'
     | '/_auth/npcs/$npcId'
     | '/_auth/npcs/$npcId/'
@@ -508,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthItemsItemIdRouteImport
       parentRoute: typeof AuthItemsRoute
     }
+    '/_auth/characters/$characterId': {
+      id: '/_auth/characters/$characterId'
+      path: '/characters/$characterId'
+      fullPath: '/characters/$characterId'
+      preLoaderRoute: typeof AuthCharactersCharacterIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/npcs/$npcId/': {
       id: '/_auth/npcs/$npcId/'
       path: '/'
@@ -596,6 +616,7 @@ interface AuthRouteChildren {
   AuthTagsRoute: typeof AuthTagsRoute
   AuthTalentsRoute: typeof AuthTalentsRoute
   AuthXpRoute: typeof AuthXpRoute
+  AuthCharactersCharacterIdRoute: typeof AuthCharactersCharacterIdRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -611,6 +632,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthTagsRoute: AuthTagsRoute,
   AuthTalentsRoute: AuthTalentsRoute,
   AuthXpRoute: AuthXpRoute,
+  AuthCharactersCharacterIdRoute: AuthCharactersCharacterIdRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

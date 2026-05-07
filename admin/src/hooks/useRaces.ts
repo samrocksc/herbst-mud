@@ -11,6 +11,7 @@ export type Race = Readonly<{
   stat_modifiers: Record<string, unknown> | null
   skill_grants: string[]
   ability_modifiers: string[]
+  equipment_slots: string[]
   is_playable: boolean
   color: string
 }>
@@ -20,6 +21,7 @@ export type RaceInput = Readonly<{
   display_name: string
   description: string
   stat_modifiers: string
+  equipment_slots: string[]
   is_playable: boolean
   color: string
 }>
@@ -31,6 +33,7 @@ function parseRaceForApi(input: RaceInput) {
     name: input.name,
     display_name: input.display_name || input.name,
     description: input.description,
+    equipment_slots: input.equipment_slots,
     is_playable: input.is_playable,
     color: input.color,
   }
