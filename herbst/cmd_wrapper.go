@@ -19,11 +19,16 @@ func (m *model) initCommands() {
 	m.commands.Register("profile", m.handleProfileCommand, "p")
 
 	// Action commands
+	m.commands.Register("inventory", m.handleInventoryWrapperCommand, "inv", "i")
 	m.commands.Register("equip", m.handleEquipWrapperCommand)
 	m.commands.Register("unequip", m.handleUnequipWrapperCommand)
 	m.commands.Register("loot", m.handleLootWrapperCommand)
 	m.commands.Register("clear", m.handleClearCommand, "cls")
 	m.commands.Register("quit", m.handleQuitCommand, "q")
+}
+
+func (m *model) handleInventoryWrapperCommand(_ *model, args []string) {
+	m.handleInventoryCommand()
 }
 
 func (m *model) handleEquipWrapperCommand(_ *model, args []string) {
