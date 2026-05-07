@@ -40,6 +40,8 @@ const (
 	FieldHiddenThreshold = "hidden_threshold"
 	// FieldRevealCondition holds the string denoting the revealcondition field in the database.
 	FieldRevealCondition = "reveal_condition"
+	// FieldEquipmentTemplateID holds the string denoting the equipment_template_id field in the database.
+	FieldEquipmentTemplateID = "equipment_template_id"
 	// FieldMinDamage holds the string denoting the mindamage field in the database.
 	FieldMinDamage = "min_damage"
 	// FieldMaxDamage holds the string denoting the maxdamage field in the database.
@@ -50,8 +52,32 @@ const (
 	FieldClassRestriction = "class_restriction"
 	// FieldGuaranteedDrop holds the string denoting the guaranteeddrop field in the database.
 	FieldGuaranteedDrop = "guaranteed_drop"
+	// FieldArmorRating holds the string denoting the armor_rating field in the database.
+	FieldArmorRating = "armor_rating"
+	// FieldArmorType holds the string denoting the armor_type field in the database.
+	FieldArmorType = "armor_type"
+	// FieldStats holds the string denoting the stats field in the database.
+	FieldStats = "stats"
+	// FieldRarity holds the string denoting the rarity field in the database.
+	FieldRarity = "rarity"
+	// FieldSkillRequirement holds the string denoting the skill_requirement field in the database.
+	FieldSkillRequirement = "skill_requirement"
+	// FieldSkillRequirementLevel holds the string denoting the skill_requirement_level field in the database.
+	FieldSkillRequirementLevel = "skill_requirement_level"
+	// FieldDamageDiceCount holds the string denoting the damage_dice_count field in the database.
+	FieldDamageDiceCount = "damage_dice_count"
+	// FieldDamageDiceSides holds the string denoting the damage_dice_sides field in the database.
+	FieldDamageDiceSides = "damage_dice_sides"
+	// FieldDamageBonus holds the string denoting the damage_bonus field in the database.
+	FieldDamageBonus = "damage_bonus"
+	// FieldDamageType holds the string denoting the damage_type field in the database.
+	FieldDamageType = "damage_type"
+	// FieldIsTwoHanded holds the string denoting the is_two_handed field in the database.
+	FieldIsTwoHanded = "is_two_handed"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
+	// EdgeEquipmentTemplate holds the string denoting the equipmenttemplate edge name in mutations.
+	EdgeEquipmentTemplate = "equipmentTemplate"
 	// Table holds the table name of the equipment in the database.
 	Table = "equipment"
 	// RoomTable is the table that holds the room relation/edge.
@@ -61,6 +87,13 @@ const (
 	RoomInverseTable = "rooms"
 	// RoomColumn is the table column denoting the room relation/edge.
 	RoomColumn = "room_equipment"
+	// EquipmentTemplateTable is the table that holds the equipmentTemplate relation/edge.
+	EquipmentTemplateTable = "equipment"
+	// EquipmentTemplateInverseTable is the table name for the EquipmentTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "equipmenttemplate" package.
+	EquipmentTemplateInverseTable = "equipment_templates"
+	// EquipmentTemplateColumn is the table column denoting the equipmentTemplate relation/edge.
+	EquipmentTemplateColumn = "equipment_template_id"
 )
 
 // Columns holds all SQL columns for equipment fields.
@@ -80,11 +113,23 @@ var Columns = []string{
 	FieldHiddenDetails,
 	FieldHiddenThreshold,
 	FieldRevealCondition,
+	FieldEquipmentTemplateID,
 	FieldMinDamage,
 	FieldMaxDamage,
 	FieldWeaponType,
 	FieldClassRestriction,
 	FieldGuaranteedDrop,
+	FieldArmorRating,
+	FieldArmorType,
+	FieldStats,
+	FieldRarity,
+	FieldSkillRequirement,
+	FieldSkillRequirementLevel,
+	FieldDamageDiceCount,
+	FieldDamageDiceSides,
+	FieldDamageBonus,
+	FieldDamageType,
+	FieldIsTwoHanded,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "equipment"
@@ -141,6 +186,28 @@ var (
 	DefaultClassRestriction string
 	// DefaultGuaranteedDrop holds the default value on creation for the "guaranteedDrop" field.
 	DefaultGuaranteedDrop bool
+	// DefaultArmorRating holds the default value on creation for the "armor_rating" field.
+	DefaultArmorRating int
+	// DefaultArmorType holds the default value on creation for the "armor_type" field.
+	DefaultArmorType string
+	// DefaultStats holds the default value on creation for the "stats" field.
+	DefaultStats map[string]int
+	// DefaultRarity holds the default value on creation for the "rarity" field.
+	DefaultRarity string
+	// DefaultSkillRequirement holds the default value on creation for the "skill_requirement" field.
+	DefaultSkillRequirement string
+	// DefaultSkillRequirementLevel holds the default value on creation for the "skill_requirement_level" field.
+	DefaultSkillRequirementLevel int
+	// DefaultDamageDiceCount holds the default value on creation for the "damage_dice_count" field.
+	DefaultDamageDiceCount int
+	// DefaultDamageDiceSides holds the default value on creation for the "damage_dice_sides" field.
+	DefaultDamageDiceSides int
+	// DefaultDamageBonus holds the default value on creation for the "damage_bonus" field.
+	DefaultDamageBonus int
+	// DefaultDamageType holds the default value on creation for the "damage_type" field.
+	DefaultDamageType string
+	// DefaultIsTwoHanded holds the default value on creation for the "is_two_handed" field.
+	DefaultIsTwoHanded bool
 )
 
 // OrderOption defines the ordering options for the Equipment queries.
@@ -216,6 +283,11 @@ func ByRevealCondition(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRevealCondition, opts...).ToFunc()
 }
 
+// ByEquipmentTemplateID orders the results by the equipment_template_id field.
+func ByEquipmentTemplateID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEquipmentTemplateID, opts...).ToFunc()
+}
+
 // ByMinDamage orders the results by the minDamage field.
 func ByMinDamage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMinDamage, opts...).ToFunc()
@@ -241,10 +313,67 @@ func ByGuaranteedDrop(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGuaranteedDrop, opts...).ToFunc()
 }
 
+// ByArmorRating orders the results by the armor_rating field.
+func ByArmorRating(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldArmorRating, opts...).ToFunc()
+}
+
+// ByArmorType orders the results by the armor_type field.
+func ByArmorType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldArmorType, opts...).ToFunc()
+}
+
+// ByRarity orders the results by the rarity field.
+func ByRarity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRarity, opts...).ToFunc()
+}
+
+// BySkillRequirement orders the results by the skill_requirement field.
+func BySkillRequirement(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillRequirement, opts...).ToFunc()
+}
+
+// BySkillRequirementLevel orders the results by the skill_requirement_level field.
+func BySkillRequirementLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillRequirementLevel, opts...).ToFunc()
+}
+
+// ByDamageDiceCount orders the results by the damage_dice_count field.
+func ByDamageDiceCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDamageDiceCount, opts...).ToFunc()
+}
+
+// ByDamageDiceSides orders the results by the damage_dice_sides field.
+func ByDamageDiceSides(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDamageDiceSides, opts...).ToFunc()
+}
+
+// ByDamageBonus orders the results by the damage_bonus field.
+func ByDamageBonus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDamageBonus, opts...).ToFunc()
+}
+
+// ByDamageType orders the results by the damage_type field.
+func ByDamageType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDamageType, opts...).ToFunc()
+}
+
+// ByIsTwoHanded orders the results by the is_two_handed field.
+func ByIsTwoHanded(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsTwoHanded, opts...).ToFunc()
+}
+
 // ByRoomField orders the results by room field.
 func ByRoomField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newRoomStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByEquipmentTemplateField orders the results by equipmentTemplate field.
+func ByEquipmentTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEquipmentTemplateStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newRoomStep() *sqlgraph.Step {
@@ -252,5 +381,12 @@ func newRoomStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RoomInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+	)
+}
+func newEquipmentTemplateStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EquipmentTemplateInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, EquipmentTemplateTable, EquipmentTemplateColumn),
 	)
 }

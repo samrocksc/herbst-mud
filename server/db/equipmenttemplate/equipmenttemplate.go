@@ -50,6 +50,28 @@ const (
 	FieldRevealCondition = "reveal_condition"
 	// FieldExpiresAt holds the string denoting the expires_at field in the database.
 	FieldExpiresAt = "expires_at"
+	// FieldArmorRating holds the string denoting the armor_rating field in the database.
+	FieldArmorRating = "armor_rating"
+	// FieldArmorType holds the string denoting the armor_type field in the database.
+	FieldArmorType = "armor_type"
+	// FieldRarity holds the string denoting the rarity field in the database.
+	FieldRarity = "rarity"
+	// FieldSkillRequirement holds the string denoting the skill_requirement field in the database.
+	FieldSkillRequirement = "skill_requirement"
+	// FieldSkillRequirementLevel holds the string denoting the skill_requirement_level field in the database.
+	FieldSkillRequirementLevel = "skill_requirement_level"
+	// FieldDamageDiceCount holds the string denoting the damage_dice_count field in the database.
+	FieldDamageDiceCount = "damage_dice_count"
+	// FieldDamageDiceSides holds the string denoting the damage_dice_sides field in the database.
+	FieldDamageDiceSides = "damage_dice_sides"
+	// FieldDamageBonus holds the string denoting the damage_bonus field in the database.
+	FieldDamageBonus = "damage_bonus"
+	// FieldDamageType holds the string denoting the damage_type field in the database.
+	FieldDamageType = "damage_type"
+	// FieldWeaponType holds the string denoting the weapon_type field in the database.
+	FieldWeaponType = "weapon_type"
+	// FieldIsTwoHanded holds the string denoting the is_two_handed field in the database.
+	FieldIsTwoHanded = "is_two_handed"
 	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
 	EdgeEquipment = "equipment"
 	// Table holds the table name of the equipmenttemplate in the database.
@@ -85,6 +107,17 @@ var Columns = []string{
 	FieldKeyItemID,
 	FieldRevealCondition,
 	FieldExpiresAt,
+	FieldArmorRating,
+	FieldArmorType,
+	FieldRarity,
+	FieldSkillRequirement,
+	FieldSkillRequirementLevel,
+	FieldDamageDiceCount,
+	FieldDamageDiceSides,
+	FieldDamageBonus,
+	FieldDamageType,
+	FieldWeaponType,
+	FieldIsTwoHanded,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -124,6 +157,28 @@ var (
 	DefaultIsLocked bool
 	// DefaultRevealCondition holds the default value on creation for the "reveal_condition" field.
 	DefaultRevealCondition string
+	// DefaultArmorRating holds the default value on creation for the "armor_rating" field.
+	DefaultArmorRating int
+	// DefaultArmorType holds the default value on creation for the "armor_type" field.
+	DefaultArmorType string
+	// DefaultRarity holds the default value on creation for the "rarity" field.
+	DefaultRarity string
+	// DefaultSkillRequirement holds the default value on creation for the "skill_requirement" field.
+	DefaultSkillRequirement string
+	// DefaultSkillRequirementLevel holds the default value on creation for the "skill_requirement_level" field.
+	DefaultSkillRequirementLevel int
+	// DefaultDamageDiceCount holds the default value on creation for the "damage_dice_count" field.
+	DefaultDamageDiceCount int
+	// DefaultDamageDiceSides holds the default value on creation for the "damage_dice_sides" field.
+	DefaultDamageDiceSides int
+	// DefaultDamageBonus holds the default value on creation for the "damage_bonus" field.
+	DefaultDamageBonus int
+	// DefaultDamageType holds the default value on creation for the "damage_type" field.
+	DefaultDamageType string
+	// DefaultWeaponType holds the default value on creation for the "weapon_type" field.
+	DefaultWeaponType string
+	// DefaultIsTwoHanded holds the default value on creation for the "is_two_handed" field.
+	DefaultIsTwoHanded bool
 )
 
 // OrderOption defines the ordering options for the EquipmentTemplate queries.
@@ -222,6 +277,61 @@ func ByRevealCondition(opts ...sql.OrderTermOption) OrderOption {
 // ByExpiresAt orders the results by the expires_at field.
 func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
+}
+
+// ByArmorRating orders the results by the armor_rating field.
+func ByArmorRating(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldArmorRating, opts...).ToFunc()
+}
+
+// ByArmorType orders the results by the armor_type field.
+func ByArmorType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldArmorType, opts...).ToFunc()
+}
+
+// ByRarity orders the results by the rarity field.
+func ByRarity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRarity, opts...).ToFunc()
+}
+
+// BySkillRequirement orders the results by the skill_requirement field.
+func BySkillRequirement(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillRequirement, opts...).ToFunc()
+}
+
+// BySkillRequirementLevel orders the results by the skill_requirement_level field.
+func BySkillRequirementLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkillRequirementLevel, opts...).ToFunc()
+}
+
+// ByDamageDiceCount orders the results by the damage_dice_count field.
+func ByDamageDiceCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDamageDiceCount, opts...).ToFunc()
+}
+
+// ByDamageDiceSides orders the results by the damage_dice_sides field.
+func ByDamageDiceSides(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDamageDiceSides, opts...).ToFunc()
+}
+
+// ByDamageBonus orders the results by the damage_bonus field.
+func ByDamageBonus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDamageBonus, opts...).ToFunc()
+}
+
+// ByDamageType orders the results by the damage_type field.
+func ByDamageType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDamageType, opts...).ToFunc()
+}
+
+// ByWeaponType orders the results by the weapon_type field.
+func ByWeaponType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWeaponType, opts...).ToFunc()
+}
+
+// ByIsTwoHanded orders the results by the is_two_handed field.
+func ByIsTwoHanded(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsTwoHanded, opts...).ToFunc()
 }
 
 // ByEquipmentCount orders the results by equipment count.

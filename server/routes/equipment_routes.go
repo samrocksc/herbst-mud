@@ -45,6 +45,19 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			RevealCondition map[string]any `json:"revealCondition"`
 			// Corpse rotting (GitHub #22)
 			ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+			// Combat fields (EQUIP-002)
+			ArmorRating           int            `json:"armor_rating"`
+			ArmorType             string         `json:"armor_type"`
+			Stats                 map[string]int `json:"stats"`
+			Rarity                string         `json:"rarity"`
+			SkillRequirement      string         `json:"skill_requirement"`
+			SkillRequirementLevel int            `json:"skill_requirement_level"`
+			DamageDiceCount       int            `json:"damage_dice_count"`
+			DamageDiceSides       int            `json:"damage_dice_sides"`
+			DamageBonus           int            `json:"damage_bonus"`
+			DamageType            string         `json:"damage_type"`
+			WeaponType            string         `json:"weapon_type"`
+			IsTwoHanded           bool           `json:"is_two_handed"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -92,6 +105,32 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 		if req.ExpiresAt != nil {
 			builder.SetExpiresAt(*req.ExpiresAt)
 		}
+
+		// Set combat fields (EQUIP-002)
+		builder.SetArmorRating(req.ArmorRating)
+		if req.ArmorType != "" {
+			builder.SetArmorType(req.ArmorType)
+		}
+		if req.Stats != nil {
+			builder.SetStats(req.Stats)
+		}
+		if req.Rarity != "" {
+			builder.SetRarity(req.Rarity)
+		}
+		if req.SkillRequirement != "" {
+			builder.SetSkillRequirement(req.SkillRequirement)
+		}
+		builder.SetSkillRequirementLevel(req.SkillRequirementLevel)
+		builder.SetDamageDiceCount(req.DamageDiceCount)
+		builder.SetDamageDiceSides(req.DamageDiceSides)
+		builder.SetDamageBonus(req.DamageBonus)
+		if req.DamageType != "" {
+			builder.SetDamageType(req.DamageType)
+		}
+		if req.WeaponType != "" {
+			builder.SetWeaponType(req.WeaponType)
+		}
+		builder.SetIsTwoHanded(req.IsTwoHanded)
 
 		eq, err := builder.Save(c.Request.Context())
 		if err != nil {
@@ -157,6 +196,18 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			Healing         int            `json:"healing"`
 			Effect          string         `json:"effect"`
 			RevealCondition map[string]any `json:"revealCondition,omitempty"`
+			ArmorRating           int            `json:"armor_rating"`
+			ArmorType             string         `json:"armor_type"`
+			Stats                 map[string]int `json:"stats,omitempty"`
+			Rarity                string         `json:"rarity"`
+			SkillRequirement      string         `json:"skill_requirement"`
+			SkillRequirementLevel int            `json:"skill_requirement_level"`
+			DamageDiceCount       int            `json:"damage_dice_count"`
+			DamageDiceSides       int            `json:"damage_dice_sides"`
+			DamageBonus           int            `json:"damage_bonus"`
+			DamageType            string         `json:"damage_type"`
+			WeaponType            string         `json:"weapon_type"`
+			IsTwoHanded           bool           `json:"is_two_handed"`
 		}
 
 		result := make([]EqWithReveal, len(items))
@@ -282,6 +333,18 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			ItemType        string         `json:"itemType"`
 			OwnerID         *int           `json:"ownerId,omitempty"`
 			RevealCondition map[string]any `json:"revealCondition,omitempty"`
+			ArmorRating           int            `json:"armor_rating"`
+			ArmorType             string         `json:"armor_type"`
+			Stats                 map[string]int `json:"stats,omitempty"`
+			Rarity                string         `json:"rarity"`
+			SkillRequirement      string         `json:"skill_requirement"`
+			SkillRequirementLevel int            `json:"skill_requirement_level"`
+			DamageDiceCount       int            `json:"damage_dice_count"`
+			DamageDiceSides       int            `json:"damage_dice_sides"`
+			DamageBonus           int            `json:"damage_bonus"`
+			DamageType            string         `json:"damage_type"`
+			WeaponType            string         `json:"weapon_type"`
+			IsTwoHanded           bool           `json:"is_two_handed"`
 		}
 
 		result := EqWithReveal{
@@ -297,6 +360,18 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			IsVisible:   eq.IsVisible,
 			ItemType:    eq.ItemType,
 			OwnerID:     eq.OwnerId,
+			ArmorRating:           eq.ArmorRating,
+			ArmorType:             eq.ArmorType,
+			Stats:                 eq.Stats,
+			Rarity:                eq.Rarity,
+			SkillRequirement:      eq.SkillRequirement,
+			SkillRequirementLevel: eq.SkillRequirementLevel,
+			DamageDiceCount:       eq.DamageDiceCount,
+			DamageDiceSides:       eq.DamageDiceSides,
+			DamageBonus:           eq.DamageBonus,
+			DamageType:            eq.DamageType,
+			WeaponType:            eq.WeaponType,
+			IsTwoHanded:           eq.IsTwoHanded,
 		}
 
 		revealMutex.RLock()
@@ -332,6 +407,19 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			RevealCondition map[string]any `json:"revealCondition"`
 			// Corpse rotting (GitHub #22)
 			ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+			// Combat fields (EQUIP-002)
+			ArmorRating           *int            `json:"armor_rating"`
+			ArmorType             *string         `json:"armor_type"`
+			Stats                 map[string]int `json:"stats"`
+			Rarity                *string         `json:"rarity"`
+			SkillRequirement      *string         `json:"skill_requirement"`
+			SkillRequirementLevel *int            `json:"skill_requirement_level"`
+			DamageDiceCount       *int            `json:"damage_dice_count"`
+			DamageDiceSides       *int            `json:"damage_dice_sides"`
+			DamageBonus           *int            `json:"damage_bonus"`
+			DamageType            *string         `json:"damage_type"`
+			WeaponType            *string         `json:"weapon_type"`
+			IsTwoHanded           *bool           `json:"is_two_handed"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -385,6 +473,44 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 		// Update expiry time (GitHub #22)
 		if req.ExpiresAt != nil {
 			updater.SetExpiresAt(*req.ExpiresAt)
+		}
+
+		// Update combat fields (EQUIP-002)
+		if req.ArmorRating != nil {
+			updater.SetArmorRating(*req.ArmorRating)
+		}
+		if req.ArmorType != nil {
+			updater.SetArmorType(*req.ArmorType)
+		}
+		if req.Stats != nil {
+			updater.SetStats(req.Stats)
+		}
+		if req.Rarity != nil {
+			updater.SetRarity(*req.Rarity)
+		}
+		if req.SkillRequirement != nil {
+			updater.SetSkillRequirement(*req.SkillRequirement)
+		}
+		if req.SkillRequirementLevel != nil {
+			updater.SetSkillRequirementLevel(*req.SkillRequirementLevel)
+		}
+		if req.DamageDiceCount != nil {
+			updater.SetDamageDiceCount(*req.DamageDiceCount)
+		}
+		if req.DamageDiceSides != nil {
+			updater.SetDamageDiceSides(*req.DamageDiceSides)
+		}
+		if req.DamageBonus != nil {
+			updater.SetDamageBonus(*req.DamageBonus)
+		}
+		if req.DamageType != nil {
+			updater.SetDamageType(*req.DamageType)
+		}
+		if req.WeaponType != nil {
+			updater.SetWeaponType(*req.WeaponType)
+		}
+		if req.IsTwoHanded != nil {
+			updater.SetIsTwoHanded(*req.IsTwoHanded)
 		}
 
 		// Update reveal condition in memory (GitHub #12)

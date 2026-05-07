@@ -114,6 +114,18 @@ var (
 		{Name: "weapon_type", Type: field.TypeString, Default: ""},
 		{Name: "class_restriction", Type: field.TypeString, Default: ""},
 		{Name: "guaranteed_drop", Type: field.TypeBool, Default: false},
+		{Name: "armor_rating", Type: field.TypeInt, Default: 0},
+		{Name: "armor_type", Type: field.TypeString, Default: ""},
+		{Name: "stats", Type: field.TypeJSON},
+		{Name: "rarity", Type: field.TypeString, Default: "common"},
+		{Name: "skill_requirement", Type: field.TypeString, Default: ""},
+		{Name: "skill_requirement_level", Type: field.TypeInt, Default: 0},
+		{Name: "damage_dice_count", Type: field.TypeInt, Default: 0},
+		{Name: "damage_dice_sides", Type: field.TypeInt, Default: 0},
+		{Name: "damage_bonus", Type: field.TypeInt, Default: 0},
+		{Name: "damage_type", Type: field.TypeString, Default: ""},
+		{Name: "is_two_handed", Type: field.TypeBool, Default: false},
+		{Name: "equipment_template_id", Type: field.TypeString, Nullable: true},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -123,12 +135,57 @@ var (
 		PrimaryKey: []*schema.Column{EquipmentColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "equipment_equipment_templates_equipment",
+				Columns:    []*schema.Column{EquipmentColumns[31]},
+				RefColumns: []*schema.Column{EquipmentTemplatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[20]},
+				Columns:    []*schema.Column{EquipmentColumns[32]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// EquipmentTemplatesColumns holds the columns for the "equipment_templates" table.
+	EquipmentTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "slot", Type: field.TypeString},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "weight", Type: field.TypeInt, Default: 0},
+		{Name: "item_type", Type: field.TypeString, Default: "misc"},
+		{Name: "stats", Type: field.TypeJSON, Nullable: true},
+		{Name: "color", Type: field.TypeString, Default: ""},
+		{Name: "is_visible", Type: field.TypeBool, Default: true},
+		{Name: "is_immovable", Type: field.TypeBool, Default: false},
+		{Name: "effect_type", Type: field.TypeString, Default: ""},
+		{Name: "effect_value", Type: field.TypeInt, Default: 0},
+		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
+		{Name: "is_container", Type: field.TypeBool, Default: false},
+		{Name: "container_capacity", Type: field.TypeInt, Default: 0},
+		{Name: "is_locked", Type: field.TypeBool, Default: false},
+		{Name: "key_item_id", Type: field.TypeString, Nullable: true},
+		{Name: "reveal_condition", Type: field.TypeString, Default: ""},
+		{Name: "armor_rating", Type: field.TypeInt, Default: 0},
+		{Name: "armor_type", Type: field.TypeString, Default: ""},
+		{Name: "rarity", Type: field.TypeString, Default: "common"},
+		{Name: "skill_requirement", Type: field.TypeString, Default: ""},
+		{Name: "skill_requirement_level", Type: field.TypeInt, Default: 0},
+		{Name: "damage_dice_count", Type: field.TypeInt, Default: 0},
+		{Name: "damage_dice_sides", Type: field.TypeInt, Default: 0},
+		{Name: "damage_bonus", Type: field.TypeInt, Default: 0},
+		{Name: "damage_type", Type: field.TypeString, Default: ""},
+		{Name: "weapon_type", Type: field.TypeString, Default: ""},
+		{Name: "is_two_handed", Type: field.TypeBool, Default: false},
+	}
+	// EquipmentTemplatesTable holds the schema information for the "equipment_templates" table.
+	EquipmentTemplatesTable = &schema.Table{
+		Name:       "equipment_templates",
+		Columns:    EquipmentTemplatesColumns,
+		PrimaryKey: []*schema.Column{EquipmentTemplatesColumns[0]},
 	}
 	// NpcTemplatesColumns holds the columns for the "npc_templates" table.
 	NpcTemplatesColumns = []*schema.Column{
@@ -147,6 +204,24 @@ var (
 		Name:       "npc_templates",
 		Columns:    NpcTemplatesColumns,
 		PrimaryKey: []*schema.Column{NpcTemplatesColumns[0]},
+	}
+	// RacesColumns holds the columns for the "races" table.
+	RacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
+		{Name: "stat_modifiers", Type: field.TypeString, Nullable: true},
+		{Name: "skill_grants", Type: field.TypeString, Nullable: true},
+		{Name: "equipment_slots", Type: field.TypeJSON},
+		{Name: "is_playable", Type: field.TypeBool, Default: true},
+		{Name: "color", Type: field.TypeString, Nullable: true},
+	}
+	// RacesTable holds the schema information for the "races" table.
+	RacesTable = &schema.Table{
+		Name:       "races",
+		Columns:    RacesColumns,
+		PrimaryKey: []*schema.Column{RacesColumns[0]},
 	}
 	// RoomsColumns holds the columns for the "rooms" table.
 	RoomsColumns = []*schema.Column{
@@ -217,7 +292,9 @@ var (
 	Tables = []*schema.Table{
 		CharactersTable,
 		EquipmentTable,
+		EquipmentTemplatesTable,
 		NpcTemplatesTable,
+		RacesTable,
 		RoomsTable,
 		SkillsTable,
 		TalentsTable,
@@ -232,5 +309,6 @@ func init() {
 	CharactersTable.ForeignKeys[3].RefTable = SkillsTable
 	CharactersTable.ForeignKeys[4].RefTable = TalentsTable
 	CharactersTable.ForeignKeys[5].RefTable = UsersTable
-	EquipmentTable.ForeignKeys[0].RefTable = RoomsTable
+	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTemplatesTable
+	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
 }

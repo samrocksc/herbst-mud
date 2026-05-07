@@ -32,6 +32,18 @@ func (f EquipmentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EquipmentMutation", m)
 }
 
+// The EquipmentTemplateFunc type is an adapter to allow the use of ordinary
+// function as EquipmentTemplate mutator.
+type EquipmentTemplateFunc func(context.Context, *db.EquipmentTemplateMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EquipmentTemplateFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.EquipmentTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EquipmentTemplateMutation", m)
+}
+
 // The NPCTemplateFunc type is an adapter to allow the use of ordinary
 // function as NPCTemplate mutator.
 type NPCTemplateFunc func(context.Context, *db.NPCTemplateMutation) (db.Value, error)
@@ -42,6 +54,18 @@ func (f NPCTemplateFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, e
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.NPCTemplateMutation", m)
+}
+
+// The RaceFunc type is an adapter to allow the use of ordinary
+// function as Race mutator.
+type RaceFunc func(context.Context, *db.RaceMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RaceFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.RaceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RaceMutation", m)
 }
 
 // The RoomFunc type is an adapter to allow the use of ordinary

@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -109,6 +110,18 @@ func (_u *RaceUpdate) ClearSkillGrants() *RaceUpdate {
 	return _u
 }
 
+// SetEquipmentSlots sets the "equipment_slots" field.
+func (_u *RaceUpdate) SetEquipmentSlots(v []string) *RaceUpdate {
+	_u.mutation.SetEquipmentSlots(v)
+	return _u
+}
+
+// AppendEquipmentSlots appends value to the "equipment_slots" field.
+func (_u *RaceUpdate) AppendEquipmentSlots(v []string) *RaceUpdate {
+	_u.mutation.AppendEquipmentSlots(v)
+	return _u
+}
+
 // SetIsPlayable sets the "is_playable" field.
 func (_u *RaceUpdate) SetIsPlayable(v bool) *RaceUpdate {
 	_u.mutation.SetIsPlayable(v)
@@ -204,6 +217,14 @@ func (_u *RaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.SkillGrantsCleared() {
 		_spec.ClearField(race.FieldSkillGrants, field.TypeString)
+	}
+	if value, ok := _u.mutation.EquipmentSlots(); ok {
+		_spec.SetField(race.FieldEquipmentSlots, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedEquipmentSlots(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, race.FieldEquipmentSlots, value)
+		})
 	}
 	if value, ok := _u.mutation.IsPlayable(); ok {
 		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)
@@ -313,6 +334,18 @@ func (_u *RaceUpdateOne) SetNillableSkillGrants(v *string) *RaceUpdateOne {
 // ClearSkillGrants clears the value of the "skill_grants" field.
 func (_u *RaceUpdateOne) ClearSkillGrants() *RaceUpdateOne {
 	_u.mutation.ClearSkillGrants()
+	return _u
+}
+
+// SetEquipmentSlots sets the "equipment_slots" field.
+func (_u *RaceUpdateOne) SetEquipmentSlots(v []string) *RaceUpdateOne {
+	_u.mutation.SetEquipmentSlots(v)
+	return _u
+}
+
+// AppendEquipmentSlots appends value to the "equipment_slots" field.
+func (_u *RaceUpdateOne) AppendEquipmentSlots(v []string) *RaceUpdateOne {
+	_u.mutation.AppendEquipmentSlots(v)
 	return _u
 }
 
@@ -441,6 +474,14 @@ func (_u *RaceUpdateOne) sqlSave(ctx context.Context) (_node *Race, err error) {
 	}
 	if _u.mutation.SkillGrantsCleared() {
 		_spec.ClearField(race.FieldSkillGrants, field.TypeString)
+	}
+	if value, ok := _u.mutation.EquipmentSlots(); ok {
+		_spec.SetField(race.FieldEquipmentSlots, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedEquipmentSlots(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, race.FieldEquipmentSlots, value)
+		})
 	}
 	if value, ok := _u.mutation.IsPlayable(); ok {
 		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)

@@ -58,6 +58,19 @@ type itemInstanceView struct {
 	KeyItemID           string `json:"keyItemID"`
 	ContainedItems      string `json:"containedItems"`
 	RevealCondition     string `json:"revealCondition"`
+	// Combat fields (EQUIP-002)
+	ArmorRating           int            `json:"armor_rating"`
+	ArmorType             string         `json:"armor_type"`
+	Stats                 map[string]int `json:"stats,omitempty"`
+	Rarity                string         `json:"rarity"`
+	SkillRequirement      string         `json:"skill_requirement"`
+	SkillRequirementLevel int            `json:"skill_requirement_level"`
+	DamageDiceCount       int            `json:"damage_dice_count"`
+	DamageDiceSides       int            `json:"damage_dice_sides"`
+	DamageBonus           int            `json:"damage_bonus"`
+	DamageType            string         `json:"damage_type"`
+	WeaponType            string         `json:"weapon_type"`
+	IsTwoHanded           bool           `json:"is_two_handed"`
 }
 
 func toItemInstanceView(e *db.Equipment) itemInstanceView {
@@ -86,6 +99,19 @@ func toItemInstanceView(e *db.Equipment) itemInstanceView {
 		KeyItemID:           e.KeyItemID,
 		ContainedItems:      e.ContainedItems,
 		RevealCondition:     e.RevealCondition,
+		// Combat fields (EQUIP-002)
+		ArmorRating:           e.ArmorRating,
+		ArmorType:             e.ArmorType,
+		Stats:                 e.Stats,
+		Rarity:                e.Rarity,
+		SkillRequirement:      e.SkillRequirement,
+		SkillRequirementLevel: e.SkillRequirementLevel,
+		DamageDiceCount:       e.DamageDiceCount,
+		DamageDiceSides:       e.DamageDiceSides,
+		DamageBonus:           e.DamageBonus,
+		DamageType:            e.DamageType,
+		WeaponType:            e.WeaponType,
+		IsTwoHanded:           e.IsTwoHanded,
 	}
 	if r, err := e.QueryRoom().Only(context.TODO()); err == nil {
 		v.RoomID = r.ID
@@ -162,8 +188,21 @@ func createItemInstance(client *db.Client) gin.HandlerFunc {
 			IsLocked            bool   `json:"isLocked"`
 			KeyItemID           string `json:"keyItemID"`
 			ContainedItems      string `json:"containedItems"`
-			RevealCondition     string `json:"revealCondition"`
-			RoomID              int    `json:"room_id"`
+			RevealCondition     string         `json:"revealCondition"`
+			RoomID              int            `json:"room_id"`
+			// Combat fields (EQUIP-002)
+			ArmorRating           int            `json:"armor_rating"`
+			ArmorType             string         `json:"armor_type"`
+			Stats                 map[string]int `json:"stats"`
+			Rarity                string         `json:"rarity"`
+			SkillRequirement      string         `json:"skill_requirement"`
+			SkillRequirementLevel int            `json:"skill_requirement_level"`
+			DamageDiceCount       int            `json:"damage_dice_count"`
+			DamageDiceSides       int            `json:"damage_dice_sides"`
+			DamageBonus           int            `json:"damage_bonus"`
+			DamageType            string         `json:"damage_type"`
+			WeaponType            string         `json:"weapon_type"`
+			IsTwoHanded           bool           `json:"is_two_handed"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -223,6 +262,19 @@ func createItemInstance(client *db.Client) gin.HandlerFunc {
 			builder.SetIsContainer(tmpl.IsContainer)
 			builder.SetContainerCapacity(tmpl.ContainerCapacity)
 			builder.SetIsLocked(tmpl.IsLocked)
+			// Copy combat fields from template (EQUIP-002)
+			builder.SetArmorRating(tmpl.ArmorRating)
+			builder.SetArmorType(tmpl.ArmorType)
+			builder.SetStats(tmpl.Stats)
+			builder.SetRarity(tmpl.Rarity)
+			builder.SetSkillRequirement(tmpl.SkillRequirement)
+			builder.SetSkillRequirementLevel(tmpl.SkillRequirementLevel)
+			builder.SetDamageDiceCount(tmpl.DamageDiceCount)
+			builder.SetDamageDiceSides(tmpl.DamageDiceSides)
+			builder.SetDamageBonus(tmpl.DamageBonus)
+			builder.SetDamageType(tmpl.DamageType)
+			builder.SetWeaponType(tmpl.WeaponType)
+			builder.SetIsTwoHanded(tmpl.IsTwoHanded)
 		} else {
 			// Bare item — name is required
 			if req.Name == "" {
@@ -244,6 +296,31 @@ func createItemInstance(client *db.Client) gin.HandlerFunc {
 			builder.SetIsContainer(req.IsContainer)
 			builder.SetContainerCapacity(req.ContainerCapacity)
 			builder.SetIsLocked(req.IsLocked)
+			// Set combat fields for bare items (EQUIP-002)
+			builder.SetArmorRating(req.ArmorRating)
+			if req.ArmorType != "" {
+				builder.SetArmorType(req.ArmorType)
+			}
+			if req.Stats != nil {
+				builder.SetStats(req.Stats)
+			}
+			if req.Rarity != "" {
+				builder.SetRarity(req.Rarity)
+			}
+			if req.SkillRequirement != "" {
+				builder.SetSkillRequirement(req.SkillRequirement)
+			}
+			builder.SetSkillRequirementLevel(req.SkillRequirementLevel)
+			builder.SetDamageDiceCount(req.DamageDiceCount)
+			builder.SetDamageDiceSides(req.DamageDiceSides)
+			builder.SetDamageBonus(req.DamageBonus)
+			if req.DamageType != "" {
+				builder.SetDamageType(req.DamageType)
+			}
+			if req.WeaponType != "" {
+				builder.SetWeaponType(req.WeaponType)
+			}
+			builder.SetIsTwoHanded(req.IsTwoHanded)
 		}
 
 		// Apply explicit overrides common to both paths
@@ -332,7 +409,20 @@ func updateItemInstance(client *db.Client) gin.HandlerFunc {
 			IsLocked          *bool   `json:"isLocked"`
 			KeyItemID         *string `json:"keyItemID"`
 			ContainedItems    *string `json:"containedItems"`
-			RevealCondition   *string `json:"revealCondition"`
+			RevealCondition   *string         `json:"revealCondition"`
+			// Combat fields (EQUIP-002)
+			ArmorRating           *int            `json:"armor_rating"`
+			ArmorType             *string         `json:"armor_type"`
+			Stats                 map[string]int `json:"stats"`
+			Rarity                *string         `json:"rarity"`
+			SkillRequirement      *string         `json:"skill_requirement"`
+			SkillRequirementLevel *int            `json:"skill_requirement_level"`
+			DamageDiceCount       *int            `json:"damage_dice_count"`
+			DamageDiceSides       *int            `json:"damage_dice_sides"`
+			DamageBonus           *int            `json:"damage_bonus"`
+			DamageType            *string         `json:"damage_type"`
+			WeaponType            *string         `json:"weapon_type"`
+			IsTwoHanded           *bool           `json:"is_two_handed"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -510,6 +600,18 @@ func getEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 			"key_item_id":         t.KeyItemID,
 			"reveal_condition":    t.RevealCondition,
 			"expires_at":          t.ExpiresAt,
+			// Combat fields (EQUIP-002)
+			"armor_rating":            t.ArmorRating,
+			"armor_type":              t.ArmorType,
+			"rarity":                  t.Rarity,
+			"skill_requirement":       t.SkillRequirement,
+			"skill_requirement_level": t.SkillRequirementLevel,
+			"damage_dice_count":       t.DamageDiceCount,
+			"damage_dice_sides":       t.DamageDiceSides,
+			"damage_bonus":            t.DamageBonus,
+			"damage_type":             t.DamageType,
+			"weapon_type":             t.WeaponType,
+			"is_two_handed":           t.IsTwoHanded,
 		})
 	}
 }

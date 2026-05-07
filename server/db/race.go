@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"herbst-server/db/race"
 	"strings"
@@ -26,6 +27,8 @@ type Race struct {
 	StatModifiers string `json:"stat_modifiers,omitempty"`
 	// JSON array: ["swim", "shell_defense"]
 	SkillGrants string `json:"skill_grants,omitempty"`
+	// Slots this race can equip: ["head","chest",...]
+	EquipmentSlots []string `json:"equipment_slots,omitempty"`
 	// false = NPC-only race
 	IsPlayable bool `json:"is_playable,omitempty"`
 	// Hex color for UI display, e.g. '#8b5cf6'
@@ -38,6 +41,8 @@ func (*Race) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case race.FieldEquipmentSlots:
+			values[i] = new([]byte)
 		case race.FieldIsPlayable:
 			values[i] = new(sql.NullBool)
 		case race.FieldID:
@@ -94,6 +99,14 @@ func (_m *Race) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field skill_grants", values[i])
 			} else if value.Valid {
 				_m.SkillGrants = value.String
+			}
+		case race.FieldEquipmentSlots:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field equipment_slots", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.EquipmentSlots); err != nil {
+					return fmt.Errorf("unmarshal field equipment_slots: %w", err)
+				}
 			}
 		case race.FieldIsPlayable:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -157,6 +170,9 @@ func (_m *Race) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("skill_grants=")
 	builder.WriteString(_m.SkillGrants)
+	builder.WriteString(", ")
+	builder.WriteString("equipment_slots=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EquipmentSlots))
 	builder.WriteString(", ")
 	builder.WriteString("is_playable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsPlayable))

@@ -340,6 +340,195 @@ func (_u *EquipmentTemplateUpdate) ClearExpiresAt() *EquipmentTemplateUpdate {
 	return _u
 }
 
+// SetArmorRating sets the "armor_rating" field.
+func (_u *EquipmentTemplateUpdate) SetArmorRating(v int) *EquipmentTemplateUpdate {
+	_u.mutation.ResetArmorRating()
+	_u.mutation.SetArmorRating(v)
+	return _u
+}
+
+// SetNillableArmorRating sets the "armor_rating" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableArmorRating(v *int) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetArmorRating(*v)
+	}
+	return _u
+}
+
+// AddArmorRating adds value to the "armor_rating" field.
+func (_u *EquipmentTemplateUpdate) AddArmorRating(v int) *EquipmentTemplateUpdate {
+	_u.mutation.AddArmorRating(v)
+	return _u
+}
+
+// SetArmorType sets the "armor_type" field.
+func (_u *EquipmentTemplateUpdate) SetArmorType(v string) *EquipmentTemplateUpdate {
+	_u.mutation.SetArmorType(v)
+	return _u
+}
+
+// SetNillableArmorType sets the "armor_type" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableArmorType(v *string) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetArmorType(*v)
+	}
+	return _u
+}
+
+// SetRarity sets the "rarity" field.
+func (_u *EquipmentTemplateUpdate) SetRarity(v string) *EquipmentTemplateUpdate {
+	_u.mutation.SetRarity(v)
+	return _u
+}
+
+// SetNillableRarity sets the "rarity" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableRarity(v *string) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetRarity(*v)
+	}
+	return _u
+}
+
+// SetSkillRequirement sets the "skill_requirement" field.
+func (_u *EquipmentTemplateUpdate) SetSkillRequirement(v string) *EquipmentTemplateUpdate {
+	_u.mutation.SetSkillRequirement(v)
+	return _u
+}
+
+// SetNillableSkillRequirement sets the "skill_requirement" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableSkillRequirement(v *string) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetSkillRequirement(*v)
+	}
+	return _u
+}
+
+// SetSkillRequirementLevel sets the "skill_requirement_level" field.
+func (_u *EquipmentTemplateUpdate) SetSkillRequirementLevel(v int) *EquipmentTemplateUpdate {
+	_u.mutation.ResetSkillRequirementLevel()
+	_u.mutation.SetSkillRequirementLevel(v)
+	return _u
+}
+
+// SetNillableSkillRequirementLevel sets the "skill_requirement_level" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableSkillRequirementLevel(v *int) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetSkillRequirementLevel(*v)
+	}
+	return _u
+}
+
+// AddSkillRequirementLevel adds value to the "skill_requirement_level" field.
+func (_u *EquipmentTemplateUpdate) AddSkillRequirementLevel(v int) *EquipmentTemplateUpdate {
+	_u.mutation.AddSkillRequirementLevel(v)
+	return _u
+}
+
+// SetDamageDiceCount sets the "damage_dice_count" field.
+func (_u *EquipmentTemplateUpdate) SetDamageDiceCount(v int) *EquipmentTemplateUpdate {
+	_u.mutation.ResetDamageDiceCount()
+	_u.mutation.SetDamageDiceCount(v)
+	return _u
+}
+
+// SetNillableDamageDiceCount sets the "damage_dice_count" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableDamageDiceCount(v *int) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetDamageDiceCount(*v)
+	}
+	return _u
+}
+
+// AddDamageDiceCount adds value to the "damage_dice_count" field.
+func (_u *EquipmentTemplateUpdate) AddDamageDiceCount(v int) *EquipmentTemplateUpdate {
+	_u.mutation.AddDamageDiceCount(v)
+	return _u
+}
+
+// SetDamageDiceSides sets the "damage_dice_sides" field.
+func (_u *EquipmentTemplateUpdate) SetDamageDiceSides(v int) *EquipmentTemplateUpdate {
+	_u.mutation.ResetDamageDiceSides()
+	_u.mutation.SetDamageDiceSides(v)
+	return _u
+}
+
+// SetNillableDamageDiceSides sets the "damage_dice_sides" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableDamageDiceSides(v *int) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetDamageDiceSides(*v)
+	}
+	return _u
+}
+
+// AddDamageDiceSides adds value to the "damage_dice_sides" field.
+func (_u *EquipmentTemplateUpdate) AddDamageDiceSides(v int) *EquipmentTemplateUpdate {
+	_u.mutation.AddDamageDiceSides(v)
+	return _u
+}
+
+// SetDamageBonus sets the "damage_bonus" field.
+func (_u *EquipmentTemplateUpdate) SetDamageBonus(v int) *EquipmentTemplateUpdate {
+	_u.mutation.ResetDamageBonus()
+	_u.mutation.SetDamageBonus(v)
+	return _u
+}
+
+// SetNillableDamageBonus sets the "damage_bonus" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableDamageBonus(v *int) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetDamageBonus(*v)
+	}
+	return _u
+}
+
+// AddDamageBonus adds value to the "damage_bonus" field.
+func (_u *EquipmentTemplateUpdate) AddDamageBonus(v int) *EquipmentTemplateUpdate {
+	_u.mutation.AddDamageBonus(v)
+	return _u
+}
+
+// SetDamageType sets the "damage_type" field.
+func (_u *EquipmentTemplateUpdate) SetDamageType(v string) *EquipmentTemplateUpdate {
+	_u.mutation.SetDamageType(v)
+	return _u
+}
+
+// SetNillableDamageType sets the "damage_type" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableDamageType(v *string) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetDamageType(*v)
+	}
+	return _u
+}
+
+// SetWeaponType sets the "weapon_type" field.
+func (_u *EquipmentTemplateUpdate) SetWeaponType(v string) *EquipmentTemplateUpdate {
+	_u.mutation.SetWeaponType(v)
+	return _u
+}
+
+// SetNillableWeaponType sets the "weapon_type" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableWeaponType(v *string) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetWeaponType(*v)
+	}
+	return _u
+}
+
+// SetIsTwoHanded sets the "is_two_handed" field.
+func (_u *EquipmentTemplateUpdate) SetIsTwoHanded(v bool) *EquipmentTemplateUpdate {
+	_u.mutation.SetIsTwoHanded(v)
+	return _u
+}
+
+// SetNillableIsTwoHanded sets the "is_two_handed" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableIsTwoHanded(v *bool) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetIsTwoHanded(*v)
+	}
+	return _u
+}
+
 // AddEquipmentIDs adds the "equipment" edge to the Equipment entity by IDs.
 func (_u *EquipmentTemplateUpdate) AddEquipmentIDs(ids ...int) *EquipmentTemplateUpdate {
 	_u.mutation.AddEquipmentIDs(ids...)
@@ -497,6 +686,54 @@ func (_u *EquipmentTemplateUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if _u.mutation.ExpiresAtCleared() {
 		_spec.ClearField(equipmenttemplate.FieldExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ArmorRating(); ok {
+		_spec.SetField(equipmenttemplate.FieldArmorRating, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedArmorRating(); ok {
+		_spec.AddField(equipmenttemplate.FieldArmorRating, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.ArmorType(); ok {
+		_spec.SetField(equipmenttemplate.FieldArmorType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Rarity(); ok {
+		_spec.SetField(equipmenttemplate.FieldRarity, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SkillRequirement(); ok {
+		_spec.SetField(equipmenttemplate.FieldSkillRequirement, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SkillRequirementLevel(); ok {
+		_spec.SetField(equipmenttemplate.FieldSkillRequirementLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillRequirementLevel(); ok {
+		_spec.AddField(equipmenttemplate.FieldSkillRequirementLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DamageDiceCount(); ok {
+		_spec.SetField(equipmenttemplate.FieldDamageDiceCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedDamageDiceCount(); ok {
+		_spec.AddField(equipmenttemplate.FieldDamageDiceCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DamageDiceSides(); ok {
+		_spec.SetField(equipmenttemplate.FieldDamageDiceSides, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedDamageDiceSides(); ok {
+		_spec.AddField(equipmenttemplate.FieldDamageDiceSides, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DamageBonus(); ok {
+		_spec.SetField(equipmenttemplate.FieldDamageBonus, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedDamageBonus(); ok {
+		_spec.AddField(equipmenttemplate.FieldDamageBonus, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DamageType(); ok {
+		_spec.SetField(equipmenttemplate.FieldDamageType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WeaponType(); ok {
+		_spec.SetField(equipmenttemplate.FieldWeaponType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsTwoHanded(); ok {
+		_spec.SetField(equipmenttemplate.FieldIsTwoHanded, field.TypeBool, value)
 	}
 	if _u.mutation.EquipmentCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -874,6 +1111,195 @@ func (_u *EquipmentTemplateUpdateOne) ClearExpiresAt() *EquipmentTemplateUpdateO
 	return _u
 }
 
+// SetArmorRating sets the "armor_rating" field.
+func (_u *EquipmentTemplateUpdateOne) SetArmorRating(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.ResetArmorRating()
+	_u.mutation.SetArmorRating(v)
+	return _u
+}
+
+// SetNillableArmorRating sets the "armor_rating" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableArmorRating(v *int) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetArmorRating(*v)
+	}
+	return _u
+}
+
+// AddArmorRating adds value to the "armor_rating" field.
+func (_u *EquipmentTemplateUpdateOne) AddArmorRating(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.AddArmorRating(v)
+	return _u
+}
+
+// SetArmorType sets the "armor_type" field.
+func (_u *EquipmentTemplateUpdateOne) SetArmorType(v string) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetArmorType(v)
+	return _u
+}
+
+// SetNillableArmorType sets the "armor_type" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableArmorType(v *string) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetArmorType(*v)
+	}
+	return _u
+}
+
+// SetRarity sets the "rarity" field.
+func (_u *EquipmentTemplateUpdateOne) SetRarity(v string) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetRarity(v)
+	return _u
+}
+
+// SetNillableRarity sets the "rarity" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableRarity(v *string) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetRarity(*v)
+	}
+	return _u
+}
+
+// SetSkillRequirement sets the "skill_requirement" field.
+func (_u *EquipmentTemplateUpdateOne) SetSkillRequirement(v string) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetSkillRequirement(v)
+	return _u
+}
+
+// SetNillableSkillRequirement sets the "skill_requirement" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableSkillRequirement(v *string) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetSkillRequirement(*v)
+	}
+	return _u
+}
+
+// SetSkillRequirementLevel sets the "skill_requirement_level" field.
+func (_u *EquipmentTemplateUpdateOne) SetSkillRequirementLevel(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.ResetSkillRequirementLevel()
+	_u.mutation.SetSkillRequirementLevel(v)
+	return _u
+}
+
+// SetNillableSkillRequirementLevel sets the "skill_requirement_level" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableSkillRequirementLevel(v *int) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetSkillRequirementLevel(*v)
+	}
+	return _u
+}
+
+// AddSkillRequirementLevel adds value to the "skill_requirement_level" field.
+func (_u *EquipmentTemplateUpdateOne) AddSkillRequirementLevel(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.AddSkillRequirementLevel(v)
+	return _u
+}
+
+// SetDamageDiceCount sets the "damage_dice_count" field.
+func (_u *EquipmentTemplateUpdateOne) SetDamageDiceCount(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.ResetDamageDiceCount()
+	_u.mutation.SetDamageDiceCount(v)
+	return _u
+}
+
+// SetNillableDamageDiceCount sets the "damage_dice_count" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableDamageDiceCount(v *int) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetDamageDiceCount(*v)
+	}
+	return _u
+}
+
+// AddDamageDiceCount adds value to the "damage_dice_count" field.
+func (_u *EquipmentTemplateUpdateOne) AddDamageDiceCount(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.AddDamageDiceCount(v)
+	return _u
+}
+
+// SetDamageDiceSides sets the "damage_dice_sides" field.
+func (_u *EquipmentTemplateUpdateOne) SetDamageDiceSides(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.ResetDamageDiceSides()
+	_u.mutation.SetDamageDiceSides(v)
+	return _u
+}
+
+// SetNillableDamageDiceSides sets the "damage_dice_sides" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableDamageDiceSides(v *int) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetDamageDiceSides(*v)
+	}
+	return _u
+}
+
+// AddDamageDiceSides adds value to the "damage_dice_sides" field.
+func (_u *EquipmentTemplateUpdateOne) AddDamageDiceSides(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.AddDamageDiceSides(v)
+	return _u
+}
+
+// SetDamageBonus sets the "damage_bonus" field.
+func (_u *EquipmentTemplateUpdateOne) SetDamageBonus(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.ResetDamageBonus()
+	_u.mutation.SetDamageBonus(v)
+	return _u
+}
+
+// SetNillableDamageBonus sets the "damage_bonus" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableDamageBonus(v *int) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetDamageBonus(*v)
+	}
+	return _u
+}
+
+// AddDamageBonus adds value to the "damage_bonus" field.
+func (_u *EquipmentTemplateUpdateOne) AddDamageBonus(v int) *EquipmentTemplateUpdateOne {
+	_u.mutation.AddDamageBonus(v)
+	return _u
+}
+
+// SetDamageType sets the "damage_type" field.
+func (_u *EquipmentTemplateUpdateOne) SetDamageType(v string) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetDamageType(v)
+	return _u
+}
+
+// SetNillableDamageType sets the "damage_type" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableDamageType(v *string) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetDamageType(*v)
+	}
+	return _u
+}
+
+// SetWeaponType sets the "weapon_type" field.
+func (_u *EquipmentTemplateUpdateOne) SetWeaponType(v string) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetWeaponType(v)
+	return _u
+}
+
+// SetNillableWeaponType sets the "weapon_type" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableWeaponType(v *string) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetWeaponType(*v)
+	}
+	return _u
+}
+
+// SetIsTwoHanded sets the "is_two_handed" field.
+func (_u *EquipmentTemplateUpdateOne) SetIsTwoHanded(v bool) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetIsTwoHanded(v)
+	return _u
+}
+
+// SetNillableIsTwoHanded sets the "is_two_handed" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableIsTwoHanded(v *bool) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetIsTwoHanded(*v)
+	}
+	return _u
+}
+
 // AddEquipmentIDs adds the "equipment" edge to the Equipment entity by IDs.
 func (_u *EquipmentTemplateUpdateOne) AddEquipmentIDs(ids ...int) *EquipmentTemplateUpdateOne {
 	_u.mutation.AddEquipmentIDs(ids...)
@@ -1061,6 +1487,54 @@ func (_u *EquipmentTemplateUpdateOne) sqlSave(ctx context.Context) (_node *Equip
 	}
 	if _u.mutation.ExpiresAtCleared() {
 		_spec.ClearField(equipmenttemplate.FieldExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ArmorRating(); ok {
+		_spec.SetField(equipmenttemplate.FieldArmorRating, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedArmorRating(); ok {
+		_spec.AddField(equipmenttemplate.FieldArmorRating, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.ArmorType(); ok {
+		_spec.SetField(equipmenttemplate.FieldArmorType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Rarity(); ok {
+		_spec.SetField(equipmenttemplate.FieldRarity, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SkillRequirement(); ok {
+		_spec.SetField(equipmenttemplate.FieldSkillRequirement, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SkillRequirementLevel(); ok {
+		_spec.SetField(equipmenttemplate.FieldSkillRequirementLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSkillRequirementLevel(); ok {
+		_spec.AddField(equipmenttemplate.FieldSkillRequirementLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DamageDiceCount(); ok {
+		_spec.SetField(equipmenttemplate.FieldDamageDiceCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedDamageDiceCount(); ok {
+		_spec.AddField(equipmenttemplate.FieldDamageDiceCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DamageDiceSides(); ok {
+		_spec.SetField(equipmenttemplate.FieldDamageDiceSides, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedDamageDiceSides(); ok {
+		_spec.AddField(equipmenttemplate.FieldDamageDiceSides, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DamageBonus(); ok {
+		_spec.SetField(equipmenttemplate.FieldDamageBonus, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedDamageBonus(); ok {
+		_spec.AddField(equipmenttemplate.FieldDamageBonus, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.DamageType(); ok {
+		_spec.SetField(equipmenttemplate.FieldDamageType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WeaponType(); ok {
+		_spec.SetField(equipmenttemplate.FieldWeaponType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsTwoHanded(); ok {
+		_spec.SetField(equipmenttemplate.FieldIsTwoHanded, field.TypeBool, value)
 	}
 	if _u.mutation.EquipmentCleared() {
 		edge := &sqlgraph.EdgeSpec{

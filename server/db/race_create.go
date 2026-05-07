@@ -65,6 +65,12 @@ func (_c *RaceCreate) SetNillableSkillGrants(v *string) *RaceCreate {
 	return _c
 }
 
+// SetEquipmentSlots sets the "equipment_slots" field.
+func (_c *RaceCreate) SetEquipmentSlots(v []string) *RaceCreate {
+	_c.mutation.SetEquipmentSlots(v)
+	return _c
+}
+
 // SetIsPlayable sets the "is_playable" field.
 func (_c *RaceCreate) SetIsPlayable(v bool) *RaceCreate {
 	_c.mutation.SetIsPlayable(v)
@@ -128,6 +134,10 @@ func (_c *RaceCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *RaceCreate) defaults() {
+	if _, ok := _c.mutation.EquipmentSlots(); !ok {
+		v := race.DefaultEquipmentSlots
+		_c.mutation.SetEquipmentSlots(v)
+	}
 	if _, ok := _c.mutation.IsPlayable(); !ok {
 		v := race.DefaultIsPlayable
 		_c.mutation.SetIsPlayable(v)
@@ -144,6 +154,9 @@ func (_c *RaceCreate) check() error {
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Race.description"`)}
+	}
+	if _, ok := _c.mutation.EquipmentSlots(); !ok {
+		return &ValidationError{Name: "equipment_slots", err: errors.New(`db: missing required field "Race.equipment_slots"`)}
 	}
 	if _, ok := _c.mutation.IsPlayable(); !ok {
 		return &ValidationError{Name: "is_playable", err: errors.New(`db: missing required field "Race.is_playable"`)}
@@ -193,6 +206,10 @@ func (_c *RaceCreate) createSpec() (*Race, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SkillGrants(); ok {
 		_spec.SetField(race.FieldSkillGrants, field.TypeString, value)
 		_node.SkillGrants = value
+	}
+	if value, ok := _c.mutation.EquipmentSlots(); ok {
+		_spec.SetField(race.FieldEquipmentSlots, field.TypeJSON, value)
+		_node.EquipmentSlots = value
 	}
 	if value, ok := _c.mutation.IsPlayable(); ok {
 		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)

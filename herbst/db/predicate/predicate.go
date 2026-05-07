@@ -12,8 +12,14 @@ type Character func(*sql.Selector)
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)
 
+// EquipmentTemplate is the predicate function for equipmenttemplate builders.
+type EquipmentTemplate func(*sql.Selector)
+
 // NPCTemplate is the predicate function for npctemplate builders.
 type NPCTemplate func(*sql.Selector)
+
+// Race is the predicate function for race builders.
+type Race func(*sql.Selector)
 
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)

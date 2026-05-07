@@ -9950,47 +9950,64 @@ func (m *DamageLogMutation) ResetEdge(name string) error {
 // EquipmentMutation represents an operation that mutates the Equipment nodes in the graph.
 type EquipmentMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *int
-	name                     *string
-	description              *string
-	slot                     *string
-	level                    *int
-	addlevel                 *int
-	weight                   *int
-	addweight                *int
-	isEquipped               *bool
-	isImmovable              *bool
-	color                    *string
-	isVisible                *bool
-	itemType                 *string
-	ownerId                  *int
-	addownerId               *int
-	effect_type              *string
-	effect_value             *int
-	addeffect_value          *int
-	effect_duration          *int
-	addeffect_duration       *int
-	healing                  *int
-	addhealing               *int
-	effect                   *string
-	isContainer              *bool
-	containerCapacity        *int
-	addcontainerCapacity     *int
-	isLocked                 *bool
-	keyItemID                *string
-	containedItems           *string
-	revealCondition          *string
-	expiresAt                *time.Time
-	clearedFields            map[string]struct{}
-	room                     *int
-	clearedroom              bool
-	equipmentTemplate        *string
-	clearedequipmentTemplate bool
-	done                     bool
-	oldValue                 func(context.Context) (*Equipment, error)
-	predicates               []predicate.Equipment
+	op                         Op
+	typ                        string
+	id                         *int
+	name                       *string
+	description                *string
+	slot                       *string
+	level                      *int
+	addlevel                   *int
+	weight                     *int
+	addweight                  *int
+	isEquipped                 *bool
+	isImmovable                *bool
+	color                      *string
+	isVisible                  *bool
+	itemType                   *string
+	ownerId                    *int
+	addownerId                 *int
+	effect_type                *string
+	effect_value               *int
+	addeffect_value            *int
+	effect_duration            *int
+	addeffect_duration         *int
+	healing                    *int
+	addhealing                 *int
+	effect                     *string
+	isContainer                *bool
+	containerCapacity          *int
+	addcontainerCapacity       *int
+	isLocked                   *bool
+	keyItemID                  *string
+	containedItems             *string
+	revealCondition            *string
+	expiresAt                  *time.Time
+	armor_rating               *int
+	addarmor_rating            *int
+	armor_type                 *string
+	stats                      *map[string]int
+	rarity                     *string
+	skill_requirement          *string
+	skill_requirement_level    *int
+	addskill_requirement_level *int
+	damage_dice_count          *int
+	adddamage_dice_count       *int
+	damage_dice_sides          *int
+	adddamage_dice_sides       *int
+	damage_bonus               *int
+	adddamage_bonus            *int
+	damage_type                *string
+	weapon_type                *string
+	is_two_handed              *bool
+	clearedFields              map[string]struct{}
+	room                       *int
+	clearedroom                bool
+	equipmentTemplate          *string
+	clearedequipmentTemplate   bool
+	done                       bool
+	oldValue                   func(context.Context) (*Equipment, error)
+	predicates                 []predicate.Equipment
 }
 
 var _ ent.Mutation = (*EquipmentMutation)(nil)
@@ -10089,55 +10106,6 @@ func (m *EquipmentMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetEquipmentTemplateID sets the "equipment_template_id" field.
-func (m *EquipmentMutation) SetEquipmentTemplateID(s string) {
-	m.equipmentTemplate = &s
-}
-
-// EquipmentTemplateID returns the value of the "equipment_template_id" field in the mutation.
-func (m *EquipmentMutation) EquipmentTemplateID() (r string, exists bool) {
-	v := m.equipmentTemplate
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEquipmentTemplateID returns the old "equipment_template_id" field's value of the Equipment entity.
-// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEquipmentTemplateID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEquipmentTemplateID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEquipmentTemplateID: %w", err)
-	}
-	return oldValue.EquipmentTemplateID, nil
-}
-
-// ClearEquipmentTemplateID clears the value of the "equipment_template_id" field.
-func (m *EquipmentMutation) ClearEquipmentTemplateID() {
-	m.equipmentTemplate = nil
-	m.clearedFields[equipment.FieldEquipmentTemplateID] = struct{}{}
-}
-
-// EquipmentTemplateIDCleared returns if the "equipment_template_id" field was cleared in this mutation.
-func (m *EquipmentMutation) EquipmentTemplateIDCleared() bool {
-	_, ok := m.clearedFields[equipment.FieldEquipmentTemplateID]
-	return ok
-}
-
-// ResetEquipmentTemplateID resets all changes to the "equipment_template_id" field.
-func (m *EquipmentMutation) ResetEquipmentTemplateID() {
-	m.equipmentTemplate = nil
-	delete(m.clearedFields, equipment.FieldEquipmentTemplateID)
 }
 
 // SetName sets the "name" field.
@@ -10538,6 +10506,55 @@ func (m *EquipmentMutation) OldItemType(ctx context.Context) (v string, err erro
 // ResetItemType resets all changes to the "itemType" field.
 func (m *EquipmentMutation) ResetItemType() {
 	m.itemType = nil
+}
+
+// SetEquipmentTemplateID sets the "equipment_template_id" field.
+func (m *EquipmentMutation) SetEquipmentTemplateID(s string) {
+	m.equipmentTemplate = &s
+}
+
+// EquipmentTemplateID returns the value of the "equipment_template_id" field in the mutation.
+func (m *EquipmentMutation) EquipmentTemplateID() (r string, exists bool) {
+	v := m.equipmentTemplate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEquipmentTemplateID returns the old "equipment_template_id" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEquipmentTemplateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEquipmentTemplateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEquipmentTemplateID: %w", err)
+	}
+	return oldValue.EquipmentTemplateID, nil
+}
+
+// ClearEquipmentTemplateID clears the value of the "equipment_template_id" field.
+func (m *EquipmentMutation) ClearEquipmentTemplateID() {
+	m.equipmentTemplate = nil
+	m.clearedFields[equipment.FieldEquipmentTemplateID] = struct{}{}
+}
+
+// EquipmentTemplateIDCleared returns if the "equipment_template_id" field was cleared in this mutation.
+func (m *EquipmentMutation) EquipmentTemplateIDCleared() bool {
+	_, ok := m.clearedFields[equipment.FieldEquipmentTemplateID]
+	return ok
+}
+
+// ResetEquipmentTemplateID resets all changes to the "equipment_template_id" field.
+func (m *EquipmentMutation) ResetEquipmentTemplateID() {
+	m.equipmentTemplate = nil
+	delete(m.clearedFields, equipment.FieldEquipmentTemplateID)
 }
 
 // SetOwnerId sets the "ownerId" field.
@@ -11148,6 +11165,538 @@ func (m *EquipmentMutation) ResetExpiresAt() {
 	delete(m.clearedFields, equipment.FieldExpiresAt)
 }
 
+// SetArmorRating sets the "armor_rating" field.
+func (m *EquipmentMutation) SetArmorRating(i int) {
+	m.armor_rating = &i
+	m.addarmor_rating = nil
+}
+
+// ArmorRating returns the value of the "armor_rating" field in the mutation.
+func (m *EquipmentMutation) ArmorRating() (r int, exists bool) {
+	v := m.armor_rating
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArmorRating returns the old "armor_rating" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldArmorRating(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArmorRating is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArmorRating requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArmorRating: %w", err)
+	}
+	return oldValue.ArmorRating, nil
+}
+
+// AddArmorRating adds i to the "armor_rating" field.
+func (m *EquipmentMutation) AddArmorRating(i int) {
+	if m.addarmor_rating != nil {
+		*m.addarmor_rating += i
+	} else {
+		m.addarmor_rating = &i
+	}
+}
+
+// AddedArmorRating returns the value that was added to the "armor_rating" field in this mutation.
+func (m *EquipmentMutation) AddedArmorRating() (r int, exists bool) {
+	v := m.addarmor_rating
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetArmorRating resets all changes to the "armor_rating" field.
+func (m *EquipmentMutation) ResetArmorRating() {
+	m.armor_rating = nil
+	m.addarmor_rating = nil
+}
+
+// SetArmorType sets the "armor_type" field.
+func (m *EquipmentMutation) SetArmorType(s string) {
+	m.armor_type = &s
+}
+
+// ArmorType returns the value of the "armor_type" field in the mutation.
+func (m *EquipmentMutation) ArmorType() (r string, exists bool) {
+	v := m.armor_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArmorType returns the old "armor_type" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldArmorType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArmorType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArmorType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArmorType: %w", err)
+	}
+	return oldValue.ArmorType, nil
+}
+
+// ResetArmorType resets all changes to the "armor_type" field.
+func (m *EquipmentMutation) ResetArmorType() {
+	m.armor_type = nil
+}
+
+// SetStats sets the "stats" field.
+func (m *EquipmentMutation) SetStats(value map[string]int) {
+	m.stats = &value
+}
+
+// Stats returns the value of the "stats" field in the mutation.
+func (m *EquipmentMutation) Stats() (r map[string]int, exists bool) {
+	v := m.stats
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStats returns the old "stats" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldStats(ctx context.Context) (v map[string]int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStats is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStats requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStats: %w", err)
+	}
+	return oldValue.Stats, nil
+}
+
+// ResetStats resets all changes to the "stats" field.
+func (m *EquipmentMutation) ResetStats() {
+	m.stats = nil
+}
+
+// SetRarity sets the "rarity" field.
+func (m *EquipmentMutation) SetRarity(s string) {
+	m.rarity = &s
+}
+
+// Rarity returns the value of the "rarity" field in the mutation.
+func (m *EquipmentMutation) Rarity() (r string, exists bool) {
+	v := m.rarity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRarity returns the old "rarity" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldRarity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRarity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRarity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRarity: %w", err)
+	}
+	return oldValue.Rarity, nil
+}
+
+// ResetRarity resets all changes to the "rarity" field.
+func (m *EquipmentMutation) ResetRarity() {
+	m.rarity = nil
+}
+
+// SetSkillRequirement sets the "skill_requirement" field.
+func (m *EquipmentMutation) SetSkillRequirement(s string) {
+	m.skill_requirement = &s
+}
+
+// SkillRequirement returns the value of the "skill_requirement" field in the mutation.
+func (m *EquipmentMutation) SkillRequirement() (r string, exists bool) {
+	v := m.skill_requirement
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSkillRequirement returns the old "skill_requirement" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldSkillRequirement(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSkillRequirement is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSkillRequirement requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSkillRequirement: %w", err)
+	}
+	return oldValue.SkillRequirement, nil
+}
+
+// ResetSkillRequirement resets all changes to the "skill_requirement" field.
+func (m *EquipmentMutation) ResetSkillRequirement() {
+	m.skill_requirement = nil
+}
+
+// SetSkillRequirementLevel sets the "skill_requirement_level" field.
+func (m *EquipmentMutation) SetSkillRequirementLevel(i int) {
+	m.skill_requirement_level = &i
+	m.addskill_requirement_level = nil
+}
+
+// SkillRequirementLevel returns the value of the "skill_requirement_level" field in the mutation.
+func (m *EquipmentMutation) SkillRequirementLevel() (r int, exists bool) {
+	v := m.skill_requirement_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSkillRequirementLevel returns the old "skill_requirement_level" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldSkillRequirementLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSkillRequirementLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSkillRequirementLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSkillRequirementLevel: %w", err)
+	}
+	return oldValue.SkillRequirementLevel, nil
+}
+
+// AddSkillRequirementLevel adds i to the "skill_requirement_level" field.
+func (m *EquipmentMutation) AddSkillRequirementLevel(i int) {
+	if m.addskill_requirement_level != nil {
+		*m.addskill_requirement_level += i
+	} else {
+		m.addskill_requirement_level = &i
+	}
+}
+
+// AddedSkillRequirementLevel returns the value that was added to the "skill_requirement_level" field in this mutation.
+func (m *EquipmentMutation) AddedSkillRequirementLevel() (r int, exists bool) {
+	v := m.addskill_requirement_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSkillRequirementLevel resets all changes to the "skill_requirement_level" field.
+func (m *EquipmentMutation) ResetSkillRequirementLevel() {
+	m.skill_requirement_level = nil
+	m.addskill_requirement_level = nil
+}
+
+// SetDamageDiceCount sets the "damage_dice_count" field.
+func (m *EquipmentMutation) SetDamageDiceCount(i int) {
+	m.damage_dice_count = &i
+	m.adddamage_dice_count = nil
+}
+
+// DamageDiceCount returns the value of the "damage_dice_count" field in the mutation.
+func (m *EquipmentMutation) DamageDiceCount() (r int, exists bool) {
+	v := m.damage_dice_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageDiceCount returns the old "damage_dice_count" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldDamageDiceCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageDiceCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageDiceCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageDiceCount: %w", err)
+	}
+	return oldValue.DamageDiceCount, nil
+}
+
+// AddDamageDiceCount adds i to the "damage_dice_count" field.
+func (m *EquipmentMutation) AddDamageDiceCount(i int) {
+	if m.adddamage_dice_count != nil {
+		*m.adddamage_dice_count += i
+	} else {
+		m.adddamage_dice_count = &i
+	}
+}
+
+// AddedDamageDiceCount returns the value that was added to the "damage_dice_count" field in this mutation.
+func (m *EquipmentMutation) AddedDamageDiceCount() (r int, exists bool) {
+	v := m.adddamage_dice_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDamageDiceCount resets all changes to the "damage_dice_count" field.
+func (m *EquipmentMutation) ResetDamageDiceCount() {
+	m.damage_dice_count = nil
+	m.adddamage_dice_count = nil
+}
+
+// SetDamageDiceSides sets the "damage_dice_sides" field.
+func (m *EquipmentMutation) SetDamageDiceSides(i int) {
+	m.damage_dice_sides = &i
+	m.adddamage_dice_sides = nil
+}
+
+// DamageDiceSides returns the value of the "damage_dice_sides" field in the mutation.
+func (m *EquipmentMutation) DamageDiceSides() (r int, exists bool) {
+	v := m.damage_dice_sides
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageDiceSides returns the old "damage_dice_sides" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldDamageDiceSides(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageDiceSides is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageDiceSides requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageDiceSides: %w", err)
+	}
+	return oldValue.DamageDiceSides, nil
+}
+
+// AddDamageDiceSides adds i to the "damage_dice_sides" field.
+func (m *EquipmentMutation) AddDamageDiceSides(i int) {
+	if m.adddamage_dice_sides != nil {
+		*m.adddamage_dice_sides += i
+	} else {
+		m.adddamage_dice_sides = &i
+	}
+}
+
+// AddedDamageDiceSides returns the value that was added to the "damage_dice_sides" field in this mutation.
+func (m *EquipmentMutation) AddedDamageDiceSides() (r int, exists bool) {
+	v := m.adddamage_dice_sides
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDamageDiceSides resets all changes to the "damage_dice_sides" field.
+func (m *EquipmentMutation) ResetDamageDiceSides() {
+	m.damage_dice_sides = nil
+	m.adddamage_dice_sides = nil
+}
+
+// SetDamageBonus sets the "damage_bonus" field.
+func (m *EquipmentMutation) SetDamageBonus(i int) {
+	m.damage_bonus = &i
+	m.adddamage_bonus = nil
+}
+
+// DamageBonus returns the value of the "damage_bonus" field in the mutation.
+func (m *EquipmentMutation) DamageBonus() (r int, exists bool) {
+	v := m.damage_bonus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageBonus returns the old "damage_bonus" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldDamageBonus(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageBonus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageBonus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageBonus: %w", err)
+	}
+	return oldValue.DamageBonus, nil
+}
+
+// AddDamageBonus adds i to the "damage_bonus" field.
+func (m *EquipmentMutation) AddDamageBonus(i int) {
+	if m.adddamage_bonus != nil {
+		*m.adddamage_bonus += i
+	} else {
+		m.adddamage_bonus = &i
+	}
+}
+
+// AddedDamageBonus returns the value that was added to the "damage_bonus" field in this mutation.
+func (m *EquipmentMutation) AddedDamageBonus() (r int, exists bool) {
+	v := m.adddamage_bonus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDamageBonus resets all changes to the "damage_bonus" field.
+func (m *EquipmentMutation) ResetDamageBonus() {
+	m.damage_bonus = nil
+	m.adddamage_bonus = nil
+}
+
+// SetDamageType sets the "damage_type" field.
+func (m *EquipmentMutation) SetDamageType(s string) {
+	m.damage_type = &s
+}
+
+// DamageType returns the value of the "damage_type" field in the mutation.
+func (m *EquipmentMutation) DamageType() (r string, exists bool) {
+	v := m.damage_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageType returns the old "damage_type" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldDamageType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageType: %w", err)
+	}
+	return oldValue.DamageType, nil
+}
+
+// ResetDamageType resets all changes to the "damage_type" field.
+func (m *EquipmentMutation) ResetDamageType() {
+	m.damage_type = nil
+}
+
+// SetWeaponType sets the "weapon_type" field.
+func (m *EquipmentMutation) SetWeaponType(s string) {
+	m.weapon_type = &s
+}
+
+// WeaponType returns the value of the "weapon_type" field in the mutation.
+func (m *EquipmentMutation) WeaponType() (r string, exists bool) {
+	v := m.weapon_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWeaponType returns the old "weapon_type" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldWeaponType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWeaponType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWeaponType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWeaponType: %w", err)
+	}
+	return oldValue.WeaponType, nil
+}
+
+// ResetWeaponType resets all changes to the "weapon_type" field.
+func (m *EquipmentMutation) ResetWeaponType() {
+	m.weapon_type = nil
+}
+
+// SetIsTwoHanded sets the "is_two_handed" field.
+func (m *EquipmentMutation) SetIsTwoHanded(b bool) {
+	m.is_two_handed = &b
+}
+
+// IsTwoHanded returns the value of the "is_two_handed" field in the mutation.
+func (m *EquipmentMutation) IsTwoHanded() (r bool, exists bool) {
+	v := m.is_two_handed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsTwoHanded returns the old "is_two_handed" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldIsTwoHanded(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsTwoHanded is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsTwoHanded requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsTwoHanded: %w", err)
+	}
+	return oldValue.IsTwoHanded, nil
+}
+
+// ResetIsTwoHanded resets all changes to the "is_two_handed" field.
+func (m *EquipmentMutation) ResetIsTwoHanded() {
+	m.is_two_handed = nil
+}
+
 // SetRoomID sets the "room" edge to the Room entity by id.
 func (m *EquipmentMutation) SetRoomID(id int) {
 	m.room = &id
@@ -11248,10 +11797,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 24)
-	if m.equipmentTemplate != nil {
-		fields = append(fields, equipment.FieldEquipmentTemplateID)
-	}
+	fields := make([]string, 0, 36)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -11281,6 +11827,9 @@ func (m *EquipmentMutation) Fields() []string {
 	}
 	if m.itemType != nil {
 		fields = append(fields, equipment.FieldItemType)
+	}
+	if m.equipmentTemplate != nil {
+		fields = append(fields, equipment.FieldEquipmentTemplateID)
 	}
 	if m.ownerId != nil {
 		fields = append(fields, equipment.FieldOwnerId)
@@ -11321,6 +11870,42 @@ func (m *EquipmentMutation) Fields() []string {
 	if m.expiresAt != nil {
 		fields = append(fields, equipment.FieldExpiresAt)
 	}
+	if m.armor_rating != nil {
+		fields = append(fields, equipment.FieldArmorRating)
+	}
+	if m.armor_type != nil {
+		fields = append(fields, equipment.FieldArmorType)
+	}
+	if m.stats != nil {
+		fields = append(fields, equipment.FieldStats)
+	}
+	if m.rarity != nil {
+		fields = append(fields, equipment.FieldRarity)
+	}
+	if m.skill_requirement != nil {
+		fields = append(fields, equipment.FieldSkillRequirement)
+	}
+	if m.skill_requirement_level != nil {
+		fields = append(fields, equipment.FieldSkillRequirementLevel)
+	}
+	if m.damage_dice_count != nil {
+		fields = append(fields, equipment.FieldDamageDiceCount)
+	}
+	if m.damage_dice_sides != nil {
+		fields = append(fields, equipment.FieldDamageDiceSides)
+	}
+	if m.damage_bonus != nil {
+		fields = append(fields, equipment.FieldDamageBonus)
+	}
+	if m.damage_type != nil {
+		fields = append(fields, equipment.FieldDamageType)
+	}
+	if m.weapon_type != nil {
+		fields = append(fields, equipment.FieldWeaponType)
+	}
+	if m.is_two_handed != nil {
+		fields = append(fields, equipment.FieldIsTwoHanded)
+	}
 	return fields
 }
 
@@ -11329,8 +11914,6 @@ func (m *EquipmentMutation) Fields() []string {
 // schema.
 func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case equipment.FieldEquipmentTemplateID:
-		return m.EquipmentTemplateID()
 	case equipment.FieldName:
 		return m.Name()
 	case equipment.FieldDescription:
@@ -11351,6 +11934,8 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.IsVisible()
 	case equipment.FieldItemType:
 		return m.ItemType()
+	case equipment.FieldEquipmentTemplateID:
+		return m.EquipmentTemplateID()
 	case equipment.FieldOwnerId:
 		return m.OwnerId()
 	case equipment.FieldEffectType:
@@ -11377,6 +11962,30 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.RevealCondition()
 	case equipment.FieldExpiresAt:
 		return m.ExpiresAt()
+	case equipment.FieldArmorRating:
+		return m.ArmorRating()
+	case equipment.FieldArmorType:
+		return m.ArmorType()
+	case equipment.FieldStats:
+		return m.Stats()
+	case equipment.FieldRarity:
+		return m.Rarity()
+	case equipment.FieldSkillRequirement:
+		return m.SkillRequirement()
+	case equipment.FieldSkillRequirementLevel:
+		return m.SkillRequirementLevel()
+	case equipment.FieldDamageDiceCount:
+		return m.DamageDiceCount()
+	case equipment.FieldDamageDiceSides:
+		return m.DamageDiceSides()
+	case equipment.FieldDamageBonus:
+		return m.DamageBonus()
+	case equipment.FieldDamageType:
+		return m.DamageType()
+	case equipment.FieldWeaponType:
+		return m.WeaponType()
+	case equipment.FieldIsTwoHanded:
+		return m.IsTwoHanded()
 	}
 	return nil, false
 }
@@ -11386,8 +11995,6 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case equipment.FieldEquipmentTemplateID:
-		return m.OldEquipmentTemplateID(ctx)
 	case equipment.FieldName:
 		return m.OldName(ctx)
 	case equipment.FieldDescription:
@@ -11408,6 +12015,8 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldIsVisible(ctx)
 	case equipment.FieldItemType:
 		return m.OldItemType(ctx)
+	case equipment.FieldEquipmentTemplateID:
+		return m.OldEquipmentTemplateID(ctx)
 	case equipment.FieldOwnerId:
 		return m.OldOwnerId(ctx)
 	case equipment.FieldEffectType:
@@ -11434,6 +12043,30 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldRevealCondition(ctx)
 	case equipment.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
+	case equipment.FieldArmorRating:
+		return m.OldArmorRating(ctx)
+	case equipment.FieldArmorType:
+		return m.OldArmorType(ctx)
+	case equipment.FieldStats:
+		return m.OldStats(ctx)
+	case equipment.FieldRarity:
+		return m.OldRarity(ctx)
+	case equipment.FieldSkillRequirement:
+		return m.OldSkillRequirement(ctx)
+	case equipment.FieldSkillRequirementLevel:
+		return m.OldSkillRequirementLevel(ctx)
+	case equipment.FieldDamageDiceCount:
+		return m.OldDamageDiceCount(ctx)
+	case equipment.FieldDamageDiceSides:
+		return m.OldDamageDiceSides(ctx)
+	case equipment.FieldDamageBonus:
+		return m.OldDamageBonus(ctx)
+	case equipment.FieldDamageType:
+		return m.OldDamageType(ctx)
+	case equipment.FieldWeaponType:
+		return m.OldWeaponType(ctx)
+	case equipment.FieldIsTwoHanded:
+		return m.OldIsTwoHanded(ctx)
 	}
 	return nil, fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -11443,13 +12076,6 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case equipment.FieldEquipmentTemplateID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEquipmentTemplateID(v)
-		return nil
 	case equipment.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -11519,6 +12145,13 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetItemType(v)
+		return nil
+	case equipment.FieldEquipmentTemplateID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEquipmentTemplateID(v)
 		return nil
 	case equipment.FieldOwnerId:
 		v, ok := value.(int)
@@ -11611,6 +12244,90 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetExpiresAt(v)
 		return nil
+	case equipment.FieldArmorRating:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArmorRating(v)
+		return nil
+	case equipment.FieldArmorType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArmorType(v)
+		return nil
+	case equipment.FieldStats:
+		v, ok := value.(map[string]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStats(v)
+		return nil
+	case equipment.FieldRarity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRarity(v)
+		return nil
+	case equipment.FieldSkillRequirement:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSkillRequirement(v)
+		return nil
+	case equipment.FieldSkillRequirementLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSkillRequirementLevel(v)
+		return nil
+	case equipment.FieldDamageDiceCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageDiceCount(v)
+		return nil
+	case equipment.FieldDamageDiceSides:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageDiceSides(v)
+		return nil
+	case equipment.FieldDamageBonus:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageBonus(v)
+		return nil
+	case equipment.FieldDamageType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageType(v)
+		return nil
+	case equipment.FieldWeaponType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWeaponType(v)
+		return nil
+	case equipment.FieldIsTwoHanded:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsTwoHanded(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
 }
@@ -11640,6 +12357,21 @@ func (m *EquipmentMutation) AddedFields() []string {
 	if m.addcontainerCapacity != nil {
 		fields = append(fields, equipment.FieldContainerCapacity)
 	}
+	if m.addarmor_rating != nil {
+		fields = append(fields, equipment.FieldArmorRating)
+	}
+	if m.addskill_requirement_level != nil {
+		fields = append(fields, equipment.FieldSkillRequirementLevel)
+	}
+	if m.adddamage_dice_count != nil {
+		fields = append(fields, equipment.FieldDamageDiceCount)
+	}
+	if m.adddamage_dice_sides != nil {
+		fields = append(fields, equipment.FieldDamageDiceSides)
+	}
+	if m.adddamage_bonus != nil {
+		fields = append(fields, equipment.FieldDamageBonus)
+	}
 	return fields
 }
 
@@ -11662,6 +12394,16 @@ func (m *EquipmentMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedHealing()
 	case equipment.FieldContainerCapacity:
 		return m.AddedContainerCapacity()
+	case equipment.FieldArmorRating:
+		return m.AddedArmorRating()
+	case equipment.FieldSkillRequirementLevel:
+		return m.AddedSkillRequirementLevel()
+	case equipment.FieldDamageDiceCount:
+		return m.AddedDamageDiceCount()
+	case equipment.FieldDamageDiceSides:
+		return m.AddedDamageDiceSides()
+	case equipment.FieldDamageBonus:
+		return m.AddedDamageBonus()
 	}
 	return nil, false
 }
@@ -11720,6 +12462,41 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddContainerCapacity(v)
 		return nil
+	case equipment.FieldArmorRating:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddArmorRating(v)
+		return nil
+	case equipment.FieldSkillRequirementLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSkillRequirementLevel(v)
+		return nil
+	case equipment.FieldDamageDiceCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDamageDiceCount(v)
+		return nil
+	case equipment.FieldDamageDiceSides:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDamageDiceSides(v)
+		return nil
+	case equipment.FieldDamageBonus:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDamageBonus(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Equipment numeric field %s", name)
 }
@@ -11774,9 +12551,6 @@ func (m *EquipmentMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *EquipmentMutation) ResetField(name string) error {
 	switch name {
-	case equipment.FieldEquipmentTemplateID:
-		m.ResetEquipmentTemplateID()
-		return nil
 	case equipment.FieldName:
 		m.ResetName()
 		return nil
@@ -11806,6 +12580,9 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldItemType:
 		m.ResetItemType()
+		return nil
+	case equipment.FieldEquipmentTemplateID:
+		m.ResetEquipmentTemplateID()
 		return nil
 	case equipment.FieldOwnerId:
 		m.ResetOwnerId()
@@ -11845,6 +12622,42 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldExpiresAt:
 		m.ResetExpiresAt()
+		return nil
+	case equipment.FieldArmorRating:
+		m.ResetArmorRating()
+		return nil
+	case equipment.FieldArmorType:
+		m.ResetArmorType()
+		return nil
+	case equipment.FieldStats:
+		m.ResetStats()
+		return nil
+	case equipment.FieldRarity:
+		m.ResetRarity()
+		return nil
+	case equipment.FieldSkillRequirement:
+		m.ResetSkillRequirement()
+		return nil
+	case equipment.FieldSkillRequirementLevel:
+		m.ResetSkillRequirementLevel()
+		return nil
+	case equipment.FieldDamageDiceCount:
+		m.ResetDamageDiceCount()
+		return nil
+	case equipment.FieldDamageDiceSides:
+		m.ResetDamageDiceSides()
+		return nil
+	case equipment.FieldDamageBonus:
+		m.ResetDamageBonus()
+		return nil
+	case equipment.FieldDamageType:
+		m.ResetDamageType()
+		return nil
+	case equipment.FieldWeaponType:
+		m.ResetWeaponType()
+		return nil
+	case equipment.FieldIsTwoHanded:
+		m.ResetIsTwoHanded()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment field %s", name)
@@ -11945,40 +12758,56 @@ func (m *EquipmentMutation) ResetEdge(name string) error {
 // EquipmentTemplateMutation represents an operation that mutates the EquipmentTemplate nodes in the graph.
 type EquipmentTemplateMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *string
-	name                  *string
-	description           *string
-	slot                  *string
-	level                 *int
-	addlevel              *int
-	weight                *int
-	addweight             *int
-	item_type             *string
-	stats                 *map[string]int
-	color                 *string
-	is_visible            *bool
-	is_immovable          *bool
-	effect_type           *string
-	effect_value          *int
-	addeffect_value       *int
-	effect_duration       *int
-	addeffect_duration    *int
-	is_container          *bool
-	container_capacity    *int
-	addcontainer_capacity *int
-	is_locked             *bool
-	key_item_id           *string
-	reveal_condition      *string
-	expires_at            *time.Time
-	clearedFields         map[string]struct{}
-	equipment             map[int]struct{}
-	removedequipment      map[int]struct{}
-	clearedequipment      bool
-	done                  bool
-	oldValue              func(context.Context) (*EquipmentTemplate, error)
-	predicates            []predicate.EquipmentTemplate
+	op                         Op
+	typ                        string
+	id                         *string
+	name                       *string
+	description                *string
+	slot                       *string
+	level                      *int
+	addlevel                   *int
+	weight                     *int
+	addweight                  *int
+	item_type                  *string
+	stats                      *map[string]int
+	color                      *string
+	is_visible                 *bool
+	is_immovable               *bool
+	effect_type                *string
+	effect_value               *int
+	addeffect_value            *int
+	effect_duration            *int
+	addeffect_duration         *int
+	is_container               *bool
+	container_capacity         *int
+	addcontainer_capacity      *int
+	is_locked                  *bool
+	key_item_id                *string
+	reveal_condition           *string
+	expires_at                 *time.Time
+	armor_rating               *int
+	addarmor_rating            *int
+	armor_type                 *string
+	rarity                     *string
+	skill_requirement          *string
+	skill_requirement_level    *int
+	addskill_requirement_level *int
+	damage_dice_count          *int
+	adddamage_dice_count       *int
+	damage_dice_sides          *int
+	adddamage_dice_sides       *int
+	damage_bonus               *int
+	adddamage_bonus            *int
+	damage_type                *string
+	weapon_type                *string
+	is_two_handed              *bool
+	clearedFields              map[string]struct{}
+	equipment                  map[int]struct{}
+	removedequipment           map[int]struct{}
+	clearedequipment           bool
+	done                       bool
+	oldValue                   func(context.Context) (*EquipmentTemplate, error)
+	predicates                 []predicate.EquipmentTemplate
 }
 
 var _ ent.Mutation = (*EquipmentTemplateMutation)(nil)
@@ -12908,6 +13737,502 @@ func (m *EquipmentTemplateMutation) ResetExpiresAt() {
 	delete(m.clearedFields, equipmenttemplate.FieldExpiresAt)
 }
 
+// SetArmorRating sets the "armor_rating" field.
+func (m *EquipmentTemplateMutation) SetArmorRating(i int) {
+	m.armor_rating = &i
+	m.addarmor_rating = nil
+}
+
+// ArmorRating returns the value of the "armor_rating" field in the mutation.
+func (m *EquipmentTemplateMutation) ArmorRating() (r int, exists bool) {
+	v := m.armor_rating
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArmorRating returns the old "armor_rating" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldArmorRating(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArmorRating is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArmorRating requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArmorRating: %w", err)
+	}
+	return oldValue.ArmorRating, nil
+}
+
+// AddArmorRating adds i to the "armor_rating" field.
+func (m *EquipmentTemplateMutation) AddArmorRating(i int) {
+	if m.addarmor_rating != nil {
+		*m.addarmor_rating += i
+	} else {
+		m.addarmor_rating = &i
+	}
+}
+
+// AddedArmorRating returns the value that was added to the "armor_rating" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedArmorRating() (r int, exists bool) {
+	v := m.addarmor_rating
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetArmorRating resets all changes to the "armor_rating" field.
+func (m *EquipmentTemplateMutation) ResetArmorRating() {
+	m.armor_rating = nil
+	m.addarmor_rating = nil
+}
+
+// SetArmorType sets the "armor_type" field.
+func (m *EquipmentTemplateMutation) SetArmorType(s string) {
+	m.armor_type = &s
+}
+
+// ArmorType returns the value of the "armor_type" field in the mutation.
+func (m *EquipmentTemplateMutation) ArmorType() (r string, exists bool) {
+	v := m.armor_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArmorType returns the old "armor_type" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldArmorType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArmorType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArmorType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArmorType: %w", err)
+	}
+	return oldValue.ArmorType, nil
+}
+
+// ResetArmorType resets all changes to the "armor_type" field.
+func (m *EquipmentTemplateMutation) ResetArmorType() {
+	m.armor_type = nil
+}
+
+// SetRarity sets the "rarity" field.
+func (m *EquipmentTemplateMutation) SetRarity(s string) {
+	m.rarity = &s
+}
+
+// Rarity returns the value of the "rarity" field in the mutation.
+func (m *EquipmentTemplateMutation) Rarity() (r string, exists bool) {
+	v := m.rarity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRarity returns the old "rarity" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldRarity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRarity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRarity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRarity: %w", err)
+	}
+	return oldValue.Rarity, nil
+}
+
+// ResetRarity resets all changes to the "rarity" field.
+func (m *EquipmentTemplateMutation) ResetRarity() {
+	m.rarity = nil
+}
+
+// SetSkillRequirement sets the "skill_requirement" field.
+func (m *EquipmentTemplateMutation) SetSkillRequirement(s string) {
+	m.skill_requirement = &s
+}
+
+// SkillRequirement returns the value of the "skill_requirement" field in the mutation.
+func (m *EquipmentTemplateMutation) SkillRequirement() (r string, exists bool) {
+	v := m.skill_requirement
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSkillRequirement returns the old "skill_requirement" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldSkillRequirement(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSkillRequirement is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSkillRequirement requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSkillRequirement: %w", err)
+	}
+	return oldValue.SkillRequirement, nil
+}
+
+// ResetSkillRequirement resets all changes to the "skill_requirement" field.
+func (m *EquipmentTemplateMutation) ResetSkillRequirement() {
+	m.skill_requirement = nil
+}
+
+// SetSkillRequirementLevel sets the "skill_requirement_level" field.
+func (m *EquipmentTemplateMutation) SetSkillRequirementLevel(i int) {
+	m.skill_requirement_level = &i
+	m.addskill_requirement_level = nil
+}
+
+// SkillRequirementLevel returns the value of the "skill_requirement_level" field in the mutation.
+func (m *EquipmentTemplateMutation) SkillRequirementLevel() (r int, exists bool) {
+	v := m.skill_requirement_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSkillRequirementLevel returns the old "skill_requirement_level" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldSkillRequirementLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSkillRequirementLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSkillRequirementLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSkillRequirementLevel: %w", err)
+	}
+	return oldValue.SkillRequirementLevel, nil
+}
+
+// AddSkillRequirementLevel adds i to the "skill_requirement_level" field.
+func (m *EquipmentTemplateMutation) AddSkillRequirementLevel(i int) {
+	if m.addskill_requirement_level != nil {
+		*m.addskill_requirement_level += i
+	} else {
+		m.addskill_requirement_level = &i
+	}
+}
+
+// AddedSkillRequirementLevel returns the value that was added to the "skill_requirement_level" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedSkillRequirementLevel() (r int, exists bool) {
+	v := m.addskill_requirement_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSkillRequirementLevel resets all changes to the "skill_requirement_level" field.
+func (m *EquipmentTemplateMutation) ResetSkillRequirementLevel() {
+	m.skill_requirement_level = nil
+	m.addskill_requirement_level = nil
+}
+
+// SetDamageDiceCount sets the "damage_dice_count" field.
+func (m *EquipmentTemplateMutation) SetDamageDiceCount(i int) {
+	m.damage_dice_count = &i
+	m.adddamage_dice_count = nil
+}
+
+// DamageDiceCount returns the value of the "damage_dice_count" field in the mutation.
+func (m *EquipmentTemplateMutation) DamageDiceCount() (r int, exists bool) {
+	v := m.damage_dice_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageDiceCount returns the old "damage_dice_count" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldDamageDiceCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageDiceCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageDiceCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageDiceCount: %w", err)
+	}
+	return oldValue.DamageDiceCount, nil
+}
+
+// AddDamageDiceCount adds i to the "damage_dice_count" field.
+func (m *EquipmentTemplateMutation) AddDamageDiceCount(i int) {
+	if m.adddamage_dice_count != nil {
+		*m.adddamage_dice_count += i
+	} else {
+		m.adddamage_dice_count = &i
+	}
+}
+
+// AddedDamageDiceCount returns the value that was added to the "damage_dice_count" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedDamageDiceCount() (r int, exists bool) {
+	v := m.adddamage_dice_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDamageDiceCount resets all changes to the "damage_dice_count" field.
+func (m *EquipmentTemplateMutation) ResetDamageDiceCount() {
+	m.damage_dice_count = nil
+	m.adddamage_dice_count = nil
+}
+
+// SetDamageDiceSides sets the "damage_dice_sides" field.
+func (m *EquipmentTemplateMutation) SetDamageDiceSides(i int) {
+	m.damage_dice_sides = &i
+	m.adddamage_dice_sides = nil
+}
+
+// DamageDiceSides returns the value of the "damage_dice_sides" field in the mutation.
+func (m *EquipmentTemplateMutation) DamageDiceSides() (r int, exists bool) {
+	v := m.damage_dice_sides
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageDiceSides returns the old "damage_dice_sides" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldDamageDiceSides(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageDiceSides is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageDiceSides requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageDiceSides: %w", err)
+	}
+	return oldValue.DamageDiceSides, nil
+}
+
+// AddDamageDiceSides adds i to the "damage_dice_sides" field.
+func (m *EquipmentTemplateMutation) AddDamageDiceSides(i int) {
+	if m.adddamage_dice_sides != nil {
+		*m.adddamage_dice_sides += i
+	} else {
+		m.adddamage_dice_sides = &i
+	}
+}
+
+// AddedDamageDiceSides returns the value that was added to the "damage_dice_sides" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedDamageDiceSides() (r int, exists bool) {
+	v := m.adddamage_dice_sides
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDamageDiceSides resets all changes to the "damage_dice_sides" field.
+func (m *EquipmentTemplateMutation) ResetDamageDiceSides() {
+	m.damage_dice_sides = nil
+	m.adddamage_dice_sides = nil
+}
+
+// SetDamageBonus sets the "damage_bonus" field.
+func (m *EquipmentTemplateMutation) SetDamageBonus(i int) {
+	m.damage_bonus = &i
+	m.adddamage_bonus = nil
+}
+
+// DamageBonus returns the value of the "damage_bonus" field in the mutation.
+func (m *EquipmentTemplateMutation) DamageBonus() (r int, exists bool) {
+	v := m.damage_bonus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageBonus returns the old "damage_bonus" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldDamageBonus(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageBonus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageBonus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageBonus: %w", err)
+	}
+	return oldValue.DamageBonus, nil
+}
+
+// AddDamageBonus adds i to the "damage_bonus" field.
+func (m *EquipmentTemplateMutation) AddDamageBonus(i int) {
+	if m.adddamage_bonus != nil {
+		*m.adddamage_bonus += i
+	} else {
+		m.adddamage_bonus = &i
+	}
+}
+
+// AddedDamageBonus returns the value that was added to the "damage_bonus" field in this mutation.
+func (m *EquipmentTemplateMutation) AddedDamageBonus() (r int, exists bool) {
+	v := m.adddamage_bonus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDamageBonus resets all changes to the "damage_bonus" field.
+func (m *EquipmentTemplateMutation) ResetDamageBonus() {
+	m.damage_bonus = nil
+	m.adddamage_bonus = nil
+}
+
+// SetDamageType sets the "damage_type" field.
+func (m *EquipmentTemplateMutation) SetDamageType(s string) {
+	m.damage_type = &s
+}
+
+// DamageType returns the value of the "damage_type" field in the mutation.
+func (m *EquipmentTemplateMutation) DamageType() (r string, exists bool) {
+	v := m.damage_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDamageType returns the old "damage_type" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldDamageType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDamageType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDamageType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDamageType: %w", err)
+	}
+	return oldValue.DamageType, nil
+}
+
+// ResetDamageType resets all changes to the "damage_type" field.
+func (m *EquipmentTemplateMutation) ResetDamageType() {
+	m.damage_type = nil
+}
+
+// SetWeaponType sets the "weapon_type" field.
+func (m *EquipmentTemplateMutation) SetWeaponType(s string) {
+	m.weapon_type = &s
+}
+
+// WeaponType returns the value of the "weapon_type" field in the mutation.
+func (m *EquipmentTemplateMutation) WeaponType() (r string, exists bool) {
+	v := m.weapon_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWeaponType returns the old "weapon_type" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldWeaponType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWeaponType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWeaponType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWeaponType: %w", err)
+	}
+	return oldValue.WeaponType, nil
+}
+
+// ResetWeaponType resets all changes to the "weapon_type" field.
+func (m *EquipmentTemplateMutation) ResetWeaponType() {
+	m.weapon_type = nil
+}
+
+// SetIsTwoHanded sets the "is_two_handed" field.
+func (m *EquipmentTemplateMutation) SetIsTwoHanded(b bool) {
+	m.is_two_handed = &b
+}
+
+// IsTwoHanded returns the value of the "is_two_handed" field in the mutation.
+func (m *EquipmentTemplateMutation) IsTwoHanded() (r bool, exists bool) {
+	v := m.is_two_handed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsTwoHanded returns the old "is_two_handed" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldIsTwoHanded(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsTwoHanded is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsTwoHanded requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsTwoHanded: %w", err)
+	}
+	return oldValue.IsTwoHanded, nil
+}
+
+// ResetIsTwoHanded resets all changes to the "is_two_handed" field.
+func (m *EquipmentTemplateMutation) ResetIsTwoHanded() {
+	m.is_two_handed = nil
+}
+
 // AddEquipmentIDs adds the "equipment" edge to the Equipment entity by ids.
 func (m *EquipmentTemplateMutation) AddEquipmentIDs(ids ...int) {
 	if m.equipment == nil {
@@ -12996,7 +14321,7 @@ func (m *EquipmentTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 30)
 	if m.name != nil {
 		fields = append(fields, equipmenttemplate.FieldName)
 	}
@@ -13054,6 +14379,39 @@ func (m *EquipmentTemplateMutation) Fields() []string {
 	if m.expires_at != nil {
 		fields = append(fields, equipmenttemplate.FieldExpiresAt)
 	}
+	if m.armor_rating != nil {
+		fields = append(fields, equipmenttemplate.FieldArmorRating)
+	}
+	if m.armor_type != nil {
+		fields = append(fields, equipmenttemplate.FieldArmorType)
+	}
+	if m.rarity != nil {
+		fields = append(fields, equipmenttemplate.FieldRarity)
+	}
+	if m.skill_requirement != nil {
+		fields = append(fields, equipmenttemplate.FieldSkillRequirement)
+	}
+	if m.skill_requirement_level != nil {
+		fields = append(fields, equipmenttemplate.FieldSkillRequirementLevel)
+	}
+	if m.damage_dice_count != nil {
+		fields = append(fields, equipmenttemplate.FieldDamageDiceCount)
+	}
+	if m.damage_dice_sides != nil {
+		fields = append(fields, equipmenttemplate.FieldDamageDiceSides)
+	}
+	if m.damage_bonus != nil {
+		fields = append(fields, equipmenttemplate.FieldDamageBonus)
+	}
+	if m.damage_type != nil {
+		fields = append(fields, equipmenttemplate.FieldDamageType)
+	}
+	if m.weapon_type != nil {
+		fields = append(fields, equipmenttemplate.FieldWeaponType)
+	}
+	if m.is_two_handed != nil {
+		fields = append(fields, equipmenttemplate.FieldIsTwoHanded)
+	}
 	return fields
 }
 
@@ -13100,6 +14458,28 @@ func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.RevealCondition()
 	case equipmenttemplate.FieldExpiresAt:
 		return m.ExpiresAt()
+	case equipmenttemplate.FieldArmorRating:
+		return m.ArmorRating()
+	case equipmenttemplate.FieldArmorType:
+		return m.ArmorType()
+	case equipmenttemplate.FieldRarity:
+		return m.Rarity()
+	case equipmenttemplate.FieldSkillRequirement:
+		return m.SkillRequirement()
+	case equipmenttemplate.FieldSkillRequirementLevel:
+		return m.SkillRequirementLevel()
+	case equipmenttemplate.FieldDamageDiceCount:
+		return m.DamageDiceCount()
+	case equipmenttemplate.FieldDamageDiceSides:
+		return m.DamageDiceSides()
+	case equipmenttemplate.FieldDamageBonus:
+		return m.DamageBonus()
+	case equipmenttemplate.FieldDamageType:
+		return m.DamageType()
+	case equipmenttemplate.FieldWeaponType:
+		return m.WeaponType()
+	case equipmenttemplate.FieldIsTwoHanded:
+		return m.IsTwoHanded()
 	}
 	return nil, false
 }
@@ -13147,6 +14527,28 @@ func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (
 		return m.OldRevealCondition(ctx)
 	case equipmenttemplate.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
+	case equipmenttemplate.FieldArmorRating:
+		return m.OldArmorRating(ctx)
+	case equipmenttemplate.FieldArmorType:
+		return m.OldArmorType(ctx)
+	case equipmenttemplate.FieldRarity:
+		return m.OldRarity(ctx)
+	case equipmenttemplate.FieldSkillRequirement:
+		return m.OldSkillRequirement(ctx)
+	case equipmenttemplate.FieldSkillRequirementLevel:
+		return m.OldSkillRequirementLevel(ctx)
+	case equipmenttemplate.FieldDamageDiceCount:
+		return m.OldDamageDiceCount(ctx)
+	case equipmenttemplate.FieldDamageDiceSides:
+		return m.OldDamageDiceSides(ctx)
+	case equipmenttemplate.FieldDamageBonus:
+		return m.OldDamageBonus(ctx)
+	case equipmenttemplate.FieldDamageType:
+		return m.OldDamageType(ctx)
+	case equipmenttemplate.FieldWeaponType:
+		return m.OldWeaponType(ctx)
+	case equipmenttemplate.FieldIsTwoHanded:
+		return m.OldIsTwoHanded(ctx)
 	}
 	return nil, fmt.Errorf("unknown EquipmentTemplate field %s", name)
 }
@@ -13289,6 +14691,83 @@ func (m *EquipmentTemplateMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetExpiresAt(v)
 		return nil
+	case equipmenttemplate.FieldArmorRating:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArmorRating(v)
+		return nil
+	case equipmenttemplate.FieldArmorType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArmorType(v)
+		return nil
+	case equipmenttemplate.FieldRarity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRarity(v)
+		return nil
+	case equipmenttemplate.FieldSkillRequirement:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSkillRequirement(v)
+		return nil
+	case equipmenttemplate.FieldSkillRequirementLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSkillRequirementLevel(v)
+		return nil
+	case equipmenttemplate.FieldDamageDiceCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageDiceCount(v)
+		return nil
+	case equipmenttemplate.FieldDamageDiceSides:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageDiceSides(v)
+		return nil
+	case equipmenttemplate.FieldDamageBonus:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageBonus(v)
+		return nil
+	case equipmenttemplate.FieldDamageType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDamageType(v)
+		return nil
+	case equipmenttemplate.FieldWeaponType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWeaponType(v)
+		return nil
+	case equipmenttemplate.FieldIsTwoHanded:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsTwoHanded(v)
+		return nil
 	}
 	return fmt.Errorf("unknown EquipmentTemplate field %s", name)
 }
@@ -13312,6 +14791,21 @@ func (m *EquipmentTemplateMutation) AddedFields() []string {
 	if m.addcontainer_capacity != nil {
 		fields = append(fields, equipmenttemplate.FieldContainerCapacity)
 	}
+	if m.addarmor_rating != nil {
+		fields = append(fields, equipmenttemplate.FieldArmorRating)
+	}
+	if m.addskill_requirement_level != nil {
+		fields = append(fields, equipmenttemplate.FieldSkillRequirementLevel)
+	}
+	if m.adddamage_dice_count != nil {
+		fields = append(fields, equipmenttemplate.FieldDamageDiceCount)
+	}
+	if m.adddamage_dice_sides != nil {
+		fields = append(fields, equipmenttemplate.FieldDamageDiceSides)
+	}
+	if m.adddamage_bonus != nil {
+		fields = append(fields, equipmenttemplate.FieldDamageBonus)
+	}
 	return fields
 }
 
@@ -13330,6 +14824,16 @@ func (m *EquipmentTemplateMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedEffectDuration()
 	case equipmenttemplate.FieldContainerCapacity:
 		return m.AddedContainerCapacity()
+	case equipmenttemplate.FieldArmorRating:
+		return m.AddedArmorRating()
+	case equipmenttemplate.FieldSkillRequirementLevel:
+		return m.AddedSkillRequirementLevel()
+	case equipmenttemplate.FieldDamageDiceCount:
+		return m.AddedDamageDiceCount()
+	case equipmenttemplate.FieldDamageDiceSides:
+		return m.AddedDamageDiceSides()
+	case equipmenttemplate.FieldDamageBonus:
+		return m.AddedDamageBonus()
 	}
 	return nil, false
 }
@@ -13373,6 +14877,41 @@ func (m *EquipmentTemplateMutation) AddField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddContainerCapacity(v)
+		return nil
+	case equipmenttemplate.FieldArmorRating:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddArmorRating(v)
+		return nil
+	case equipmenttemplate.FieldSkillRequirementLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSkillRequirementLevel(v)
+		return nil
+	case equipmenttemplate.FieldDamageDiceCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDamageDiceCount(v)
+		return nil
+	case equipmenttemplate.FieldDamageDiceSides:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDamageDiceSides(v)
+		return nil
+	case equipmenttemplate.FieldDamageBonus:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDamageBonus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown EquipmentTemplate numeric field %s", name)
@@ -13478,6 +15017,39 @@ func (m *EquipmentTemplateMutation) ResetField(name string) error {
 		return nil
 	case equipmenttemplate.FieldExpiresAt:
 		m.ResetExpiresAt()
+		return nil
+	case equipmenttemplate.FieldArmorRating:
+		m.ResetArmorRating()
+		return nil
+	case equipmenttemplate.FieldArmorType:
+		m.ResetArmorType()
+		return nil
+	case equipmenttemplate.FieldRarity:
+		m.ResetRarity()
+		return nil
+	case equipmenttemplate.FieldSkillRequirement:
+		m.ResetSkillRequirement()
+		return nil
+	case equipmenttemplate.FieldSkillRequirementLevel:
+		m.ResetSkillRequirementLevel()
+		return nil
+	case equipmenttemplate.FieldDamageDiceCount:
+		m.ResetDamageDiceCount()
+		return nil
+	case equipmenttemplate.FieldDamageDiceSides:
+		m.ResetDamageDiceSides()
+		return nil
+	case equipmenttemplate.FieldDamageBonus:
+		m.ResetDamageBonus()
+		return nil
+	case equipmenttemplate.FieldDamageType:
+		m.ResetDamageType()
+		return nil
+	case equipmenttemplate.FieldWeaponType:
+		m.ResetWeaponType()
+		return nil
+	case equipmenttemplate.FieldIsTwoHanded:
+		m.ResetIsTwoHanded()
 		return nil
 	}
 	return fmt.Errorf("unknown EquipmentTemplate field %s", name)
@@ -18115,20 +19687,22 @@ func (m *NPCTemplateMutation) ResetEdge(name string) error {
 // RaceMutation represents an operation that mutates the Race nodes in the graph.
 type RaceMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	name           *string
-	display_name   *string
-	description    *string
-	stat_modifiers *string
-	skill_grants   *string
-	is_playable    *bool
-	color          *string
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*Race, error)
-	predicates     []predicate.Race
+	op                    Op
+	typ                   string
+	id                    *int
+	name                  *string
+	display_name          *string
+	description           *string
+	stat_modifiers        *string
+	skill_grants          *string
+	equipment_slots       *[]string
+	appendequipment_slots []string
+	is_playable           *bool
+	color                 *string
+	clearedFields         map[string]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*Race, error)
+	predicates            []predicate.Race
 }
 
 var _ ent.Mutation = (*RaceMutation)(nil)
@@ -18435,6 +20009,57 @@ func (m *RaceMutation) ResetSkillGrants() {
 	delete(m.clearedFields, race.FieldSkillGrants)
 }
 
+// SetEquipmentSlots sets the "equipment_slots" field.
+func (m *RaceMutation) SetEquipmentSlots(s []string) {
+	m.equipment_slots = &s
+	m.appendequipment_slots = nil
+}
+
+// EquipmentSlots returns the value of the "equipment_slots" field in the mutation.
+func (m *RaceMutation) EquipmentSlots() (r []string, exists bool) {
+	v := m.equipment_slots
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEquipmentSlots returns the old "equipment_slots" field's value of the Race entity.
+// If the Race object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RaceMutation) OldEquipmentSlots(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEquipmentSlots is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEquipmentSlots requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEquipmentSlots: %w", err)
+	}
+	return oldValue.EquipmentSlots, nil
+}
+
+// AppendEquipmentSlots adds s to the "equipment_slots" field.
+func (m *RaceMutation) AppendEquipmentSlots(s []string) {
+	m.appendequipment_slots = append(m.appendequipment_slots, s...)
+}
+
+// AppendedEquipmentSlots returns the list of values that were appended to the "equipment_slots" field in this mutation.
+func (m *RaceMutation) AppendedEquipmentSlots() ([]string, bool) {
+	if len(m.appendequipment_slots) == 0 {
+		return nil, false
+	}
+	return m.appendequipment_slots, true
+}
+
+// ResetEquipmentSlots resets all changes to the "equipment_slots" field.
+func (m *RaceMutation) ResetEquipmentSlots() {
+	m.equipment_slots = nil
+	m.appendequipment_slots = nil
+}
+
 // SetIsPlayable sets the "is_playable" field.
 func (m *RaceMutation) SetIsPlayable(b bool) {
 	m.is_playable = &b
@@ -18554,7 +20179,7 @@ func (m *RaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RaceMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, race.FieldName)
 	}
@@ -18569,6 +20194,9 @@ func (m *RaceMutation) Fields() []string {
 	}
 	if m.skill_grants != nil {
 		fields = append(fields, race.FieldSkillGrants)
+	}
+	if m.equipment_slots != nil {
+		fields = append(fields, race.FieldEquipmentSlots)
 	}
 	if m.is_playable != nil {
 		fields = append(fields, race.FieldIsPlayable)
@@ -18594,6 +20222,8 @@ func (m *RaceMutation) Field(name string) (ent.Value, bool) {
 		return m.StatModifiers()
 	case race.FieldSkillGrants:
 		return m.SkillGrants()
+	case race.FieldEquipmentSlots:
+		return m.EquipmentSlots()
 	case race.FieldIsPlayable:
 		return m.IsPlayable()
 	case race.FieldColor:
@@ -18617,6 +20247,8 @@ func (m *RaceMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldStatModifiers(ctx)
 	case race.FieldSkillGrants:
 		return m.OldSkillGrants(ctx)
+	case race.FieldEquipmentSlots:
+		return m.OldEquipmentSlots(ctx)
 	case race.FieldIsPlayable:
 		return m.OldIsPlayable(ctx)
 	case race.FieldColor:
@@ -18664,6 +20296,13 @@ func (m *RaceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSkillGrants(v)
+		return nil
+	case race.FieldEquipmentSlots:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEquipmentSlots(v)
 		return nil
 	case race.FieldIsPlayable:
 		v, ok := value.(bool)
@@ -18763,6 +20402,9 @@ func (m *RaceMutation) ResetField(name string) error {
 		return nil
 	case race.FieldSkillGrants:
 		m.ResetSkillGrants()
+		return nil
+	case race.FieldEquipmentSlots:
+		m.ResetEquipmentSlots()
 		return nil
 	case race.FieldIsPlayable:
 		m.ResetIsPlayable()

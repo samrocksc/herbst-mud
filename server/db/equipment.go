@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"herbst-server/db/equipment"
 	"herbst-server/db/equipmenttemplate"
@@ -19,8 +20,6 @@ type Equipment struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// FK to equipment_template
-	EquipmentTemplateID string `json:"equipment_template_id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
@@ -41,7 +40,9 @@ type Equipment struct {
 	IsVisible bool `json:"isVisible,omitempty"`
 	// weapon|armor|consumable|quest|misc|container|potion
 	ItemType string `json:"itemType,omitempty"`
-	// Character ID that owns this item, nil if in a room
+	// FK to equipment_template
+	EquipmentTemplateID string `json:"equipment_template_id,omitempty"`
+	// Character ID that owns this item
 	OwnerId *int `json:"ownerId,omitempty"`
 	// heal|damage|dot|buff_armor|buff_dodge|buff_crit|debuff
 	EffectType string `json:"effect_type,omitempty"`
@@ -67,6 +68,30 @@ type Equipment struct {
 	RevealCondition string `json:"revealCondition,omitempty"`
 	// When this item expires and is auto-deleted. nil = never rots.
 	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+	// Flat AC bonus when equipped
+	ArmorRating int `json:"armor_rating,omitempty"`
+	// light|cloth|heavy or empty
+	ArmorType string `json:"armor_type,omitempty"`
+	// Passive stat bonuses when equipped
+	Stats map[string]int `json:"stats,omitempty"`
+	// common|uncommon|rare|epic|legendary
+	Rarity string `json:"rarity,omitempty"`
+	// Which skill governs this item
+	SkillRequirement string `json:"skill_requirement,omitempty"`
+	// Min skill level for full effect
+	SkillRequirementLevel int `json:"skill_requirement_level,omitempty"`
+	// Number of dice (0 = not a weapon)
+	DamageDiceCount int `json:"damage_dice_count,omitempty"`
+	// Sides per die
+	DamageDiceSides int `json:"damage_dice_sides,omitempty"`
+	// Flat damage modifier
+	DamageBonus int `json:"damage_bonus,omitempty"`
+	// slashing|piercing|bludgeoning|fire|etc.
+	DamageType string `json:"damage_type,omitempty"`
+	// sword|axe|spear|knife|martial|staff|pipe
+	WeaponType string `json:"weapon_type,omitempty"`
+	// Occupies both hand slots
+	IsTwoHanded bool `json:"is_two_handed,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges          EquipmentEdges `json:"edges"`
@@ -112,11 +137,13 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsContainer, equipment.FieldIsLocked:
+		case equipment.FieldStats:
+			values[i] = new([]byte)
+		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsContainer, equipment.FieldIsLocked, equipment.FieldIsTwoHanded:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity, equipment.FieldArmorRating, equipment.FieldSkillRequirementLevel, equipment.FieldDamageDiceCount, equipment.FieldDamageDiceSides, equipment.FieldDamageBonus:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldEquipmentTemplateID, equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEquipmentTemplateID, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition, equipment.FieldArmorType, equipment.FieldRarity, equipment.FieldSkillRequirement, equipment.FieldDamageType, equipment.FieldWeaponType:
 			values[i] = new(sql.NullString)
 		case equipment.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -143,12 +170,6 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case equipment.FieldEquipmentTemplateID:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field equipment_template_id", values[i])
-			} else if value.Valid {
-				_m.EquipmentTemplateID = value.String
-			}
 		case equipment.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -208,6 +229,12 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field itemType", values[i])
 			} else if value.Valid {
 				_m.ItemType = value.String
+			}
+		case equipment.FieldEquipmentTemplateID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field equipment_template_id", values[i])
+			} else if value.Valid {
+				_m.EquipmentTemplateID = value.String
 			}
 		case equipment.FieldOwnerId:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -289,6 +316,80 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				_m.ExpiresAt = new(time.Time)
 				*_m.ExpiresAt = value.Time
 			}
+		case equipment.FieldArmorRating:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field armor_rating", values[i])
+			} else if value.Valid {
+				_m.ArmorRating = int(value.Int64)
+			}
+		case equipment.FieldArmorType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field armor_type", values[i])
+			} else if value.Valid {
+				_m.ArmorType = value.String
+			}
+		case equipment.FieldStats:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field stats", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Stats); err != nil {
+					return fmt.Errorf("unmarshal field stats: %w", err)
+				}
+			}
+		case equipment.FieldRarity:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field rarity", values[i])
+			} else if value.Valid {
+				_m.Rarity = value.String
+			}
+		case equipment.FieldSkillRequirement:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_requirement", values[i])
+			} else if value.Valid {
+				_m.SkillRequirement = value.String
+			}
+		case equipment.FieldSkillRequirementLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field skill_requirement_level", values[i])
+			} else if value.Valid {
+				_m.SkillRequirementLevel = int(value.Int64)
+			}
+		case equipment.FieldDamageDiceCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field damage_dice_count", values[i])
+			} else if value.Valid {
+				_m.DamageDiceCount = int(value.Int64)
+			}
+		case equipment.FieldDamageDiceSides:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field damage_dice_sides", values[i])
+			} else if value.Valid {
+				_m.DamageDiceSides = int(value.Int64)
+			}
+		case equipment.FieldDamageBonus:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field damage_bonus", values[i])
+			} else if value.Valid {
+				_m.DamageBonus = int(value.Int64)
+			}
+		case equipment.FieldDamageType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field damage_type", values[i])
+			} else if value.Valid {
+				_m.DamageType = value.String
+			}
+		case equipment.FieldWeaponType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field weapon_type", values[i])
+			} else if value.Valid {
+				_m.WeaponType = value.String
+			}
+		case equipment.FieldIsTwoHanded:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_two_handed", values[i])
+			} else if value.Valid {
+				_m.IsTwoHanded = value.Bool
+			}
 		case equipment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_equipment", value)
@@ -342,9 +443,6 @@ func (_m *Equipment) String() string {
 	var builder strings.Builder
 	builder.WriteString("Equipment(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("equipment_template_id=")
-	builder.WriteString(_m.EquipmentTemplateID)
-	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
@@ -374,6 +472,9 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("itemType=")
 	builder.WriteString(_m.ItemType)
+	builder.WriteString(", ")
+	builder.WriteString("equipment_template_id=")
+	builder.WriteString(_m.EquipmentTemplateID)
 	builder.WriteString(", ")
 	if v := _m.OwnerId; v != nil {
 		builder.WriteString("ownerId=")
@@ -417,6 +518,42 @@ func (_m *Equipment) String() string {
 		builder.WriteString("expiresAt=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("armor_rating=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ArmorRating))
+	builder.WriteString(", ")
+	builder.WriteString("armor_type=")
+	builder.WriteString(_m.ArmorType)
+	builder.WriteString(", ")
+	builder.WriteString("stats=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Stats))
+	builder.WriteString(", ")
+	builder.WriteString("rarity=")
+	builder.WriteString(_m.Rarity)
+	builder.WriteString(", ")
+	builder.WriteString("skill_requirement=")
+	builder.WriteString(_m.SkillRequirement)
+	builder.WriteString(", ")
+	builder.WriteString("skill_requirement_level=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SkillRequirementLevel))
+	builder.WriteString(", ")
+	builder.WriteString("damage_dice_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DamageDiceCount))
+	builder.WriteString(", ")
+	builder.WriteString("damage_dice_sides=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DamageDiceSides))
+	builder.WriteString(", ")
+	builder.WriteString("damage_bonus=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DamageBonus))
+	builder.WriteString(", ")
+	builder.WriteString("damage_type=")
+	builder.WriteString(_m.DamageType)
+	builder.WriteString(", ")
+	builder.WriteString("weapon_type=")
+	builder.WriteString(_m.WeaponType)
+	builder.WriteString(", ")
+	builder.WriteString("is_two_handed=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsTwoHanded))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -22,12 +22,13 @@ func InitRaces(client *db.Client) error {
 	}
 
 	races := []struct {
-		name          string
-		displayName   string
-		description   string
-		statModifiers map[string]int
-		skillGrants   []string
-		isPlayable    bool
+		name           string
+		displayName    string
+		description    string
+		statModifiers  map[string]int
+		skillGrants    []string
+		equipmentSlots []string
+		isPlayable     bool
 	}{
 		{
 			name:        "human",
@@ -40,8 +41,9 @@ func InitRaces(client *db.Client) error {
 				"intelligence":  0,
 				"wisdom":       0,
 			},
-			skillGrants: []string{},
-			isPlayable:  true,
+			skillGrants:    []string{},
+			equipmentSlots: []string{"head", "neck", "chest", "back", "hands", "legs", "feet", "finger_left", "finger_right", "main_hand", "off_hand"},
+			isPlayable:     true,
 		},
 		{
 			name:        "turtle",
@@ -54,8 +56,9 @@ func InitRaces(client *db.Client) error {
 				"intelligence":  0,
 				"wisdom":       0,
 			},
-			skillGrants: []string{"shell_defense"},
-			isPlayable:  true,
+			skillGrants:    []string{"shell_defense"},
+			equipmentSlots: []string{"head", "neck", "chest", "back", "hands", "legs", "feet", "finger_left", "finger_right", "main_hand", "off_hand"},
+			isPlayable:     true,
 		},
 		{
 			name:        "mutant",
@@ -68,8 +71,9 @@ func InitRaces(client *db.Client) error {
 				"intelligence":  2,
 				"wisdom":       0,
 			},
-			skillGrants: []string{"mutant_armor"},
-			isPlayable:  true,
+			skillGrants:    []string{"mutant_armor"},
+			equipmentSlots: []string{"head", "neck", "chest", "back", "hands", "legs", "feet", "finger_left", "finger_right", "main_hand", "off_hand", "tail"},
+			isPlayable:     true,
 		},
 	}
 
@@ -82,6 +86,7 @@ func InitRaces(client *db.Client) error {
 			SetDescription(r.description).
 			SetStatModifiers(string(statJSON)).
 			SetSkillGrants(string(skillJSON)).
+			SetEquipmentSlots(r.equipmentSlots).
 			SetIsPlayable(r.isPlayable).
 			Save(ctx)
 		if err != nil {

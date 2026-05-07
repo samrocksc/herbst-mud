@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"herbst/db/character"
 	"herbst/db/equipment"
+	"herbst/db/equipmenttemplate"
 	"herbst/db/npctemplate"
+	"herbst/db/race"
 	"herbst/db/room"
 	"herbst/db/skill"
 	"herbst/db/talent"
@@ -79,13 +81,15 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			character.Table:   character.ValidColumn,
-			equipment.Table:   equipment.ValidColumn,
-			npctemplate.Table: npctemplate.ValidColumn,
-			room.Table:        room.ValidColumn,
-			skill.Table:       skill.ValidColumn,
-			talent.Table:      talent.ValidColumn,
-			user.Table:        user.ValidColumn,
+			character.Table:         character.ValidColumn,
+			equipment.Table:         equipment.ValidColumn,
+			equipmenttemplate.Table: equipmenttemplate.ValidColumn,
+			npctemplate.Table:       npctemplate.ValidColumn,
+			race.Table:              race.ValidColumn,
+			room.Table:              room.ValidColumn,
+			skill.Table:             skill.ValidColumn,
+			talent.Table:            talent.ValidColumn,
+			user.Table:              user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

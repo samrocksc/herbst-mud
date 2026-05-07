@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst/db/equipment"
+	"herbst/db/equipmenttemplate"
 	"herbst/db/room"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -184,6 +185,20 @@ func (_c *EquipmentCreate) SetNillableRevealCondition(v *string) *EquipmentCreat
 	return _c
 }
 
+// SetEquipmentTemplateID sets the "equipment_template_id" field.
+func (_c *EquipmentCreate) SetEquipmentTemplateID(v string) *EquipmentCreate {
+	_c.mutation.SetEquipmentTemplateID(v)
+	return _c
+}
+
+// SetNillableEquipmentTemplateID sets the "equipment_template_id" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableEquipmentTemplateID(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetEquipmentTemplateID(*v)
+	}
+	return _c
+}
+
 // SetMinDamage sets the "minDamage" field.
 func (_c *EquipmentCreate) SetMinDamage(v int) *EquipmentCreate {
 	_c.mutation.SetMinDamage(v)
@@ -254,6 +269,152 @@ func (_c *EquipmentCreate) SetNillableGuaranteedDrop(v *bool) *EquipmentCreate {
 	return _c
 }
 
+// SetArmorRating sets the "armor_rating" field.
+func (_c *EquipmentCreate) SetArmorRating(v int) *EquipmentCreate {
+	_c.mutation.SetArmorRating(v)
+	return _c
+}
+
+// SetNillableArmorRating sets the "armor_rating" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableArmorRating(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetArmorRating(*v)
+	}
+	return _c
+}
+
+// SetArmorType sets the "armor_type" field.
+func (_c *EquipmentCreate) SetArmorType(v string) *EquipmentCreate {
+	_c.mutation.SetArmorType(v)
+	return _c
+}
+
+// SetNillableArmorType sets the "armor_type" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableArmorType(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetArmorType(*v)
+	}
+	return _c
+}
+
+// SetStats sets the "stats" field.
+func (_c *EquipmentCreate) SetStats(v map[string]int) *EquipmentCreate {
+	_c.mutation.SetStats(v)
+	return _c
+}
+
+// SetRarity sets the "rarity" field.
+func (_c *EquipmentCreate) SetRarity(v string) *EquipmentCreate {
+	_c.mutation.SetRarity(v)
+	return _c
+}
+
+// SetNillableRarity sets the "rarity" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableRarity(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetRarity(*v)
+	}
+	return _c
+}
+
+// SetSkillRequirement sets the "skill_requirement" field.
+func (_c *EquipmentCreate) SetSkillRequirement(v string) *EquipmentCreate {
+	_c.mutation.SetSkillRequirement(v)
+	return _c
+}
+
+// SetNillableSkillRequirement sets the "skill_requirement" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableSkillRequirement(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetSkillRequirement(*v)
+	}
+	return _c
+}
+
+// SetSkillRequirementLevel sets the "skill_requirement_level" field.
+func (_c *EquipmentCreate) SetSkillRequirementLevel(v int) *EquipmentCreate {
+	_c.mutation.SetSkillRequirementLevel(v)
+	return _c
+}
+
+// SetNillableSkillRequirementLevel sets the "skill_requirement_level" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableSkillRequirementLevel(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetSkillRequirementLevel(*v)
+	}
+	return _c
+}
+
+// SetDamageDiceCount sets the "damage_dice_count" field.
+func (_c *EquipmentCreate) SetDamageDiceCount(v int) *EquipmentCreate {
+	_c.mutation.SetDamageDiceCount(v)
+	return _c
+}
+
+// SetNillableDamageDiceCount sets the "damage_dice_count" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableDamageDiceCount(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetDamageDiceCount(*v)
+	}
+	return _c
+}
+
+// SetDamageDiceSides sets the "damage_dice_sides" field.
+func (_c *EquipmentCreate) SetDamageDiceSides(v int) *EquipmentCreate {
+	_c.mutation.SetDamageDiceSides(v)
+	return _c
+}
+
+// SetNillableDamageDiceSides sets the "damage_dice_sides" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableDamageDiceSides(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetDamageDiceSides(*v)
+	}
+	return _c
+}
+
+// SetDamageBonus sets the "damage_bonus" field.
+func (_c *EquipmentCreate) SetDamageBonus(v int) *EquipmentCreate {
+	_c.mutation.SetDamageBonus(v)
+	return _c
+}
+
+// SetNillableDamageBonus sets the "damage_bonus" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableDamageBonus(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetDamageBonus(*v)
+	}
+	return _c
+}
+
+// SetDamageType sets the "damage_type" field.
+func (_c *EquipmentCreate) SetDamageType(v string) *EquipmentCreate {
+	_c.mutation.SetDamageType(v)
+	return _c
+}
+
+// SetNillableDamageType sets the "damage_type" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableDamageType(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetDamageType(*v)
+	}
+	return _c
+}
+
+// SetIsTwoHanded sets the "is_two_handed" field.
+func (_c *EquipmentCreate) SetIsTwoHanded(v bool) *EquipmentCreate {
+	_c.mutation.SetIsTwoHanded(v)
+	return _c
+}
+
+// SetNillableIsTwoHanded sets the "is_two_handed" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableIsTwoHanded(v *bool) *EquipmentCreate {
+	if v != nil {
+		_c.SetIsTwoHanded(*v)
+	}
+	return _c
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_c *EquipmentCreate) SetRoomID(id int) *EquipmentCreate {
 	_c.mutation.SetRoomID(id)
@@ -271,6 +432,11 @@ func (_c *EquipmentCreate) SetNillableRoomID(id *int) *EquipmentCreate {
 // SetRoom sets the "room" edge to the Room entity.
 func (_c *EquipmentCreate) SetRoom(v *Room) *EquipmentCreate {
 	return _c.SetRoomID(v.ID)
+}
+
+// SetEquipmentTemplate sets the "equipmentTemplate" edge to the EquipmentTemplate entity.
+func (_c *EquipmentCreate) SetEquipmentTemplate(v *EquipmentTemplate) *EquipmentCreate {
+	return _c.SetEquipmentTemplateID(v.ID)
 }
 
 // Mutation returns the EquipmentMutation object of the builder.
@@ -372,6 +538,50 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultGuaranteedDrop
 		_c.mutation.SetGuaranteedDrop(v)
 	}
+	if _, ok := _c.mutation.ArmorRating(); !ok {
+		v := equipment.DefaultArmorRating
+		_c.mutation.SetArmorRating(v)
+	}
+	if _, ok := _c.mutation.ArmorType(); !ok {
+		v := equipment.DefaultArmorType
+		_c.mutation.SetArmorType(v)
+	}
+	if _, ok := _c.mutation.Stats(); !ok {
+		v := equipment.DefaultStats
+		_c.mutation.SetStats(v)
+	}
+	if _, ok := _c.mutation.Rarity(); !ok {
+		v := equipment.DefaultRarity
+		_c.mutation.SetRarity(v)
+	}
+	if _, ok := _c.mutation.SkillRequirement(); !ok {
+		v := equipment.DefaultSkillRequirement
+		_c.mutation.SetSkillRequirement(v)
+	}
+	if _, ok := _c.mutation.SkillRequirementLevel(); !ok {
+		v := equipment.DefaultSkillRequirementLevel
+		_c.mutation.SetSkillRequirementLevel(v)
+	}
+	if _, ok := _c.mutation.DamageDiceCount(); !ok {
+		v := equipment.DefaultDamageDiceCount
+		_c.mutation.SetDamageDiceCount(v)
+	}
+	if _, ok := _c.mutation.DamageDiceSides(); !ok {
+		v := equipment.DefaultDamageDiceSides
+		_c.mutation.SetDamageDiceSides(v)
+	}
+	if _, ok := _c.mutation.DamageBonus(); !ok {
+		v := equipment.DefaultDamageBonus
+		_c.mutation.SetDamageBonus(v)
+	}
+	if _, ok := _c.mutation.DamageType(); !ok {
+		v := equipment.DefaultDamageType
+		_c.mutation.SetDamageType(v)
+	}
+	if _, ok := _c.mutation.IsTwoHanded(); !ok {
+		v := equipment.DefaultIsTwoHanded
+		_c.mutation.SetIsTwoHanded(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -432,6 +642,39 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.GuaranteedDrop(); !ok {
 		return &ValidationError{Name: "guaranteedDrop", err: errors.New(`db: missing required field "Equipment.guaranteedDrop"`)}
+	}
+	if _, ok := _c.mutation.ArmorRating(); !ok {
+		return &ValidationError{Name: "armor_rating", err: errors.New(`db: missing required field "Equipment.armor_rating"`)}
+	}
+	if _, ok := _c.mutation.ArmorType(); !ok {
+		return &ValidationError{Name: "armor_type", err: errors.New(`db: missing required field "Equipment.armor_type"`)}
+	}
+	if _, ok := _c.mutation.Stats(); !ok {
+		return &ValidationError{Name: "stats", err: errors.New(`db: missing required field "Equipment.stats"`)}
+	}
+	if _, ok := _c.mutation.Rarity(); !ok {
+		return &ValidationError{Name: "rarity", err: errors.New(`db: missing required field "Equipment.rarity"`)}
+	}
+	if _, ok := _c.mutation.SkillRequirement(); !ok {
+		return &ValidationError{Name: "skill_requirement", err: errors.New(`db: missing required field "Equipment.skill_requirement"`)}
+	}
+	if _, ok := _c.mutation.SkillRequirementLevel(); !ok {
+		return &ValidationError{Name: "skill_requirement_level", err: errors.New(`db: missing required field "Equipment.skill_requirement_level"`)}
+	}
+	if _, ok := _c.mutation.DamageDiceCount(); !ok {
+		return &ValidationError{Name: "damage_dice_count", err: errors.New(`db: missing required field "Equipment.damage_dice_count"`)}
+	}
+	if _, ok := _c.mutation.DamageDiceSides(); !ok {
+		return &ValidationError{Name: "damage_dice_sides", err: errors.New(`db: missing required field "Equipment.damage_dice_sides"`)}
+	}
+	if _, ok := _c.mutation.DamageBonus(); !ok {
+		return &ValidationError{Name: "damage_bonus", err: errors.New(`db: missing required field "Equipment.damage_bonus"`)}
+	}
+	if _, ok := _c.mutation.DamageType(); !ok {
+		return &ValidationError{Name: "damage_type", err: errors.New(`db: missing required field "Equipment.damage_type"`)}
+	}
+	if _, ok := _c.mutation.IsTwoHanded(); !ok {
+		return &ValidationError{Name: "is_two_handed", err: errors.New(`db: missing required field "Equipment.is_two_handed"`)}
 	}
 	return nil
 }
@@ -535,6 +778,50 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 		_spec.SetField(equipment.FieldGuaranteedDrop, field.TypeBool, value)
 		_node.GuaranteedDrop = value
 	}
+	if value, ok := _c.mutation.ArmorRating(); ok {
+		_spec.SetField(equipment.FieldArmorRating, field.TypeInt, value)
+		_node.ArmorRating = value
+	}
+	if value, ok := _c.mutation.ArmorType(); ok {
+		_spec.SetField(equipment.FieldArmorType, field.TypeString, value)
+		_node.ArmorType = value
+	}
+	if value, ok := _c.mutation.Stats(); ok {
+		_spec.SetField(equipment.FieldStats, field.TypeJSON, value)
+		_node.Stats = value
+	}
+	if value, ok := _c.mutation.Rarity(); ok {
+		_spec.SetField(equipment.FieldRarity, field.TypeString, value)
+		_node.Rarity = value
+	}
+	if value, ok := _c.mutation.SkillRequirement(); ok {
+		_spec.SetField(equipment.FieldSkillRequirement, field.TypeString, value)
+		_node.SkillRequirement = value
+	}
+	if value, ok := _c.mutation.SkillRequirementLevel(); ok {
+		_spec.SetField(equipment.FieldSkillRequirementLevel, field.TypeInt, value)
+		_node.SkillRequirementLevel = value
+	}
+	if value, ok := _c.mutation.DamageDiceCount(); ok {
+		_spec.SetField(equipment.FieldDamageDiceCount, field.TypeInt, value)
+		_node.DamageDiceCount = value
+	}
+	if value, ok := _c.mutation.DamageDiceSides(); ok {
+		_spec.SetField(equipment.FieldDamageDiceSides, field.TypeInt, value)
+		_node.DamageDiceSides = value
+	}
+	if value, ok := _c.mutation.DamageBonus(); ok {
+		_spec.SetField(equipment.FieldDamageBonus, field.TypeInt, value)
+		_node.DamageBonus = value
+	}
+	if value, ok := _c.mutation.DamageType(); ok {
+		_spec.SetField(equipment.FieldDamageType, field.TypeString, value)
+		_node.DamageType = value
+	}
+	if value, ok := _c.mutation.IsTwoHanded(); ok {
+		_spec.SetField(equipment.FieldIsTwoHanded, field.TypeBool, value)
+		_node.IsTwoHanded = value
+	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -550,6 +837,23 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.room_equipment = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EquipmentTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipment.EquipmentTemplateTable,
+			Columns: []string{equipment.EquipmentTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.EquipmentTemplateID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
