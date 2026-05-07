@@ -13,9 +13,11 @@ import { Route as NpcTemplatesRouteImport } from './routes/npc-templates'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ExportRouteImport } from './routes/export'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
 import { Route as AuthTalentsRouteImport } from './routes/_auth/talents'
 import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
@@ -54,6 +56,11 @@ const ExportRoute = ExportRouteImport.update({
   path: '/export',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -67,6 +74,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DocsAbilitySystemRoute = DocsAbilitySystemRouteImport.update({
+  id: '/ability-system',
+  path: '/ability-system',
+  getParentRoute: () => DocsRoute,
 } as any)
 const AuthXpRoute = AuthXpRouteImport.update({
   id: '/xp',
@@ -159,6 +171,7 @@ const AuthItemsItemIdInstancesInstanceIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRouteWithChildren
   '/export': typeof ExportRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
@@ -175,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/tags': typeof AuthTagsRoute
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
+  '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
   '/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
@@ -184,6 +198,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRouteWithChildren
   '/export': typeof ExportRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
@@ -200,6 +215,7 @@ export interface FileRoutesByTo {
   '/tags': typeof AuthTagsRoute
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
+  '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
@@ -210,6 +226,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRouteWithChildren
   '/export': typeof ExportRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
@@ -226,6 +243,7 @@ export interface FileRoutesById {
   '/_auth/tags': typeof AuthTagsRoute
   '/_auth/talents': typeof AuthTalentsRoute
   '/_auth/xp': typeof AuthXpRoute
+  '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
   '/_auth/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
@@ -237,6 +255,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/docs'
     | '/export'
     | '/login'
     | '/map'
@@ -253,6 +272,7 @@ export interface FileRouteTypes {
     | '/tags'
     | '/talents'
     | '/xp'
+    | '/docs/ability-system'
     | '/items/$itemId'
     | '/npcs/$npcId'
     | '/npcs/$npcId/'
@@ -262,6 +282,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/docs'
     | '/export'
     | '/login'
     | '/map'
@@ -278,6 +299,7 @@ export interface FileRouteTypes {
     | '/tags'
     | '/talents'
     | '/xp'
+    | '/docs/ability-system'
     | '/items/$itemId'
     | '/npcs/$npcId'
     | '/items/$itemId/instances/$instanceId'
@@ -287,6 +309,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_auth'
     | '/dashboard'
+    | '/docs'
     | '/export'
     | '/login'
     | '/map'
@@ -303,6 +326,7 @@ export interface FileRouteTypes {
     | '/_auth/tags'
     | '/_auth/talents'
     | '/_auth/xp'
+    | '/docs/ability-system'
     | '/_auth/items/$itemId'
     | '/_auth/npcs/$npcId'
     | '/_auth/npcs/$npcId/'
@@ -314,6 +338,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  DocsRoute: typeof DocsRouteWithChildren
   ExportRoute: typeof ExportRoute
   LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
@@ -350,6 +375,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -370,6 +402,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/docs/ability-system': {
+      id: '/docs/ability-system'
+      path: '/ability-system'
+      fullPath: '/docs/ability-system'
+      preLoaderRoute: typeof DocsAbilitySystemRouteImport
+      parentRoute: typeof DocsRoute
     }
     '/_auth/xp': {
       id: '/_auth/xp'
@@ -576,10 +615,21 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface DocsRouteChildren {
+  DocsAbilitySystemRoute: typeof DocsAbilitySystemRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsAbilitySystemRoute: DocsAbilitySystemRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  DocsRoute: DocsRouteWithChildren,
   ExportRoute: ExportRoute,
   LoginRoute: LoginRoute,
   MapRoute: MapRoute,
