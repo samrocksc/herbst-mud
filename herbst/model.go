@@ -51,6 +51,7 @@ type model struct {
 	// Character state
 	currentCharacterID   int
 	currentCharacterName string
+	characterRace        string
 	characterGender      string
 	characterDescription string
 	characterHP          int

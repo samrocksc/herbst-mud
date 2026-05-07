@@ -72,11 +72,6 @@ func (m *model) processCommand(cmd string) {
 			m.handleLootCommand(cmd)
 			return
 		}
-		// inventory
-		if cmd == "inventory" || cmd == "i" || cmd == "inv" {
-			m.handleInventoryCommand()
-			return
-		}
 		// quests
 		if cmd == "quests" || cmd == "q" || cmd == "quest" {
 			m.handleQuestsCommand(cmd)

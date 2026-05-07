@@ -228,6 +228,16 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 				OwnerID:     item.OwnerId,
 				Healing:     item.Healing,
 				Effect:      item.Effect,
+				ArmorRating:           item.ArmorRating,
+				ArmorType:             item.ArmorType,
+				Stats:                 item.Stats,
+				DamageDiceCount:       item.DamageDiceCount,
+				DamageDiceSides:       item.DamageDiceSides,
+				DamageBonus:           item.DamageBonus,
+				DamageType:            item.DamageType,
+				WeaponType:            item.WeaponType,
+				IsTwoHanded:           item.IsTwoHanded,
+				Rarity:                item.Rarity,
 			}
 			if cond, ok := revealConditions[item.ID]; ok {
 				result[i].RevealCondition = cond

@@ -66,9 +66,9 @@ func (m *model) handleEditFieldInput(input string) {
 // ============================================================
 
 func (m *model) loadOrCreateCharacter() {
-	// Handle case when database client is not available
 	if m.client == nil {
 		m.currentCharacterName = m.currentUserName
+		m.characterRace = "human"
 		m.characterGender = "unspecified"
 		m.characterDescription = "A mysterious figure."
 		m.characterHP = 100
@@ -85,7 +85,6 @@ func (m *model) loadOrCreateCharacter() {
 	ctx := context.Background()
 	chars, err := m.client.Character.Query().Where(character.HasUserWith(user.IDEQ(m.currentUserID))).All(ctx)
 	if err != nil || len(chars) == 0 {
-		// No character exists - create one
 		m.createDefaultCharacter()
 		return
 	}
@@ -93,6 +92,7 @@ func (m *model) loadOrCreateCharacter() {
 	char := chars[0]
 	m.currentCharacterID = char.ID
 	m.currentCharacterName = char.Name
+	m.characterRace = char.Race
 	m.characterLevel = char.Level
 	m.characterExperience = 0
 	m.characterHP = char.Hitpoints
@@ -104,7 +104,6 @@ func (m *model) loadOrCreateCharacter() {
 }
 
 func (m *model) createDefaultCharacter() {
-	// Create character via REST API
 	jsonData, _ := json.Marshal(map[string]interface{}{
 		"name":           m.currentUserName,
 		"userId":         m.currentUserID,
@@ -124,7 +123,6 @@ func (m *model) createDefaultCharacter() {
 
 	resp, err := http.Post(RESTAPIBase+"/characters", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		// Fallback to local state only
 		m.currentCharacterName = m.currentUserName
 		m.setCharacterDefaults()
 		return
@@ -132,13 +130,11 @@ func (m *model) createDefaultCharacter() {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		// Fallback to local state only
 		m.currentCharacterName = m.currentUserName
 		m.setCharacterDefaults()
 		return
 	}
 
-	// Parse created character
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		m.currentCharacterName = m.currentUserName
@@ -149,11 +145,17 @@ func (m *model) createDefaultCharacter() {
 	if id, ok := result["id"].(float64); ok {
 		m.currentCharacterID = int(id)
 	}
+	if race, ok := result["race"].(string); ok {
+		m.characterRace = race
+	}
 	m.currentCharacterName = m.currentUserName
 	m.setCharacterDefaults()
 }
 
 func (m *model) setCharacterDefaults() {
+	if m.characterRace == "" {
+		m.characterRace = "human"
+	}
 	m.characterGender = "unspecified"
 	m.characterDescription = "A mysterious figure."
 	m.characterHP = 100
@@ -170,8 +172,6 @@ func (m *model) saveProfileToDB() {
 	if m.currentCharacterID == 0 {
 		return
 	}
-
-	// Profile saved via REST API — stub for now, DB update deferred
 	_ = m.currentCharacterID
 	_ = m.characterGender
 	_ = m.characterDescription

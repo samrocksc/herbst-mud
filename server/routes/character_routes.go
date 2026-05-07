@@ -617,6 +617,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				"description":    r.Description,
 				"stat_modifiers": r.StatModifiers,
 				"skill_grants":   r.SkillGrants,
+				"equipment_slots":  r.EquipmentSlots,
 			}
 		}
 		c.JSON(http.StatusOK, result)
