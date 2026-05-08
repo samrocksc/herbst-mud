@@ -1,22 +1,18 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { logError } from '../utils/log'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { StatCard } from '../components/StatCard'
 import { StatGrid } from '../components/StatGrid'
 import { PageHeader } from '../components/PageHeader'
 import { Button } from '../components/Button'
+import { showToast } from '../components/Toast'
+import { apiGet } from '../utils/apiFetch'
+import { ToolGrid } from './ToolGrid'
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
 })
 
-type Stats = Readonly<{
-  rooms: number
-  npcs: number
-  items: number
-  players: number
-  skills: number
-}>
+type Stats = { rooms: number; npcs: number; items: number; players: number; skills: number }
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -25,34 +21,26 @@ function Dashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (!token) {
-      navigate({ to: '/login' })
-      return
-    }
+    if (!token) { navigate({ to: '/login' }); return }
 
     const fetchStats = async () => {
       try {
-        const [roomsRes, npcsRes, skillsRes, equipmentRes, charactersRes] = await Promise.all([
-          fetch(`${window.location.origin}/rooms`),
-          fetch(`${window.location.origin}/npcs`),
-          fetch(`${window.location.origin}/api/abilities`),
-          fetch(`${window.location.origin}/equipment`),
-          fetch(`${window.location.origin}/characters`),
+        const [roomsData, npcsData, skillsData, equipmentData, charactersData] = await Promise.all([
+          apiGet<{ rooms: unknown[] }>(`${window.location.origin}/rooms`),
+          apiGet<{ npcs: unknown[] }>(`${window.location.origin}/npcs`),
+          apiGet<{ abilities: unknown[] }>(`${window.location.origin}/api/abilities`),
+          apiGet<unknown[]>(`${window.location.origin}/equipment`),
+          apiGet<unknown[]>(`${window.location.origin}/characters`),
         ])
-        const roomsData = await roomsRes.json()
-        const npcsData = await npcsRes.json()
-        const skillsData = await skillsRes.json()
-        const equipmentData = await equipmentRes.json()
-        const charactersData = await charactersRes.json()
         setStats({
-          rooms: Array.isArray(roomsData) ? roomsData.length : 0,
-          npcs: npcsData.npcs?.length || 0,
+          rooms: roomsData.rooms?.length ?? 0,
+          npcs: npcsData.npcs?.length ?? 0,
           items: Array.isArray(equipmentData) ? equipmentData.length : 0,
           players: Array.isArray(charactersData) ? charactersData.length : 0,
-          skills: skillsData.abilities?.length || 0
+          skills: skillsData.abilities?.length ?? 0,
         })
       } catch (err) {
-        logError('Failed to fetch stats:', err)
+        showToast(err instanceof Error ? err.message : 'Failed to load stats', 'error')
       } finally {
         setLoading(false)
       }
@@ -71,20 +59,11 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-surface text-text p-8">
       <div className="max-w-[1200px] mx-auto">
-        <PageHeader
-          title="Herbst MUD Admin"
-          actions={
-            <Button onClick={handleLogout} variant="danger">
-              Logout
-            </Button>
-          }
-        />
-
+        <PageHeader title="Herbst MUD Admin" actions={<Button onClick={handleLogout} variant="danger">Logout</Button>} />
         <div className="bg-surface-muted rounded-lg p-6 mb-8">
           <h2 className="m-0 mb-2 text-text">Welcome back!</h2>
           <p className="m-0 text-text-muted">Manage your MUD world from this admin panel.</p>
         </div>
-
         <StatGrid>
           <StatCard label="Total Rooms" value={stats.rooms} accent="primary" loading={loading} />
           <StatCard label="Active NPCs" value={stats.npcs} accent="warning" loading={loading} />
@@ -92,32 +71,9 @@ function Dashboard() {
           <StatCard label="Players" value={stats.players} accent="secondary" loading={loading} />
           <StatCard label="Skills" value={stats.skills} accent="success" loading={loading} />
         </StatGrid>
-
         <h3 className="mb-4 text-text">Admin Tools</h3>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
-          <ToolCard to="/map" emoji="🗺️" title="Map Builder" desc="View and edit room layout, connections, and z-levels" />
-          <ToolCard to="/npcs" emoji="👤" title="NPC Manager" desc="Create, edit, and manage NPCs and their locations" />
-          <ToolCard to="/items" emoji="📦" title="Item Manager" desc="Create, edit, and manage items and equipment" />
-          <ToolCard to="/export" emoji="💾" title="Export / Import" desc="Backup and restore game world data" />
-          <ToolCard to="/players" emoji="🎮" title="Player Manager" desc="Manage players and reset passwords" />
-          <ToolCard to="/abilities" emoji="⚡" title="Abilities Manager" desc="Create, edit, and manage abilities" />
-          <ToolCard to="/skills" emoji="🎯" title="Skills Manager" desc="Manage trainable skill specializations" />
-          <ToolCard to="/factions" emoji="⚔️" title="Factions Manager" desc="Manage factions, categories, and member standing" />
-        </div>
+        <ToolGrid />
       </div>
     </div>
-  )
-}
-
-function ToolCard({ to, emoji, title, desc }: { to: string; emoji: string; title: string; desc: string }) {
-  return (
-    <Link
-      to={to as any}
-      className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary hover:bg-surface-muted/70"
-    >
-      <div className="text-2xl mb-2">{emoji}</div>
-      <div className="font-bold mb-1">{title}</div>
-      <div className="text-text-muted text-sm">{desc}</div>
-    </Link>
   )
 }

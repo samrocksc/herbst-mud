@@ -1,7 +1,7 @@
-/** Race data hook refactored to use the centralized apiFetch. */
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
 
-import { useState, useEffect, useCallback } from 'react'
-import { apiFetch } from '../api'
+const API = `${window.location.origin}/api/races`
 
 export type Race = Readonly<{
   id: number
@@ -26,8 +26,6 @@ export type RaceInput = Readonly<{
   color: string
 }>
 
-const API = '/api/races'
-
 function parseRaceForApi(input: RaceInput) {
   const body: Record<string, unknown> = {
     name: input.name,
@@ -44,49 +42,37 @@ function parseRaceForApi(input: RaceInput) {
 }
 
 export function useRaces() {
-  const [races, setRaces] = useState<Race[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  return useQuery({
+    queryKey: ['races'],
+    queryFn: async (): Promise<Race[]> => {
+      const data = await apiGet<{ races: Race[] }>(API)
+      return data.races ?? []
+    },
+  })
+}
 
-  const fetchRaces = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await apiFetch(API) as { races: Race[] }
-      setRaces(data.races ?? [])
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load races')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+export function useCreateRace() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RaceInput) =>
+      apiPost<Race>(API, parseRaceForApi(input)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['races'] }),
+  })
+}
 
-  useEffect(() => { void fetchRaces() }, [fetchRaces])
+export function useUpdateRace() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number; input: RaceInput }) =>
+      apiPut<Race>(`${API}/${id}`, parseRaceForApi(input)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['races'] }),
+  })
+}
 
-  const createRace = useCallback(async (input: RaceInput): Promise<Race> => {
-    const body = parseRaceForApi(input)
-    const data = (await apiFetch(API, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    })) as Race
-    setRaces(prev => [...prev, data])
-    return data
-  }, [])
-
-  const updateRace = useCallback(async (id: number, input: RaceInput): Promise<Race> => {
-    const body = parseRaceForApi(input)
-    const data = (await apiFetch(`${API}/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    })) as Race
-    setRaces(prev => prev.map(r => (r.id === id ? data : r)))
-    return data
-  }, [])
-
-  const deleteRace = useCallback(async (id: number): Promise<void> => {
-    await apiFetch(`${API}/${id}`, { method: 'DELETE' })
-    setRaces(prev => prev.filter(r => r.id !== id))
-  }, [])
-
-  return { races, loading, error, createRace, updateRace, deleteRace, refetch: fetchRaces }
+export function useDeleteRace() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => apiDelete(`${API}/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['races'] }),
+  })
 }

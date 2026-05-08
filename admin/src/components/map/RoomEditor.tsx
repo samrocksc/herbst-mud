@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { ALL_DIRECTIONS } from './DirectionUtils'
 import { Button } from '../Button'
 import { SearchableSelect } from '../SearchableSelect'
+import { FormField } from '../fields/FormField'
+import { TextareaField } from '../fields/TextareaField'
+import { FormError } from '../fields/FormError'
+import { showToast } from '../Toast'
 import { useRooms } from '../../hooks/useRooms'
 import type { Room } from './types'
 
@@ -19,6 +23,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
     isStartingRoom: room.isStartingRoom,
   })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   const handleExitChange = async (dir: string, val: string) => {
     if (val) {
@@ -26,7 +31,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
       const oldTargetId = form.exits[dir]
 
       if (oldTargetId && oldTargetId !== targetId) {
-        await removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {})
+        removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {})
       }
 
       setForm(f => ({ ...f, exits: { ...f.exits, [dir]: targetId } }))
@@ -34,6 +39,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
         await createBidirectionalExit({ roomId: room.id, direction: dir, targetRoomId: targetId })
       } catch {
         setForm(f => ({ ...f, exits: { ...f.exits, [dir]: oldTargetId } }))
+        showToast('Failed to create exit', 'error')
       }
     } else {
       const oldTargetId = form.exits[dir]
@@ -46,6 +52,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
   }
 
   const handleSave = () => {
+    setError('')
     setSaving(true)
     updateRoom({
       id: room.id,
@@ -67,23 +74,12 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
       </div>
 
       <div className="p-3 flex-1 overflow-y-auto">
+        {error && <FormError message={error} />}
         <div className="mb-3">
-          <label className="text-text-muted text-xs block mb-1">Name</label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-          />
+          <FormField label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
         </div>
         <div className="mb-3">
-          <label className="text-text-muted text-xs block mb-1">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={4}
-            className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y"
-          />
+          <TextareaField label="Description" value={form.description} onChange={(v) => setForm({ ...form, description: v })} rows={4} />
         </div>
         <div className="mb-3">
           <label className="text-text-muted text-xs block mb-2">Exits</label>
@@ -91,22 +87,14 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
             <div key={dir} className="flex items-center gap-2 mb-2">
               <span className="w-[60px] text-text-muted text-xs">{dir}:</span>
               <SearchableSelect
-                options={rooms.map(r => ({
-                  id: String(r.id),
-                  name: `${r.name} (ID: ${r.id})`,
-                }))}
+                options={rooms.map(r => ({ id: String(r.id), name: `${r.name} (ID: ${r.id})` }))}
                 value={form.exits[dir] ? String(form.exits[dir]) : ''}
                 onChange={(val) => handleExitChange(dir, val)}
                 placeholder="Pick destination..."
               />
               {form.exits[dir] && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="!px-1 !py-0.5 text-danger"
-                  onClick={() => handleExitChange(dir, '')}
-                  aria-label={`Remove ${dir} exit`}
-                >×</Button>
+                <Button variant="ghost" size="sm" className="!px-1 !py-0.5 text-danger"
+                  onClick={() => handleExitChange(dir, '')} aria-label={`Remove ${dir} exit`}>×</Button>
               )}
             </div>
           ))}

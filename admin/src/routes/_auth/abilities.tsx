@@ -382,13 +382,17 @@ function AbilitiesManagement() {
   })
 
   const handleSubmit = async (formData: AbilityInput) => {
-    if (editingAbility) {
-      await updateAbility.mutateAsync({ id: editingAbility.id, input: formData })
-    } else {
-      await createAbility.mutateAsync(formData)
+    try {
+      if (editingAbility) {
+        await updateAbility.mutateAsync({ id: editingAbility.id, input: formData })
+      } else {
+        await createAbility.mutateAsync(formData)
+      }
+      setShowForm(false)
+      setEditingAbility(null)
+    } catch {
+      // Error is toasted by global onError handler
     }
-    setShowForm(false)
-    setEditingAbility(null)
   }
 
   const handleEdit = (ability: Ability) => {
@@ -398,8 +402,12 @@ function AbilitiesManagement() {
 
   const handleDelete = async () => {
     if (deletingAbility) {
-      await deleteAbility.mutateAsync(deletingAbility.id)
-      setDeletingAbility(null)
+      try {
+        await deleteAbility.mutateAsync(deletingAbility.id)
+        setDeletingAbility(null)
+      } catch {
+        // Error is toasted by global onError handler
+      }
     }
   }
 

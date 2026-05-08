@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Modal } from '../Modal'
 import { Button } from '../Button'
+import { FormField } from '../fields/FormField'
+import { TextareaField } from '../fields/TextareaField'
 
 type CreateRoomModalProps = {
   isOpen: boolean
@@ -25,24 +27,10 @@ export function CreateRoomModal({ isOpen, onClose, onCreate, creating }: CreateR
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Room">
       <div className="mb-4">
-        <label className="text-text-muted text-xs block mb-1">Room Name</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter room name"
-          className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-        />
+        <FormField label="Room Name" value={name} onChange={setName} placeholder="Enter room name" />
       </div>
       <div className="mb-4">
-        <label className="text-text-muted text-xs block mb-1">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter room description"
-          rows={4}
-          className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y"
-        />
+        <TextareaField label="Description" value={description} onChange={setDescription} rows={4} placeholder="Enter room description" />
       </div>
       <div className="flex gap-2">
         <Button variant="primary" size="md" fullWidth onClick={handleSubmit} disabled={creating || !name.trim()}>

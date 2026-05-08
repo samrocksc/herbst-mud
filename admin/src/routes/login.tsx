@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { logError } from '../utils/log'
 import { useState } from 'react'
 import { Button } from '../components/Button'
+import { FormField } from '../components/fields/FormField'
+import { FormError } from '../components/fields/FormError'
 
 export const Route = createFileRoute('/login')({
   component: Login,
@@ -38,9 +39,8 @@ function Login() {
       localStorage.setItem('isAdmin', data.is_admin)
 
       window.location.href = '/dashboard'
-    } catch (err) {
+    } catch {
       setError('Connection error. Please try again.')
-      logError('Login error:', err)
     } finally {
       setLoading(false)
     }
@@ -53,30 +53,16 @@ function Login() {
         ← Back to Home
       </Link>
 
-      {error && <div className="text-danger mb-4">{error}</div>}
+      {error && <FormError message={error} />}
 
       <form onSubmit={handleSubmit} className="w-[300px] max-w-[90vw]">
         <div className="mb-4">
-          <label htmlFor="username" className="block mb-2">Username:</label>
-          <input
-            type="text" id="username" name="username" value={username}
-            onChange={(e) => setUsername(e.target.value)} required
-            className="w-full p-2 bg-surface border border-border rounded text-text"
-          />
+          <FormField label="Username" value={username} onChange={setUsername} />
         </div>
         <div className="mb-4">
-          <label htmlFor="password" className="block mb-2">Password:</label>
-          <input
-            type="password" id="password" name="password" value={password}
-            onChange={(e) => setPassword(e.target.value)} required
-            className="w-full p-2 bg-surface border border-border rounded text-text"
-          />
+          <FormField label="Password" value={password} onChange={setPassword} type="password" />
         </div>
-        <Button
-          type="submit" disabled={loading}
-          variant="primary"
-          fullWidth
-        >
+        <Button type="submit" disabled={loading} variant="primary" fullWidth>
           {loading ? 'Logging in...' : 'Login'}
         </Button>
       </form>

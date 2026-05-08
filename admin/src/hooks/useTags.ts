@@ -1,25 +1,12 @@
-/** Tag data hooks refactored to use the centralized apiFetch. */
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
 
-import { useState, useEffect, useCallback } from 'react'
-import { apiFetch } from '../api'
+const API = `${window.location.origin}/api/tags`
 
-export type Tag = Readonly<{
-  id: number
-  name: string
-  color: string
-}>
+export type Tag = Readonly<{ id: number; name: string; color: string }>
+export type TagInput = Readonly<{ name: string; color: string }>
 
-export type TagInput = Readonly<{
-  name: string
-  color: string
-}>
-
-export type TagUsage = Readonly<{
-  id: number
-  name: string
-  type: string
-}>
-
+export type TagUsage = Readonly<{ id: number; name: string; type: string }>
 export type TagUsageReport = Readonly<{
   tag_name: string
   total_usages: number
@@ -28,68 +15,46 @@ export type TagUsageReport = Readonly<{
   characters: TagUsage[]
 }>
 
-const API = '/api/tags'
-
-function getToken() {
-  return localStorage.getItem('token') ?? ''
-}
-
 export function useTags() {
-  const [tags, setTags] = useState<Tag[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchTags = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await apiFetch(API) as { tags: Tag[] }
-      setTags(data.tags ?? [])
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load tags')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { void fetchTags() }, [fetchTags])
-
-  const createTag = useCallback(async (input: TagInput): Promise<Tag> => {
-    const data = (await apiFetch(API, {
-      method: 'POST',
-      body: JSON.stringify(input),
-    })) as Tag
-    setTags(prev => [...prev, data])
-    return data
-  }, [])
-
-  const updateTag = useCallback(async (id: number, input: Partial<TagInput>): Promise<Tag> => {
-    const data = (await apiFetch(`${API}/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(input),
-    })) as Tag
-    setTags(prev => prev.map(t => (t.id === id ? data : t)))
-    return data
-  }, [])
-
-  const deleteTag = useCallback(async (id: number): Promise<void> => {
-    await apiFetch(`${API}/${id}`, { method: 'DELETE' })
-    setTags(prev => prev.filter(t => t.id !== id))
-  }, [])
-
-  return { tags, loading, error, createTag, updateTag, deleteTag, refetch: fetchTags }
-}
-
-export async function fetchTagUsages(id: number): Promise<TagUsageReport> {
-  const res = await fetch(`${API}/${id}/usages`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getToken()}`,
+  return useQuery({
+    queryKey: ['tags'],
+    queryFn: async (): Promise<Tag[]> => {
+      const data = await apiGet<{ tags: Tag[] }>(API)
+      return data.tags ?? []
     },
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error ?? `HTTP ${res.status}`)
-  }
-  return res.json() as Promise<TagUsageReport>
+}
+
+export function useCreateTag() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: TagInput) => apiPost<Tag>(API, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tags'] }),
+  })
+}
+
+export function useUpdateTag() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number; input: Partial<TagInput> }) =>
+      apiPut<Tag>(`${API}/${id}`, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tags'] }),
+  })
+}
+
+export function useDeleteTag() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => apiDelete(`${API}/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tags'] }),
+  })
+}
+
+export function useTagUsages(id: number | null) {
+  return useQuery({
+    queryKey: ['tag-usages', id],
+    queryFn: async (): Promise<TagUsageReport> =>
+      apiGet<TagUsageReport>(`${API}/${id}/usages`),
+    enabled: !!id,
+  })
 }

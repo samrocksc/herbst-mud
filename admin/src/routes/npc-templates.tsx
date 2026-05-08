@@ -4,7 +4,9 @@ import { apiGet, apiPost, apiPut } from '../utils/apiFetch'
 import { Button } from '../components/Button'
 import { Modal } from '../components/Modal'
 import { PageHeader } from '../components/PageHeader'
-import { FormField, NumberField, TextareaField, SelectField } from '../components/FormFields'
+import { FormField, NumberField, TextareaField, SelectField } from '../components/fields'
+import { FormError } from '../components/fields/FormError'
+import { showToast } from '../components/Toast'
 
 type NPCTemplate = Readonly<{
   id: string
@@ -32,7 +34,6 @@ function NPCTemplatePage() {
   const [saving, setSaving] = useState(false)
   const [roomsInput, setRoomsInput] = useState('')
   const [cooldownInput, setCooldownInput] = useState('60')
-
   const [showCreate, setShowCreate] = useState(false)
   const [createForm, setCreateForm] = useState({
     id: '', name: '', description: '', race: '', disposition: 'neutral',
@@ -44,9 +45,8 @@ function NPCTemplatePage() {
     try {
       const data = await apiGet<NPCTemplate[]>(`${window.location.origin}/api/npc-templates`)
       setTemplates(data)
-    } catch (e: unknown) {
-      console.error('Failed to load NPC templates', e instanceof Error ? e.message : String(e))
-    } finally { setLoading(false) }
+    } catch { showToast('Failed to load NPC templates', 'error') }
+    finally { setLoading(false) }
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -54,27 +54,27 @@ function NPCTemplatePage() {
   async function handleSave(id: string) {
     setSaving(true)
     try {
-      const rooms = roomsInput.split(',').map((s) => s.trim().replace(/^r/i, '')).filter((s) => s !== '')
+      const rooms = roomsInput.split(',').map((s) => s.trim().replace(/^r/i, '')).filter(Boolean)
       const cooldown = parseInt(cooldownInput, 10) || 0
       const current = templates.find((t) => t.id === id)
       await apiPut(`${window.location.origin}/api/npc-templates/${id}`, {
         xp_value: current?.xp_value ?? 0, respawn_rooms: rooms, respawn_cooldown: cooldown,
       })
       await load(); setEditingID(null)
-    } catch (e: unknown) { alert('Save failed: ' + (e instanceof Error ? e.message : String(e))) }
+      showToast('NPC template saved', 'success')
+    } catch { showToast('Failed to save NPC template', 'error') }
     finally { setSaving(false) }
   }
 
   async function handleCreate() {
     setCreateError('')
     try {
-      const rooms = createForm.respawn_rooms.split(',').map((s) => s.trim().replace(/^r/i, '')).filter((s) => s !== '')
+      const rooms = createForm.respawn_rooms.split(',').map((s) => s.trim().replace(/^r/i, '')).filter(Boolean)
       await apiPost(`${window.location.origin}/api/npc-templates`, {
         id: createForm.id, name: createForm.name, description: createForm.description,
         race: createForm.race, disposition: createForm.disposition, level: createForm.level,
         xp_value: createForm.xp_value, greeting: createForm.greeting,
-        respawn_cooldown: createForm.respawn_cooldown, respawn_rooms: rooms,
-        skills: {}, trades_with: [],
+        respawn_cooldown: createForm.respawn_cooldown, respawn_rooms: rooms, skills: {}, trades_with: [],
       })
       await load(); setShowCreate(false)
       setCreateForm({ id: '', name: '', description: '', race: '', disposition: 'neutral', level: 1, xp_value: 0, greeting: '', respawn_cooldown: 60, respawn_rooms: '' })
@@ -91,7 +91,6 @@ function NPCTemplatePage() {
     <div className="min-h-screen bg-surface p-6">
       <PageHeader title="NPC Templates" backTo="/dashboard"
         actions={<Button variant="primary" onClick={() => setShowCreate(true)}>+ New NPC</Button>} />
-
       <div className="space-y-4 max-w-[900px]">
         {templates.map((t) => (
           <div key={t.id} className="bg-surface-muted border border-border rounded p-4 space-y-3">
@@ -116,10 +115,9 @@ function NPCTemplatePage() {
         ))}
         {templates.length === 0 && <p className="text-text-muted">No NPC templates found.</p>}
       </div>
-
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create NPC Instance">
         <div className="space-y-3">
-          {createError && <div className="p-2 bg-red-100 text-red-800 rounded text-sm">{createError}</div>}
+          {createError && <FormError message={createError} />}
           <FormField label="ID" value={createForm.id} onChange={(v) => setCreateForm({...createForm, id: v})} placeholder="e.g. goblin_guard_01" />
           <FormField label="Name" value={createForm.name} onChange={(v) => setCreateForm({...createForm, name: v})} placeholder="Display name" />
           <TextareaField label="Description" value={createForm.description} onChange={(v) => setCreateForm({...createForm, description: v})} rows={2} placeholder="Flavor text..." />

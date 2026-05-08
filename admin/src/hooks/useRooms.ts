@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPut, apiPost, apiDelete } from '../utils/apiFetch'
-import { logError } from '../utils/log'
 
 type Room = Readonly<{
   id: number
@@ -58,7 +57,6 @@ export function useRooms() {
       if (context?.previousRooms) {
         queryClient.setQueryData(['rooms'], context.previousRooms)
       }
-      logError('Position save error:', _err)
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
