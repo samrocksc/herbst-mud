@@ -124,7 +124,7 @@ func (m *model) performCombatAttack() {
 	}
 
 	// Apply damage
-	applyDamageToCharacter(m.combatTarget.ID, damage)
+	applyDamageToCharacter(m.combatTarget.ID, damage, m.currentCharacterID)
 	m.combatTarget.HP -= damage
 	if m.combatTarget.HP < 0 {
 		m.combatTarget.HP = 0
@@ -198,7 +198,7 @@ func (m *model) handleTargetDefeat() {
 	m.AppendMessage(fmt.Sprintf("⚔ You defeated %s!", m.combatTarget.Name), "success")
 
 	if m.combatTarget.IsNPC && m.combatTarget.XpValue > 0 {
-		FireDefeatEvent(m.currentCharacterID, m.combatTarget.XpValue)
+		FireDefeatEvent(m.currentCharacterID, m.combatTarget.ID, m.combatTarget.Level, m.combatTarget.XpValue)
 	}
 
 	m.generateCorpse(m.combatTarget)
@@ -569,9 +569,12 @@ func (m *model) respawnPlayer() {
 }
 
 // applyDamageToCharacter sends damage to the server
-func applyDamageToCharacter(characterID, damage int) {
+func applyDamageToCharacter(characterID, damage int, attackerID ...int) {
 	url := fmt.Sprintf("%s/characters/%d/damage", RESTAPIBase, characterID)
 	payload := fmt.Sprintf(`{"damage": %d}`, damage)
+	if len(attackerID) > 0 && attackerID[0] > 0 {
+		payload = fmt.Sprintf(`{"damage": %d, "attacker_id": %d}`, damage, attackerID[0])
+	}
 
 	resp, err := httpPost(url, payload)
 	if err != nil {

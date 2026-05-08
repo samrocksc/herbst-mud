@@ -63,7 +63,7 @@ func fetchAdminEventsToken() (string, error) {
 // FireDefeatEvent sends an npc_defeated event to the API server's event bus.
 // It is called from the game combat loop when a player defeats an NPC.
 // Network errors are logged but do not crash the game.
-func FireDefeatEvent(characterID, xpValue int) {
+func FireDefeatEvent(characterID, npcID, npcLevel, xpValue int) {
 	if xpValue <= 0 {
 		return // No XP to award — skip
 	}
@@ -76,9 +76,11 @@ func FireDefeatEvent(characterID, xpValue int) {
 
 	payload := map[string]interface{}{
 		"type": "npc_defeated",
-		"payload": map[string]int{
+		"payload": map[string]interface{}{
 			"character_id": characterID,
-			"xp_value":     xpValue,
+			"npc_id":        npcID,
+			"npc_level":     npcLevel,
+			"base_xp":       xpValue,
 		},
 	}
 	body, _ := json.Marshal(payload)

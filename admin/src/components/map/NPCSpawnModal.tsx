@@ -42,7 +42,7 @@ export function NPCSpawnModal({
         {selectedTemplate && (
           <div className="p-2 bg-surface-muted border border-border rounded text-xs text-text-muted space-y-0.5">
             <div>Respawn cooldown: {selectedTemplate.respawn_cooldown}s</div>
-            <div>Respawn rooms: {selectedTemplate.respawn_rooms.length > 0 ? selectedTemplate.respawn_rooms.join(', ') : 'none'}</div>
+            <div>Respawn rooms: {(selectedTemplate.respawn_rooms ?? []).length > 0 ? selectedTemplate.respawn_rooms.join(', ') : 'none'}</div>
           </div>
         )}
         <div className="flex gap-2">

@@ -492,7 +492,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		// Return full character data including HP for combat visibility
 		result := make([]gin.H, len(characters))
 		for i, char := range characters {
-			result[i] = gin.H{
+			entry := gin.H{
 				"id":    char.ID,
 				"name":  char.Name,
 				"isNPC": char.IsNPC,
@@ -502,6 +502,14 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 				"hp":    char.Hitpoints,
 				"maxHp": char.MaxHitpoints,
 			}
+			if char.IsNPC && char.NpcTemplateID != "" {
+				if tmpl, err := client.NPCTemplate.Get(c.Request.Context(), char.NpcTemplateID); err == nil && tmpl.XpValue > 0 {
+					entry["xpValue"] = tmpl.XpValue
+				} else {
+					entry["xpValue"] = char.Level * 10
+				}
+			}
+			result[i] = entry
 		}
 
 		c.JSON(http.StatusOK, result)
