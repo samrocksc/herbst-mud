@@ -1,7 +1,7 @@
 import { useState } from 'react'
+import { Button } from '../../components/Button'
 
 export type GameConfig = Readonly<{ id: number; key: string; value: string }>
-export type ConfigForm = Readonly<{ key: string; value: string }>
 
 const KEY_LABELS: Readonly<Record<string, string>> = {
   xp_thresholds: 'XP Thresholds',
@@ -43,7 +43,6 @@ export const PRESETS = [
   { label: 'Starting Room ID', key: 'starting_room_id', value: '1' },
 ]
 
-/** Renders a config value cell: pretty-prints JSON, truncates long plain strings */
 export function ConfigValueCell({ value }: { value: string }) {
   const parsed = tryParseJSON(value)
   const [expanded, setExpanded] = useState(false)
@@ -68,5 +67,45 @@ export function ConfigValueCell({ value }: { value: string }) {
     <span className="inline-block max-w-md overflow-hidden text-ellipsis whitespace-nowrap text-text-secondary text-xs">
       {value.length > 60 ? value.slice(0, 60) + '…' : value}
     </span>
+  )
+}
+
+export function CollapsibleJSONPreview({ value }: { value: string }) {
+  const parsed = tryParseJSON(value)
+  const [expanded, setExpanded] = useState(false)
+  if (parsed === null) return null
+  const formatted = JSON.stringify(parsed, null, 2)
+  return (
+    <div className="mb-3">
+      <button type="button" className="text-xs text-primary hover:underline cursor-pointer flex items-center gap-1 mb-1"
+        onClick={() => setExpanded(e => !e)}>
+        <span className={`inline-block transition-transform ${expanded ? 'rotate-90' : ''}`}>&#9654;</span>
+        {expanded ? 'Collapse JSON preview' : 'Expand JSON preview'}
+      </button>
+      {expanded && (
+        <pre className="bg-surface-muted border-2 border-border rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-auto max-h-264">
+          {formatted}
+        </pre>
+      )}
+    </div>
+  )
+}
+
+export function DeleteConfigModal({ target, onConfirm, onCancel }: Readonly<{
+  target: GameConfig
+  onConfirm: () => void
+  onCancel: () => void
+}>) {
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content max-w-md" onClick={e => e.stopPropagation()}>
+        <h3>Delete Config?</h3>
+        <p>Are you sure you want to delete <code>{target.key}</code>? This cannot be undone.</p>
+        <div className="flex gap-3 justify-end mt-4">
+          <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+          <Button variant="danger" onClick={onConfirm}>Delete</Button>
+        </div>
+      </div>
+    </div>
   )
 }

@@ -5,28 +5,10 @@ import { Button } from '../../components/Button'
 import { FormField, NumberField, FormError } from '../../components/FormFields'
 import { showToast } from '../../components/Toast'
 import { apiGet, apiPost, apiPut } from '../../utils/apiFetch'
-import { XPProgressCell, parseThresholds } from './XPProgressCell'
-import type { Character, ThresholdEntry } from './XPProgressCell'
+import { XPProgressCell, parseThresholds, normalizeChar } from './XPProgressCell'
+import type { Character, ThresholdEntry, RawChar, GameConfig } from './XPProgressCell'
 
 export const Route = createFileRoute('/_auth/xp')({ component: XPManagement })
-
-type RawChar = Readonly<{ ID?: number; Name?: string; Xp?: number; Level?: number; Class?: string; Race?: string; IsNPC?: boolean; [key: string]: unknown }>
-type GameConfig = Readonly<{ id: number; key: string; value: string }>
-
-function normalizeChar(c: RawChar): Character {
-  return {
-    id: Number(c.id ?? c.ID ?? 0), name: String(c.name ?? c.Name ?? ''),
-    xp: Number(c.xp ?? c.Xp ?? 0), level: Number(c.level ?? c.Level ?? 1),
-    class: String(c.class ?? c.Class ?? 'unknown'), race: String(c.race ?? c.Race ?? 'unknown'),
-    isNPC: Boolean(c.isNPC ?? c.IsNPC ?? false),
-  }
-}
-
-async function saveConfig(configs: GameConfig[], key: string, value: string) {
-  const existing = configs.find(c => c.key === key)
-  if (existing) return apiPut(`/api/game-configs/${existing.key}`, { key, value })
-  return apiPost('/api/game-configs', { key, value })
-}
 
 function XPManagement() {
   const [characters, setCharacters] = useState<Character[]>([])
@@ -54,12 +36,13 @@ function XPManagement() {
 
   useEffect(() => { loadData() }, [loadData])
 
-  const handleSave = async (key: string, value: string, label: string) => {
+  const saveCfg = async (key: string, value: string, label: string) => {
     setSaving(true); setFormError('')
     try {
-      await saveConfig(configs, key, value)
-      showToast(`${label} saved.`, 'success')
-      loadData()
+      const existing = configs.find(c => c.key === key)
+      if (existing) await apiPut(`/api/game-configs/${existing.key}`, { key, value })
+      else await apiPost('/api/game-configs', { key, value })
+      showToast(`${label} saved.`, 'success'); loadData()
     } catch (e: unknown) { setFormError(e instanceof Error ? e.message : String(e)) }
     finally { setSaving(false) }
   }
@@ -73,8 +56,7 @@ function XPManagement() {
   )
 
   const columns: Column<Character>[] = [
-    { header: 'Name', accessor: 'name' },
-    { header: 'Class', accessor: 'class' },
+    { header: 'Name', accessor: 'name' }, { header: 'Class', accessor: 'class' },
     { header: 'Race', accessor: 'race' },
     { header: 'Level', accessor: 'level', render: v => <span className="xp-level">{String(v)}</span> },
     { header: 'XP', accessor: 'xp', render: v => (v as number).toLocaleString() },
@@ -90,14 +72,14 @@ function XPManagement() {
         <div className="xp-field">
           <FormField label="XP Thresholds" value={xpThresholds} onChange={setXpThresholds}
             placeholder='100-300-600-1000 or {"1":100,"2":300}' tooltip="Dash-separated or JSON level thresholds" />
-          <Button variant="primary" onClick={() => handleSave('xp_thresholds', xpThresholds, 'XP thresholds')} disabled={saving}>
+          <Button variant="primary" onClick={() => saveCfg('xp_thresholds', xpThresholds, 'XP thresholds')} disabled={saving}>
             {saving ? 'Saving...' : 'Save Thresholds'}
           </Button>
         </div>
         <div className="xp-field">
           <NumberField label="Death Penalty %" value={parseInt(deathPenalty) || 0}
             onChange={v => setDeathPenalty(String(v))} min={0} max={100} tooltip="XP lost on death (%)" />
-          <Button variant="primary" onClick={() => handleSave('death_penalty_percent', deathPenalty, 'Death penalty')} disabled={saving}>
+          <Button variant="primary" onClick={() => saveCfg('death_penalty_percent', deathPenalty, 'Death penalty')} disabled={saving}>
             {saving ? 'Saving...' : 'Save Penalty'}
           </Button>
         </div>

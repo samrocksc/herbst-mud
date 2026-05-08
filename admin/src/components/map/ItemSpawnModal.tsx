@@ -4,7 +4,7 @@ import { FormField } from '../fields/FormField'
 import { NumberField } from '../fields/NumberField'
 import { SelectField } from '../fields/SelectField'
 import { FormError } from '../fields/FormError'
-import type { SpawnFormData, EquipmentTemplate } from './ItemInstanceManager'
+import type { SpawnFormData, EquipmentTemplate } from './types'
 
 type ItemSpawnModalProps = Readonly<{
   isOpen: boolean

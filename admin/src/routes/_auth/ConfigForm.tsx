@@ -3,29 +3,8 @@ import { Button } from '../../components/Button'
 import { FormField, TextareaField, FormError } from '../../components/FormFields'
 import { apiPost, apiPut } from '../../utils/apiFetch'
 import { showToast } from '../../components/Toast'
-import { humanizeKey, PRESETS, tryParseJSON } from './ConfigHelpers'
+import { humanizeKey, PRESETS, CollapsibleJSONPreview } from './ConfigHelpers'
 import type { GameConfig } from './ConfigHelpers'
-
-function CollapsibleJSONPreview({ value }: { value: string }) {
-  const parsed = tryParseJSON(value)
-  const [expanded, setExpanded] = useState(false)
-  if (parsed === null) return null
-  const formatted = JSON.stringify(parsed, null, 2)
-  return (
-    <div className="mb-3">
-      <button type="button" className="text-xs text-primary hover:underline cursor-pointer flex items-center gap-1 mb-1"
-        onClick={() => setExpanded(e => !e)}>
-        <span className={`inline-block transition-transform ${expanded ? 'rotate-90' : ''}`}>&#9654;</span>
-        {expanded ? 'Collapse JSON preview' : 'Expand JSON preview'}
-      </button>
-      {expanded && (
-        <pre className="bg-surface-muted border-2 border-border rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-auto max-h-64">
-          {formatted}
-        </pre>
-      )}
-    </div>
-  )
-}
 
 export function ConfigForm({ editing, onDone }: Readonly<{
   editing: GameConfig | null
@@ -57,10 +36,11 @@ export function ConfigForm({ editing, onDone }: Readonly<{
     }
   }
 
+  const title = editing ? `Edit: ${humanizeKey(editing.key)}` : 'New Game Config'
   return (
     <div className="modal-overlay" onClick={onDone}>
       <div className="modal-content max-w-2xl" onClick={e => e.stopPropagation()}>
-        <h3>{editing ? `Edit: ${humanizeKey(editing.key)}` : 'New Game Config'}</h3>
+        <h3>{title}</h3>
         {formError && <FormError message={formError} />}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -94,7 +74,7 @@ export function ConfigForm({ editing, onDone }: Readonly<{
           <div className="flex gap-3 justify-end mt-4">
             <Button type="button" variant="secondary" onClick={onDone}>Cancel</Button>
             <Button type="submit" variant="primary" disabled={saving}>
-              {saving ? 'Saving…' : (editing ? 'Update' : 'Create')}
+              {saving ? 'Saving...' : (editing ? 'Update' : 'Create')}
             </Button>
           </div>
         </form>

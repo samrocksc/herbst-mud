@@ -5,13 +5,11 @@ import { Button } from '../../components/Button'
 import { DataTable } from '../../components/DataTable'
 import { showToast } from '../../components/Toast'
 import { apiGet, apiDelete } from '../../utils/apiFetch'
-import { ConfigForm, humanizeKey } from './ConfigForm'
-import { ConfigValueCell } from './ConfigHelpers'
+import { ConfigForm } from './ConfigForm'
+import { ConfigValueCell, DeleteConfigModal, humanizeKey } from './ConfigHelpers'
 import type { GameConfig } from './ConfigHelpers'
 
-export const Route = createFileRoute('/_auth/config')({
-  component: ConfigManagement,
-})
+export const Route = createFileRoute('/_auth/config')({ component: ConfigManagement })
 
 function ConfigManagement() {
   const [configs, setConfigs] = useState<GameConfig[]>([])
@@ -23,16 +21,10 @@ function ConfigManagement() {
   const [deleteTarget, setDeleteTarget] = useState<GameConfig | null>(null)
 
   const fetchConfigs = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await apiGet<GameConfig[]>('/api/game-configs')
-      setConfigs(data)
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
+    setLoading(true); setError(null)
+    try { setConfigs(await apiGet<GameConfig[]>('/api/game-configs')) }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : 'Unknown error') }
+    finally { setLoading(false) }
   }, [])
 
   useEffect(() => { fetchConfigs() }, [fetchConfigs])
@@ -42,8 +34,7 @@ function ConfigManagement() {
     try {
       await apiDelete(`/api/game-configs/${deleteTarget.key}`)
       showToast('Config deleted.', 'success')
-      setDeleteTarget(null)
-      fetchConfigs()
+      setDeleteTarget(null); fetchConfigs()
     } catch (e: unknown) {
       showToast(`Failed to delete: ${e instanceof Error ? e.message : 'Unknown error'}`)
     }
@@ -53,6 +44,8 @@ function ConfigManagement() {
     c.key.toLowerCase().includes(search.toLowerCase()) ||
     c.value.toLowerCase().includes(search.toLowerCase())
   )
+
+  const closeForm = () => { setActiveForm(null); setEditing(null); fetchConfigs() }
 
   return (
     <div className="management-page">
@@ -67,40 +60,25 @@ function ConfigManagement() {
           className="flex-1 px-3 py-2 bg-surface-muted border-2 border-border color-text rounded" />
         <Button variant="secondary" onClick={fetchConfigs}>Refresh</Button>
       </div>
-      {loading ? (
-        <div className="loading">Loading configs...</div>
-      ) : (
+      {loading ? <div className="loading">Loading configs...</div> : (
         <DataTable
           columns={[
             { header: 'Key', accessor: 'key', render: (_, row): ReactNode => (
               <div><span className="text-text text-sm font-medium">{humanizeKey(row.key)}</span><br />
-              <code className="text-primary text-xs">{row.key}</code></div>
-            )},
+              <code className="text-primary text-xs">{row.key}</code></div>)},
             { header: 'Value', accessor: 'value', render: (val) => <ConfigValueCell value={val as string} /> },
             { header: 'Actions', accessor: '_actions', render: (_, row): ReactNode => (
               <div className="flex gap-2">
                 <Button variant="accent" size="sm" onClick={() => { setEditing(row); setActiveForm('edit') }}>Edit</Button>
                 <Button variant="danger" size="sm" onClick={() => setDeleteTarget(row)}>Delete</Button>
-              </div>
-            )},
+              </div>)},
           ]}
-          data={filtered} getKey={(row) => row.id}
+          data={filtered} getKey={row => row.id}
           emptyMessage={configs.length === 0 ? 'No configs found. Create one below.' : 'No configs match your search.'}
         />
       )}
-      {activeForm && <ConfigForm editing={editing} onDone={() => { setActiveForm(null); setEditing(null); fetchConfigs() }} />}
-      {deleteTarget && (
-        <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
-          <div className="modal-content max-w-md" onClick={e => e.stopPropagation()}>
-            <h3>Delete Config?</h3>
-            <p>Are you sure you want to delete <code>{deleteTarget.key}</code>? This cannot be undone.</p>
-            <div className="flex gap-3 justify-end mt-4">
-              <Button variant="secondary" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-              <Button variant="danger" onClick={handleDelete}>Delete</Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {activeForm && <ConfigForm editing={editing} onDone={closeForm} />}
+      {deleteTarget && <DeleteConfigModal target={deleteTarget} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />}
     </div>
   )
 }
