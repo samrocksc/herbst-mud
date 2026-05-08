@@ -56,8 +56,7 @@ function XPManagement() {
   )
 
   const columns: Column<Character>[] = [
-    { header: 'Name', accessor: 'name' }, { header: 'Class', accessor: 'class' },
-    { header: 'Race', accessor: 'race' },
+    { header: 'Name', accessor: 'name' }, { header: 'Class', accessor: 'class' }, { header: 'Race', accessor: 'race' },
     { header: 'Level', accessor: 'level', render: v => <span className="xp-level">{String(v)}</span> },
     { header: 'XP', accessor: 'xp', render: v => (v as number).toLocaleString() },
     { header: 'Next Level', accessor: 'id', render: (_, row) => <XPProgressCell char={row} thresholds={thresholds} /> },
