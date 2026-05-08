@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/predicate"
+	"herbst-server/db/race"
 	"herbst-server/db/tag"
 
 	"entgo.io/ent/dialect/sql"
@@ -61,9 +62,45 @@ func (_u *TagUpdate) ClearColor() *TagUpdate {
 	return _u
 }
 
+// AddRaceIDs adds the "races" edge to the Race entity by IDs.
+func (_u *TagUpdate) AddRaceIDs(ids ...int) *TagUpdate {
+	_u.mutation.AddRaceIDs(ids...)
+	return _u
+}
+
+// AddRaces adds the "races" edges to the Race entity.
+func (_u *TagUpdate) AddRaces(v ...*Race) *TagUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRaceIDs(ids...)
+}
+
 // Mutation returns the TagMutation object of the builder.
 func (_u *TagUpdate) Mutation() *TagMutation {
 	return _u.mutation
+}
+
+// ClearRaces clears all "races" edges to the Race entity.
+func (_u *TagUpdate) ClearRaces() *TagUpdate {
+	_u.mutation.ClearRaces()
+	return _u
+}
+
+// RemoveRaceIDs removes the "races" edge to Race entities by IDs.
+func (_u *TagUpdate) RemoveRaceIDs(ids ...int) *TagUpdate {
+	_u.mutation.RemoveRaceIDs(ids...)
+	return _u
+}
+
+// RemoveRaces removes "races" edges to Race entities.
+func (_u *TagUpdate) RemoveRaces(v ...*Race) *TagUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRaceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -110,6 +147,51 @@ func (_u *TagUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ColorCleared() {
 		_spec.ClearField(tag.FieldColor, field.TypeString)
+	}
+	if _u.mutation.RacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   tag.RacesTable,
+			Columns: tag.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRacesIDs(); len(nodes) > 0 && !_u.mutation.RacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   tag.RacesTable,
+			Columns: tag.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   tag.RacesTable,
+			Columns: tag.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -165,9 +247,45 @@ func (_u *TagUpdateOne) ClearColor() *TagUpdateOne {
 	return _u
 }
 
+// AddRaceIDs adds the "races" edge to the Race entity by IDs.
+func (_u *TagUpdateOne) AddRaceIDs(ids ...int) *TagUpdateOne {
+	_u.mutation.AddRaceIDs(ids...)
+	return _u
+}
+
+// AddRaces adds the "races" edges to the Race entity.
+func (_u *TagUpdateOne) AddRaces(v ...*Race) *TagUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRaceIDs(ids...)
+}
+
 // Mutation returns the TagMutation object of the builder.
 func (_u *TagUpdateOne) Mutation() *TagMutation {
 	return _u.mutation
+}
+
+// ClearRaces clears all "races" edges to the Race entity.
+func (_u *TagUpdateOne) ClearRaces() *TagUpdateOne {
+	_u.mutation.ClearRaces()
+	return _u
+}
+
+// RemoveRaceIDs removes the "races" edge to Race entities by IDs.
+func (_u *TagUpdateOne) RemoveRaceIDs(ids ...int) *TagUpdateOne {
+	_u.mutation.RemoveRaceIDs(ids...)
+	return _u
+}
+
+// RemoveRaces removes "races" edges to Race entities.
+func (_u *TagUpdateOne) RemoveRaces(v ...*Race) *TagUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRaceIDs(ids...)
 }
 
 // Where appends a list predicates to the TagUpdate builder.
@@ -244,6 +362,51 @@ func (_u *TagUpdateOne) sqlSave(ctx context.Context) (_node *Tag, err error) {
 	}
 	if _u.mutation.ColorCleared() {
 		_spec.ClearField(tag.FieldColor, field.TypeString)
+	}
+	if _u.mutation.RacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   tag.RacesTable,
+			Columns: tag.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRacesIDs(); len(nodes) > 0 && !_u.mutation.RacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   tag.RacesTable,
+			Columns: tag.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   tag.RacesTable,
+			Columns: tag.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Tag{config: _u.config}
 	_spec.Assign = _node.assignValues

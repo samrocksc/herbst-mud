@@ -4,6 +4,7 @@ package tag
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -15,8 +16,15 @@ const (
 	FieldName = "name"
 	// FieldColor holds the string denoting the color field in the database.
 	FieldColor = "color"
+	// EdgeRaces holds the string denoting the races edge name in mutations.
+	EdgeRaces = "races"
 	// Table holds the table name of the tag in the database.
 	Table = "tags"
+	// RacesTable is the table that holds the races relation/edge. The primary key declared below.
+	RacesTable = "tag_races"
+	// RacesInverseTable is the table name for the Race entity.
+	// It exists in this package in order to avoid circular dependency with the "race" package.
+	RacesInverseTable = "races"
 )
 
 // Columns holds all SQL columns for tag fields.
@@ -25,6 +33,12 @@ var Columns = []string{
 	FieldName,
 	FieldColor,
 }
+
+var (
+	// RacesPrimaryKey and RacesColumn2 are the table columns denoting the
+	// primary key for the races relation (M2M).
+	RacesPrimaryKey = []string{"tag_id", "race_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -52,4 +66,25 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByColor orders the results by the color field.
 func ByColor(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldColor, opts...).ToFunc()
+}
+
+// ByRacesCount orders the results by races count.
+func ByRacesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRacesStep(), opts...)
+	}
+}
+
+// ByRaces orders the results by races terms.
+func ByRaces(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRacesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newRacesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RacesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, RacesTable, RacesPrimaryKey...),
+	)
 }

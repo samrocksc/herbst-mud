@@ -28,6 +28,8 @@ const (
 	FieldPosX = "posx"
 	// FieldPosY holds the string denoting the posy field in the database.
 	FieldPosY = "posy"
+	// FieldPosZ holds the string denoting the posz field in the database.
+	FieldPosZ = "posz"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldAtmosphere,
 	FieldPosX,
 	FieldPosY,
+	FieldPosZ,
 	FieldVersion,
 }
 
@@ -82,6 +85,8 @@ var (
 	DefaultPosX int
 	// DefaultPosY holds the default value on creation for the "posY" field.
 	DefaultPosY int
+	// DefaultPosZ holds the default value on creation for the "posZ" field.
+	DefaultPosZ int
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion int
 )
@@ -149,6 +154,11 @@ func ByPosX(opts ...sql.OrderTermOption) OrderOption {
 // ByPosY orders the results by the posY field.
 func ByPosY(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPosY, opts...).ToFunc()
+}
+
+// ByPosZ orders the results by the posZ field.
+func ByPosZ(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPosZ, opts...).ToFunc()
 }
 
 // ByVersion orders the results by the version field.

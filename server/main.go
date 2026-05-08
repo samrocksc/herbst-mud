@@ -284,6 +284,9 @@ func main() {
 	// Register race routes (RACES-001)
 	routes.RegisterRaceRoutes(router, client)
 
+	// Register character tag routes
+	routes.RegisterCharacterTagRoutes(router, client)
+
 	// Register tag routes (TAG-001)
 	routes.RegisterTagRoutes(router, client)
 

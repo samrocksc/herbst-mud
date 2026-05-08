@@ -8,6 +8,7 @@ import (
 	"herbst-server/constants"
 	"herbst-server/db"
 	"herbst-server/db/character"
+	charactertag "herbst-server/db/charactertag"
 	genderpkg "herbst-server/db/gender"
 	racepkg "herbst-server/db/race"
 	"herbst-server/db/room"
@@ -179,8 +180,12 @@ func (s *CharacterService) CreateCharacter(ctx context.Context, input CreateChar
 
 	// Auto-grant first_class tag on character creation
 	if grantErr := s.GrantTag(ctx, char.ID, "first_class", "system"); grantErr != nil {
-		// Log but don't fail character creation if tag grant fails
 		fmt.Printf("Warning: failed to grant first_class tag to character %d: %v\n", char.ID, grantErr)
+	}
+
+	// Sync race tags to character
+	if syncErr := s.SyncRaceTags(ctx, char.ID, char.Race); syncErr != nil {
+		fmt.Printf("Warning: failed to sync race tags for character %d: %v\n", char.ID, syncErr)
 	}
 
 	return char, nil
@@ -212,4 +217,29 @@ func (s *CharacterService) GrantTag(ctx context.Context, characterID int, tag, s
 		SetCharacterID(characterID).
 		Save(ctx)
 	return err
+}
+
+// SyncRaceTags removes existing race-source tags and re-applies the race's tags.
+func (s *CharacterService) SyncRaceTags(ctx context.Context, characterID int, raceName string) error {
+	raceObj, err := s.client.Race.Query().Where(racepkg.NameEQ(raceName)).WithTags().Only(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.client.CharacterTag.Delete().
+		Where(
+			charactertag.HasCharacterWith(character.IDEQ(characterID)),
+			charactertag.SourceEQ("race"),
+		).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, t := range raceObj.Edges.Tags {
+		if grantErr := s.GrantTag(ctx, characterID, t.Name, "race"); grantErr != nil {
+			return grantErr
+		}
+	}
+	return nil
 }

@@ -11,12 +11,16 @@ export function useNodeLayout(rooms: Room[], currentZLevel: number) {
     const assign = (id: number, z: number) => {
       if (visited.has(id)) return
       visited.add(id)
-      zMap.set(id, z)
       const room = rooms.find(r => r.id === id)
       if (!room) return
+      if (room.posZ != null && room.posZ !== 0) {
+        zMap.set(id, room.posZ)
+      } else {
+        zMap.set(id, z)
+      }
       for (const [dir, targetId] of Object.entries(room.exits || {})) {
         if (!targetId) continue
-        const tz = dir === 'up' ? z + 1 : dir === 'down' ? z - 1 : z
+        const tz = dir === 'up' ? (zMap.get(id) ?? z) + 1 : dir === 'down' ? (zMap.get(id) ?? z) - 1 : (zMap.get(id) ?? z)
         assign(targetId, tz)
       }
     }

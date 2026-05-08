@@ -568,6 +568,7 @@ var (
 		{Name: "atmosphere", Type: field.TypeEnum, Enums: []string{"air", "water", "wind"}, Default: "air"},
 		{Name: "posx", Type: field.TypeInt, Nullable: true, Default: 0},
 		{Name: "posy", Type: field.TypeInt, Nullable: true, Default: 0},
+		{Name: "posz", Type: field.TypeInt, Nullable: true, Default: 0},
 		{Name: "version", Type: field.TypeInt, Default: 1},
 	}
 	// RoomsTable holds the schema information for the "rooms" table.
@@ -652,6 +653,31 @@ var (
 			},
 		},
 	}
+	// TagRacesColumns holds the columns for the "tag_races" table.
+	TagRacesColumns = []*schema.Column{
+		{Name: "tag_id", Type: field.TypeInt},
+		{Name: "race_id", Type: field.TypeInt},
+	}
+	// TagRacesTable holds the schema information for the "tag_races" table.
+	TagRacesTable = &schema.Table{
+		Name:       "tag_races",
+		Columns:    TagRacesColumns,
+		PrimaryKey: []*schema.Column{TagRacesColumns[0], TagRacesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tag_races_tag_id",
+				Columns:    []*schema.Column{TagRacesColumns[0]},
+				RefColumns: []*schema.Column{TagsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "tag_races_race_id",
+				Columns:    []*schema.Column{TagRacesColumns[1]},
+				RefColumns: []*schema.Column{RacesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AbilitiesTable,
@@ -680,6 +706,7 @@ var (
 		UsersTable,
 		AbilityNpcAbilitiesTable,
 		NpcTemplateNpcAbilitiesTable,
+		TagRacesTable,
 	}
 )
 
@@ -706,4 +733,6 @@ func init() {
 	AbilityNpcAbilitiesTable.ForeignKeys[1].RefTable = NpcAbilitiesTable
 	NpcTemplateNpcAbilitiesTable.ForeignKeys[0].RefTable = NpcTemplatesTable
 	NpcTemplateNpcAbilitiesTable.ForeignKeys[1].RefTable = NpcAbilitiesTable
+	TagRacesTable.ForeignKeys[0].RefTable = TagsTable
+	TagRacesTable.ForeignKeys[1].RefTable = RacesTable
 }

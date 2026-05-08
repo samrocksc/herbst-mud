@@ -6,6 +6,7 @@ import (
 	"herbst-server/db/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -201,6 +202,29 @@ func ColorEqualFold(v string) predicate.Tag {
 // ColorContainsFold applies the ContainsFold predicate on the "color" field.
 func ColorContainsFold(v string) predicate.Tag {
 	return predicate.Tag(sql.FieldContainsFold(FieldColor, v))
+}
+
+// HasRaces applies the HasEdge predicate on the "races" edge.
+func HasRaces() predicate.Tag {
+	return predicate.Tag(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RacesTable, RacesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRacesWith applies the HasEdge predicate on the "races" edge with a given conditions (other predicates).
+func HasRacesWith(preds ...predicate.Race) predicate.Tag {
+	return predicate.Tag(func(s *sql.Selector) {
+		step := newRacesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

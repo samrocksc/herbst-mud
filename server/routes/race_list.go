@@ -21,13 +21,14 @@ func RegisterRaceRoutes(r *gin.Engine, client *db.Client) {
 		races.POST("", createRace(client))
 		races.PUT("/:id", updateRace(client))
 		races.DELETE("/:id", deleteRace(client))
+		races.POST("/:id/apply-tags", applyRaceTags(client))
 	}
 }
 
 // listRaces returns all races.
 func listRaces(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		races, err := client.Race.Query().Order(race.ByDisplayName()).All(c.Request.Context())
+		races, err := client.Race.Query().WithTags().Order(race.ByDisplayName()).All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -48,7 +49,7 @@ func getRace(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid race id"})
 			return
 		}
-		r, err := client.Race.Get(c.Request.Context(), id)
+		r, err := client.Race.Query().Where(race.ID(id)).WithTags().Only(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "race not found"})
 			return

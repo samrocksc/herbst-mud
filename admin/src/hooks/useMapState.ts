@@ -122,6 +122,8 @@ export function useMapState() {
     const offset = DIRECTION_OFFSETS[dir]
     const posX = offset ? fromRoom.posX! + offset.dx : (fromRoom.posX ?? 0)
     const posY = offset ? fromRoom.posY! + offset.dy : (fromRoom.posY ?? 0)
+    const parentZ = zLevels.get(fromRoom.id) ?? 0
+    const posZ = dir === 'up' ? parentZ + 1 : dir === 'down' ? parentZ - 1 : parentZ
     try {
       const newRoom = await createRoomAsync({
         name: 'New Room',
@@ -130,6 +132,7 @@ export function useMapState() {
         exits: {},
         posX,
         posY,
+        posZ,
       })
       await createBidirectionalExit({
         roomId: fromRoom.id,
@@ -139,7 +142,7 @@ export function useMapState() {
     } catch (err) {
       showToast('Failed to create room')
     }
-  }, [createRoomAsync, createBidirectionalExit, showToast])
+  }, [createRoomAsync, createBidirectionalExit, showToast, zLevels])
 
   return {
     rooms, roomsLoading, selectedRoom, setSelectedRoom: handleSelectRoom,

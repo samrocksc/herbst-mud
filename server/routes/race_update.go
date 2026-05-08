@@ -27,6 +27,7 @@ func updateRace(client *db.Client) gin.HandlerFunc {
 			EquipmentSlots []string `json:"equipment_slots"`
 			IsPlayable     *bool    `json:"is_playable"`
 			Color          *string  `json:"color"`
+			Tags           []string `json:"tags"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
@@ -69,9 +70,24 @@ func updateRace(client *db.Client) gin.HandlerFunc {
 			mut = mut.SetEquipmentSlots(req.EquipmentSlots)
 		}
 
+		if req.Tags != nil {
+			tagIDs, err := resolveTagIDs(c, client, req.Tags)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			mut = mut.ClearTags().AddTagIDs(tagIDs...)
+		}
+
 		r, err := mut.Save(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "race not found or update failed"})
+			return
+		}
+
+		r, err = client.Race.Query().Where(race.IDEQ(r.ID)).WithTags().Only(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, raceToView(r))

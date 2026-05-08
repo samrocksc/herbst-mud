@@ -9,6 +9,7 @@ type Room = Readonly<{
   exits: Record<string, number>
   posX: number
   posY: number
+  posZ: number
   version: number
 }>
 
@@ -19,6 +20,7 @@ type RoomInput = {
   exits: Record<string, number>
   posX: number
   posY: number
+  posZ: number
 }
 
 type RoomUpdate = Partial<RoomInput> & {

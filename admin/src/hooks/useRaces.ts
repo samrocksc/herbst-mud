@@ -14,6 +14,7 @@ export type Race = Readonly<{
   equipment_slots: string[]
   is_playable: boolean
   color: string
+  tags: string[]
 }>
 
 export type RaceInput = Readonly<{
@@ -24,6 +25,7 @@ export type RaceInput = Readonly<{
   equipment_slots: string[]
   is_playable: boolean
   color: string
+  tags: string[]
 }>
 
 function parseRaceForApi(input: RaceInput) {
@@ -34,6 +36,7 @@ function parseRaceForApi(input: RaceInput) {
     equipment_slots: input.equipment_slots,
     is_playable: input.is_playable,
     color: input.color,
+    tags: input.tags,
   }
   if (input.stat_modifiers.trim()) {
     body.stat_modifiers = input.stat_modifiers
@@ -74,5 +77,17 @@ export function useDeleteRace() {
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['races'] }),
+  })
+}
+
+export function useApplyRaceTags() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) =>
+      apiPost<{ race: string; characters_updated: number; tags_applied: string[] }>(`${API}/${id}/apply-tags`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['races'] })
+      qc.invalidateQueries({ queryKey: ['characters'] })
+    },
   })
 }

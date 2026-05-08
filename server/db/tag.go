@@ -19,8 +19,29 @@ type Tag struct {
 	// Display name for the tag, e.g. 'fire', 'magic', 'warrior'
 	Name string `json:"name,omitempty"`
 	// Hex color for UI display, e.g. '#ff6b6b'. Defaults handled in UI layer.
-	Color        string `json:"color,omitempty"`
+	Color string `json:"color,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TagQuery when eager-loading is set.
+	Edges        TagEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// TagEdges holds the relations/edges for other nodes in the graph.
+type TagEdges struct {
+	// Races holds the value of the races edge.
+	Races []*Race `json:"races,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// RacesOrErr returns the Races value or an error if the edge
+// was not loaded in eager-loading.
+func (e TagEdges) RacesOrErr() ([]*Race, error) {
+	if e.loadedTypes[0] {
+		return e.Races, nil
+	}
+	return nil, &NotLoadedError{edge: "races"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -76,6 +97,11 @@ func (_m *Tag) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Tag) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryRaces queries the "races" edge of the Tag entity.
+func (_m *Tag) QueryRaces() *RaceQuery {
+	return NewTagClient(_m.config).QueryRaces(_m)
 }
 
 // Update returns a builder for updating this Tag.

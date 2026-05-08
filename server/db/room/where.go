@@ -79,6 +79,11 @@ func PosY(v int) predicate.Room {
 	return predicate.Room(sql.FieldEQ(FieldPosY, v))
 }
 
+// PosZ applies equality check predicate on the "posZ" field. It's identical to PosZEQ.
+func PosZ(v int) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldPosZ, v))
+}
+
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
 func Version(v int) predicate.Room {
 	return predicate.Room(sql.FieldEQ(FieldVersion, v))
@@ -342,6 +347,56 @@ func PosYIsNil() predicate.Room {
 // PosYNotNil applies the NotNil predicate on the "posY" field.
 func PosYNotNil() predicate.Room {
 	return predicate.Room(sql.FieldNotNull(FieldPosY))
+}
+
+// PosZEQ applies the EQ predicate on the "posZ" field.
+func PosZEQ(v int) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldPosZ, v))
+}
+
+// PosZNEQ applies the NEQ predicate on the "posZ" field.
+func PosZNEQ(v int) predicate.Room {
+	return predicate.Room(sql.FieldNEQ(FieldPosZ, v))
+}
+
+// PosZIn applies the In predicate on the "posZ" field.
+func PosZIn(vs ...int) predicate.Room {
+	return predicate.Room(sql.FieldIn(FieldPosZ, vs...))
+}
+
+// PosZNotIn applies the NotIn predicate on the "posZ" field.
+func PosZNotIn(vs ...int) predicate.Room {
+	return predicate.Room(sql.FieldNotIn(FieldPosZ, vs...))
+}
+
+// PosZGT applies the GT predicate on the "posZ" field.
+func PosZGT(v int) predicate.Room {
+	return predicate.Room(sql.FieldGT(FieldPosZ, v))
+}
+
+// PosZGTE applies the GTE predicate on the "posZ" field.
+func PosZGTE(v int) predicate.Room {
+	return predicate.Room(sql.FieldGTE(FieldPosZ, v))
+}
+
+// PosZLT applies the LT predicate on the "posZ" field.
+func PosZLT(v int) predicate.Room {
+	return predicate.Room(sql.FieldLT(FieldPosZ, v))
+}
+
+// PosZLTE applies the LTE predicate on the "posZ" field.
+func PosZLTE(v int) predicate.Room {
+	return predicate.Room(sql.FieldLTE(FieldPosZ, v))
+}
+
+// PosZIsNil applies the IsNil predicate on the "posZ" field.
+func PosZIsNil() predicate.Room {
+	return predicate.Room(sql.FieldIsNull(FieldPosZ))
+}
+
+// PosZNotNil applies the NotNil predicate on the "posZ" field.
+func PosZNotNil() predicate.Room {
+	return predicate.Room(sql.FieldNotNull(FieldPosZ))
 }
 
 // VersionEQ applies the EQ predicate on the "version" field.

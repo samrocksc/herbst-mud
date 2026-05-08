@@ -18,22 +18,7 @@ type raceView struct {
 	AbilityModifiers []string `json:"ability_modifiers,omitempty"`
 	IsPlayable       bool     `json:"is_playable"`
 	Color            string   `json:"color,omitempty"`
-}
-
-// parseJSON safely parses a JSON string into a value. Returns nil on error.
-func parseJSON[T any](v *T) any {
-	if v == nil {
-		return nil
-	}
-	var out any
-	data, err := json.Marshal(v)
-	if err != nil {
-		return nil
-	}
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil
-	}
-	return out
+	Tags             []string `json:"tags,omitempty"`
 }
 
 // raceToView converts a Race ent model to a raceView.
@@ -48,6 +33,13 @@ func raceToView(r *db.Race) raceView {
 		_ = json.Unmarshal([]byte(r.SkillGrants), &skillGrants)
 	}
 
+	var tagNames []string
+	if r.Edges.Tags != nil {
+		for _, t := range r.Edges.Tags {
+			tagNames = append(tagNames, t.Name)
+		}
+	}
+
 	return raceView{
 		ID:             r.ID,
 		Name:           r.Name,
@@ -58,5 +50,6 @@ func raceToView(r *db.Race) raceView {
 		EquipmentSlots: r.EquipmentSlots,
 		IsPlayable:     r.IsPlayable,
 		Color:          r.Color,
+		Tags:           tagNames,
 	}
 }

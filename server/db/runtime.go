@@ -560,8 +560,12 @@ func init() {
 	roomDescPosY := roomFields[6].Descriptor()
 	// room.DefaultPosY holds the default value on creation for the posY field.
 	room.DefaultPosY = roomDescPosY.Default.(int)
+	// roomDescPosZ is the schema descriptor for posZ field.
+	roomDescPosZ := roomFields[7].Descriptor()
+	// room.DefaultPosZ holds the default value on creation for the posZ field.
+	room.DefaultPosZ = roomDescPosZ.Default.(int)
 	// roomDescVersion is the schema descriptor for version field.
-	roomDescVersion := roomFields[7].Descriptor()
+	roomDescVersion := roomFields[8].Descriptor()
 	// room.DefaultVersion holds the default value on creation for the version field.
 	room.DefaultVersion = roomDescVersion.Default.(int)
 	userFields := schema.User{}.Fields()

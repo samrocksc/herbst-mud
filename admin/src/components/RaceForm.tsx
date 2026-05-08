@@ -11,6 +11,7 @@ type RaceFormProps = Readonly<{
   onCancel: () => void
   isLoading: boolean
   error?: string
+  availableTags?: string[]
 }>
 
 const EMPTY_FORM: RaceInput = {
@@ -21,6 +22,7 @@ const EMPTY_FORM: RaceInput = {
   equipment_slots: [...DEFAULT_HUMANOID_SLOTS],
   is_playable: true,
   color: '',
+  tags: [],
 }
 
 function raceToForm(r: Race): RaceInput {
@@ -32,12 +34,13 @@ function raceToForm(r: Race): RaceInput {
     equipment_slots: r.equipment_slots ? [...r.equipment_slots] : [...DEFAULT_HUMANOID_SLOTS],
     is_playable: r.is_playable,
     color: r.color ?? '',
+    tags: r.tags ? [...r.tags] : [],
   }
 }
 
 export { EMPTY_FORM, raceToForm }
 
-export function RaceForm({ race, onSubmit, onCancel, isLoading, error }: RaceFormProps) {
+export function RaceForm({ race, onSubmit, onCancel, isLoading, error, availableTags }: RaceFormProps) {
   const [form, setForm] = useState<RaceInput>(() => race ? raceToForm(race) : { ...EMPTY_FORM })
   const set = <K extends keyof RaceInput>(key: K, value: RaceInput[K]) =>
     setForm(prev => ({ ...prev, [key]: value }))
@@ -61,6 +64,8 @@ export function RaceForm({ race, onSubmit, onCancel, isLoading, error }: RaceFor
         <TextareaField label="Stat Modifiers (JSON)" value={form.stat_modifiers} onChange={(v) => set('stat_modifiers', v)} rows={4} placeholder='e.g. {"str": 2, "dex": -1}' />
         <TagInput label="Equipment Slots" value={form.equipment_slots} onChange={(slots) => set('equipment_slots', slots)}
           availableTags={[...SLOT_CATALOG]} placeholder="Add slot..." tooltip="Slots this race can equip items into" />
+        <TagInput label="Race Tags" value={form.tags} onChange={(tags) => set('tags', tags)}
+          availableTags={availableTags} placeholder="Add tag..." tooltip="Tags automatically granted to characters of this race" />
         <CheckboxField label="Playable" checked={form.is_playable} onChange={(v) => set('is_playable', v)} />
         <ColorField label="Color" value={form.color} onChange={(v) => set('color', v)} placeholder="e.g. #8b5cf6" />
         <div className="flex gap-2 pt-1">

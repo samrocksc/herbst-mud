@@ -31,6 +31,8 @@ type Room struct {
 	PosX int `json:"posX,omitempty"`
 	// PosY holds the value of the "posY" field.
 	PosY int `json:"posY,omitempty"`
+	// Z-level for map rendering; 0 = ground floor
+	PosZ int `json:"posZ,omitempty"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -77,7 +79,7 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case room.FieldIsStartingRoom:
 			values[i] = new(sql.NullBool)
-		case room.FieldID, room.FieldPosX, room.FieldPosY, room.FieldVersion:
+		case room.FieldID, room.FieldPosX, room.FieldPosY, room.FieldPosZ, room.FieldVersion:
 			values[i] = new(sql.NullInt64)
 		case room.FieldName, room.FieldDescription, room.FieldAtmosphere:
 			values[i] = new(sql.NullString)
@@ -145,6 +147,12 @@ func (_m *Room) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field posY", values[i])
 			} else if value.Valid {
 				_m.PosY = int(value.Int64)
+			}
+		case room.FieldPosZ:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field posZ", values[i])
+			} else if value.Valid {
+				_m.PosZ = int(value.Int64)
 			}
 		case room.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -218,6 +226,9 @@ func (_m *Room) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("posY=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PosY))
+	builder.WriteString(", ")
+	builder.WriteString("posZ=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PosZ))
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))

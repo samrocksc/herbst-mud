@@ -95,6 +95,20 @@ func (_c *RoomCreate) SetNillablePosY(v *int) *RoomCreate {
 	return _c
 }
 
+// SetPosZ sets the "posZ" field.
+func (_c *RoomCreate) SetPosZ(v int) *RoomCreate {
+	_c.mutation.SetPosZ(v)
+	return _c
+}
+
+// SetNillablePosZ sets the "posZ" field if the given value is not nil.
+func (_c *RoomCreate) SetNillablePosZ(v *int) *RoomCreate {
+	if v != nil {
+		_c.SetPosZ(*v)
+	}
+	return _c
+}
+
 // SetVersion sets the "version" field.
 func (_c *RoomCreate) SetVersion(v int) *RoomCreate {
 	_c.mutation.SetVersion(v)
@@ -190,6 +204,10 @@ func (_c *RoomCreate) defaults() {
 		v := room.DefaultPosY
 		_c.mutation.SetPosY(v)
 	}
+	if _, ok := _c.mutation.PosZ(); !ok {
+		v := room.DefaultPosZ
+		_c.mutation.SetPosZ(v)
+	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := room.DefaultVersion
 		_c.mutation.SetVersion(v)
@@ -274,6 +292,10 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.PosY(); ok {
 		_spec.SetField(room.FieldPosY, field.TypeInt, value)
 		_node.PosY = value
+	}
+	if value, ok := _c.mutation.PosZ(); ok {
+		_spec.SetField(room.FieldPosZ, field.TypeInt, value)
+		_node.PosZ = value
 	}
 	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(room.FieldVersion, field.TypeInt, value)

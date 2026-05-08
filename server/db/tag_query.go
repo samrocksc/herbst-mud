@@ -4,8 +4,10 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"herbst-server/db/predicate"
+	"herbst-server/db/race"
 	"herbst-server/db/tag"
 	"math"
 
@@ -22,6 +24,7 @@ type TagQuery struct {
 	order      []tag.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Tag
+	withRaces  *RaceQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (_q *TagQuery) Unique(unique bool) *TagQuery {
 func (_q *TagQuery) Order(o ...tag.OrderOption) *TagQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryRaces chains the current query on the "races" edge.
+func (_q *TagQuery) QueryRaces() *RaceQuery {
+	query := (&RaceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tag.Table, tag.FieldID, selector),
+			sqlgraph.To(race.Table, race.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, tag.RacesTable, tag.RacesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Tag entity from the query.
@@ -250,10 +275,22 @@ func (_q *TagQuery) Clone() *TagQuery {
 		order:      append([]tag.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.Tag{}, _q.predicates...),
+		withRaces:  _q.withRaces.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithRaces tells the query-builder to eager-load the nodes that are connected to
+// the "races" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *TagQuery) WithRaces(opts ...func(*RaceQuery)) *TagQuery {
+	query := (&RaceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRaces = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +369,11 @@ func (_q *TagQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *TagQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tag, error) {
 	var (
-		nodes = []*Tag{}
-		_spec = _q.querySpec()
+		nodes       = []*Tag{}
+		_spec       = _q.querySpec()
+		loadedTypes = [1]bool{
+			_q.withRaces != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Tag).scanValues(nil, columns)
@@ -341,6 +381,7 @@ func (_q *TagQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tag, err
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Tag{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +393,76 @@ func (_q *TagQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tag, err
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withRaces; query != nil {
+		if err := _q.loadRaces(ctx, query, nodes,
+			func(n *Tag) { n.Edges.Races = []*Race{} },
+			func(n *Tag, e *Race) { n.Edges.Races = append(n.Edges.Races, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *TagQuery) loadRaces(ctx context.Context, query *RaceQuery, nodes []*Tag, init func(*Tag), assign func(*Tag, *Race)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Tag)
+	nids := make(map[int]map[*Tag]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(tag.RacesTable)
+		s.Join(joinT).On(s.C(race.FieldID), joinT.C(tag.RacesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(tag.RacesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(tag.RacesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Tag]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Race](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "races" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (_q *TagQuery) sqlCount(ctx context.Context) (int, error) {

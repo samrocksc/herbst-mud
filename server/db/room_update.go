@@ -145,6 +145,33 @@ func (_u *RoomUpdate) ClearPosY() *RoomUpdate {
 	return _u
 }
 
+// SetPosZ sets the "posZ" field.
+func (_u *RoomUpdate) SetPosZ(v int) *RoomUpdate {
+	_u.mutation.ResetPosZ()
+	_u.mutation.SetPosZ(v)
+	return _u
+}
+
+// SetNillablePosZ sets the "posZ" field if the given value is not nil.
+func (_u *RoomUpdate) SetNillablePosZ(v *int) *RoomUpdate {
+	if v != nil {
+		_u.SetPosZ(*v)
+	}
+	return _u
+}
+
+// AddPosZ adds value to the "posZ" field.
+func (_u *RoomUpdate) AddPosZ(v int) *RoomUpdate {
+	_u.mutation.AddPosZ(v)
+	return _u
+}
+
+// ClearPosZ clears the value of the "posZ" field.
+func (_u *RoomUpdate) ClearPosZ() *RoomUpdate {
+	_u.mutation.ClearPosZ()
+	return _u
+}
+
 // SetVersion sets the "version" field.
 func (_u *RoomUpdate) SetVersion(v int) *RoomUpdate {
 	_u.mutation.ResetVersion()
@@ -324,6 +351,15 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.PosYCleared() {
 		_spec.ClearField(room.FieldPosY, field.TypeInt)
+	}
+	if value, ok := _u.mutation.PosZ(); ok {
+		_spec.SetField(room.FieldPosZ, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPosZ(); ok {
+		_spec.AddField(room.FieldPosZ, field.TypeInt, value)
+	}
+	if _u.mutation.PosZCleared() {
+		_spec.ClearField(room.FieldPosZ, field.TypeInt)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(room.FieldVersion, field.TypeInt, value)
@@ -557,6 +593,33 @@ func (_u *RoomUpdateOne) ClearPosY() *RoomUpdateOne {
 	return _u
 }
 
+// SetPosZ sets the "posZ" field.
+func (_u *RoomUpdateOne) SetPosZ(v int) *RoomUpdateOne {
+	_u.mutation.ResetPosZ()
+	_u.mutation.SetPosZ(v)
+	return _u
+}
+
+// SetNillablePosZ sets the "posZ" field if the given value is not nil.
+func (_u *RoomUpdateOne) SetNillablePosZ(v *int) *RoomUpdateOne {
+	if v != nil {
+		_u.SetPosZ(*v)
+	}
+	return _u
+}
+
+// AddPosZ adds value to the "posZ" field.
+func (_u *RoomUpdateOne) AddPosZ(v int) *RoomUpdateOne {
+	_u.mutation.AddPosZ(v)
+	return _u
+}
+
+// ClearPosZ clears the value of the "posZ" field.
+func (_u *RoomUpdateOne) ClearPosZ() *RoomUpdateOne {
+	_u.mutation.ClearPosZ()
+	return _u
+}
+
 // SetVersion sets the "version" field.
 func (_u *RoomUpdateOne) SetVersion(v int) *RoomUpdateOne {
 	_u.mutation.ResetVersion()
@@ -766,6 +829,15 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 	}
 	if _u.mutation.PosYCleared() {
 		_spec.ClearField(room.FieldPosY, field.TypeInt)
+	}
+	if value, ok := _u.mutation.PosZ(); ok {
+		_spec.SetField(room.FieldPosZ, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPosZ(); ok {
+		_spec.AddField(room.FieldPosZ, field.TypeInt, value)
+	}
+	if _u.mutation.PosZCleared() {
+		_spec.ClearField(room.FieldPosZ, field.TypeInt)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(room.FieldVersion, field.TypeInt, value)

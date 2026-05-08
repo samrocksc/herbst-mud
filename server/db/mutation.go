@@ -21507,6 +21507,9 @@ type RaceMutation struct {
 	is_playable           *bool
 	color                 *string
 	clearedFields         map[string]struct{}
+	tags                  map[int]struct{}
+	removedtags           map[int]struct{}
+	clearedtags           bool
 	done                  bool
 	oldValue              func(context.Context) (*Race, error)
 	predicates            []predicate.Race
@@ -21952,6 +21955,60 @@ func (m *RaceMutation) ResetColor() {
 	delete(m.clearedFields, race.FieldColor)
 }
 
+// AddTagIDs adds the "tags" edge to the Tag entity by ids.
+func (m *RaceMutation) AddTagIDs(ids ...int) {
+	if m.tags == nil {
+		m.tags = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.tags[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTags clears the "tags" edge to the Tag entity.
+func (m *RaceMutation) ClearTags() {
+	m.clearedtags = true
+}
+
+// TagsCleared reports if the "tags" edge to the Tag entity was cleared.
+func (m *RaceMutation) TagsCleared() bool {
+	return m.clearedtags
+}
+
+// RemoveTagIDs removes the "tags" edge to the Tag entity by IDs.
+func (m *RaceMutation) RemoveTagIDs(ids ...int) {
+	if m.removedtags == nil {
+		m.removedtags = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.tags, ids[i])
+		m.removedtags[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTags returns the removed IDs of the "tags" edge to the Tag entity.
+func (m *RaceMutation) RemovedTagsIDs() (ids []int) {
+	for id := range m.removedtags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TagsIDs returns the "tags" edge IDs in the mutation.
+func (m *RaceMutation) TagsIDs() (ids []int) {
+	for id := range m.tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTags resets all changes to the "tags" edge.
+func (m *RaceMutation) ResetTags() {
+	m.tags = nil
+	m.clearedtags = false
+	m.removedtags = nil
+}
+
 // Where appends a list predicates to the RaceMutation builder.
 func (m *RaceMutation) Where(ps ...predicate.Race) {
 	m.predicates = append(m.predicates, ps...)
@@ -22225,49 +22282,85 @@ func (m *RaceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RaceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.tags != nil {
+		edges = append(edges, race.EdgeTags)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *RaceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case race.EdgeTags:
+		ids := make([]ent.Value, 0, len(m.tags))
+		for id := range m.tags {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RaceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedtags != nil {
+		edges = append(edges, race.EdgeTags)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *RaceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case race.EdgeTags:
+		ids := make([]ent.Value, 0, len(m.removedtags))
+		for id := range m.removedtags {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RaceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedtags {
+		edges = append(edges, race.EdgeTags)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *RaceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case race.EdgeTags:
+		return m.clearedtags
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *RaceMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Race unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *RaceMutation) ResetEdge(name string) error {
+	switch name {
+	case race.EdgeTags:
+		m.ResetTags()
+		return nil
+	}
 	return fmt.Errorf("unknown Race edge %s", name)
 }
 
@@ -22286,6 +22379,8 @@ type RoomMutation struct {
 	addposX           *int
 	posY              *int
 	addposY           *int
+	posZ              *int
+	addposZ           *int
 	version           *int
 	addversion        *int
 	clearedFields     map[string]struct{}
@@ -22718,6 +22813,76 @@ func (m *RoomMutation) ResetPosY() {
 	delete(m.clearedFields, room.FieldPosY)
 }
 
+// SetPosZ sets the "posZ" field.
+func (m *RoomMutation) SetPosZ(i int) {
+	m.posZ = &i
+	m.addposZ = nil
+}
+
+// PosZ returns the value of the "posZ" field in the mutation.
+func (m *RoomMutation) PosZ() (r int, exists bool) {
+	v := m.posZ
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPosZ returns the old "posZ" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldPosZ(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPosZ is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPosZ requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPosZ: %w", err)
+	}
+	return oldValue.PosZ, nil
+}
+
+// AddPosZ adds i to the "posZ" field.
+func (m *RoomMutation) AddPosZ(i int) {
+	if m.addposZ != nil {
+		*m.addposZ += i
+	} else {
+		m.addposZ = &i
+	}
+}
+
+// AddedPosZ returns the value that was added to the "posZ" field in this mutation.
+func (m *RoomMutation) AddedPosZ() (r int, exists bool) {
+	v := m.addposZ
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPosZ clears the value of the "posZ" field.
+func (m *RoomMutation) ClearPosZ() {
+	m.posZ = nil
+	m.addposZ = nil
+	m.clearedFields[room.FieldPosZ] = struct{}{}
+}
+
+// PosZCleared returns if the "posZ" field was cleared in this mutation.
+func (m *RoomMutation) PosZCleared() bool {
+	_, ok := m.clearedFields[room.FieldPosZ]
+	return ok
+}
+
+// ResetPosZ resets all changes to the "posZ" field.
+func (m *RoomMutation) ResetPosZ() {
+	m.posZ = nil
+	m.addposZ = nil
+	delete(m.clearedFields, room.FieldPosZ)
+}
+
 // SetVersion sets the "version" field.
 func (m *RoomMutation) SetVersion(i int) {
 	m.version = &i
@@ -22916,7 +23081,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
@@ -22937,6 +23102,9 @@ func (m *RoomMutation) Fields() []string {
 	}
 	if m.posY != nil {
 		fields = append(fields, room.FieldPosY)
+	}
+	if m.posZ != nil {
+		fields = append(fields, room.FieldPosZ)
 	}
 	if m.version != nil {
 		fields = append(fields, room.FieldVersion)
@@ -22963,6 +23131,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.PosX()
 	case room.FieldPosY:
 		return m.PosY()
+	case room.FieldPosZ:
+		return m.PosZ()
 	case room.FieldVersion:
 		return m.Version()
 	}
@@ -22988,6 +23158,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPosX(ctx)
 	case room.FieldPosY:
 		return m.OldPosY(ctx)
+	case room.FieldPosZ:
+		return m.OldPosZ(ctx)
 	case room.FieldVersion:
 		return m.OldVersion(ctx)
 	}
@@ -23048,6 +23220,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPosY(v)
 		return nil
+	case room.FieldPosZ:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPosZ(v)
+		return nil
 	case room.FieldVersion:
 		v, ok := value.(int)
 		if !ok {
@@ -23069,6 +23248,9 @@ func (m *RoomMutation) AddedFields() []string {
 	if m.addposY != nil {
 		fields = append(fields, room.FieldPosY)
 	}
+	if m.addposZ != nil {
+		fields = append(fields, room.FieldPosZ)
+	}
 	if m.addversion != nil {
 		fields = append(fields, room.FieldVersion)
 	}
@@ -23084,6 +23266,8 @@ func (m *RoomMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedPosX()
 	case room.FieldPosY:
 		return m.AddedPosY()
+	case room.FieldPosZ:
+		return m.AddedPosZ()
 	case room.FieldVersion:
 		return m.AddedVersion()
 	}
@@ -23109,6 +23293,13 @@ func (m *RoomMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddPosY(v)
 		return nil
+	case room.FieldPosZ:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPosZ(v)
+		return nil
 	case room.FieldVersion:
 		v, ok := value.(int)
 		if !ok {
@@ -23130,6 +23321,9 @@ func (m *RoomMutation) ClearedFields() []string {
 	if m.FieldCleared(room.FieldPosY) {
 		fields = append(fields, room.FieldPosY)
 	}
+	if m.FieldCleared(room.FieldPosZ) {
+		fields = append(fields, room.FieldPosZ)
+	}
 	return fields
 }
 
@@ -23149,6 +23343,9 @@ func (m *RoomMutation) ClearField(name string) error {
 		return nil
 	case room.FieldPosY:
 		m.ClearPosY()
+		return nil
+	case room.FieldPosZ:
+		m.ClearPosZ()
 		return nil
 	}
 	return fmt.Errorf("unknown Room nullable field %s", name)
@@ -23178,6 +23375,9 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldPosY:
 		m.ResetPosY()
+		return nil
+	case room.FieldPosZ:
+		m.ResetPosZ()
 		return nil
 	case room.FieldVersion:
 		m.ResetVersion()
@@ -23305,6 +23505,9 @@ type TagMutation struct {
 	name          *string
 	color         *string
 	clearedFields map[string]struct{}
+	races         map[int]struct{}
+	removedraces  map[int]struct{}
+	clearedraces  bool
 	done          bool
 	oldValue      func(context.Context) (*Tag, error)
 	predicates    []predicate.Tag
@@ -23493,6 +23696,60 @@ func (m *TagMutation) ResetColor() {
 	delete(m.clearedFields, tag.FieldColor)
 }
 
+// AddRaceIDs adds the "races" edge to the Race entity by ids.
+func (m *TagMutation) AddRaceIDs(ids ...int) {
+	if m.races == nil {
+		m.races = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.races[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRaces clears the "races" edge to the Race entity.
+func (m *TagMutation) ClearRaces() {
+	m.clearedraces = true
+}
+
+// RacesCleared reports if the "races" edge to the Race entity was cleared.
+func (m *TagMutation) RacesCleared() bool {
+	return m.clearedraces
+}
+
+// RemoveRaceIDs removes the "races" edge to the Race entity by IDs.
+func (m *TagMutation) RemoveRaceIDs(ids ...int) {
+	if m.removedraces == nil {
+		m.removedraces = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.races, ids[i])
+		m.removedraces[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRaces returns the removed IDs of the "races" edge to the Race entity.
+func (m *TagMutation) RemovedRacesIDs() (ids []int) {
+	for id := range m.removedraces {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RacesIDs returns the "races" edge IDs in the mutation.
+func (m *TagMutation) RacesIDs() (ids []int) {
+	for id := range m.races {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRaces resets all changes to the "races" edge.
+func (m *TagMutation) ResetRaces() {
+	m.races = nil
+	m.clearedraces = false
+	m.removedraces = nil
+}
+
 // Where appends a list predicates to the TagMutation builder.
 func (m *TagMutation) Where(ps ...predicate.Tag) {
 	m.predicates = append(m.predicates, ps...)
@@ -23652,49 +23909,85 @@ func (m *TagMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TagMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.races != nil {
+		edges = append(edges, tag.EdgeRaces)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *TagMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case tag.EdgeRaces:
+		ids := make([]ent.Value, 0, len(m.races))
+		for id := range m.races {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TagMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedraces != nil {
+		edges = append(edges, tag.EdgeRaces)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *TagMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case tag.EdgeRaces:
+		ids := make([]ent.Value, 0, len(m.removedraces))
+		for id := range m.removedraces {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TagMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedraces {
+		edges = append(edges, tag.EdgeRaces)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *TagMutation) EdgeCleared(name string) bool {
+	switch name {
+	case tag.EdgeRaces:
+		return m.clearedraces
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *TagMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Tag unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *TagMutation) ResetEdge(name string) error {
+	switch name {
+	case tag.EdgeRaces:
+		m.ResetRaces()
+		return nil
+	}
 	return fmt.Errorf("unknown Tag edge %s", name)
 }
 

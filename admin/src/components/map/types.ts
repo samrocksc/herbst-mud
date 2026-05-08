@@ -7,6 +7,7 @@ export type Room = Readonly<{
   atmosphere?: string
   posX?: number
   posY?: number
+  posZ?: number
   version?: number
 }>
 

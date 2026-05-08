@@ -34,6 +34,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			Exits          map[string]int `json:"exits"`
 			PosX           int            `json:"posX"`
 			PosY           int            `json:"posY"`
+			PosZ           int            `json:"posZ"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -51,7 +52,8 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			SetIsStartingRoom(req.IsStartingRoom).
 			SetExits(req.Exits).
 			SetPosX(req.PosX).
-			SetPosY(req.PosY)
+			SetPosY(req.PosY).
+			SetPosZ(req.PosZ)
 		room, err := roomBuilder.Save(c.Request.Context())
 
 		if err != nil {
@@ -105,6 +107,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			Exits          map[string]int `json:"exits"`
 			PosX           *int           `json:"posX"`
 			PosY           *int           `json:"posY"`
+			PosZ           *int           `json:"posZ"`
 			Version        int            `json:"version"`
 		}
 
@@ -149,6 +152,9 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		}
 		if req.PosY != nil {
 			updater.SetPosY(max(0, *req.PosY))
+		}
+		if req.PosZ != nil {
+			updater.SetPosZ(*req.PosZ)
 		}
 
 		// Increment version on every save

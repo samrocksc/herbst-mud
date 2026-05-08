@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/race"
 	"herbst-server/db/tag"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -37,6 +38,21 @@ func (_c *TagCreate) SetNillableColor(v *string) *TagCreate {
 		_c.SetColor(*v)
 	}
 	return _c
+}
+
+// AddRaceIDs adds the "races" edge to the Race entity by IDs.
+func (_c *TagCreate) AddRaceIDs(ids ...int) *TagCreate {
+	_c.mutation.AddRaceIDs(ids...)
+	return _c
+}
+
+// AddRaces adds the "races" edges to the Race entity.
+func (_c *TagCreate) AddRaces(v ...*Race) *TagCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRaceIDs(ids...)
 }
 
 // Mutation returns the TagMutation object of the builder.
@@ -109,6 +125,22 @@ func (_c *TagCreate) createSpec() (*Tag, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Color(); ok {
 		_spec.SetField(tag.FieldColor, field.TypeString, value)
 		_node.Color = value
+	}
+	if nodes := _c.mutation.RacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   tag.RacesTable,
+			Columns: tag.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
