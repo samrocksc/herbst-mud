@@ -19,8 +19,8 @@ export function useTags() {
   return useQuery({
     queryKey: ['tags'],
     queryFn: async (): Promise<Tag[]> => {
-      const data = await apiGet<{ tags: Tag[] }>(API)
-      return data.tags ?? []
+      const data = await apiGet<Tag[]>(API)
+      return Array.isArray(data) ? data : []
     },
   })
 }

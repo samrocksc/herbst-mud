@@ -57,7 +57,7 @@ function TagsManagement() {
   return (
     <div className="management-page">
       <PageHeader title="Tags" backTo="/dashboard" actions={<Button variant="primary" onClick={() => { setShowForm(true); setEditingTag(null) }}>+ Add Tag</Button>} />
-      {error && <div className="error-banner">{error.message}</div>}
+      {error && <div className="error-banner">{error instanceof Error ? error.message : 'Failed to load tags'}</div>}
       {showForm && !editingTag && <TagForm tag={null} onSubmit={handleCreate} onCancel={() => setShowForm(false)} isLoading={mutations.create.isPending} error={mutations.create.error?.message ?? null} />}
       {editingTag && <TagForm tag={editingTag} onSubmit={handleUpdate} onCancel={() => setEditingTag(null)} isLoading={mutations.update.isPending} error={mutations.update.error?.message ?? null} />}
       <DataTable columns={columns} data={tags} getKey={(r) => r.id} emptyMessage={isLoading ? 'Loading…' : 'No tags yet. Create one above.'} />

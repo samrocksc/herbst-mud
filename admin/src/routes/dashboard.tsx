@@ -25,19 +25,19 @@ function Dashboard() {
 
     const fetchStats = async () => {
       try {
-        const [roomsData, npcsData, skillsData, equipmentData, charactersData] = await Promise.all([
-          apiGet<{ rooms: unknown[] }>(`${window.location.origin}/rooms`),
-          apiGet<{ npcs: unknown[] }>(`${window.location.origin}/npcs`),
-          apiGet<{ abilities: unknown[] }>(`${window.location.origin}/api/abilities`),
+        const [rooms, npcs, abilities, equipment, characters] = await Promise.all([
+          apiGet<unknown[]>(`${window.location.origin}/rooms`),
+          apiGet<unknown[]>(`${window.location.origin}/npcs`),
+          apiGet<unknown[]>(`${window.location.origin}/api/abilities`),
           apiGet<unknown[]>(`${window.location.origin}/equipment`),
           apiGet<unknown[]>(`${window.location.origin}/characters`),
         ])
         setStats({
-          rooms: roomsData.rooms?.length ?? 0,
-          npcs: npcsData.npcs?.length ?? 0,
-          items: Array.isArray(equipmentData) ? equipmentData.length : 0,
-          players: Array.isArray(charactersData) ? charactersData.length : 0,
-          skills: skillsData.abilities?.length ?? 0,
+          rooms: Array.isArray(rooms) ? rooms.length : 0,
+          npcs: Array.isArray(npcs) ? npcs.length : 0,
+          items: Array.isArray(equipment) ? equipment.length : 0,
+          players: Array.isArray(characters) ? characters.length : 0,
+          skills: Array.isArray(abilities) ? abilities.length : 0,
         })
       } catch (err) {
         showToast(err instanceof Error ? err.message : 'Failed to load stats', 'error')

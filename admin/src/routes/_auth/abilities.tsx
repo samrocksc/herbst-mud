@@ -66,7 +66,7 @@ const EMPTY_ABILITY: AbilityInput = {
   name: '',
   description: '',
   ability_type: 'combat',
-  requirements: 1,
+  requirements: '1',
   cost: 0,
   cooldown: 0,
   cooldown_seconds: 0,
@@ -95,20 +95,16 @@ function AbilityForm({
   onCancel: () => void
   isLoading: boolean
 }>) {
-  const { tags: availableTags } = useTags()
+  const { data: availableTags } = useTags()
 
   const [formData, setFormData] = useState<AbilityInput>(() => {
     if (ability) {
-      let reqNum = 1
-      if (typeof ability.requirements === 'number') {
-        reqNum = ability.requirements
-      } else if (typeof ability.requirements === 'string') {
-        const n = parseInt(ability.requirements, 10)
-        if (!isNaN(n)) reqNum = n
-      }
+      const req = typeof ability.requirements === 'string'
+        ? ability.requirements
+        : String(ability.requirements)
       return {
         ...ability,
-        requirements: reqNum,
+        requirements: req,
         scaling_percent_per_point: ability.scaling_percent_per_point ?? 0,
         proc_chance: ability.proc_chance ?? 0,
       } as AbilityInput
@@ -155,13 +151,13 @@ function AbilityForm({
           label="Required Tag (optional)"
           value={selectedTags}
           onChange={(tags) => set({ required_tag: tags.join(', ') })}
-          availableTags={availableTags.map((t) => t.name)}
+          availableTags={(availableTags ?? []).map((t) => t.name)}
           placeholder="e.g., sword, fire, healing"
           tooltip="Comma-separated item tags. Character must have an item with this tag equipped to use this ability"
         />
 
         <div className="grid grid-cols-3 gap-3">
-          <NumberField
+          <FormField
             label="Level Req"
             value={formData.requirements}
             onChange={(v) => set({ requirements: v })}

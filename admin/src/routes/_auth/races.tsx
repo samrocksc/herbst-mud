@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useRaces, type Race, type RaceInput } from '../../hooks/useRaces'
+import { useRaces, useCreateRace, useUpdateRace, useDeleteRace, type Race, type RaceInput } from '../../hooks/useRaces'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
 import { RaceForm } from '../../components/RaceForm'
+import { FormError } from '../../components/fields/FormError'
 
 export const Route = createFileRoute('/_auth/races')({
   component: RacesManagement,
@@ -18,28 +19,32 @@ const COLUMNS: Column<Race>[] = [
 ]
 
 function RacesManagement() {
-  const { races, loading, error, createRace, updateRace, deleteRace } = useRaces()
+  const { data: races, isLoading, error } = useRaces()
+  const createMutation = useCreateRace()
+  const updateMutation = useUpdateRace()
+  const deleteMutation = useDeleteRace()
   const [showForm, setShowForm] = useState(false)
   const [editingRace, setEditingRace] = useState<Race | null>(null)
-  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState('')
   const [deletingRace, setDeletingRace] = useState<Race | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
   const handleCreate = async (input: RaceInput) => {
-    setSaving(true)
-    try { await createRace(input); setShowForm(false) } finally { setSaving(false) }
+    setFormError('')
+    try { await createMutation.mutateAsync(input); setShowForm(false) }
+    catch (e) { setFormError(e instanceof Error ? e.message : 'Failed to create race') }
   }
 
   const handleUpdate = async (input: RaceInput) => {
     if (!editingRace) return
-    setSaving(true)
-    try { await updateRace(editingRace.id, input); setEditingRace(null) } finally { setSaving(false) }
+    setFormError('')
+    try { await updateMutation.mutateAsync({ id: editingRace.id, input }); setEditingRace(null) }
+    catch (e) { setFormError(e instanceof Error ? e.message : 'Failed to update race') }
   }
 
   const handleDelete = async () => {
     if (!deletingRace) return
-    setDeleting(true)
-    try { await deleteRace(deletingRace.id); setDeletingRace(null) } finally { setDeleting(false) }
+    try { await deleteMutation.mutateAsync(deletingRace.id); setDeletingRace(null) }
+    catch { /* toasted by global handler */ }
   }
 
   const columns: Column<Race>[] = [
@@ -52,16 +57,19 @@ function RacesManagement() {
     )},
   ]
 
+  const isSaving = createMutation.isPending || updateMutation.isPending
+
   return (
     <div className="management-page">
       <PageHeader title="Races" backTo="/dashboard" actions={<Button variant="primary" onClick={() => { setShowForm(true); setEditingRace(null) }}>+ Add Race</Button>} />
-      {error && <div className="error-banner">{error}</div>}
-      {showForm && !editingRace && <RaceForm race={null} onSubmit={handleCreate} onCancel={() => setShowForm(false)} isLoading={saving} />}
-      {editingRace && <RaceForm race={editingRace} onSubmit={handleUpdate} onCancel={() => setEditingRace(null)} isLoading={saving} />}
-      {loading ? <div className="loading">Loading races...</div> : (
-        <DataTable columns={columns} data={races} getKey={(row: Race) => row.id} emptyMessage="No races found. Add your first race!" />
+      {error && <div className="error-banner">{error instanceof Error ? error.message : 'Failed to load races'}</div>}
+      {formError && <FormError message={formError} />}
+      {showForm && !editingRace && <RaceForm race={null} onSubmit={handleCreate} onCancel={() => setShowForm(false)} isLoading={isSaving} error={formError} />}
+      {editingRace && <RaceForm race={editingRace} onSubmit={handleUpdate} onCancel={() => setEditingRace(null)} isLoading={isSaving} error={formError} />}
+      {isLoading ? <div className="loading">Loading races...</div> : (
+        <DataTable columns={columns} data={races ?? []} getKey={(row: Race) => row.id} emptyMessage="No races found. Add your first race!" />
       )}
-      {deletingRace && <DeleteConfirmation race={deletingRace} onConfirm={handleDelete} onCancel={() => setDeletingRace(null)} isLoading={deleting} />}
+      {deletingRace && <DeleteConfirmation race={deletingRace} onConfirm={handleDelete} onCancel={() => setDeletingRace(null)} isLoading={deleteMutation.isPending} />}
     </div>
   )
 }

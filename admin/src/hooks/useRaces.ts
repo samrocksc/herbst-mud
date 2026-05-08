@@ -45,8 +45,8 @@ export function useRaces() {
   return useQuery({
     queryKey: ['races'],
     queryFn: async (): Promise<Race[]> => {
-      const data = await apiGet<{ races: Race[] }>(API)
-      return data.races ?? []
+      const data = await apiGet<Race[]>(API)
+      return Array.isArray(data) ? data : []
     },
   })
 }

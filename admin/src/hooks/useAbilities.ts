@@ -33,7 +33,7 @@ export type AbilityInput = Readonly<{
   name: string
   description: string
   ability_type: string
-  requirements: number
+  requirements: string
   cost: number
   cooldown: number
   cooldown_seconds: number
