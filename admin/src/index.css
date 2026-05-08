@@ -1259,22 +1259,22 @@ button.danger:hover {
 .tooltip-text {
   position: absolute;
   z-index: 50;
-  max-width: 240px;
-  padding: 10px 14px;
+  max-width: 360px;
+  min-width: 120px;
+  padding: 12px 16px;
   background: var(--color-surface-darker);
   color: var(--color-text-inverse);
   border: 1px solid color-mix(in srgb, var(--color-surface-darker) 90%, var(--color-primary));
   border-left: 3px solid var(--color-primary);
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.6;
   white-space: normal;
   overflow-wrap: break-word;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-  transition-delay: 300ms;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
   pointer-events: none;
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.05),
@@ -1294,7 +1294,7 @@ button.danger:hover {
 
 /* Top placement (default) */
 .tooltip-top {
-  bottom: calc(100% + 10px);
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
 }
@@ -1307,7 +1307,7 @@ button.danger:hover {
 
 /* Bottom placement */
 .tooltip-bottom {
-  top: calc(100% + 10px);
+  top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) translateY(-4px);
 }
@@ -1320,7 +1320,7 @@ button.danger:hover {
 
 /* Left placement */
 .tooltip-left {
-  right: calc(100% + 10px);
+  right: calc(100% + 8px);
   top: 50%;
   transform: translateY(-50%) translateX(4px);
 }
@@ -1333,7 +1333,7 @@ button.danger:hover {
 
 /* Right placement */
 .tooltip-right {
-  left: calc(100% + 10px);
+  left: calc(100% + 8px);
   top: 50%;
   transform: translateY(-50%) translateX(-4px);
 }
@@ -1349,7 +1349,7 @@ button.danger:hover {
 .tooltip-wrapper:focus-within .tooltip-text {
   opacity: 1;
   visibility: visible;
-  transition-delay: 300ms;
+  transition-delay: 150ms;
 }
 .tooltip-wrapper:hover .tooltip-top,
 .tooltip-wrapper:focus-within .tooltip-top {
@@ -1366,29 +1366,6 @@ button.danger:hover {
 .tooltip-wrapper:hover .tooltip-right,
 .tooltip-wrapper:focus-within .tooltip-right {
   transform: translateY(-50%) translateX(0);
-}
-
-/* Tooltip icon inside form labels */
-.tooltip-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
-  background: var(--color-primary);
-  color: var(--color-surface);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: help;
-  margin-left: 4px;
-  flex-shrink: 0;
-  vertical-align: middle;
-  transition: transform 0.15s ease, background-color 0.15s ease;
-}
-.tooltip-icon:hover {
-  transform: scale(1.1);
-  background: var(--color-primary-hover);
 }
 
 .xp-progress-label { font-size: 12px; color: var(--color-muted); margin-bottom: 4px; }
