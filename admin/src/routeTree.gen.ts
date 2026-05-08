@@ -17,6 +17,13 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsTrainableSkillsRouteImport } from './routes/docs/trainable-skills'
+import { Route as DocsNpcSystemRouteImport } from './routes/docs/npc-system'
+import { Route as DocsItemSystemRouteImport } from './routes/docs/item-system'
+import { Route as DocsFactionSystemRouteImport } from './routes/docs/faction-system'
+import { Route as DocsExamineSkillRouteImport } from './routes/docs/examine-skill'
+import { Route as DocsConfigReferenceRouteImport } from './routes/docs/config-reference'
+import { Route as DocsCombatGuideRouteImport } from './routes/docs/combat-guide'
 import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
 import { Route as AuthTalentsRouteImport } from './routes/_auth/talents'
@@ -75,6 +82,41 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DocsTrainableSkillsRoute = DocsTrainableSkillsRouteImport.update({
+  id: '/trainable-skills',
+  path: '/trainable-skills',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsNpcSystemRoute = DocsNpcSystemRouteImport.update({
+  id: '/npc-system',
+  path: '/npc-system',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsItemSystemRoute = DocsItemSystemRouteImport.update({
+  id: '/item-system',
+  path: '/item-system',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsFactionSystemRoute = DocsFactionSystemRouteImport.update({
+  id: '/faction-system',
+  path: '/faction-system',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsExamineSkillRoute = DocsExamineSkillRouteImport.update({
+  id: '/examine-skill',
+  path: '/examine-skill',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsConfigReferenceRoute = DocsConfigReferenceRouteImport.update({
+  id: '/config-reference',
+  path: '/config-reference',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsCombatGuideRoute = DocsCombatGuideRouteImport.update({
+  id: '/combat-guide',
+  path: '/combat-guide',
+  getParentRoute: () => DocsRoute,
 } as any)
 const DocsAbilitySystemRoute = DocsAbilitySystemRouteImport.update({
   id: '/ability-system',
@@ -196,6 +238,13 @@ export interface FileRoutesByFullPath {
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/combat-guide': typeof DocsCombatGuideRoute
+  '/docs/config-reference': typeof DocsConfigReferenceRoute
+  '/docs/examine-skill': typeof DocsExamineSkillRoute
+  '/docs/faction-system': typeof DocsFactionSystemRoute
+  '/docs/item-system': typeof DocsItemSystemRoute
+  '/docs/npc-system': typeof DocsNpcSystemRoute
+  '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
@@ -224,6 +273,13 @@ export interface FileRoutesByTo {
   '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/combat-guide': typeof DocsCombatGuideRoute
+  '/docs/config-reference': typeof DocsConfigReferenceRoute
+  '/docs/examine-skill': typeof DocsExamineSkillRoute
+  '/docs/faction-system': typeof DocsFactionSystemRoute
+  '/docs/item-system': typeof DocsItemSystemRoute
+  '/docs/npc-system': typeof DocsNpcSystemRoute
+  '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
@@ -253,6 +309,13 @@ export interface FileRoutesById {
   '/_auth/talents': typeof AuthTalentsRoute
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/combat-guide': typeof DocsCombatGuideRoute
+  '/docs/config-reference': typeof DocsConfigReferenceRoute
+  '/docs/examine-skill': typeof DocsExamineSkillRoute
+  '/docs/faction-system': typeof DocsFactionSystemRoute
+  '/docs/item-system': typeof DocsItemSystemRoute
+  '/docs/npc-system': typeof DocsNpcSystemRoute
+  '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/_auth/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
@@ -283,6 +346,13 @@ export interface FileRouteTypes {
     | '/talents'
     | '/xp'
     | '/docs/ability-system'
+    | '/docs/combat-guide'
+    | '/docs/config-reference'
+    | '/docs/examine-skill'
+    | '/docs/faction-system'
+    | '/docs/item-system'
+    | '/docs/npc-system'
+    | '/docs/trainable-skills'
     | '/characters/$characterId'
     | '/items/$itemId'
     | '/npcs/$npcId'
@@ -311,6 +381,13 @@ export interface FileRouteTypes {
     | '/talents'
     | '/xp'
     | '/docs/ability-system'
+    | '/docs/combat-guide'
+    | '/docs/config-reference'
+    | '/docs/examine-skill'
+    | '/docs/faction-system'
+    | '/docs/item-system'
+    | '/docs/npc-system'
+    | '/docs/trainable-skills'
     | '/characters/$characterId'
     | '/items/$itemId'
     | '/npcs/$npcId'
@@ -339,6 +416,13 @@ export interface FileRouteTypes {
     | '/_auth/talents'
     | '/_auth/xp'
     | '/docs/ability-system'
+    | '/docs/combat-guide'
+    | '/docs/config-reference'
+    | '/docs/examine-skill'
+    | '/docs/faction-system'
+    | '/docs/item-system'
+    | '/docs/npc-system'
+    | '/docs/trainable-skills'
     | '/_auth/characters/$characterId'
     | '/_auth/items/$itemId'
     | '/_auth/npcs/$npcId'
@@ -415,6 +499,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/docs/trainable-skills': {
+      id: '/docs/trainable-skills'
+      path: '/trainable-skills'
+      fullPath: '/docs/trainable-skills'
+      preLoaderRoute: typeof DocsTrainableSkillsRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/npc-system': {
+      id: '/docs/npc-system'
+      path: '/npc-system'
+      fullPath: '/docs/npc-system'
+      preLoaderRoute: typeof DocsNpcSystemRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/item-system': {
+      id: '/docs/item-system'
+      path: '/item-system'
+      fullPath: '/docs/item-system'
+      preLoaderRoute: typeof DocsItemSystemRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/faction-system': {
+      id: '/docs/faction-system'
+      path: '/faction-system'
+      fullPath: '/docs/faction-system'
+      preLoaderRoute: typeof DocsFactionSystemRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/examine-skill': {
+      id: '/docs/examine-skill'
+      path: '/examine-skill'
+      fullPath: '/docs/examine-skill'
+      preLoaderRoute: typeof DocsExamineSkillRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/config-reference': {
+      id: '/docs/config-reference'
+      path: '/config-reference'
+      fullPath: '/docs/config-reference'
+      preLoaderRoute: typeof DocsConfigReferenceRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/combat-guide': {
+      id: '/docs/combat-guide'
+      path: '/combat-guide'
+      fullPath: '/docs/combat-guide'
+      preLoaderRoute: typeof DocsCombatGuideRouteImport
+      parentRoute: typeof DocsRoute
     }
     '/docs/ability-system': {
       id: '/docs/ability-system'
@@ -639,10 +772,24 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface DocsRouteChildren {
   DocsAbilitySystemRoute: typeof DocsAbilitySystemRoute
+  DocsCombatGuideRoute: typeof DocsCombatGuideRoute
+  DocsConfigReferenceRoute: typeof DocsConfigReferenceRoute
+  DocsExamineSkillRoute: typeof DocsExamineSkillRoute
+  DocsFactionSystemRoute: typeof DocsFactionSystemRoute
+  DocsItemSystemRoute: typeof DocsItemSystemRoute
+  DocsNpcSystemRoute: typeof DocsNpcSystemRoute
+  DocsTrainableSkillsRoute: typeof DocsTrainableSkillsRoute
 }
 
 const DocsRouteChildren: DocsRouteChildren = {
   DocsAbilitySystemRoute: DocsAbilitySystemRoute,
+  DocsCombatGuideRoute: DocsCombatGuideRoute,
+  DocsConfigReferenceRoute: DocsConfigReferenceRoute,
+  DocsExamineSkillRoute: DocsExamineSkillRoute,
+  DocsFactionSystemRoute: DocsFactionSystemRoute,
+  DocsItemSystemRoute: DocsItemSystemRoute,
+  DocsNpcSystemRoute: DocsNpcSystemRoute,
+  DocsTrainableSkillsRoute: DocsTrainableSkillsRoute,
 }
 
 const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
