@@ -44,6 +44,20 @@ function PlayersManagement() {
     catch { setResetError(`Failed to reset password for ${user.email}`) }
   }
 
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+  const userColumns: Column<User>[] = [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Email', accessor: 'email' },
+    { header: 'Role', accessor: 'is_admin', render: (val: unknown) =>
+      val ? <span className="badge badge-admin">Admin</span> : <span className="badge badge-player">Player</span> },
+    { header: 'Created', accessor: 'created_at', render: (val: unknown) => formatDate(String(val ?? '')) },
+    { header: 'Actions', accessor: '_actions', render: (_: unknown, row: User) => (
+      <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); handleReset(row) }} disabled={resetPassword.isPending}>Reset Password</Button>
+    )},
+  ]
+
   const charColumns: Column<Character>[] = [
     { header: 'ID', accessor: 'id' },
     { header: 'Name', accessor: 'name', render: (_: unknown, row: Character) => (
@@ -64,7 +78,7 @@ function PlayersManagement() {
       <PageHeader title="Players Management" backTo="/dashboard" />
       {resetSuccess && <div className="success-message">{resetSuccess}</div>}
       {resetError && <div className="error-message">{resetError}</div>}
-      <DataTable columns={userColumns(resetPassword, handleReset)} data={users ?? []} getKey={(row: User) => row.id}
+      <DataTable columns={userColumns} data={users ?? []} getKey={(row: User) => row.id}
         onRowClick={(row: User) => { setSelectedUser(row); setShowDetail(true) }} emptyMessage="No players found." />
 
       <div className="mt-6">
@@ -81,7 +95,27 @@ function PlayersManagement() {
         )}
       </div>
 
-      {showDetail && selectedUser && <UserDetailModal user={selectedUser} onClose={() => setShowDetail(false)} onReset={() => handleReset(selectedUser)} />}
+      {showDetail && selectedUser && (
+        <div className="modal-overlay" onClick={() => setShowDetail(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Player Details</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowDetail(false)}>×</Button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-row"><label>ID:</label><span>{selectedUser.id}</span></div>
+              <div className="detail-row"><label>Email:</label><span>{selectedUser.email}</span></div>
+              <div className="detail-row"><label>Admin:</label><span>{selectedUser.is_admin ? 'Yes' : 'No'}</span></div>
+              <div className="detail-row"><label>Character:</label><span>{selectedUser.character_name || 'No character'}</span></div>
+              <div className="detail-row"><label>Created:</label><span>{formatDate(selectedUser.created_at)}</span></div>
+            </div>
+            <div className="modal-footer">
+              <Button variant="secondary" size="sm" onClick={() => handleReset(selectedUser)}>Reset Password</Button>
+              <Button variant="secondary" onClick={() => setShowDetail(false)}>Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
