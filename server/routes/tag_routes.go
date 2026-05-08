@@ -10,7 +10,7 @@ import (
 	"herbst-server/db/charactertag"
 	"herbst-server/db/faction"
 	"herbst-server/db/factionrequiredtag"
-	"herbst-server/db/skill"
+	"herbst-server/db/ability"
 	"herbst-server/db/tag"
 	"herbst-server/middleware"
 )
@@ -47,7 +47,7 @@ type tagUsageView struct {
 type tagUsageReport struct {
 	TagName     string         `json:"tag_name"`
 	TotalUsages int            `json:"total_usages"`
-	Skills      []tagUsageView `json:"skills"`
+	Abilities   []tagUsageView `json:"abilities"`
 	Factions    []tagUsageView `json:"factions"`
 	Characters  []tagUsageView `json:"characters"`
 }
@@ -169,17 +169,17 @@ func tagUsages(client *db.Client) gin.HandlerFunc {
 			TagName: tagEntity.Name,
 		}
 
-		// --- Skills (required_tag field) ---
-		skills, err := client.Skill.Query().
-			Where(skill.RequiredTag(tagEntity.Name)).
+		// --- Abilities (required_tag field) ---
+		abilities, err := client.Ability.Query().
+			Where(ability.RequiredTag(tagEntity.Name)).
 			All(c.Request.Context())
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query skills"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query abilities"})
 			return
 		}
-		report.Skills = make([]tagUsageView, len(skills))
-		for i, s := range skills {
-			report.Skills[i] = tagUsageView{ID: s.ID, Name: s.Name, Type: "skill"}
+		report.Abilities = make([]tagUsageView, len(abilities))
+		for i, s := range abilities {
+			report.Abilities[i] = tagUsageView{ID: s.ID, Name: s.Name, Type: "ability"}
 			report.TotalUsages++
 		}
 

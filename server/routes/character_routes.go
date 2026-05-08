@@ -868,26 +868,26 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			}
 		}
 
-		// Get eligibility info for faction-based skills
-		skillSvc := services.NewSkillEligibilityService(client)
-		skillsWithElig, err := skillSvc.SkillsForCharacterWithEligibility(c.Request.Context(), id)
+		// Get eligibility info for faction-based abilities
+		abilitySvc := services.NewAbilityEligibilityService(client)
+		abilitiesWithElig, err := abilitySvc.AbilitiesForCharacterWithEligibility(c.Request.Context(), id)
 		if err != nil {
-			log.Printf("[skills] eligibility check failed for character %d: %v", id, err)
-			// Don't fail the entire request — just omit faction skills eligibility
+			log.Printf("[abilities] eligibility check failed for character %d: %v", id, err)
+			// Don't fail the entire request — just omit faction abilities eligibility
 		}
 
-		// Build faction skills list with eligibility
-		factionSkills := make([]gin.H, 0)
+		// Build faction abilities list with eligibility
+		factionAbilities := make([]gin.H, 0)
 		if err == nil {
-			for _, swe := range skillsWithElig {
-				sk := swe.Skill
+			for _, swe := range abilitiesWithElig {
+				sk := swe.Ability
 				el := swe.Eligibility
 				entry := gin.H{
 					"id":             sk.ID,
 					"name":           sk.Name,
 					"slug":           sk.Slug,
-					"skill_type":     sk.SkillType,
-					"skill_class":    sk.SkillClass,
+					"ability_type":   sk.AbilityType,
+					"ability_class":  sk.AbilityClass,
 					"effect_type":    sk.EffectType,
 					"effect_value":   sk.EffectValue,
 					"effect_duration": sk.EffectDuration,
@@ -907,7 +907,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 					entry["faction_id"] = sk.Edges.Faction.ID
 					entry["faction_name"] = sk.Edges.Faction.Name
 				}
-				factionSkills = append(factionSkills, entry)
+				factionAbilities = append(factionAbilities, entry)
 			}
 		}
 
@@ -925,7 +925,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				"cloth_armor":  gin.H{"level": char.SkillClothArmor, "bonus": calcBonus(char.SkillClothArmor)},
 				"heavy_armor":  gin.H{"level": char.SkillHeavyArmor, "bonus": calcBonus(char.SkillHeavyArmor)},
 			},
-			"faction_skills": factionSkills,
+			"faction_abilities": factionAbilities,
 		})
 	})
 
@@ -1287,12 +1287,12 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				// Get character's skills
 				charSkills, err := client.Character.Query().
 					Where(character.ID(id)).
-					QuerySkills().
+					QueryAbilities().
 					All(c.Request.Context())
 				if err == nil {
 					skillLevels := make(map[string]int)
 					for _, cs := range charSkills {
-						if cs.Edges.Skill != nil {
+						if cs.Edges.Ability != nil {
 						}
 					}
 					for skillName, requiredLevel := range requirements {

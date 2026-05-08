@@ -241,8 +241,11 @@ func main() {
 	// Register room routes
 	routes.RegisterRoomRoutes(router, client)
 
-	// Register skill routes
-	routes.RegisterSkillRoutes(router, client)
+	// Register ability routes
+	routes.RegisterAbilityRoutes(router, client)
+
+	// Register effect routes (ability effects)
+	routes.RegisterEffectRoutes(router, client)
 
 	// Register talent routes
 	routes.RegisterTalentRoutes(router, client)

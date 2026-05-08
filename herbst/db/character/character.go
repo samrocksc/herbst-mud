@@ -144,9 +144,9 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "characters"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"ability_characters",
 	"character_npc_template",
 	"room_characters",
-	"skill_characters",
 	"talent_characters",
 	"user_characters",
 }

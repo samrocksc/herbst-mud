@@ -38,8 +38,8 @@ type FactionEdges struct {
 	RequiredTags []*FactionRequiredTag `json:"required_tags,omitempty"`
 	// CharacterFactions holds the value of the character_factions edge.
 	CharacterFactions []*CharacterFaction `json:"character_factions,omitempty"`
-	// Skills holds the value of the skills edge.
-	Skills []*Skill `json:"skills,omitempty"`
+	// Abilities holds the value of the abilities edge.
+	Abilities []*Ability `json:"abilities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
@@ -74,13 +74,13 @@ func (e FactionEdges) CharacterFactionsOrErr() ([]*CharacterFaction, error) {
 	return nil, &NotLoadedError{edge: "character_factions"}
 }
 
-// SkillsOrErr returns the Skills value or an error if the edge
+// AbilitiesOrErr returns the Abilities value or an error if the edge
 // was not loaded in eager-loading.
-func (e FactionEdges) SkillsOrErr() ([]*Skill, error) {
+func (e FactionEdges) AbilitiesOrErr() ([]*Ability, error) {
 	if e.loadedTypes[3] {
-		return e.Skills, nil
+		return e.Abilities, nil
 	}
-	return nil, &NotLoadedError{edge: "skills"}
+	return nil, &NotLoadedError{edge: "abilities"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -168,9 +168,9 @@ func (_m *Faction) QueryCharacterFactions() *CharacterFactionQuery {
 	return NewFactionClient(_m.config).QueryCharacterFactions(_m)
 }
 
-// QuerySkills queries the "skills" edge of the Faction entity.
-func (_m *Faction) QuerySkills() *SkillQuery {
-	return NewFactionClient(_m.config).QuerySkills(_m)
+// QueryAbilities queries the "abilities" edge of the Faction entity.
+func (_m *Faction) QueryAbilities() *AbilityQuery {
+	return NewFactionClient(_m.config).QueryAbilities(_m)
 }
 
 // Update returns a builder for updating this Faction.

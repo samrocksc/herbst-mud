@@ -8,6 +8,18 @@ import (
 	"herbst/db"
 )
 
+// The AbilityFunc type is an adapter to allow the use of ordinary
+// function as Ability mutator.
+type AbilityFunc func(context.Context, *db.AbilityMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AbilityFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AbilityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AbilityMutation", m)
+}
+
 // The CharacterFunc type is an adapter to allow the use of ordinary
 // function as Character mutator.
 type CharacterFunc func(context.Context, *db.CharacterMutation) (db.Value, error)
@@ -78,18 +90,6 @@ func (f RoomFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RoomMutation", m)
-}
-
-// The SkillFunc type is an adapter to allow the use of ordinary
-// function as Skill mutator.
-type SkillFunc func(context.Context, *db.SkillMutation) (db.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SkillFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.SkillMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SkillMutation", m)
 }
 
 // The TalentFunc type is an adapter to allow the use of ordinary

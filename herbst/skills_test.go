@@ -64,13 +64,13 @@ func TestSkillAndTalentCommands(t *testing.T) {
 	}
 }
 
-// TestSkillTalentDbTypes verifies the db package has Skill and Talent types
+// TestSkillTalentDbTypes verifies the db package has Ability and Talent types
 func TestSkillTalentDbTypes(t *testing.T) {
 	// Just verify the db package has the expected types
-	var _ *db.Skill
+	var _ *db.Ability
 	var _ *db.Talent
-	var _ *db.SkillCreate
+	var _ *db.AbilityCreate
 	var _ *db.TalentCreate
-	var _ *db.SkillQuery
+	var _ *db.AbilityQuery
 	var _ *db.TalentQuery
 }

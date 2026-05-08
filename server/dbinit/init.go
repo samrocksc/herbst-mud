@@ -565,56 +565,56 @@ func InitJunkyard(client *db.Client) error {
 	return nil
 }
 
-// InitSkills seeds the master skills table from the spike design
+// InitSkills seeds the master abilities table from the spike design
 func InitSkills(client *db.Client) error {
 	ctx := context.Background()
 
-	// Check if skills already exist
-	existingSkills, err := client.Skill.Query().Count(ctx)
+	// Check if abilities already exist
+	existingAbilities, err := client.Ability.Query().Count(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to count existing skills: %w", err)
+		return fmt.Errorf("failed to count existing abilities: %w", err)
 	}
 
-	if existingSkills > 0 {
-		log.Println("Skills already exist, skipping seed...")
+	if existingAbilities > 0 {
+		log.Println("Abilities already exist, skipping seed...")
 		return nil
 	}
 
-	// Skills from SKILLS_SPIKE.md and CLASS_SYSTEM_SPIKE.md
-	skills := []struct {
+	// Abilities from SKILLS_SPIKE.md and CLASS_SYSTEM_SPIKE.md
+	abilities := []struct {
 		name        string
 		description string
-		skillType   string
+		abilityType string
 	}{
-		// Weapon skills
+		// Weapon abilities
 		{"blades", "Proficiency with swords, machetes, cleavers - affects damage and accuracy with blade weapons", "weapon"},
 		{"staves", "Proficiency with polearms, spears, bows - affects damage and range with pole weapons", "weapon"},
 		{"knives", "Proficiency with daggers, sais, small blades - affects damage and critical hits with knives", "weapon"},
 		{"martial", "Proficiency with nunchukus, shuriken, tonfas - affects damage and special moves with exotic weapons", "weapon"},
-		{"brawling", "Proficiency with fists, improvised weapons - fallback combat skill", "weapon"},
+		{"brawling", "Proficiency with fists, improvised weapons - fallback combat ability", "weapon"},
 		{"tech", "Proficiency with laser weapons, gadgets - affects accuracy and damage with tech weapons", "weapon"},
-		// Magic skills
+		// Magic abilities
 		{"fire_magic", "Proficiency with fire spells", "magic"},
 		{"water_magic", "Proficiency with water spells", "magic"},
 		{"wind_magic", "Proficiency with wind spells", "magic"},
-		// Armor skills
+		// Armor abilities
 		{"light_armor", "Proficiency with light armor - affects dodge bonus while wearing light armor", "armor"},
 		{"cloth_armor", "Proficiency with cloth armor - minimal protection but wide availability", "armor"},
 		{"heavy_armor", "Proficiency with heavy armor - affects defense while reducing mobility", "armor"},
 	}
 
-	for _, s := range skills {
-		_, err := client.Skill.Create().
+	for _, s := range abilities {
+		_, err := client.Ability.Create().
 			SetName(s.name).
 			SetDescription(s.description).
-			SetSkillType(s.skillType).
+			SetAbilityType(s.abilityType).
 			Save(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to create skill %s: %w", s.name, err)
+			return fmt.Errorf("failed to create ability %s: %w", s.name, err)
 		}
 	}
 
-	log.Printf("Seeded %d skills", len(skills))
+	log.Printf("Seeded %d abilities", len(abilities))
 	return nil
 }
 

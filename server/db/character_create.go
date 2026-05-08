@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/characterability"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
-	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/npctemplate"
@@ -629,19 +629,19 @@ func (_c *CharacterCreate) AddAvailableTalents(v ...*AvailableTalent) *Character
 	return _c.AddAvailableTalentIDs(ids...)
 }
 
-// AddSkillIDs adds the "skills" edge to the CharacterSkill entity by IDs.
-func (_c *CharacterCreate) AddSkillIDs(ids ...int) *CharacterCreate {
-	_c.mutation.AddSkillIDs(ids...)
+// AddAbilityIDs adds the "abilities" edge to the CharacterAbility entity by IDs.
+func (_c *CharacterCreate) AddAbilityIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddAbilityIDs(ids...)
 	return _c
 }
 
-// AddSkills adds the "skills" edges to the CharacterSkill entity.
-func (_c *CharacterCreate) AddSkills(v ...*CharacterSkill) *CharacterCreate {
+// AddAbilities adds the "abilities" edges to the CharacterAbility entity.
+func (_c *CharacterCreate) AddAbilities(v ...*CharacterAbility) *CharacterCreate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddSkillIDs(ids...)
+	return _c.AddAbilityIDs(ids...)
 }
 
 // AddTalentIDs adds the "talents" edge to the CharacterTalent entity by IDs.
@@ -1221,15 +1221,15 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.SkillsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.AbilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   character.SkillsTable,
-			Columns: []string{character.SkillsColumn},
+			Table:   character.AbilitiesTable,
+			Columns: []string{character.AbilitiesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(characterability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

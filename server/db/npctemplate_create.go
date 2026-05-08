@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/character"
-	"herbst-server/db/npcskill"
+	"herbst-server/db/npcability"
 	"herbst-server/db/npctemplate"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -125,19 +125,19 @@ func (_c *NPCTemplateCreate) SetID(v string) *NPCTemplateCreate {
 	return _c
 }
 
-// AddNpcSkillIDs adds the "npc_skills" edge to the NPCSkill entity by IDs.
-func (_c *NPCTemplateCreate) AddNpcSkillIDs(ids ...int) *NPCTemplateCreate {
-	_c.mutation.AddNpcSkillIDs(ids...)
+// AddNpcAbilityIDs adds the "npc_abilities" edge to the NPCAbility entity by IDs.
+func (_c *NPCTemplateCreate) AddNpcAbilityIDs(ids ...int) *NPCTemplateCreate {
+	_c.mutation.AddNpcAbilityIDs(ids...)
 	return _c
 }
 
-// AddNpcSkills adds the "npc_skills" edges to the NPCSkill entity.
-func (_c *NPCTemplateCreate) AddNpcSkills(v ...*NPCSkill) *NPCTemplateCreate {
+// AddNpcAbilities adds the "npc_abilities" edges to the NPCAbility entity.
+func (_c *NPCTemplateCreate) AddNpcAbilities(v ...*NPCAbility) *NPCTemplateCreate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddNpcSkillIDs(ids...)
+	return _c.AddNpcAbilityIDs(ids...)
 }
 
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
@@ -321,15 +321,15 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 		_spec.SetField(npctemplate.FieldRespawnCooldown, field.TypeInt, value)
 		_node.RespawnCooldown = value
 	}
-	if nodes := _c.mutation.NpcSkillsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.NpcAbilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   npctemplate.NpcSkillsTable,
-			Columns: npctemplate.NpcSkillsPrimaryKey,
+			Table:   npctemplate.NpcAbilitiesTable,
+			Columns: npctemplate.NpcAbilitiesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(npcskill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(npcability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

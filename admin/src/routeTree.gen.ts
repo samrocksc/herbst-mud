@@ -17,6 +17,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DocsTrainableSkillsRouteImport } from './routes/docs/trainable-skills'
 import { Route as DocsNpcSystemRouteImport } from './routes/docs/npc-system'
 import { Route as DocsItemSystemRouteImport } from './routes/docs/item-system'
@@ -82,6 +83,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocsRoute,
 } as any)
 const DocsTrainableSkillsRoute = DocsTrainableSkillsRouteImport.update({
   id: '/trainable-skills',
@@ -245,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs/': typeof DocsIndexRoute
   '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
@@ -255,7 +262,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/docs': typeof DocsRouteWithChildren
   '/export': typeof ExportRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
@@ -280,6 +286,7 @@ export interface FileRoutesByTo {
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs': typeof DocsIndexRoute
   '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
@@ -316,6 +323,7 @@ export interface FileRoutesById {
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs/': typeof DocsIndexRoute
   '/_auth/characters/$characterId': typeof AuthCharactersCharacterIdRoute
   '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
@@ -353,6 +361,7 @@ export interface FileRouteTypes {
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/trainable-skills'
+    | '/docs/'
     | '/characters/$characterId'
     | '/items/$itemId'
     | '/npcs/$npcId'
@@ -363,7 +372,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
-    | '/docs'
     | '/export'
     | '/login'
     | '/map'
@@ -388,6 +396,7 @@ export interface FileRouteTypes {
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/trainable-skills'
+    | '/docs'
     | '/characters/$characterId'
     | '/items/$itemId'
     | '/npcs/$npcId'
@@ -423,6 +432,7 @@ export interface FileRouteTypes {
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/trainable-skills'
+    | '/docs/'
     | '/_auth/characters/$characterId'
     | '/_auth/items/$itemId'
     | '/_auth/npcs/$npcId'
@@ -499,6 +509,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/docs/': {
+      id: '/docs/'
+      path: '/'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof DocsRoute
     }
     '/docs/trainable-skills': {
       id: '/docs/trainable-skills'
@@ -779,6 +796,7 @@ interface DocsRouteChildren {
   DocsItemSystemRoute: typeof DocsItemSystemRoute
   DocsNpcSystemRoute: typeof DocsNpcSystemRoute
   DocsTrainableSkillsRoute: typeof DocsTrainableSkillsRoute
+  DocsIndexRoute: typeof DocsIndexRoute
 }
 
 const DocsRouteChildren: DocsRouteChildren = {
@@ -790,6 +808,7 @@ const DocsRouteChildren: DocsRouteChildren = {
   DocsItemSystemRoute: DocsItemSystemRoute,
   DocsNpcSystemRoute: DocsNpcSystemRoute,
   DocsTrainableSkillsRoute: DocsTrainableSkillsRoute,
+  DocsIndexRoute: DocsIndexRoute,
 }
 
 const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)

@@ -6,6 +6,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Ability is the predicate function for ability builders.
+type Ability func(*sql.Selector)
+
+// AbilityEffect is the predicate function for abilityeffect builders.
+type AbilityEffect func(*sql.Selector)
+
 // Achievement is the predicate function for achievement builders.
 type Achievement func(*sql.Selector)
 
@@ -15,14 +21,14 @@ type AvailableTalent func(*sql.Selector)
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 
+// CharacterAbility is the predicate function for characterability builders.
+type CharacterAbility func(*sql.Selector)
+
 // CharacterCompetency is the predicate function for charactercompetency builders.
 type CharacterCompetency func(*sql.Selector)
 
 // CharacterFaction is the predicate function for characterfaction builders.
 type CharacterFaction func(*sql.Selector)
-
-// CharacterSkill is the predicate function for characterskill builders.
-type CharacterSkill func(*sql.Selector)
 
 // CharacterTag is the predicate function for charactertag builders.
 type CharacterTag func(*sql.Selector)
@@ -60,8 +66,8 @@ type GameConfig func(*sql.Selector)
 // Gender is the predicate function for gender builders.
 type Gender func(*sql.Selector)
 
-// NPCSkill is the predicate function for npcskill builders.
-type NPCSkill func(*sql.Selector)
+// NPCAbility is the predicate function for npcability builders.
+type NPCAbility func(*sql.Selector)
 
 // NPCTemplate is the predicate function for npctemplate builders.
 type NPCTemplate func(*sql.Selector)
@@ -71,9 +77,6 @@ type Race func(*sql.Selector)
 
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
-
-// Skill is the predicate function for skill builders.
-type Skill func(*sql.Selector)
 
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)

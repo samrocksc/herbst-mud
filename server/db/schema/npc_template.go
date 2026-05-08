@@ -46,7 +46,7 @@ func (NPCTemplate) Fields() []ent.Field {
 // Edges of the NPCTemplate.
 func (NPCTemplate) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("npc_skills", NPCSkill.Type),
+		edge.To("npc_abilities", NPCAbility.Type),
 		edge.From("characters", Character.Type).
 			Ref("npcTemplate"),
 	}

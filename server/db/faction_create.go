@@ -6,11 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/ability"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/factionrequiredtag"
-	"herbst-server/db/skill"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -98,19 +98,19 @@ func (_c *FactionCreate) AddCharacterFactions(v ...*CharacterFaction) *FactionCr
 	return _c.AddCharacterFactionIDs(ids...)
 }
 
-// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
-func (_c *FactionCreate) AddSkillIDs(ids ...int) *FactionCreate {
-	_c.mutation.AddSkillIDs(ids...)
+// AddAbilityIDs adds the "abilities" edge to the Ability entity by IDs.
+func (_c *FactionCreate) AddAbilityIDs(ids ...int) *FactionCreate {
+	_c.mutation.AddAbilityIDs(ids...)
 	return _c
 }
 
-// AddSkills adds the "skills" edges to the Skill entity.
-func (_c *FactionCreate) AddSkills(v ...*Skill) *FactionCreate {
+// AddAbilities adds the "abilities" edges to the Ability entity.
+func (_c *FactionCreate) AddAbilities(v ...*Ability) *FactionCreate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddSkillIDs(ids...)
+	return _c.AddAbilityIDs(ids...)
 }
 
 // Mutation returns the FactionMutation object of the builder.
@@ -240,15 +240,15 @@ func (_c *FactionCreate) createSpec() (*Faction, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.SkillsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.AbilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   faction.SkillsTable,
-			Columns: []string{faction.SkillsColumn},
+			Table:   faction.AbilitiesTable,
+			Columns: []string{faction.AbilitiesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

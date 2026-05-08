@@ -120,8 +120,8 @@ type CharacterEdges struct {
 	NpcTemplate *NPCTemplate `json:"npcTemplate,omitempty"`
 	// AvailableTalents holds the value of the available_talents edge.
 	AvailableTalents []*AvailableTalent `json:"available_talents,omitempty"`
-	// Skills holds the value of the skills edge.
-	Skills []*CharacterSkill `json:"skills,omitempty"`
+	// Abilities holds the value of the abilities edge.
+	Abilities []*CharacterAbility `json:"abilities,omitempty"`
 	// Talents holds the value of the talents edge.
 	Talents []*CharacterTalent `json:"talents,omitempty"`
 	// Tags holds the value of the tags edge.
@@ -177,13 +177,13 @@ func (e CharacterEdges) AvailableTalentsOrErr() ([]*AvailableTalent, error) {
 	return nil, &NotLoadedError{edge: "available_talents"}
 }
 
-// SkillsOrErr returns the Skills value or an error if the edge
+// AbilitiesOrErr returns the Abilities value or an error if the edge
 // was not loaded in eager-loading.
-func (e CharacterEdges) SkillsOrErr() ([]*CharacterSkill, error) {
+func (e CharacterEdges) AbilitiesOrErr() ([]*CharacterAbility, error) {
 	if e.loadedTypes[4] {
-		return e.Skills, nil
+		return e.Abilities, nil
 	}
-	return nil, &NotLoadedError{edge: "skills"}
+	return nil, &NotLoadedError{edge: "abilities"}
 }
 
 // TalentsOrErr returns the Talents value or an error if the edge
@@ -554,9 +554,9 @@ func (_m *Character) QueryAvailableTalents() *AvailableTalentQuery {
 	return NewCharacterClient(_m.config).QueryAvailableTalents(_m)
 }
 
-// QuerySkills queries the "skills" edge of the Character entity.
-func (_m *Character) QuerySkills() *CharacterSkillQuery {
-	return NewCharacterClient(_m.config).QuerySkills(_m)
+// QueryAbilities queries the "abilities" edge of the Character entity.
+func (_m *Character) QueryAbilities() *CharacterAbilityQuery {
+	return NewCharacterClient(_m.config).QueryAbilities(_m)
 }
 
 // QueryTalents queries the "talents" edge of the Character entity.

@@ -24,8 +24,8 @@ const (
 	EdgeRequiredTags = "required_tags"
 	// EdgeCharacterFactions holds the string denoting the character_factions edge name in mutations.
 	EdgeCharacterFactions = "character_factions"
-	// EdgeSkills holds the string denoting the skills edge name in mutations.
-	EdgeSkills = "skills"
+	// EdgeAbilities holds the string denoting the abilities edge name in mutations.
+	EdgeAbilities = "abilities"
 	// Table holds the table name of the faction in the database.
 	Table = "factions"
 	// CategoryTable is the table that holds the category relation/edge.
@@ -49,13 +49,13 @@ const (
 	CharacterFactionsInverseTable = "character_factions"
 	// CharacterFactionsColumn is the table column denoting the character_factions relation/edge.
 	CharacterFactionsColumn = "faction_character_factions"
-	// SkillsTable is the table that holds the skills relation/edge.
-	SkillsTable = "skills"
-	// SkillsInverseTable is the table name for the Skill entity.
-	// It exists in this package in order to avoid circular dependency with the "skill" package.
-	SkillsInverseTable = "skills"
-	// SkillsColumn is the table column denoting the skills relation/edge.
-	SkillsColumn = "faction_skills"
+	// AbilitiesTable is the table that holds the abilities relation/edge.
+	AbilitiesTable = "abilities"
+	// AbilitiesInverseTable is the table name for the Ability entity.
+	// It exists in this package in order to avoid circular dependency with the "ability" package.
+	AbilitiesInverseTable = "abilities"
+	// AbilitiesColumn is the table column denoting the abilities relation/edge.
+	AbilitiesColumn = "faction_abilities"
 )
 
 // Columns holds all SQL columns for faction fields.
@@ -145,17 +145,17 @@ func ByCharacterFactions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 	}
 }
 
-// BySkillsCount orders the results by skills count.
-func BySkillsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByAbilitiesCount orders the results by abilities count.
+func ByAbilitiesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newSkillsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newAbilitiesStep(), opts...)
 	}
 }
 
-// BySkills orders the results by skills terms.
-func BySkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByAbilities orders the results by abilities terms.
+func ByAbilities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newAbilitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newCategoryStep() *sqlgraph.Step {
@@ -179,10 +179,10 @@ func newCharacterFactionsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, CharacterFactionsTable, CharacterFactionsColumn),
 	)
 }
-func newSkillsStep() *sqlgraph.Step {
+func newAbilitiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SkillsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SkillsTable, SkillsColumn),
+		sqlgraph.To(AbilitiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AbilitiesTable, AbilitiesColumn),
 	)
 }

@@ -6,12 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/ability"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/factionrequiredtag"
 	"herbst-server/db/predicate"
-	"herbst-server/db/skill"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -128,19 +128,19 @@ func (_u *FactionUpdate) AddCharacterFactions(v ...*CharacterFaction) *FactionUp
 	return _u.AddCharacterFactionIDs(ids...)
 }
 
-// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
-func (_u *FactionUpdate) AddSkillIDs(ids ...int) *FactionUpdate {
-	_u.mutation.AddSkillIDs(ids...)
+// AddAbilityIDs adds the "abilities" edge to the Ability entity by IDs.
+func (_u *FactionUpdate) AddAbilityIDs(ids ...int) *FactionUpdate {
+	_u.mutation.AddAbilityIDs(ids...)
 	return _u
 }
 
-// AddSkills adds the "skills" edges to the Skill entity.
-func (_u *FactionUpdate) AddSkills(v ...*Skill) *FactionUpdate {
+// AddAbilities adds the "abilities" edges to the Ability entity.
+func (_u *FactionUpdate) AddAbilities(v ...*Ability) *FactionUpdate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddSkillIDs(ids...)
+	return _u.AddAbilityIDs(ids...)
 }
 
 // Mutation returns the FactionMutation object of the builder.
@@ -196,25 +196,25 @@ func (_u *FactionUpdate) RemoveCharacterFactions(v ...*CharacterFaction) *Factio
 	return _u.RemoveCharacterFactionIDs(ids...)
 }
 
-// ClearSkills clears all "skills" edges to the Skill entity.
-func (_u *FactionUpdate) ClearSkills() *FactionUpdate {
-	_u.mutation.ClearSkills()
+// ClearAbilities clears all "abilities" edges to the Ability entity.
+func (_u *FactionUpdate) ClearAbilities() *FactionUpdate {
+	_u.mutation.ClearAbilities()
 	return _u
 }
 
-// RemoveSkillIDs removes the "skills" edge to Skill entities by IDs.
-func (_u *FactionUpdate) RemoveSkillIDs(ids ...int) *FactionUpdate {
-	_u.mutation.RemoveSkillIDs(ids...)
+// RemoveAbilityIDs removes the "abilities" edge to Ability entities by IDs.
+func (_u *FactionUpdate) RemoveAbilityIDs(ids ...int) *FactionUpdate {
+	_u.mutation.RemoveAbilityIDs(ids...)
 	return _u
 }
 
-// RemoveSkills removes "skills" edges to Skill entities.
-func (_u *FactionUpdate) RemoveSkills(v ...*Skill) *FactionUpdate {
+// RemoveAbilities removes "abilities" edges to Ability entities.
+func (_u *FactionUpdate) RemoveAbilities(v ...*Ability) *FactionUpdate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveSkillIDs(ids...)
+	return _u.RemoveAbilityIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -384,28 +384,28 @@ func (_u *FactionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.SkillsCleared() {
+	if _u.mutation.AbilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   faction.SkillsTable,
-			Columns: []string{faction.SkillsColumn},
+			Table:   faction.AbilitiesTable,
+			Columns: []string{faction.AbilitiesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedSkillsIDs(); len(nodes) > 0 && !_u.mutation.SkillsCleared() {
+	if nodes := _u.mutation.RemovedAbilitiesIDs(); len(nodes) > 0 && !_u.mutation.AbilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   faction.SkillsTable,
-			Columns: []string{faction.SkillsColumn},
+			Table:   faction.AbilitiesTable,
+			Columns: []string{faction.AbilitiesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -413,15 +413,15 @@ func (_u *FactionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.SkillsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.AbilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   faction.SkillsTable,
-			Columns: []string{faction.SkillsColumn},
+			Table:   faction.AbilitiesTable,
+			Columns: []string{faction.AbilitiesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -546,19 +546,19 @@ func (_u *FactionUpdateOne) AddCharacterFactions(v ...*CharacterFaction) *Factio
 	return _u.AddCharacterFactionIDs(ids...)
 }
 
-// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
-func (_u *FactionUpdateOne) AddSkillIDs(ids ...int) *FactionUpdateOne {
-	_u.mutation.AddSkillIDs(ids...)
+// AddAbilityIDs adds the "abilities" edge to the Ability entity by IDs.
+func (_u *FactionUpdateOne) AddAbilityIDs(ids ...int) *FactionUpdateOne {
+	_u.mutation.AddAbilityIDs(ids...)
 	return _u
 }
 
-// AddSkills adds the "skills" edges to the Skill entity.
-func (_u *FactionUpdateOne) AddSkills(v ...*Skill) *FactionUpdateOne {
+// AddAbilities adds the "abilities" edges to the Ability entity.
+func (_u *FactionUpdateOne) AddAbilities(v ...*Ability) *FactionUpdateOne {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddSkillIDs(ids...)
+	return _u.AddAbilityIDs(ids...)
 }
 
 // Mutation returns the FactionMutation object of the builder.
@@ -614,25 +614,25 @@ func (_u *FactionUpdateOne) RemoveCharacterFactions(v ...*CharacterFaction) *Fac
 	return _u.RemoveCharacterFactionIDs(ids...)
 }
 
-// ClearSkills clears all "skills" edges to the Skill entity.
-func (_u *FactionUpdateOne) ClearSkills() *FactionUpdateOne {
-	_u.mutation.ClearSkills()
+// ClearAbilities clears all "abilities" edges to the Ability entity.
+func (_u *FactionUpdateOne) ClearAbilities() *FactionUpdateOne {
+	_u.mutation.ClearAbilities()
 	return _u
 }
 
-// RemoveSkillIDs removes the "skills" edge to Skill entities by IDs.
-func (_u *FactionUpdateOne) RemoveSkillIDs(ids ...int) *FactionUpdateOne {
-	_u.mutation.RemoveSkillIDs(ids...)
+// RemoveAbilityIDs removes the "abilities" edge to Ability entities by IDs.
+func (_u *FactionUpdateOne) RemoveAbilityIDs(ids ...int) *FactionUpdateOne {
+	_u.mutation.RemoveAbilityIDs(ids...)
 	return _u
 }
 
-// RemoveSkills removes "skills" edges to Skill entities.
-func (_u *FactionUpdateOne) RemoveSkills(v ...*Skill) *FactionUpdateOne {
+// RemoveAbilities removes "abilities" edges to Ability entities.
+func (_u *FactionUpdateOne) RemoveAbilities(v ...*Ability) *FactionUpdateOne {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveSkillIDs(ids...)
+	return _u.RemoveAbilityIDs(ids...)
 }
 
 // Where appends a list predicates to the FactionUpdate builder.
@@ -832,28 +832,28 @@ func (_u *FactionUpdateOne) sqlSave(ctx context.Context) (_node *Faction, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.SkillsCleared() {
+	if _u.mutation.AbilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   faction.SkillsTable,
-			Columns: []string{faction.SkillsColumn},
+			Table:   faction.AbilitiesTable,
+			Columns: []string{faction.AbilitiesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedSkillsIDs(); len(nodes) > 0 && !_u.mutation.SkillsCleared() {
+	if nodes := _u.mutation.RemovedAbilitiesIDs(); len(nodes) > 0 && !_u.mutation.AbilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   faction.SkillsTable,
-			Columns: []string{faction.SkillsColumn},
+			Table:   faction.AbilitiesTable,
+			Columns: []string{faction.AbilitiesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -861,15 +861,15 @@ func (_u *FactionUpdateOne) sqlSave(ctx context.Context) (_node *Faction, err er
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.SkillsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.AbilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   faction.SkillsTable,
-			Columns: []string{faction.SkillsColumn},
+			Table:   faction.AbilitiesTable,
+			Columns: []string{faction.AbilitiesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

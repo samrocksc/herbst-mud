@@ -10,8 +10,8 @@ import (
 	"herbst-server/db"
 )
 
-// CharacterSkills imports character skills from backup
-func CharacterSkills(ctx context.Context, client *db.Client, backupDir string, mapping *types.IDMapping) error {
+// CharacterAbilities imports character abilities from backup
+func CharacterAbilities(ctx context.Context, client *db.Client, backupDir string, mapping *types.IDMapping) error {
 	data, err := os.ReadFile(filepath.Join(backupDir, "character_skills.json"))
 	if err != nil {
 		return err
@@ -32,9 +32,9 @@ func CharacterSkills(ctx context.Context, client *db.Client, backupDir string, m
 		newCharID := mapping.Characters[s.CharacterID]
 		newSkillID := mapping.Skills[s.SkillID]
 
-		_, err := client.CharacterSkill.Create().
+		_, err := client.CharacterAbility.Create().
 			SetSlot(0). // old backups don't have slot info; default to 0
-			SetCharacterID(newCharID).SetSkillID(newSkillID).Save(ctx)
+			SetCharacterID(newCharID).SetAbilityID(newSkillID).Save(ctx)
 		if err != nil {
 			return err
 		}

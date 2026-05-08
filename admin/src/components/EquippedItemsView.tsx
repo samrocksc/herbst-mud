@@ -7,7 +7,7 @@ type EquippedItem = Readonly<{
   id: number; name: string; slot: string; level: number; itemType: string
   isEquipped: boolean; damage_dice_count: number; damage_dice_sides: number
   damage_bonus: number; damage_type: string; weapon_type: string
-  armor_rating: number; armor_type: number; rarity: string; equipment_template_id: string
+  armor_rating: number; armor_type: string; rarity: string; equipment_template_id: string
 }>
 
 type EquippedItemsViewProps = Readonly<{ characterId: number; characterRace: string }>

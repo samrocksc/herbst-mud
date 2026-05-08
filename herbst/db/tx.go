@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Ability is the client for interacting with the Ability builders.
+	Ability *AbilityClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
 	// Equipment is the client for interacting with the Equipment builders.
@@ -24,8 +26,6 @@ type Tx struct {
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
-	// Skill is the client for interacting with the Skill builders.
-	Skill *SkillClient
 	// Talent is the client for interacting with the Talent builders.
 	Talent *TalentClient
 	// User is the client for interacting with the User builders.
@@ -161,13 +161,13 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Ability = NewAbilityClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
 	tx.EquipmentTemplate = NewEquipmentTemplateClient(tx.config)
 	tx.NPCTemplate = NewNPCTemplateClient(tx.config)
 	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
-	tx.Skill = NewSkillClient(tx.config)
 	tx.Talent = NewTalentClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
@@ -179,7 +179,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Character.QueryXXX(), the query will be executed
+// applies a query, for example: Ability.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

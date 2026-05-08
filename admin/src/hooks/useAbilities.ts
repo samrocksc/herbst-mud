@@ -7,7 +7,7 @@ export type Ability = Readonly<{
   id: number
   name: string
   description: string
-  skill_type: string
+  ability_type: string
   cost: number
   cooldown: number
   cooldown_seconds: number
@@ -22,7 +22,7 @@ export type Ability = Readonly<{
   scaling_percent_per_point: number
   slug: string
   required_tag: string
-  skill_class: string
+  ability_class: string
   proc_chance: number
   proc_event: string
   faction_skills: number | null
@@ -32,7 +32,7 @@ export type AbilityInput = Readonly<{
   id?: number
   name: string
   description: string
-  skill_type: string
+  ability_type: string
   requirements: number
   cost: number
   cooldown: number
@@ -47,7 +47,7 @@ export type AbilityInput = Readonly<{
   scaling_percent_per_point: number
   proc_chance: number
   proc_event: string
-  skill_class: string
+  ability_class: string
   required_tag: string
 }>
 
@@ -55,7 +55,7 @@ function parseForApi(input: AbilityInput): Record<string, unknown> {
   return {
     name: input.name,
     description: input.description,
-    skill_type: input.skill_type,
+    ability_type: input.ability_type,
     requirements: input.requirements,
     cost: input.cost,
     cooldown: input.cooldown,
@@ -70,7 +70,7 @@ function parseForApi(input: AbilityInput): Record<string, unknown> {
     scaling_percent_per_point: input.scaling_percent_per_point,
     proc_chance: input.proc_chance,
     proc_event: input.proc_event,
-    skill_class: input.skill_class,
+    ability_class: input.ability_class,
     required_tag: input.required_tag,
   }
 }
@@ -81,7 +81,7 @@ export function useAbilities(filters?: { type?: string }) {
     queryFn: async (): Promise<Ability[]> => {
       const params = new URLSearchParams()
       if (filters?.type) params.append('type', filters.type)
-      const url = `${API}/api/skills${params.toString() ? '?' + params.toString() : ''}`
+      const url = `${API}/api/abilities${params.toString() ? '?' + params.toString() : ''}`
       return apiGet<Ability[]>(url)
     },
   })
@@ -92,7 +92,7 @@ export function useAbility(id: number | null) {
     queryKey: ['ability', id],
     queryFn: async (): Promise<Ability | null> => {
       if (!id) return null
-      return apiGet<Ability>(`${API}/api/skills/${id}`)
+      return apiGet<Ability>(`${API}/api/abilities/${id}`)
     },
     enabled: !!id,
   })
@@ -102,7 +102,7 @@ export function useCreateAbility() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: AbilityInput) =>
-      apiPost<Ability>(`${API}/api/skills`, parseForApi(input)),
+      apiPost<Ability>(`${API}/api/abilities`, parseForApi(input)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['abilities'] }),
   })
 }
@@ -111,7 +111,7 @@ export function useUpdateAbility() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: AbilityInput }) =>
-      apiPut<Ability>(`${API}/api/skills/${id}`, parseForApi(input)),
+      apiPut<Ability>(`${API}/api/abilities/${id}`, parseForApi(input)),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ['abilities'] })
       qc.invalidateQueries({ queryKey: ['ability', id] })
@@ -122,7 +122,7 @@ export function useUpdateAbility() {
 export function useDeleteAbility() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => apiDelete(`${API}/api/skills/${id}`),
+    mutationFn: (id: number) => apiDelete(`${API}/api/abilities/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['abilities'] }),
   })
 }

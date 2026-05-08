@@ -7,26 +7,26 @@ import (
 	"herbst/db"
 )
 
-// InitSkillsAndTalents creates default skills and talents if they don't exist
+// InitSkillsAndTalents creates default abilities and talents if they don't exist
 func InitSkillsAndTalents(client *db.Client) error {
 	ctx := context.Background()
 
-	// Check if skills already exist
-	existingSkills, err := client.Skill.Query().Limit(1).All(ctx)
+	// Check if abilities already exist
+	existingAbilities, err := client.Ability.Query().Limit(1).All(ctx)
 	if err != nil {
 		return err
 	}
-	if len(existingSkills) > 0 {
-		log.Println("Skills already initialized, skipping")
+	if len(existingAbilities) > 0 {
+		log.Println("Abilities already initialized, skipping")
 		return nil
 	}
 
-	// Create the 5 classless combat skills
-	defaultSkills := []*db.SkillCreate{
-		client.Skill.Create().
+	// Create the 5 classless combat abilities
+	defaultAbilities := []*db.AbilityCreate{
+		client.Ability.Create().
 			SetName("Concentrate").
 			SetDescription("Focus your mind to increase accuracy. +WIS to hit for 4 rounds.").
-			SetSkillType("combat").
+			SetAbilityType("combat").
 			SetCost(0).
 			SetCooldown(8).
 			SetRequirements("{}").
@@ -38,10 +38,10 @@ func InitSkillsAndTalents(client *db.Client) error {
 			SetManaCost(10).
 			SetStaminaCost(0).
 			SetHpCost(0),
-		client.Skill.Create().
+		client.Ability.Create().
 			SetName("Haymaker").
 			SetDescription("A powerful but reckless strike. +STR to damage, -DEX to hit.").
-			SetSkillType("combat").
+			SetAbilityType("combat").
 			SetCost(0).
 			SetCooldown(6).
 			SetRequirements("{}").
@@ -53,10 +53,10 @@ func InitSkillsAndTalents(client *db.Client) error {
 			SetManaCost(0).
 			SetStaminaCost(15).
 			SetHpCost(0),
-		client.Skill.Create().
+		client.Ability.Create().
 			SetName("Back-off").
 			SetDescription("Use agility to dodge all attacks this round. Costs stamina.").
-			SetSkillType("combat").
+			SetAbilityType("combat").
 			SetCost(0).
 			SetCooldown(10).
 			SetRequirements("{}").
@@ -68,10 +68,10 @@ func InitSkillsAndTalents(client *db.Client) error {
 			SetManaCost(0).
 			SetStaminaCost(25).
 			SetHpCost(0),
-		client.Skill.Create().
+		client.Ability.Create().
 			SetName("Scream").
 			SetDescription("Release a berserker cry. -WIS/INT, +DEX/STR for 2 rounds.").
-			SetSkillType("combat").
+			SetAbilityType("combat").
 			SetCost(0).
 			SetCooldown(12).
 			SetRequirements("{}").
@@ -83,10 +83,10 @@ func InitSkillsAndTalents(client *db.Client) error {
 			SetManaCost(5).
 			SetStaminaCost(10).
 			SetHpCost(0),
-		client.Skill.Create().
+		client.Ability.Create().
 			SetName("Slap").
 			SetDescription("A quick stunning strike. DEX vs CON to stun for 1 round.").
-			SetSkillType("combat").
+			SetAbilityType("combat").
 			SetCost(0).
 			SetCooldown(8).
 			SetRequirements("{}").
@@ -100,12 +100,12 @@ func InitSkillsAndTalents(client *db.Client) error {
 			SetHpCost(0),
 	}
 
-	for _, skill := range defaultSkills {
-		if _, err := skill.Save(ctx); err != nil {
-			log.Printf("Warning: failed to create skill: %v", err)
+	for _, ability := range defaultAbilities {
+		if _, err := ability.Save(ctx); err != nil {
+			log.Printf("Warning: failed to create ability: %v", err)
 		}
 	}
 
-	log.Println("Skills and talents initialized successfully")
+	log.Println("Abilities and talents initialized successfully")
 	return nil
 }

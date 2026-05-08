@@ -47,8 +47,8 @@ type NPCTemplate struct {
 
 // NPCTemplateEdges holds the relations/edges for other nodes in the graph.
 type NPCTemplateEdges struct {
-	// NpcSkills holds the value of the npc_skills edge.
-	NpcSkills []*NPCSkill `json:"npc_skills,omitempty"`
+	// NpcAbilities holds the value of the npc_abilities edge.
+	NpcAbilities []*NPCAbility `json:"npc_abilities,omitempty"`
 	// Characters holds the value of the characters edge.
 	Characters []*Character `json:"characters,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -56,13 +56,13 @@ type NPCTemplateEdges struct {
 	loadedTypes [2]bool
 }
 
-// NpcSkillsOrErr returns the NpcSkills value or an error if the edge
+// NpcAbilitiesOrErr returns the NpcAbilities value or an error if the edge
 // was not loaded in eager-loading.
-func (e NPCTemplateEdges) NpcSkillsOrErr() ([]*NPCSkill, error) {
+func (e NPCTemplateEdges) NpcAbilitiesOrErr() ([]*NPCAbility, error) {
 	if e.loadedTypes[0] {
-		return e.NpcSkills, nil
+		return e.NpcAbilities, nil
 	}
-	return nil, &NotLoadedError{edge: "npc_skills"}
+	return nil, &NotLoadedError{edge: "npc_abilities"}
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -191,9 +191,9 @@ func (_m *NPCTemplate) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryNpcSkills queries the "npc_skills" edge of the NPCTemplate entity.
-func (_m *NPCTemplate) QueryNpcSkills() *NPCSkillQuery {
-	return NewNPCTemplateClient(_m.config).QueryNpcSkills(_m)
+// QueryNpcAbilities queries the "npc_abilities" edge of the NPCTemplate entity.
+func (_m *NPCTemplate) QueryNpcAbilities() *NPCAbilityQuery {
+	return NewNPCTemplateClient(_m.config).QueryNpcAbilities(_m)
 }
 
 // QueryCharacters queries the "characters" edge of the NPCTemplate entity.

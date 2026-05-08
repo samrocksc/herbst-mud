@@ -12,18 +12,22 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Ability is the client for interacting with the Ability builders.
+	Ability *AbilityClient
+	// AbilityEffect is the client for interacting with the AbilityEffect builders.
+	AbilityEffect *AbilityEffectClient
 	// Achievement is the client for interacting with the Achievement builders.
 	Achievement *AchievementClient
 	// AvailableTalent is the client for interacting with the AvailableTalent builders.
 	AvailableTalent *AvailableTalentClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// CharacterAbility is the client for interacting with the CharacterAbility builders.
+	CharacterAbility *CharacterAbilityClient
 	// CharacterCompetency is the client for interacting with the CharacterCompetency builders.
 	CharacterCompetency *CharacterCompetencyClient
 	// CharacterFaction is the client for interacting with the CharacterFaction builders.
 	CharacterFaction *CharacterFactionClient
-	// CharacterSkill is the client for interacting with the CharacterSkill builders.
-	CharacterSkill *CharacterSkillClient
 	// CharacterTag is the client for interacting with the CharacterTag builders.
 	CharacterTag *CharacterTagClient
 	// CharacterTalent is the client for interacting with the CharacterTalent builders.
@@ -48,16 +52,14 @@ type Tx struct {
 	GameConfig *GameConfigClient
 	// Gender is the client for interacting with the Gender builders.
 	Gender *GenderClient
-	// NPCSkill is the client for interacting with the NPCSkill builders.
-	NPCSkill *NPCSkillClient
+	// NPCAbility is the client for interacting with the NPCAbility builders.
+	NPCAbility *NPCAbilityClient
 	// NPCTemplate is the client for interacting with the NPCTemplate builders.
 	NPCTemplate *NPCTemplateClient
 	// Race is the client for interacting with the Race builders.
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
-	// Skill is the client for interacting with the Skill builders.
-	Skill *SkillClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// Talent is the client for interacting with the Talent builders.
@@ -195,12 +197,14 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Ability = NewAbilityClient(tx.config)
+	tx.AbilityEffect = NewAbilityEffectClient(tx.config)
 	tx.Achievement = NewAchievementClient(tx.config)
 	tx.AvailableTalent = NewAvailableTalentClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
+	tx.CharacterAbility = NewCharacterAbilityClient(tx.config)
 	tx.CharacterCompetency = NewCharacterCompetencyClient(tx.config)
 	tx.CharacterFaction = NewCharacterFactionClient(tx.config)
-	tx.CharacterSkill = NewCharacterSkillClient(tx.config)
 	tx.CharacterTag = NewCharacterTagClient(tx.config)
 	tx.CharacterTalent = NewCharacterTalentClient(tx.config)
 	tx.CompetencyCategory = NewCompetencyCategoryClient(tx.config)
@@ -213,11 +217,10 @@ func (tx *Tx) init() {
 	tx.FactionRequiredTag = NewFactionRequiredTagClient(tx.config)
 	tx.GameConfig = NewGameConfigClient(tx.config)
 	tx.Gender = NewGenderClient(tx.config)
-	tx.NPCSkill = NewNPCSkillClient(tx.config)
+	tx.NPCAbility = NewNPCAbilityClient(tx.config)
 	tx.NPCTemplate = NewNPCTemplateClient(tx.config)
 	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
-	tx.Skill = NewSkillClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.Talent = NewTalentClient(tx.config)
 	tx.User = NewUserClient(tx.config)
@@ -230,7 +233,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Achievement.QueryXXX(), the query will be executed
+// applies a query, for example: Ability.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

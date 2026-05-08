@@ -24,12 +24,13 @@ export const Route = createFileRoute('/_auth/abilities')({
   component: AbilitiesManagement,
 })
 
-const SKILL_TYPE_OPTS = [
+const ABILITY_TYPE_OPTS = [
   { value: 'combat', label: 'Combat' },
   { value: 'magic', label: 'Magic' },
   { value: 'utility', label: 'Utility' },
   { value: 'healing', label: 'Healing' },
   { value: 'support', label: 'Support' },
+  { value: 'defensive', label: 'Defensive' },
 ]
 
 const EFFECT_TYPE_OPTS = [
@@ -40,23 +41,21 @@ const EFFECT_TYPE_OPTS = [
   { value: 'debuff', label: 'Debuff' },
   { value: 'dot', label: 'Damage over Time' },
   { value: 'hot', label: 'Heal over Time' },
-  { value: 'concentrate', label: 'Concentrate' },
-  { value: 'haymaker', label: 'Haymaker' },
-  { value: 'scream', label: 'Scream' },
-  { value: 'slap', label: 'Slap' },
-  { value: 'backoff', label: 'Back-off' },
+  { value: 'stun', label: 'Stun' },
+  { value: 'accuracy_boost', label: 'Accuracy Boost' },
+  { value: 'dodge_all', label: 'Dodge All' },
 ]
 
 const SCALING_STAT_OPTS = [
   { value: '', label: '— None —' },
-  { value: 'STR', label: 'Strength (STR)' },
-  { value: 'DEX', label: 'Dexterity (DEX)' },
-  { value: 'INT', label: 'Intelligence (INT)' },
-  { value: 'WIS', label: 'Wisdom (WIS)' },
-  { value: 'CON', label: 'Constitution (CON)' },
+  { value: 'strength', label: 'Strength' },
+  { value: 'dexterity', label: 'Dexterity' },
+  { value: 'intelligence', label: 'Intelligence' },
+  { value: 'wisdom', label: 'Wisdom' },
+  { value: 'constitution', label: 'Constitution' },
 ]
 
-const SKILL_CLASS_OPTS = [
+const ABILITY_CLASS_OPTS = [
   { value: 'active', label: 'Active' },
   { value: 'passive', label: 'Passive' },
   { value: 'toggle', label: 'Toggle' },
@@ -65,7 +64,7 @@ const SKILL_CLASS_OPTS = [
 const EMPTY_ABILITY: AbilityInput = {
   name: '',
   description: '',
-  skill_type: 'combat',
+  ability_type: 'combat',
   requirements: 1,
   cost: 0,
   cooldown: 0,
@@ -80,7 +79,7 @@ const EMPTY_ABILITY: AbilityInput = {
   scaling_percent_per_point: 0,
   proc_chance: 0,
   proc_event: '',
-  skill_class: 'active',
+  ability_class: 'active',
   required_tag: '',
 }
 
@@ -144,11 +143,11 @@ function AbilityForm({
         />
 
         <SelectField
-          label="Skill Type"
-          value={formData.skill_type}
-          onChange={(v) => set({ skill_type: v })}
-          options={SKILL_TYPE_OPTS}
-          tooltip="Category: combat=direct attack, magic=spell, utility=non-combat, healing=restore HP, support=buff allies"
+          label="Ability Type"
+          value={formData.ability_type}
+          onChange={(v) => set({ ability_type: v })}
+          options={ABILITY_TYPE_OPTS}
+          tooltip="Category: combat=direct attack, magic=spell, utility=non-combat, healing=restore HP, support=buff allies, defensive=protection"
         />
 
         <TagInput
@@ -186,7 +185,7 @@ function AbilityForm({
           value={formData.effect_type}
           onChange={(v) => set({ effect_type: v })}
           options={EFFECT_TYPE_OPTS}
-          tooltip="What happens on use: damage/heal/buff/debuff, or special: concentrate/haymaker/scream/slap/backoff"
+          tooltip="What happens on use: damage/heal/buff/debuff/dot/hot/stun, or special: accuracy_boost/dodge_all"
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -258,10 +257,10 @@ function AbilityForm({
         </div>
 
         <SelectField
-          label="Skill Class"
-          value={formData.skill_class}
-          onChange={(v) => set({ skill_class: v })}
-          options={SKILL_CLASS_OPTS}
+          label="Ability Class"
+          value={formData.ability_class}
+          onChange={(v) => set({ ability_class: v })}
+          options={ABILITY_CLASS_OPTS}
           tooltip="active=press button, passive=always on, toggle=on/off switch"
         />
 
@@ -326,7 +325,7 @@ const BASE_COLUMNS: Column<Ability>[] = [
   { header: 'Description', accessor: 'description' },
   {
     header: 'Type',
-    accessor: 'skill_type',
+    accessor: 'ability_type',
     render: (val: unknown) => (
       <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>
     ),
@@ -452,6 +451,7 @@ function AbilitiesManagement() {
             <option value="utility">Utility</option>
             <option value="healing">Healing</option>
             <option value="support">Support</option>
+            <option value="defensive">Defensive</option>
           </select>
         </div>
         {filterType && (

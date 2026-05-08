@@ -84,9 +84,9 @@ type Character struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
 	Edges                  CharacterEdges `json:"edges"`
+	ability_characters     *int
 	character_npc_template *string
 	room_characters        *int
-	skill_characters       *int
 	talent_characters      *int
 	user_characters        *int
 	selectValues           sql.SelectValues
@@ -149,11 +149,11 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case character.FieldName, character.FieldPassword, character.FieldRace, character.FieldClass, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
-		case character.ForeignKeys[0]: // character_npc_template
-			values[i] = new(sql.NullString)
-		case character.ForeignKeys[1]: // room_characters
+		case character.ForeignKeys[0]: // ability_characters
 			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[2]: // skill_characters
+		case character.ForeignKeys[1]: // character_npc_template
+			values[i] = new(sql.NullString)
+		case character.ForeignKeys[2]: // room_characters
 			values[i] = new(sql.NullInt64)
 		case character.ForeignKeys[3]: // talent_characters
 			values[i] = new(sql.NullInt64)
@@ -367,25 +367,25 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				_m.SkillHeavyArmor = int(value.Int64)
 			}
 		case character.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field ability_characters", value)
+			} else if value.Valid {
+				_m.ability_characters = new(int)
+				*_m.ability_characters = int(value.Int64)
+			}
+		case character.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field character_npc_template", values[i])
 			} else if value.Valid {
 				_m.character_npc_template = new(string)
 				*_m.character_npc_template = value.String
 			}
-		case character.ForeignKeys[1]:
+		case character.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_characters", value)
 			} else if value.Valid {
 				_m.room_characters = new(int)
 				*_m.room_characters = int(value.Int64)
-			}
-		case character.ForeignKeys[2]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field skill_characters", value)
-			} else if value.Valid {
-				_m.skill_characters = new(int)
-				*_m.skill_characters = int(value.Int64)
 			}
 		case character.ForeignKeys[3]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {

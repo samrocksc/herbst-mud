@@ -24,13 +24,13 @@ func Rooms(ctx context.Context, client *db.Client, filePath string) (int, error)
 	return len(rooms), writeJSON(filePath, rooms)
 }
 
-// Skills exports all skills to JSON
-func Skills(ctx context.Context, client *db.Client, filePath string) (int, error) {
-	skills, err := client.Skill.Query().All(ctx)
+// Abilities exports all abilities to JSON (file kept as skills.json for backward compatibility)
+func Abilities(ctx context.Context, client *db.Client, filePath string) (int, error) {
+	abilities, err := client.Ability.Query().All(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return len(skills), writeJSON(filePath, skills)
+	return len(abilities), writeJSON(filePath, abilities)
 }
 
 // Talents exports all talents to JSON
@@ -69,13 +69,13 @@ func Characters(ctx context.Context, client *db.Client, filePath string) (int, e
 	return len(characters), writeJSON(filePath, characters)
 }
 
-// CharacterSkills exports all character skills to JSON
-func CharacterSkills(ctx context.Context, client *db.Client, filePath string) (int, error) {
-	skills, err := client.CharacterSkill.Query().All(ctx)
+// CharacterAbilities exports all character abilities to JSON
+func CharacterAbilities(ctx context.Context, client *db.Client, filePath string) (int, error) {
+	abilities, err := client.CharacterAbility.Query().All(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return len(skills), writeJSON(filePath, skills)
+	return len(abilities), writeJSON(filePath, abilities)
 }
 
 // CharacterTalents exports all character talents to JSON

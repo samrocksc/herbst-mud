@@ -36,17 +36,17 @@ const (
 	FieldRespawnRooms = "respawn_rooms"
 	// FieldRespawnCooldown holds the string denoting the respawn_cooldown field in the database.
 	FieldRespawnCooldown = "respawn_cooldown"
-	// EdgeNpcSkills holds the string denoting the npc_skills edge name in mutations.
-	EdgeNpcSkills = "npc_skills"
+	// EdgeNpcAbilities holds the string denoting the npc_abilities edge name in mutations.
+	EdgeNpcAbilities = "npc_abilities"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// Table holds the table name of the npctemplate in the database.
 	Table = "npc_templates"
-	// NpcSkillsTable is the table that holds the npc_skills relation/edge. The primary key declared below.
-	NpcSkillsTable = "npc_template_npc_skills"
-	// NpcSkillsInverseTable is the table name for the NPCSkill entity.
-	// It exists in this package in order to avoid circular dependency with the "npcskill" package.
-	NpcSkillsInverseTable = "npc_skills"
+	// NpcAbilitiesTable is the table that holds the npc_abilities relation/edge. The primary key declared below.
+	NpcAbilitiesTable = "npc_template_npc_abilities"
+	// NpcAbilitiesInverseTable is the table name for the NPCAbility entity.
+	// It exists in this package in order to avoid circular dependency with the "npcability" package.
+	NpcAbilitiesInverseTable = "npc_abilities"
 	// CharactersTable is the table that holds the characters relation/edge.
 	CharactersTable = "characters"
 	// CharactersInverseTable is the table name for the Character entity.
@@ -73,9 +73,9 @@ var Columns = []string{
 }
 
 var (
-	// NpcSkillsPrimaryKey and NpcSkillsColumn2 are the table columns denoting the
-	// primary key for the npc_skills relation (M2M).
-	NpcSkillsPrimaryKey = []string{"npc_template_id", "npc_skill_id"}
+	// NpcAbilitiesPrimaryKey and NpcAbilitiesColumn2 are the table columns denoting the
+	// primary key for the npc_abilities relation (M2M).
+	NpcAbilitiesPrimaryKey = []string{"npc_template_id", "npc_ability_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -172,17 +172,17 @@ func ByRespawnCooldown(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRespawnCooldown, opts...).ToFunc()
 }
 
-// ByNpcSkillsCount orders the results by npc_skills count.
-func ByNpcSkillsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByNpcAbilitiesCount orders the results by npc_abilities count.
+func ByNpcAbilitiesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newNpcSkillsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newNpcAbilitiesStep(), opts...)
 	}
 }
 
-// ByNpcSkills orders the results by npc_skills terms.
-func ByNpcSkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByNpcAbilities orders the results by npc_abilities terms.
+func ByNpcAbilities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newNpcSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newNpcAbilitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -199,11 +199,11 @@ func ByCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newNpcSkillsStep() *sqlgraph.Step {
+func newNpcAbilitiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(NpcSkillsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, NpcSkillsTable, NpcSkillsPrimaryKey...),
+		sqlgraph.To(NpcAbilitiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, NpcAbilitiesTable, NpcAbilitiesPrimaryKey...),
 	)
 }
 func newCharactersStep() *sqlgraph.Step {

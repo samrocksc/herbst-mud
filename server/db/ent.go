@@ -6,12 +6,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/ability"
+	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
 	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
+	"herbst-server/db/characterability"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
-	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/charactertalent"
 	"herbst-server/db/competencycategory"
@@ -24,11 +26,10 @@ import (
 	"herbst-server/db/factionrequiredtag"
 	"herbst-server/db/gameconfig"
 	"herbst-server/db/gender"
-	"herbst-server/db/npcskill"
+	"herbst-server/db/npcability"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/race"
 	"herbst-server/db/room"
-	"herbst-server/db/skill"
 	"herbst-server/db/tag"
 	"herbst-server/db/talent"
 	"herbst-server/db/user"
@@ -98,12 +99,14 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			ability.Table:                  ability.ValidColumn,
+			abilityeffect.Table:            abilityeffect.ValidColumn,
 			achievement.Table:              achievement.ValidColumn,
 			availabletalent.Table:          availabletalent.ValidColumn,
 			character.Table:                character.ValidColumn,
+			characterability.Table:         characterability.ValidColumn,
 			charactercompetency.Table:      charactercompetency.ValidColumn,
 			characterfaction.Table:         characterfaction.ValidColumn,
-			characterskill.Table:           characterskill.ValidColumn,
 			charactertag.Table:             charactertag.ValidColumn,
 			charactertalent.Table:          charactertalent.ValidColumn,
 			competencycategory.Table:       competencycategory.ValidColumn,
@@ -116,11 +119,10 @@ func checkColumn(t, c string) error {
 			factionrequiredtag.Table:       factionrequiredtag.ValidColumn,
 			gameconfig.Table:               gameconfig.ValidColumn,
 			gender.Table:                   gender.ValidColumn,
-			npcskill.Table:                 npcskill.ValidColumn,
+			npcability.Table:               npcability.ValidColumn,
 			npctemplate.Table:              npctemplate.ValidColumn,
 			race.Table:                     race.ValidColumn,
 			room.Table:                     room.ValidColumn,
-			skill.Table:                    skill.ValidColumn,
 			tag.Table:                      tag.ValidColumn,
 			talent.Table:                   talent.ValidColumn,
 			user.Table:                     user.ValidColumn,

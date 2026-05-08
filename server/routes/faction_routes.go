@@ -61,7 +61,7 @@ func getFaction(client *db.Client) gin.HandlerFunc {
 			Where(faction.ID(id)).
 			WithCategory().
 			WithRequiredTags().
-			WithSkills().
+			WithAbilities().
 			Only(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "faction not found"})

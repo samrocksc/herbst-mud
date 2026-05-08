@@ -110,16 +110,16 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 			}
 		}
 
-		// Wipe skills
+		// Wipe abilities (formerly skills)
 		if req.WipeSkills {
-			count, _ := client.Skill.Query().Count(ctx)
-			client.Skill.Delete().Exec(ctx)
+			count, _ := client.Ability.Query().Count(ctx)
+			client.Ability.Delete().Exec(ctx)
 			result.SkillsWiped = count
 
 			if err := dbinit.InitSkills(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize skills: "+err.Error())
+				result.Errors = append(result.Errors, "Failed to reinitialize abilities: "+err.Error())
 			} else {
-				result.Reinitialized = append(result.Reinitialized, "skills")
+				result.Reinitialized = append(result.Reinitialized, "abilities")
 			}
 		}
 
@@ -167,9 +167,9 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 		client.Equipment.Delete().Exec(ctx)
 		result.ItemsWiped = itemCount
 
-		// Wipe skills
-		skillCount, _ := client.Skill.Query().Count(ctx)
-		client.Skill.Delete().Exec(ctx)
+		// Wipe abilities (formerly skills)
+		skillCount, _ := client.Ability.Query().Count(ctx)
+		client.Ability.Delete().Exec(ctx)
 		result.SkillsWiped = skillCount
 
 		// Wipe talents

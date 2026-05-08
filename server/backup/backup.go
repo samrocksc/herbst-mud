@@ -36,12 +36,12 @@ func CreateBackup(client *db.Client, destDir string) (*types.BackupResult, error
 	}{
 		{"users", export.Users},
 		{"rooms", export.Rooms},
-		{"skills", export.Skills},
+		{"skills", export.Abilities},
 		{"talents", export.Talents},
 		{"npc_templates", export.NPCTemplates},
 		{"equipment", export.Equipment},
 		{"characters", export.Characters},
-		{"character_skills", export.CharacterSkills},
+		{"character_skills", export.CharacterAbilities},
 		{"character_talents", export.CharacterTalents},
 		{"available_talents", export.AvailableTalents},
 	}

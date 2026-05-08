@@ -11,13 +11,13 @@ import (
 
 	"herbst/db/migrate"
 
+	"herbst/db/ability"
 	"herbst/db/character"
 	"herbst/db/equipment"
 	"herbst/db/equipmenttemplate"
 	"herbst/db/npctemplate"
 	"herbst/db/race"
 	"herbst/db/room"
-	"herbst/db/skill"
 	"herbst/db/talent"
 	"herbst/db/user"
 
@@ -32,6 +32,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Ability is the client for interacting with the Ability builders.
+	Ability *AbilityClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
 	// Equipment is the client for interacting with the Equipment builders.
@@ -44,8 +46,6 @@ type Client struct {
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
-	// Skill is the client for interacting with the Skill builders.
-	Skill *SkillClient
 	// Talent is the client for interacting with the Talent builders.
 	Talent *TalentClient
 	// User is the client for interacting with the User builders.
@@ -61,13 +61,13 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Ability = NewAbilityClient(c.config)
 	c.Character = NewCharacterClient(c.config)
 	c.Equipment = NewEquipmentClient(c.config)
 	c.EquipmentTemplate = NewEquipmentTemplateClient(c.config)
 	c.NPCTemplate = NewNPCTemplateClient(c.config)
 	c.Race = NewRaceClient(c.config)
 	c.Room = NewRoomClient(c.config)
-	c.Skill = NewSkillClient(c.config)
 	c.Talent = NewTalentClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -162,13 +162,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:               ctx,
 		config:            cfg,
+		Ability:           NewAbilityClient(cfg),
 		Character:         NewCharacterClient(cfg),
 		Equipment:         NewEquipmentClient(cfg),
 		EquipmentTemplate: NewEquipmentTemplateClient(cfg),
 		NPCTemplate:       NewNPCTemplateClient(cfg),
 		Race:              NewRaceClient(cfg),
 		Room:              NewRoomClient(cfg),
-		Skill:             NewSkillClient(cfg),
 		Talent:            NewTalentClient(cfg),
 		User:              NewUserClient(cfg),
 	}, nil
@@ -190,13 +190,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:               ctx,
 		config:            cfg,
+		Ability:           NewAbilityClient(cfg),
 		Character:         NewCharacterClient(cfg),
 		Equipment:         NewEquipmentClient(cfg),
 		EquipmentTemplate: NewEquipmentTemplateClient(cfg),
 		NPCTemplate:       NewNPCTemplateClient(cfg),
 		Race:              NewRaceClient(cfg),
 		Room:              NewRoomClient(cfg),
-		Skill:             NewSkillClient(cfg),
 		Talent:            NewTalentClient(cfg),
 		User:              NewUserClient(cfg),
 	}, nil
@@ -205,7 +205,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Character.
+//		Ability.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -228,8 +228,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Character, c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Race, c.Room,
-		c.Skill, c.Talent, c.User,
+		c.Ability, c.Character, c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Race,
+		c.Room, c.Talent, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -239,8 +239,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Character, c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Race, c.Room,
-		c.Skill, c.Talent, c.User,
+		c.Ability, c.Character, c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Race,
+		c.Room, c.Talent, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -249,6 +249,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AbilityMutation:
+		return c.Ability.mutate(ctx, m)
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
 	case *EquipmentMutation:
@@ -261,14 +263,161 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Race.mutate(ctx, m)
 	case *RoomMutation:
 		return c.Room.mutate(ctx, m)
-	case *SkillMutation:
-		return c.Skill.mutate(ctx, m)
 	case *TalentMutation:
 		return c.Talent.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("db: unknown mutation type %T", m)
+	}
+}
+
+// AbilityClient is a client for the Ability schema.
+type AbilityClient struct {
+	config
+}
+
+// NewAbilityClient returns a client for the Ability from the given config.
+func NewAbilityClient(c config) *AbilityClient {
+	return &AbilityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ability.Hooks(f(g(h())))`.
+func (c *AbilityClient) Use(hooks ...Hook) {
+	c.hooks.Ability = append(c.hooks.Ability, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ability.Intercept(f(g(h())))`.
+func (c *AbilityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Ability = append(c.inters.Ability, interceptors...)
+}
+
+// Create returns a builder for creating a Ability entity.
+func (c *AbilityClient) Create() *AbilityCreate {
+	mutation := newAbilityMutation(c.config, OpCreate)
+	return &AbilityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Ability entities.
+func (c *AbilityClient) CreateBulk(builders ...*AbilityCreate) *AbilityCreateBulk {
+	return &AbilityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AbilityClient) MapCreateBulk(slice any, setFunc func(*AbilityCreate, int)) *AbilityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AbilityCreateBulk{err: fmt.Errorf("calling to AbilityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AbilityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AbilityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Ability.
+func (c *AbilityClient) Update() *AbilityUpdate {
+	mutation := newAbilityMutation(c.config, OpUpdate)
+	return &AbilityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AbilityClient) UpdateOne(_m *Ability) *AbilityUpdateOne {
+	mutation := newAbilityMutation(c.config, OpUpdateOne, withAbility(_m))
+	return &AbilityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AbilityClient) UpdateOneID(id int) *AbilityUpdateOne {
+	mutation := newAbilityMutation(c.config, OpUpdateOne, withAbilityID(id))
+	return &AbilityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Ability.
+func (c *AbilityClient) Delete() *AbilityDelete {
+	mutation := newAbilityMutation(c.config, OpDelete)
+	return &AbilityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AbilityClient) DeleteOne(_m *Ability) *AbilityDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AbilityClient) DeleteOneID(id int) *AbilityDeleteOne {
+	builder := c.Delete().Where(ability.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AbilityDeleteOne{builder}
+}
+
+// Query returns a query builder for Ability.
+func (c *AbilityClient) Query() *AbilityQuery {
+	return &AbilityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAbility},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Ability entity by its id.
+func (c *AbilityClient) Get(ctx context.Context, id int) (*Ability, error) {
+	return c.Query().Where(ability.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AbilityClient) GetX(ctx context.Context, id int) *Ability {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacters queries the characters edge of a Ability.
+func (c *AbilityClient) QueryCharacters(_m *Ability) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ability.Table, ability.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ability.CharactersTable, ability.CharactersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AbilityClient) Hooks() []Hook {
+	return c.hooks.Ability
+}
+
+// Interceptors returns the client interceptors.
+func (c *AbilityClient) Interceptors() []Interceptor {
+	return c.inters.Ability
+}
+
+func (c *AbilityClient) mutate(ctx context.Context, m *AbilityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AbilityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AbilityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AbilityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AbilityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Ability mutation op: %q", m.Op())
 	}
 }
 
@@ -1198,155 +1347,6 @@ func (c *RoomClient) mutate(ctx context.Context, m *RoomMutation) (Value, error)
 	}
 }
 
-// SkillClient is a client for the Skill schema.
-type SkillClient struct {
-	config
-}
-
-// NewSkillClient returns a client for the Skill from the given config.
-func NewSkillClient(c config) *SkillClient {
-	return &SkillClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `skill.Hooks(f(g(h())))`.
-func (c *SkillClient) Use(hooks ...Hook) {
-	c.hooks.Skill = append(c.hooks.Skill, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `skill.Intercept(f(g(h())))`.
-func (c *SkillClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Skill = append(c.inters.Skill, interceptors...)
-}
-
-// Create returns a builder for creating a Skill entity.
-func (c *SkillClient) Create() *SkillCreate {
-	mutation := newSkillMutation(c.config, OpCreate)
-	return &SkillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Skill entities.
-func (c *SkillClient) CreateBulk(builders ...*SkillCreate) *SkillCreateBulk {
-	return &SkillCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *SkillClient) MapCreateBulk(slice any, setFunc func(*SkillCreate, int)) *SkillCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &SkillCreateBulk{err: fmt.Errorf("calling to SkillClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*SkillCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &SkillCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Skill.
-func (c *SkillClient) Update() *SkillUpdate {
-	mutation := newSkillMutation(c.config, OpUpdate)
-	return &SkillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SkillClient) UpdateOne(_m *Skill) *SkillUpdateOne {
-	mutation := newSkillMutation(c.config, OpUpdateOne, withSkill(_m))
-	return &SkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SkillClient) UpdateOneID(id int) *SkillUpdateOne {
-	mutation := newSkillMutation(c.config, OpUpdateOne, withSkillID(id))
-	return &SkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Skill.
-func (c *SkillClient) Delete() *SkillDelete {
-	mutation := newSkillMutation(c.config, OpDelete)
-	return &SkillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *SkillClient) DeleteOne(_m *Skill) *SkillDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SkillClient) DeleteOneID(id int) *SkillDeleteOne {
-	builder := c.Delete().Where(skill.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SkillDeleteOne{builder}
-}
-
-// Query returns a query builder for Skill.
-func (c *SkillClient) Query() *SkillQuery {
-	return &SkillQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSkill},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Skill entity by its id.
-func (c *SkillClient) Get(ctx context.Context, id int) (*Skill, error) {
-	return c.Query().Where(skill.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SkillClient) GetX(ctx context.Context, id int) *Skill {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryCharacters queries the characters edge of a Skill.
-func (c *SkillClient) QueryCharacters(_m *Skill) *CharacterQuery {
-	query := (&CharacterClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(skill.Table, skill.FieldID, id),
-			sqlgraph.To(character.Table, character.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, skill.CharactersTable, skill.CharactersColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *SkillClient) Hooks() []Hook {
-	return c.hooks.Skill
-}
-
-// Interceptors returns the client interceptors.
-func (c *SkillClient) Interceptors() []Interceptor {
-	return c.inters.Skill
-}
-
-func (c *SkillClient) mutate(ctx context.Context, m *SkillMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&SkillCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&SkillUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&SkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&SkillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("db: unknown Skill mutation op: %q", m.Op())
-	}
-}
-
 // TalentClient is a client for the Talent schema.
 type TalentClient struct {
 	config
@@ -1648,11 +1648,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Character, Equipment, EquipmentTemplate, NPCTemplate, Race, Room, Skill, Talent,
-		User []ent.Hook
+		Ability, Character, Equipment, EquipmentTemplate, NPCTemplate, Race, Room,
+		Talent, User []ent.Hook
 	}
 	inters struct {
-		Character, Equipment, EquipmentTemplate, NPCTemplate, Race, Room, Skill, Talent,
-		User []ent.Interceptor
+		Ability, Character, Equipment, EquipmentTemplate, NPCTemplate, Race, Room,
+		Talent, User []ent.Interceptor
 	}
 )

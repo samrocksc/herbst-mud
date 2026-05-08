@@ -8,6 +8,72 @@ import (
 )
 
 var (
+	// AbilitiesColumns holds the columns for the "abilities" table.
+	AbilitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString},
+		{Name: "ability_type", Type: field.TypeString},
+		{Name: "cost", Type: field.TypeInt, Default: 0},
+		{Name: "cooldown", Type: field.TypeInt, Default: 0},
+		{Name: "requirements", Type: field.TypeString, Nullable: true},
+		{Name: "effect_type", Type: field.TypeString, Default: ""},
+		{Name: "effect_value", Type: field.TypeInt, Default: 0},
+		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
+		{Name: "scaling_stat", Type: field.TypeString, Nullable: true},
+		{Name: "scaling_percent_per_point", Type: field.TypeFloat64, Default: 0},
+		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
+		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
+		{Name: "hp_cost", Type: field.TypeInt, Default: 0},
+		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "required_tag", Type: field.TypeString, Nullable: true},
+		{Name: "ability_class", Type: field.TypeString, Default: "active"},
+		{Name: "proc_chance", Type: field.TypeFloat64, Default: 0},
+		{Name: "proc_event", Type: field.TypeString, Nullable: true},
+		{Name: "cooldown_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "faction_abilities", Type: field.TypeInt, Nullable: true},
+	}
+	// AbilitiesTable holds the schema information for the "abilities" table.
+	AbilitiesTable = &schema.Table{
+		Name:       "abilities",
+		Columns:    AbilitiesColumns,
+		PrimaryKey: []*schema.Column{AbilitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "abilities_factions_abilities",
+				Columns:    []*schema.Column{AbilitiesColumns[21]},
+				RefColumns: []*schema.Column{FactionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// AbilityEffectsColumns holds the columns for the "ability_effects" table.
+	AbilityEffectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "effect_type", Type: field.TypeString},
+		{Name: "damage_subtype", Type: field.TypeString, Default: ""},
+		{Name: "target", Type: field.TypeString, Default: "enemy"},
+		{Name: "value", Type: field.TypeInt, Default: 0},
+		{Name: "duration", Type: field.TypeInt, Default: 0},
+		{Name: "scaling_stat", Type: field.TypeString, Nullable: true},
+		{Name: "scaling_ratio", Type: field.TypeFloat64, Default: 0},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "ability_effects", Type: field.TypeInt, Nullable: true},
+	}
+	// AbilityEffectsTable holds the schema information for the "ability_effects" table.
+	AbilityEffectsTable = &schema.Table{
+		Name:       "ability_effects",
+		Columns:    AbilityEffectsColumns,
+		PrimaryKey: []*schema.Column{AbilityEffectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ability_effects_abilities_effects",
+				Columns:    []*schema.Column{AbilityEffectsColumns[9]},
+				RefColumns: []*schema.Column{AbilitiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// AchievementsColumns holds the columns for the "achievements" table.
 	AchievementsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -130,6 +196,33 @@ var (
 			},
 		},
 	}
+	// CharacterAbilitiesColumns holds the columns for the "character_abilities" table.
+	CharacterAbilitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "slot", Type: field.TypeInt},
+		{Name: "ability_characters", Type: field.TypeInt, Nullable: true},
+		{Name: "character_abilities", Type: field.TypeInt, Nullable: true},
+	}
+	// CharacterAbilitiesTable holds the schema information for the "character_abilities" table.
+	CharacterAbilitiesTable = &schema.Table{
+		Name:       "character_abilities",
+		Columns:    CharacterAbilitiesColumns,
+		PrimaryKey: []*schema.Column{CharacterAbilitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_abilities_abilities_characters",
+				Columns:    []*schema.Column{CharacterAbilitiesColumns[2]},
+				RefColumns: []*schema.Column{AbilitiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "character_abilities_characters_abilities",
+				Columns:    []*schema.Column{CharacterAbilitiesColumns[3]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CharacterCompetenciesColumns holds the columns for the "character_competencies" table.
 	CharacterCompetenciesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -183,33 +276,6 @@ var (
 				Symbol:     "character_factions_factions_character_factions",
 				Columns:    []*schema.Column{CharacterFactionsColumns[5]},
 				RefColumns: []*schema.Column{FactionsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
-	// CharacterSkillsColumns holds the columns for the "character_skills" table.
-	CharacterSkillsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "slot", Type: field.TypeInt},
-		{Name: "character_skills", Type: field.TypeInt, Nullable: true},
-		{Name: "skill_characters", Type: field.TypeInt, Nullable: true},
-	}
-	// CharacterSkillsTable holds the schema information for the "character_skills" table.
-	CharacterSkillsTable = &schema.Table{
-		Name:       "character_skills",
-		Columns:    CharacterSkillsColumns,
-		PrimaryKey: []*schema.Column{CharacterSkillsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "character_skills_characters_skills",
-				Columns:    []*schema.Column{CharacterSkillsColumns[2]},
-				RefColumns: []*schema.Column{CharactersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "character_skills_skills_characters",
-				Columns:    []*schema.Column{CharacterSkillsColumns[3]},
-				RefColumns: []*schema.Column{SkillsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -497,16 +563,16 @@ var (
 		Columns:    GendersColumns,
 		PrimaryKey: []*schema.Column{GendersColumns[0]},
 	}
-	// NpcSkillsColumns holds the columns for the "npc_skills" table.
-	NpcSkillsColumns = []*schema.Column{
+	// NpcAbilitiesColumns holds the columns for the "npc_abilities" table.
+	NpcAbilitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "slot", Type: field.TypeInt},
 	}
-	// NpcSkillsTable holds the schema information for the "npc_skills" table.
-	NpcSkillsTable = &schema.Table{
-		Name:       "npc_skills",
-		Columns:    NpcSkillsColumns,
-		PrimaryKey: []*schema.Column{NpcSkillsColumns[0]},
+	// NpcAbilitiesTable holds the schema information for the "npc_abilities" table.
+	NpcAbilitiesTable = &schema.Table{
+		Name:       "npc_abilities",
+		Columns:    NpcAbilitiesColumns,
+		PrimaryKey: []*schema.Column{NpcAbilitiesColumns[0]},
 	}
 	// NpcTemplatesColumns holds the columns for the "npc_templates" table.
 	NpcTemplatesColumns = []*schema.Column{
@@ -565,45 +631,6 @@ var (
 		Columns:    RoomsColumns,
 		PrimaryKey: []*schema.Column{RoomsColumns[0]},
 	}
-	// SkillsColumns holds the columns for the "skills" table.
-	SkillsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "description", Type: field.TypeString},
-		{Name: "skill_type", Type: field.TypeString},
-		{Name: "cost", Type: field.TypeInt, Default: 0},
-		{Name: "cooldown", Type: field.TypeInt, Default: 0},
-		{Name: "requirements", Type: field.TypeString, Nullable: true},
-		{Name: "effect_type", Type: field.TypeString, Default: ""},
-		{Name: "effect_value", Type: field.TypeInt, Default: 0},
-		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
-		{Name: "scaling_stat", Type: field.TypeString, Nullable: true},
-		{Name: "scaling_percent_per_point", Type: field.TypeFloat64, Default: 0},
-		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
-		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
-		{Name: "hp_cost", Type: field.TypeInt, Default: 0},
-		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
-		{Name: "required_tag", Type: field.TypeString, Nullable: true},
-		{Name: "skill_class", Type: field.TypeString, Default: "active"},
-		{Name: "proc_chance", Type: field.TypeFloat64, Default: 0},
-		{Name: "proc_event", Type: field.TypeString, Nullable: true},
-		{Name: "cooldown_seconds", Type: field.TypeInt, Default: 0},
-		{Name: "faction_skills", Type: field.TypeInt, Nullable: true},
-	}
-	// SkillsTable holds the schema information for the "skills" table.
-	SkillsTable = &schema.Table{
-		Name:       "skills",
-		Columns:    SkillsColumns,
-		PrimaryKey: []*schema.Column{SkillsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "skills_factions_skills",
-				Columns:    []*schema.Column{SkillsColumns[21]},
-				RefColumns: []*schema.Column{FactionsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -649,64 +676,66 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
-	// NpcTemplateNpcSkillsColumns holds the columns for the "npc_template_npc_skills" table.
-	NpcTemplateNpcSkillsColumns = []*schema.Column{
-		{Name: "npc_template_id", Type: field.TypeString},
-		{Name: "npc_skill_id", Type: field.TypeInt},
+	// AbilityNpcAbilitiesColumns holds the columns for the "ability_npc_abilities" table.
+	AbilityNpcAbilitiesColumns = []*schema.Column{
+		{Name: "ability_id", Type: field.TypeInt},
+		{Name: "npc_ability_id", Type: field.TypeInt},
 	}
-	// NpcTemplateNpcSkillsTable holds the schema information for the "npc_template_npc_skills" table.
-	NpcTemplateNpcSkillsTable = &schema.Table{
-		Name:       "npc_template_npc_skills",
-		Columns:    NpcTemplateNpcSkillsColumns,
-		PrimaryKey: []*schema.Column{NpcTemplateNpcSkillsColumns[0], NpcTemplateNpcSkillsColumns[1]},
+	// AbilityNpcAbilitiesTable holds the schema information for the "ability_npc_abilities" table.
+	AbilityNpcAbilitiesTable = &schema.Table{
+		Name:       "ability_npc_abilities",
+		Columns:    AbilityNpcAbilitiesColumns,
+		PrimaryKey: []*schema.Column{AbilityNpcAbilitiesColumns[0], AbilityNpcAbilitiesColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "npc_template_npc_skills_npc_template_id",
-				Columns:    []*schema.Column{NpcTemplateNpcSkillsColumns[0]},
-				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
+				Symbol:     "ability_npc_abilities_ability_id",
+				Columns:    []*schema.Column{AbilityNpcAbilitiesColumns[0]},
+				RefColumns: []*schema.Column{AbilitiesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "npc_template_npc_skills_npc_skill_id",
-				Columns:    []*schema.Column{NpcTemplateNpcSkillsColumns[1]},
-				RefColumns: []*schema.Column{NpcSkillsColumns[0]},
+				Symbol:     "ability_npc_abilities_npc_ability_id",
+				Columns:    []*schema.Column{AbilityNpcAbilitiesColumns[1]},
+				RefColumns: []*schema.Column{NpcAbilitiesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
 	}
-	// SkillNpcSkillsColumns holds the columns for the "skill_npc_skills" table.
-	SkillNpcSkillsColumns = []*schema.Column{
-		{Name: "skill_id", Type: field.TypeInt},
-		{Name: "npc_skill_id", Type: field.TypeInt},
+	// NpcTemplateNpcAbilitiesColumns holds the columns for the "npc_template_npc_abilities" table.
+	NpcTemplateNpcAbilitiesColumns = []*schema.Column{
+		{Name: "npc_template_id", Type: field.TypeString},
+		{Name: "npc_ability_id", Type: field.TypeInt},
 	}
-	// SkillNpcSkillsTable holds the schema information for the "skill_npc_skills" table.
-	SkillNpcSkillsTable = &schema.Table{
-		Name:       "skill_npc_skills",
-		Columns:    SkillNpcSkillsColumns,
-		PrimaryKey: []*schema.Column{SkillNpcSkillsColumns[0], SkillNpcSkillsColumns[1]},
+	// NpcTemplateNpcAbilitiesTable holds the schema information for the "npc_template_npc_abilities" table.
+	NpcTemplateNpcAbilitiesTable = &schema.Table{
+		Name:       "npc_template_npc_abilities",
+		Columns:    NpcTemplateNpcAbilitiesColumns,
+		PrimaryKey: []*schema.Column{NpcTemplateNpcAbilitiesColumns[0], NpcTemplateNpcAbilitiesColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "skill_npc_skills_skill_id",
-				Columns:    []*schema.Column{SkillNpcSkillsColumns[0]},
-				RefColumns: []*schema.Column{SkillsColumns[0]},
+				Symbol:     "npc_template_npc_abilities_npc_template_id",
+				Columns:    []*schema.Column{NpcTemplateNpcAbilitiesColumns[0]},
+				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "skill_npc_skills_npc_skill_id",
-				Columns:    []*schema.Column{SkillNpcSkillsColumns[1]},
-				RefColumns: []*schema.Column{NpcSkillsColumns[0]},
+				Symbol:     "npc_template_npc_abilities_npc_ability_id",
+				Columns:    []*schema.Column{NpcTemplateNpcAbilitiesColumns[1]},
+				RefColumns: []*schema.Column{NpcAbilitiesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AbilitiesTable,
+		AbilityEffectsTable,
 		AchievementsTable,
 		AvailableTalentsTable,
 		CharactersTable,
+		CharacterAbilitiesTable,
 		CharacterCompetenciesTable,
 		CharacterFactionsTable,
-		CharacterSkillsTable,
 		CharacterTagsTable,
 		CharacterTalentsTable,
 		CompetencyCategoriesTable,
@@ -719,32 +748,33 @@ var (
 		FactionRequiredTagsTable,
 		GameConfigsTable,
 		GendersTable,
-		NpcSkillsTable,
+		NpcAbilitiesTable,
 		NpcTemplatesTable,
 		RacesTable,
 		RoomsTable,
-		SkillsTable,
 		TagsTable,
 		TalentsTable,
 		UsersTable,
-		NpcTemplateNpcSkillsTable,
-		SkillNpcSkillsTable,
+		AbilityNpcAbilitiesTable,
+		NpcTemplateNpcAbilitiesTable,
 	}
 )
 
 func init() {
+	AbilitiesTable.ForeignKeys[0].RefTable = FactionsTable
+	AbilityEffectsTable.ForeignKeys[0].RefTable = AbilitiesTable
 	AvailableTalentsTable.ForeignKeys[0].RefTable = CharactersTable
 	AvailableTalentsTable.ForeignKeys[1].RefTable = TalentsTable
 	CharactersTable.ForeignKeys[0].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[3].RefTable = UsersTable
+	CharacterAbilitiesTable.ForeignKeys[0].RefTable = AbilitiesTable
+	CharacterAbilitiesTable.ForeignKeys[1].RefTable = CharactersTable
 	CharacterCompetenciesTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterCompetenciesTable.ForeignKeys[1].RefTable = CompetencyCategoriesTable
 	CharacterFactionsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterFactionsTable.ForeignKeys[1].RefTable = FactionsTable
-	CharacterSkillsTable.ForeignKeys[0].RefTable = CharactersTable
-	CharacterSkillsTable.ForeignKeys[1].RefTable = SkillsTable
 	CharacterTagsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterTalentsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterTalentsTable.ForeignKeys[1].RefTable = TalentsTable
@@ -753,9 +783,8 @@ func init() {
 	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
 	FactionsTable.ForeignKeys[0].RefTable = FactionCategoriesTable
 	FactionRequiredTagsTable.ForeignKeys[0].RefTable = FactionsTable
-	SkillsTable.ForeignKeys[0].RefTable = FactionsTable
-	NpcTemplateNpcSkillsTable.ForeignKeys[0].RefTable = NpcTemplatesTable
-	NpcTemplateNpcSkillsTable.ForeignKeys[1].RefTable = NpcSkillsTable
-	SkillNpcSkillsTable.ForeignKeys[0].RefTable = SkillsTable
-	SkillNpcSkillsTable.ForeignKeys[1].RefTable = NpcSkillsTable
+	AbilityNpcAbilitiesTable.ForeignKeys[0].RefTable = AbilitiesTable
+	AbilityNpcAbilitiesTable.ForeignKeys[1].RefTable = NpcAbilitiesTable
+	NpcTemplateNpcAbilitiesTable.ForeignKeys[0].RefTable = NpcTemplatesTable
+	NpcTemplateNpcAbilitiesTable.ForeignKeys[1].RefTable = NpcAbilitiesTable
 }

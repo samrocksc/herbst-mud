@@ -30,8 +30,8 @@ func RestoreBackup(client *db.Client, backupDir string) error {
 	if err := restore.Rooms(ctx, client, backupDir, mapping); err != nil {
 		return fmt.Errorf("failed to import rooms: %w", err)
 	}
-	if err := restore.Skills(ctx, client, backupDir, mapping); err != nil {
-		return fmt.Errorf("failed to import skills: %w", err)
+	if err := restore.Abilities(ctx, client, backupDir, mapping); err != nil {
+		return fmt.Errorf("failed to import abilities: %w", err)
 	}
 	if err := restore.Talents(ctx, client, backupDir, mapping); err != nil {
 		return fmt.Errorf("failed to import talents: %w", err)
@@ -45,8 +45,8 @@ func RestoreBackup(client *db.Client, backupDir string) error {
 	if err := restore.Characters(ctx, client, backupDir, mapping); err != nil {
 		return fmt.Errorf("failed to import characters: %w", err)
 	}
-	if err := restore.CharacterSkills(ctx, client, backupDir, mapping); err != nil {
-		return fmt.Errorf("failed to import character skills: %w", err)
+	if err := restore.CharacterAbilities(ctx, client, backupDir, mapping); err != nil {
+		return fmt.Errorf("failed to import character abilities: %w", err)
 	}
 	if err := restore.CharacterTalents(ctx, client, backupDir, mapping); err != nil {
 		return fmt.Errorf("failed to import character talents: %w", err)

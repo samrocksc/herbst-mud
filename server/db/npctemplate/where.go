@@ -519,21 +519,21 @@ func RespawnCooldownNotNil() predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldNotNull(FieldRespawnCooldown))
 }
 
-// HasNpcSkills applies the HasEdge predicate on the "npc_skills" edge.
-func HasNpcSkills() predicate.NPCTemplate {
+// HasNpcAbilities applies the HasEdge predicate on the "npc_abilities" edge.
+func HasNpcAbilities() predicate.NPCTemplate {
 	return predicate.NPCTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, NpcSkillsTable, NpcSkillsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, NpcAbilitiesTable, NpcAbilitiesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasNpcSkillsWith applies the HasEdge predicate on the "npc_skills" edge with a given conditions (other predicates).
-func HasNpcSkillsWith(preds ...predicate.NPCSkill) predicate.NPCTemplate {
+// HasNpcAbilitiesWith applies the HasEdge predicate on the "npc_abilities" edge with a given conditions (other predicates).
+func HasNpcAbilitiesWith(preds ...predicate.NPCAbility) predicate.NPCTemplate {
 	return predicate.NPCTemplate(func(s *sql.Selector) {
-		step := newNpcSkillsStep()
+		step := newNpcAbilitiesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -8,6 +8,30 @@ import (
 	"herbst-server/db"
 )
 
+// The AbilityFunc type is an adapter to allow the use of ordinary
+// function as Ability mutator.
+type AbilityFunc func(context.Context, *db.AbilityMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AbilityFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AbilityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AbilityMutation", m)
+}
+
+// The AbilityEffectFunc type is an adapter to allow the use of ordinary
+// function as AbilityEffect mutator.
+type AbilityEffectFunc func(context.Context, *db.AbilityEffectMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AbilityEffectFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AbilityEffectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AbilityEffectMutation", m)
+}
+
 // The AchievementFunc type is an adapter to allow the use of ordinary
 // function as Achievement mutator.
 type AchievementFunc func(context.Context, *db.AchievementMutation) (db.Value, error)
@@ -44,6 +68,18 @@ func (f CharacterFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterMutation", m)
 }
 
+// The CharacterAbilityFunc type is an adapter to allow the use of ordinary
+// function as CharacterAbility mutator.
+type CharacterAbilityFunc func(context.Context, *db.CharacterAbilityMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterAbilityFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterAbilityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterAbilityMutation", m)
+}
+
 // The CharacterCompetencyFunc type is an adapter to allow the use of ordinary
 // function as CharacterCompetency mutator.
 type CharacterCompetencyFunc func(context.Context, *db.CharacterCompetencyMutation) (db.Value, error)
@@ -66,18 +102,6 @@ func (f CharacterFactionFunc) Mutate(ctx context.Context, m db.Mutation) (db.Val
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterFactionMutation", m)
-}
-
-// The CharacterSkillFunc type is an adapter to allow the use of ordinary
-// function as CharacterSkill mutator.
-type CharacterSkillFunc func(context.Context, *db.CharacterSkillMutation) (db.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f CharacterSkillFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.CharacterSkillMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterSkillMutation", m)
 }
 
 // The CharacterTagFunc type is an adapter to allow the use of ordinary
@@ -224,16 +248,16 @@ func (f GenderFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.GenderMutation", m)
 }
 
-// The NPCSkillFunc type is an adapter to allow the use of ordinary
-// function as NPCSkill mutator.
-type NPCSkillFunc func(context.Context, *db.NPCSkillMutation) (db.Value, error)
+// The NPCAbilityFunc type is an adapter to allow the use of ordinary
+// function as NPCAbility mutator.
+type NPCAbilityFunc func(context.Context, *db.NPCAbilityMutation) (db.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f NPCSkillFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.NPCSkillMutation); ok {
+func (f NPCAbilityFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.NPCAbilityMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.NPCSkillMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.NPCAbilityMutation", m)
 }
 
 // The NPCTemplateFunc type is an adapter to allow the use of ordinary
@@ -270,18 +294,6 @@ func (f RoomFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RoomMutation", m)
-}
-
-// The SkillFunc type is an adapter to allow the use of ordinary
-// function as Skill mutator.
-type SkillFunc func(context.Context, *db.SkillMutation) (db.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SkillFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.SkillMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SkillMutation", m)
 }
 
 // The TagFunc type is an adapter to allow the use of ordinary

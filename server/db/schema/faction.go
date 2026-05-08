@@ -30,6 +30,6 @@ func (Faction) Edges() []ent.Edge {
 			Unique(),
 		edge.To("required_tags", FactionRequiredTag.Type),
 		edge.To("character_factions", CharacterFaction.Type),
-		edge.To("skills", Skill.Type),
+		edge.To("abilities", Ability.Type),
 	}
 }
