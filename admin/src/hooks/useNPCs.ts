@@ -8,8 +8,8 @@ export function useNPCs() {
   return useQuery<NPC[]>({
     queryKey: ['npcs'],
     queryFn: async () => {
-      const data = await apiGet<{ npcs: NPC[] }>(`${API}/npcs`)
-      return data.npcs || (data as unknown as NPC[])
+      const data = await apiGet<NPC[]>(`${API}/npcs`)
+      return Array.isArray(data) ? data : []
     },
   })
 }

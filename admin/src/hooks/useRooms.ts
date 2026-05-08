@@ -99,6 +99,7 @@ export function useRooms() {
     isError: roomsQuery.isError,
     error: roomsQuery.error,
     createRoom: createMutation.mutate,
+    createRoomAsync: createMutation.mutateAsync,
     updateRoom: updateMutation.mutate,
     deleteRoom: deleteMutation.mutate,
     isUpdating: updateMutation.isPending,

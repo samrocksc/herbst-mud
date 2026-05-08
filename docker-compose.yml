@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # SSH Server (herbst/)
   mud-ssh:
@@ -52,7 +50,7 @@ services:
       context: ./admin
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "3000:80"
     depends_on:
       - web
     networks:
@@ -71,6 +69,17 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - herbst-network
+
+  # Cloudflare Tunnel
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    depends_on:
+      - web
+      - mud-ssh
+    networks:
+      - herbst-network
+    restart: unless-stopped
 
 networks:
   herbst-network:

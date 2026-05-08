@@ -14,6 +14,9 @@ import (
 // RegisterAbilityRoutes registers REST endpoints for abilities.
 // Protected /api routes — all require JWT auth + admin check
 func RegisterAbilityRoutes(r *gin.Engine, client *db.Client) {
+	// Public endpoint: list classless (active, no faction) abilities for the SSH client
+	r.GET("/abilities/classless", listClasslessAbilities(client))
+
 	abilities := r.Group("/api")
 	abilities.Use(middleware.AuthMiddleware())
 	abilities.Use(middleware.AdminMiddleware())
@@ -352,5 +355,36 @@ func deleteAbility(client *db.Client) gin.HandlerFunc {
 			return
 		}
 		c.Status(http.StatusNoContent)
+	}
+}
+// listClasslessAbilities returns all active abilities (no faction requirement)
+// for the SSH client's ability selection UI. Public — no auth required.
+func listClasslessAbilities(client *db.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		abilities, err := client.Ability.Query().
+			Where(ability.AbilityClassEQ("active")).
+			Order(ability.ByName()).
+			All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		result := make([]gin.H, len(abilities))
+		for i, a := range abilities {
+			result[i] = gin.H{
+				"id":              a.ID,
+				"name":            a.Name,
+				"description":     a.Description,
+				"ability_type":    a.AbilityType,
+				"mana_cost":       a.ManaCost,
+				"stamina_cost":    a.StaminaCost,
+				"hp_cost":         a.HpCost,
+				"cooldown":        a.Cooldown,
+				"effect_type":     a.EffectType,
+				"effect_value":    a.EffectValue,
+				"effect_duration": a.EffectDuration,
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"abilities": result})
 	}
 }

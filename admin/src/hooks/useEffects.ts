@@ -53,7 +53,7 @@ export function useCreateEffect() {
 export function useUpdateEffect() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, abilityId, input }: { id: number; abilityId: number; input: Partial<EffectInput> }) =>
+    mutationFn: ({ id, input }: { id: number; abilityId: number; input: Partial<EffectInput> }) =>
       apiPut<AbilityEffect>(`${API}/api/effects/${id}`, input),
     onSuccess: (_, { abilityId }) => {
       qc.invalidateQueries({ queryKey: ['effects', abilityId] })
@@ -65,7 +65,7 @@ export function useUpdateEffect() {
 export function useDeleteEffect() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, abilityId }: { id: number; abilityId: number }) =>
+    mutationFn: ({ id }: { id: number; abilityId: number }) =>
       apiDelete(`${API}/api/effects/${id}`),
     onSuccess: (_, { abilityId }) => {
       qc.invalidateQueries({ queryKey: ['effects', abilityId] })

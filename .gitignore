@@ -1,6 +1,12 @@
 # Agent-specific files (personal to each agent)
 AGENT_KNOWLEDGE.md
 
+# Environment files (contain secrets)
+.env
+herbst/.env
+server/.env
+admin/.env
+
 # SSH keys
 .ssh/
 

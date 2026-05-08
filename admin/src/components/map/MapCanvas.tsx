@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { ExitLines } from './ExitLines'
 import { RoomNode } from './RoomNode'
 import { CANVAS_W, CANVAS_H } from './constants'
@@ -10,7 +11,7 @@ type MapCanvasProps = {
   zoom: number
   panOffset: { x: number; y: number }
   isDragging: boolean
-  onWheel: (e: React.WheelEvent) => void
+  onWheel: (e: WheelEvent) => void
   onSelectRoom: (room: Room | null) => void
   onDragStart: (roomId: number) => void
   onDragEnd: (roomId: number, x: number, y: number) => void
@@ -24,8 +25,15 @@ export function MapCanvas({
   onWheel, onSelectRoom, onDragStart, onDragEnd,
   getNPCsInRoom, getEquipmentInRoom, viewportRef,
 }: MapCanvasProps) {
+  useEffect(() => {
+    const el = viewportRef.current
+    if (!el) return
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [onWheel, viewportRef])
+
   return (
-    <div ref={viewportRef} className="mt-[50px] h-[calc(100%-50px)] overflow-hidden p-6" onWheel={onWheel}>
+    <div ref={viewportRef} className="mt-[50px] h-[calc(100%-50px)] overflow-hidden p-6">
       <div
         className="relative"
         style={{

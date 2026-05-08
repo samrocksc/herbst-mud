@@ -150,7 +150,7 @@ function NPCTemplatesIndex() {
       { header: 'Respawn Cooldown', accessor: 'respawn_cooldown', align: 'center' },
       {
         header: 'Instances',
-        accessor: 'id',
+        accessor: 'instances',
         align: 'center',
         render: (_: unknown, row: NPCTemplate) => (
           <span className="badge badge-neutral">

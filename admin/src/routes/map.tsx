@@ -92,6 +92,7 @@ function MapBuilder() {
             onSelectRoom={state.setSelectedRoom}
             onEditRoom={state.handleEditRoom}
             onDeleteRoom={state.deleteRoom}
+            onAddRoom={state.handleAddRoom}
           />
         </div>
       )}

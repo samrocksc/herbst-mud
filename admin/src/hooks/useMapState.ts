@@ -5,11 +5,12 @@ import { useNPCs } from './useNPCs'
 import { useRoomEquipment } from './useRoomEquipment'
 import { useNodeLayout } from './useNodeLayout'
 import { GRID, MIN_ZOOM, MAX_ZOOM, ZOOM_FINE_STEP } from '../components/map/constants'
+import { DIRECTION_OFFSETS } from '../components/map/DirectionUtils'
 import type { Room } from '../components/map/types'
 
 export function useMapState() {
   const navigate = useNavigate()
-  const { rooms, isLoading: roomsLoading, updateRoom, createRoom, deleteRoom, isCreating, cleanupOrphanExits } = useRooms()
+  const { rooms, isLoading: roomsLoading, updateRoom, createRoom, createRoomAsync, deleteRoom, isCreating, cleanupOrphanExits, createBidirectionalExit } = useRooms()
   const npcsQuery = useNPCs()
 
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
@@ -72,7 +73,7 @@ export function useMapState() {
     })
   }, [])
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
+  const handleWheel = useCallback((e: WheelEvent) => {
     if (e.ctrlKey) {
       e.preventDefault()
       handleZoom(e.deltaY < 0 ? ZOOM_FINE_STEP : -ZOOM_FINE_STEP)
@@ -117,6 +118,29 @@ export function useMapState() {
     setTimeout(() => setToast(null), 3000)
   }, [])
 
+  const handleAddRoom = useCallback(async (fromRoom: Room, dir: string) => {
+    const offset = DIRECTION_OFFSETS[dir]
+    const posX = offset ? fromRoom.posX! + offset.dx : (fromRoom.posX ?? 0)
+    const posY = offset ? fromRoom.posY! + offset.dy : (fromRoom.posY ?? 0)
+    try {
+      const newRoom = await createRoomAsync({
+        name: 'New Room',
+        description: 'A newly created room.',
+        isStartingRoom: false,
+        exits: {},
+        posX,
+        posY,
+      })
+      await createBidirectionalExit({
+        roomId: fromRoom.id,
+        direction: dir,
+        targetRoomId: newRoom.id,
+      })
+    } catch (err) {
+      showToast('Failed to create room')
+    }
+  }, [createRoomAsync, createBidirectionalExit, showToast])
+
   return {
     rooms, roomsLoading, selectedRoom, setSelectedRoom: handleSelectRoom,
     zoom, panOffset, currentZLevel, setCurrentZLevel: handleSetZLevel,
@@ -129,6 +153,6 @@ export function useMapState() {
     npcs: npcsQuery.data ?? [],
     roomEquipment: equipmentQuery.data ?? [],
     updateRoom, createRoom, deleteRoom, isCreating, cleanupOrphanExits,
-    navigate,
+    handleAddRoom, navigate,
   }
 }

@@ -41,8 +41,18 @@ func (m *model) handleAbilityCommand(cmd string) {
 		fmt.Sscanf(parts[2], "%d", &slot)
 		m.equipAbility(skillName, slot)
 	case "swap":
-		if len(parts) != 3 {
-			m.AppendMessage("Usage: skill swap <slot1> <slot2>", "error")
+		if len(parts) < 2 || len(parts) > 3 {
+			m.showSwapHelp()
+			return
+		}
+		if len(parts) == 2 {
+			slot1 := 0
+			fmt.Sscanf(parts[1], "%d", &slot1)
+			if slot1 < 1 || slot1 > 5 {
+				m.AppendMessage("Slot must be between 1 and 5", "error")
+				return
+			}
+			m.showSwapList(slot1)
 			return
 		}
 		slot1, slot2 := 0, 0
@@ -92,7 +102,7 @@ func (m *model) showEquippedAbilities() {
 
 // showAllAvailableAbilities fetches and displays all classless abilities from server
 func (m *model) showAllAvailableAbilities() {
-	resp, err := httpGet(fmt.Sprintf("%s/abilities", RESTAPIBase))
+	resp, err := httpGet(fmt.Sprintf("%s/abilities/classless", RESTAPIBase))
 	if err != nil {
 		m.AppendMessage("Error fetching abilities", "error")
 		return
@@ -161,7 +171,7 @@ func (m *model) renderAbilitySelection() {
 	}
 
 	// Fetch abilities from server for display
-	resp, err := httpGet(fmt.Sprintf("%s/abilities", RESTAPIBase))
+	resp, err := httpGet(fmt.Sprintf("%s/abilities/classless", RESTAPIBase))
 	var availableAbilities []AbilityData
 	if err == nil {
 		defer resp.Body.Close()
@@ -219,7 +229,7 @@ func (m *model) handleAbilitySelectionInput(key string) bool {
 		return true
 	case "enter", "b", " ":
 		// Fetch abilities to get the one at cursor
-		resp, err := httpGet(fmt.Sprintf("%s/abilities", RESTAPIBase))
+		resp, err := httpGet(fmt.Sprintf("%s/abilities/classless", RESTAPIBase))
 		if err == nil {
 			defer resp.Body.Close()
 			var result struct {
@@ -252,6 +262,7 @@ func (m *model) showAbilityHelp() {
   skill slot <1-5>    - Select an ability for a slot
   skill all            - Show available classless abilities
   skill equip <n> <s>  - Equip ability to slot 1-5 (quick)
+  skill swap <s1>      - Show abilities to swap with slot
   skill swap <s1> <s2> - Swap abilities between slots
 
 In combat: press 1-5 to activate the ability in that slot.`
@@ -266,7 +277,7 @@ func (m *model) equipAbility(abilityName string, slot int) {
 	}
 
 	// Find ability ID by name from server
-	resp, err := httpGet(fmt.Sprintf("%s/abilities", RESTAPIBase))
+	resp, err := httpGet(fmt.Sprintf("%s/abilities/classless", RESTAPIBase))
 	if err != nil {
 		m.AppendMessage("Error fetching abilities", "error")
 		return
@@ -348,6 +359,42 @@ func (m *model) swapAbilities(slot1, slot2 int) {
 	resp.Body.Close()
 
 	m.AppendMessage(fmt.Sprintf("Swapped abilities in slots %d and %d", slot1, slot2), "success")
+}
+
+// showSwapHelp displays help for the swap command
+func (m *model) showSwapHelp() {
+	output := "Usage: skill swap <slot1> [slot2]\n\n"
+	output += "  skill swap 1      - Show abilities and pick a slot to swap with slot 1\n"
+	output += "  skill swap 1 3    - Swap slot 1 and slot 3 directly\n"
+	m.AppendMessage(output, "info")
+}
+
+// showSwapList shows equipped abilities for swapping from a given slot
+func (m *model) showSwapList(fromSlot int) {
+	if m.combatSkills == nil {
+		m.initCombatSkillState()
+	}
+	from := m.combatSkills.EquippedSkill[fromSlot-1]
+	output := fmt.Sprintf("═══ Swap from Slot %d ═══\n\n", fromSlot)
+	if from.ID != 0 {
+		output += fmt.Sprintf("  Slot %d: %s\n\n", fromSlot, from.Name)
+	} else {
+		output += fmt.Sprintf("  Slot %d: (empty)\n\n", fromSlot)
+	}
+	output += "Swap with:\n"
+	for i := 0; i < 5; i++ {
+		if i == fromSlot-1 {
+			continue
+		}
+		ability := m.combatSkills.EquippedSkill[i]
+		if ability.ID != 0 {
+			output += fmt.Sprintf("  [%d] %s\n", i+1, ability.Name)
+		} else {
+			output += fmt.Sprintf("  [%d] (empty)\n", i+1)
+		}
+	}
+	output += fmt.Sprintf("\nType: skill swap %d <slot>", fromSlot)
+	m.AppendMessage(output, "info")
 }
 
 // getAbilitySlotName returns a display name for a combat ability slot

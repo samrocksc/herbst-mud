@@ -51,7 +51,7 @@ type Props = Readonly<{ roomId: number }>
 
 export function NPCInstanceManager({ roomId }: Props) {
   const {
-    instancesQuery, templatesQuery, createMutation, updateMutation, deleteMutation,
+    instancesQuery, templatesQuery, createMutation, updateMutation,
     showSpawn, setShowSpawn, editingId, setEditingId, confirmDeleteId, setConfirmDeleteId,
     spawnForm, setSpawnForm, editForm, setEditForm,
     handleSpawn, handleUpdate, handleDelete, startEdit,
