@@ -6,12 +6,10 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
-	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/charactertag"
-	"herbst-server/db/charactertalent"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/damagelog"
@@ -22,7 +20,6 @@ import (
 	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/schema"
-	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"time"
 )
@@ -117,16 +114,6 @@ func init() {
 	achievementDescXpReward := achievementFields[3].Descriptor()
 	// achievement.DefaultXpReward holds the default value on creation for the xp_reward field.
 	achievement.DefaultXpReward = achievementDescXpReward.Default.(int)
-	availabletalentFields := schema.AvailableTalent{}.Fields()
-	_ = availabletalentFields
-	// availabletalentDescUnlockReason is the schema descriptor for unlock_reason field.
-	availabletalentDescUnlockReason := availabletalentFields[0].Descriptor()
-	// availabletalent.DefaultUnlockReason holds the default value on creation for the unlock_reason field.
-	availabletalent.DefaultUnlockReason = availabletalentDescUnlockReason.Default.(string)
-	// availabletalentDescUnlockedAtLevel is the schema descriptor for unlocked_at_level field.
-	availabletalentDescUnlockedAtLevel := availabletalentFields[1].Descriptor()
-	// availabletalent.DefaultUnlockedAtLevel holds the default value on creation for the unlocked_at_level field.
-	availabletalent.DefaultUnlockedAtLevel = availabletalentDescUnlockedAtLevel.Default.(int)
 	characterFields := schema.Character{}.Fields()
 	_ = characterFields
 	// characterDescIsNPC is the schema descriptor for isNPC field.
@@ -287,12 +274,6 @@ func init() {
 	charactertagDescEarnedAt := charactertagFields[2].Descriptor()
 	// charactertag.DefaultEarnedAt holds the default value on creation for the earned_at field.
 	charactertag.DefaultEarnedAt = charactertagDescEarnedAt.Default.(func() time.Time)
-	charactertalentFields := schema.CharacterTalent{}.Fields()
-	_ = charactertalentFields
-	// charactertalentDescSlot is the schema descriptor for slot field.
-	charactertalentDescSlot := charactertalentFields[0].Descriptor()
-	// charactertalent.DefaultSlot holds the default value on creation for the slot field.
-	charactertalent.DefaultSlot = charactertalentDescSlot.Default.(int)
 	competencycategoryFields := schema.CompetencyCategory{}.Fields()
 	_ = competencycategoryFields
 	// competencycategoryDescXpMultiplier is the schema descriptor for xp_multiplier field.
@@ -583,32 +564,6 @@ func init() {
 	roomDescVersion := roomFields[7].Descriptor()
 	// room.DefaultVersion holds the default value on creation for the version field.
 	room.DefaultVersion = roomDescVersion.Default.(int)
-	talentFields := schema.Talent{}.Fields()
-	_ = talentFields
-	// talentDescEffectType is the schema descriptor for effect_type field.
-	talentDescEffectType := talentFields[3].Descriptor()
-	// talent.DefaultEffectType holds the default value on creation for the effect_type field.
-	talent.DefaultEffectType = talentDescEffectType.Default.(string)
-	// talentDescEffectValue is the schema descriptor for effect_value field.
-	talentDescEffectValue := talentFields[4].Descriptor()
-	// talent.DefaultEffectValue holds the default value on creation for the effect_value field.
-	talent.DefaultEffectValue = talentDescEffectValue.Default.(int)
-	// talentDescEffectDuration is the schema descriptor for effect_duration field.
-	talentDescEffectDuration := talentFields[5].Descriptor()
-	// talent.DefaultEffectDuration holds the default value on creation for the effect_duration field.
-	talent.DefaultEffectDuration = talentDescEffectDuration.Default.(int)
-	// talentDescCooldown is the schema descriptor for cooldown field.
-	talentDescCooldown := talentFields[6].Descriptor()
-	// talent.DefaultCooldown holds the default value on creation for the cooldown field.
-	talent.DefaultCooldown = talentDescCooldown.Default.(int)
-	// talentDescManaCost is the schema descriptor for mana_cost field.
-	talentDescManaCost := talentFields[7].Descriptor()
-	// talent.DefaultManaCost holds the default value on creation for the mana_cost field.
-	talent.DefaultManaCost = talentDescManaCost.Default.(int)
-	// talentDescStaminaCost is the schema descriptor for stamina_cost field.
-	talentDescStaminaCost := talentFields[8].Descriptor()
-	// talent.DefaultStaminaCost holds the default value on creation for the stamina_cost field.
-	talent.DefaultStaminaCost = talentDescStaminaCost.Default.(int)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescIsAdmin is the schema descriptor for is_admin field.

@@ -13,6 +13,7 @@ import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
 import { TagInput } from '../../components/TagInput'
+import { EffectsSubForm } from '../../components/EffectsSubForm'
 import {
   FormField,
   NumberField,
@@ -264,6 +265,7 @@ function AbilityForm({
           tooltip="active=press button, passive=always on, toggle=on/off switch"
         />
 
+        {ability && <EffectsSubForm abilityId={ability.id} />}
         <div className="flex gap-2 pt-1">
           <Button type="submit" variant="primary" disabled={isLoading} fullWidth>
             {isLoading ? 'Saving...' : ability ? 'Update Ability' : 'Create Ability'}
@@ -331,6 +333,13 @@ const BASE_COLUMNS: Column<Ability>[] = [
     ),
   },
   {
+    header: 'Class',
+    accessor: 'ability_class',
+    render: (val: unknown) => (
+      <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>
+    ),
+  },
+  {
     header: 'Effects',
     accessor: 'effect_type',
     render: (_: unknown, row: Ability) => {
@@ -358,6 +367,7 @@ const BASE_COLUMNS: Column<Ability>[] = [
 
 function AbilitiesManagement() {
   const [filterType, setFilterType] = useState<string>('')
+  const [filterClass, setFilterClass] = useState<string>('')
   const [showForm, setShowForm] = useState(false)
   const [editingAbility, setEditingAbility] = useState<Ability | null>(null)
   const [deletingAbility, setDeletingAbility] = useState<Ability | null>(null)
@@ -368,6 +378,7 @@ function AbilitiesManagement() {
 
   const { data: abilities, isLoading, error } = useAbilities({
     type: filterType || undefined,
+    abilityClass: filterClass || undefined,
   })
 
   const handleSubmit = async (formData: AbilityInput) => {
@@ -454,8 +465,17 @@ function AbilitiesManagement() {
             <option value="defensive">Defensive</option>
           </select>
         </div>
-        {filterType && (
-          <Button variant="ghost" size="sm" onClick={() => setFilterType('')}>
+        <div className="filter-group">
+          <label>Class:</label>
+          <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)}>
+            <option value="">All Classes</option>
+            <option value="active">Active</option>
+            <option value="passive">Passive</option>
+            <option value="toggle">Toggle</option>
+          </select>
+        </div>
+        {(filterType || filterClass) && (
+          <Button variant="ghost" size="sm" onClick={() => { setFilterType(''); setFilterClass('') }}>
             Clear Filters
           </Button>
         )}

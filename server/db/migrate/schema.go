@@ -89,34 +89,6 @@ var (
 		Columns:    AchievementsColumns,
 		PrimaryKey: []*schema.Column{AchievementsColumns[0]},
 	}
-	// AvailableTalentsColumns holds the columns for the "available_talents" table.
-	AvailableTalentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "unlock_reason", Type: field.TypeString, Nullable: true, Default: "level_up"},
-		{Name: "unlocked_at_level", Type: field.TypeInt, Default: 1},
-		{Name: "character_available_talents", Type: field.TypeInt},
-		{Name: "talent_available_to_characters", Type: field.TypeInt},
-	}
-	// AvailableTalentsTable holds the schema information for the "available_talents" table.
-	AvailableTalentsTable = &schema.Table{
-		Name:       "available_talents",
-		Columns:    AvailableTalentsColumns,
-		PrimaryKey: []*schema.Column{AvailableTalentsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "available_talents_characters_available_talents",
-				Columns:    []*schema.Column{AvailableTalentsColumns[3]},
-				RefColumns: []*schema.Column{CharactersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "available_talents_talents_available_to_characters",
-				Columns:    []*schema.Column{AvailableTalentsColumns[4]},
-				RefColumns: []*schema.Column{TalentsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-	}
 	// CharactersColumns holds the columns for the "characters" table.
 	CharactersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -298,33 +270,6 @@ var (
 				Symbol:     "character_tags_characters_tags",
 				Columns:    []*schema.Column{CharacterTagsColumns[4]},
 				RefColumns: []*schema.Column{CharactersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
-	// CharacterTalentsColumns holds the columns for the "character_talents" table.
-	CharacterTalentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "slot", Type: field.TypeInt, Default: 0},
-		{Name: "character_talents", Type: field.TypeInt, Nullable: true},
-		{Name: "talent_characters", Type: field.TypeInt, Nullable: true},
-	}
-	// CharacterTalentsTable holds the schema information for the "character_talents" table.
-	CharacterTalentsTable = &schema.Table{
-		Name:       "character_talents",
-		Columns:    CharacterTalentsColumns,
-		PrimaryKey: []*schema.Column{CharacterTalentsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "character_talents_characters_talents",
-				Columns:    []*schema.Column{CharacterTalentsColumns[2]},
-				RefColumns: []*schema.Column{CharactersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "character_talents_talents_characters",
-				Columns:    []*schema.Column{CharacterTalentsColumns[3]},
-				RefColumns: []*schema.Column{TalentsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -643,25 +588,6 @@ var (
 		Columns:    TagsColumns,
 		PrimaryKey: []*schema.Column{TagsColumns[0]},
 	}
-	// TalentsColumns holds the columns for the "talents" table.
-	TalentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "description", Type: field.TypeString},
-		{Name: "requirements", Type: field.TypeString, Nullable: true},
-		{Name: "effect_type", Type: field.TypeString, Default: ""},
-		{Name: "effect_value", Type: field.TypeInt, Default: 0},
-		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
-		{Name: "cooldown", Type: field.TypeInt, Default: 0},
-		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
-		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
-	}
-	// TalentsTable holds the schema information for the "talents" table.
-	TalentsTable = &schema.Table{
-		Name:       "talents",
-		Columns:    TalentsColumns,
-		PrimaryKey: []*schema.Column{TalentsColumns[0]},
-	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -731,13 +657,11 @@ var (
 		AbilitiesTable,
 		AbilityEffectsTable,
 		AchievementsTable,
-		AvailableTalentsTable,
 		CharactersTable,
 		CharacterAbilitiesTable,
 		CharacterCompetenciesTable,
 		CharacterFactionsTable,
 		CharacterTagsTable,
-		CharacterTalentsTable,
 		CompetencyCategoriesTable,
 		CompetencyLevelThresholdsTable,
 		DamageLogsTable,
@@ -753,7 +677,6 @@ var (
 		RacesTable,
 		RoomsTable,
 		TagsTable,
-		TalentsTable,
 		UsersTable,
 		AbilityNpcAbilitiesTable,
 		NpcTemplateNpcAbilitiesTable,
@@ -763,8 +686,6 @@ var (
 func init() {
 	AbilitiesTable.ForeignKeys[0].RefTable = FactionsTable
 	AbilityEffectsTable.ForeignKeys[0].RefTable = AbilitiesTable
-	AvailableTalentsTable.ForeignKeys[0].RefTable = CharactersTable
-	AvailableTalentsTable.ForeignKeys[1].RefTable = TalentsTable
 	CharactersTable.ForeignKeys[0].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
@@ -776,8 +697,6 @@ func init() {
 	CharacterFactionsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterFactionsTable.ForeignKeys[1].RefTable = FactionsTable
 	CharacterTagsTable.ForeignKeys[0].RefTable = CharactersTable
-	CharacterTalentsTable.ForeignKeys[0].RefTable = CharactersTable
-	CharacterTalentsTable.ForeignKeys[1].RefTable = TalentsTable
 	CompetencyLevelThresholdsTable.ForeignKeys[0].RefTable = CompetencyCategoriesTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTemplatesTable
 	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable

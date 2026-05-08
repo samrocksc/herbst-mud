@@ -42,6 +42,8 @@ const (
 	FieldHpCost = "hp_cost"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
+	// EdgeEffects holds the string denoting the effects edge name in mutations.
+	EdgeEffects = "effects"
 	// Table holds the table name of the ability in the database.
 	Table = "abilities"
 	// CharactersTable is the table that holds the characters relation/edge.
@@ -51,6 +53,13 @@ const (
 	CharactersInverseTable = "characters"
 	// CharactersColumn is the table column denoting the characters relation/edge.
 	CharactersColumn = "ability_characters"
+	// EffectsTable is the table that holds the effects relation/edge.
+	EffectsTable = "ability_effects"
+	// EffectsInverseTable is the table name for the AbilityEffect entity.
+	// It exists in this package in order to avoid circular dependency with the "abilityeffect" package.
+	EffectsInverseTable = "ability_effects"
+	// EffectsColumn is the table column denoting the effects relation/edge.
+	EffectsColumn = "ability_effects"
 )
 
 // Columns holds all SQL columns for ability fields.
@@ -173,10 +182,31 @@ func ByCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByEffectsCount orders the results by effects count.
+func ByEffectsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEffectsStep(), opts...)
+	}
+}
+
+// ByEffects orders the results by effects terms.
+func ByEffects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEffectsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CharactersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CharactersTable, CharactersColumn),
+	)
+}
+func newEffectsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EffectsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EffectsTable, EffectsColumn),
 	)
 }

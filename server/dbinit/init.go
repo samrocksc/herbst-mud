@@ -7,12 +7,10 @@ import (
 	"math/rand"
 
 	"herbst-server/db"
-	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
 	"herbst-server/db/equipment"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
-	"herbst-server/db/talent"
 )
 
 const (
@@ -615,141 +613,6 @@ func InitSkills(client *db.Client) error {
 	}
 
 	log.Printf("Seeded %d abilities", len(abilities))
-	return nil
-}
-
-// InitTalents seeds the master talents table from the spike design
-func InitTalents(client *db.Client) error {
-	ctx := context.Background()
-
-	// Check if talents already exist
-	existingTalents, err := client.Talent.Query().Count(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to count existing talents: %w", err)
-	}
-
-	if existingTalents > 0 {
-		log.Println("Talents already exist, skipping seed...")
-		return nil
-	}
-
-	// Talents from CLASS_SYSTEM_SPIKE.md with unified effect system
-	talents := []struct {
-		name          string
-		description   string
-		requirements  string
-		effectType    string
-		effectValue   int
-		effectDuration int
-		cooldown      int
-		manaCost      int
-		staminaCost   int
-	}{
-		// Combat talents - damage dealers
-		{"slash", "Basic sword/blade attack", `{"skills":["blades","knives"]}`, "damage", 10, 0, 1, 0, 5},
-		{"smash", "Powerful blunt attack", `{"skills":["staves","martial"]}`, "damage", 15, 0, 2, 0, 10},
-		{"heavy_strike", "Strong but slow attack", `{"skills":["blades","staves"]}`, "damage", 20, 0, 3, 0, 15},
-		{"quick_slash", "Fast attack with lower damage", `{"skills":["knives"]}`, "damage", 6, 0, 0, 0, 3},
-		{"crash", "Body damage based on weight (STR), no weapon required", "[]", "damage", 12, 0, 2, 0, 8},
-
-		// Defensive talents - buffs
-		{"parry", "Deflect incoming attacks", "[]", "buff_dodge", 20, 2, 3, 0, 5},
-		{"shield_wall", "Increase defense for one round", "[]", "buff_armor", 10, 2, 4, 0, 10},
-		{"dodge", "Increase dodge chance for one round", "[]", "buff_dodge", 30, 2, 3, 0, 5},
-		{"iron_will", "Resists stun/blind effects (passive)", "[]", "buff_armor", 5, 999, 0, 0, 0},
-
-		// Combat talents - offensive buffs
-		{"focus", "Increase critical chance for next attack", "[]", "buff_crit", 15, 2, 3, 0, 5},
-		{"hail_storm", "Double attacks for 2 cycles", "[]", "buff_crit", 50, 2, 10, 5, 20},
-		{"battle_cry", "Demoralize enemies, reduces their accuracy", "[]", "debuff", 10, 2, 5, 0, 15},
-
-		// Healing talents
-		{"second_wind", "Recover HP when low", "[]", "heal", 25, 0, 5, 0, 15},
-
-		// Damage over time
-		{"shield_bash", "Bash with shield, has stun chance", "[]", "dot", 5, 3, 4, 0, 12},
-	}
-
-	for _, t := range talents {
-		_, err := client.Talent.Create().
-			SetName(t.name).
-			SetDescription(t.description).
-			SetRequirements(t.requirements).
-			SetEffectType(t.effectType).
-			SetEffectValue(t.effectValue).
-			SetEffectDuration(t.effectDuration).
-			SetCooldown(t.cooldown).
-			SetManaCost(t.manaCost).
-			SetStaminaCost(t.staminaCost).
-			Save(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to create talent %s: %w", t.name, err)
-		}
-	}
-
-	log.Printf("Seeded %d talents", len(talents))
-	return nil
-}
-
-// InitAvailableTalentsForCharacter unlocks default talents for a new character based on their class
-func InitAvailableTalentsForCharacter(client *db.Client, charID int, charClass string) error {
-	ctx := context.Background()
-
-	// Map of class -> default available talents
-	classTalents := map[string][]string{
-		"warrior":    {"slash", "parry", "smash", "crash"},
-		"chef":       {"slash", "second_wind", "battle_cry", "dodge"},
-		"mystic":     {"parry", "second_wind", "iron_will", "focus"},
-		"survivor":   {"slash", "parry", "crash", "dodge"},
-		"brawler":    {"crash", "parry", "dodge", "heavy_strike"},
-		"tinkerer":   {"parry", "dodge", "focus", "shield_bash"},
-		"trader":     {"parry", "battle_cry", "second_wind", "dodge"},
-		"vine_climber": {"parry", "dodge", "quick_slash", "focus"},
-	}
-
-	// Get talents for this class (default to survivor if not found)
-	talentNames, ok := classTalents[charClass]
-	if !ok {
-		talentNames = classTalents["survivor"]
-	}
-
-	// Get character level
-	char, err := client.Character.Get(ctx, charID)
-	if err != nil {
-		return fmt.Errorf("failed to get character: %w", err)
-	}
-
-	// Add each available talent
-	for _, talentName := range talentNames {
-		// Find the talent
-		talentObj, err := client.Talent.Query().Where(talent.NameEQ(talentName)).Only(ctx)
-		if err != nil {
-			log.Printf("Warning: talent %s not found, skipping", talentName)
-			continue
-		}
-
-		// Check if already available
-		existing, err := client.AvailableTalent.Query().
-			Where(availabletalent.HasCharacterWith(character.ID(charID))).
-			Where(availabletalent.HasTalentWith(talent.IDEQ(talentObj.ID))).
-			Exist(ctx)
-		if err == nil && existing {
-			continue
-		}
-
-		// Create available talent
-		_, err = client.AvailableTalent.Create().
-			SetCharacterID(charID).
-			SetTalentID(talentObj.ID).
-			SetUnlockReason("class_default").
-			SetUnlockedAtLevel(char.Level).
-			Save(ctx)
-		if err != nil {
-			log.Printf("Warning: failed to add available talent %s: %v", talentName, err)
-		}
-	}
-
-	log.Printf("Initialized available talents for character %d (class: %s)", charID, charClass)
 	return nil
 }
 

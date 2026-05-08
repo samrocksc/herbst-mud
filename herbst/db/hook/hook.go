@@ -20,6 +20,18 @@ func (f AbilityFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AbilityMutation", m)
 }
 
+// The AbilityEffectFunc type is an adapter to allow the use of ordinary
+// function as AbilityEffect mutator.
+type AbilityEffectFunc func(context.Context, *db.AbilityEffectMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AbilityEffectFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AbilityEffectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AbilityEffectMutation", m)
+}
+
 // The CharacterFunc type is an adapter to allow the use of ordinary
 // function as Character mutator.
 type CharacterFunc func(context.Context, *db.CharacterMutation) (db.Value, error)
@@ -90,18 +102,6 @@ func (f RoomFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RoomMutation", m)
-}
-
-// The TalentFunc type is an adapter to allow the use of ordinary
-// function as Talent mutator.
-type TalentFunc func(context.Context, *db.TalentMutation) (db.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TalentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.TalentMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TalentMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

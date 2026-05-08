@@ -14,14 +14,12 @@ func referentialIntegrity(backupDir string) []types.ValidationError {
 	userIDs := make(map[int]bool)
 	roomIDs := make(map[int]bool)
 	skillIDs := make(map[int]bool)
-	talentIDs := make(map[int]bool)
 	npcTemplateIDs := make(map[string]bool)
 	characterIDs := make(map[int]bool)
 
 	loadEntityIDs(backupDir, "users.json", userIDs)
 	loadEntityIDs(backupDir, "rooms.json", roomIDs)
 	loadEntityIDs(backupDir, "skills.json", skillIDs)
-	loadEntityIDs(backupDir, "talents.json", talentIDs)
 	loadStringIDs(backupDir, "npc_templates.json", npcTemplateIDs)
 
 	validateCharacters(backupDir, userIDs, roomIDs, characterIDs, &errors)

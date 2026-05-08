@@ -358,15 +358,6 @@ func (m *model) processCombatTick() {
 
 // executeCombatAction executes a queued combat action
 func (m *model) executeCombatAction(action string) {
-	// Check if it's a talent name (from equipped slots)
-	for _, talent := range m.combatTalents {
-		if talent.Name == action {
-			m.performTalentAction(talent)
-			return
-		}
-	}
-
-	// Default actions
 	switch action {
 	case "attack":
 		m.performCombatAttack()
@@ -374,84 +365,6 @@ func (m *model) executeCombatAction(action string) {
 		m.performCombatDefend()
 	default:
 		// Unknown action - default to attack
-		m.performCombatAttack()
-	}
-}
-
-// performTalentAction executes a talent's effect in combat
-func (m *model) performTalentAction(talent EquippedTalent) {
-	if m.combatTarget == nil || m.combatTarget.HP <= 0 {
-		return
-	}
-
-	// Log the talent use
-	m.addCombatLog(fmt.Sprintf("⚔ Using %s!", talent.Name))
-
-	// Determine talent effect based on type
-	switch talent.EffectType {
-	case "damage", "":
-		// Damage talent - apply damage to target
-		damage := talent.EffectValue
-		if damage <= 0 {
-			// Default attack if no damage value
-			m.performCombatAttack()
-			return
-		}
-		applyDamageToCharacter(m.combatTarget.ID, damage)
-		m.combatTarget.HP -= damage
-		if m.combatTarget.HP < 0 {
-			m.combatTarget.HP = 0
-		}
-		m.addCombatLog(fmt.Sprintf("⚔ %s deals %d damage!", talent.Name, damage))
-		if m.combatTarget.HP <= 0 {
-			m.addCombatLog(fmt.Sprintf("✦ %s has been defeated!", m.combatTarget.Name))
-			m.AppendMessage(fmt.Sprintf("⚔ You defeated %s!", m.combatTarget.Name), "success")
-			
-			// Generate corpse with victim's equipment
-			m.generateCorpse(m.combatTarget)
-			
-			if m.combatTarget.IsNPC {
-				healCharacter(m.combatTarget.ID, m.combatTarget.MaxHP)
-			}
-			m.exitCombat()
-		}
-	case "heal":
-		// Healing talent
-		healAmt := talent.EffectValue
-		if healAmt <= 0 {
-			healAmt = 15 // Default heal
-		}
-		m.characterHP += healAmt
-		if m.characterHP > m.characterMaxHP {
-			m.characterHP = m.characterMaxHP
-		}
-		healCharacter(m.currentCharacterID, healAmt)
-		m.addCombatLog(fmt.Sprintf("💚 Healed for %d HP!", healAmt))
-	case "dot":
-		// Damage over time - instant for now, can be expanded later
-		damage := talent.EffectValue
-		if damage > 0 {
-			applyDamageToCharacter(m.combatTarget.ID, damage)
-			m.combatTarget.HP -= damage
-			if m.combatTarget.HP < 0 {
-				m.combatTarget.HP = 0
-			}
-			m.addCombatLog(fmt.Sprintf("☠ %s applies DoT: %d damage!", talent.Name, damage))
-		}
-	case "buff_armor":
-		// Armor buff - would need buff system
-		m.addCombatLog(fmt.Sprintf("🛡 %s increases defense by %d!", talent.Name, talent.EffectValue))
-	case "buff_dodge":
-		// Dodge buff - would need buff system
-		m.addCombatLog(fmt.Sprintf("💨 %s increases dodge by %d%%!", talent.Name, talent.EffectValue))
-	case "buff_crit":
-		// Crit buff - would need buff system
-		m.addCombatLog(fmt.Sprintf("🎯 %s increases critical chance by %d%%!", talent.Name, talent.EffectValue))
-	case "debuff":
-		// Debuff enemy
-		m.addCombatLog(fmt.Sprintf("🔻 %s weakens the enemy!", talent.Name))
-	default:
-		// Unknown type - default to attack
 		m.performCombatAttack()
 	}
 }
@@ -719,13 +632,13 @@ func (m *model) loadRoomCharactersWithHP() {
 func (m *model) handleCombatInput(key string) {
 	switch strings.ToLower(key) {
 	case "1":
-		m.useCombatTalent(1)
+		m.useAbilitySlot(1)
 	case "2":
-		m.useCombatTalent(2)
+		m.useAbilitySlot(2)
 	case "3":
-		m.useCombatTalent(3)
+		m.useAbilitySlot(3)
 	case "4":
-		m.useCombatTalent(4)
+		m.useAbilitySlot(4)
 	case "r":
 		m.useHealthPotion()
 	case "q":

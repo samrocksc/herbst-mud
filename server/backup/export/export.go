@@ -33,15 +33,6 @@ func Abilities(ctx context.Context, client *db.Client, filePath string) (int, er
 	return len(abilities), writeJSON(filePath, abilities)
 }
 
-// Talents exports all talents to JSON
-func Talents(ctx context.Context, client *db.Client, filePath string) (int, error) {
-	talents, err := client.Talent.Query().All(ctx)
-	if err != nil {
-		return 0, err
-	}
-	return len(talents), writeJSON(filePath, talents)
-}
-
 // NPCTemplates exports all NPC templates to JSON
 func NPCTemplates(ctx context.Context, client *db.Client, filePath string) (int, error) {
 	templates, err := client.NPCTemplate.Query().All(ctx)
@@ -78,20 +69,3 @@ func CharacterAbilities(ctx context.Context, client *db.Client, filePath string)
 	return len(abilities), writeJSON(filePath, abilities)
 }
 
-// CharacterTalents exports all character talents to JSON
-func CharacterTalents(ctx context.Context, client *db.Client, filePath string) (int, error) {
-	talents, err := client.CharacterTalent.Query().All(ctx)
-	if err != nil {
-		return 0, err
-	}
-	return len(talents), writeJSON(filePath, talents)
-}
-
-// AvailableTalents exports all available talents to JSON
-func AvailableTalents(ctx context.Context, client *db.Client, filePath string) (int, error) {
-	talents, err := client.AvailableTalent.Query().All(ctx)
-	if err != nil {
-		return 0, err
-	}
-	return len(talents), writeJSON(filePath, talents)
-}

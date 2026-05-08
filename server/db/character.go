@@ -118,12 +118,8 @@ type CharacterEdges struct {
 	Room *Room `json:"room,omitempty"`
 	// NpcTemplate holds the value of the npcTemplate edge.
 	NpcTemplate *NPCTemplate `json:"npcTemplate,omitempty"`
-	// AvailableTalents holds the value of the available_talents edge.
-	AvailableTalents []*AvailableTalent `json:"available_talents,omitempty"`
 	// Abilities holds the value of the abilities edge.
 	Abilities []*CharacterAbility `json:"abilities,omitempty"`
-	// Talents holds the value of the talents edge.
-	Talents []*CharacterTalent `json:"talents,omitempty"`
 	// Tags holds the value of the tags edge.
 	Tags []*CharacterTag `json:"tags,omitempty"`
 	// FactionMemberships holds the value of the faction_memberships edge.
@@ -132,7 +128,7 @@ type CharacterEdges struct {
 	Competencies []*CharacterCompetency `json:"competencies,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [7]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -168,37 +164,19 @@ func (e CharacterEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
 	return nil, &NotLoadedError{edge: "npcTemplate"}
 }
 
-// AvailableTalentsOrErr returns the AvailableTalents value or an error if the edge
-// was not loaded in eager-loading.
-func (e CharacterEdges) AvailableTalentsOrErr() ([]*AvailableTalent, error) {
-	if e.loadedTypes[3] {
-		return e.AvailableTalents, nil
-	}
-	return nil, &NotLoadedError{edge: "available_talents"}
-}
-
 // AbilitiesOrErr returns the Abilities value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) AbilitiesOrErr() ([]*CharacterAbility, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.Abilities, nil
 	}
 	return nil, &NotLoadedError{edge: "abilities"}
 }
 
-// TalentsOrErr returns the Talents value or an error if the edge
-// was not loaded in eager-loading.
-func (e CharacterEdges) TalentsOrErr() ([]*CharacterTalent, error) {
-	if e.loadedTypes[5] {
-		return e.Talents, nil
-	}
-	return nil, &NotLoadedError{edge: "talents"}
-}
-
 // TagsOrErr returns the Tags value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) TagsOrErr() ([]*CharacterTag, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[4] {
 		return e.Tags, nil
 	}
 	return nil, &NotLoadedError{edge: "tags"}
@@ -207,7 +185,7 @@ func (e CharacterEdges) TagsOrErr() ([]*CharacterTag, error) {
 // FactionMembershipsOrErr returns the FactionMemberships value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) FactionMembershipsOrErr() ([]*CharacterFaction, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[5] {
 		return e.FactionMemberships, nil
 	}
 	return nil, &NotLoadedError{edge: "faction_memberships"}
@@ -216,7 +194,7 @@ func (e CharacterEdges) FactionMembershipsOrErr() ([]*CharacterFaction, error) {
 // CompetenciesOrErr returns the Competencies value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) CompetenciesOrErr() ([]*CharacterCompetency, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[6] {
 		return e.Competencies, nil
 	}
 	return nil, &NotLoadedError{edge: "competencies"}
@@ -549,19 +527,9 @@ func (_m *Character) QueryNpcTemplate() *NPCTemplateQuery {
 	return NewCharacterClient(_m.config).QueryNpcTemplate(_m)
 }
 
-// QueryAvailableTalents queries the "available_talents" edge of the Character entity.
-func (_m *Character) QueryAvailableTalents() *AvailableTalentQuery {
-	return NewCharacterClient(_m.config).QueryAvailableTalents(_m)
-}
-
 // QueryAbilities queries the "abilities" edge of the Character entity.
 func (_m *Character) QueryAbilities() *CharacterAbilityQuery {
 	return NewCharacterClient(_m.config).QueryAbilities(_m)
-}
-
-// QueryTalents queries the "talents" edge of the Character entity.
-func (_m *Character) QueryTalents() *CharacterTalentQuery {
-	return NewCharacterClient(_m.config).QueryTalents(_m)
 }
 
 // QueryTags queries the "tags" edge of the Character entity.

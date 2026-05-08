@@ -35,7 +35,7 @@ function Dashboard() {
         const [roomsRes, npcsRes, skillsRes, equipmentRes, charactersRes] = await Promise.all([
           fetch(`${window.location.origin}/rooms`),
           fetch(`${window.location.origin}/npcs`),
-          fetch(`${window.location.origin}/talents`),
+          fetch(`${window.location.origin}/api/abilities`),
           fetch(`${window.location.origin}/equipment`),
           fetch(`${window.location.origin}/characters`),
         ])
@@ -49,7 +49,7 @@ function Dashboard() {
           npcs: npcsData.npcs?.length || 0,
           items: Array.isArray(equipmentData) ? equipmentData.length : 0,
           players: Array.isArray(charactersData) ? charactersData.length : 0,
-          skills: skillsData.count || 0
+          skills: skillsData.abilities?.length || 0
         })
       } catch (err) {
         logError('Failed to fetch stats:', err)

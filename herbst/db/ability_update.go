@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst/db/ability"
+	"herbst/db/abilityeffect"
 	"herbst/db/character"
 	"herbst/db/predicate"
 
@@ -307,6 +308,21 @@ func (_u *AbilityUpdate) AddCharacters(v ...*Character) *AbilityUpdate {
 	return _u.AddCharacterIDs(ids...)
 }
 
+// AddEffectIDs adds the "effects" edge to the AbilityEffect entity by IDs.
+func (_u *AbilityUpdate) AddEffectIDs(ids ...int) *AbilityUpdate {
+	_u.mutation.AddEffectIDs(ids...)
+	return _u
+}
+
+// AddEffects adds the "effects" edges to the AbilityEffect entity.
+func (_u *AbilityUpdate) AddEffects(v ...*AbilityEffect) *AbilityUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEffectIDs(ids...)
+}
+
 // Mutation returns the AbilityMutation object of the builder.
 func (_u *AbilityUpdate) Mutation() *AbilityMutation {
 	return _u.mutation
@@ -331,6 +347,27 @@ func (_u *AbilityUpdate) RemoveCharacters(v ...*Character) *AbilityUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearEffects clears all "effects" edges to the AbilityEffect entity.
+func (_u *AbilityUpdate) ClearEffects() *AbilityUpdate {
+	_u.mutation.ClearEffects()
+	return _u
+}
+
+// RemoveEffectIDs removes the "effects" edge to AbilityEffect entities by IDs.
+func (_u *AbilityUpdate) RemoveEffectIDs(ids ...int) *AbilityUpdate {
+	_u.mutation.RemoveEffectIDs(ids...)
+	return _u
+}
+
+// RemoveEffects removes "effects" edges to AbilityEffect entities.
+func (_u *AbilityUpdate) RemoveEffects(v ...*AbilityEffect) *AbilityUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEffectIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -479,6 +516,51 @@ func (_u *AbilityUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EffectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ability.EffectsTable,
+			Columns: []string{ability.EffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEffectsIDs(); len(nodes) > 0 && !_u.mutation.EffectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ability.EffectsTable,
+			Columns: []string{ability.EffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EffectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ability.EffectsTable,
+			Columns: []string{ability.EffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -785,6 +867,21 @@ func (_u *AbilityUpdateOne) AddCharacters(v ...*Character) *AbilityUpdateOne {
 	return _u.AddCharacterIDs(ids...)
 }
 
+// AddEffectIDs adds the "effects" edge to the AbilityEffect entity by IDs.
+func (_u *AbilityUpdateOne) AddEffectIDs(ids ...int) *AbilityUpdateOne {
+	_u.mutation.AddEffectIDs(ids...)
+	return _u
+}
+
+// AddEffects adds the "effects" edges to the AbilityEffect entity.
+func (_u *AbilityUpdateOne) AddEffects(v ...*AbilityEffect) *AbilityUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEffectIDs(ids...)
+}
+
 // Mutation returns the AbilityMutation object of the builder.
 func (_u *AbilityUpdateOne) Mutation() *AbilityMutation {
 	return _u.mutation
@@ -809,6 +906,27 @@ func (_u *AbilityUpdateOne) RemoveCharacters(v ...*Character) *AbilityUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearEffects clears all "effects" edges to the AbilityEffect entity.
+func (_u *AbilityUpdateOne) ClearEffects() *AbilityUpdateOne {
+	_u.mutation.ClearEffects()
+	return _u
+}
+
+// RemoveEffectIDs removes the "effects" edge to AbilityEffect entities by IDs.
+func (_u *AbilityUpdateOne) RemoveEffectIDs(ids ...int) *AbilityUpdateOne {
+	_u.mutation.RemoveEffectIDs(ids...)
+	return _u
+}
+
+// RemoveEffects removes "effects" edges to AbilityEffect entities.
+func (_u *AbilityUpdateOne) RemoveEffects(v ...*AbilityEffect) *AbilityUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEffectIDs(ids...)
 }
 
 // Where appends a list predicates to the AbilityUpdate builder.
@@ -987,6 +1105,51 @@ func (_u *AbilityUpdateOne) sqlSave(ctx context.Context) (_node *Ability, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EffectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ability.EffectsTable,
+			Columns: []string{ability.EffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEffectsIDs(); len(nodes) > 0 && !_u.mutation.EffectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ability.EffectsTable,
+			Columns: []string{ability.EffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EffectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ability.EffectsTable,
+			Columns: []string{ability.EffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

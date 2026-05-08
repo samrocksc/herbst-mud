@@ -19,7 +19,6 @@ func (m *model) handleHelpCommand(_ *model, args []string) {
   drop <item> - Drop an item
   inventory/inv/i - Show your inventory
   equip <item> - Equip an item from inventory
-  equip talent <id> <slot> - Equip talent to slot 1-4
   equip potion <id> - Equip potion to R slot
   unequip <slot|item> - Unequip an item
   quests/q - Show your quest log
@@ -29,7 +28,6 @@ func (m *model) handleHelpCommand(_ *model, args []string) {
   skill slot <1-5> - Select a skill for a slot
   skill all - Show available classless skills
   skill swap <s1> <s2> - Swap skills between slots
-  talents - Show your talents
   debug - Toggle debug mode
   clear/cls - Clear screen
   quit - Exit game`, "info")

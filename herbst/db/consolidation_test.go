@@ -1,5 +1,4 @@
 // Package db provides tests to verify database schema consolidation
-// This test documents the current state of db duplication between herbst/ and server/
 package db
 
 import (
@@ -9,14 +8,13 @@ import (
 // TestSchemaConsolidation verifies that the unified db module contains
 // all entities needed by both the TUI client and the server.
 //
-// CURRENT STATE (March 17, 2026):
-// - herbst/db/ contains: user, character, room, equipment, skill, talent, npctemplate
-// - server/db/ contains: ALL OF ABOVE + characterskill, charactertalent, availabletalent
+// CURRENT STATE (May 2026):
+// - herbst/db/ contains: user, character, room, equipment, ability, ability_effect, character_ability, npctemplate
+// - server/db/ contains: ALL OF ABOVE + npc_ability, charactertag, characterfaction, charactercompetency, etc.
 //
 // KEY FINDINGS:
-// 1. server/db has CharacterSkill and CharacterTalent tables (for skill/talent system)
-//    that herbst/db is missing
-// 2. server/db has AvailableTalent table that herbst/db is missing  
+// 1. Both modules share the core combat entities (Ability, AbilityEffect, CharacterAbility)
+// 2. server/db has additional admin-only entities (NPCAbility join table, tags, factions, etc.)
 // 3. They are separate Go modules (herbst vs herbst-server) so can't share code
 //
 // CONSOLIDATION OPTIONS:
@@ -24,26 +22,21 @@ import (
 // B) Generate ent code for both from a single schema source
 // C) Keep separate but add missing tables to herbst/db
 func TestSchemaConsolidation(t *testing.T) {
-	// These are the entities that need to be unified:
+	// Core entities present in both:
 	// - User (both have)
-	// - Character (both have) 
+	// - Character (both have)
 	// - Room (both have)
 	// - Equipment (both have)
-	// - Skill (both have)
-	// - Talent (both have)
+	// - Ability (both have, renamed from Skill)
+	// - AbilityEffect (both have, new entity)
+	// - CharacterAbility (both have, renamed from CharacterSkill)
 	// - NPCTemplate (both have)
-	// - CharacterSkill (ONLY in server/db - CRITICAL)
-	// - CharacterTalent (ONLY in server/db - CRITICAL)
-	// - AvailableTalent (ONLY in server/db)
-
-	// The critical gap: CharacterSkill and CharacterTalent
-	// These are needed for the skill/talent system to work in the TUI
 
 	t.Log("Schema consolidation documentation test")
-	t.Log("Entities requiring consolidation:")
-	t.Log("  - CharacterSkill: character -> skill link (MISSING from herbst/db)")
-	t.Log("  - CharacterTalent: character -> talent link (MISSING from herbst/db)")
-	t.Log("  - AvailableTalent: pre-defined talent assignments (MISSING from herbst/db)")
+	t.Log("Core entities shared between herbst/db and server/db:")
+	t.Log("  - Ability: combat moves and passive abilities")
+	t.Log("  - AbilityEffect: effects per ability (damage, heal, buff, etc.)")
+	t.Log("  - CharacterAbility: character -> ability link with slot")
 }
 
 // TestModulePathDifference documents the import path divergence
@@ -52,7 +45,7 @@ func TestModulePathDifference(t *testing.T) {
 	// server/ imports: "herbst-server/db", "herbst-server/dbinit"
 	//
 	// This means they cannot share code without creating a shared module
-	
+
 	t.Log("Module import paths:")
 	t.Log("  TUI (herbst/):   import herbst/db")
 	t.Log("  Server (server/): import herbst-server/db")

@@ -82,11 +82,11 @@ func (m *model) renderCombatScreen() string {
 		Padding(0, 1).
 		Width(width - 4)
 
-	// Build action display with equipped talents
-	slot1 := m.getTalentSlotName(1)
-	slot2 := m.getTalentSlotName(2)
-	slot3 := m.getTalentSlotName(3)
-	slot4 := m.getTalentSlotName(4)
+	// Build action display with equipped abilities
+	slot1 := m.getAbilitySlotName(1)
+	slot2 := m.getAbilitySlotName(2)
+	slot3 := m.getAbilitySlotName(3)
+	slot4 := m.getAbilitySlotName(4)
 	potionSlot := m.getPotionSlotName()
 
 	actions := fmt.Sprintf("[1] %-10s  [2] %-10s\n[3] %-10s  [4] %-10s\n[R] %-12s  [Q] Flee",

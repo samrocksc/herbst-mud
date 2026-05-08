@@ -27,7 +27,6 @@ import { Route as DocsConfigReferenceRouteImport } from './routes/docs/config-re
 import { Route as DocsCombatGuideRouteImport } from './routes/docs/combat-guide'
 import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
-import { Route as AuthTalentsRouteImport } from './routes/_auth/talents'
 import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
 import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
 import { Route as AuthRacesRouteImport } from './routes/_auth/races'
@@ -134,11 +133,6 @@ const AuthXpRoute = AuthXpRouteImport.update({
   path: '/xp',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthTalentsRoute = AuthTalentsRouteImport.update({
-  id: '/talents',
-  path: '/talents',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthTagsRoute = AuthTagsRouteImport.update({
   id: '/tags',
   path: '/tags',
@@ -241,7 +235,6 @@ export interface FileRoutesByFullPath {
   '/races': typeof AuthRacesRoute
   '/skills': typeof AuthSkillsRoute
   '/tags': typeof AuthTagsRoute
-  '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
@@ -276,7 +269,6 @@ export interface FileRoutesByTo {
   '/races': typeof AuthRacesRoute
   '/skills': typeof AuthSkillsRoute
   '/tags': typeof AuthTagsRoute
-  '/talents': typeof AuthTalentsRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
@@ -313,7 +305,6 @@ export interface FileRoutesById {
   '/_auth/races': typeof AuthRacesRoute
   '/_auth/skills': typeof AuthSkillsRoute
   '/_auth/tags': typeof AuthTagsRoute
-  '/_auth/talents': typeof AuthTalentsRoute
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
@@ -351,7 +342,6 @@ export interface FileRouteTypes {
     | '/races'
     | '/skills'
     | '/tags'
-    | '/talents'
     | '/xp'
     | '/docs/ability-system'
     | '/docs/combat-guide'
@@ -386,7 +376,6 @@ export interface FileRouteTypes {
     | '/races'
     | '/skills'
     | '/tags'
-    | '/talents'
     | '/xp'
     | '/docs/ability-system'
     | '/docs/combat-guide'
@@ -422,7 +411,6 @@ export interface FileRouteTypes {
     | '/_auth/races'
     | '/_auth/skills'
     | '/_auth/tags'
-    | '/_auth/talents'
     | '/_auth/xp'
     | '/docs/ability-system'
     | '/docs/combat-guide'
@@ -578,13 +566,6 @@ declare module '@tanstack/react-router' {
       path: '/xp'
       fullPath: '/xp'
       preLoaderRoute: typeof AuthXpRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/talents': {
-      id: '/_auth/talents'
-      path: '/talents'
-      fullPath: '/talents'
-      preLoaderRoute: typeof AuthTalentsRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/tags': {
@@ -764,7 +745,6 @@ interface AuthRouteChildren {
   AuthRacesRoute: typeof AuthRacesRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
   AuthTagsRoute: typeof AuthTagsRoute
-  AuthTalentsRoute: typeof AuthTalentsRoute
   AuthXpRoute: typeof AuthXpRoute
   AuthCharactersCharacterIdRoute: typeof AuthCharactersCharacterIdRoute
 }
@@ -780,7 +760,6 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthRacesRoute: AuthRacesRoute,
   AuthSkillsRoute: AuthSkillsRoute,
   AuthTagsRoute: AuthTagsRoute,
-  AuthTalentsRoute: AuthTalentsRoute,
   AuthXpRoute: AuthXpRoute,
   AuthCharactersCharacterIdRoute: AuthCharactersCharacterIdRoute,
 }

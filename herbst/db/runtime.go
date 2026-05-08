@@ -3,6 +3,7 @@
 package db
 
 import (
+	"herbst/db/abilityeffect"
 	"herbst/db/character"
 	"herbst/db/equipment"
 	"herbst/db/equipmenttemplate"
@@ -17,6 +18,32 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	abilityeffectFields := schema.AbilityEffect{}.Fields()
+	_ = abilityeffectFields
+	// abilityeffectDescDamageSubtype is the schema descriptor for damage_subtype field.
+	abilityeffectDescDamageSubtype := abilityeffectFields[1].Descriptor()
+	// abilityeffect.DefaultDamageSubtype holds the default value on creation for the damage_subtype field.
+	abilityeffect.DefaultDamageSubtype = abilityeffectDescDamageSubtype.Default.(string)
+	// abilityeffectDescTarget is the schema descriptor for target field.
+	abilityeffectDescTarget := abilityeffectFields[2].Descriptor()
+	// abilityeffect.DefaultTarget holds the default value on creation for the target field.
+	abilityeffect.DefaultTarget = abilityeffectDescTarget.Default.(string)
+	// abilityeffectDescValue is the schema descriptor for value field.
+	abilityeffectDescValue := abilityeffectFields[3].Descriptor()
+	// abilityeffect.DefaultValue holds the default value on creation for the value field.
+	abilityeffect.DefaultValue = abilityeffectDescValue.Default.(int)
+	// abilityeffectDescDuration is the schema descriptor for duration field.
+	abilityeffectDescDuration := abilityeffectFields[4].Descriptor()
+	// abilityeffect.DefaultDuration holds the default value on creation for the duration field.
+	abilityeffect.DefaultDuration = abilityeffectDescDuration.Default.(int)
+	// abilityeffectDescScalingRatio is the schema descriptor for scaling_ratio field.
+	abilityeffectDescScalingRatio := abilityeffectFields[6].Descriptor()
+	// abilityeffect.DefaultScalingRatio holds the default value on creation for the scaling_ratio field.
+	abilityeffect.DefaultScalingRatio = abilityeffectDescScalingRatio.Default.(float64)
+	// abilityeffectDescSortOrder is the schema descriptor for sort_order field.
+	abilityeffectDescSortOrder := abilityeffectFields[7].Descriptor()
+	// abilityeffect.DefaultSortOrder holds the default value on creation for the sort_order field.
+	abilityeffect.DefaultSortOrder = abilityeffectDescSortOrder.Default.(int)
 	characterFields := schema.Character{}.Fields()
 	_ = characterFields
 	// characterDescIsNPC is the schema descriptor for isNPC field.

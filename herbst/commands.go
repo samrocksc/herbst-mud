@@ -83,12 +83,7 @@ func (m *model) processCommand(cmd string) {
 				m.combatSkills = &CombatSkillState{}
 				m.initCombatSkillState()
 			}
-			m.showEquippedClasslessSkills()
-			return
-		}
-		// talents
-		if cmd == "talents" {
-			m.handleTalentsCommand(cmd)
+			m.showEquippedAbilities()
 			return
 		}
 		// skill (classless skills) - equip, swap, show
@@ -97,12 +92,7 @@ func (m *model) processCommand(cmd string) {
 				m.combatSkills = &CombatSkillState{}
 				m.initCombatSkillState()
 			}
-			m.handleClasslessSkillCommand(cmd[6:])
-			return
-		}
-		// talent equip/unequip/swap
-		if strings.HasPrefix(cmd, "talent ") {
-			m.handleTalentEquipCommand(cmd)
+			m.handleAbilityCommand(cmd[6:])
 			return
 		}
 		// peer with direction

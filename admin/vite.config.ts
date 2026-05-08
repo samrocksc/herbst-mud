@@ -35,16 +35,6 @@ export default defineConfig({
       },
       '/characters': 'http://localhost:8080',
       '/equipment': 'http://localhost:8080',
-      '/talents': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        bypass(req) {
-          // /talents is also a sidebar SPA page.
-          // API data fetch → no text/html Accept; SPA page load → text/html.
-          const accept = req.headers.accept ?? ''
-          if (accept.includes('text/html')) return '/index.html'
-        },
-      },
       '/skills': {
         target: 'http://localhost:8080',
         changeOrigin: true,

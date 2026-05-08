@@ -54,9 +54,11 @@ type Ability struct {
 type AbilityEdges struct {
 	// Characters holds the value of the characters edge.
 	Characters []*Character `json:"characters,omitempty"`
+	// Effects holds the value of the effects edge.
+	Effects []*AbilityEffect `json:"effects,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -66,6 +68,15 @@ func (e AbilityEdges) CharactersOrErr() ([]*Character, error) {
 		return e.Characters, nil
 	}
 	return nil, &NotLoadedError{edge: "characters"}
+}
+
+// EffectsOrErr returns the Effects value or an error if the edge
+// was not loaded in eager-loading.
+func (e AbilityEdges) EffectsOrErr() ([]*AbilityEffect, error) {
+	if e.loadedTypes[1] {
+		return e.Effects, nil
+	}
+	return nil, &NotLoadedError{edge: "effects"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -200,6 +211,11 @@ func (_m *Ability) Value(name string) (ent.Value, error) {
 // QueryCharacters queries the "characters" edge of the Ability entity.
 func (_m *Ability) QueryCharacters() *CharacterQuery {
 	return NewAbilityClient(_m.config).QueryCharacters(_m)
+}
+
+// QueryEffects queries the "effects" edge of the Ability entity.
+func (_m *Ability) QueryEffects() *AbilityEffectQuery {
+	return NewAbilityClient(_m.config).QueryEffects(_m)
 }
 
 // Update returns a builder for updating this Ability.

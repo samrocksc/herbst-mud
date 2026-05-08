@@ -309,7 +309,7 @@ function ExportPage() {
             </h2>
             
             <p className="text-text-muted mb-4">
-              <strong>WARNING:</strong> This will delete ALL game data (NPCs, rooms, items, skills, talents) 
+              <strong>WARNING:</strong> This will delete ALL game data (NPCs, rooms, items, skills, abilities)
               and reinitialize with fresh default data. Player accounts and characters are preserved.
             </p>
 

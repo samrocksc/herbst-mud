@@ -44,18 +44,6 @@ func (f AchievementFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AchievementMutation", m)
 }
 
-// The AvailableTalentFunc type is an adapter to allow the use of ordinary
-// function as AvailableTalent mutator.
-type AvailableTalentFunc func(context.Context, *db.AvailableTalentMutation) (db.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f AvailableTalentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.AvailableTalentMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AvailableTalentMutation", m)
-}
-
 // The CharacterFunc type is an adapter to allow the use of ordinary
 // function as Character mutator.
 type CharacterFunc func(context.Context, *db.CharacterMutation) (db.Value, error)
@@ -114,18 +102,6 @@ func (f CharacterTagFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterTagMutation", m)
-}
-
-// The CharacterTalentFunc type is an adapter to allow the use of ordinary
-// function as CharacterTalent mutator.
-type CharacterTalentFunc func(context.Context, *db.CharacterTalentMutation) (db.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f CharacterTalentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.CharacterTalentMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterTalentMutation", m)
 }
 
 // The CompetencyCategoryFunc type is an adapter to allow the use of ordinary
@@ -306,18 +282,6 @@ func (f TagFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TagMutation", m)
-}
-
-// The TalentFunc type is an adapter to allow the use of ordinary
-// function as Talent mutator.
-type TalentFunc func(context.Context, *db.TalentMutation) (db.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TalentFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	if mv, ok := m.(*db.TalentMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TalentMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

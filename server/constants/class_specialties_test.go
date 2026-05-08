@@ -22,14 +22,14 @@ func TestGetClassConfig_WarriorFighter(t *testing.T) {
 		t.Errorf("Expected brawling level 1, got %d", config.StartingSkills["brawling"])
 	}
 
-	// Check starting talents
-	expectedTalents := []string{"slash", "parry", "smash", "crash"}
-	if len(config.StartingTalents) != len(expectedTalents) {
-		t.Errorf("Expected %d talents, got %d", len(expectedTalents), len(config.StartingTalents))
+	// Check starting abilities
+	expectedAbilities := []string{"slash", "parry", "smash", "crash"}
+	if len(config.StartingAbilities) != len(expectedAbilities) {
+		t.Errorf("Expected %d abilities, got %d", len(expectedAbilities), len(config.StartingAbilities))
 	}
-	for i, talent := range expectedTalents {
-		if config.StartingTalents[i] != talent {
-			t.Errorf("Expected talent[%d] '%s', got '%s'", i, talent, config.StartingTalents[i])
+	for i, ability := range expectedAbilities {
+		if config.StartingAbilities[i] != ability {
+			t.Errorf("Expected ability[%d] '%s', got '%s'", i, ability, config.StartingAbilities[i])
 		}
 	}
 

@@ -877,6 +877,29 @@ func HasCharactersWith(preds ...predicate.Character) predicate.Ability {
 	})
 }
 
+// HasEffects applies the HasEdge predicate on the "effects" edge.
+func HasEffects() predicate.Ability {
+	return predicate.Ability(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EffectsTable, EffectsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEffectsWith applies the HasEdge predicate on the "effects" edge with a given conditions (other predicates).
+func HasEffectsWith(preds ...predicate.AbilityEffect) predicate.Ability {
+	return predicate.Ability(func(s *sql.Selector) {
+		step := newEffectsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Ability) predicate.Ability {
 	return predicate.Ability(sql.AndPredicates(predicates...))

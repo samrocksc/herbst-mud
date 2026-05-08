@@ -9,13 +9,11 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
-	"herbst-server/db/availabletalent"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/charactertag"
-	"herbst-server/db/charactertalent"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/damagelog"
@@ -31,7 +29,6 @@ import (
 	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/tag"
-	"herbst-server/db/talent"
 	"herbst-server/db/user"
 	"reflect"
 	"sync"
@@ -102,13 +99,11 @@ func checkColumn(t, c string) error {
 			ability.Table:                  ability.ValidColumn,
 			abilityeffect.Table:            abilityeffect.ValidColumn,
 			achievement.Table:              achievement.ValidColumn,
-			availabletalent.Table:          availabletalent.ValidColumn,
 			character.Table:                character.ValidColumn,
 			characterability.Table:         characterability.ValidColumn,
 			charactercompetency.Table:      charactercompetency.ValidColumn,
 			characterfaction.Table:         characterfaction.ValidColumn,
 			charactertag.Table:             charactertag.ValidColumn,
-			charactertalent.Table:          charactertalent.ValidColumn,
 			competencycategory.Table:       competencycategory.ValidColumn,
 			competencylevelthreshold.Table: competencylevelthreshold.ValidColumn,
 			damagelog.Table:                damagelog.ValidColumn,
@@ -124,7 +119,6 @@ func checkColumn(t, c string) error {
 			race.Table:                     race.ValidColumn,
 			room.Table:                     room.ValidColumn,
 			tag.Table:                      tag.ValidColumn,
-			talent.Table:                   talent.ValidColumn,
 			user.Table:                     user.ValidColumn,
 		})
 	})

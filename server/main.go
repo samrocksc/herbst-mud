@@ -169,6 +169,11 @@ func main() {
 		log.Printf("Warning: failed to initialize consumables: %v", err)
 	}
 
+	// Initialize competency categories and level thresholds
+	if err := dbinit.InitCompetencies(client); err != nil {
+		log.Printf("Warning: failed to initialize competencies: %v", err)
+	}
+
 	// Give starting characters health potions
 	if err := dbinit.GivePotionToCharacter(client, 9); err != nil { // sma
 		log.Printf("Warning: failed to give potion to character: %v", err)
@@ -246,9 +251,6 @@ func main() {
 
 	// Register effect routes (ability effects)
 	routes.RegisterEffectRoutes(router, client)
-
-	// Register talent routes
-	routes.RegisterTalentRoutes(router, client)
 
 	// Register user routes
 	routes.RegisterUserRoutes(router, client)

@@ -7,8 +7,8 @@ import (
 	"herbst/db"
 )
 
-// InitSkillsAndTalents creates default abilities and talents if they don't exist
-func InitSkillsAndTalents(client *db.Client) error {
+// InitSkillsAndAbilities creates default abilities if they don't exist
+func InitSkillsAndAbilities(client *db.Client) error {
 	ctx := context.Background()
 
 	// Check if abilities already exist
@@ -106,6 +106,6 @@ func InitSkillsAndTalents(client *db.Client) error {
 		}
 	}
 
-	log.Println("Abilities and talents initialized successfully")
+	log.Println("Abilities initialized successfully")
 	return nil
 }

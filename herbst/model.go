@@ -105,9 +105,6 @@ type model struct {
 	combatQueuedAction string   // Action queued for next tick
 	combatJustStarted  bool     // Flag to start tick timer
 
-	// Combat talents (slots 1-4)
-	combatTalents []EquippedTalent
-
 	// Classless combat skills (slots 1-5)
 	combatSkills *CombatSkillState
 
@@ -123,20 +120,6 @@ type model struct {
 
 	// Equipped potion (R slot)
 	equippedPotion *EquippedPotion
-}
-
-// EquippedTalent represents a talent equipped in a combat slot
-type EquippedTalent struct {
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	Slot          int    `json:"slot"`
-	EffectType    string `json:"effectType"`   // heal|damage|dot|buff_armor|buff_dodge|buff_crit|debuff
-	EffectValue   int    `json:"effectValue"`  // Amount: HP healed, damage, etc.
-	EffectDuration int   `json:"effectDuration"` // Duration in ticks (0 = instant)
-	Cooldown      int    `json:"cooldown"`
-	ManaCost      int    `json:"manaCost"`
-	StaminaCost   int    `json:"staminaCost"`
 }
 
 // EquippedPotion represents a potion equipped in the R slot

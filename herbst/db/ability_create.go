@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst/db/ability"
+	"herbst/db/abilityeffect"
 	"herbst/db/character"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -133,6 +134,21 @@ func (_c *AbilityCreate) AddCharacters(v ...*Character) *AbilityCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddCharacterIDs(ids...)
+}
+
+// AddEffectIDs adds the "effects" edge to the AbilityEffect entity by IDs.
+func (_c *AbilityCreate) AddEffectIDs(ids ...int) *AbilityCreate {
+	_c.mutation.AddEffectIDs(ids...)
+	return _c
+}
+
+// AddEffects adds the "effects" edges to the AbilityEffect entity.
+func (_c *AbilityCreate) AddEffects(v ...*AbilityEffect) *AbilityCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEffectIDs(ids...)
 }
 
 // Mutation returns the AbilityMutation object of the builder.
@@ -296,6 +312,22 @@ func (_c *AbilityCreate) createSpec() (*Ability, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EffectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   ability.EffectsTable,
+			Columns: []string{ability.EffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

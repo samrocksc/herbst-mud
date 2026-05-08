@@ -140,8 +140,16 @@ func abilityToView(s *db.Ability) abilityView {
 
 func listAbilities(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		abilities, err := client.Ability.Query().
-			WithFaction().
+		query := client.Ability.Query().WithFaction()
+
+		if t := c.Query("type"); t != "" {
+			query = query.Where(ability.AbilityType(t))
+		}
+		if ac := c.Query("ability_class"); ac != "" {
+			query = query.Where(ability.AbilityClass(ac))
+		}
+
+		abilities, err := query.
 			Order(ability.ByName()).
 			All(c.Request.Context())
 		if err != nil {

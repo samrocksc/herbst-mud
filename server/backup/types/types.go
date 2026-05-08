@@ -27,7 +27,6 @@ type IDMapping struct {
 	Users        map[int]int       `json:"users"`
 	Rooms        map[int]int       `json:"rooms"`
 	Skills       map[int]int       `json:"skills"`
-	Talents      map[int]int       `json:"talents"`
 	NPCTemplates  map[string]string `json:"npc_templates"`
 	Characters   map[int]int       `json:"characters"`
 	Equipment    map[int]int       `json:"equipment"`
@@ -39,7 +38,6 @@ func NewIDMapping() *IDMapping {
 		Users:        make(map[int]int),
 		Rooms:        make(map[int]int),
 		Skills:       make(map[int]int),
-		Talents:      make(map[int]int),
 		NPCTemplates: make(map[string]string),
 		Characters:   make(map[int]int),
 		Equipment:    make(map[int]int),
@@ -61,16 +59,13 @@ type ValidationResult struct {
 
 // EntityFileNames maps entity names to their JSON file names
 var EntityFileNames = map[string]string{
-	"users":              "users.json",
-	"rooms":              "rooms.json",
-	"skills":             "skills.json",
-	"talents":            "talents.json",
-	"npc_templates":      "npc_templates.json",
-	"equipment":          "equipment.json",
-	"characters":         "characters.json",
-	"character_skills":   "character_skills.json",
-	"character_talents":  "character_talents.json",
-	"available_talents": "available_talents.json",
+	"users":            "users.json",
+	"rooms":            "rooms.json",
+	"skills":           "skills.json",
+	"npc_templates":    "npc_templates.json",
+	"equipment":        "equipment.json",
+	"characters":       "characters.json",
+	"character_skills": "character_skills.json",
 }
 
 // ImportOrder defines the order entities should be imported (dependencies first)
@@ -78,11 +73,8 @@ var ImportOrder = []string{
 	"users",
 	"rooms",
 	"skills",
-	"talents",
 	"npc_templates",
 	"equipment",
 	"characters",
 	"character_skills",
-	"character_talents",
-	"available_talents",
 }

@@ -37,7 +37,7 @@ export function ItemDetailView({ template }: Readonly<{ template: ItemTemplate }
           is_two_handed={template.is_two_handed} armor_rating={template.armor_rating}
           armor_type={template.armor_type} rarity={template.rarity}
           skill_requirement={template.skill_requirement}
-          skill_requirement_level={template.skill_requirement_level} stats={template.stats}
+          skill_requirement_level={template.skill_requirement_level} stats={template.stats ? JSON.parse(template.stats) : null}
         />
       </div>
     </div>

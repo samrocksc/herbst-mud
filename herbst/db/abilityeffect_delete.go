@@ -4,34 +4,34 @@ package db
 
 import (
 	"context"
-	"herbst-server/db/predicate"
-	"herbst-server/db/talent"
+	"herbst/db/abilityeffect"
+	"herbst/db/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
 
-// TalentDelete is the builder for deleting a Talent entity.
-type TalentDelete struct {
+// AbilityEffectDelete is the builder for deleting a AbilityEffect entity.
+type AbilityEffectDelete struct {
 	config
 	hooks    []Hook
-	mutation *TalentMutation
+	mutation *AbilityEffectMutation
 }
 
-// Where appends a list predicates to the TalentDelete builder.
-func (_d *TalentDelete) Where(ps ...predicate.Talent) *TalentDelete {
+// Where appends a list predicates to the AbilityEffectDelete builder.
+func (_d *AbilityEffectDelete) Where(ps ...predicate.AbilityEffect) *AbilityEffectDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *TalentDelete) Exec(ctx context.Context) (int, error) {
+func (_d *AbilityEffectDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *TalentDelete) ExecX(ctx context.Context) int {
+func (_d *AbilityEffectDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *TalentDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *TalentDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(talent.Table, sqlgraph.NewFieldSpec(talent.FieldID, field.TypeInt))
+func (_d *AbilityEffectDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(abilityeffect.Table, sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *TalentDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// TalentDeleteOne is the builder for deleting a single Talent entity.
-type TalentDeleteOne struct {
-	_d *TalentDelete
+// AbilityEffectDeleteOne is the builder for deleting a single AbilityEffect entity.
+type AbilityEffectDeleteOne struct {
+	_d *AbilityEffectDelete
 }
 
-// Where appends a list predicates to the TalentDelete builder.
-func (_d *TalentDeleteOne) Where(ps ...predicate.Talent) *TalentDeleteOne {
+// Where appends a list predicates to the AbilityEffectDelete builder.
+func (_d *AbilityEffectDeleteOne) Where(ps ...predicate.AbilityEffect) *AbilityEffectDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *TalentDeleteOne) Exec(ctx context.Context) error {
+func (_d *AbilityEffectDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{talent.Label}
+		return &NotFoundError{abilityeffect.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *TalentDeleteOne) ExecX(ctx context.Context) {
+func (_d *AbilityEffectDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

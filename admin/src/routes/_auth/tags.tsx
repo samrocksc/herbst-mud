@@ -268,7 +268,7 @@ function TagsManagement() {
     },
     {
       header: 'Usage',
-      accessor: 'id',
+      accessor: '_usages',
       render: (_, row) => (
         <Button
           variant="ghost"
@@ -285,7 +285,7 @@ function TagsManagement() {
     },
     {
       header: '',
-      accessor: 'id',
+      accessor: '_actions',
       align: 'right',
       render: (_, row) => (
         <div className="flex gap-2 justify-end">

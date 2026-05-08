@@ -14,7 +14,7 @@ type ClassConfig struct {
 	Specialty          string
 	Description        string
 	StartingSkills     map[string]int  // skill_id -> level
-	StartingTalents    []string        // talent_ids (max 4)
+	StartingAbilities  []string        // ability names (max 5)
 	StatBonuses        struct {
 		Strength     int
 		Dexterity    int
@@ -64,7 +64,7 @@ var StartingConfigs = map[string]ClassConfig{
 			"blades":   1,
 			"brawling": 1,
 		},
-		StartingTalents: []string{"slash", "parry", "smash", "crash"},
+		StartingAbilities: []string{"slash", "parry", "smash", "crash"},
 		StatBonuses: struct {
 			Strength     int
 			Dexterity    int
@@ -83,7 +83,7 @@ var StartingConfigs = map[string]ClassConfig{
 		StartingSkills: map[string]int{
 			"brawling": 1,
 		},
-		StartingTalents: []string{"crash"},
+		StartingAbilities: []string{"crash"},
 		StatBonuses: struct {
 			Strength     int
 			Dexterity    int

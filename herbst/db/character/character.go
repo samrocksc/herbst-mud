@@ -147,7 +147,6 @@ var ForeignKeys = []string{
 	"ability_characters",
 	"character_npc_template",
 	"room_characters",
-	"talent_characters",
 	"user_characters",
 }
 

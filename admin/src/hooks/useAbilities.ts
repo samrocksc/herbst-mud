@@ -75,12 +75,13 @@ function parseForApi(input: AbilityInput): Record<string, unknown> {
   }
 }
 
-export function useAbilities(filters?: { type?: string }) {
+export function useAbilities(filters?: { type?: string; abilityClass?: string }) {
   return useQuery({
     queryKey: ['abilities', filters],
     queryFn: async (): Promise<Ability[]> => {
       const params = new URLSearchParams()
       if (filters?.type) params.append('type', filters.type)
+      if (filters?.abilityClass) params.append('ability_class', filters.abilityClass)
       const url = `${API}/api/abilities${params.toString() ? '?' + params.toString() : ''}`
       return apiGet<Ability[]>(url)
     },

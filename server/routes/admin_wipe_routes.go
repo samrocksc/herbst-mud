@@ -15,7 +15,6 @@ type WipeRequest struct {
 	WipeRooms     bool `json:"wipe_rooms"`
 	WipeItems     bool `json:"wipe_items"`
 	WipeSkills    bool `json:"wipe_skills"`
-	WipeTalents   bool `json:"wipe_talents"`
 	PreserveUsers bool `json:"preserve_users"`
 }
 
@@ -25,7 +24,6 @@ type WipeResult struct {
 	RoomsWiped   int      `json:"rooms_wiped"`
 	ItemsWiped   int      `json:"items_wiped"`
 	SkillsWiped  int      `json:"skills_wiped"`
-	TalentsWiped int      `json:"talents_wiped"`
 	Reinitialized []string `json:"reinitialized"`
 	Errors       []string `json:"errors,omitempty"`
 }
@@ -123,19 +121,6 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 			}
 		}
 
-		// Wipe talents
-		if req.WipeTalents {
-			count, _ := client.Talent.Query().Count(ctx)
-			client.Talent.Delete().Exec(ctx)
-			result.TalentsWiped = count
-
-			if err := dbinit.InitTalents(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize talents: "+err.Error())
-			} else {
-				result.Reinitialized = append(result.Reinitialized, "talents")
-			}
-		}
-
 		c.JSON(http.StatusOK, result)
 	})
 
@@ -172,11 +157,6 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 		client.Ability.Delete().Exec(ctx)
 		result.SkillsWiped = skillCount
 
-		// Wipe talents
-		talentCount, _ := client.Talent.Query().Count(ctx)
-		client.Talent.Delete().Exec(ctx)
-		result.TalentsWiped = talentCount
-
 		// Re-initialize everything
 		initializers := []struct {
 			name string
@@ -188,7 +168,6 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 			{"characters", dbinit.InitCharacters},
 			{"consumables", dbinit.InitConsumables},
 			{"skills", dbinit.InitSkills},
-			{"talents", dbinit.InitTalents},
 			{"fountain", dbinit.InitFountain},
 			{"gizmo", dbinit.InitGizmoNPC},
 		}

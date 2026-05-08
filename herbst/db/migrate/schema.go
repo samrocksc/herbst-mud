@@ -32,6 +32,33 @@ var (
 		Columns:    AbilitiesColumns,
 		PrimaryKey: []*schema.Column{AbilitiesColumns[0]},
 	}
+	// AbilityEffectsColumns holds the columns for the "ability_effects" table.
+	AbilityEffectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "effect_type", Type: field.TypeString},
+		{Name: "damage_subtype", Type: field.TypeString, Default: ""},
+		{Name: "target", Type: field.TypeString, Default: "enemy"},
+		{Name: "value", Type: field.TypeInt, Default: 0},
+		{Name: "duration", Type: field.TypeInt, Default: 0},
+		{Name: "scaling_stat", Type: field.TypeString, Nullable: true},
+		{Name: "scaling_ratio", Type: field.TypeFloat64, Default: 0},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "ability_effects", Type: field.TypeInt, Nullable: true},
+	}
+	// AbilityEffectsTable holds the schema information for the "ability_effects" table.
+	AbilityEffectsTable = &schema.Table{
+		Name:       "ability_effects",
+		Columns:    AbilityEffectsColumns,
+		PrimaryKey: []*schema.Column{AbilityEffectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ability_effects_abilities_effects",
+				Columns:    []*schema.Column{AbilityEffectsColumns[9]},
+				RefColumns: []*schema.Column{AbilitiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CharactersColumns holds the columns for the "characters" table.
 	CharactersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -69,7 +96,6 @@ var (
 		{Name: "current_room_id", Type: field.TypeInt},
 		{Name: "character_npc_template", Type: field.TypeString, Nullable: true},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
-		{Name: "talent_characters", Type: field.TypeInt, Nullable: true},
 		{Name: "user_characters", Type: field.TypeInt, Nullable: true},
 	}
 	// CharactersTable holds the schema information for the "characters" table.
@@ -103,14 +129,8 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "characters_talents_characters",
-				Columns:    []*schema.Column{CharactersColumns[35]},
-				RefColumns: []*schema.Column{TalentsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[36]},
+				Columns:    []*schema.Column{CharactersColumns[35]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -262,19 +282,6 @@ var (
 		Columns:    RoomsColumns,
 		PrimaryKey: []*schema.Column{RoomsColumns[0]},
 	}
-	// TalentsColumns holds the columns for the "talents" table.
-	TalentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString},
-		{Name: "requirements", Type: field.TypeJSON},
-	}
-	// TalentsTable holds the schema information for the "talents" table.
-	TalentsTable = &schema.Table{
-		Name:       "talents",
-		Columns:    TalentsColumns,
-		PrimaryKey: []*schema.Column{TalentsColumns[0]},
-	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -291,24 +298,24 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AbilitiesTable,
+		AbilityEffectsTable,
 		CharactersTable,
 		EquipmentTable,
 		EquipmentTemplatesTable,
 		NpcTemplatesTable,
 		RacesTable,
 		RoomsTable,
-		TalentsTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	AbilityEffectsTable.ForeignKeys[0].RefTable = AbilitiesTable
 	CharactersTable.ForeignKeys[0].RefTable = AbilitiesTable
 	CharactersTable.ForeignKeys[1].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[2].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[3].RefTable = RoomsTable
-	CharactersTable.ForeignKeys[4].RefTable = TalentsTable
-	CharactersTable.ForeignKeys[5].RefTable = UsersTable
+	CharactersTable.ForeignKeys[4].RefTable = UsersTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTemplatesTable
 	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
 }

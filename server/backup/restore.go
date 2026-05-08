@@ -33,9 +33,6 @@ func RestoreBackup(client *db.Client, backupDir string) error {
 	if err := restore.Abilities(ctx, client, backupDir, mapping); err != nil {
 		return fmt.Errorf("failed to import abilities: %w", err)
 	}
-	if err := restore.Talents(ctx, client, backupDir, mapping); err != nil {
-		return fmt.Errorf("failed to import talents: %w", err)
-	}
 	if err := restore.NPCTemplates(ctx, client, backupDir, mapping); err != nil {
 		return fmt.Errorf("failed to import NPC templates: %w", err)
 	}
@@ -47,12 +44,6 @@ func RestoreBackup(client *db.Client, backupDir string) error {
 	}
 	if err := restore.CharacterAbilities(ctx, client, backupDir, mapping); err != nil {
 		return fmt.Errorf("failed to import character abilities: %w", err)
-	}
-	if err := restore.CharacterTalents(ctx, client, backupDir, mapping); err != nil {
-		return fmt.Errorf("failed to import character talents: %w", err)
-	}
-	if err := restore.AvailableTalents(ctx, client, backupDir, mapping); err != nil {
-		return fmt.Errorf("failed to import available talents: %w", err)
 	}
 
 	return nil

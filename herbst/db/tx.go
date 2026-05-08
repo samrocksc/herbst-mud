@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Ability is the client for interacting with the Ability builders.
 	Ability *AbilityClient
+	// AbilityEffect is the client for interacting with the AbilityEffect builders.
+	AbilityEffect *AbilityEffectClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
 	// Equipment is the client for interacting with the Equipment builders.
@@ -26,8 +28,6 @@ type Tx struct {
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
-	// Talent is the client for interacting with the Talent builders.
-	Talent *TalentClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -162,13 +162,13 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Ability = NewAbilityClient(tx.config)
+	tx.AbilityEffect = NewAbilityEffectClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
 	tx.EquipmentTemplate = NewEquipmentTemplateClient(tx.config)
 	tx.NPCTemplate = NewNPCTemplateClient(tx.config)
 	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
-	tx.Talent = NewTalentClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

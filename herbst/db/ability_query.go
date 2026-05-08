@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"herbst/db/ability"
+	"herbst/db/abilityeffect"
 	"herbst/db/character"
 	"herbst/db/predicate"
 	"math"
@@ -25,6 +26,7 @@ type AbilityQuery struct {
 	inters         []Interceptor
 	predicates     []predicate.Ability
 	withCharacters *CharacterQuery
+	withEffects    *AbilityEffectQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (_q *AbilityQuery) QueryCharacters() *CharacterQuery {
 			sqlgraph.From(ability.Table, ability.FieldID, selector),
 			sqlgraph.To(character.Table, character.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, ability.CharactersTable, ability.CharactersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEffects chains the current query on the "effects" edge.
+func (_q *AbilityQuery) QueryEffects() *AbilityEffectQuery {
+	query := (&AbilityEffectClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ability.Table, ability.FieldID, selector),
+			sqlgraph.To(abilityeffect.Table, abilityeffect.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ability.EffectsTable, ability.EffectsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +300,7 @@ func (_q *AbilityQuery) Clone() *AbilityQuery {
 		inters:         append([]Interceptor{}, _q.inters...),
 		predicates:     append([]predicate.Ability{}, _q.predicates...),
 		withCharacters: _q.withCharacters.Clone(),
+		withEffects:    _q.withEffects.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +315,17 @@ func (_q *AbilityQuery) WithCharacters(opts ...func(*CharacterQuery)) *AbilityQu
 		opt(query)
 	}
 	_q.withCharacters = query
+	return _q
+}
+
+// WithEffects tells the query-builder to eager-load the nodes that are connected to
+// the "effects" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AbilityQuery) WithEffects(opts ...func(*AbilityEffectQuery)) *AbilityQuery {
+	query := (&AbilityEffectClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEffects = query
 	return _q
 }
 
@@ -371,8 +407,9 @@ func (_q *AbilityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Abil
 	var (
 		nodes       = []*Ability{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withCharacters != nil,
+			_q.withEffects != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +434,13 @@ func (_q *AbilityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Abil
 		if err := _q.loadCharacters(ctx, query, nodes,
 			func(n *Ability) { n.Edges.Characters = []*Character{} },
 			func(n *Ability, e *Character) { n.Edges.Characters = append(n.Edges.Characters, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEffects; query != nil {
+		if err := _q.loadEffects(ctx, query, nodes,
+			func(n *Ability) { n.Edges.Effects = []*AbilityEffect{} },
+			func(n *Ability, e *AbilityEffect) { n.Edges.Effects = append(n.Edges.Effects, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -429,6 +473,37 @@ func (_q *AbilityQuery) loadCharacters(ctx context.Context, query *CharacterQuer
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "ability_characters" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AbilityQuery) loadEffects(ctx context.Context, query *AbilityEffectQuery, nodes []*Ability, init func(*Ability), assign func(*Ability, *AbilityEffect)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Ability)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.AbilityEffect(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(ability.EffectsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ability_effects
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "ability_effects" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "ability_effects" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

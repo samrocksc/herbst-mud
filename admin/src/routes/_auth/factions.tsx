@@ -237,7 +237,7 @@ function FactionsManagement() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: categoryName, description: categoryDesc }),
+        body: JSON.stringify({ name: categoryName, display_name: categoryName, description: categoryDesc }),
       })
       if (!res.ok) throw new Error('Failed to create category')
       await fetchCategories()

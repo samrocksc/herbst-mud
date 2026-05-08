@@ -3,11 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 )
 
-// handleEquipCommand shows the equip screen or equips items/talents/potions
+// handleEquipCommand shows the equip screen or equips items/potions
 func (m *model) handleEquipCommand(cmd string) {
 	if m.currentCharacterID == 0 {
 		m.AppendMessage("You need to be playing to use this command.", "error")
@@ -22,8 +21,6 @@ func (m *model) handleEquipCommand(cmd string) {
 
 	action := parts[1]
 	switch action {
-	case "talent":
-		m.handleEquipTalent(parts[2:])
 	case "potion":
 		m.handleEquipPotion(parts[2:])
 	case "clear":
@@ -42,32 +39,21 @@ func (m *model) handleEquipCommand(cmd string) {
 // showEquipScreen displays the equipment slots UI
 func (m *model) showEquipScreen() {
 	output := "=== Equipment Slots ===\n\n"
-	output += "Combat Talents (1-4):\n"
 
-	// Load current talents
-	resp, err := httpGet(fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID))
-	if err == nil {
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusOK {
-			var result map[string]interface{}
-			if json.NewDecoder(resp.Body).Decode(&result) == nil {
-				slots, ok := result["slots"].([]interface{})
-				if ok {
-					for i := 1; i <= 4; i++ {
-						if i < len(slots) && slots[i] != nil {
-							slot := slots[i].(map[string]interface{})
-							name := slot["name"].(string)
-							effectType := ""
-							if et, ok := slot["effectType"].(string); ok && et != "" {
-								effectType = fmt.Sprintf(" [%s]", et)
-							}
-							output += fmt.Sprintf("  [%d] %s%s\n", i, name, effectType)
-						} else {
-							output += fmt.Sprintf("  [%d] (empty)\n", i)
-						}
-					}
-				}
+	// Show classless combat skill slots
+	output += "Combat Skills (1-5):\n"
+	if m.combatSkills != nil {
+		for i := 0; i < 5; i++ {
+			skill := m.combatSkills.EquippedSkill[i]
+			if skill.ID != 0 {
+				output += fmt.Sprintf("  [%d] %s\n", i+1, skill.Name)
+			} else {
+				output += fmt.Sprintf("  [%d] (empty)\n", i+1)
 			}
+		}
+	} else {
+		for i := 1; i <= 5; i++ {
+			output += fmt.Sprintf("  [%d] (empty)\n", i)
 		}
 	}
 
@@ -105,48 +91,12 @@ func (m *model) showEquipScreen() {
 	}
 
 	output += "\nCommands:\n"
-	output += "  equip talent <id> <slot> - Equip talent to slot 1-4\n"
+	output += "  skill slot <1-5>         - Select a skill for a slot\n"
 	output += "  equip potion <id>        - Equip potion to R slot\n"
-	output += "  equip clear <slot>        - Clear slot (1-4 or R)\n"
-	output += "  talents                   - View available talents\n"
-	output += "  inventory                 - View inventory items\n"
+	output += "  equip clear <slot>       - Clear slot (1-5 or R)\n"
+	output += "  inventory                - View inventory items\n"
 
 	m.AppendMessage(output, "info")
-}
-
-// handleEquipTalent equips a talent to a slot
-func (m *model) handleEquipTalent(args []string) {
-	if len(args) < 2 {
-		m.AppendMessage("Usage: equip talent <talent_id> <slot>\nSlots: 1-4", "error")
-		return
-	}
-
-	talentID := args[0]
-	slot := args[1]
-
-	slotNum := 0
-	fmt.Sscanf(slot, "%d", &slotNum)
-	if slotNum < 1 || slotNum > 4 {
-		m.AppendMessage("Slot must be between 1 and 4", "error")
-		return
-	}
-
-	url := fmt.Sprintf("%s/characters/%d/talents", RESTAPIBase, m.currentCharacterID)
-	reqBody := fmt.Sprintf(`{"talent_id":%s,"slot":%s}`, talentID, slot)
-	resp, err := httpPost(url, reqBody)
-	if err != nil {
-		m.AppendMessage(fmt.Sprintf("Error equipping talent: %v", err), "error")
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		m.AppendMessage("Failed to equip talent", "error")
-		return
-	}
-
-	m.AppendMessage(fmt.Sprintf("Talent equipped in slot %s", slot), "success")
-	m.loadCombatTalents()
 }
 
 // handleEquipPotion equips a potion to the R slot
@@ -264,28 +214,5 @@ func (m *model) handleEquipClear(slot string) {
 		return
 	}
 
-	// Clear talent slot
-	slotNum := 0
-	fmt.Sscanf(slot, "%d", &slotNum)
-	if slotNum < 1 || slotNum > 4 {
-		m.AppendMessage("Slot must be 1-4 or R", "error")
-		return
-	}
-
-	url := fmt.Sprintf("%s/characters/%d/talents/%d", RESTAPIBase, m.currentCharacterID, slotNum)
-	req, err := http.NewRequest("DELETE", url, nil)
-	if err != nil {
-		m.AppendMessage(fmt.Sprintf("Error clearing slot: %v", err), "error")
-		return
-	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		m.AppendMessage(fmt.Sprintf("Error clearing slot: %v", err), "error")
-		return
-	}
-	defer resp.Body.Close()
-
-	m.AppendMessage(fmt.Sprintf("Slot %d cleared", slotNum), "success")
-	m.loadCombatTalents()
+	m.AppendMessage(fmt.Sprintf("Use 'skill slot %s' to change combat skills", slot), "info")
 }

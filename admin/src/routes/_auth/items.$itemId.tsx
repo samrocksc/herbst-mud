@@ -83,7 +83,7 @@ function ItemDetail() {
 /** Re-exported type for use by child components. */
 export type ItemTemplate = Readonly<{
   id: string; name: string; description: string; slot: string; level: number; weight: number
-  item_type: string; stats: Record<string, unknown>; color: string; is_visible: boolean
+  item_type: string; stats: string; color: string; is_visible: boolean
   is_immovable: boolean; effect_type: string; effect_value: number; effect_duration: number
   is_container: boolean; container_capacity: number; is_locked: boolean; key_item_id: string
   reveal_condition: string; expires_at: string | null; armor_rating: number; armor_type: string

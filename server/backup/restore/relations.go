@@ -33,72 +33,8 @@ func CharacterAbilities(ctx context.Context, client *db.Client, backupDir string
 		newSkillID := mapping.Skills[s.SkillID]
 
 		_, err := client.CharacterAbility.Create().
-			SetSlot(0). // old backups don't have slot info; default to 0
+			SetSlot(0).
 			SetCharacterID(newCharID).SetAbilityID(newSkillID).Save(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// CharacterTalents imports character talents from backup
-func CharacterTalents(ctx context.Context, client *db.Client, backupDir string, mapping *types.IDMapping) error {
-	data, err := os.ReadFile(filepath.Join(backupDir, "character_talents.json"))
-	if err != nil {
-		return err
-	}
-
-	var talents []struct {
-		ID          int `json:"id"`
-		Slot        int `json:"slot"`
-		CharacterID int `json:"character_id"`
-		TalentID    int `json:"talent_id"`
-	}
-	if err := json.Unmarshal(data, &talents); err != nil {
-		return err
-	}
-
-	for _, t := range talents {
-		newCharID := mapping.Characters[t.CharacterID]
-		newTalentID := mapping.Talents[t.TalentID]
-
-		_, err := client.CharacterTalent.Create().
-			SetSlot(t.Slot).SetCharacterID(newCharID).
-			SetTalentID(newTalentID).Save(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// AvailableTalents imports available talents from backup
-func AvailableTalents(ctx context.Context, client *db.Client, backupDir string, mapping *types.IDMapping) error {
-	data, err := os.ReadFile(filepath.Join(backupDir, "available_talents.json"))
-	if err != nil {
-		return err
-	}
-
-	var talents []struct {
-		ID              int    `json:"id"`
-		UnlockReason    string `json:"unlock_reason"`
-		UnlockedAtLevel int    `json:"unlocked_at_level"`
-		CharacterID     int    `json:"character_id"`
-		TalentID        int    `json:"talent_id"`
-	}
-	if err := json.Unmarshal(data, &talents); err != nil {
-		return err
-	}
-
-	for _, t := range talents {
-		newCharID := mapping.Characters[t.CharacterID]
-		newTalentID := mapping.Talents[t.TalentID]
-
-		_, err := client.AvailableTalent.Create().
-			SetUnlockReason(t.UnlockReason).
-			SetUnlockedAtLevel(t.UnlockedAtLevel).
-			SetCharacterID(newCharID).SetTalentID(newTalentID).Save(ctx)
 		if err != nil {
 			return err
 		}

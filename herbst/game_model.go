@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -150,7 +151,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Skill selection screen handler
 		if m.screen == ScreenSkillSelect {
-			stayInMode := m.handleSkillSelectionInput(key)
+			stayInMode := m.handleAbilitySelectionInput(key)
 			if stayInMode {
 				return m, nil
 			}
@@ -378,43 +379,49 @@ func (m *model) View() string {
 		return m.renderCombatScreen()
 
 	case ScreenSkillSelect:
-		// Render skill selection screen
+		// Fetch available abilities from server
+		var availableAbilities []AbilityData
+		resp, err := httpGet(fmt.Sprintf("%s/abilities", RESTAPIBase))
+		if err == nil {
+			defer resp.Body.Close()
+			var result struct {
+				Abilities []AbilityData `json:"abilities"`
+			}
+			if json.NewDecoder(resp.Body).Decode(&result) == nil {
+				availableAbilities = result.Abilities
+			}
+		}
+
 		var sb strings.Builder
 		sb.WriteString("\n")
-		
-		// Header
+
 		headerStyle := lipgloss.NewStyle().Bold(true).Foreground(pink).Align(lipgloss.Center)
-		sb.WriteString(headerStyle.Render(fmt.Sprintf("Choose Skill for Slot %d", m.skillSelectSlot)))
+		sb.WriteString(headerStyle.Render(fmt.Sprintf("Choose Ability for Slot %d", m.skillSelectSlot)))
 		sb.WriteString("\n\n")
-		
-		// Currently equipped
-		currentSkill := m.combatSkills.EquippedSkill[m.skillSelectSlot-1]
-		if currentSkill.ID != 0 {
-			sb.WriteString(fmt.Sprintf("Currently: %s\n\n", currentSkill.Name))
+
+		currentAbility := m.combatSkills.EquippedSkill[m.skillSelectSlot-1]
+		if currentAbility.ID != 0 {
+			sb.WriteString(fmt.Sprintf("Currently: %s\n\n", currentAbility.Name))
 		} else {
-			sb.WriteString("Slot Empty — Choose a skill:\n\n")
+			sb.WriteString("Slot Empty - Choose an ability:\n\n")
 		}
-		
-		// Skills list with cursor
-		for i, skill := range ClasslessSkills {
+
+		for i, ability := range availableAbilities {
 			cursor := "  "
 			if i == m.skillSelectCursor {
-				cursor = "▶ "
+				cursor = "> "
 			}
-			
-			// Cost string
 			costStr := ""
-			if skill.ManaCost > 0 {
-				costStr += fmt.Sprintf(" %d💧", skill.ManaCost)
+			if ability.ManaCost > 0 {
+				costStr += fmt.Sprintf(" %dMP", ability.ManaCost)
 			}
-			if skill.StaminaCost > 0 {
-				costStr += fmt.Sprintf(" %d⚡", skill.StaminaCost)
+			if ability.StaminaCost > 0 {
+				costStr += fmt.Sprintf(" %dSP", ability.StaminaCost)
 			}
 			if costStr == "" {
 				costStr = " Free"
 			}
-			
-			line := fmt.Sprintf("%s%d. %-15s │%s │ CD:%d", cursor, i+1, skill.Name, costStr, skill.Cooldown)
+			line := fmt.Sprintf("%s%d. %-15s |%s | CD:%d", cursor, i+1, ability.Name, costStr, ability.Cooldown)
 			if i == m.skillSelectCursor {
 				sb.WriteString(lipgloss.NewStyle().Foreground(green).Render(line))
 			} else {
@@ -422,24 +429,22 @@ func (m *model) View() string {
 			}
 			sb.WriteString("\n")
 		}
-		
-		// Selected skill description
-		if m.skillSelectCursor >= 0 && m.skillSelectCursor < len(ClasslessSkills) {
-			selected := ClasslessSkills[m.skillSelectCursor]
+
+		if m.skillSelectCursor >= 0 && m.skillSelectCursor < len(availableAbilities) {
+			selected := availableAbilities[m.skillSelectCursor]
 			sb.WriteString("\n")
-			sb.WriteString(lipgloss.NewStyle().Bold(true).Render("▶ " + selected.Name))
+			sb.WriteString(lipgloss.NewStyle().Bold(true).Render("> " + selected.Name))
 			sb.WriteString("\n")
 			sb.WriteString(selected.Description)
 			sb.WriteString("\n")
 		}
-		
-		// Footer
+
 		sb.WriteString("\n")
-		sb.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Commands: 1-5 select • enter confirm • q cancel"))
+		sb.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Commands: up/down select | enter confirm | q cancel"))
 		sb.WriteString("\n")
 		sb.WriteString(promptStyle.Render("> "))
 		sb.WriteString(m.textInput.View())
-		
+
 		return sb.String()
 
 	case ScreenPlaying:

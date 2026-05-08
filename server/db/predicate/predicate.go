@@ -15,9 +15,6 @@ type AbilityEffect func(*sql.Selector)
 // Achievement is the predicate function for achievement builders.
 type Achievement func(*sql.Selector)
 
-// AvailableTalent is the predicate function for availabletalent builders.
-type AvailableTalent func(*sql.Selector)
-
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 
@@ -32,9 +29,6 @@ type CharacterFaction func(*sql.Selector)
 
 // CharacterTag is the predicate function for charactertag builders.
 type CharacterTag func(*sql.Selector)
-
-// CharacterTalent is the predicate function for charactertalent builders.
-type CharacterTalent func(*sql.Selector)
 
 // CompetencyCategory is the predicate function for competencycategory builders.
 type CompetencyCategory func(*sql.Selector)
@@ -80,9 +74,6 @@ type Room func(*sql.Selector)
 
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)
-
-// Talent is the predicate function for talent builders.
-type Talent func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

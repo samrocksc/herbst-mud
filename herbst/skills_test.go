@@ -7,25 +7,17 @@ import (
 	"herbst/db"
 )
 
-// TestSkillAndTalentCommands verifies the skill/talent command handlers work
-func TestSkillAndTalentCommands(t *testing.T) {
-	// This test verifies the commands can be parsed and the handlers can be invoked
-	// without a database connection (graceful fallback)
-	
+// TestSkillCommands verifies the skill command handlers work
+func TestSkillCommands(t *testing.T) {
 	tests := []struct {
 		name     string
 		cmd      string
 		wantMsg  string
 	}{
 		{
-			name:    "skills command shows message about database",
+			name:    "skills command initializes combat skill state",
 			cmd:     "skills",
-			wantMsg: "Database not connected",
-		},
-		{
-			name:    "talents command shows message about database",
-			cmd:     "talents",
-			wantMsg: "Database not connected",
+			wantMsg: "Combat Skills",
 		},
 		{
 			name:    "swap-skill without args shows usage",
@@ -33,18 +25,8 @@ func TestSkillAndTalentCommands(t *testing.T) {
 			wantMsg: "Usage: /swap-skill",
 		},
 		{
-			name:    "swap-talent without args shows usage",
-			cmd:     "/swap-talent",
-			wantMsg: "Usage: /swap-talent",
-		},
-		{
 			name:    "swap-skill with args without db shows connection error",
 			cmd:     "/swap-skill slash fireball",
-			wantMsg: "Database not connected",
-		},
-		{
-			name:    "swap-talent with args without db shows connection error",
-			cmd:     "/swap-talent warrior leader",
 			wantMsg: "Database not connected",
 		},
 	}
@@ -52,11 +34,11 @@ func TestSkillAndTalentCommands(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &model{
-				client: nil, // No database connection
+				client: nil,
 			}
-			
+
 			m.processCommand(tt.cmd)
-			
+
 			if !strings.Contains(m.message, tt.wantMsg) {
 				t.Errorf("processCommand(%q) = %q, want to contain %q", tt.cmd, m.message, tt.wantMsg)
 			}
@@ -64,13 +46,9 @@ func TestSkillAndTalentCommands(t *testing.T) {
 	}
 }
 
-// TestSkillTalentDbTypes verifies the db package has Ability and Talent types
-func TestSkillTalentDbTypes(t *testing.T) {
-	// Just verify the db package has the expected types
+// TestAbilityDbTypes verifies the db package has the Ability type
+func TestAbilityDbTypes(t *testing.T) {
 	var _ *db.Ability
-	var _ *db.Talent
 	var _ *db.AbilityCreate
-	var _ *db.TalentCreate
 	var _ *db.AbilityQuery
-	var _ *db.TalentQuery
 }

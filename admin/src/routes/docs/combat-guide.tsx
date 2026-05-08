@@ -73,7 +73,7 @@ function CombatGuideDoc() {
             ['Defend', '0', 'Buff action — raises armor briefly without costing a turn.'],
             ['Flee', '1', 'Attempt to escape combat. Success chance = DEX vs enemy level.'],
             ['Use Item', '1', 'Drink potion, throw grenade, etc.'],
-            ['Activate Skill', '1–3', 'Classless skills (1 tick) or talents (1–3 ticks).'],
+            ['Activate Skill', '1–3', 'Classless skills (1 tick) or passive abilities (1–3 ticks).'],
           ]}
         />
       </Section>

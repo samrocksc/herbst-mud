@@ -100,12 +100,8 @@ const (
 	EdgeRoom = "room"
 	// EdgeNpcTemplate holds the string denoting the npctemplate edge name in mutations.
 	EdgeNpcTemplate = "npcTemplate"
-	// EdgeAvailableTalents holds the string denoting the available_talents edge name in mutations.
-	EdgeAvailableTalents = "available_talents"
 	// EdgeAbilities holds the string denoting the abilities edge name in mutations.
 	EdgeAbilities = "abilities"
-	// EdgeTalents holds the string denoting the talents edge name in mutations.
-	EdgeTalents = "talents"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
 	// EdgeFactionMemberships holds the string denoting the faction_memberships edge name in mutations.
@@ -135,13 +131,6 @@ const (
 	NpcTemplateInverseTable = "npc_templates"
 	// NpcTemplateColumn is the table column denoting the npcTemplate relation/edge.
 	NpcTemplateColumn = "npc_template_id"
-	// AvailableTalentsTable is the table that holds the available_talents relation/edge.
-	AvailableTalentsTable = "available_talents"
-	// AvailableTalentsInverseTable is the table name for the AvailableTalent entity.
-	// It exists in this package in order to avoid circular dependency with the "availabletalent" package.
-	AvailableTalentsInverseTable = "available_talents"
-	// AvailableTalentsColumn is the table column denoting the available_talents relation/edge.
-	AvailableTalentsColumn = "character_available_talents"
 	// AbilitiesTable is the table that holds the abilities relation/edge.
 	AbilitiesTable = "character_abilities"
 	// AbilitiesInverseTable is the table name for the CharacterAbility entity.
@@ -149,13 +138,6 @@ const (
 	AbilitiesInverseTable = "character_abilities"
 	// AbilitiesColumn is the table column denoting the abilities relation/edge.
 	AbilitiesColumn = "character_abilities"
-	// TalentsTable is the table that holds the talents relation/edge.
-	TalentsTable = "character_talents"
-	// TalentsInverseTable is the table name for the CharacterTalent entity.
-	// It exists in this package in order to avoid circular dependency with the "charactertalent" package.
-	TalentsInverseTable = "character_talents"
-	// TalentsColumn is the table column denoting the talents relation/edge.
-	TalentsColumn = "character_talents"
 	// TagsTable is the table that holds the tags relation/edge.
 	TagsTable = "character_tags"
 	// TagsInverseTable is the table name for the CharacterTag entity.
@@ -546,20 +528,6 @@ func ByNpcTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByAvailableTalentsCount orders the results by available_talents count.
-func ByAvailableTalentsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAvailableTalentsStep(), opts...)
-	}
-}
-
-// ByAvailableTalents orders the results by available_talents terms.
-func ByAvailableTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAvailableTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByAbilitiesCount orders the results by abilities count.
 func ByAbilitiesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -571,20 +539,6 @@ func ByAbilitiesCount(opts ...sql.OrderTermOption) OrderOption {
 func ByAbilities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newAbilitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByTalentsCount orders the results by talents count.
-func ByTalentsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTalentsStep(), opts...)
-	}
-}
-
-// ByTalents orders the results by talents terms.
-func ByTalents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTalentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -650,25 +604,11 @@ func newNpcTemplateStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, false, NpcTemplateTable, NpcTemplateColumn),
 	)
 }
-func newAvailableTalentsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AvailableTalentsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AvailableTalentsTable, AvailableTalentsColumn),
-	)
-}
 func newAbilitiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AbilitiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AbilitiesTable, AbilitiesColumn),
-	)
-}
-func newTalentsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TalentsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TalentsTable, TalentsColumn),
 	)
 }
 func newTagsStep() *sqlgraph.Step {

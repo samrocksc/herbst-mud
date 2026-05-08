@@ -4,11 +4,10 @@ package db
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
-	"herbst/db/character"
+	"herbst/db/ability"
+	"herbst/db/abilityeffect"
 	"herbst/db/predicate"
-	"herbst/db/talent"
 	"math"
 
 	"entgo.io/ent"
@@ -17,53 +16,54 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// TalentQuery is the builder for querying Talent entities.
-type TalentQuery struct {
+// AbilityEffectQuery is the builder for querying AbilityEffect entities.
+type AbilityEffectQuery struct {
 	config
-	ctx            *QueryContext
-	order          []talent.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.Talent
-	withCharacters *CharacterQuery
+	ctx         *QueryContext
+	order       []abilityeffect.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.AbilityEffect
+	withAbility *AbilityQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the TalentQuery builder.
-func (_q *TalentQuery) Where(ps ...predicate.Talent) *TalentQuery {
+// Where adds a new predicate for the AbilityEffectQuery builder.
+func (_q *AbilityEffectQuery) Where(ps ...predicate.AbilityEffect) *AbilityEffectQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *TalentQuery) Limit(limit int) *TalentQuery {
+func (_q *AbilityEffectQuery) Limit(limit int) *AbilityEffectQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *TalentQuery) Offset(offset int) *TalentQuery {
+func (_q *AbilityEffectQuery) Offset(offset int) *AbilityEffectQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *TalentQuery) Unique(unique bool) *TalentQuery {
+func (_q *AbilityEffectQuery) Unique(unique bool) *AbilityEffectQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *TalentQuery) Order(o ...talent.OrderOption) *TalentQuery {
+func (_q *AbilityEffectQuery) Order(o ...abilityeffect.OrderOption) *AbilityEffectQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// QueryCharacters chains the current query on the "characters" edge.
-func (_q *TalentQuery) QueryCharacters() *CharacterQuery {
-	query := (&CharacterClient{config: _q.config}).Query()
+// QueryAbility chains the current query on the "ability" edge.
+func (_q *AbilityEffectQuery) QueryAbility() *AbilityQuery {
+	query := (&AbilityClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,9 +73,9 @@ func (_q *TalentQuery) QueryCharacters() *CharacterQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(talent.Table, talent.FieldID, selector),
-			sqlgraph.To(character.Table, character.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, talent.CharactersTable, talent.CharactersColumn),
+			sqlgraph.From(abilityeffect.Table, abilityeffect.FieldID, selector),
+			sqlgraph.To(ability.Table, ability.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, abilityeffect.AbilityTable, abilityeffect.AbilityColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -83,21 +83,21 @@ func (_q *TalentQuery) QueryCharacters() *CharacterQuery {
 	return query
 }
 
-// First returns the first Talent entity from the query.
-// Returns a *NotFoundError when no Talent was found.
-func (_q *TalentQuery) First(ctx context.Context) (*Talent, error) {
+// First returns the first AbilityEffect entity from the query.
+// Returns a *NotFoundError when no AbilityEffect was found.
+func (_q *AbilityEffectQuery) First(ctx context.Context) (*AbilityEffect, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{talent.Label}
+		return nil, &NotFoundError{abilityeffect.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *TalentQuery) FirstX(ctx context.Context) *Talent {
+func (_q *AbilityEffectQuery) FirstX(ctx context.Context) *AbilityEffect {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -105,22 +105,22 @@ func (_q *TalentQuery) FirstX(ctx context.Context) *Talent {
 	return node
 }
 
-// FirstID returns the first Talent ID from the query.
-// Returns a *NotFoundError when no Talent ID was found.
-func (_q *TalentQuery) FirstID(ctx context.Context) (id int, err error) {
+// FirstID returns the first AbilityEffect ID from the query.
+// Returns a *NotFoundError when no AbilityEffect ID was found.
+func (_q *AbilityEffectQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{talent.Label}
+		err = &NotFoundError{abilityeffect.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *TalentQuery) FirstIDX(ctx context.Context) int {
+func (_q *AbilityEffectQuery) FirstIDX(ctx context.Context) int {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -128,10 +128,10 @@ func (_q *TalentQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single Talent entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one Talent entity is found.
-// Returns a *NotFoundError when no Talent entities are found.
-func (_q *TalentQuery) Only(ctx context.Context) (*Talent, error) {
+// Only returns a single AbilityEffect entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one AbilityEffect entity is found.
+// Returns a *NotFoundError when no AbilityEffect entities are found.
+func (_q *AbilityEffectQuery) Only(ctx context.Context) (*AbilityEffect, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -140,14 +140,14 @@ func (_q *TalentQuery) Only(ctx context.Context) (*Talent, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{talent.Label}
+		return nil, &NotFoundError{abilityeffect.Label}
 	default:
-		return nil, &NotSingularError{talent.Label}
+		return nil, &NotSingularError{abilityeffect.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *TalentQuery) OnlyX(ctx context.Context) *Talent {
+func (_q *AbilityEffectQuery) OnlyX(ctx context.Context) *AbilityEffect {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -155,10 +155,10 @@ func (_q *TalentQuery) OnlyX(ctx context.Context) *Talent {
 	return node
 }
 
-// OnlyID is like Only, but returns the only Talent ID in the query.
-// Returns a *NotSingularError when more than one Talent ID is found.
+// OnlyID is like Only, but returns the only AbilityEffect ID in the query.
+// Returns a *NotSingularError when more than one AbilityEffect ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *TalentQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *AbilityEffectQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -167,15 +167,15 @@ func (_q *TalentQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{talent.Label}
+		err = &NotFoundError{abilityeffect.Label}
 	default:
-		err = &NotSingularError{talent.Label}
+		err = &NotSingularError{abilityeffect.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *TalentQuery) OnlyIDX(ctx context.Context) int {
+func (_q *AbilityEffectQuery) OnlyIDX(ctx context.Context) int {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -183,18 +183,18 @@ func (_q *TalentQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of Talents.
-func (_q *TalentQuery) All(ctx context.Context) ([]*Talent, error) {
+// All executes the query and returns a list of AbilityEffects.
+func (_q *AbilityEffectQuery) All(ctx context.Context) ([]*AbilityEffect, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*Talent, *TalentQuery]()
-	return withInterceptors[[]*Talent](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*AbilityEffect, *AbilityEffectQuery]()
+	return withInterceptors[[]*AbilityEffect](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *TalentQuery) AllX(ctx context.Context) []*Talent {
+func (_q *AbilityEffectQuery) AllX(ctx context.Context) []*AbilityEffect {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -202,20 +202,20 @@ func (_q *TalentQuery) AllX(ctx context.Context) []*Talent {
 	return nodes
 }
 
-// IDs executes the query and returns a list of Talent IDs.
-func (_q *TalentQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of AbilityEffect IDs.
+func (_q *AbilityEffectQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(talent.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(abilityeffect.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *TalentQuery) IDsX(ctx context.Context) []int {
+func (_q *AbilityEffectQuery) IDsX(ctx context.Context) []int {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -224,16 +224,16 @@ func (_q *TalentQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *TalentQuery) Count(ctx context.Context) (int, error) {
+func (_q *AbilityEffectQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*TalentQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*AbilityEffectQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *TalentQuery) CountX(ctx context.Context) int {
+func (_q *AbilityEffectQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -242,7 +242,7 @@ func (_q *TalentQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *TalentQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *AbilityEffectQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -255,7 +255,7 @@ func (_q *TalentQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *TalentQuery) ExistX(ctx context.Context) bool {
+func (_q *AbilityEffectQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -263,33 +263,33 @@ func (_q *TalentQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the TalentQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the AbilityEffectQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *TalentQuery) Clone() *TalentQuery {
+func (_q *AbilityEffectQuery) Clone() *AbilityEffectQuery {
 	if _q == nil {
 		return nil
 	}
-	return &TalentQuery{
-		config:         _q.config,
-		ctx:            _q.ctx.Clone(),
-		order:          append([]talent.OrderOption{}, _q.order...),
-		inters:         append([]Interceptor{}, _q.inters...),
-		predicates:     append([]predicate.Talent{}, _q.predicates...),
-		withCharacters: _q.withCharacters.Clone(),
+	return &AbilityEffectQuery{
+		config:      _q.config,
+		ctx:         _q.ctx.Clone(),
+		order:       append([]abilityeffect.OrderOption{}, _q.order...),
+		inters:      append([]Interceptor{}, _q.inters...),
+		predicates:  append([]predicate.AbilityEffect{}, _q.predicates...),
+		withAbility: _q.withAbility.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithCharacters tells the query-builder to eager-load the nodes that are connected to
-// the "characters" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *TalentQuery) WithCharacters(opts ...func(*CharacterQuery)) *TalentQuery {
-	query := (&CharacterClient{config: _q.config}).Query()
+// WithAbility tells the query-builder to eager-load the nodes that are connected to
+// the "ability" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AbilityEffectQuery) WithAbility(opts ...func(*AbilityQuery)) *AbilityEffectQuery {
+	query := (&AbilityClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withCharacters = query
+	_q.withAbility = query
 	return _q
 }
 
@@ -299,19 +299,19 @@ func (_q *TalentQuery) WithCharacters(opts ...func(*CharacterQuery)) *TalentQuer
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		EffectType string `json:"effect_type,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Talent.Query().
-//		GroupBy(talent.FieldName).
+//	client.AbilityEffect.Query().
+//		GroupBy(abilityeffect.FieldEffectType).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-func (_q *TalentQuery) GroupBy(field string, fields ...string) *TalentGroupBy {
+func (_q *AbilityEffectQuery) GroupBy(field string, fields ...string) *AbilityEffectGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &TalentGroupBy{build: _q}
+	grbuild := &AbilityEffectGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = talent.Label
+	grbuild.label = abilityeffect.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -322,26 +322,26 @@ func (_q *TalentQuery) GroupBy(field string, fields ...string) *TalentGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		EffectType string `json:"effect_type,omitempty"`
 //	}
 //
-//	client.Talent.Query().
-//		Select(talent.FieldName).
+//	client.AbilityEffect.Query().
+//		Select(abilityeffect.FieldEffectType).
 //		Scan(ctx, &v)
-func (_q *TalentQuery) Select(fields ...string) *TalentSelect {
+func (_q *AbilityEffectQuery) Select(fields ...string) *AbilityEffectSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &TalentSelect{TalentQuery: _q}
-	sbuild.label = talent.Label
+	sbuild := &AbilityEffectSelect{AbilityEffectQuery: _q}
+	sbuild.label = abilityeffect.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a TalentSelect configured with the given aggregations.
-func (_q *TalentQuery) Aggregate(fns ...AggregateFunc) *TalentSelect {
+// Aggregate returns a AbilityEffectSelect configured with the given aggregations.
+func (_q *AbilityEffectQuery) Aggregate(fns ...AggregateFunc) *AbilityEffectSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *TalentQuery) prepareQuery(ctx context.Context) error {
+func (_q *AbilityEffectQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("db: uninitialized interceptor (forgotten import db/runtime?)")
@@ -353,7 +353,7 @@ func (_q *TalentQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !talent.ValidColumn(f) {
+		if !abilityeffect.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("db: invalid field %q for query", f)}
 		}
 	}
@@ -367,19 +367,26 @@ func (_q *TalentQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *TalentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Talent, error) {
+func (_q *AbilityEffectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AbilityEffect, error) {
 	var (
-		nodes       = []*Talent{}
+		nodes       = []*AbilityEffect{}
+		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
-			_q.withCharacters != nil,
+			_q.withAbility != nil,
 		}
 	)
+	if _q.withAbility != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, abilityeffect.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*Talent).scanValues(nil, columns)
+		return (*AbilityEffect).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &Talent{config: _q.config}
+		node := &AbilityEffect{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -393,49 +400,49 @@ func (_q *TalentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Talen
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withCharacters; query != nil {
-		if err := _q.loadCharacters(ctx, query, nodes,
-			func(n *Talent) { n.Edges.Characters = []*Character{} },
-			func(n *Talent, e *Character) { n.Edges.Characters = append(n.Edges.Characters, e) }); err != nil {
+	if query := _q.withAbility; query != nil {
+		if err := _q.loadAbility(ctx, query, nodes, nil,
+			func(n *AbilityEffect, e *Ability) { n.Edges.Ability = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *TalentQuery) loadCharacters(ctx context.Context, query *CharacterQuery, nodes []*Talent, init func(*Talent), assign func(*Talent, *Character)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Talent)
+func (_q *AbilityEffectQuery) loadAbility(ctx context.Context, query *AbilityQuery, nodes []*AbilityEffect, init func(*AbilityEffect), assign func(*AbilityEffect, *Ability)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*AbilityEffect)
 	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
+		if nodes[i].ability_effects == nil {
+			continue
 		}
+		fk := *nodes[i].ability_effects
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.withFKs = true
-	query.Where(predicate.Character(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(talent.CharactersColumn), fks...))
-	}))
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(ability.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.talent_characters
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "talent_characters" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "talent_characters" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "ability_effects" returned %v`, n.ID)
 		}
-		assign(node, n)
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }
 
-func (_q *TalentQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *AbilityEffectQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -444,8 +451,8 @@ func (_q *TalentQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *TalentQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(talent.Table, talent.Columns, sqlgraph.NewFieldSpec(talent.FieldID, field.TypeInt))
+func (_q *AbilityEffectQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(abilityeffect.Table, abilityeffect.Columns, sqlgraph.NewFieldSpec(abilityeffect.FieldID, field.TypeInt))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -454,9 +461,9 @@ func (_q *TalentQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, talent.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, abilityeffect.FieldID)
 		for i := range fields {
-			if fields[i] != talent.FieldID {
+			if fields[i] != abilityeffect.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -484,12 +491,12 @@ func (_q *TalentQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *TalentQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *AbilityEffectQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(talent.Table)
+	t1 := builder.Table(abilityeffect.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = talent.Columns
+		columns = abilityeffect.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -516,28 +523,28 @@ func (_q *TalentQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// TalentGroupBy is the group-by builder for Talent entities.
-type TalentGroupBy struct {
+// AbilityEffectGroupBy is the group-by builder for AbilityEffect entities.
+type AbilityEffectGroupBy struct {
 	selector
-	build *TalentQuery
+	build *AbilityEffectQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *TalentGroupBy) Aggregate(fns ...AggregateFunc) *TalentGroupBy {
+func (_g *AbilityEffectGroupBy) Aggregate(fns ...AggregateFunc) *AbilityEffectGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *TalentGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *AbilityEffectGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*TalentQuery, *TalentGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*AbilityEffectQuery, *AbilityEffectGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *TalentGroupBy) sqlScan(ctx context.Context, root *TalentQuery, v any) error {
+func (_g *AbilityEffectGroupBy) sqlScan(ctx context.Context, root *AbilityEffectQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -564,28 +571,28 @@ func (_g *TalentGroupBy) sqlScan(ctx context.Context, root *TalentQuery, v any) 
 	return sql.ScanSlice(rows, v)
 }
 
-// TalentSelect is the builder for selecting fields of Talent entities.
-type TalentSelect struct {
-	*TalentQuery
+// AbilityEffectSelect is the builder for selecting fields of AbilityEffect entities.
+type AbilityEffectSelect struct {
+	*AbilityEffectQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *TalentSelect) Aggregate(fns ...AggregateFunc) *TalentSelect {
+func (_s *AbilityEffectSelect) Aggregate(fns ...AggregateFunc) *AbilityEffectSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *TalentSelect) Scan(ctx context.Context, v any) error {
+func (_s *AbilityEffectSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*TalentQuery, *TalentSelect](ctx, _s.TalentQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*AbilityEffectQuery, *AbilityEffectSelect](ctx, _s.AbilityEffectQuery, _s, _s.inters, v)
 }
 
-func (_s *TalentSelect) sqlScan(ctx context.Context, root *TalentQuery, v any) error {
+func (_s *AbilityEffectSelect) sqlScan(ctx context.Context, root *AbilityEffectQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

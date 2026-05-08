@@ -120,9 +120,7 @@ func (Character) Edges() []ent.Edge {
 		edge.To("npcTemplate", NPCTemplate.Type).
 			Unique().
 			Field("npc_template_id"),
-		edge.To("available_talents", AvailableTalent.Type),
 		edge.To("abilities", CharacterAbility.Type),
-		edge.To("talents", CharacterTalent.Type),
 		edge.To("tags", CharacterTag.Type),
 		edge.To("faction_memberships", CharacterFaction.Type),
 		edge.To("competencies", CharacterCompetency.Type),

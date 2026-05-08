@@ -7,13 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"herbst/db/ability"
+	"herbst/db/abilityeffect"
 	"herbst/db/character"
 	"herbst/db/equipment"
 	"herbst/db/equipmenttemplate"
 	"herbst/db/npctemplate"
 	"herbst/db/race"
 	"herbst/db/room"
-	"herbst/db/talent"
 	"herbst/db/user"
 	"reflect"
 	"sync"
@@ -82,13 +82,13 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			ability.Table:           ability.ValidColumn,
+			abilityeffect.Table:     abilityeffect.ValidColumn,
 			character.Table:         character.ValidColumn,
 			equipment.Table:         equipment.ValidColumn,
 			equipmenttemplate.Table: equipmenttemplate.ValidColumn,
 			npctemplate.Table:       npctemplate.ValidColumn,
 			race.Table:              race.ValidColumn,
 			room.Table:              room.ValidColumn,
-			talent.Table:            talent.ValidColumn,
 			user.Table:              user.ValidColumn,
 		})
 	})
