@@ -934,11 +934,6 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 					"slug":           sk.Slug,
 					"ability_type":   sk.AbilityType,
 					"ability_class":  sk.AbilityClass,
-					"effect_type":    sk.EffectType,
-					"effect_value":   sk.EffectValue,
-					"effect_duration": sk.EffectDuration,
-					"scaling_stat":   sk.ScalingStat,
-					"scaling_percent_per_point": sk.ScalingPercentPerPoint,
 					"proc_chance":    sk.ProcChance,
 					"proc_event":     sk.ProcEvent,
 					"cooldown_seconds": sk.CooldownSeconds,
@@ -1199,7 +1194,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		charAbilities, err := client.Character.Query().
 			Where(character.ID(id)).
 			QueryAbilities().
-			WithAbility().
+			WithAbility(func(q *db.AbilityQuery) { q.WithEffects() }).
 			All(c.Request.Context())
 
 		if err != nil {
@@ -1215,30 +1210,35 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		for _, ca := range charAbilities {
 			abilityName := ""
 			abilityDesc := ""
-			effectType := ""
-			effectValue := 0
-			effectDuration := 0
 			cooldown := 0
 			manaCost := 0
 			staminaCost := 0
+			effects := make([]gin.H, 0)
 			if ca.Edges.Ability != nil {
 				abilityName = ca.Edges.Ability.Name
 				abilityDesc = ca.Edges.Ability.Description
-				effectType = ca.Edges.Ability.EffectType
-				effectValue = ca.Edges.Ability.EffectValue
-				effectDuration = ca.Edges.Ability.EffectDuration
 				cooldown = ca.Edges.Ability.Cooldown
 				manaCost = ca.Edges.Ability.ManaCost
 				staminaCost = ca.Edges.Ability.StaminaCost
+				for _, e := range ca.Edges.Ability.Edges.Effects {
+					effects = append(effects, gin.H{
+						"effectType":    e.EffectType,
+						"damageSubtype": e.DamageSubtype,
+						"target":        e.Target,
+						"value":         e.Value,
+						"duration":      e.Duration,
+						"scalingStat":   e.ScalingStat,
+						"scalingRatio":  e.ScalingRatio,
+						"sortOrder":     e.SortOrder,
+					})
+				}
 			}
 			slots[ca.Slot] = map[string]interface{}{
 				"slot":           ca.Slot,
 				"ability_id":     ca.Edges.Ability.ID,
 				"name":           abilityName,
 				"description":    abilityDesc,
-				"effectType":     effectType,
-				"effectValue":    effectValue,
-				"effectDuration": effectDuration,
+				"effects":        effects,
 				"cooldown":       cooldown,
 				"manaCost":       manaCost,
 				"staminaCost":    staminaCost,
@@ -1425,7 +1425,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				Where(character.ID(id)).
 				QueryAbilities().
 				Where(characterability.SlotEQ(slot)).
-				WithAbility().
+				WithAbility(func(q *db.AbilityQuery) { q.WithEffects() }).
 				All(c.Request.Context())
 
 			if err != nil || len(cas) == 0 {
@@ -1513,8 +1513,6 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				"id":          a.ID,
 				"name":        a.Name,
 				"description": a.Description,
-				"effectType":  a.EffectType,
-				"effectValue": a.EffectValue,
 			}
 		}
 
@@ -2021,7 +2019,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 				Where(character.ID(id)).
 				QueryAbilities().
 				Where(characterability.SlotEQ(slot)).
-				WithAbility().
+				WithAbility(func(q *db.AbilityQuery) { q.WithEffects() }).
 				All(c.Request.Context())
 			if err != nil || len(cas) == 0 {
 				return 0, ""

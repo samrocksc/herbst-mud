@@ -142,6 +142,10 @@ func (m *model) attemptLogin() {
 	// Update last seen timestamp
 	m.updateLastSeenAt()
 
+	m.effectsService.FireEvent("on_login", m.currentCharacterID, "", map[string]interface{}{
+		"room_id": m.currentRoom,
+	})
+
 	// Auto-enable debug for test characters
 	if m.isTest {
 		m.debugMode = true
@@ -247,4 +251,8 @@ func (m *model) attemptRegistration(email string) {
 	// New characters always start at root room
 	rootRoomID := m.getRootRoomID()
 	m.loadRoom(rootRoomID)
+
+	m.effectsService.FireEvent("on_login", m.currentCharacterID, "", map[string]interface{}{
+		"room_id": m.currentRoom,
+	})
 }

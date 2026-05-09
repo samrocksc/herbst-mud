@@ -12,14 +12,9 @@ export type Ability = Readonly<{
   cooldown: number
   cooldown_seconds: number
   requirements: string
-  effect_type: string
-  effect_value: number
-  effect_duration: number
   mana_cost: number
   stamina_cost: number
   hp_cost: number
-  scaling_stat: string
-  scaling_percent_per_point: number
   slug: string
   required_tag: string
   ability_class: string
@@ -40,11 +35,6 @@ export type AbilityInput = Readonly<{
   mana_cost: number
   stamina_cost: number
   hp_cost: number
-  effect_type: string
-  effect_value: number
-  effect_duration: number
-  scaling_stat: string
-  scaling_percent_per_point: number
   proc_chance: number
   proc_event: string
   ability_class: string
@@ -63,11 +53,6 @@ function parseForApi(input: AbilityInput): Record<string, unknown> {
     mana_cost: input.mana_cost,
     stamina_cost: input.stamina_cost,
     hp_cost: input.hp_cost,
-    effect_type: input.effect_type,
-    effect_value: input.effect_value,
-    effect_duration: input.effect_duration,
-    scaling_stat: input.scaling_stat,
-    scaling_percent_per_point: input.scaling_percent_per_point,
     proc_chance: input.proc_chance,
     proc_event: input.proc_event,
     ability_class: input.ability_class,

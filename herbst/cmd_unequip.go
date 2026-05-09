@@ -84,6 +84,11 @@ func (m *model) callUnequipAPI(itemID int, itemName, slot string) {
 		return
 	}
 
+	m.effectsService.FireEvent("on_unequip", m.currentCharacterID, "", map[string]interface{}{
+		"item_id": itemID,
+		"slot":    slot,
+	})
+
 	slotName := formatSlotName(slot)
 	m.AppendMessage(fmt.Sprintf("You unequip the %s from your %s.", itemName, slotName), "success")
 }

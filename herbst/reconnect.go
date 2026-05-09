@@ -97,8 +97,12 @@ func (m *model) loadRoom(roomID int) {
 
 	room, err := m.client.Room.Get(context.Background(), roomID)
 	if err != nil {
+		fallback := m.getRootRoomID()
 		m.AppendMessage(fmt.Sprintf("Failed to load room %d, using fallback.", roomID), "error")
-		m.currentRoom = StartingRoomID
+		m.currentRoom = fallback
+		if fallback != roomID {
+			m.loadRoom(fallback)
+		}
 		return
 	}
 

@@ -42,44 +42,28 @@ func init() {
 	abilityDescCooldown := abilityFields[4].Descriptor()
 	// ability.DefaultCooldown holds the default value on creation for the cooldown field.
 	ability.DefaultCooldown = abilityDescCooldown.Default.(int)
-	// abilityDescEffectType is the schema descriptor for effect_type field.
-	abilityDescEffectType := abilityFields[6].Descriptor()
-	// ability.DefaultEffectType holds the default value on creation for the effect_type field.
-	ability.DefaultEffectType = abilityDescEffectType.Default.(string)
-	// abilityDescEffectValue is the schema descriptor for effect_value field.
-	abilityDescEffectValue := abilityFields[7].Descriptor()
-	// ability.DefaultEffectValue holds the default value on creation for the effect_value field.
-	ability.DefaultEffectValue = abilityDescEffectValue.Default.(int)
-	// abilityDescEffectDuration is the schema descriptor for effect_duration field.
-	abilityDescEffectDuration := abilityFields[8].Descriptor()
-	// ability.DefaultEffectDuration holds the default value on creation for the effect_duration field.
-	ability.DefaultEffectDuration = abilityDescEffectDuration.Default.(int)
-	// abilityDescScalingPercentPerPoint is the schema descriptor for scaling_percent_per_point field.
-	abilityDescScalingPercentPerPoint := abilityFields[10].Descriptor()
-	// ability.DefaultScalingPercentPerPoint holds the default value on creation for the scaling_percent_per_point field.
-	ability.DefaultScalingPercentPerPoint = abilityDescScalingPercentPerPoint.Default.(float64)
 	// abilityDescManaCost is the schema descriptor for mana_cost field.
-	abilityDescManaCost := abilityFields[11].Descriptor()
+	abilityDescManaCost := abilityFields[6].Descriptor()
 	// ability.DefaultManaCost holds the default value on creation for the mana_cost field.
 	ability.DefaultManaCost = abilityDescManaCost.Default.(int)
 	// abilityDescStaminaCost is the schema descriptor for stamina_cost field.
-	abilityDescStaminaCost := abilityFields[12].Descriptor()
+	abilityDescStaminaCost := abilityFields[7].Descriptor()
 	// ability.DefaultStaminaCost holds the default value on creation for the stamina_cost field.
 	ability.DefaultStaminaCost = abilityDescStaminaCost.Default.(int)
 	// abilityDescHpCost is the schema descriptor for hp_cost field.
-	abilityDescHpCost := abilityFields[13].Descriptor()
+	abilityDescHpCost := abilityFields[8].Descriptor()
 	// ability.DefaultHpCost holds the default value on creation for the hp_cost field.
 	ability.DefaultHpCost = abilityDescHpCost.Default.(int)
 	// abilityDescAbilityClass is the schema descriptor for ability_class field.
-	abilityDescAbilityClass := abilityFields[16].Descriptor()
+	abilityDescAbilityClass := abilityFields[11].Descriptor()
 	// ability.DefaultAbilityClass holds the default value on creation for the ability_class field.
 	ability.DefaultAbilityClass = abilityDescAbilityClass.Default.(string)
 	// abilityDescProcChance is the schema descriptor for proc_chance field.
-	abilityDescProcChance := abilityFields[17].Descriptor()
+	abilityDescProcChance := abilityFields[12].Descriptor()
 	// ability.DefaultProcChance holds the default value on creation for the proc_chance field.
 	ability.DefaultProcChance = abilityDescProcChance.Default.(float64)
 	// abilityDescCooldownSeconds is the schema descriptor for cooldown_seconds field.
-	abilityDescCooldownSeconds := abilityFields[19].Descriptor()
+	abilityDescCooldownSeconds := abilityFields[14].Descriptor()
 	// ability.DefaultCooldownSeconds holds the default value on creation for the cooldown_seconds field.
 	ability.DefaultCooldownSeconds = abilityDescCooldownSeconds.Default.(int)
 	abilityeffectFields := schema.AbilityEffect{}.Fields()

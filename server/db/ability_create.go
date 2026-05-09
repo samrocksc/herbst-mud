@@ -83,76 +83,6 @@ func (_c *AbilityCreate) SetNillableRequirements(v *string) *AbilityCreate {
 	return _c
 }
 
-// SetEffectType sets the "effect_type" field.
-func (_c *AbilityCreate) SetEffectType(v string) *AbilityCreate {
-	_c.mutation.SetEffectType(v)
-	return _c
-}
-
-// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
-func (_c *AbilityCreate) SetNillableEffectType(v *string) *AbilityCreate {
-	if v != nil {
-		_c.SetEffectType(*v)
-	}
-	return _c
-}
-
-// SetEffectValue sets the "effect_value" field.
-func (_c *AbilityCreate) SetEffectValue(v int) *AbilityCreate {
-	_c.mutation.SetEffectValue(v)
-	return _c
-}
-
-// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
-func (_c *AbilityCreate) SetNillableEffectValue(v *int) *AbilityCreate {
-	if v != nil {
-		_c.SetEffectValue(*v)
-	}
-	return _c
-}
-
-// SetEffectDuration sets the "effect_duration" field.
-func (_c *AbilityCreate) SetEffectDuration(v int) *AbilityCreate {
-	_c.mutation.SetEffectDuration(v)
-	return _c
-}
-
-// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
-func (_c *AbilityCreate) SetNillableEffectDuration(v *int) *AbilityCreate {
-	if v != nil {
-		_c.SetEffectDuration(*v)
-	}
-	return _c
-}
-
-// SetScalingStat sets the "scaling_stat" field.
-func (_c *AbilityCreate) SetScalingStat(v string) *AbilityCreate {
-	_c.mutation.SetScalingStat(v)
-	return _c
-}
-
-// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
-func (_c *AbilityCreate) SetNillableScalingStat(v *string) *AbilityCreate {
-	if v != nil {
-		_c.SetScalingStat(*v)
-	}
-	return _c
-}
-
-// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
-func (_c *AbilityCreate) SetScalingPercentPerPoint(v float64) *AbilityCreate {
-	_c.mutation.SetScalingPercentPerPoint(v)
-	return _c
-}
-
-// SetNillableScalingPercentPerPoint sets the "scaling_percent_per_point" field if the given value is not nil.
-func (_c *AbilityCreate) SetNillableScalingPercentPerPoint(v *float64) *AbilityCreate {
-	if v != nil {
-		_c.SetScalingPercentPerPoint(*v)
-	}
-	return _c
-}
-
 // SetManaCost sets the "mana_cost" field.
 func (_c *AbilityCreate) SetManaCost(v int) *AbilityCreate {
 	_c.mutation.SetManaCost(v)
@@ -386,22 +316,6 @@ func (_c *AbilityCreate) defaults() {
 		v := ability.DefaultCooldown
 		_c.mutation.SetCooldown(v)
 	}
-	if _, ok := _c.mutation.EffectType(); !ok {
-		v := ability.DefaultEffectType
-		_c.mutation.SetEffectType(v)
-	}
-	if _, ok := _c.mutation.EffectValue(); !ok {
-		v := ability.DefaultEffectValue
-		_c.mutation.SetEffectValue(v)
-	}
-	if _, ok := _c.mutation.EffectDuration(); !ok {
-		v := ability.DefaultEffectDuration
-		_c.mutation.SetEffectDuration(v)
-	}
-	if _, ok := _c.mutation.ScalingPercentPerPoint(); !ok {
-		v := ability.DefaultScalingPercentPerPoint
-		_c.mutation.SetScalingPercentPerPoint(v)
-	}
 	if _, ok := _c.mutation.ManaCost(); !ok {
 		v := ability.DefaultManaCost
 		_c.mutation.SetManaCost(v)
@@ -444,18 +358,6 @@ func (_c *AbilityCreate) check() error {
 	}
 	if _, ok := _c.mutation.Cooldown(); !ok {
 		return &ValidationError{Name: "cooldown", err: errors.New(`db: missing required field "Ability.cooldown"`)}
-	}
-	if _, ok := _c.mutation.EffectType(); !ok {
-		return &ValidationError{Name: "effect_type", err: errors.New(`db: missing required field "Ability.effect_type"`)}
-	}
-	if _, ok := _c.mutation.EffectValue(); !ok {
-		return &ValidationError{Name: "effect_value", err: errors.New(`db: missing required field "Ability.effect_value"`)}
-	}
-	if _, ok := _c.mutation.EffectDuration(); !ok {
-		return &ValidationError{Name: "effect_duration", err: errors.New(`db: missing required field "Ability.effect_duration"`)}
-	}
-	if _, ok := _c.mutation.ScalingPercentPerPoint(); !ok {
-		return &ValidationError{Name: "scaling_percent_per_point", err: errors.New(`db: missing required field "Ability.scaling_percent_per_point"`)}
 	}
 	if _, ok := _c.mutation.ManaCost(); !ok {
 		return &ValidationError{Name: "mana_cost", err: errors.New(`db: missing required field "Ability.mana_cost"`)}
@@ -524,26 +426,6 @@ func (_c *AbilityCreate) createSpec() (*Ability, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Requirements(); ok {
 		_spec.SetField(ability.FieldRequirements, field.TypeString, value)
 		_node.Requirements = value
-	}
-	if value, ok := _c.mutation.EffectType(); ok {
-		_spec.SetField(ability.FieldEffectType, field.TypeString, value)
-		_node.EffectType = value
-	}
-	if value, ok := _c.mutation.EffectValue(); ok {
-		_spec.SetField(ability.FieldEffectValue, field.TypeInt, value)
-		_node.EffectValue = value
-	}
-	if value, ok := _c.mutation.EffectDuration(); ok {
-		_spec.SetField(ability.FieldEffectDuration, field.TypeInt, value)
-		_node.EffectDuration = value
-	}
-	if value, ok := _c.mutation.ScalingStat(); ok {
-		_spec.SetField(ability.FieldScalingStat, field.TypeString, value)
-		_node.ScalingStat = value
-	}
-	if value, ok := _c.mutation.ScalingPercentPerPoint(); ok {
-		_spec.SetField(ability.FieldScalingPercentPerPoint, field.TypeFloat64, value)
-		_node.ScalingPercentPerPoint = value
 	}
 	if value, ok := _c.mutation.ManaCost(); ok {
 		_spec.SetField(ability.FieldManaCost, field.TypeInt, value)

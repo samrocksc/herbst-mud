@@ -83,6 +83,11 @@ func (m *model) callEquipAPI(itemID int, itemName, slot string) {
 		return
 	}
 
+	m.effectsService.FireEvent("on_equip", m.currentCharacterID, "", map[string]interface{}{
+		"item_id": itemID,
+		"slot":    slot,
+	})
+
 	slotName := formatSlotName(slot)
 	if len(result.Messages) > 0 {
 		output := ""

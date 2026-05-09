@@ -133,103 +133,6 @@ func (_u *AbilityUpdate) ClearRequirements() *AbilityUpdate {
 	return _u
 }
 
-// SetEffectType sets the "effect_type" field.
-func (_u *AbilityUpdate) SetEffectType(v string) *AbilityUpdate {
-	_u.mutation.SetEffectType(v)
-	return _u
-}
-
-// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
-func (_u *AbilityUpdate) SetNillableEffectType(v *string) *AbilityUpdate {
-	if v != nil {
-		_u.SetEffectType(*v)
-	}
-	return _u
-}
-
-// SetEffectValue sets the "effect_value" field.
-func (_u *AbilityUpdate) SetEffectValue(v int) *AbilityUpdate {
-	_u.mutation.ResetEffectValue()
-	_u.mutation.SetEffectValue(v)
-	return _u
-}
-
-// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
-func (_u *AbilityUpdate) SetNillableEffectValue(v *int) *AbilityUpdate {
-	if v != nil {
-		_u.SetEffectValue(*v)
-	}
-	return _u
-}
-
-// AddEffectValue adds value to the "effect_value" field.
-func (_u *AbilityUpdate) AddEffectValue(v int) *AbilityUpdate {
-	_u.mutation.AddEffectValue(v)
-	return _u
-}
-
-// SetEffectDuration sets the "effect_duration" field.
-func (_u *AbilityUpdate) SetEffectDuration(v int) *AbilityUpdate {
-	_u.mutation.ResetEffectDuration()
-	_u.mutation.SetEffectDuration(v)
-	return _u
-}
-
-// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
-func (_u *AbilityUpdate) SetNillableEffectDuration(v *int) *AbilityUpdate {
-	if v != nil {
-		_u.SetEffectDuration(*v)
-	}
-	return _u
-}
-
-// AddEffectDuration adds value to the "effect_duration" field.
-func (_u *AbilityUpdate) AddEffectDuration(v int) *AbilityUpdate {
-	_u.mutation.AddEffectDuration(v)
-	return _u
-}
-
-// SetScalingStat sets the "scaling_stat" field.
-func (_u *AbilityUpdate) SetScalingStat(v string) *AbilityUpdate {
-	_u.mutation.SetScalingStat(v)
-	return _u
-}
-
-// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
-func (_u *AbilityUpdate) SetNillableScalingStat(v *string) *AbilityUpdate {
-	if v != nil {
-		_u.SetScalingStat(*v)
-	}
-	return _u
-}
-
-// ClearScalingStat clears the value of the "scaling_stat" field.
-func (_u *AbilityUpdate) ClearScalingStat() *AbilityUpdate {
-	_u.mutation.ClearScalingStat()
-	return _u
-}
-
-// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
-func (_u *AbilityUpdate) SetScalingPercentPerPoint(v float64) *AbilityUpdate {
-	_u.mutation.ResetScalingPercentPerPoint()
-	_u.mutation.SetScalingPercentPerPoint(v)
-	return _u
-}
-
-// SetNillableScalingPercentPerPoint sets the "scaling_percent_per_point" field if the given value is not nil.
-func (_u *AbilityUpdate) SetNillableScalingPercentPerPoint(v *float64) *AbilityUpdate {
-	if v != nil {
-		_u.SetScalingPercentPerPoint(*v)
-	}
-	return _u
-}
-
-// AddScalingPercentPerPoint adds value to the "scaling_percent_per_point" field.
-func (_u *AbilityUpdate) AddScalingPercentPerPoint(v float64) *AbilityUpdate {
-	_u.mutation.AddScalingPercentPerPoint(v)
-	return _u
-}
-
 // SetManaCost sets the "mana_cost" field.
 func (_u *AbilityUpdate) SetManaCost(v int) *AbilityUpdate {
 	_u.mutation.ResetManaCost()
@@ -432,33 +335,6 @@ func (_u *AbilityUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.RequirementsCleared() {
 		_spec.ClearField(ability.FieldRequirements, field.TypeString)
-	}
-	if value, ok := _u.mutation.EffectType(); ok {
-		_spec.SetField(ability.FieldEffectType, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.EffectValue(); ok {
-		_spec.SetField(ability.FieldEffectValue, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedEffectValue(); ok {
-		_spec.AddField(ability.FieldEffectValue, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.EffectDuration(); ok {
-		_spec.SetField(ability.FieldEffectDuration, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedEffectDuration(); ok {
-		_spec.AddField(ability.FieldEffectDuration, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.ScalingStat(); ok {
-		_spec.SetField(ability.FieldScalingStat, field.TypeString, value)
-	}
-	if _u.mutation.ScalingStatCleared() {
-		_spec.ClearField(ability.FieldScalingStat, field.TypeString)
-	}
-	if value, ok := _u.mutation.ScalingPercentPerPoint(); ok {
-		_spec.SetField(ability.FieldScalingPercentPerPoint, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedScalingPercentPerPoint(); ok {
-		_spec.AddField(ability.FieldScalingPercentPerPoint, field.TypeFloat64, value)
 	}
 	if value, ok := _u.mutation.ManaCost(); ok {
 		_spec.SetField(ability.FieldManaCost, field.TypeInt, value)
@@ -689,103 +565,6 @@ func (_u *AbilityUpdateOne) SetNillableRequirements(v *string) *AbilityUpdateOne
 // ClearRequirements clears the value of the "requirements" field.
 func (_u *AbilityUpdateOne) ClearRequirements() *AbilityUpdateOne {
 	_u.mutation.ClearRequirements()
-	return _u
-}
-
-// SetEffectType sets the "effect_type" field.
-func (_u *AbilityUpdateOne) SetEffectType(v string) *AbilityUpdateOne {
-	_u.mutation.SetEffectType(v)
-	return _u
-}
-
-// SetNillableEffectType sets the "effect_type" field if the given value is not nil.
-func (_u *AbilityUpdateOne) SetNillableEffectType(v *string) *AbilityUpdateOne {
-	if v != nil {
-		_u.SetEffectType(*v)
-	}
-	return _u
-}
-
-// SetEffectValue sets the "effect_value" field.
-func (_u *AbilityUpdateOne) SetEffectValue(v int) *AbilityUpdateOne {
-	_u.mutation.ResetEffectValue()
-	_u.mutation.SetEffectValue(v)
-	return _u
-}
-
-// SetNillableEffectValue sets the "effect_value" field if the given value is not nil.
-func (_u *AbilityUpdateOne) SetNillableEffectValue(v *int) *AbilityUpdateOne {
-	if v != nil {
-		_u.SetEffectValue(*v)
-	}
-	return _u
-}
-
-// AddEffectValue adds value to the "effect_value" field.
-func (_u *AbilityUpdateOne) AddEffectValue(v int) *AbilityUpdateOne {
-	_u.mutation.AddEffectValue(v)
-	return _u
-}
-
-// SetEffectDuration sets the "effect_duration" field.
-func (_u *AbilityUpdateOne) SetEffectDuration(v int) *AbilityUpdateOne {
-	_u.mutation.ResetEffectDuration()
-	_u.mutation.SetEffectDuration(v)
-	return _u
-}
-
-// SetNillableEffectDuration sets the "effect_duration" field if the given value is not nil.
-func (_u *AbilityUpdateOne) SetNillableEffectDuration(v *int) *AbilityUpdateOne {
-	if v != nil {
-		_u.SetEffectDuration(*v)
-	}
-	return _u
-}
-
-// AddEffectDuration adds value to the "effect_duration" field.
-func (_u *AbilityUpdateOne) AddEffectDuration(v int) *AbilityUpdateOne {
-	_u.mutation.AddEffectDuration(v)
-	return _u
-}
-
-// SetScalingStat sets the "scaling_stat" field.
-func (_u *AbilityUpdateOne) SetScalingStat(v string) *AbilityUpdateOne {
-	_u.mutation.SetScalingStat(v)
-	return _u
-}
-
-// SetNillableScalingStat sets the "scaling_stat" field if the given value is not nil.
-func (_u *AbilityUpdateOne) SetNillableScalingStat(v *string) *AbilityUpdateOne {
-	if v != nil {
-		_u.SetScalingStat(*v)
-	}
-	return _u
-}
-
-// ClearScalingStat clears the value of the "scaling_stat" field.
-func (_u *AbilityUpdateOne) ClearScalingStat() *AbilityUpdateOne {
-	_u.mutation.ClearScalingStat()
-	return _u
-}
-
-// SetScalingPercentPerPoint sets the "scaling_percent_per_point" field.
-func (_u *AbilityUpdateOne) SetScalingPercentPerPoint(v float64) *AbilityUpdateOne {
-	_u.mutation.ResetScalingPercentPerPoint()
-	_u.mutation.SetScalingPercentPerPoint(v)
-	return _u
-}
-
-// SetNillableScalingPercentPerPoint sets the "scaling_percent_per_point" field if the given value is not nil.
-func (_u *AbilityUpdateOne) SetNillableScalingPercentPerPoint(v *float64) *AbilityUpdateOne {
-	if v != nil {
-		_u.SetScalingPercentPerPoint(*v)
-	}
-	return _u
-}
-
-// AddScalingPercentPerPoint adds value to the "scaling_percent_per_point" field.
-func (_u *AbilityUpdateOne) AddScalingPercentPerPoint(v float64) *AbilityUpdateOne {
-	_u.mutation.AddScalingPercentPerPoint(v)
 	return _u
 }
 
@@ -1021,33 +800,6 @@ func (_u *AbilityUpdateOne) sqlSave(ctx context.Context) (_node *Ability, err er
 	}
 	if _u.mutation.RequirementsCleared() {
 		_spec.ClearField(ability.FieldRequirements, field.TypeString)
-	}
-	if value, ok := _u.mutation.EffectType(); ok {
-		_spec.SetField(ability.FieldEffectType, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.EffectValue(); ok {
-		_spec.SetField(ability.FieldEffectValue, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedEffectValue(); ok {
-		_spec.AddField(ability.FieldEffectValue, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.EffectDuration(); ok {
-		_spec.SetField(ability.FieldEffectDuration, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedEffectDuration(); ok {
-		_spec.AddField(ability.FieldEffectDuration, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.ScalingStat(); ok {
-		_spec.SetField(ability.FieldScalingStat, field.TypeString, value)
-	}
-	if _u.mutation.ScalingStatCleared() {
-		_spec.ClearField(ability.FieldScalingStat, field.TypeString)
-	}
-	if value, ok := _u.mutation.ScalingPercentPerPoint(); ok {
-		_spec.SetField(ability.FieldScalingPercentPerPoint, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedScalingPercentPerPoint(); ok {
-		_spec.AddField(ability.FieldScalingPercentPerPoint, field.TypeFloat64, value)
 	}
 	if value, ok := _u.mutation.ManaCost(); ok {
 		_spec.SetField(ability.FieldManaCost, field.TypeInt, value)

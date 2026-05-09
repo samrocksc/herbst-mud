@@ -5,7 +5,7 @@ var SlotCatalog = []string{
 	"head", "neck", "chest", "back", "hands", "legs", "feet",
 	"finger_left", "finger_right",
 	"main_hand", "off_hand",
-	"tail", "horn", "wings",
+	"tail", "horn", "wings", "shell",
 }
 
 // IsValidSlot returns true if the given slot name exists in SlotCatalog.

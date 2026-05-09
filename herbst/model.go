@@ -196,8 +196,10 @@ func init() {
 	}
 }
 
-// StartingRoomID is the ID of the room players start in
-const StartingRoomID = 5
+// StartingRoomID is the ID of the room players start in.
+// This is a fallback constant — the server queries for the actual
+// root/starting room at login time.
+var StartingRoomID = 5
 
 // Screen states
 const (

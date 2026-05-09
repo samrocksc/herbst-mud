@@ -102,6 +102,7 @@ func main() {
 		log.Printf("Warning: failed to load effects cache: %v", err)
 	}
 	effectsSvc.StartRefreshLoop(5 * time.Minute)
+	effectsSvc.StartExpiryLoop(30 * time.Second)
 
 	srv, err := wish.NewServer(
 		wish.WithAddress(":4444"),

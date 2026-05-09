@@ -5,7 +5,7 @@ export const SLOT_CATALOG = [
   'head', 'neck', 'chest', 'back', 'hands', 'legs', 'feet',
   'finger_left', 'finger_right',
   'main_hand', 'off_hand',
-  'tail', 'horn', 'wings',
+  'tail', 'horn', 'wings', 'shell',
 ] as const
 
 /** Default 11 humanoid slots. */

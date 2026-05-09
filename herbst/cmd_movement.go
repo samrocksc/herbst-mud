@@ -39,6 +39,10 @@ func (m *model) handleMovement(cmd string) bool {
 
 	m.knownExits[direction] = true
 
+	m.effectsService.FireEvent("on_leave_room", m.currentCharacterID, "", map[string]interface{}{
+		"room_id": m.currentRoom,
+	})
+
 	if m.client != nil {
 		room, err := m.client.Room.Get(context.Background(), nextRoomID)
 		if err != nil {
@@ -63,6 +67,10 @@ func (m *model) handleMovement(cmd string) bool {
 			m.knownExits[dir] = true
 		}
 
+
+		m.effectsService.FireEvent("on_enter_room", m.currentCharacterID, "", map[string]interface{}{
+			"room_id": m.currentRoom,
+		})
 		roomDisplay := fmt.Sprintf("\n\nExits: %s%s%s",
 			m.formatExitsWithColor(),
 			m.formatRoomItems(),

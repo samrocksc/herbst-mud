@@ -271,6 +271,9 @@ func main() {
 	// Register active effect routes (EFF-005)
 	routes.RegisterActiveEffectRoutes(router, client)
 
+	// Register effect expiry routes
+	routes.RegisterExpiryRoutes(router, client)
+
 	// Register user routes
 	routes.RegisterUserRoutes(router, client)
 

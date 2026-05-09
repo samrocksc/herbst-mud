@@ -17,11 +17,6 @@ var (
 		{Name: "cost", Type: field.TypeInt, Default: 0},
 		{Name: "cooldown", Type: field.TypeInt, Default: 0},
 		{Name: "requirements", Type: field.TypeString, Nullable: true},
-		{Name: "effect_type", Type: field.TypeString, Default: ""},
-		{Name: "effect_value", Type: field.TypeInt, Default: 0},
-		{Name: "effect_duration", Type: field.TypeInt, Default: 0},
-		{Name: "scaling_stat", Type: field.TypeString, Nullable: true},
-		{Name: "scaling_percent_per_point", Type: field.TypeFloat64, Default: 0},
 		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
 		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
 		{Name: "hp_cost", Type: field.TypeInt, Default: 0},
@@ -41,7 +36,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "abilities_factions_abilities",
-				Columns:    []*schema.Column{AbilitiesColumns[21]},
+				Columns:    []*schema.Column{AbilitiesColumns[16]},
 				RefColumns: []*schema.Column{FactionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

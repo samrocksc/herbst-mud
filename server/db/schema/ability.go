@@ -30,22 +30,6 @@ func (Ability) Fields() []ent.Field {
 		field.String("requirements").
 			Optional().
 			Comment("JSON string of prerequisites"),
-		// Effect system fields (flat, will be migrated to AbilityEffect entity)
-		field.String("effect_type").
-			Default("").
-			Comment("Generic type: damage, heal, buff, debuff, dot, hot, stun, accuracy_boost, dodge_all"),
-		field.Int("effect_value").
-			Default(0).
-			Comment("Base damage/heal amount"),
-		field.Int("effect_duration").
-			Default(0).
-			Comment("Duration in ticks (0 = instant)"),
-		field.String("scaling_stat").
-			Optional().
-			Comment("Which stat scales: wisdom, strength, dexterity, constitution, intelligence"),
-		field.Float("scaling_percent_per_point").
-			Default(0).
-			Comment("% bonus per point of the scaling stat (e.g., 0.05 = +5% per stat point)"),
 		field.Int("mana_cost").
 			Default(0),
 		field.Int("stamina_cost").
@@ -53,7 +37,6 @@ func (Ability) Fields() []ent.Field {
 		field.Int("hp_cost").
 			Default(0).
 			Comment("HP sacrificed to use ability"),
-		// Faction and classification fields
 		field.String("slug").
 			Unique().
 			Optional().

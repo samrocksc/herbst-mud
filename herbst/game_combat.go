@@ -130,6 +130,11 @@ func (m *model) performCombatAttack() {
 		m.combatTarget.HP = 0
 	}
 
+	m.effectsService.FireEvent("on_hit_dealt", m.currentCharacterID, "", map[string]interface{}{
+		"target_id": m.combatTarget.ID,
+		"damage":    damage,
+	})
+
 	// Build combat message
 	m.logWeaponHit(wpnResult, damage, isCrit)
 
@@ -201,6 +206,10 @@ func (m *model) handleTargetDefeat() {
 		FireDefeatEvent(m.currentCharacterID, m.combatTarget.ID, m.combatTarget.Level, m.combatTarget.XpValue)
 	}
 
+
+	m.effectsService.FireEvent("on_kill", m.currentCharacterID, "", map[string]interface{}{
+		"target_id": m.combatTarget.ID,
+	})
 	m.generateCorpse(m.combatTarget)
 
 	if m.combatTarget.IsNPC {
@@ -291,6 +300,10 @@ func (m *model) enemyTurnWithDefense(defending bool) {
 		m.characterHP = 0
 	}
 
+	m.effectsService.FireEvent("on_hit_received", m.currentCharacterID, "", map[string]interface{}{
+		"attacker_id": m.combatTarget.ID,
+		"damage":      damage,
+	})
 	if defending {
 		m.addCombatLog(fmt.Sprintf("⚔ %s attacks! Blocked for %d damage!",
 			m.combatTarget.Name, damage))
@@ -417,6 +430,10 @@ func (m *model) enemyTurnWithDice() {
 		m.characterHP = 0
 	}
 
+	m.effectsService.FireEvent("on_hit_received", m.currentCharacterID, "", map[string]interface{}{
+		"attacker_id": m.combatTarget.ID,
+		"damage":      damage,
+	})
 	m.logEnemyHit(damage, isCrit)
 
 	if m.characterHP <= 0 {
@@ -464,6 +481,10 @@ func (m *model) logEnemyHit(damage int, isCrit bool) {
 func (m *model) handlePlayerDefeat() {
 	m.addCombatLog("☠ You have been defeated!")
 	m.AppendMessage("☠ You have been defeated! Respawning...", "error")
+
+	m.effectsService.FireEvent("on_death", m.currentCharacterID, "", map[string]interface{}{
+		"killer_id": m.combatTarget.ID,
+	})
 
 	playerAsChar := &RoomCharacter{
 		ID:    m.currentCharacterID,
@@ -531,7 +552,7 @@ func (m *model) respawnPlayer() {
 	m.characterHP = m.characterMaxHP
 
 	// Fetch respawn room from server
-	respawnRoomID := StartingRoomID // default fallback
+	respawnRoomID := m.getRootRoomID() // default fallback
 	if m.currentCharacterID != 0 {
 		resp, err := httpGet(fmt.Sprintf("%s/characters/%d", RESTAPIBase, m.currentCharacterID))
 		if err == nil {

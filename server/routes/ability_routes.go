@@ -11,10 +11,7 @@ import (
 	"herbst-server/middleware"
 )
 
-// RegisterAbilityRoutes registers REST endpoints for abilities.
-// Protected /api routes — all require JWT auth + admin check
 func RegisterAbilityRoutes(r *gin.Engine, client *db.Client) {
-	// Public endpoint: list classless (active, no faction) abilities for the SSH client
 	r.GET("/abilities/classless", listClasslessAbilities(client))
 
 	abilities := r.Group("/api")
@@ -29,63 +26,48 @@ func RegisterAbilityRoutes(r *gin.Engine, client *db.Client) {
 	}
 }
 
-// abilityView is the JSON shape returned by the API — all 20+ fields.
 type abilityView struct {
-	ID                     int     `json:"id"`
-	Name                   string  `json:"name"`
-	Description            string  `json:"description"`
-	AbilityType            string  `json:"ability_type"`
-	Cost                   int     `json:"cost"`
-	Cooldown               int     `json:"cooldown"`
-	Requirements           string  `json:"requirements"`
-	EffectType             string  `json:"effect_type"`
-	EffectValue            int     `json:"effect_value"`
-	EffectDuration         int     `json:"effect_duration"`
-	ScalingStat            string  `json:"scaling_stat"`
-	ScalingPercentPerPoint float64 `json:"scaling_percent_per_point"`
-	ManaCost               int     `json:"mana_cost"`
-	StaminaCost            int     `json:"stamina_cost"`
-	HpCost                 int     `json:"hp_cost"`
-	Slug                   string  `json:"slug"`
-	RequiredTag            string  `json:"required_tag"`
-	AbilityClass           string  `json:"ability_class"`
-	ProcChance             float64 `json:"proc_chance"`
-	ProcEvent              string  `json:"proc_event"`
-	CooldownSeconds        int     `json:"cooldown_seconds"`
-	Tags                   []string `json:"tags"`
-	FactionID              *int    `json:"faction_id,omitempty"`
-	FactionName            string  `json:"faction_name,omitempty"`
+	ID              int      `json:"id"`
+	Name            string   `json:"name"`
+	Description     string   `json:"description"`
+	AbilityType     string   `json:"ability_type"`
+	Cost            int      `json:"cost"`
+	Cooldown        int      `json:"cooldown"`
+	Requirements    string   `json:"requirements"`
+	ManaCost        int      `json:"mana_cost"`
+	StaminaCost     int      `json:"stamina_cost"`
+	HpCost          int      `json:"hp_cost"`
+	Slug            string   `json:"slug"`
+	RequiredTag     string   `json:"required_tag"`
+	AbilityClass    string   `json:"ability_class"`
+	ProcChance      float64  `json:"proc_chance"`
+	ProcEvent       string   `json:"proc_event"`
+	CooldownSeconds int      `json:"cooldown_seconds"`
+	Tags            []string `json:"tags"`
+	FactionID       *int     `json:"faction_id,omitempty"`
+	FactionName     string   `json:"faction_name,omitempty"`
 }
 
-// abilityInput is the request body for create and update.
-// Pointer types (*) mean "not set = don't change this field".
 type abilityInput struct {
-	Name                   string   `json:"name"`
-	Description            string   `json:"description"`
-	AbilityType            string   `json:"ability_type"`
-	Cost                   *int     `json:"cost"`
-	Cooldown               *int     `json:"cooldown"`
-	Requirements           string   `json:"requirements"`
-	EffectType             string   `json:"effect_type"`
-	EffectValue            *int     `json:"effect_value"`
-	EffectDuration         *int     `json:"effect_duration"`
-	ScalingStat            string   `json:"scaling_stat"`
-	ScalingPercentPerPoint *float64 `json:"scaling_percent_per_point"`
-	ManaCost               *int     `json:"mana_cost"`
-	StaminaCost            *int     `json:"stamina_cost"`
-	HpCost                 *int     `json:"hp_cost"`
-	Slug                   string   `json:"slug"`
-	RequiredTag            string   `json:"required_tag"`
-	AbilityClass           string   `json:"ability_class"`
-	ProcChance             *float64 `json:"proc_chance"`
-	ProcEvent              string   `json:"proc_event"`
-	CooldownSeconds        *int     `json:"cooldown_seconds"`
-	Tags                   []string `json:"tags"`
-	FactionID              *int     `json:"faction_id"`
+	Name            string   `json:"name"`
+	Description     string   `json:"description"`
+	AbilityType     string   `json:"ability_type"`
+	Cost            *int     `json:"cost"`
+	Cooldown        *int     `json:"cooldown"`
+	Requirements    string   `json:"requirements"`
+	ManaCost        *int     `json:"mana_cost"`
+	StaminaCost     *int     `json:"stamina_cost"`
+	HpCost          *int     `json:"hp_cost"`
+	Slug            string   `json:"slug"`
+	RequiredTag     string   `json:"required_tag"`
+	AbilityClass    string   `json:"ability_class"`
+	ProcChance      *float64 `json:"proc_chance"`
+	ProcEvent       string   `json:"proc_event"`
+	CooldownSeconds *int     `json:"cooldown_seconds"`
+	Tags            []string `json:"tags"`
+	FactionID       *int     `json:"faction_id"`
 }
 
-// parseTagsFromRequirements extracts the tags array stored in the requirements JSON column.
-// Requirements format: {"tags":["tag1","tag2"]} or {}
 func parseTagsFromRequirements(req string) []string {
 	if req == "" {
 		return nil
@@ -99,7 +81,6 @@ func parseTagsFromRequirements(req string) []string {
 	return parsed.Tags
 }
 
-// buildRequirementsJSON encodes a tags slice into the requirements JSON column.
 func buildRequirementsJSON(tags []string) string {
 	if len(tags) == 0 {
 		return `{}`
@@ -111,28 +92,23 @@ func buildRequirementsJSON(tags []string) string {
 
 func abilityToView(s *db.Ability) abilityView {
 	v := abilityView{
-		ID:                     s.ID,
-		Name:                   s.Name,
-		Description:            s.Description,
-		AbilityType:            s.AbilityType,
-		Cost:                   s.Cost,
-		Cooldown:               s.Cooldown,
-		Requirements:           s.Requirements,
-		EffectType:             s.EffectType,
-		EffectValue:            s.EffectValue,
-		EffectDuration:         s.EffectDuration,
-		ScalingStat:            s.ScalingStat,
-		ScalingPercentPerPoint: s.ScalingPercentPerPoint,
-		ManaCost:               s.ManaCost,
-		StaminaCost:            s.StaminaCost,
-		HpCost:                 s.HpCost,
-		Slug:                   s.Slug,
-		RequiredTag:            s.RequiredTag,
-		AbilityClass:           s.AbilityClass,
-		ProcChance:             s.ProcChance,
-		ProcEvent:              s.ProcEvent,
-		CooldownSeconds:        s.CooldownSeconds,
-		Tags:                   parseTagsFromRequirements(s.Requirements),
+		ID:              s.ID,
+		Name:            s.Name,
+		Description:     s.Description,
+		AbilityType:     s.AbilityType,
+		Cost:            s.Cost,
+		Cooldown:        s.Cooldown,
+		Requirements:    s.Requirements,
+		ManaCost:        s.ManaCost,
+		StaminaCost:     s.StaminaCost,
+		HpCost:          s.HpCost,
+		Slug:            s.Slug,
+		RequiredTag:     s.RequiredTag,
+		AbilityClass:    s.AbilityClass,
+		ProcChance:      s.ProcChance,
+		ProcEvent:       s.ProcEvent,
+		CooldownSeconds: s.CooldownSeconds,
+		Tags:            parseTagsFromRequirements(s.Requirements),
 	}
 	if s.Edges.Faction != nil {
 		v.FactionID = &s.Edges.Faction.ID
@@ -144,17 +120,13 @@ func abilityToView(s *db.Ability) abilityView {
 func listAbilities(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := client.Ability.Query().WithFaction()
-
 		if t := c.Query("type"); t != "" {
 			query = query.Where(ability.AbilityType(t))
 		}
 		if ac := c.Query("ability_class"); ac != "" {
 			query = query.Where(ability.AbilityClass(ac))
 		}
-
-		abilities, err := query.
-			Order(ability.ByName()).
-			All(c.Request.Context())
+		abilities, err := query.Order(ability.ByName()).All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -174,10 +146,7 @@ func getAbility(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
-		s, err := client.Ability.Query().
-			Where(ability.ID(id)).
-			WithFaction().
-			Only(c.Request.Context())
+		s, err := client.Ability.Query().Where(ability.ID(id)).WithFaction().Only(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
 			return
@@ -193,38 +162,24 @@ func createAbility(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
 		if input.Name == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
-
 		mut := client.Ability.Create().
 			SetName(input.Name).
 			SetDescription(input.Description).
 			SetAbilityType(input.AbilityType).
 			SetRequirements(buildRequirementsJSON(input.Tags)).
-			SetEffectType(input.EffectType).
-			SetScalingStat(input.ScalingStat).
 			SetSlug(input.Slug).
 			SetRequiredTag(input.RequiredTag).
 			SetAbilityClass(input.AbilityClass).
 			SetProcEvent(input.ProcEvent)
-
 		if input.Cost != nil {
 			mut.SetCost(*input.Cost)
 		}
 		if input.Cooldown != nil {
 			mut.SetCooldown(*input.Cooldown)
-		}
-		if input.EffectValue != nil {
-			mut.SetEffectValue(*input.EffectValue)
-		}
-		if input.EffectDuration != nil {
-			mut.SetEffectDuration(*input.EffectDuration)
-		}
-		if input.ScalingPercentPerPoint != nil {
-			mut.SetScalingPercentPerPoint(*input.ScalingPercentPerPoint)
 		}
 		if input.ManaCost != nil {
 			mut.SetManaCost(*input.ManaCost)
@@ -244,17 +199,12 @@ func createAbility(client *db.Client) gin.HandlerFunc {
 		if input.FactionID != nil {
 			mut.SetFactionID(*input.FactionID)
 		}
-
 		s, err := mut.Save(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
-		s, _ = client.Ability.Query().
-			WithFaction().
-			Where(ability.ID(s.ID)).
-			Only(c.Request.Context())
+		s, _ = client.Ability.Query().WithFaction().Where(ability.ID(s.ID)).Only(c.Request.Context())
 		c.JSON(http.StatusCreated, abilityToView(s))
 	}
 }
@@ -266,47 +216,30 @@ func updateAbility(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
-
-		s, err := client.Ability.Query().
-			Where(ability.ID(id)).
-			Only(c.Request.Context())
+		s, err := client.Ability.Query().Where(ability.ID(id)).Only(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
 			return
 		}
-
 		var input abilityInput
 		if err := c.ShouldBindJSON(&input); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
 		mut := client.Ability.UpdateOne(s).
 			SetName(input.Name).
 			SetDescription(input.Description).
 			SetAbilityType(input.AbilityType).
 			SetRequirements(buildRequirementsJSON(input.Tags)).
-			SetEffectType(input.EffectType).
-			SetScalingStat(input.ScalingStat).
 			SetSlug(input.Slug).
 			SetRequiredTag(input.RequiredTag).
 			SetAbilityClass(input.AbilityClass).
 			SetProcEvent(input.ProcEvent)
-
 		if input.Cost != nil {
 			mut.SetCost(*input.Cost)
 		}
 		if input.Cooldown != nil {
 			mut.SetCooldown(*input.Cooldown)
-		}
-		if input.EffectValue != nil {
-			mut.SetEffectValue(*input.EffectValue)
-		}
-		if input.EffectDuration != nil {
-			mut.SetEffectDuration(*input.EffectDuration)
-		}
-		if input.ScalingPercentPerPoint != nil {
-			mut.SetScalingPercentPerPoint(*input.ScalingPercentPerPoint)
 		}
 		if input.ManaCost != nil {
 			mut.SetManaCost(*input.ManaCost)
@@ -326,17 +259,12 @@ func updateAbility(client *db.Client) gin.HandlerFunc {
 		if input.FactionID != nil {
 			mut.SetFactionID(*input.FactionID)
 		}
-
 		updated, err := mut.Save(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
-		updated, _ = client.Ability.Query().
-			WithFaction().
-			Where(ability.ID(updated.ID)).
-			Only(c.Request.Context())
+		updated, _ = client.Ability.Query().WithFaction().Where(ability.ID(updated.ID)).Only(c.Request.Context())
 		c.JSON(http.StatusOK, abilityToView(updated))
 	}
 }
@@ -348,7 +276,6 @@ func deleteAbility(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
-
 		err = client.Ability.DeleteOneID(id).Exec(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
@@ -357,8 +284,7 @@ func deleteAbility(client *db.Client) gin.HandlerFunc {
 		c.Status(http.StatusNoContent)
 	}
 }
-// listClasslessAbilities returns all active abilities (no faction requirement)
-// for the SSH client's ability selection UI. Public — no auth required.
+
 func listClasslessAbilities(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		abilities, err := client.Ability.Query().
@@ -372,17 +298,14 @@ func listClasslessAbilities(client *db.Client) gin.HandlerFunc {
 		result := make([]gin.H, len(abilities))
 		for i, a := range abilities {
 			result[i] = gin.H{
-				"id":              a.ID,
-				"name":            a.Name,
-				"description":     a.Description,
-				"ability_type":    a.AbilityType,
-				"mana_cost":       a.ManaCost,
-				"stamina_cost":    a.StaminaCost,
-				"hp_cost":         a.HpCost,
-				"cooldown":        a.Cooldown,
-				"effect_type":     a.EffectType,
-				"effect_value":    a.EffectValue,
-				"effect_duration": a.EffectDuration,
+				"id":           a.ID,
+				"name":         a.Name,
+				"description":  a.Description,
+				"ability_type": a.AbilityType,
+				"mana_cost":    a.ManaCost,
+				"stamina_cost": a.StaminaCost,
+				"hp_cost":      a.HpCost,
+				"cooldown":     a.Cooldown,
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{"abilities": result})

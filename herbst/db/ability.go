@@ -28,16 +28,6 @@ type Ability struct {
 	Cooldown int `json:"cooldown,omitempty"`
 	// Requirements holds the value of the "requirements" field.
 	Requirements string `json:"requirements,omitempty"`
-	// EffectType holds the value of the "effect_type" field.
-	EffectType string `json:"effect_type,omitempty"`
-	// EffectValue holds the value of the "effect_value" field.
-	EffectValue int `json:"effect_value,omitempty"`
-	// EffectDuration holds the value of the "effect_duration" field.
-	EffectDuration int `json:"effect_duration,omitempty"`
-	// ScalingStat holds the value of the "scaling_stat" field.
-	ScalingStat string `json:"scaling_stat,omitempty"`
-	// ScalingPercentPerPoint holds the value of the "scaling_percent_per_point" field.
-	ScalingPercentPerPoint float64 `json:"scaling_percent_per_point,omitempty"`
 	// ManaCost holds the value of the "mana_cost" field.
 	ManaCost int `json:"mana_cost,omitempty"`
 	// StaminaCost holds the value of the "stamina_cost" field.
@@ -84,11 +74,9 @@ func (*Ability) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case ability.FieldScalingPercentPerPoint:
-			values[i] = new(sql.NullFloat64)
-		case ability.FieldID, ability.FieldCost, ability.FieldCooldown, ability.FieldEffectValue, ability.FieldEffectDuration, ability.FieldManaCost, ability.FieldStaminaCost, ability.FieldHpCost:
+		case ability.FieldID, ability.FieldCost, ability.FieldCooldown, ability.FieldManaCost, ability.FieldStaminaCost, ability.FieldHpCost:
 			values[i] = new(sql.NullInt64)
-		case ability.FieldName, ability.FieldDescription, ability.FieldAbilityType, ability.FieldRequirements, ability.FieldEffectType, ability.FieldScalingStat:
+		case ability.FieldName, ability.FieldDescription, ability.FieldAbilityType, ability.FieldRequirements:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -146,36 +134,6 @@ func (_m *Ability) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field requirements", values[i])
 			} else if value.Valid {
 				_m.Requirements = value.String
-			}
-		case ability.FieldEffectType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field effect_type", values[i])
-			} else if value.Valid {
-				_m.EffectType = value.String
-			}
-		case ability.FieldEffectValue:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field effect_value", values[i])
-			} else if value.Valid {
-				_m.EffectValue = int(value.Int64)
-			}
-		case ability.FieldEffectDuration:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field effect_duration", values[i])
-			} else if value.Valid {
-				_m.EffectDuration = int(value.Int64)
-			}
-		case ability.FieldScalingStat:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field scaling_stat", values[i])
-			} else if value.Valid {
-				_m.ScalingStat = value.String
-			}
-		case ability.FieldScalingPercentPerPoint:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field scaling_percent_per_point", values[i])
-			} else if value.Valid {
-				_m.ScalingPercentPerPoint = value.Float64
 			}
 		case ability.FieldManaCost:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -258,21 +216,6 @@ func (_m *Ability) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("requirements=")
 	builder.WriteString(_m.Requirements)
-	builder.WriteString(", ")
-	builder.WriteString("effect_type=")
-	builder.WriteString(_m.EffectType)
-	builder.WriteString(", ")
-	builder.WriteString("effect_value=")
-	builder.WriteString(fmt.Sprintf("%v", _m.EffectValue))
-	builder.WriteString(", ")
-	builder.WriteString("effect_duration=")
-	builder.WriteString(fmt.Sprintf("%v", _m.EffectDuration))
-	builder.WriteString(", ")
-	builder.WriteString("scaling_stat=")
-	builder.WriteString(_m.ScalingStat)
-	builder.WriteString(", ")
-	builder.WriteString("scaling_percent_per_point=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ScalingPercentPerPoint))
 	builder.WriteString(", ")
 	builder.WriteString("mana_cost=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ManaCost))

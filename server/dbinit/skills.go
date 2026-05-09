@@ -107,8 +107,7 @@ func InitSkillsAndAbilities(client *db.Client) error {
 			SetCooldownSeconds(a.Cooldown).
 			SetRequirements("{}").
 			SetManaCost(a.ManaCost).
-			SetStaminaCost(a.StaminaCost).
-			SetScalingStat(a.Effects[0].ScalingStat)
+			SetStaminaCost(a.StaminaCost)
 
 		created, err := ab.Save(ctx)
 		if err != nil {
