@@ -7,6 +7,7 @@ import { DataTable, type Column } from '../../components/DataTable'
 import { DeleteConfirmation } from '../../components/DeleteConfirmation'
 import { Modal } from '../../components/Modal'
 import { Button } from '../../components/Button'
+import { HooksPanel } from '../../components/HooksPanel'
 import {
   FormField,
   NumberField,
@@ -405,6 +406,8 @@ export function NpcTemplateDetail() {
           />
         )}
       </div>
+
+      <HooksPanel npcTemplateId={npcId} />
 
       <DeleteConfirmation
         open={showDeleteModal}

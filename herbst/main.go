@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/muesli/termenv"
 	"herbst/db"
 	"herbst/dbinit"
+	"herbst/effects"
 )
 
 func init() {
@@ -93,6 +95,14 @@ func main() {
 		}
 	}
 
+	// Initialize the effects service (caches hooks and effect definitions)
+	restBase := getEnv("API_BASE_URL", "http://localhost:8080")
+	effectsSvc := effects.NewService(restBase, slog.Default())
+	if err := effectsSvc.RefreshCache(context.Background()); err != nil {
+		log.Printf("Warning: failed to load effects cache: %v", err)
+	}
+	effectsSvc.StartRefreshLoop(5 * time.Minute)
+
 	srv, err := wish.NewServer(
 		wish.WithAddress(":4444"),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
@@ -122,7 +132,7 @@ func main() {
 					sp.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
 					m := &model{
-						connectedAt:  time.Now(),
+						connectedAt:   time.Now(),
 						session:      s,
 						client:       client,
 						screen:       ScreenWelcome,
@@ -134,7 +144,8 @@ func main() {
 						width:        initialWidth,
 						height:       initialHeight,
 						maxHistory:   50,
-						commands:     NewCommandRegistry(),
+						commands:      NewCommandRegistry(),
+						effectsService: effectsSvc,
 					}
 
 					// Initialize commands

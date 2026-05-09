@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/ssh"
 	"herbst/combat"
 	"herbst/db"
+	"herbst/effects"
 )
 
 type model struct {
@@ -112,6 +113,9 @@ type model struct {
 
 	// Command registry
 	commands *CommandRegistry
+
+	// Effects service (data-driven hooks and effects)
+	effectsService *effects.Service
 
 	// NPC skill cooldown (for enemy skills)
 	npcSkillCooldown int

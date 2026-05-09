@@ -36,6 +36,7 @@ import { Route as AuthNpcsRouteImport } from './routes/_auth/npcs'
 import { Route as AuthLogsRouteImport } from './routes/_auth/logs'
 import { Route as AuthItemsRouteImport } from './routes/_auth/items'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
+import { Route as AuthEffectsRouteImport } from './routes/_auth/effects'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
 import { Route as AuthCharactersRouteImport } from './routes/_auth/characters'
 import { Route as AuthAchievementsRouteImport } from './routes/_auth/achievements'
@@ -181,6 +182,11 @@ const AuthFactionsRoute = AuthFactionsRouteImport.update({
   path: '/factions',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthEffectsRoute = AuthEffectsRouteImport.update({
+  id: '/effects',
+  path: '/effects',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthConfigRoute = AuthConfigRouteImport.update({
   id: '/config',
   path: '/config',
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/achievements': typeof AuthAchievementsRoute
   '/characters': typeof AuthCharactersRouteWithChildren
   '/config': typeof AuthConfigRoute
+  '/effects': typeof AuthEffectsRoute
   '/factions': typeof AuthFactionsRoute
   '/items': typeof AuthItemsRouteWithChildren
   '/logs': typeof AuthLogsRoute
@@ -284,6 +291,7 @@ export interface FileRoutesByTo {
   '/achievements': typeof AuthAchievementsRoute
   '/characters': typeof AuthCharactersRouteWithChildren
   '/config': typeof AuthConfigRoute
+  '/effects': typeof AuthEffectsRoute
   '/factions': typeof AuthFactionsRoute
   '/items': typeof AuthItemsRouteWithChildren
   '/logs': typeof AuthLogsRoute
@@ -323,6 +331,7 @@ export interface FileRoutesById {
   '/_auth/achievements': typeof AuthAchievementsRoute
   '/_auth/characters': typeof AuthCharactersRouteWithChildren
   '/_auth/config': typeof AuthConfigRoute
+  '/_auth/effects': typeof AuthEffectsRoute
   '/_auth/factions': typeof AuthFactionsRoute
   '/_auth/items': typeof AuthItemsRouteWithChildren
   '/_auth/logs': typeof AuthLogsRoute
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/characters'
     | '/config'
+    | '/effects'
     | '/factions'
     | '/items'
     | '/logs'
@@ -400,6 +410,7 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/characters'
     | '/config'
+    | '/effects'
     | '/factions'
     | '/items'
     | '/logs'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/_auth/achievements'
     | '/_auth/characters'
     | '/_auth/config'
+    | '/_auth/effects'
     | '/_auth/factions'
     | '/_auth/items'
     | '/_auth/logs'
@@ -667,6 +679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthFactionsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/effects': {
+      id: '/_auth/effects'
+      path: '/effects'
+      fullPath: '/effects'
+      preLoaderRoute: typeof AuthEffectsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/config': {
       id: '/_auth/config'
       path: '/config'
@@ -808,6 +827,7 @@ interface AuthRouteChildren {
   AuthAchievementsRoute: typeof AuthAchievementsRoute
   AuthCharactersRoute: typeof AuthCharactersRouteWithChildren
   AuthConfigRoute: typeof AuthConfigRoute
+  AuthEffectsRoute: typeof AuthEffectsRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
   AuthItemsRoute: typeof AuthItemsRouteWithChildren
   AuthLogsRoute: typeof AuthLogsRoute
@@ -824,6 +844,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthAchievementsRoute: AuthAchievementsRoute,
   AuthCharactersRoute: AuthCharactersRouteWithChildren,
   AuthConfigRoute: AuthConfigRoute,
+  AuthEffectsRoute: AuthEffectsRoute,
   AuthFactionsRoute: AuthFactionsRoute,
   AuthItemsRoute: AuthItemsRouteWithChildren,
   AuthLogsRoute: AuthLogsRoute,

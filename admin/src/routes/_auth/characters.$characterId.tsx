@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useCharacter, useUpdateCharacter, type CharacterUpdate } from '../../hooks/useCharacters'
 import { PageHeader } from '../../components/PageHeader'
 import { EquippedItemsView } from '../../components/EquippedItemsView'
+import { ActiveEffectsPanel } from '../../components/ActiveEffectsPanel'
 import { CharacterStats } from './-characters.$characterId.stats'
 
 export const Route = createFileRoute('/_auth/characters/$characterId')({
@@ -46,6 +47,7 @@ function CharacterDetail() {
         <DetailView character={character} />
       )}
       {showEquipped && <EquippedItemsView characterId={character.id} characterRace={character.race} />}
+      <ActiveEffectsPanel characterId={character.id} />
     </div>
   )
 }
