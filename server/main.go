@@ -328,6 +328,10 @@ func main() {
 	// Register competency routes (XP-005)
 	routes.RegisterCompetencyRoutes(router, client)
 
+	// Register quest routes
+	routes.RegisterQuestRoutes(router, client)
+	routes.RegisterQuestProgressRoutes(router, client)
+
 	// Register event routes (HTTP bridge for game server → event bus)
 	routes.RegisterEventRoutes(router, client, slog.Default())
 

@@ -212,6 +212,10 @@ func (m *model) handleTargetDefeat() {
 	})
 	m.generateCorpse(m.combatTarget)
 
+		if m.combatTarget.IsNPC && m.combatTarget.NpcTemplateID != "" {
+			m.questService.CheckProgress(m.currentCharacterID, "kill", m.combatTarget.NpcTemplateID)
+		}
+
 	if m.combatTarget.IsNPC {
 		healCharacter(m.combatTarget.ID, m.combatTarget.MaxHP)
 	}

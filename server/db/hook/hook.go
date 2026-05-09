@@ -296,6 +296,30 @@ func (f NPCTemplateFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.NPCTemplateMutation", m)
 }
 
+// The QuestFunc type is an adapter to allow the use of ordinary
+// function as Quest mutator.
+type QuestFunc func(context.Context, *db.QuestMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuestFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.QuestMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.QuestMutation", m)
+}
+
+// The QuestProgressFunc type is an adapter to allow the use of ordinary
+// function as QuestProgress mutator.
+type QuestProgressFunc func(context.Context, *db.QuestProgressMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuestProgressFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.QuestProgressMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.QuestProgressMutation", m)
+}
+
 // The RaceFunc type is an adapter to allow the use of ordinary
 // function as Race mutator.
 type RaceFunc func(context.Context, *db.RaceMutation) (db.Value, error)

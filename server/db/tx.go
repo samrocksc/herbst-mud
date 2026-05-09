@@ -60,6 +60,10 @@ type Tx struct {
 	NPCAbility *NPCAbilityClient
 	// NPCTemplate is the client for interacting with the NPCTemplate builders.
 	NPCTemplate *NPCTemplateClient
+	// Quest is the client for interacting with the Quest builders.
+	Quest *QuestClient
+	// QuestProgress is the client for interacting with the QuestProgress builders.
+	QuestProgress *QuestProgressClient
 	// Race is the client for interacting with the Race builders.
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
@@ -223,6 +227,8 @@ func (tx *Tx) init() {
 	tx.Gender = NewGenderClient(tx.config)
 	tx.NPCAbility = NewNPCAbilityClient(tx.config)
 	tx.NPCTemplate = NewNPCTemplateClient(tx.config)
+	tx.Quest = NewQuestClient(tx.config)
+	tx.QuestProgress = NewQuestProgressClient(tx.config)
 	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)

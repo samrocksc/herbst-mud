@@ -21,6 +21,8 @@ import (
 	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/npctemplate"
+	"herbst-server/db/quest"
+	"herbst-server/db/questprogress"
 	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/schema"
@@ -592,6 +594,22 @@ func init() {
 	npctemplateDescRespawnCooldown := npctemplateFields[11].Descriptor()
 	// npctemplate.DefaultRespawnCooldown holds the default value on creation for the respawn_cooldown field.
 	npctemplate.DefaultRespawnCooldown = npctemplateDescRespawnCooldown.Default.(int)
+	questFields := schema.Quest{}.Fields()
+	_ = questFields
+	// questDescCooldownHours is the schema descriptor for cooldown_hours field.
+	questDescCooldownHours := questFields[6].Descriptor()
+	// quest.DefaultCooldownHours holds the default value on creation for the cooldown_hours field.
+	quest.DefaultCooldownHours = questDescCooldownHours.Default.(int)
+	// questDescIsActive is the schema descriptor for is_active field.
+	questDescIsActive := questFields[7].Descriptor()
+	// quest.DefaultIsActive holds the default value on creation for the is_active field.
+	quest.DefaultIsActive = questDescIsActive.Default.(bool)
+	questprogressFields := schema.QuestProgress{}.Fields()
+	_ = questprogressFields
+	// questprogressDescCurrentStep is the schema descriptor for current_step field.
+	questprogressDescCurrentStep := questprogressFields[3].Descriptor()
+	// questprogress.DefaultCurrentStep holds the default value on creation for the current_step field.
+	questprogress.DefaultCurrentStep = questprogressDescCurrentStep.Default.(int)
 	raceFields := schema.Race{}.Fields()
 	_ = raceFields
 	// raceDescEquipmentSlots is the schema descriptor for equipment_slots field.

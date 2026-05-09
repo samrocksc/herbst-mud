@@ -114,6 +114,8 @@ const (
 	EdgeCompetencies = "competencies"
 	// EdgeActiveEffects holds the string denoting the active_effects edge name in mutations.
 	EdgeActiveEffects = "active_effects"
+	// EdgeQuestProgress holds the string denoting the quest_progress edge name in mutations.
+	EdgeQuestProgress = "quest_progress"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -172,6 +174,13 @@ const (
 	ActiveEffectsInverseTable = "active_effects"
 	// ActiveEffectsColumn is the table column denoting the active_effects relation/edge.
 	ActiveEffectsColumn = "character_id"
+	// QuestProgressTable is the table that holds the quest_progress relation/edge.
+	QuestProgressTable = "quest_progresses"
+	// QuestProgressInverseTable is the table name for the QuestProgress entity.
+	// It exists in this package in order to avoid circular dependency with the "questprogress" package.
+	QuestProgressInverseTable = "quest_progresses"
+	// QuestProgressColumn is the table column denoting the quest_progress relation/edge.
+	QuestProgressColumn = "character_quest_progress"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -624,6 +633,20 @@ func ByActiveEffects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newActiveEffectsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByQuestProgressCount orders the results by quest_progress count.
+func ByQuestProgressCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQuestProgressStep(), opts...)
+	}
+}
+
+// ByQuestProgress orders the results by quest_progress terms.
+func ByQuestProgress(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQuestProgressStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -678,5 +701,12 @@ func newActiveEffectsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ActiveEffectsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ActiveEffectsTable, ActiveEffectsColumn),
+	)
+}
+func newQuestProgressStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QuestProgressInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QuestProgressTable, QuestProgressColumn),
 	)
 }

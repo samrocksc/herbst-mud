@@ -8,6 +8,7 @@ const TOOLS = [
   { to: '/players', emoji: '🎮', title: 'Player Manager', desc: 'Manage players and reset passwords' },
   { to: '/characters', emoji: '🧙', title: 'Character Manager', desc: 'View and edit characters, rooms, stats, and bind points' },
   { to: '/abilities', emoji: '⚡', title: 'Abilities Manager', desc: 'Create, edit, and manage abilities' },
+  { to: '/quests', emoji: '📜', title: 'Quest Manager', desc: 'Create, edit, and manage quests and objectives' },
   { to: '/skills', emoji: '🎯', title: 'Skills Manager', desc: 'Manage trainable skill specializations' },
   { to: '/factions', emoji: '⚔️', title: 'Factions Manager', desc: 'Manage factions, categories, and member standing' },
 ] as const

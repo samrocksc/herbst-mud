@@ -20,6 +20,8 @@ import (
 	"herbst/db/equipment"
 	"herbst/db/equipmenttemplate"
 	"herbst/db/npctemplate"
+	"herbst/db/quest"
+	"herbst/db/questprogress"
 	"herbst/db/race"
 	"herbst/db/room"
 	"herbst/db/user"
@@ -53,6 +55,10 @@ type Client struct {
 	EquipmentTemplate *EquipmentTemplateClient
 	// NPCTemplate is the client for interacting with the NPCTemplate builders.
 	NPCTemplate *NPCTemplateClient
+	// Quest is the client for interacting with the Quest builders.
+	Quest *QuestClient
+	// QuestProgress is the client for interacting with the QuestProgress builders.
+	QuestProgress *QuestProgressClient
 	// Race is the client for interacting with the Race builders.
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
@@ -79,6 +85,8 @@ func (c *Client) init() {
 	c.Equipment = NewEquipmentClient(c.config)
 	c.EquipmentTemplate = NewEquipmentTemplateClient(c.config)
 	c.NPCTemplate = NewNPCTemplateClient(c.config)
+	c.Quest = NewQuestClient(c.config)
+	c.QuestProgress = NewQuestProgressClient(c.config)
 	c.Race = NewRaceClient(c.config)
 	c.Room = NewRoomClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -183,6 +191,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Equipment:         NewEquipmentClient(cfg),
 		EquipmentTemplate: NewEquipmentTemplateClient(cfg),
 		NPCTemplate:       NewNPCTemplateClient(cfg),
+		Quest:             NewQuestClient(cfg),
+		QuestProgress:     NewQuestProgressClient(cfg),
 		Race:              NewRaceClient(cfg),
 		Room:              NewRoomClient(cfg),
 		User:              NewUserClient(cfg),
@@ -214,6 +224,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Equipment:         NewEquipmentClient(cfg),
 		EquipmentTemplate: NewEquipmentTemplateClient(cfg),
 		NPCTemplate:       NewNPCTemplateClient(cfg),
+		Quest:             NewQuestClient(cfg),
+		QuestProgress:     NewQuestProgressClient(cfg),
 		Race:              NewRaceClient(cfg),
 		Room:              NewRoomClient(cfg),
 		User:              NewUserClient(cfg),
@@ -247,7 +259,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Ability, c.AbilityEffect, c.ActiveEffect, c.Character, c.Effect, c.EffectHook,
-		c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Race, c.Room, c.User,
+		c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Quest, c.QuestProgress,
+		c.Race, c.Room, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -258,7 +271,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Ability, c.AbilityEffect, c.ActiveEffect, c.Character, c.Effect, c.EffectHook,
-		c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Race, c.Room, c.User,
+		c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Quest, c.QuestProgress,
+		c.Race, c.Room, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -285,6 +299,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.EquipmentTemplate.mutate(ctx, m)
 	case *NPCTemplateMutation:
 		return c.NPCTemplate.mutate(ctx, m)
+	case *QuestMutation:
+		return c.Quest.mutate(ctx, m)
+	case *QuestProgressMutation:
+		return c.QuestProgress.mutate(ctx, m)
 	case *RaceMutation:
 		return c.Race.mutate(ctx, m)
 	case *RoomMutation:
@@ -940,6 +958,22 @@ func (c *CharacterClient) QueryActiveEffects(_m *Character) *ActiveEffectQuery {
 			sqlgraph.From(character.Table, character.FieldID, id),
 			sqlgraph.To(activeeffect.Table, activeeffect.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, character.ActiveEffectsTable, character.ActiveEffectsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryQuestProgress queries the quest_progress edge of a Character.
+func (c *CharacterClient) QueryQuestProgress(_m *Character) *QuestProgressQuery {
+	query := (&QuestProgressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(questprogress.Table, questprogress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.QuestProgressTable, character.QuestProgressColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1765,6 +1799,320 @@ func (c *NPCTemplateClient) mutate(ctx context.Context, m *NPCTemplateMutation) 
 	}
 }
 
+// QuestClient is a client for the Quest schema.
+type QuestClient struct {
+	config
+}
+
+// NewQuestClient returns a client for the Quest from the given config.
+func NewQuestClient(c config) *QuestClient {
+	return &QuestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `quest.Hooks(f(g(h())))`.
+func (c *QuestClient) Use(hooks ...Hook) {
+	c.hooks.Quest = append(c.hooks.Quest, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `quest.Intercept(f(g(h())))`.
+func (c *QuestClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Quest = append(c.inters.Quest, interceptors...)
+}
+
+// Create returns a builder for creating a Quest entity.
+func (c *QuestClient) Create() *QuestCreate {
+	mutation := newQuestMutation(c.config, OpCreate)
+	return &QuestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Quest entities.
+func (c *QuestClient) CreateBulk(builders ...*QuestCreate) *QuestCreateBulk {
+	return &QuestCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *QuestClient) MapCreateBulk(slice any, setFunc func(*QuestCreate, int)) *QuestCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &QuestCreateBulk{err: fmt.Errorf("calling to QuestClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*QuestCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &QuestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Quest.
+func (c *QuestClient) Update() *QuestUpdate {
+	mutation := newQuestMutation(c.config, OpUpdate)
+	return &QuestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *QuestClient) UpdateOne(_m *Quest) *QuestUpdateOne {
+	mutation := newQuestMutation(c.config, OpUpdateOne, withQuest(_m))
+	return &QuestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *QuestClient) UpdateOneID(id int) *QuestUpdateOne {
+	mutation := newQuestMutation(c.config, OpUpdateOne, withQuestID(id))
+	return &QuestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Quest.
+func (c *QuestClient) Delete() *QuestDelete {
+	mutation := newQuestMutation(c.config, OpDelete)
+	return &QuestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *QuestClient) DeleteOne(_m *Quest) *QuestDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *QuestClient) DeleteOneID(id int) *QuestDeleteOne {
+	builder := c.Delete().Where(quest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &QuestDeleteOne{builder}
+}
+
+// Query returns a query builder for Quest.
+func (c *QuestClient) Query() *QuestQuery {
+	return &QuestQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeQuest},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Quest entity by its id.
+func (c *QuestClient) Get(ctx context.Context, id int) (*Quest, error) {
+	return c.Query().Where(quest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *QuestClient) GetX(ctx context.Context, id int) *Quest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProgress queries the progress edge of a Quest.
+func (c *QuestClient) QueryProgress(_m *Quest) *QuestProgressQuery {
+	query := (&QuestProgressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(quest.Table, quest.FieldID, id),
+			sqlgraph.To(questprogress.Table, questprogress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, quest.ProgressTable, quest.ProgressColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *QuestClient) Hooks() []Hook {
+	return c.hooks.Quest
+}
+
+// Interceptors returns the client interceptors.
+func (c *QuestClient) Interceptors() []Interceptor {
+	return c.inters.Quest
+}
+
+func (c *QuestClient) mutate(ctx context.Context, m *QuestMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&QuestCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&QuestUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&QuestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&QuestDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Quest mutation op: %q", m.Op())
+	}
+}
+
+// QuestProgressClient is a client for the QuestProgress schema.
+type QuestProgressClient struct {
+	config
+}
+
+// NewQuestProgressClient returns a client for the QuestProgress from the given config.
+func NewQuestProgressClient(c config) *QuestProgressClient {
+	return &QuestProgressClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `questprogress.Hooks(f(g(h())))`.
+func (c *QuestProgressClient) Use(hooks ...Hook) {
+	c.hooks.QuestProgress = append(c.hooks.QuestProgress, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `questprogress.Intercept(f(g(h())))`.
+func (c *QuestProgressClient) Intercept(interceptors ...Interceptor) {
+	c.inters.QuestProgress = append(c.inters.QuestProgress, interceptors...)
+}
+
+// Create returns a builder for creating a QuestProgress entity.
+func (c *QuestProgressClient) Create() *QuestProgressCreate {
+	mutation := newQuestProgressMutation(c.config, OpCreate)
+	return &QuestProgressCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of QuestProgress entities.
+func (c *QuestProgressClient) CreateBulk(builders ...*QuestProgressCreate) *QuestProgressCreateBulk {
+	return &QuestProgressCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *QuestProgressClient) MapCreateBulk(slice any, setFunc func(*QuestProgressCreate, int)) *QuestProgressCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &QuestProgressCreateBulk{err: fmt.Errorf("calling to QuestProgressClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*QuestProgressCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &QuestProgressCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for QuestProgress.
+func (c *QuestProgressClient) Update() *QuestProgressUpdate {
+	mutation := newQuestProgressMutation(c.config, OpUpdate)
+	return &QuestProgressUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *QuestProgressClient) UpdateOne(_m *QuestProgress) *QuestProgressUpdateOne {
+	mutation := newQuestProgressMutation(c.config, OpUpdateOne, withQuestProgress(_m))
+	return &QuestProgressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *QuestProgressClient) UpdateOneID(id int) *QuestProgressUpdateOne {
+	mutation := newQuestProgressMutation(c.config, OpUpdateOne, withQuestProgressID(id))
+	return &QuestProgressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for QuestProgress.
+func (c *QuestProgressClient) Delete() *QuestProgressDelete {
+	mutation := newQuestProgressMutation(c.config, OpDelete)
+	return &QuestProgressDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *QuestProgressClient) DeleteOne(_m *QuestProgress) *QuestProgressDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *QuestProgressClient) DeleteOneID(id int) *QuestProgressDeleteOne {
+	builder := c.Delete().Where(questprogress.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &QuestProgressDeleteOne{builder}
+}
+
+// Query returns a query builder for QuestProgress.
+func (c *QuestProgressClient) Query() *QuestProgressQuery {
+	return &QuestProgressQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeQuestProgress},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a QuestProgress entity by its id.
+func (c *QuestProgressClient) Get(ctx context.Context, id int) (*QuestProgress, error) {
+	return c.Query().Where(questprogress.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *QuestProgressClient) GetX(ctx context.Context, id int) *QuestProgress {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacter queries the character edge of a QuestProgress.
+func (c *QuestProgressClient) QueryCharacter(_m *QuestProgress) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(questprogress.Table, questprogress.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, questprogress.CharacterTable, questprogress.CharacterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryQuest queries the quest edge of a QuestProgress.
+func (c *QuestProgressClient) QueryQuest(_m *QuestProgress) *QuestQuery {
+	query := (&QuestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(questprogress.Table, questprogress.FieldID, id),
+			sqlgraph.To(quest.Table, quest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, questprogress.QuestTable, questprogress.QuestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *QuestProgressClient) Hooks() []Hook {
+	return c.hooks.QuestProgress
+}
+
+// Interceptors returns the client interceptors.
+func (c *QuestProgressClient) Interceptors() []Interceptor {
+	return c.inters.QuestProgress
+}
+
+func (c *QuestProgressClient) mutate(ctx context.Context, m *QuestProgressMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&QuestProgressCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&QuestProgressUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&QuestProgressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&QuestProgressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown QuestProgress mutation op: %q", m.Op())
+	}
+}
+
 // RaceClient is a client for the Race schema.
 type RaceClient struct {
 	config
@@ -2216,10 +2564,12 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		Ability, AbilityEffect, ActiveEffect, Character, Effect, EffectHook, Equipment,
-		EquipmentTemplate, NPCTemplate, Race, Room, User []ent.Hook
+		EquipmentTemplate, NPCTemplate, Quest, QuestProgress, Race, Room,
+		User []ent.Hook
 	}
 	inters struct {
 		Ability, AbilityEffect, ActiveEffect, Character, Effect, EffectHook, Equipment,
-		EquipmentTemplate, NPCTemplate, Race, Room, User []ent.Interceptor
+		EquipmentTemplate, NPCTemplate, Quest, QuestProgress, Race, Room,
+		User []ent.Interceptor
 	}
 )

@@ -22,6 +22,8 @@ func (m *model) handleHelpCommand(_ *model, args []string) {
   equip potion <id> - Equip potion to R slot
   unequip <slot|item> - Unequip an item
   quests/q - Show your quest log
+  quest accept <id> - Accept a quest
+  quest abandon <id> - Abandon an active quest
   whoami - Show your info
   profile/p - Edit character profile
   skills - Show your equipped combat skills

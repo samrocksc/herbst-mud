@@ -81,6 +81,10 @@ func (m *model) processCommand(cmd string) {
 			m.handleQuestsCommand(cmd)
 			return
 		}
+		if strings.HasPrefix(cmd, "quest accept ") || strings.HasPrefix(cmd, "quest abandon ") {
+			m.handleQuestSubcommand(cmd)
+			return
+		}
 		// skills (classless combat skills)
 		if cmd == "skills" {
 			if m.combatSkills == nil {

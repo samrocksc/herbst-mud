@@ -324,6 +324,55 @@ var (
 		Columns:    NpcTemplatesColumns,
 		PrimaryKey: []*schema.Column{NpcTemplatesColumns[0]},
 	}
+	// QuestsColumns holds the columns for the "quests" table.
+	QuestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString},
+		{Name: "prerequisite_quest_ids", Type: field.TypeJSON, Nullable: true},
+		{Name: "objectives", Type: field.TypeJSON},
+		{Name: "rewards", Type: field.TypeJSON},
+		{Name: "repeat_mode", Type: field.TypeEnum, Enums: []string{"none", "cooldown", "always"}, Default: "none"},
+		{Name: "cooldown_hours", Type: field.TypeInt, Default: 0},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+	}
+	// QuestsTable holds the schema information for the "quests" table.
+	QuestsTable = &schema.Table{
+		Name:       "quests",
+		Columns:    QuestsColumns,
+		PrimaryKey: []*schema.Column{QuestsColumns[0]},
+	}
+	// QuestProgressesColumns holds the columns for the "quest_progresses" table.
+	QuestProgressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "completed", "failed", "abandoned"}, Default: "active"},
+		{Name: "started_at", Type: field.TypeTime},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "current_step", Type: field.TypeInt, Default: 0},
+		{Name: "objective_counts", Type: field.TypeJSON},
+		{Name: "character_quest_progress", Type: field.TypeInt},
+		{Name: "quest_progress", Type: field.TypeInt},
+	}
+	// QuestProgressesTable holds the schema information for the "quest_progresses" table.
+	QuestProgressesTable = &schema.Table{
+		Name:       "quest_progresses",
+		Columns:    QuestProgressesColumns,
+		PrimaryKey: []*schema.Column{QuestProgressesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quest_progresses_characters_quest_progress",
+				Columns:    []*schema.Column{QuestProgressesColumns[6]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "quest_progresses_quests_progress",
+				Columns:    []*schema.Column{QuestProgressesColumns[7]},
+				RefColumns: []*schema.Column{QuestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// RacesColumns holds the columns for the "races" table.
 	RacesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -382,6 +431,8 @@ var (
 		EquipmentTable,
 		EquipmentTemplatesTable,
 		NpcTemplatesTable,
+		QuestsTable,
+		QuestProgressesTable,
 		RacesTable,
 		RoomsTable,
 		UsersTable,
@@ -401,4 +452,6 @@ func init() {
 	EffectHooksTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTemplatesTable
 	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
+	QuestProgressesTable.ForeignKeys[0].RefTable = CharactersTable
+	QuestProgressesTable.ForeignKeys[1].RefTable = QuestsTable
 }

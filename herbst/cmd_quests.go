@@ -17,9 +17,9 @@ func (m *model) handleQuestsCommand(cmd string) {
 		return
 	}
 
-	resp, err := httpGet(fmt.Sprintf("%s/characters/%d/quests", RESTAPIBase, m.currentCharacterID))
+	resp, err := httpGet(fmt.Sprintf("%s/api/characters/%d/quests", RESTAPIBase, m.currentCharacterID))
 	if err != nil {
-		m.displayQuestTrackerPlaceholder()
+		m.AppendMessage("Could not reach quest server.", "error")
 		return
 	}
 	defer resp.Body.Close()
@@ -29,134 +29,102 @@ func (m *model) handleQuestsCommand(cmd string) {
 		return
 	}
 
-	var questResp struct {
-		Quests []struct {
-			ID          string `json:"id"`
-			Name        string `json:"name"`
-			Description string `json:"description"`
-			Status      string `json:"status"`
-			Objectives  []struct {
-				Description string `json:"description"`
-				Current     int    `json:"current"`
-				Total       int    `json:"total"`
-			} `json:"objectives"`
-			Giver   string `json:"giver"`
-			Rewards string `json:"rewards"`
-		} `json:"quests"`
+	var apiResp struct {
+		QuestProgress []questProgressAPI `json:"quest_progress"`
 	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&questResp); err != nil || len(questResp.Quests) == 0 {
-		m.displayQuestTrackerPlaceholder()
+	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		m.AppendMessage("Error reading quest data.", "error")
+		return
+	}
+	if len(apiResp.QuestProgress) == 0 {
+		m.AppendMessage("You have no quests yet. Explore the world to find them!", "info")
 		return
 	}
 
-	var quests strings.Builder
+	var b strings.Builder
+	b.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n")
+	b.WriteString(questTitleStyle.Render("  QUEST LOG") + "\n")
+	b.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n\n")
 
-	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n")
-	quests.WriteString(questTitleStyle.Render("  🤺  QUEST LOG  🤺") + "\n")
-	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n\n")
+	active := 0
+	completed := 0
+	abandoned := 0
 
-	activeCount := 0
-	availableCount := 0
-	completedCount := 0
-
-	for _, quest := range questResp.Quests {
-		switch quest.Status {
-		case "in_progress":
-			activeCount++
-		case "available":
-			availableCount++
-		case "completed":
-			completedCount++
-		}
-
-		quests.WriteString(questBoxStyle.Render("") + "\n")
-
+	for _, qp := range apiResp.QuestProgress {
 		statusColor := questAvailableStyle
-		statusText := "Available"
-		if quest.Status == "in_progress" {
+		statusText := strings.ToUpper(qp.Status)
+		switch qp.Status {
+		case "active":
+			active++
 			statusColor = questProgressStyle
-			statusText = "In Progress"
-		} else if quest.Status == "completed" {
+			statusText = "Active"
+		case "completed":
+			completed++
 			statusColor = questCompletedStyle
 			statusText = "Completed"
+		case "abandoned":
+			abandoned++
+			statusColor = questAvailableStyle
 		}
 
-		quests.WriteString(fmt.Sprintf("  %s [%s]\n", questTitleStyle.Render(quest.Name), statusColor.Render(statusText)))
+		b.WriteString(fmt.Sprintf("  %s [%s]\n",
+			questTitleStyle.Render(qp.QuestName), statusColor.Render(statusText)))
 
-		if quest.Description != "" {
-			quests.WriteString(fmt.Sprintf("    %s\n", quest.Description))
-		}
-
-		if len(quest.Objectives) > 0 {
-			quests.WriteString("\n  Objectives:\n")
-			for _, obj := range quest.Objectives {
-				progress := fmt.Sprintf("%d/%d", obj.Current, obj.Total)
-				if obj.Current >= obj.Total {
-					quests.WriteString(fmt.Sprintf("    ✓ %s %s\n", obj.Description, questCompletedStyle.Render("("+progress+")")))
+		// Show objectives from quest cache if available
+		qDef, found := m.questService.GetQuest(qp.QuestID)
+		if found && len(qDef.Objectives) > 0 {
+			b.WriteString("\n  Objectives:\n")
+			for i, obj := range qDef.Objectives {
+				key := obj.Type + ":" + obj.TargetID
+				current := qp.ObjectiveCounts[key]
+				if current >= obj.Count {
+					b.WriteString(fmt.Sprintf("    ✓ %s %s\n",
+						obj.Label, questCompletedStyle.Render(fmt.Sprintf("(%d/%d)", current, obj.Count))))
+				} else if current > 0 {
+					b.WriteString(fmt.Sprintf("    ○ %s %s\n",
+						obj.Label, questProgressStyle.Render(fmt.Sprintf("(%d/%d)", current, obj.Count))))
 				} else {
-					quests.WriteString(fmt.Sprintf("    ○ %s %s\n", obj.Description, questProgressStyle.Render("("+progress+")")))
+					b.WriteString(fmt.Sprintf("    ○ %s (%d)\n", obj.Label, obj.Count))
 				}
+				_ = i
 			}
 		}
 
-		if quest.Giver != "" {
-			quests.WriteString(fmt.Sprintf("\n  Giver: %s\n", quest.Giver))
-		}
-		if quest.Rewards != "" {
-			quests.WriteString(fmt.Sprintf("  Reward: %s\n", quest.Rewards))
+		// Show rewards from quest cache
+		if found && qDef.Rewards.XP > 0 {
+			b.WriteString(fmt.Sprintf("\n  Reward: %d XP\n", qDef.Rewards.XP))
 		}
 
-		quests.WriteString("\n")
+		b.WriteString("\n")
 	}
 
-	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
-	quests.WriteString(fmt.Sprintf("  Active: %d  |  Available: %d  |  Completed: %d\n",
-		activeCount, availableCount, completedCount))
-	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+	b.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+	b.WriteString(fmt.Sprintf("  Active: %d  |  Completed: %d  |  Abandoned: %d\n",
+		active, completed, abandoned))
+	b.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
 
-	m.AppendMessage(quests.String(), "info")
+	m.AppendMessage(b.String(), "info")
+}
+
+type questProgressAPI struct {
+	ID              int            `json:"id"`
+	CharacterID     int            `json:"character_id"`
+	QuestID         int            `json:"quest_id"`
+	QuestName       string         `json:"quest_name"`
+	Status          string         `json:"status"`
+	CurrentStep     int            `json:"current_step"`
+	ObjectiveCounts map[string]int `json:"objective_counts"`
+	StartedAt       string         `json:"started_at"`
+	CompletedAt     *string        `json:"completed_at,omitempty"`
 }
 
 func (m *model) displayQuestTrackerPlaceholder() {
-	var quests strings.Builder
-
-	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n")
-	quests.WriteString(questTitleStyle.Render("  🤺  QUEST LOG  🤺") + "\n")
-	quests.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n\n")
-
-	quests.WriteString(questBoxStyle.Render("") + "\n")
-	quests.WriteString(fmt.Sprintf("  %s [%s]\n",
-		questTitleStyle.Render("Prove Yourself"),
-		questProgressStyle.Render("In Progress")))
-
-	quests.WriteString("    The Scrapyard ain't for the weak. Kill 3 Scrap Rats\n")
-	quests.WriteString("    and I'll let you into New Venice proper.\n\n")
-	quests.WriteString("  Objectives:\n")
-	quests.WriteString(fmt.Sprintf("    ○ %s %s\n", "Kill Scrap Rat", questProgressStyle.Render("(2/3)")))
-	quests.WriteString(fmt.Sprintf("    ✓ %s %s\n", "Find Guard Marco at Foggy Gate", questCompletedStyle.Render("(done)")))
-
-	quests.WriteString("\n  Giver: Guard Marco\n")
-	quests.WriteString("  Reward: 10 coins\n\n")
-
-	quests.WriteString(questBoxStyle.Render("") + "\n")
-	quests.WriteString(fmt.Sprintf("  %s [%s]\n",
-		questTitleStyle.Render("Ooze Samples"),
-		questAvailableStyle.Render("Available")))
-
-	quests.WriteString("    Jane needs Ooze samples for her research.\n")
-	quests.WriteString("    The Leaking Pipes have plenty.\n\n")
-	quests.WriteString("  Objectives:\n")
-	quests.WriteString(fmt.Sprintf("    ○ %s %s\n", "Collect glowing goo", questProgressStyle.Render("(0/5)")))
-
-	quests.WriteString("\n  Giver: Scavenger Jane\n")
-	quests.WriteString("  Reward: repair_kit, scavenge skill\n\n")
-
-	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
-	quests.WriteString("  Active: 1  |  Available: 1  |  Completed: 0\n")
-	quests.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
-
-	quests.WriteString("\n" + infoStyle.Render("  Use 'quest <name>' for details, 'accept <quest>' to begin."))
-
-	m.AppendMessage(quests.String(), "info")
+	var b strings.Builder
+	b.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n")
+	b.WriteString(questTitleStyle.Render("  QUEST LOG") + "\n")
+	b.WriteString(questTitleStyle.Render("═══════════════════════════════════════") + "\n\n")
+	b.WriteString("  No quest data available.\n")
+	b.WriteString("  Explore the world to discover quests!\n\n")
+	b.WriteString(questTitleStyle.Render("───────────────────────────────────────") + "\n")
+	m.AppendMessage(b.String(), "info")
 }

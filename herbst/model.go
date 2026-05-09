@@ -11,6 +11,7 @@ import (
 	"herbst/combat"
 	"herbst/db"
 	"herbst/effects"
+	"herbst/questservice"
 )
 
 type model struct {
@@ -117,6 +118,9 @@ type model struct {
 	// Effects service (data-driven hooks and effects)
 	effectsService *effects.Service
 
+	// Quest service (data-driven quest tracking)
+	questService *questservice.Service
+
 	// NPC skill cooldown (for enemy skills)
 	npcSkillCooldown int
 
@@ -164,17 +168,18 @@ type RoomItem struct {
 
 // RoomCharacter represents a character in a room
 type RoomCharacter struct {
-	ID         int    `json:"id"`
-	Name       string `json:"name"`
-	IsNPC      bool   `json:"isNPC"`
-	Level      int    `json:"level"`
-	Class      string `json:"class"`
-	Race       string `json:"race"`
-	UserID     int    `json:"userId"`
-	HP         int    `json:"hp"`
-	MaxHP      int    `json:"maxHp"`
-	XpValue    int    `json:"xpValue"`
-	LastSeenAt string `json:"lastSeenAt,omitempty"`
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	IsNPC         bool   `json:"isNPC"`
+	Level         int    `json:"level"`
+	Class         string `json:"class"`
+	Race          string `json:"race"`
+	UserID        int    `json:"userId"`
+	HP            int    `json:"hp"`
+	MaxHP         int    `json:"maxHp"`
+	XpValue       int    `json:"xpValue"`
+	NpcTemplateID string `json:"npcTemplateId"`
+	LastSeenAt    string `json:"lastSeenAt,omitempty"`
 }
 
 // Note: HiddenDetail is defined separately in examine_skill.go for that system

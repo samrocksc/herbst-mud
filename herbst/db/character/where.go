@@ -1656,6 +1656,29 @@ func HasActiveEffectsWith(preds ...predicate.ActiveEffect) predicate.Character {
 	})
 }
 
+// HasQuestProgress applies the HasEdge predicate on the "quest_progress" edge.
+func HasQuestProgress() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, QuestProgressTable, QuestProgressColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQuestProgressWith applies the HasEdge predicate on the "quest_progress" edge with a given conditions (other predicates).
+func HasQuestProgressWith(preds ...predicate.QuestProgress) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newQuestProgressStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Character) predicate.Character {
 	return predicate.Character(sql.AndPredicates(predicates...))

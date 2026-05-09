@@ -71,6 +71,8 @@ func (m *model) handleMovement(cmd string) bool {
 		m.effectsService.FireEvent("on_enter_room", m.currentCharacterID, "", map[string]interface{}{
 			"room_id": m.currentRoom,
 		})
+
+		m.questService.CheckProgress(m.currentCharacterID, "explore", fmt.Sprintf("%d", m.currentRoom))
 		roomDisplay := fmt.Sprintf("\n\nExits: %s%s%s",
 			m.formatExitsWithColor(),
 			m.formatRoomItems(),

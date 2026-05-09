@@ -78,6 +78,12 @@ type NPCAbility func(*sql.Selector)
 // NPCTemplate is the predicate function for npctemplate builders.
 type NPCTemplate func(*sql.Selector)
 
+// Quest is the predicate function for quest builders.
+type Quest func(*sql.Selector)
+
+// QuestProgress is the predicate function for questprogress builders.
+type QuestProgress func(*sql.Selector)
+
 // Race is the predicate function for race builders.
 type Race func(*sql.Selector)
 

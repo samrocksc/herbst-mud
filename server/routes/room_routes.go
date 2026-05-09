@@ -519,6 +519,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 				"race":       char.Race,
 				"hp":         char.Hitpoints,
 				"maxHp":      char.MaxHitpoints,
+				"npcTemplateId":  char.NpcTemplateID,
 				"lastSeenAt": char.LastSeenAt,
 			}
 			if char.IsNPC && char.NpcTemplateID != "" {

@@ -91,5 +91,6 @@ func (Character) Edges() []ent.Edge {
 		edge.To("npcTemplate", NPCTemplate.Type).
 			Unique(),
 		edge.To("active_effects", ActiveEffect.Type),
+			edge.To("quest_progress", QuestProgress.Type),
 	}
 }

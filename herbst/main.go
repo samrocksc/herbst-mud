@@ -20,6 +20,7 @@ import (
 	"herbst/db"
 	"herbst/dbinit"
 	"herbst/effects"
+	"herbst/questservice"
 )
 
 func init() {
@@ -104,6 +105,12 @@ func main() {
 	effectsSvc.StartRefreshLoop(5 * time.Minute)
 	effectsSvc.StartExpiryLoop(30 * time.Second)
 
+	questSvc := questservice.NewService(restBase, slog.Default())
+	if err := questSvc.RefreshCache(context.Background()); err != nil {
+		log.Printf("Warning: failed to load quest cache: %v", err)
+	}
+	questSvc.StartRefreshLoop(5 * time.Minute)
+
 	srv, err := wish.NewServer(
 		wish.WithAddress(":4444"),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
@@ -147,6 +154,7 @@ func main() {
 						maxHistory:   50,
 						commands:      NewCommandRegistry(),
 						effectsService: effectsSvc,
+						questService:   questSvc,
 					}
 
 					// Initialize commands

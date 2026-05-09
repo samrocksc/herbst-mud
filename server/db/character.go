@@ -132,9 +132,11 @@ type CharacterEdges struct {
 	Competencies []*CharacterCompetency `json:"competencies,omitempty"`
 	// ActiveEffects holds the value of the active_effects edge.
 	ActiveEffects []*ActiveEffect `json:"active_effects,omitempty"`
+	// QuestProgress holds the value of the quest_progress edge.
+	QuestProgress []*QuestProgress `json:"quest_progress,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -213,6 +215,15 @@ func (e CharacterEdges) ActiveEffectsOrErr() ([]*ActiveEffect, error) {
 		return e.ActiveEffects, nil
 	}
 	return nil, &NotLoadedError{edge: "active_effects"}
+}
+
+// QuestProgressOrErr returns the QuestProgress value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) QuestProgressOrErr() ([]*QuestProgress, error) {
+	if e.loadedTypes[8] {
+		return e.QuestProgress, nil
+	}
+	return nil, &NotLoadedError{edge: "quest_progress"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -578,6 +589,11 @@ func (_m *Character) QueryCompetencies() *CharacterCompetencyQuery {
 // QueryActiveEffects queries the "active_effects" edge of the Character entity.
 func (_m *Character) QueryActiveEffects() *ActiveEffectQuery {
 	return NewCharacterClient(_m.config).QueryActiveEffects(_m)
+}
+
+// QueryQuestProgress queries the "quest_progress" edge of the Character entity.
+func (_m *Character) QueryQuestProgress() *QuestProgressQuery {
+	return NewCharacterClient(_m.config).QueryQuestProgress(_m)
 }
 
 // Update returns a builder for updating this Character.

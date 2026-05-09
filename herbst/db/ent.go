@@ -15,6 +15,8 @@ import (
 	"herbst/db/equipment"
 	"herbst/db/equipmenttemplate"
 	"herbst/db/npctemplate"
+	"herbst/db/quest"
+	"herbst/db/questprogress"
 	"herbst/db/race"
 	"herbst/db/room"
 	"herbst/db/user"
@@ -93,6 +95,8 @@ func checkColumn(t, c string) error {
 			equipment.Table:         equipment.ValidColumn,
 			equipmenttemplate.Table: equipmenttemplate.ValidColumn,
 			npctemplate.Table:       npctemplate.ValidColumn,
+			quest.Table:             quest.ValidColumn,
+			questprogress.Table:     questprogress.ValidColumn,
 			race.Table:              race.ValidColumn,
 			room.Table:              room.ValidColumn,
 			user.Table:              user.ValidColumn,

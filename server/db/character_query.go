@@ -14,6 +14,7 @@ import (
 	"herbst-server/db/charactertag"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
+	"herbst-server/db/questprogress"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
 	"math"
@@ -39,6 +40,7 @@ type CharacterQuery struct {
 	withFactionMemberships *CharacterFactionQuery
 	withCompetencies       *CharacterCompetencyQuery
 	withActiveEffects      *ActiveEffectQuery
+	withQuestProgress      *QuestProgressQuery
 	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -252,6 +254,28 @@ func (_q *CharacterQuery) QueryActiveEffects() *ActiveEffectQuery {
 	return query
 }
 
+// QueryQuestProgress chains the current query on the "quest_progress" edge.
+func (_q *CharacterQuery) QueryQuestProgress() *QuestProgressQuery {
+	query := (&QuestProgressClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(questprogress.Table, questprogress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.QuestProgressTable, character.QuestProgressColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Character entity from the query.
 // Returns a *NotFoundError when no Character was found.
 func (_q *CharacterQuery) First(ctx context.Context) (*Character, error) {
@@ -452,6 +476,7 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		withFactionMemberships: _q.withFactionMemberships.Clone(),
 		withCompetencies:       _q.withCompetencies.Clone(),
 		withActiveEffects:      _q.withActiveEffects.Clone(),
+		withQuestProgress:      _q.withQuestProgress.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -546,6 +571,17 @@ func (_q *CharacterQuery) WithActiveEffects(opts ...func(*ActiveEffectQuery)) *C
 	return _q
 }
 
+// WithQuestProgress tells the query-builder to eager-load the nodes that are connected to
+// the "quest_progress" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithQuestProgress(opts ...func(*QuestProgressQuery)) *CharacterQuery {
+	query := (&QuestProgressClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withQuestProgress = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -625,7 +661,7 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			_q.withUser != nil,
 			_q.withRoom != nil,
 			_q.withNpcTemplate != nil,
@@ -634,6 +670,7 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 			_q.withFactionMemberships != nil,
 			_q.withCompetencies != nil,
 			_q.withActiveEffects != nil,
+			_q.withQuestProgress != nil,
 		}
 	)
 	if _q.withUser != nil {
@@ -712,6 +749,13 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		if err := _q.loadActiveEffects(ctx, query, nodes,
 			func(n *Character) { n.Edges.ActiveEffects = []*ActiveEffect{} },
 			func(n *Character, e *ActiveEffect) { n.Edges.ActiveEffects = append(n.Edges.ActiveEffects, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withQuestProgress; query != nil {
+		if err := _q.loadQuestProgress(ctx, query, nodes,
+			func(n *Character) { n.Edges.QuestProgress = []*QuestProgress{} },
+			func(n *Character, e *QuestProgress) { n.Edges.QuestProgress = append(n.Edges.QuestProgress, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -957,6 +1001,37 @@ func (_q *CharacterQuery) loadActiveEffects(ctx context.Context, query *ActiveEf
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "character_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadQuestProgress(ctx context.Context, query *QuestProgressQuery, nodes []*Character, init func(*Character), assign func(*Character, *QuestProgress)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.QuestProgress(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.QuestProgressColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_quest_progress
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_quest_progress" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_quest_progress" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

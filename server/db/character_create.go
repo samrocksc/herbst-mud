@@ -13,6 +13,7 @@ import (
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/npctemplate"
+	"herbst-server/db/questprogress"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
 	"time"
@@ -716,6 +717,21 @@ func (_c *CharacterCreate) AddActiveEffects(v ...*ActiveEffect) *CharacterCreate
 	return _c.AddActiveEffectIDs(ids...)
 }
 
+// AddQuestProgresIDs adds the "quest_progress" edge to the QuestProgress entity by IDs.
+func (_c *CharacterCreate) AddQuestProgresIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddQuestProgresIDs(ids...)
+	return _c
+}
+
+// AddQuestProgress adds the "quest_progress" edges to the QuestProgress entity.
+func (_c *CharacterCreate) AddQuestProgress(v ...*QuestProgress) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddQuestProgresIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_c *CharacterCreate) Mutation() *CharacterMutation {
 	return _c.mutation
@@ -1305,6 +1321,22 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.QuestProgressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.QuestProgressTable,
+			Columns: []string{character.QuestProgressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

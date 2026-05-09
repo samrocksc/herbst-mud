@@ -132,5 +132,6 @@ func (Character) Edges() []ent.Edge {
 		edge.To("faction_memberships", CharacterFaction.Type),
 		edge.To("competencies", CharacterCompetency.Type),
 		edge.To("active_effects", ActiveEffect.Type),
+		edge.To("quest_progress", QuestProgress.Type),
 	}
 }

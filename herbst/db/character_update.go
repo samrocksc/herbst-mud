@@ -10,6 +10,7 @@ import (
 	"herbst/db/character"
 	"herbst/db/npctemplate"
 	"herbst/db/predicate"
+	"herbst/db/questprogress"
 	"herbst/db/room"
 	"herbst/db/user"
 
@@ -715,6 +716,21 @@ func (_u *CharacterUpdate) AddActiveEffects(v ...*ActiveEffect) *CharacterUpdate
 	return _u.AddActiveEffectIDs(ids...)
 }
 
+// AddQuestProgresIDs adds the "quest_progress" edge to the QuestProgress entity by IDs.
+func (_u *CharacterUpdate) AddQuestProgresIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddQuestProgresIDs(ids...)
+	return _u
+}
+
+// AddQuestProgress adds the "quest_progress" edges to the QuestProgress entity.
+func (_u *CharacterUpdate) AddQuestProgress(v ...*QuestProgress) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQuestProgresIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -757,6 +773,27 @@ func (_u *CharacterUpdate) RemoveActiveEffects(v ...*ActiveEffect) *CharacterUpd
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveActiveEffectIDs(ids...)
+}
+
+// ClearQuestProgress clears all "quest_progress" edges to the QuestProgress entity.
+func (_u *CharacterUpdate) ClearQuestProgress() *CharacterUpdate {
+	_u.mutation.ClearQuestProgress()
+	return _u
+}
+
+// RemoveQuestProgresIDs removes the "quest_progress" edge to QuestProgress entities by IDs.
+func (_u *CharacterUpdate) RemoveQuestProgresIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveQuestProgresIDs(ids...)
+	return _u
+}
+
+// RemoveQuestProgress removes "quest_progress" edges to QuestProgress entities.
+func (_u *CharacterUpdate) RemoveQuestProgress(v ...*QuestProgress) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQuestProgresIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1099,6 +1136,51 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QuestProgressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.QuestProgressTable,
+			Columns: []string{character.QuestProgressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQuestProgressIDs(); len(nodes) > 0 && !_u.mutation.QuestProgressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.QuestProgressTable,
+			Columns: []string{character.QuestProgressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QuestProgressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.QuestProgressTable,
+			Columns: []string{character.QuestProgressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1810,6 +1892,21 @@ func (_u *CharacterUpdateOne) AddActiveEffects(v ...*ActiveEffect) *CharacterUpd
 	return _u.AddActiveEffectIDs(ids...)
 }
 
+// AddQuestProgresIDs adds the "quest_progress" edge to the QuestProgress entity by IDs.
+func (_u *CharacterUpdateOne) AddQuestProgresIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddQuestProgresIDs(ids...)
+	return _u
+}
+
+// AddQuestProgress adds the "quest_progress" edges to the QuestProgress entity.
+func (_u *CharacterUpdateOne) AddQuestProgress(v ...*QuestProgress) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQuestProgresIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -1852,6 +1949,27 @@ func (_u *CharacterUpdateOne) RemoveActiveEffects(v ...*ActiveEffect) *Character
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveActiveEffectIDs(ids...)
+}
+
+// ClearQuestProgress clears all "quest_progress" edges to the QuestProgress entity.
+func (_u *CharacterUpdateOne) ClearQuestProgress() *CharacterUpdateOne {
+	_u.mutation.ClearQuestProgress()
+	return _u
+}
+
+// RemoveQuestProgresIDs removes the "quest_progress" edge to QuestProgress entities by IDs.
+func (_u *CharacterUpdateOne) RemoveQuestProgresIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveQuestProgresIDs(ids...)
+	return _u
+}
+
+// RemoveQuestProgress removes "quest_progress" edges to QuestProgress entities.
+func (_u *CharacterUpdateOne) RemoveQuestProgress(v ...*QuestProgress) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQuestProgresIDs(ids...)
 }
 
 // Where appends a list predicates to the CharacterUpdate builder.
@@ -2224,6 +2342,51 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QuestProgressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.QuestProgressTable,
+			Columns: []string{character.QuestProgressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQuestProgressIDs(); len(nodes) > 0 && !_u.mutation.QuestProgressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.QuestProgressTable,
+			Columns: []string{character.QuestProgressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QuestProgressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.QuestProgressTable,
+			Columns: []string{character.QuestProgressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

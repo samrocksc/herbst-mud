@@ -30,6 +30,8 @@ import (
 	"herbst-server/db/gender"
 	"herbst-server/db/npcability"
 	"herbst-server/db/npctemplate"
+	"herbst-server/db/quest"
+	"herbst-server/db/questprogress"
 	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/tag"
@@ -124,6 +126,8 @@ func checkColumn(t, c string) error {
 			gender.Table:                   gender.ValidColumn,
 			npcability.Table:               npcability.ValidColumn,
 			npctemplate.Table:              npctemplate.ValidColumn,
+			quest.Table:                    quest.ValidColumn,
+			questprogress.Table:            questprogress.ValidColumn,
 			race.Table:                     race.ValidColumn,
 			room.Table:                     room.ValidColumn,
 			tag.Table:                      tag.ValidColumn,
