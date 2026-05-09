@@ -138,8 +138,11 @@ export function MapSidebar({
                 ].join(' ')}
               >
                 <span className="truncate block">{room.name}</span>
-                {room.isStartingRoom && (
-                  <span className="text-warning text-[10px]"> ⭐</span>
+                {room.isRootRoom && (
+                  <span className="text-accent text-[10px]"> 🏠 Root</span>
+                )}
+                {!room.isRootRoom && room.isStartingRoom && (
+                  <span className="text-warning text-[10px]"> ⭐ Start</span>
                 )}
               </div>
             ))}

@@ -353,6 +353,20 @@ func (_c *CharacterCreate) SetNillableDiedAt(v *time.Time) *CharacterCreate {
 	return _c
 }
 
+// SetLastSeenAt sets the "lastSeenAt" field.
+func (_c *CharacterCreate) SetLastSeenAt(v time.Time) *CharacterCreate {
+	_c.mutation.SetLastSeenAt(v)
+	return _c
+}
+
+// SetNillableLastSeenAt sets the "lastSeenAt" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableLastSeenAt(v *time.Time) *CharacterCreate {
+	if v != nil {
+		_c.SetLastSeenAt(*v)
+	}
+	return _c
+}
+
 // SetConstitution sets the "constitution" field.
 func (_c *CharacterCreate) SetConstitution(v int) *CharacterCreate {
 	_c.mutation.SetConstitution(v)
@@ -1057,6 +1071,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DiedAt(); ok {
 		_spec.SetField(character.FieldDiedAt, field.TypeTime, value)
 		_node.DiedAt = &value
+	}
+	if value, ok := _c.mutation.LastSeenAt(); ok {
+		_spec.SetField(character.FieldLastSeenAt, field.TypeTime, value)
+		_node.LastSeenAt = &value
 	}
 	if value, ok := _c.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)

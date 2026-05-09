@@ -67,7 +67,7 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
     }
   }, [room, onSelect])
 
-  const isColored = room.isStartingRoom || isSelected
+  const isColored = room.isRootRoom || room.isStartingRoom || isSelected
 
   const validExits: Array<[string, number]> = room.exits
     ? (Object.entries(room.exits) as Array<[string, number]>).filter(([, tid]) => rooms.some(r => r.id === tid))
@@ -90,9 +90,11 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
       className={`room-node absolute w-[120px] min-h-[65px] p-2 rounded-lg cursor-grab transition-all select-none ${
         isDragging ? 'opacity-50 cursor-grabbing' : ''
       } ${
-        room.isStartingRoom
-          ? 'bg-primary text-white'
-          : isSelected
+        room.isRootRoom
+          ? 'bg-accent text-white'
+          : room.isStartingRoom
+            ? 'bg-primary text-white'
+            : isSelected
             ? 'bg-primary-hover text-white shadow-lg border-2 border-accent'
             : 'bg-surface text-text border-2 border-border hover:border-primary'
       }`}
@@ -100,7 +102,8 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
     >
       <div className={`font-bold text-xs text-center truncate ${isColored ? 'text-white' : 'text-text'}`}>
         {room.name}
-        {room.isStartingRoom && ' ⭐'}
+        {room.isRootRoom && ' 🏠'}
+        {room.isStartingRoom && !room.isRootRoom && ' ⭐'}
       </div>
       <div className={`text-xs text-center ${isColored ? 'text-white/80' : 'text-text-muted'}`}>
         #{room.id}

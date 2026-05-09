@@ -47,6 +47,20 @@ func (_c *RoomCreate) SetNillableIsStartingRoom(v *bool) *RoomCreate {
 	return _c
 }
 
+// SetIsRootRoom sets the "isRootRoom" field.
+func (_c *RoomCreate) SetIsRootRoom(v bool) *RoomCreate {
+	_c.mutation.SetIsRootRoom(v)
+	return _c
+}
+
+// SetNillableIsRootRoom sets the "isRootRoom" field if the given value is not nil.
+func (_c *RoomCreate) SetNillableIsRootRoom(v *bool) *RoomCreate {
+	if v != nil {
+		_c.SetIsRootRoom(*v)
+	}
+	return _c
+}
+
 // SetExits sets the "exits" field.
 func (_c *RoomCreate) SetExits(v map[string]int) *RoomCreate {
 	_c.mutation.SetExits(v)
@@ -136,6 +150,10 @@ func (_c *RoomCreate) defaults() {
 		v := room.DefaultIsStartingRoom
 		_c.mutation.SetIsStartingRoom(v)
 	}
+	if _, ok := _c.mutation.IsRootRoom(); !ok {
+		v := room.DefaultIsRootRoom
+		_c.mutation.SetIsRootRoom(v)
+	}
 	if _, ok := _c.mutation.Atmosphere(); !ok {
 		v := room.DefaultAtmosphere
 		_c.mutation.SetAtmosphere(v)
@@ -152,6 +170,9 @@ func (_c *RoomCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsStartingRoom(); !ok {
 		return &ValidationError{Name: "isStartingRoom", err: errors.New(`db: missing required field "Room.isStartingRoom"`)}
+	}
+	if _, ok := _c.mutation.IsRootRoom(); !ok {
+		return &ValidationError{Name: "isRootRoom", err: errors.New(`db: missing required field "Room.isRootRoom"`)}
 	}
 	if _, ok := _c.mutation.Exits(); !ok {
 		return &ValidationError{Name: "exits", err: errors.New(`db: missing required field "Room.exits"`)}
@@ -201,6 +222,10 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsStartingRoom(); ok {
 		_spec.SetField(room.FieldIsStartingRoom, field.TypeBool, value)
 		_node.IsStartingRoom = value
+	}
+	if value, ok := _c.mutation.IsRootRoom(); ok {
+		_spec.SetField(room.FieldIsRootRoom, field.TypeBool, value)
+		_node.IsRootRoom = value
 	}
 	if value, ok := _c.mutation.Exits(); ok {
 		_spec.SetField(room.FieldExits, field.TypeJSON, value)

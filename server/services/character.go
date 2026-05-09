@@ -119,11 +119,11 @@ func (s *CharacterService) CreateCharacter(ctx context.Context, input CreateChar
 	baseIntelligence := constants.DefaultStats.Intelligence + classConfig.StatBonuses.Intelligence
 	baseWisdom := constants.DefaultStats.Wisdom + classConfig.StatBonuses.Wisdom
 
-	// Get starting room (default to first starting room)
+	// Get root room (where new characters spawn)
 	startingRoomID := 1
-	startingRooms, err := s.client.Room.Query().Where(room.IsStartingRoom(true)).All(ctx)
-	if err == nil && len(startingRooms) > 0 {
-		startingRoomID = startingRooms[0].ID
+	rootRooms, err := s.client.Room.Query().Where(room.IsRootRoom(true)).All(ctx)
+	if err == nil && len(rootRooms) > 0 {
+		startingRoomID = rootRooms[0].ID
 	}
 
 	// Build character
@@ -140,6 +140,7 @@ func (s *CharacterService) CreateCharacter(ctx context.Context, input CreateChar
 		SetMaxMana(50).
 		SetCurrentRoomId(startingRoomID).
 		SetStartingRoomId(startingRoomID).
+		SetRespawnRoomId(startingRoomID).
 		SetRace(race).
 		SetGender(gen).
 		SetClass(class).

@@ -62,6 +62,8 @@ const (
 	FieldXp = "xp"
 	// FieldDiedAt holds the string denoting the died_at field in the database.
 	FieldDiedAt = "died_at"
+	// FieldLastSeenAt holds the string denoting the lastseenat field in the database.
+	FieldLastSeenAt = "last_seen_at"
 	// FieldConstitution holds the string denoting the constitution field in the database.
 	FieldConstitution = "constitution"
 	// FieldGender holds the string denoting the gender field in the database.
@@ -189,6 +191,7 @@ var Columns = []string{
 	FieldLevel,
 	FieldXp,
 	FieldDiedAt,
+	FieldLastSeenAt,
 	FieldConstitution,
 	FieldGender,
 	FieldDescription,
@@ -425,6 +428,11 @@ func ByXp(opts ...sql.OrderTermOption) OrderOption {
 // ByDiedAt orders the results by the died_at field.
 func ByDiedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDiedAt, opts...).ToFunc()
+}
+
+// ByLastSeenAt orders the results by the lastSeenAt field.
+func ByLastSeenAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastSeenAt, opts...).ToFunc()
 }
 
 // ByConstitution orders the results by the constitution field.

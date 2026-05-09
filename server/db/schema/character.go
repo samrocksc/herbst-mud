@@ -72,6 +72,10 @@ func (Character) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			Comment("When this NPC died (nil if alive or a player character)"),
+			field.Time("lastSeenAt").
+				Optional().
+				Nillable().
+				Comment("When the character was last online"),
 		field.Int("constitution").
 			Default(10),
 		field.String("gender").

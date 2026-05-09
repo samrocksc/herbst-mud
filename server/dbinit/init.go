@@ -115,6 +115,7 @@ func InitCrossWay(client *db.Client) error {
 		SetName("The Hole").
 		SetDescription("The central hub of the cross-shaped paths. This is where everything connects.").
 		SetIsStartingRoom(true).
+		SetIsRootRoom(true).
 		SetExits(map[string]int{
 			"north": northRoom.ID,
 			"south": southRoom.ID,

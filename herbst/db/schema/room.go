@@ -27,6 +27,8 @@ func (Room) Fields() []ent.Field {
 		field.String("description"),
 		field.Bool("isStartingRoom").
 			Default(false),
+		field.Bool("isRootRoom").
+			Default(false),
 		field.JSON("exits", map[string]int{}),
 		field.Enum("atmosphere").
 			Values("air", "water", "wind").

@@ -20,6 +20,8 @@ const (
 	FieldDescription = "description"
 	// FieldIsStartingRoom holds the string denoting the isstartingroom field in the database.
 	FieldIsStartingRoom = "is_starting_room"
+	// FieldIsRootRoom holds the string denoting the isrootroom field in the database.
+	FieldIsRootRoom = "is_root_room"
 	// FieldExits holds the string denoting the exits field in the database.
 	FieldExits = "exits"
 	// FieldAtmosphere holds the string denoting the atmosphere field in the database.
@@ -52,6 +54,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldIsStartingRoom,
+	FieldIsRootRoom,
 	FieldExits,
 	FieldAtmosphere,
 }
@@ -69,6 +72,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultIsStartingRoom holds the default value on creation for the "isStartingRoom" field.
 	DefaultIsStartingRoom bool
+	// DefaultIsRootRoom holds the default value on creation for the "isRootRoom" field.
+	DefaultIsRootRoom bool
 )
 
 // Atmosphere defines the type for the "atmosphere" enum field.
@@ -119,6 +124,11 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByIsStartingRoom orders the results by the isStartingRoom field.
 func ByIsStartingRoom(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsStartingRoom, opts...).ToFunc()
+}
+
+// ByIsRootRoom orders the results by the isRootRoom field.
+func ByIsRootRoom(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsRootRoom, opts...).ToFunc()
 }
 
 // ByAtmosphere orders the results by the atmosphere field.

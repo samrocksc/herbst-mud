@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -136,20 +135,12 @@ func (m *model) attemptLogin() {
 	m.loadOrCreateCharacter()
 	m.visitedRooms[m.currentRoom] = true
 
-	if m.client != nil {
-		room, err := m.client.Room.Get(context.Background(), StartingRoomID)
-		if err != nil {
-			m.err = fmt.Errorf("failed to load starting room: %v", err)
-			return
-		}
-		m.currentRoom = room.ID
-		m.roomName = room.Name
-		m.roomDesc = room.Description
-		m.exits = room.Exits
-		for dir := range m.exits {
-			m.knownExits[dir] = true
-		}
-	}
+	// Determine reconnect room: use last position, bind point, or root room
+	targetRoomID := m.determineReconnectRoom()
+	m.loadRoom(targetRoomID)
+
+	// Update last seen timestamp
+	m.updateLastSeenAt()
 }
 
 func (m *model) handleRegisterInput(input string) {
@@ -245,18 +236,9 @@ func (m *model) attemptRegistration(email string) {
 	m.AppendMessage(fmt.Sprintf("Account created! Welcome to Herbst MUD, %s!", m.currentUserName), "success")
 
 	m.loadOrCreateCharacter()
-	m.visitedRooms[StartingRoomID] = true
+	m.visitedRooms[m.currentRoom] = true
 
-	room, err := m.client.Room.Get(context.Background(), StartingRoomID)
-	if err != nil {
-		m.err = fmt.Errorf("failed to load starting room: %v", err)
-		return
-	}
-	m.currentRoom = room.ID
-	m.roomName = room.Name
-	m.roomDesc = room.Description
-	m.exits = room.Exits
-	for dir := range m.exits {
-		m.knownExits[dir] = true
-	}
+	// New characters always start at root room
+	rootRoomID := m.getRootRoomID()
+	m.loadRoom(rootRoomID)
 }

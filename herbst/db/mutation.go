@@ -11694,6 +11694,7 @@ type RoomMutation struct {
 	name              *string
 	description       *string
 	isStartingRoom    *bool
+	isRootRoom        *bool
 	exits             *map[string]int
 	atmosphere        *room.Atmosphere
 	clearedFields     map[string]struct{}
@@ -11914,6 +11915,42 @@ func (m *RoomMutation) ResetIsStartingRoom() {
 	m.isStartingRoom = nil
 }
 
+// SetIsRootRoom sets the "isRootRoom" field.
+func (m *RoomMutation) SetIsRootRoom(b bool) {
+	m.isRootRoom = &b
+}
+
+// IsRootRoom returns the value of the "isRootRoom" field in the mutation.
+func (m *RoomMutation) IsRootRoom() (r bool, exists bool) {
+	v := m.isRootRoom
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsRootRoom returns the old "isRootRoom" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldIsRootRoom(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsRootRoom is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsRootRoom requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsRootRoom: %w", err)
+	}
+	return oldValue.IsRootRoom, nil
+}
+
+// ResetIsRootRoom resets all changes to the "isRootRoom" field.
+func (m *RoomMutation) ResetIsRootRoom() {
+	m.isRootRoom = nil
+}
+
 // SetExits sets the "exits" field.
 func (m *RoomMutation) SetExits(value map[string]int) {
 	m.exits = &value
@@ -12128,7 +12165,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
@@ -12137,6 +12174,9 @@ func (m *RoomMutation) Fields() []string {
 	}
 	if m.isStartingRoom != nil {
 		fields = append(fields, room.FieldIsStartingRoom)
+	}
+	if m.isRootRoom != nil {
+		fields = append(fields, room.FieldIsRootRoom)
 	}
 	if m.exits != nil {
 		fields = append(fields, room.FieldExits)
@@ -12158,6 +12198,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case room.FieldIsStartingRoom:
 		return m.IsStartingRoom()
+	case room.FieldIsRootRoom:
+		return m.IsRootRoom()
 	case room.FieldExits:
 		return m.Exits()
 	case room.FieldAtmosphere:
@@ -12177,6 +12219,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDescription(ctx)
 	case room.FieldIsStartingRoom:
 		return m.OldIsStartingRoom(ctx)
+	case room.FieldIsRootRoom:
+		return m.OldIsRootRoom(ctx)
 	case room.FieldExits:
 		return m.OldExits(ctx)
 	case room.FieldAtmosphere:
@@ -12210,6 +12254,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsStartingRoom(v)
+		return nil
+	case room.FieldIsRootRoom:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsRootRoom(v)
 		return nil
 	case room.FieldExits:
 		v, ok := value.(map[string]int)
@@ -12282,6 +12333,9 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldIsStartingRoom:
 		m.ResetIsStartingRoom()
+		return nil
+	case room.FieldIsRootRoom:
+		m.ResetIsRootRoom()
 		return nil
 	case room.FieldExits:
 		m.ResetExits()

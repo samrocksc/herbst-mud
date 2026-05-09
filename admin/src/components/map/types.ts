@@ -3,6 +3,7 @@ export type Room = Readonly<{
   name: string
   description: string
   isStartingRoom?: boolean
+  isRootRoom?: boolean
   exits: Record<string, number>
   atmosphere?: string
   posX?: number

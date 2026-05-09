@@ -69,6 +69,11 @@ func IsStartingRoom(v bool) predicate.Room {
 	return predicate.Room(sql.FieldEQ(FieldIsStartingRoom, v))
 }
 
+// IsRootRoom applies equality check predicate on the "isRootRoom" field. It's identical to IsRootRoomEQ.
+func IsRootRoom(v bool) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldIsRootRoom, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Room {
 	return predicate.Room(sql.FieldEQ(FieldName, v))
@@ -207,6 +212,16 @@ func IsStartingRoomEQ(v bool) predicate.Room {
 // IsStartingRoomNEQ applies the NEQ predicate on the "isStartingRoom" field.
 func IsStartingRoomNEQ(v bool) predicate.Room {
 	return predicate.Room(sql.FieldNEQ(FieldIsStartingRoom, v))
+}
+
+// IsRootRoomEQ applies the EQ predicate on the "isRootRoom" field.
+func IsRootRoomEQ(v bool) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldIsRootRoom, v))
+}
+
+// IsRootRoomNEQ applies the NEQ predicate on the "isRootRoom" field.
+func IsRootRoomNEQ(v bool) predicate.Room {
+	return predicate.Room(sql.FieldNEQ(FieldIsRootRoom, v))
 }
 
 // AtmosphereEQ applies the EQ predicate on the "atmosphere" field.

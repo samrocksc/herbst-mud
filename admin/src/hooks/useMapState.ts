@@ -129,6 +129,7 @@ export function useMapState() {
         name: 'New Room',
         description: 'A newly created room.',
         isStartingRoom: false,
+        isRootRoom: false,
         exits: {},
         posX,
         posY,

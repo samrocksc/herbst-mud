@@ -169,9 +169,11 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			IsNPC       *bool  `json:"isNPC"`
 			CurrentRoom *int   `json:"currentRoomId"`
 			StartingRoom *int  `json:"startingRoomId"`
+			RespawnRoom  *int   `json:"respawnRoomId"`
 			IsAdmin     *bool  `json:"isAdmin"`
 			Gender      string `json:"gender"`
 			Description string `json:"description"`
+			LastSeenAt   *string `json:"lastSeenAt"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -192,6 +194,9 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 		if req.StartingRoom != nil {
 			updater.SetStartingRoomId(*req.StartingRoom)
+		if req.RespawnRoom != nil {
+			updater.SetRespawnRoomId(*req.RespawnRoom)
+		}
 		}
 		if req.IsAdmin != nil {
 			updater.SetIsAdmin(*req.IsAdmin)
@@ -201,6 +206,12 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 		if req.Description != "" {
 			updater.SetDescription(req.Description)
+		if req.LastSeenAt != nil {
+			t, err := time.Parse(time.RFC3339, *req.LastSeenAt)
+			if err == nil {
+				updater.SetLastSeenAt(t)
+			}
+		}
 		}
 
 		character, err := updater.Save(c.Request.Context())

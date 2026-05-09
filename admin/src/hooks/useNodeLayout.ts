@@ -24,7 +24,7 @@ export function useNodeLayout(rooms: Room[], currentZLevel: number) {
         assign(targetId, tz)
       }
     }
-    const start = rooms.find(r => r.isStartingRoom) || rooms[0]
+    const start = rooms.find(r => r.isRootRoom) || rooms.find(r => r.isStartingRoom) || rooms[0]
     if (start) assign(start.id, 0)
     for (const r of rooms) {
       if (!zMap.has(r.id)) zMap.set(r.id, 0)
@@ -52,7 +52,7 @@ export function useNodeLayout(rooms: Room[], currentZLevel: number) {
         posRoom(tid, tx, ty)
       }
     }
-    const start = rooms.find(r => r.isStartingRoom) || rooms[0]
+    const start = rooms.find(r => r.isRootRoom) || rooms.find(r => r.isStartingRoom) || rooms[0]
     if (start) {
       posRoom(start.id, start.posX ?? 400, start.posY ?? 300)
     }

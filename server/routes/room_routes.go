@@ -31,6 +31,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			Name           string         `json:"name" binding:"required"`
 			Description    string         `json:"description" binding:"required"`
 			IsStartingRoom bool           `json:"isStartingRoom"`
+			IsRootRoom     bool           `json:"isRootRoom"`
 			Exits          map[string]int `json:"exits"`
 			PosX           int            `json:"posX"`
 			PosY           int            `json:"posY"`
@@ -44,12 +45,20 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 
 		req.PosX = max(0, req.PosX)
 		req.PosY = max(0, req.PosY)
+		// Enforce single root room
+		if req.IsRootRoom {
+			client.Room.Update().
+				Where(room.IsRootRoom(true)).
+				SetIsRootRoom(false).
+				Save(c.Request.Context())
+		}
 
 		roomBuilder := client.Room.
 			Create().
 			SetName(req.Name).
 			SetDescription(req.Description).
 			SetIsStartingRoom(req.IsStartingRoom).
+			SetIsRootRoom(req.IsRootRoom).
 			SetExits(req.Exits).
 			SetPosX(req.PosX).
 			SetPosY(req.PosY).
@@ -104,6 +113,7 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 			Name           string         `json:"name"`
 			Description    string         `json:"description"`
 			IsStartingRoom bool           `json:"isStartingRoom"`
+			IsRootRoom     bool           `json:"isRootRoom"`
 			Exits          map[string]int `json:"exits"`
 			PosX           *int           `json:"posX"`
 			PosY           *int           `json:"posY"`
@@ -144,6 +154,14 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		}
 		// For boolean and map fields, we'll always update them if provided
 		updater.SetIsStartingRoom(req.IsStartingRoom)
+		updater.SetIsRootRoom(req.IsRootRoom)
+		if req.IsRootRoom {
+			// Enforce single root room: clear isRootRoom on all other rooms
+			client.Room.Update().
+				Where(room.IsRootRoom(true)).
+				SetIsRootRoom(false).
+				Save(c.Request.Context())
+		}
 		if req.Exits != nil {
 			updater.SetExits(req.Exits)
 		}
@@ -187,14 +205,14 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 
 		txClient := tx.Client()
 
-		// Get the starting room ID for relocating characters
-		startingRooms, err := txClient.Room.Query().
-			Where(room.IsStartingRoom(true)).
+		// Get the root room ID for relocating characters
+		rootRooms, err := txClient.Room.Query().
+			Where(room.IsRootRoom(true)).
 			All(ctx)
-		if err != nil || len(startingRooms) == 0 {
-			startingRooms = []*db.Room{{ID: 5}}
+		if err != nil || len(rootRooms) == 0 {
+			rootRooms = []*db.Room{{ID: 5}}
 		}
-		defaultRoomID := startingRooms[0].ID
+		defaultRoomID := rootRooms[0].ID
 
 		// Move any characters in this room to the starting room
 		_, err = txClient.Character.Update().

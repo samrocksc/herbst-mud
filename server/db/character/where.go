@@ -180,6 +180,11 @@ func DiedAt(v time.Time) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldDiedAt, v))
 }
 
+// LastSeenAt applies equality check predicate on the "lastSeenAt" field. It's identical to LastSeenAtEQ.
+func LastSeenAt(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldLastSeenAt, v))
+}
+
 // Constitution applies equality check predicate on the "constitution" field. It's identical to ConstitutionEQ.
 func Constitution(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldConstitution, v))
@@ -1343,6 +1348,56 @@ func DiedAtIsNil() predicate.Character {
 // DiedAtNotNil applies the NotNil predicate on the "died_at" field.
 func DiedAtNotNil() predicate.Character {
 	return predicate.Character(sql.FieldNotNull(FieldDiedAt))
+}
+
+// LastSeenAtEQ applies the EQ predicate on the "lastSeenAt" field.
+func LastSeenAtEQ(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldLastSeenAt, v))
+}
+
+// LastSeenAtNEQ applies the NEQ predicate on the "lastSeenAt" field.
+func LastSeenAtNEQ(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldLastSeenAt, v))
+}
+
+// LastSeenAtIn applies the In predicate on the "lastSeenAt" field.
+func LastSeenAtIn(vs ...time.Time) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldLastSeenAt, vs...))
+}
+
+// LastSeenAtNotIn applies the NotIn predicate on the "lastSeenAt" field.
+func LastSeenAtNotIn(vs ...time.Time) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldLastSeenAt, vs...))
+}
+
+// LastSeenAtGT applies the GT predicate on the "lastSeenAt" field.
+func LastSeenAtGT(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldLastSeenAt, v))
+}
+
+// LastSeenAtGTE applies the GTE predicate on the "lastSeenAt" field.
+func LastSeenAtGTE(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldLastSeenAt, v))
+}
+
+// LastSeenAtLT applies the LT predicate on the "lastSeenAt" field.
+func LastSeenAtLT(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldLastSeenAt, v))
+}
+
+// LastSeenAtLTE applies the LTE predicate on the "lastSeenAt" field.
+func LastSeenAtLTE(v time.Time) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldLastSeenAt, v))
+}
+
+// LastSeenAtIsNil applies the IsNil predicate on the "lastSeenAt" field.
+func LastSeenAtIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldLastSeenAt))
+}
+
+// LastSeenAtNotNil applies the NotNil predicate on the "lastSeenAt" field.
+func LastSeenAtNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldLastSeenAt))
 }
 
 // ConstitutionEQ applies the EQ predicate on the "constitution" field.

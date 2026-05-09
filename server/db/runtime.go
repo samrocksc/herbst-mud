@@ -185,59 +185,59 @@ func init() {
 	// character.DefaultXp holds the default value on creation for the xp field.
 	character.DefaultXp = characterDescXp.Default.(int)
 	// characterDescConstitution is the schema descriptor for constitution field.
-	characterDescConstitution := characterFields[25].Descriptor()
+	characterDescConstitution := characterFields[26].Descriptor()
 	// character.DefaultConstitution holds the default value on creation for the constitution field.
 	character.DefaultConstitution = characterDescConstitution.Default.(int)
 	// characterDescStrength is the schema descriptor for strength field.
-	characterDescStrength := characterFields[28].Descriptor()
+	characterDescStrength := characterFields[29].Descriptor()
 	// character.DefaultStrength holds the default value on creation for the strength field.
 	character.DefaultStrength = characterDescStrength.Default.(int)
 	// characterDescDexterity is the schema descriptor for dexterity field.
-	characterDescDexterity := characterFields[29].Descriptor()
+	characterDescDexterity := characterFields[30].Descriptor()
 	// character.DefaultDexterity holds the default value on creation for the dexterity field.
 	character.DefaultDexterity = characterDescDexterity.Default.(int)
 	// characterDescIntelligence is the schema descriptor for intelligence field.
-	characterDescIntelligence := characterFields[30].Descriptor()
+	characterDescIntelligence := characterFields[31].Descriptor()
 	// character.DefaultIntelligence holds the default value on creation for the intelligence field.
 	character.DefaultIntelligence = characterDescIntelligence.Default.(int)
 	// characterDescWisdom is the schema descriptor for wisdom field.
-	characterDescWisdom := characterFields[31].Descriptor()
+	characterDescWisdom := characterFields[32].Descriptor()
 	// character.DefaultWisdom holds the default value on creation for the wisdom field.
 	character.DefaultWisdom = characterDescWisdom.Default.(int)
 	// characterDescSkillBlades is the schema descriptor for skill_blades field.
-	characterDescSkillBlades := characterFields[32].Descriptor()
+	characterDescSkillBlades := characterFields[33].Descriptor()
 	// character.DefaultSkillBlades holds the default value on creation for the skill_blades field.
 	character.DefaultSkillBlades = characterDescSkillBlades.Default.(int)
 	// characterDescSkillStaves is the schema descriptor for skill_staves field.
-	characterDescSkillStaves := characterFields[33].Descriptor()
+	characterDescSkillStaves := characterFields[34].Descriptor()
 	// character.DefaultSkillStaves holds the default value on creation for the skill_staves field.
 	character.DefaultSkillStaves = characterDescSkillStaves.Default.(int)
 	// characterDescSkillKnives is the schema descriptor for skill_knives field.
-	characterDescSkillKnives := characterFields[34].Descriptor()
+	characterDescSkillKnives := characterFields[35].Descriptor()
 	// character.DefaultSkillKnives holds the default value on creation for the skill_knives field.
 	character.DefaultSkillKnives = characterDescSkillKnives.Default.(int)
 	// characterDescSkillMartial is the schema descriptor for skill_martial field.
-	characterDescSkillMartial := characterFields[35].Descriptor()
+	characterDescSkillMartial := characterFields[36].Descriptor()
 	// character.DefaultSkillMartial holds the default value on creation for the skill_martial field.
 	character.DefaultSkillMartial = characterDescSkillMartial.Default.(int)
 	// characterDescSkillBrawling is the schema descriptor for skill_brawling field.
-	characterDescSkillBrawling := characterFields[36].Descriptor()
+	characterDescSkillBrawling := characterFields[37].Descriptor()
 	// character.DefaultSkillBrawling holds the default value on creation for the skill_brawling field.
 	character.DefaultSkillBrawling = characterDescSkillBrawling.Default.(int)
 	// characterDescSkillTech is the schema descriptor for skill_tech field.
-	characterDescSkillTech := characterFields[37].Descriptor()
+	characterDescSkillTech := characterFields[38].Descriptor()
 	// character.DefaultSkillTech holds the default value on creation for the skill_tech field.
 	character.DefaultSkillTech = characterDescSkillTech.Default.(int)
 	// characterDescSkillLightArmor is the schema descriptor for skill_light_armor field.
-	characterDescSkillLightArmor := characterFields[38].Descriptor()
+	characterDescSkillLightArmor := characterFields[39].Descriptor()
 	// character.DefaultSkillLightArmor holds the default value on creation for the skill_light_armor field.
 	character.DefaultSkillLightArmor = characterDescSkillLightArmor.Default.(int)
 	// characterDescSkillClothArmor is the schema descriptor for skill_cloth_armor field.
-	characterDescSkillClothArmor := characterFields[39].Descriptor()
+	characterDescSkillClothArmor := characterFields[40].Descriptor()
 	// character.DefaultSkillClothArmor holds the default value on creation for the skill_cloth_armor field.
 	character.DefaultSkillClothArmor = characterDescSkillClothArmor.Default.(int)
 	// characterDescSkillHeavyArmor is the schema descriptor for skill_heavy_armor field.
-	characterDescSkillHeavyArmor := characterFields[40].Descriptor()
+	characterDescSkillHeavyArmor := characterFields[41].Descriptor()
 	// character.DefaultSkillHeavyArmor holds the default value on creation for the skill_heavy_armor field.
 	character.DefaultSkillHeavyArmor = characterDescSkillHeavyArmor.Default.(int)
 	charactercompetencyFields := schema.CharacterCompetency{}.Fields()
@@ -552,20 +552,24 @@ func init() {
 	roomDescIsStartingRoom := roomFields[2].Descriptor()
 	// room.DefaultIsStartingRoom holds the default value on creation for the isStartingRoom field.
 	room.DefaultIsStartingRoom = roomDescIsStartingRoom.Default.(bool)
+	// roomDescIsRootRoom is the schema descriptor for isRootRoom field.
+	roomDescIsRootRoom := roomFields[3].Descriptor()
+	// room.DefaultIsRootRoom holds the default value on creation for the isRootRoom field.
+	room.DefaultIsRootRoom = roomDescIsRootRoom.Default.(bool)
 	// roomDescPosX is the schema descriptor for posX field.
-	roomDescPosX := roomFields[5].Descriptor()
+	roomDescPosX := roomFields[6].Descriptor()
 	// room.DefaultPosX holds the default value on creation for the posX field.
 	room.DefaultPosX = roomDescPosX.Default.(int)
 	// roomDescPosY is the schema descriptor for posY field.
-	roomDescPosY := roomFields[6].Descriptor()
+	roomDescPosY := roomFields[7].Descriptor()
 	// room.DefaultPosY holds the default value on creation for the posY field.
 	room.DefaultPosY = roomDescPosY.Default.(int)
 	// roomDescPosZ is the schema descriptor for posZ field.
-	roomDescPosZ := roomFields[7].Descriptor()
+	roomDescPosZ := roomFields[8].Descriptor()
 	// room.DefaultPosZ holds the default value on creation for the posZ field.
 	room.DefaultPosZ = roomDescPosZ.Default.(int)
 	// roomDescVersion is the schema descriptor for version field.
-	roomDescVersion := roomFields[8].Descriptor()
+	roomDescVersion := roomFields[9].Descriptor()
 	// room.DefaultVersion holds the default value on creation for the version field.
 	room.DefaultVersion = roomDescVersion.Default.(int)
 	userFields := schema.User{}.Fields()

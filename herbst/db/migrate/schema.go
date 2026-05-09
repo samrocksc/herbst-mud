@@ -273,6 +273,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "is_starting_room", Type: field.TypeBool, Default: false},
+		{Name: "is_root_room", Type: field.TypeBool, Default: false},
 		{Name: "exits", Type: field.TypeJSON},
 		{Name: "atmosphere", Type: field.TypeEnum, Enums: []string{"air", "water", "wind"}, Default: "air"},
 	}

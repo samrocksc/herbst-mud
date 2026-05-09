@@ -71,6 +71,20 @@ func (_u *RoomUpdate) SetNillableIsStartingRoom(v *bool) *RoomUpdate {
 	return _u
 }
 
+// SetIsRootRoom sets the "isRootRoom" field.
+func (_u *RoomUpdate) SetIsRootRoom(v bool) *RoomUpdate {
+	_u.mutation.SetIsRootRoom(v)
+	return _u
+}
+
+// SetNillableIsRootRoom sets the "isRootRoom" field if the given value is not nil.
+func (_u *RoomUpdate) SetNillableIsRootRoom(v *bool) *RoomUpdate {
+	if v != nil {
+		_u.SetIsRootRoom(*v)
+	}
+	return _u
+}
+
 // SetExits sets the "exits" field.
 func (_u *RoomUpdate) SetExits(v map[string]int) *RoomUpdate {
 	_u.mutation.SetExits(v)
@@ -226,6 +240,9 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.IsStartingRoom(); ok {
 		_spec.SetField(room.FieldIsStartingRoom, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.IsRootRoom(); ok {
+		_spec.SetField(room.FieldIsRootRoom, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Exits(); ok {
 		_spec.SetField(room.FieldExits, field.TypeJSON, value)
 	}
@@ -380,6 +397,20 @@ func (_u *RoomUpdateOne) SetIsStartingRoom(v bool) *RoomUpdateOne {
 func (_u *RoomUpdateOne) SetNillableIsStartingRoom(v *bool) *RoomUpdateOne {
 	if v != nil {
 		_u.SetIsStartingRoom(*v)
+	}
+	return _u
+}
+
+// SetIsRootRoom sets the "isRootRoom" field.
+func (_u *RoomUpdateOne) SetIsRootRoom(v bool) *RoomUpdateOne {
+	_u.mutation.SetIsRootRoom(v)
+	return _u
+}
+
+// SetNillableIsRootRoom sets the "isRootRoom" field if the given value is not nil.
+func (_u *RoomUpdateOne) SetNillableIsRootRoom(v *bool) *RoomUpdateOne {
+	if v != nil {
+		_u.SetIsRootRoom(*v)
 	}
 	return _u
 }
@@ -568,6 +599,9 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 	}
 	if value, ok := _u.mutation.IsStartingRoom(); ok {
 		_spec.SetField(room.FieldIsStartingRoom, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsRootRoom(); ok {
+		_spec.SetField(room.FieldIsRootRoom, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Exits(); ok {
 		_spec.SetField(room.FieldExits, field.TypeJSON, value)

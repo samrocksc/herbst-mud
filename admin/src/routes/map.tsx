@@ -109,7 +109,7 @@ function MapBuilder() {
       <CreateRoomModal
         isOpen={state.showCreateModal}
         onClose={() => state.setShowCreateModal(false)}
-        onCreate={(input) => state.createRoom({ ...input, isStartingRoom: false, exits: {}, posX: 0, posY: 0, posZ: 0 })}
+        onCreate={(input) => state.createRoom({ ...input, isStartingRoom: false, isRootRoom: false, exits: {}, posX: 0, posY: 0, posZ: 0 })}
         creating={state.isCreating}
       />
 

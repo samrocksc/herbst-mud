@@ -147,6 +147,8 @@ func (m *model) resolveAbilityEffects(ability AbilityData) {
 			m.applyHealEffect(ability, effect, modifier)
 		case "stun":
 			m.applyStunEffect(ability, effect)
+		case "set_bind_point":
+			m.setBindPoint()
 		default:
 			m.combatSkills.ActiveEffects = append(m.combatSkills.ActiveEffects, active)
 			m.addCombatLog(fmt.Sprintf("%s: %s applied for %d rounds", ability.Name, effect.EffectType, effect.Duration))
@@ -289,4 +291,24 @@ func (m *model) getTargetConstitution() int {
 // rollDie rolls a simple dN die
 func rollDie(sides int) int {
 	return 1 + rand.Intn(sides)
+}
+
+// setBindPoint updates the character's respawn room to the current room
+func (m *model) setBindPoint() {
+	url := fmt.Sprintf("%s/characters/%d", RESTAPIBase, m.currentCharacterID)
+	payload := fmt.Sprintf(`{"respawnRoomId": %d}`, m.currentRoom)
+
+	resp, err := httpPut(url, payload)
+	if err != nil {
+		m.AppendMessage("Failed to set bind point.", "error")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		m.AppendMessage("Failed to set bind point.", "error")
+		return
+	}
+
+	m.AppendMessage(fmt.Sprintf("✦ Bind point set at %s! You will respawn here.", m.roomName), "success")
 }

@@ -376,6 +376,10 @@ func init() {
 	roomDescIsStartingRoom := roomFields[2].Descriptor()
 	// room.DefaultIsStartingRoom holds the default value on creation for the isStartingRoom field.
 	room.DefaultIsStartingRoom = roomDescIsStartingRoom.Default.(bool)
+	// roomDescIsRootRoom is the schema descriptor for isRootRoom field.
+	roomDescIsRootRoom := roomFields[3].Descriptor()
+	// room.DefaultIsRootRoom holds the default value on creation for the isRootRoom field.
+	room.DefaultIsRootRoom = roomDescIsRootRoom.Default.(bool)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescIsAdmin is the schema descriptor for is_admin field.

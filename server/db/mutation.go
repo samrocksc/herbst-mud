@@ -3762,6 +3762,7 @@ type CharacterMutation struct {
 	xp                         *int
 	addxp                      *int
 	died_at                    *time.Time
+	lastSeenAt                 *time.Time
 	constitution               *int
 	addconstitution            *int
 	gender                     *string
@@ -5119,6 +5120,55 @@ func (m *CharacterMutation) ResetDiedAt() {
 	delete(m.clearedFields, character.FieldDiedAt)
 }
 
+// SetLastSeenAt sets the "lastSeenAt" field.
+func (m *CharacterMutation) SetLastSeenAt(t time.Time) {
+	m.lastSeenAt = &t
+}
+
+// LastSeenAt returns the value of the "lastSeenAt" field in the mutation.
+func (m *CharacterMutation) LastSeenAt() (r time.Time, exists bool) {
+	v := m.lastSeenAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastSeenAt returns the old "lastSeenAt" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldLastSeenAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastSeenAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastSeenAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastSeenAt: %w", err)
+	}
+	return oldValue.LastSeenAt, nil
+}
+
+// ClearLastSeenAt clears the value of the "lastSeenAt" field.
+func (m *CharacterMutation) ClearLastSeenAt() {
+	m.lastSeenAt = nil
+	m.clearedFields[character.FieldLastSeenAt] = struct{}{}
+}
+
+// LastSeenAtCleared returns if the "lastSeenAt" field was cleared in this mutation.
+func (m *CharacterMutation) LastSeenAtCleared() bool {
+	_, ok := m.clearedFields[character.FieldLastSeenAt]
+	return ok
+}
+
+// ResetLastSeenAt resets all changes to the "lastSeenAt" field.
+func (m *CharacterMutation) ResetLastSeenAt() {
+	m.lastSeenAt = nil
+	delete(m.clearedFields, character.FieldLastSeenAt)
+}
+
 // SetConstitution sets the "constitution" field.
 func (m *CharacterMutation) SetConstitution(i int) {
 	m.constitution = &i
@@ -6357,7 +6407,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 41)
+	fields := make([]string, 0, 42)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -6432,6 +6482,9 @@ func (m *CharacterMutation) Fields() []string {
 	}
 	if m.died_at != nil {
 		fields = append(fields, character.FieldDiedAt)
+	}
+	if m.lastSeenAt != nil {
+		fields = append(fields, character.FieldLastSeenAt)
 	}
 	if m.constitution != nil {
 		fields = append(fields, character.FieldConstitution)
@@ -6539,6 +6592,8 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.Xp()
 	case character.FieldDiedAt:
 		return m.DiedAt()
+	case character.FieldLastSeenAt:
+		return m.LastSeenAt()
 	case character.FieldConstitution:
 		return m.Constitution()
 	case character.FieldGender:
@@ -6630,6 +6685,8 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldXp(ctx)
 	case character.FieldDiedAt:
 		return m.OldDiedAt(ctx)
+	case character.FieldLastSeenAt:
+		return m.OldLastSeenAt(ctx)
 	case character.FieldConstitution:
 		return m.OldConstitution(ctx)
 	case character.FieldGender:
@@ -6845,6 +6902,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDiedAt(v)
+		return nil
+	case character.FieldLastSeenAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastSeenAt(v)
 		return nil
 	case character.FieldConstitution:
 		v, ok := value.(int)
@@ -7318,6 +7382,9 @@ func (m *CharacterMutation) ClearedFields() []string {
 	if m.FieldCleared(character.FieldDiedAt) {
 		fields = append(fields, character.FieldDiedAt)
 	}
+	if m.FieldCleared(character.FieldLastSeenAt) {
+		fields = append(fields, character.FieldLastSeenAt)
+	}
 	if m.FieldCleared(character.FieldGender) {
 		fields = append(fields, character.FieldGender)
 	}
@@ -7352,6 +7419,9 @@ func (m *CharacterMutation) ClearField(name string) error {
 		return nil
 	case character.FieldDiedAt:
 		m.ClearDiedAt()
+		return nil
+	case character.FieldLastSeenAt:
+		m.ClearLastSeenAt()
 		return nil
 	case character.FieldGender:
 		m.ClearGender()
@@ -7441,6 +7511,9 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldDiedAt:
 		m.ResetDiedAt()
+		return nil
+	case character.FieldLastSeenAt:
+		m.ResetLastSeenAt()
 		return nil
 	case character.FieldConstitution:
 		m.ResetConstitution()
@@ -22373,6 +22446,7 @@ type RoomMutation struct {
 	name              *string
 	description       *string
 	isStartingRoom    *bool
+	isRootRoom        *bool
 	exits             *map[string]int
 	atmosphere        *room.Atmosphere
 	posX              *int
@@ -22599,6 +22673,42 @@ func (m *RoomMutation) OldIsStartingRoom(ctx context.Context) (v bool, err error
 // ResetIsStartingRoom resets all changes to the "isStartingRoom" field.
 func (m *RoomMutation) ResetIsStartingRoom() {
 	m.isStartingRoom = nil
+}
+
+// SetIsRootRoom sets the "isRootRoom" field.
+func (m *RoomMutation) SetIsRootRoom(b bool) {
+	m.isRootRoom = &b
+}
+
+// IsRootRoom returns the value of the "isRootRoom" field in the mutation.
+func (m *RoomMutation) IsRootRoom() (r bool, exists bool) {
+	v := m.isRootRoom
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsRootRoom returns the old "isRootRoom" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldIsRootRoom(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsRootRoom is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsRootRoom requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsRootRoom: %w", err)
+	}
+	return oldValue.IsRootRoom, nil
+}
+
+// ResetIsRootRoom resets all changes to the "isRootRoom" field.
+func (m *RoomMutation) ResetIsRootRoom() {
+	m.isRootRoom = nil
 }
 
 // SetExits sets the "exits" field.
@@ -23081,7 +23191,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
@@ -23090,6 +23200,9 @@ func (m *RoomMutation) Fields() []string {
 	}
 	if m.isStartingRoom != nil {
 		fields = append(fields, room.FieldIsStartingRoom)
+	}
+	if m.isRootRoom != nil {
+		fields = append(fields, room.FieldIsRootRoom)
 	}
 	if m.exits != nil {
 		fields = append(fields, room.FieldExits)
@@ -23123,6 +23236,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case room.FieldIsStartingRoom:
 		return m.IsStartingRoom()
+	case room.FieldIsRootRoom:
+		return m.IsRootRoom()
 	case room.FieldExits:
 		return m.Exits()
 	case room.FieldAtmosphere:
@@ -23150,6 +23265,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDescription(ctx)
 	case room.FieldIsStartingRoom:
 		return m.OldIsStartingRoom(ctx)
+	case room.FieldIsRootRoom:
+		return m.OldIsRootRoom(ctx)
 	case room.FieldExits:
 		return m.OldExits(ctx)
 	case room.FieldAtmosphere:
@@ -23191,6 +23308,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsStartingRoom(v)
+		return nil
+	case room.FieldIsRootRoom:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsRootRoom(v)
 		return nil
 	case room.FieldExits:
 		v, ok := value.(map[string]int)
@@ -23363,6 +23487,9 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldIsStartingRoom:
 		m.ResetIsStartingRoom()
+		return nil
+	case room.FieldIsRootRoom:
+		m.ResetIsRootRoom()
 		return nil
 	case room.FieldExits:
 		m.ResetExits()

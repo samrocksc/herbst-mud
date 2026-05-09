@@ -499,6 +499,26 @@ func (_u *CharacterUpdate) ClearDiedAt() *CharacterUpdate {
 	return _u
 }
 
+// SetLastSeenAt sets the "lastSeenAt" field.
+func (_u *CharacterUpdate) SetLastSeenAt(v time.Time) *CharacterUpdate {
+	_u.mutation.SetLastSeenAt(v)
+	return _u
+}
+
+// SetNillableLastSeenAt sets the "lastSeenAt" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableLastSeenAt(v *time.Time) *CharacterUpdate {
+	if v != nil {
+		_u.SetLastSeenAt(*v)
+	}
+	return _u
+}
+
+// ClearLastSeenAt clears the value of the "lastSeenAt" field.
+func (_u *CharacterUpdate) ClearLastSeenAt() *CharacterUpdate {
+	_u.mutation.ClearLastSeenAt()
+	return _u
+}
+
 // SetConstitution sets the "constitution" field.
 func (_u *CharacterUpdate) SetConstitution(v int) *CharacterUpdate {
 	_u.mutation.ResetConstitution()
@@ -1198,6 +1218,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DiedAtCleared() {
 		_spec.ClearField(character.FieldDiedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastSeenAt(); ok {
+		_spec.SetField(character.FieldLastSeenAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastSeenAtCleared() {
+		_spec.ClearField(character.FieldLastSeenAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)
@@ -2046,6 +2072,26 @@ func (_u *CharacterUpdateOne) ClearDiedAt() *CharacterUpdateOne {
 	return _u
 }
 
+// SetLastSeenAt sets the "lastSeenAt" field.
+func (_u *CharacterUpdateOne) SetLastSeenAt(v time.Time) *CharacterUpdateOne {
+	_u.mutation.SetLastSeenAt(v)
+	return _u
+}
+
+// SetNillableLastSeenAt sets the "lastSeenAt" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableLastSeenAt(v *time.Time) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetLastSeenAt(*v)
+	}
+	return _u
+}
+
+// ClearLastSeenAt clears the value of the "lastSeenAt" field.
+func (_u *CharacterUpdateOne) ClearLastSeenAt() *CharacterUpdateOne {
+	_u.mutation.ClearLastSeenAt()
+	return _u
+}
+
 // SetConstitution sets the "constitution" field.
 func (_u *CharacterUpdateOne) SetConstitution(v int) *CharacterUpdateOne {
 	_u.mutation.ResetConstitution()
@@ -2775,6 +2821,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if _u.mutation.DiedAtCleared() {
 		_spec.ClearField(character.FieldDiedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastSeenAt(); ok {
+		_spec.SetField(character.FieldLastSeenAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastSeenAtCleared() {
+		_spec.ClearField(character.FieldLastSeenAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)

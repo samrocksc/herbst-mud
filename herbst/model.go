@@ -36,7 +36,8 @@ type model struct {
 	loginPassword string
 
 	// Player state
-	currentRoom int
+	currentRoom  int
+	respawnRoom  int // bind point room ID
 	roomName    string
 	roomDesc    string
 	exits       map[string]int

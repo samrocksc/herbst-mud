@@ -6,6 +6,7 @@ type Room = Readonly<{
   name: string
   description: string
   isStartingRoom: boolean
+  isRootRoom: boolean
   exits: Record<string, number>
   posX: number
   posY: number
@@ -17,6 +18,7 @@ type RoomInput = {
   name: string
   description: string
   isStartingRoom: boolean
+  isRootRoom: boolean
   exits: Record<string, number>
   posX: number
   posY: number

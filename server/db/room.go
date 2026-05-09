@@ -23,6 +23,8 @@ type Room struct {
 	Description string `json:"description,omitempty"`
 	// IsStartingRoom holds the value of the "isStartingRoom" field.
 	IsStartingRoom bool `json:"isStartingRoom,omitempty"`
+	// Only one room can be root; new characters spawn here
+	IsRootRoom bool `json:"isRootRoom,omitempty"`
 	// Exits holds the value of the "exits" field.
 	Exits map[string]int `json:"exits,omitempty"`
 	// Atmosphere holds the value of the "atmosphere" field.
@@ -77,7 +79,7 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case room.FieldExits:
 			values[i] = new([]byte)
-		case room.FieldIsStartingRoom:
+		case room.FieldIsStartingRoom, room.FieldIsRootRoom:
 			values[i] = new(sql.NullBool)
 		case room.FieldID, room.FieldPosX, room.FieldPosY, room.FieldPosZ, room.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -121,6 +123,12 @@ func (_m *Room) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field isStartingRoom", values[i])
 			} else if value.Valid {
 				_m.IsStartingRoom = value.Bool
+			}
+		case room.FieldIsRootRoom:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isRootRoom", values[i])
+			} else if value.Valid {
+				_m.IsRootRoom = value.Bool
 			}
 		case room.FieldExits:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -214,6 +222,9 @@ func (_m *Room) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("isStartingRoom=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsStartingRoom))
+	builder.WriteString(", ")
+	builder.WriteString("isRootRoom=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsRootRoom))
 	builder.WriteString(", ")
 	builder.WriteString("exits=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Exits))

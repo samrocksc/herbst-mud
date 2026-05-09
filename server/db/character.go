@@ -70,6 +70,8 @@ type Character struct {
 	Xp int `json:"xp,omitempty"`
 	// When this NPC died (nil if alive or a player character)
 	DiedAt *time.Time `json:"died_at,omitempty"`
+	// When the character was last online
+	LastSeenAt *time.Time `json:"lastSeenAt,omitempty"`
 	// Constitution holds the value of the "constitution" field.
 	Constitution int `json:"constitution,omitempty"`
 	// Gender holds the value of the "gender" field.
@@ -211,7 +213,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case character.FieldName, character.FieldPassword, character.FieldNpcTemplateID, character.FieldNpcSkillID, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
-		case character.FieldDiedAt:
+		case character.FieldDiedAt, character.FieldLastSeenAt:
 			values[i] = new(sql.NullTime)
 		case character.ForeignKeys[0]: // room_characters
 			values[i] = new(sql.NullInt64)
@@ -388,6 +390,13 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DiedAt = new(time.Time)
 				*_m.DiedAt = value.Time
+			}
+		case character.FieldLastSeenAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field lastSeenAt", values[i])
+			} else if value.Valid {
+				_m.LastSeenAt = new(time.Time)
+				*_m.LastSeenAt = value.Time
 			}
 		case character.FieldConstitution:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -644,6 +653,11 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	if v := _m.DiedAt; v != nil {
 		builder.WriteString("died_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.LastSeenAt; v != nil {
+		builder.WriteString("lastSeenAt=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
