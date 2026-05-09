@@ -113,6 +113,17 @@ func OptionalAuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// ValidateToken validates a JWT token and returns (userID, isAdmin, error).
+// Exported for use by handlers that need to verify tokens outside of middleware
+// (e.g., SSE endpoints where EventSource cannot send Authorization headers).
+func ValidateToken(tokenString string) (uint, bool, error) {
+	claims, err := validateToken(tokenString)
+	if err != nil {
+		return 0, false, err
+	}
+	return claims.UserID, claims.IsAdmin, nil
+}
+
 // validateToken validates JWT token and returns claims
 func validateToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {

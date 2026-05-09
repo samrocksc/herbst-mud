@@ -16,6 +16,7 @@ import { ChevronRightIcon } from './icons/ChevronIcons'
 import { DocsIcon } from './icons/DocsIcon'
 import { TagsIcon } from './icons/TagsIcon'
 import { RacesIcon } from './icons/RacesIcon'
+import { LogsIcon } from './icons/LogsIcon'
 
 const STORAGE_KEY = 'sidebar-collapsed'
 
@@ -33,6 +34,7 @@ const navItems = [
   { label: 'Races', path: '/races', Icon: RacesIcon },
   { label: 'Map', path: '/map', Icon: MapIcon },
   { label: 'NPCs', path: '/npcs', Icon: NPCsIcon },
+  { label: 'Logs', path: '/logs', Icon: LogsIcon },
   { label: 'Docs', path: '/docs', Icon: DocsIcon },
 ]
 

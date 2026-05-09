@@ -66,7 +66,7 @@ function LogsPage() {
     if (service) params.set('service', service)
 
     try {
-      const token = localStorage.getItem('auth_token')
+      const token = localStorage.getItem('token')
       const resp = await fetch(`/api/logs?${params}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
@@ -79,7 +79,7 @@ function LogsPage() {
   // Fetch available services
   const fetchServices = useCallback(async () => {
     try {
-      const token = localStorage.getItem('auth_token')
+      const token = localStorage.getItem('token')
       const resp = await fetch('/api/logs/services', {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
@@ -99,8 +99,9 @@ function LogsPage() {
 
     fetchServices()
 
-    const token = localStorage.getItem('auth_token')
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token')
     const url = new URL('/api/logs/stream', window.location.origin)
+    if (token) url.searchParams.set('token', token)
     const es = new EventSource(url.toString())
     esRef.current = es
 

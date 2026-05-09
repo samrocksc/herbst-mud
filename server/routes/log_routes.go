@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/applog"
+	"herbst-server/middleware"
 )
 
 // logBroadcaster fans out log entries to SSE subscribers.
@@ -53,21 +54,36 @@ func (b *logBroadcaster) broadcast(line string) {
 	}
 }
 
-// BroadcastLogLine publishes a log line to SSE subscribers. Call this from
-// log-producing code (e.g., a custom slog.Handler) to push live entries.
-func BroadcastLogLine(level, service, message string, ts time.Time) {
+// BroadcastLogLine publishes a log line to SSE subscribers.
+func BroadcastLogLine(level, service, message string, ts time.Time, characterID *int, roomID *int, templateID string, metadata map[string]interface{}) {
 	line := map[string]interface{}{
-		"level":     level,
-		"service":   service,
-		"message":   message,
+		"level":      level,
+		"service":    service,
+		"message":    message,
 		"created_at": ts.Format(time.RFC3339),
+	}
+	if characterID != nil {
+		line["character_id"] = *characterID
+	}
+	if roomID != nil {
+		line["room_id"] = *roomID
+	}
+	if templateID != "" {
+		line["template_id"] = templateID
+	}
+	if metadata != nil && len(metadata) > 0 {
+		line["metadata"] = metadata
 	}
 	data, _ := json.Marshal(line)
 	broadcaster.broadcast(string(data))
 }
 
 // RegisterLogRoutes registers log query + SSE routes under the protected group.
+// The SSE stream endpoint is registered on the public router with query-param
+// token auth since EventSource cannot send custom headers.
 func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *db.Client) {
+	// SSE stream with query-param auth (EventSource can't send Bearer headers)
+	router.GET("/api/logs/stream", streamLogsWithTokenAuth(client))
 	// GET /api/logs — query with pagination and filters
 	protected.GET("/logs", func(c *gin.Context) {
 		level := c.Query("level")       // DEBUG, INFO, WARN, ERROR
@@ -193,8 +209,47 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 		})
 	})
 
-	// GET /api/logs/stream — SSE endpoint for live tail
-	protected.GET("/logs/stream", func(c *gin.Context) {
+	// GET /api/logs/services — distinct service names
+	protected.GET("/logs/services", func(c *gin.Context) {
+		entries, err := client.AppLog.Query().
+			Select(applog.FieldService).
+			Where(applog.ServiceNotNil()).
+			All(context.Background())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list services"})
+			return
+		}
+
+		seen := make(map[string]bool)
+		services := make([]string, 0)
+		for _, e := range entries {
+			if e.Service != "" && !seen[e.Service] {
+				seen[e.Service] = true
+				services = append(services, e.Service)
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"services": services})
+	})
+}
+
+// streamLogsWithTokenAuth validates a token from the query string and serves SSE.
+// EventSource cannot send custom headers, so we accept ?token=<jwt> instead.
+func streamLogsWithTokenAuth(client *db.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Query("token")
+		if token == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing token parameter"})
+			return
+		}
+
+		// Validate the JWT token using the same middleware logic
+		userID, isAdmin, err := middleware.ValidateToken(token)
+		if err != nil || !isAdmin {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			return
+		}
+		_ = userID
+
 		c.Writer.Header().Set("Content-Type", "text/event-stream")
 		c.Writer.Header().Set("Cache-Control", "no-cache")
 		c.Writer.Header().Set("Connection", "keep-alive")
@@ -223,27 +278,5 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 				flusher.Flush()
 			}
 		}
-	})
-
-	// GET /api/logs/services — distinct service names
-	protected.GET("/logs/services", func(c *gin.Context) {
-		entries, err := client.AppLog.Query().
-			Select(applog.FieldService).
-			Where(applog.ServiceNotNil()).
-			All(context.Background())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list services"})
-			return
-		}
-
-		seen := make(map[string]bool)
-		services := make([]string, 0)
-		for _, e := range entries {
-			if e.Service != "" && !seen[e.Service] {
-				seen[e.Service] = true
-				services = append(services, e.Service)
-			}
-		}
-		c.JSON(http.StatusOK, gin.H{"services": services})
-	})
+	}
 }

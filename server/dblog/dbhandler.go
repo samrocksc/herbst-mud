@@ -5,6 +5,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -17,29 +18,32 @@ import (
 // On overflow, the oldest buffered entry is dropped. On DB error, the handler
 // retries once, then logs the failure to stderr.
 type DBHandler struct {
-	client    *db.Client
-	level     slog.Leveler
-	minLevel  slog.Level
-	svcFilter map[string]bool // empty = allow all; populated = allow only listed services
-	mu        sync.RWMutex
-	ch        chan logEntry
-	stop      chan struct{}
-	wg        sync.WaitGroup
+	client       *db.Client
+	level        slog.Leveler
+	minLevel     slog.Level
+	svcFilter    map[string]bool
+	broadcastFn  BroadcastFunc
+	mu           sync.RWMutex
+	ch           chan logEntry
+	stop         chan struct{}
+	wg           sync.WaitGroup
 }
 
+// BroadcastFunc is called after each log entry is persisted.
+// Used to push live entries to SSE subscribers.
+type BroadcastFunc func(level, service, message string, ts time.Time, characterID *int, roomID *int, templateID string, metadata map[string]interface{})
+
 type logEntry struct {
-	Level   slog.Level
-	Message string
-	Service string
+	Level       slog.Level
+	Message     string
+	Service     string
+	CharacterID *int
+	RoomID      *int
+	TemplateID  string
+	Metadata    map[string]interface{}
 }
 
 // NewDBHandler creates a new DBHandler.
-//
-// The client argument is the Ent client (must be connected). Options are read
-// from environment variables:
-//
-//	LOG_MIN_LEVEL        — minimum level to persist (default: INFO)
-//	LOG_SERVICE_FILTER   — comma-separated list of services to allow (default: all)
 func NewDBHandler(client *db.Client, opts *slog.HandlerOptions) *DBHandler {
 	if opts == nil {
 		opts = &slog.HandlerOptions{}
@@ -79,7 +83,6 @@ func NewDBHandler(client *db.Client, opts *slog.HandlerOptions) *DBHandler {
 	return h
 }
 
-// Enabled reports whether this handler is enabled for the given level.
 func (h *DBHandler) Enabled(_ context.Context, level slog.Level) bool {
 	if h.level != nil {
 		return level >= h.level.Level()
@@ -87,43 +90,52 @@ func (h *DBHandler) Enabled(_ context.Context, level slog.Level) bool {
 	return level >= h.minLevel
 }
 
-// Handle enqueues a log record. If the channel is full, the entry is dropped
-// (oldest-out semantics are maintained by the buffered channel's natural overflow).
 func (h *DBHandler) Handle(_ context.Context, r slog.Record) error {
-	// Extract the "service" attr if present
-	svc := ""
+	entry := logEntry{
+		Level:   r.Level,
+		Message: r.Message,
+	}
+
 	r.Attrs(func(a slog.Attr) bool {
-		if a.Key == "service" {
-			svc = a.Value.String()
-			return false
+		switch a.Key {
+		case "service":
+			entry.Service = a.Value.String()
+		case "character_id":
+			if v, err := strconv.Atoi(a.Value.String()); err == nil {
+				entry.CharacterID = &v
+			}
+		case "room_id":
+			if v, err := strconv.Atoi(a.Value.String()); err == nil {
+				entry.RoomID = &v
+			}
+		case "template_id":
+			entry.TemplateID = a.Value.String()
+		default:
+			if entry.Metadata == nil {
+				entry.Metadata = make(map[string]interface{})
+			}
+			entry.Metadata[a.Key] = a.Value.Any()
 		}
 		return true
 	})
 
-	// Apply service filter
 	h.mu.RLock()
 	filter := h.svcFilter
 	h.mu.RUnlock()
-	if len(filter) > 0 && !filter[svc] {
+	if len(filter) > 0 && !filter[entry.Service] {
 		return nil
 	}
 
-	entry := logEntry{
-		Level:   r.Level,
-		Message: r.Message,
-		Service: svc,
-	}
 	select {
 	case h.ch <- entry:
 	default:
-		// channel full — drop oldest by reading one then pushing
 		<-h.ch
 		h.ch <- entry
 	}
 	return nil
 }
 
-// WithAttrs returns a new handler with additional attributes.
+// WithAttrs returns a new handler that carries additional attributes.
 func (h *DBHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return h
 }
@@ -133,7 +145,6 @@ func (h *DBHandler) WithGroup(name string) slog.Handler {
 	return h
 }
 
-// flusher is the background goroutine that batch-inserts log entries.
 func (h *DBHandler) flusher() {
 	defer h.wg.Done()
 	ticker := time.NewTicker(250 * time.Millisecond)
@@ -154,7 +165,6 @@ func (h *DBHandler) flusher() {
 				batch = batch[:0]
 			}
 		case <-h.stop:
-			// Drain remaining entries then stop
 			for {
 				select {
 				case entry := <-h.ch:
@@ -170,7 +180,6 @@ func (h *DBHandler) flusher() {
 	}
 }
 
-// flush writes the batch to the database. Retries once on failure.
 func (h *DBHandler) flush(batch []logEntry) {
 	builders := make([]*db.AppLogCreate, 0, len(batch))
 	for _, e := range batch {
@@ -180,23 +189,43 @@ func (h *DBHandler) flush(batch []logEntry) {
 		if e.Service != "" {
 			b.SetService(e.Service)
 		}
+		if e.CharacterID != nil {
+			b.SetCharacterID(*e.CharacterID)
+		}
+		if e.RoomID != nil {
+			b.SetRoomID(*e.RoomID)
+		}
+		if e.TemplateID != "" {
+			b.SetTemplateID(e.TemplateID)
+		}
+		if e.Metadata != nil && len(e.Metadata) > 0 {
+			b.SetMetadata(e.Metadata)
+		}
 		builders = append(builders, b)
 	}
 
 	err := h.client.AppLog.CreateBulk(builders...).Exec(context.Background())
 	if err != nil {
-		// Retry once after a brief pause
 		time.Sleep(100 * time.Millisecond)
 		err = h.client.AppLog.CreateBulk(builders...).Exec(context.Background())
 		if err != nil {
-			// Log to stderr to avoid infinite loop (don't call slog here)
 			os.Stderr.WriteString("dblog: flush failed: " + err.Error() + "\n")
+		}
+	}
+
+	for _, e := range batch {
+		if h.broadcastFn != nil {
+			h.broadcastFn(e.Level.String(), e.Service, e.Message, time.Now(), e.CharacterID, e.RoomID, e.TemplateID, e.Metadata)
 		}
 	}
 }
 
-// GracefulShutdown drains pending entries and stops the flusher. Call before
-// program exit to ensure no log entries are lost.
+// SetBroadcastFunc sets the callback invoked after each log entry is persisted.
+// Call this after creating the handler to wire up live SSE streaming.
+func (h *DBHandler) SetBroadcastFunc(fn BroadcastFunc) {
+	h.broadcastFn = fn
+}
+
 func (h *DBHandler) GracefulShutdown() {
 	close(h.stop)
 	h.wg.Wait()

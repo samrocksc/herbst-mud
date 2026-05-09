@@ -92,6 +92,7 @@ func main() {
 
 	// Initialize async log handler (LOGS-002, LOGS-003)
 	dbLogHandler := dblog.NewDBHandler(client, nil)
+	dbLogHandler.SetBroadcastFunc(routes.BroadcastLogLine)
 	multiHandler := slogmulti{stdout: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}), db: dbLogHandler}
 	multiLogger := slog.New(multiHandler)
 	slog.SetDefault(multiLogger)
