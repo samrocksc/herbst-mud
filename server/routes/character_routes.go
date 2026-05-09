@@ -165,15 +165,23 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		var req struct {
-			Name        string `json:"name"`
-			IsNPC       *bool  `json:"isNPC"`
-			CurrentRoom *int   `json:"currentRoomId"`
-			StartingRoom *int  `json:"startingRoomId"`
-			RespawnRoom  *int   `json:"respawnRoomId"`
-			IsAdmin     *bool  `json:"isAdmin"`
-			Gender      string `json:"gender"`
-			Description string `json:"description"`
+			Name         string  `json:"name"`
+			IsNPC        *bool   `json:"isNPC"`
+			CurrentRoom  *int    `json:"currentRoomId"`
+			StartingRoom *int    `json:"startingRoomId"`
+			RespawnRoom  *int    `json:"respawnRoomId"`
+			IsAdmin      *bool   `json:"isAdmin"`
+			Gender       string  `json:"gender"`
+			Description  string  `json:"description"`
 			LastSeenAt   *string `json:"lastSeenAt"`
+			Level        *int    `json:"level"`
+			XP           *int    `json:"xp"`
+			HP           *int    `json:"hitpoints"`
+			MaxHP        *int    `json:"maxHitpoints"`
+			Stamina      *int    `json:"stamina"`
+			MaxStamina   *int    `json:"maxStamina"`
+			Mana         *int    `json:"mana"`
+			MaxMana      *int    `json:"maxMana"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -194,9 +202,9 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 		if req.StartingRoom != nil {
 			updater.SetStartingRoomId(*req.StartingRoom)
+		}
 		if req.RespawnRoom != nil {
 			updater.SetRespawnRoomId(*req.RespawnRoom)
-		}
 		}
 		if req.IsAdmin != nil {
 			updater.SetIsAdmin(*req.IsAdmin)
@@ -206,12 +214,36 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 		if req.Description != "" {
 			updater.SetDescription(req.Description)
+		}
 		if req.LastSeenAt != nil {
 			t, err := time.Parse(time.RFC3339, *req.LastSeenAt)
 			if err == nil {
 				updater.SetLastSeenAt(t)
 			}
 		}
+		if req.Level != nil {
+			updater.SetLevel(*req.Level)
+		}
+		if req.XP != nil {
+			updater.SetXp(*req.XP)
+		}
+		if req.HP != nil {
+			updater.SetHitpoints(*req.HP)
+		}
+		if req.MaxHP != nil {
+			updater.SetMaxHitpoints(*req.MaxHP)
+		}
+		if req.Stamina != nil {
+			updater.SetStamina(*req.Stamina)
+		}
+		if req.MaxStamina != nil {
+			updater.SetMaxStamina(*req.MaxStamina)
+		}
+		if req.Mana != nil {
+			updater.SetMana(*req.Mana)
+		}
+		if req.MaxMana != nil {
+			updater.SetMaxMana(*req.MaxMana)
 		}
 
 		character, err := updater.Save(c.Request.Context())

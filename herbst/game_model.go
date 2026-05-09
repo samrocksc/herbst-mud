@@ -381,7 +381,7 @@ func (m *model) View() string {
 	case ScreenSkillSelect:
 		// Fetch available abilities from server
 		var availableAbilities []AbilityData
-		resp, err := httpGet(fmt.Sprintf("%s/abilities", RESTAPIBase))
+		resp, err := httpGet(fmt.Sprintf("%s/abilities/classless", RESTAPIBase))
 		if err == nil {
 			defer resp.Body.Close()
 			var result struct {

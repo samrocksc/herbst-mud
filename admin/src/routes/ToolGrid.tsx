@@ -6,6 +6,7 @@ const TOOLS = [
   { to: '/items', emoji: '📦', title: 'Item Manager', desc: 'Create, edit, and manage items and equipment' },
   { to: '/export', emoji: '💾', title: 'Export / Import', desc: 'Backup and restore game world data' },
   { to: '/players', emoji: '🎮', title: 'Player Manager', desc: 'Manage players and reset passwords' },
+  { to: '/characters', emoji: '🧙', title: 'Character Manager', desc: 'View and edit characters, rooms, stats, and bind points' },
   { to: '/abilities', emoji: '⚡', title: 'Abilities Manager', desc: 'Create, edit, and manage abilities' },
   { to: '/skills', emoji: '🎯', title: 'Skills Manager', desc: 'Manage trainable skill specializations' },
   { to: '/factions', emoji: '⚔️', title: 'Factions Manager', desc: 'Manage factions, categories, and member standing' },

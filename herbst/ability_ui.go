@@ -76,7 +76,7 @@ func (m *model) showEquippedAbilities() {
 		m.initCombatSkillState()
 	}
 
-	output += "[ Classless ] — Available to all characters\n\n"
+	output += "[ Combat Abilities ] — Press 1-5 to activate in combat\n\n"
 	for i := 0; i < 5; i++ {
 		ability := m.combatSkills.EquippedSkill[i]
 		if ability.ID == 0 {

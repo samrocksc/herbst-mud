@@ -1,0 +1,82 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPut } from '../utils/apiFetch'
+
+export type Character = Readonly<{
+  id: number
+  name: string
+  isNPC: boolean
+  currentRoomId: number
+  startingRoomId: number
+  respawnRoomId: number
+  is_admin: boolean
+  is_immortal: boolean
+  hitpoints: number
+  max_hitpoints: number
+  stamina: number
+  max_stamina: number
+  mana: number
+  max_mana: number
+  race: string
+  class: string
+  gender: string
+  description: string
+  level: number
+  xp: number
+  strength: number
+  dexterity: number
+  constitution: number
+  intelligence: number
+  wisdom: number
+  lastSeenAt: string | null
+}>
+
+export type CharacterUpdate = Partial<{
+  name: string
+  isNPC: boolean
+  currentRoomId: number
+  startingRoomId: number
+  respawnRoomId: number
+  isAdmin: boolean
+  gender: string
+  description: string
+  level: number
+  xp: number
+  hitpoints: number
+  maxHitpoints: number
+  stamina: number
+  maxStamina: number
+  mana: number
+  maxMana: number
+}>
+
+const API = `${window.location.origin}`
+
+export function useCharacters() {
+  return useQuery({
+    queryKey: ['characters'],
+    queryFn: async (): Promise<Character[]> => {
+      const data = await apiGet<unknown[]>(`${API}/characters`)
+      return Array.isArray(data) ? data : []
+    },
+  })
+}
+
+export function useCharacter(id: number) {
+  return useQuery({
+    queryKey: ['character', id],
+    queryFn: () => apiGet<Character>(`${API}/characters/${id}`),
+    enabled: !!id,
+  })
+}
+
+export function useUpdateCharacter() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, update }: { id: number; update: CharacterUpdate }) =>
+      apiPut(`${API}/characters/${id}`, update),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['characters'] })
+      queryClient.invalidateQueries({ queryKey: ['character'] })
+    },
+  })
+}

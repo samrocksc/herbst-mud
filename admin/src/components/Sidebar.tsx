@@ -29,6 +29,7 @@ const navItems = [
   { label: 'Skills', path: '/skills', Icon: SkillsIcon },
   { label: 'Tags', path: '/tags', Icon: TagsIcon },
   { label: 'Players', path: '/players', Icon: PlayersIcon },
+  { label: 'Characters', path: '/characters', Icon: PlayersIcon },
   { label: 'Races', path: '/races', Icon: RacesIcon },
   { label: 'Map', path: '/map', Icon: MapIcon },
   { label: 'NPCs', path: '/npcs', Icon: NPCsIcon },
