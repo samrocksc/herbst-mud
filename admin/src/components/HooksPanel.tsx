@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useTemplateHooks, useCreateHook, useUpdateHook, useDeleteHook, type EffectHook, type HookInput } from '../../hooks/useHooks'
-import { useEffectDefs } from '../../hooks/useEffectDefs'
-import { Button } from '../Button'
-import { DeleteConfirmation } from '../DeleteConfirmation'
-import { showToast } from '../Toast'
-import { FormField, SelectField, CheckboxField } from '../fields'
+import { useTemplateHooks, useCreateHook, useUpdateHook, useDeleteHook, type EffectHook, type HookInput } from '../hooks/useHooks'
+import { useEffectDefs } from '../hooks/useEffectDefs'
+import { Button } from './Button'
+import { DeleteConfirmation } from './DeleteConfirmation'
+import { showToast } from './Toast'
+import { FormField, SelectField, CheckboxField } from './fields'
 
 const HOOK_EVENTS = [
   { value: 'on_death', label: 'On Death' },
