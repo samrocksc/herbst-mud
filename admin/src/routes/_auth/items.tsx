@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '../../utils/apiFetch'
 import { PageHeader } from '../../components/PageHeader'
@@ -30,49 +30,78 @@ type ItemTemplate = Readonly<{
   is_locked: boolean
 }>
 
+type ItemInstance = Readonly<{
+  id: number
+  equipment_template_id: string
+  [key: string]: unknown
+}>
+
 const API = `${window.location.origin}`
-
-// ─── Columns ────────────────────────────────────────────────────────────────
-
-const columns: Column<ItemTemplate>[] = [
-  {
-    header: 'ID',
-    accessor: 'id',
-    render: (_, row) => <span className="font-mono text-xs">{row.id}</span>,
-  },
-  {
-    header: 'Name',
-    accessor: 'name',
-    className: 'font-bold',
-    render: (_, row) => (
-      <Link
-        to="/items/$itemId"
-        params={{ itemId: row.id }}
-        className="no-underline text-primary hover:underline font-bold"
-      >
-        {row.name}
-      </Link>
-    ),
-  },
-  { header: 'Slot', accessor: 'slot' },
-  { header: 'Level', accessor: 'level', align: 'center' },
-  { header: 'Type', accessor: 'item_type' },
-  { header: 'Weight', accessor: 'weight', align: 'center' },
-]
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 function ItemsIndex() {
   const [searchQuery, setSearchQuery] = useState('')
 
-  const itemsQuery = useQuery({
+  const templatesQuery = useQuery({
     queryKey: ['item-templates'],
     queryFn: () => apiGet<ItemTemplate[]>(`${API}/api/equipment-templates`),
   })
 
-  const filteredItems = (itemsQuery.data ?? []).filter((item) =>
+  const instancesQuery = useQuery({
+    queryKey: ['item-instances'],
+    queryFn: async () => {
+      const data = await apiGet<ItemInstance[]>(`${API}/api/item-instances`)
+      return Array.isArray(data) ? data : []
+    },
+  })
+
+  const instanceCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const inst of instancesQuery.data ?? []) {
+      const tid = inst.equipment_template_id
+      if (tid) counts[tid] = (counts[tid] ?? 0) + 1
+    }
+    return counts
+  }, [instancesQuery.data])
+
+  const filteredItems = (templatesQuery.data ?? []).filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   )
+
+  const columns: Column<ItemTemplate>[] = [
+    {
+      header: 'ID',
+      accessor: 'id',
+      render: (_, row) => <span className="font-mono text-xs">{row.id}</span>,
+    },
+    {
+      header: 'Name',
+      accessor: 'name',
+      className: 'font-bold',
+      render: (_, row) => (
+        <Link
+          to="/items/$itemId"
+          params={{ itemId: row.id }}
+          className="no-underline text-primary hover:underline font-bold"
+        >
+          {row.name}
+        </Link>
+      ),
+    },
+    { header: 'Slot', accessor: 'slot' },
+    { header: 'Level', accessor: 'level', align: 'center' },
+    { header: 'Type', accessor: 'item_type' },
+    { header: 'Weight', accessor: 'weight', align: 'center' },
+    {
+      header: 'Instances',
+      accessor: 'instances',
+      align: 'center',
+      render: (_, row) => (
+        <span className="badge badge-neutral">{instanceCounts[row.id] ?? 0}</span>
+      ),
+    },
+  ]
 
   const location = useLocation()
   const isList = location.pathname === '/items'
@@ -97,19 +126,19 @@ function ItemsIndex() {
       </div>
 
       {/* Loading */}
-      {itemsQuery.isLoading && (
+      {templatesQuery.isLoading && (
         <div className="p-8 text-text-muted text-center text-xs">Loading items...</div>
       )}
 
       {/* Error */}
-      {itemsQuery.isError && (
+      {templatesQuery.isError && (
         <div className="p-4 bg-danger/10 border border-danger rounded text-danger text-xs">
-          Failed to load items: {itemsQuery.error?.message ?? 'Unknown error'}
+          Failed to load items: {templatesQuery.error?.message ?? 'Unknown error'}
         </div>
       )}
 
       {/* Data table */}
-      {itemsQuery.isSuccess && (
+      {templatesQuery.isSuccess && (
         <DataTable<ItemTemplate>
           columns={columns}
           data={filteredItems}
