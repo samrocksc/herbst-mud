@@ -1,272 +1,135 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useLogs, useLogServices } from '../../hooks/useLogs'
 import { PageHeader } from '../../components/PageHeader'
+import { Button } from '../../components/Button'
 
 export const Route = createFileRoute('/_auth/logs')({
   component: LogsPage,
 })
 
-type LogEntry = Readonly<{
-  id: number
+const LEVEL_COLORS: Record<string, string> = {
+  DEBUG: 'bg-gray-500/20 text-gray-400',
+  INFO: 'bg-blue-500/20 text-blue-400',
+  WARN: 'bg-yellow-500/20 text-yellow-400',
+  ERROR: 'bg-red-500/20 text-red-400',
+}
+
+const LEVELS = ['ALL', 'DEBUG', 'INFO', 'WARN', 'ERROR'] as const
+
+type LogEntryLike = {
+  id?: number
   level: string
   message: string
   service?: string
   character_id?: number
   room_id?: number
   template_id?: string
-  metadata?: Record<string, unknown>
   created_at: string
-}>
-
-type LogsResponse = Readonly<{
-  logs: LogEntry[]
-  total: number
-  limit: number
-  offset: number
-}>
-
-type ServicesResponse = Readonly<{
-  services: string[]
-}>
-
-const LEVEL_COLORS: Record<string, string> = {
-  DEBUG: 'var(--color-text-muted)',
-  INFO: 'var(--color-info)',
-  WARN: 'var(--color-warning)',
-  ERROR: 'var(--color-error)',
 }
-
-const LEVEL_BADGE_COLORS: Record<string, string> = {
-  DEBUG: 'var(--color-bg-subtle)',
-  INFO: 'var(--color-info-bg)',
-  WARN: 'var(--color-warning-bg)',
-  ERROR: 'var(--color-error-bg)',
-}
-
-const ALL_LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR']
 
 function LogsPage() {
+  const [level, setLevel] = useState<string>('')
+  const [service, setService] = useState<string>('')
+  const [search, setSearch] = useState<string>('')
   const [live, setLive] = useState(false)
-  const [levels, setLevels] = useState<Set<string>>(new Set(['WARN', 'ERROR', 'INFO']))
-  const [service, setService] = useState('')
-  const [search, setSearch] = useState('')
-  const [services, setServices] = useState<string[]>([])
-  const [entries, setEntries] = useState<LogEntry[]>([])
-  const [paused, setPaused] = useState(false)
-  const tableRef = useRef<HTMLDivElement>(null)
-  const esRef = useRef<EventSource | null>(null)
+  const [liveLines, setLiveLines] = useState<LogEntryLike[]>([])
+  const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Fetch initial log history
-  const fetchHistory = useCallback(async () => {
-    const levelParam = levels.size > 0 && levels.size < 4
-      ? Array.from(levels).join(',')
-      : ''
-    const params = new URLSearchParams({ limit: '200' })
-    if (levelParam) params.set('level', levelParam)
-    if (service) params.set('service', service)
+  const filters = { level: level || undefined, service: service || undefined, limit: 200 }
+  const { data, isLoading } = useLogs(live ? undefined : filters)
+  const { data: services } = useLogServices()
 
-    try {
-      const token = localStorage.getItem('token')
-      const resp = await fetch(`/api/logs?${params}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      if (!resp.ok) return
-      const data: LogsResponse = await resp.json()
-      setEntries(data.logs)
-    } catch { /* ignore */ }
-  }, [levels, service])
+  const logs = live ? liveLines : (data?.logs ?? [])
+  const filtered = search
+    ? logs.filter((l) => l.message?.toLowerCase().includes(search.toLowerCase()))
+    : logs
 
-  // Fetch available services
-  const fetchServices = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const resp = await fetch('/api/logs/services', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      if (!resp.ok) return
-      const data: ServicesResponse = await resp.json()
-      setServices(data.services)
-    } catch { /* ignore */ }
+  useEffect(() => {
+    if (live && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [filtered.length, live])
+
+  const handleLiveToggle = useCallback(() => {
+    setLive((prev) => !prev)
+    setLiveLines([])
   }, [])
 
-  // SSE connection for live tail
   useEffect(() => {
-    if (!live) {
-      esRef.current?.close()
-      esRef.current = null
-      return
+    if (!live) return
+    const token = localStorage.getItem('auth_token') || ''
+    const es = new EventSource(`${window.location.origin}/api/logs/stream?token=${encodeURIComponent(token)}`)
+    es.onmessage = (e) => {
+      try {
+        const entry = JSON.parse(e.data) as LogEntryLike
+        setLiveLines((prev) => [entry, ...prev].slice(0, 500))
+      } catch { /* skip */ }
     }
-
-    fetchServices()
-
-    const token = localStorage.getItem('token') || localStorage.getItem('auth_token')
-    const url = new URL('/api/logs/stream', window.location.origin)
-    if (token) url.searchParams.set('token', token)
-    const es = new EventSource(url.toString())
-    esRef.current = es
-
-    es.onmessage = (event) => {
-      const entry: LogEntry = JSON.parse(event.data)
-      setEntries((prev) => {
-        // Apply client-side filters
-        if (levels.size > 0 && !levels.has(entry.level)) return prev
-        if (service && entry.service !== service) return prev
-        return [...prev, entry].slice(-500) // keep last 500
-      })
-    }
-    
-    es.onerror = () => {
-      es.close()
-      esRef.current = null
-      setLive(false)
-    }
-
-    return () => {
-      es.close()
-      esRef.current = null
-    }
-  }, [live, levels, service, fetchServices])
-
-  // Load history on mount and when filters change (non-live)
-  useEffect(() => {
-    fetchHistory()
-    fetchServices()
-  }, [fetchHistory, fetchServices])
-
-  // Auto-scroll when new entries arrive
-  useEffect(() => {
-    if (!paused && tableRef.current) {
-      tableRef.current.scrollTop = tableRef.current.scrollHeight
-    }
-  }, [entries, paused])
-
-  const toggleLevel = (level: string) => {
-    setLevels((prev) => {
-      const next = new Set(prev)
-      if (next.has(level)) {
-        next.delete(level)
-      } else {
-        next.add(level)
-      }
-      return next
-    })
-  }
-
-  const filtered = entries.filter((e) => {
-    if (levels.size > 0 && !levels.has(e.level)) return false
-    if (service && e.service !== service) return false
-    if (search && !e.message.toLowerCase().includes(search.toLowerCase())) return false
-    return true
-  })
+    es.onerror = () => { es.close() }
+    return () => { es.close() }
+  }, [live])
 
   return (
-    <div className="h-full flex flex-col">
-      <PageHeader backTo="/dashboard" title="Logs" />
-
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-bg)] sticky top-0 z-10">
-        {/* Live toggle */}
-        <button
-          onClick={() => setLive((v) => !v)}
-          aria-label={live ? 'Disable live tail' : 'Enable live tail'}
-          className="px-3 py-1 text-xs font-medium rounded-full border transition-colors"
-          style={{
-            background: live ? 'var(--color-accent)' : 'transparent',
-            color: live ? 'var(--color-bg)' : 'var(--color-text)',
-            borderColor: live ? 'var(--color-accent)' : 'var(--color-border)',
-          }}
-        >
-          {live ? '● Live' : '○ Live'}
-        </button>
-
-        {/* Level chips */}
-        {ALL_LEVELS.map((lvl) => (
-          <button
-            key={lvl}
-            onClick={() => toggleLevel(lvl)}
-            aria-label={`Toggle ${lvl} level`}
-            className="px-2 py-0.5 text-xs font-medium rounded-full border transition-colors"
-            style={{
-              background: levels.has(lvl) ? LEVEL_BADGE_COLORS[lvl] : 'transparent',
-              color: levels.has(lvl) ? LEVEL_COLORS[lvl] : 'var(--color-text-muted)',
-              borderColor: levels.has(lvl) ? LEVEL_COLORS[lvl] : 'var(--color-border)',
-              opacity: levels.has(lvl) ? 1 : 0.5,
-            }}
-          >
-            {lvl}
-          </button>
-        ))}
-
-        {/* Service filter */}
-        {services.length > 0 && (
-          <select
-            value={service}
-            onChange={(e) => setService(e.target.value)}
-            aria-label="Filter by service"
-            className="text-xs px-2 py-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)]"
-          >
-            <option value="">All services</option>
-            {services.map((svc) => (
-              <option key={svc} value={svc}>{svc}</option>
+    <div className="management-page">
+      <PageHeader title="Logs" backTo="/dashboard" />
+      <div className="filters-bar flex flex-wrap items-center gap-2 mb-4">
+        <div className="flex gap-1">
+          {LEVELS.map((l) => (
+            <button
+              key={l}
+              onClick={() => setLevel(l === 'ALL' ? '' : l)}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                (l === 'ALL' && !level) || l === level ? 'bg-primary text-white' : 'bg-surface-muted text-text-muted hover:bg-surface-muted/70'
+              }`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+        <select value={service} onChange={(e) => setService(e.target.value)} className="bg-surface border border-border rounded px-2 py-1 text-xs text-text">
+          <option value="">All Services</option>
+          {(services ?? []).map((s) => (<option key={s} value={s}>{s}</option>))}
+        </select>
+        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search logs..." className="bg-surface border border-border rounded px-2 py-1 text-xs text-text flex-1 min-w-[150px]" />
+        <Button variant={live ? 'primary' : 'secondary'} size="sm" onClick={handleLiveToggle}>
+          {live ? 'Live ON' : 'Live OFF'}
+        </Button>
+      </div>
+      {isLoading && !live && <div className="loading">Loading logs...</div>}
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-border text-text-muted">
+              <th className="text-left py-1 px-2 font-medium">Time</th>
+              <th className="text-left py-1 px-2 font-medium w-16">Level</th>
+              <th className="text-left py-1 px-2 font-medium w-24">Service</th>
+              <th className="text-left py-1 px-2 font-medium">Message</th>
+              <th className="text-left py-1 px-2 font-medium w-16">Char</th>
+              <th className="text-left py-1 px-2 font-medium w-16">Room</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.slice(0, 500).map((log, i) => (
+              <tr key={log.id ?? i} className="border-b border-border/30 hover:bg-surface-muted/50">
+                <td className="py-1 px-2 text-text-muted whitespace-nowrap">{formatTime(log.created_at)}</td>
+                <td className="py-1 px-2"><span className={`px-1.5 py-0.5 rounded text-xs font-medium ${LEVEL_COLORS[log.level] ?? 'bg-gray-500/20 text-gray-400'}`}>{log.level}</span></td>
+                <td className="py-1 px-2 text-text-muted">{log.service || '—'}</td>
+                <td className="py-1 px-2 text-text max-w-md truncate" title={log.message}>{log.message}</td>
+                <td className="py-1 px-2 text-text-muted">{log.character_id ?? '—'}</td>
+                <td className="py-1 px-2 text-text-muted">{log.room_id ?? '—'}</td>
+              </tr>
             ))}
-          </select>
-        )}
-
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search logs..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search log messages"
-          className="text-xs px-2 py-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] flex-1 min-w-[120px]"
-        />
-
-        {/* Pause auto-scroll */}
-        <button
-          onClick={() => setPaused((v) => !v)}
-          aria-label={paused ? 'Resume auto-scroll' : 'Pause auto-scroll'}
-          className="px-2 py-1 text-xs font-medium rounded border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
-        >
-          {paused ? '▶ Resume' : '⏸ Pause'}
-        </button>
+          </tbody>
+        </table>
+        {filtered.length === 0 && <div className="text-center py-8 text-text-muted">No logs found.</div>}
       </div>
-
-      {/* Log table */}
-      <div ref={tableRef} className="flex-1 overflow-auto font-mono text-xs" role="table" aria-label="Log entries">
-        {filtered.length === 0 ? (
-          <div className="p-4 text-center text-[var(--color-text-muted)]">No log entries</div>
-        ) : (
-          filtered.map((entry) => (
-            <LogRow key={entry.id} entry={entry} />
-          ))
-        )}
-      </div>
+      <div ref={bottomRef} />
     </div>
   )
 }
 
-function LogRow({ entry }: Readonly<{ entry: LogEntry }>) {
-  const ts = new Date(entry.created_at).toLocaleTimeString()
-  return (
-    <div
-      role="row"
-      className="flex items-start gap-2 px-4 py-1 border-b border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-hover)]"
-      style={{ color: LEVEL_COLORS[entry.level] ?? 'var(--color-text)' }}
-    >
-      <span className="shrink-0 w-[70px] text-[var(--color-text-muted)]">{ts}</span>
-      <span
-        className="shrink-0 w-[50px] font-semibold"
-        style={{ color: LEVEL_COLORS[entry.level] }}
-      >
-        {entry.level}
-      </span>
-      {entry.service && (
-        <span className="shrink-0 w-[80px] text-[var(--color-text-muted)] truncate">
-          [{entry.service}]
-        </span>
-      )}
-      <span className="flex-1 break-all">{entry.message}</span>
-    </div>
-  )
+function formatTime(t: string): string {
+  if (!t) return '—'
+  try { return new Date(t).toLocaleTimeString() } catch { return t }
 }
