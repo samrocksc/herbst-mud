@@ -171,6 +171,7 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 			StartingRoom *int    `json:"startingRoomId"`
 			RespawnRoom  *int    `json:"respawnRoomId"`
 			IsAdmin      *bool   `json:"isAdmin"`
+			IsTest       *bool   `json:"isTest"`
 			Gender       string  `json:"gender"`
 			Description  string  `json:"description"`
 			LastSeenAt   *string `json:"lastSeenAt"`
@@ -208,6 +209,9 @@ func RegisterCharacterRoutes(router *gin.Engine, client *db.Client) {
 		}
 		if req.IsAdmin != nil {
 			updater.SetIsAdmin(*req.IsAdmin)
+		}
+		if req.IsTest != nil {
+			updater.SetIsTest(*req.IsTest)
 		}
 		if req.Gender != "" {
 			updater.SetGender(req.Gender)

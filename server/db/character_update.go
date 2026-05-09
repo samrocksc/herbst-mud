@@ -167,6 +167,20 @@ func (_u *CharacterUpdate) SetNillableIsImmortal(v *bool) *CharacterUpdate {
 	return _u
 }
 
+// SetIsTest sets the "is_test" field.
+func (_u *CharacterUpdate) SetIsTest(v bool) *CharacterUpdate {
+	_u.mutation.SetIsTest(v)
+	return _u
+}
+
+// SetNillableIsTest sets the "is_test" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableIsTest(v *bool) *CharacterUpdate {
+	if v != nil {
+		_u.SetIsTest(*v)
+	}
+	return _u
+}
+
 // SetIsInstance sets the "is_instance" field.
 func (_u *CharacterUpdate) SetIsInstance(v bool) *CharacterUpdate {
 	_u.mutation.SetIsInstance(v)
@@ -1132,6 +1146,9 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.IsImmortal(); ok {
 		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.IsTest(); ok {
+		_spec.SetField(character.FieldIsTest, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.IsInstance(); ok {
 		_spec.SetField(character.FieldIsInstance, field.TypeBool, value)
 	}
@@ -1736,6 +1753,20 @@ func (_u *CharacterUpdateOne) SetIsImmortal(v bool) *CharacterUpdateOne {
 func (_u *CharacterUpdateOne) SetNillableIsImmortal(v *bool) *CharacterUpdateOne {
 	if v != nil {
 		_u.SetIsImmortal(*v)
+	}
+	return _u
+}
+
+// SetIsTest sets the "is_test" field.
+func (_u *CharacterUpdateOne) SetIsTest(v bool) *CharacterUpdateOne {
+	_u.mutation.SetIsTest(v)
+	return _u
+}
+
+// SetNillableIsTest sets the "is_test" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableIsTest(v *bool) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetIsTest(*v)
 	}
 	return _u
 }
@@ -2734,6 +2765,9 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.IsImmortal(); ok {
 		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsTest(); ok {
+		_spec.SetField(character.FieldIsTest, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.IsInstance(); ok {
 		_spec.SetField(character.FieldIsInstance, field.TypeBool, value)

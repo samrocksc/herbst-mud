@@ -599,6 +599,12 @@ button.danger:hover {
   background-color: var(--color-surface-muted);
 }
 
+.table .expanded-row td {
+  padding: 0;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
 /* ─── Dark variant (XP page) ───────────────────────────────────────────────── */
 
 .table-dark {

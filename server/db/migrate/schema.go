@@ -99,6 +99,7 @@ var (
 		{Name: "respawn_room_id", Type: field.TypeInt, Default: 5},
 		{Name: "is_admin", Type: field.TypeBool, Default: false},
 		{Name: "is_immortal", Type: field.TypeBool, Default: false},
+		{Name: "is_test", Type: field.TypeBool, Default: false},
 		{Name: "is_instance", Type: field.TypeBool, Default: false},
 		{Name: "instance_number", Type: field.TypeInt, Default: 0},
 		{Name: "npc_skill_id", Type: field.TypeString, Nullable: true},
@@ -145,25 +146,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[41]},
+				Columns:    []*schema.Column{CharactersColumns[42]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[42]},
+				Columns:    []*schema.Column{CharactersColumns[43]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[43]},
+				Columns:    []*schema.Column{CharactersColumns[44]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[44]},
+				Columns:    []*schema.Column{CharactersColumns[45]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

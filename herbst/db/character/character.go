@@ -24,6 +24,8 @@ const (
 	FieldStartingRoomId = "starting_room_id"
 	// FieldIsAdmin holds the string denoting the is_admin field in the database.
 	FieldIsAdmin = "is_admin"
+	// FieldIsTest holds the string denoting the is_test field in the database.
+	FieldIsTest = "is_test"
 	// FieldHitpoints holds the string denoting the hitpoints field in the database.
 	FieldHitpoints = "hitpoints"
 	// FieldMaxHitpoints holds the string denoting the max_hitpoints field in the database.
@@ -114,6 +116,7 @@ var Columns = []string{
 	FieldCurrentRoomId,
 	FieldStartingRoomId,
 	FieldIsAdmin,
+	FieldIsTest,
 	FieldHitpoints,
 	FieldMaxHitpoints,
 	FieldStamina,
@@ -170,6 +173,8 @@ var (
 	DefaultIsNPC bool
 	// DefaultIsAdmin holds the default value on creation for the "is_admin" field.
 	DefaultIsAdmin bool
+	// DefaultIsTest holds the default value on creation for the "is_test" field.
+	DefaultIsTest bool
 	// DefaultHitpoints holds the default value on creation for the "hitpoints" field.
 	DefaultHitpoints int
 	// DefaultMaxHitpoints holds the default value on creation for the "max_hitpoints" field.
@@ -254,6 +259,11 @@ func ByStartingRoomId(opts ...sql.OrderTermOption) OrderOption {
 // ByIsAdmin orders the results by the is_admin field.
 func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
+}
+
+// ByIsTest orders the results by the is_test field.
+func ByIsTest(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsTest, opts...).ToFunc()
 }
 
 // ByHitpoints orders the results by the hitpoints field.

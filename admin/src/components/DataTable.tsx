@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 
 // ─── Column definition ──────────────────────────────────────────────────────
 
@@ -26,6 +26,8 @@ type DataTableProps<T> = Readonly<{
   getKey: (row: T) => string | number
   /** Optional row-level click handler (enables clickable-row hover state) */
   onRowClick?: (row: T) => void
+  /** When set for a row, renders an extra <tr> below it spanning all columns */
+  expandedRow?: (row: T) => ReactNode
   /** Extra CSS class on the wrapper */
   className?: string
   /** Override the empty-state message */
@@ -62,6 +64,7 @@ export function DataTable<T>({
   data,
   getKey,
   onRowClick,
+  expandedRow,
   className = '',
   emptyMessage = 'No records found.',
   variant = 'default',
@@ -98,21 +101,29 @@ export function DataTable<T>({
           ) : (
             data.map((row: T) => {
               const key = getKey(row)
+              const expanded = expandedRow?.(row)
               return (
-                <tr key={key} onClick={onRowClick ? () => onRowClick(row) : undefined}
-                    className={onRowClick ? 'clickable-row' : undefined}>
-                  {columns.map((col: Column<T>) => {
-                    const raw = getValue(row, col.accessor)
-                    return (
-                      <td
-                        key={col.accessor}
-                        className={[col.className, alignClass(col.align)].filter(Boolean).join(' ') || undefined}
-                      >
-                        {col.render ? col.render(raw, row) : <DefaultCell value={raw} />}
-                      </td>
-                    )
-                  })}
-                </tr>
+                <Fragment key={key}>
+                  <tr onClick={onRowClick ? () => onRowClick(row) : undefined}
+                      className={onRowClick ? 'clickable-row' : undefined}>
+                    {columns.map((col: Column<T>) => {
+                      const raw = getValue(row, col.accessor)
+                      return (
+                        <td
+                          key={col.accessor}
+                          className={[col.className, alignClass(col.align)].filter(Boolean).join(' ') || undefined}
+                        >
+                          {col.render ? col.render(raw, row) : <DefaultCell value={raw} />}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {expanded && (
+                    <tr className="expanded-row">
+                      <td colSpan={columns.length}>{expanded}</td>
+                    </tr>
+                  )}
+                </Fragment>
               )
             })
           )}

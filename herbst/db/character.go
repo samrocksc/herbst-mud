@@ -31,6 +31,8 @@ type Character struct {
 	StartingRoomId int `json:"startingRoomId,omitempty"`
 	// IsAdmin holds the value of the "is_admin" field.
 	IsAdmin bool `json:"is_admin,omitempty"`
+	// IsTest holds the value of the "is_test" field.
+	IsTest bool `json:"is_test,omitempty"`
 	// Hitpoints holds the value of the "hitpoints" field.
 	Hitpoints int `json:"hitpoints,omitempty"`
 	// MaxHitpoints holds the value of the "max_hitpoints" field.
@@ -142,7 +144,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case character.FieldIsNPC, character.FieldIsAdmin:
+		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsTest:
 			values[i] = new(sql.NullBool)
 		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
@@ -212,6 +214,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_admin", values[i])
 			} else if value.Valid {
 				_m.IsAdmin = value.Bool
+			}
+		case character.FieldIsTest:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_test", values[i])
+			} else if value.Valid {
+				_m.IsTest = value.Bool
 			}
 		case character.FieldHitpoints:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -459,6 +467,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_admin=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsAdmin))
+	builder.WriteString(", ")
+	builder.WriteString("is_test=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsTest))
 	builder.WriteString(", ")
 	builder.WriteString("hitpoints=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Hitpoints))

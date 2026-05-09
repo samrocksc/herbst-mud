@@ -85,6 +85,7 @@ type model struct {
 
 	// Debug mode
 	debugMode bool
+	isTest   bool
 
 	// Message history
 	messageHistory  []string

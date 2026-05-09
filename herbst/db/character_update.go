@@ -127,6 +127,20 @@ func (_u *CharacterUpdate) SetNillableIsAdmin(v *bool) *CharacterUpdate {
 	return _u
 }
 
+// SetIsTest sets the "is_test" field.
+func (_u *CharacterUpdate) SetIsTest(v bool) *CharacterUpdate {
+	_u.mutation.SetIsTest(v)
+	return _u
+}
+
+// SetNillableIsTest sets the "is_test" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableIsTest(v *bool) *CharacterUpdate {
+	if v != nil {
+		_u.SetIsTest(*v)
+	}
+	return _u
+}
+
 // SetHitpoints sets the "hitpoints" field.
 func (_u *CharacterUpdate) SetHitpoints(v int) *CharacterUpdate {
 	_u.mutation.ResetHitpoints()
@@ -776,6 +790,9 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.IsTest(); ok {
+		_spec.SetField(character.FieldIsTest, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Hitpoints(); ok {
 		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)
 	}
@@ -1120,6 +1137,20 @@ func (_u *CharacterUpdateOne) SetIsAdmin(v bool) *CharacterUpdateOne {
 func (_u *CharacterUpdateOne) SetNillableIsAdmin(v *bool) *CharacterUpdateOne {
 	if v != nil {
 		_u.SetIsAdmin(*v)
+	}
+	return _u
+}
+
+// SetIsTest sets the "is_test" field.
+func (_u *CharacterUpdateOne) SetIsTest(v bool) *CharacterUpdateOne {
+	_u.mutation.SetIsTest(v)
+	return _u
+}
+
+// SetNillableIsTest sets the "is_test" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableIsTest(v *bool) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetIsTest(*v)
 	}
 	return _u
 }
@@ -1802,6 +1833,9 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsTest(); ok {
+		_spec.SetField(character.FieldIsTest, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Hitpoints(); ok {
 		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)

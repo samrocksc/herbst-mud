@@ -28,6 +28,8 @@ const (
 	FieldIsAdmin = "is_admin"
 	// FieldIsImmortal holds the string denoting the is_immortal field in the database.
 	FieldIsImmortal = "is_immortal"
+	// FieldIsTest holds the string denoting the is_test field in the database.
+	FieldIsTest = "is_test"
 	// FieldIsInstance holds the string denoting the is_instance field in the database.
 	FieldIsInstance = "is_instance"
 	// FieldInstanceNumber holds the string denoting the instance_number field in the database.
@@ -174,6 +176,7 @@ var Columns = []string{
 	FieldRespawnRoomId,
 	FieldIsAdmin,
 	FieldIsImmortal,
+	FieldIsTest,
 	FieldIsInstance,
 	FieldInstanceNumber,
 	FieldNpcTemplateID,
@@ -241,6 +244,8 @@ var (
 	DefaultIsAdmin bool
 	// DefaultIsImmortal holds the default value on creation for the "is_immortal" field.
 	DefaultIsImmortal bool
+	// DefaultIsTest holds the default value on creation for the "is_test" field.
+	DefaultIsTest bool
 	// DefaultIsInstance holds the default value on creation for the "is_instance" field.
 	DefaultIsInstance bool
 	// DefaultInstanceNumber holds the default value on creation for the "instance_number" field.
@@ -343,6 +348,11 @@ func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 // ByIsImmortal orders the results by the is_immortal field.
 func ByIsImmortal(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsImmortal, opts...).ToFunc()
+}
+
+// ByIsTest orders the results by the is_test field.
+func ByIsTest(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsTest, opts...).ToFunc()
 }
 
 // ByIsInstance orders the results by the is_instance field.

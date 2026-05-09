@@ -12,6 +12,8 @@ function ColorDot({ color }: { color: string }) {
   )
 }
 
+const safe = <T,>(arr: T[] | undefined): T[] => arr ?? []
+
 function UsageSection({
   label,
   items,
@@ -19,16 +21,17 @@ function UsageSection({
   hrefPrefix,
 }: {
   label: string
-  items: TagUsageReport['skills']
+  items: TagUsageReport['abilities']
   badgeClass: string
   hrefPrefix: string
 }) {
-  if (items.length === 0) return null
+  const list = safe(items)
+  if (list.length === 0) return null
   return (
     <div className="mb-4">
-      <h4 className="m-0 mb-2">{label} ({items.length})</h4>
+      <h4 className="m-0 mb-2">{label} ({list.length})</h4>
       <ul className="list-none p-0 m-0">
-        {items.map((s) => (
+        {list.map((s) => (
           <li key={`${hrefPrefix}-${s.id}`} className="py-1">
             <span className={`badge ${badgeClass} mr-2`}>{s.type}</span>
             <a href={`/${hrefPrefix}?id=${s.id}`} className={`text-${badgeClass.replace('badge-', '')}`}>
@@ -51,7 +54,7 @@ export function TagUsagesPanel({
   onClose: () => void
 }) {
   const hasUsages =
-    report.skills.length > 0 || report.factions.length > 0 || report.characters.length > 0
+    safe(report.abilities).length > 0 || safe(report.factions).length > 0 || safe(report.characters).length > 0
 
   return (
     <div className="form-card mt-4">
@@ -71,7 +74,27 @@ export function TagUsagesPanel({
         </div>
       )}
 
-      <UsageSection label="Skills" items={report.skills} badgeClass="badge-accent" hrefPrefix="abilities" />
+      <UsageSection label="Skills" items={report.abilities} badgeClass="badge-accent" hrefPrefix="abilities" />
+      <UsageSection label="Factions" items={report.factions} badgeClass="badge-primary" hrefPrefix="factions" />
+      <UsageSection label="Characters" items={report.characters} badgeClass="badge-success" hrefPrefix="characters" />
+    </div>
+  )
+}
+
+export function TagUsagesPanelInline({
+  tag,
+  report,
+}: {
+  tag: Tag
+  report: TagUsageReport
+}) {
+  const hasUsages =
+    safe(report.abilities).length > 0 || safe(report.factions).length > 0 || safe(report.characters).length > 0
+
+  return (
+    <div className="p-3 bg-surface-muted/50 rounded">
+      {!hasUsages && <p className="text-muted text-sm m-0">This tag is orphaned — no entities reference it.</p>}
+      <UsageSection label="Skills" items={report.abilities} badgeClass="badge-accent" hrefPrefix="abilities" />
       <UsageSection label="Factions" items={report.factions} badgeClass="badge-primary" hrefPrefix="factions" />
       <UsageSection label="Characters" items={report.characters} badgeClass="badge-success" hrefPrefix="characters" />
     </div>

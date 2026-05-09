@@ -64,6 +64,7 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
         <Field label="Gender" value={character.gender || '—'} />
         <Field label="NPC" value={character.isNPC ? 'Yes' : 'No'} />
         <Field label="Admin" value={character.is_admin ? 'Yes' : 'No'} />
+        <Field label="Test" value={character.is_test ? 'Yes' : 'No'} />
         <Field label="Immortal" value={character.is_immortal ? 'Yes' : 'No'} />
       </Section>
 
@@ -121,6 +122,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
     description: character.description,
     isNPC: character.isNPC,
     isAdmin: character.is_admin,
+    isTest: character.is_test,
   })
 
   const numField = (key: keyof CharacterUpdate, label: string) => (
@@ -173,6 +175,10 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
           <label className="flex items-center gap-1 text-sm text-text-muted cursor-pointer">
             <input type="checkbox" checked={form.isAdmin ?? false} onChange={(e) => setForm({ ...form, isAdmin: e.target.checked })} className="accent-primary" />
             Admin
+          </label>
+          <label className="flex items-center gap-1 text-sm text-text-muted cursor-pointer">
+            <input type="checkbox" checked={form.isTest ?? false} onChange={(e) => setForm({ ...form, isTest: e.target.checked })} className="accent-primary" />
+            Test
           </label>
         </div>
       </Section>

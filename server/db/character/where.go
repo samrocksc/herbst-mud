@@ -95,6 +95,11 @@ func IsImmortal(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsImmortal, v))
 }
 
+// IsTest applies equality check predicate on the "is_test" field. It's identical to IsTestEQ.
+func IsTest(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsTest, v))
+}
+
 // IsInstance applies equality check predicate on the "is_instance" field. It's identical to IsInstanceEQ.
 func IsInstance(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsInstance, v))
@@ -533,6 +538,16 @@ func IsImmortalEQ(v bool) predicate.Character {
 // IsImmortalNEQ applies the NEQ predicate on the "is_immortal" field.
 func IsImmortalNEQ(v bool) predicate.Character {
 	return predicate.Character(sql.FieldNEQ(FieldIsImmortal, v))
+}
+
+// IsTestEQ applies the EQ predicate on the "is_test" field.
+func IsTestEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsTest, v))
+}
+
+// IsTestNEQ applies the NEQ predicate on the "is_test" field.
+func IsTestNEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldIsTest, v))
 }
 
 // IsInstanceEQ applies the EQ predicate on the "is_instance" field.

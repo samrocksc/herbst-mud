@@ -101,6 +101,7 @@ func (m *model) loadOrCreateCharacter() {
 	m.characterMaxStamina = char.MaxStamina
 	m.characterMana = char.Mana
 	m.characterMaxMana = char.MaxMana
+	m.isTest = char.IsTest
 }
 
 func (m *model) createDefaultCharacter() {

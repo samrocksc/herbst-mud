@@ -84,6 +84,11 @@ func IsAdmin(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsAdmin, v))
 }
 
+// IsTest applies equality check predicate on the "is_test" field. It's identical to IsTestEQ.
+func IsTest(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsTest, v))
+}
+
 // Hitpoints applies equality check predicate on the "hitpoints" field. It's identical to HitpointsEQ.
 func Hitpoints(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldHitpoints, v))
@@ -427,6 +432,16 @@ func IsAdminEQ(v bool) predicate.Character {
 // IsAdminNEQ applies the NEQ predicate on the "is_admin" field.
 func IsAdminNEQ(v bool) predicate.Character {
 	return predicate.Character(sql.FieldNEQ(FieldIsAdmin, v))
+}
+
+// IsTestEQ applies the EQ predicate on the "is_test" field.
+func IsTestEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldIsTest, v))
+}
+
+// IsTestNEQ applies the NEQ predicate on the "is_test" field.
+func IsTestNEQ(v bool) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldIsTest, v))
 }
 
 // HitpointsEQ applies the EQ predicate on the "hitpoints" field.

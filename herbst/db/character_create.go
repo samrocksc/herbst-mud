@@ -82,6 +82,20 @@ func (_c *CharacterCreate) SetNillableIsAdmin(v *bool) *CharacterCreate {
 	return _c
 }
 
+// SetIsTest sets the "is_test" field.
+func (_c *CharacterCreate) SetIsTest(v bool) *CharacterCreate {
+	_c.mutation.SetIsTest(v)
+	return _c
+}
+
+// SetNillableIsTest sets the "is_test" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableIsTest(v *bool) *CharacterCreate {
+	if v != nil {
+		_c.SetIsTest(*v)
+	}
+	return _c
+}
+
 // SetHitpoints sets the "hitpoints" field.
 func (_c *CharacterCreate) SetHitpoints(v int) *CharacterCreate {
 	_c.mutation.SetHitpoints(v)
@@ -524,6 +538,10 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultIsAdmin
 		_c.mutation.SetIsAdmin(v)
 	}
+	if _, ok := _c.mutation.IsTest(); !ok {
+		v := character.DefaultIsTest
+		_c.mutation.SetIsTest(v)
+	}
 	if _, ok := _c.mutation.Hitpoints(); !ok {
 		v := character.DefaultHitpoints
 		_c.mutation.SetHitpoints(v)
@@ -634,6 +652,9 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsAdmin(); !ok {
 		return &ValidationError{Name: "is_admin", err: errors.New(`db: missing required field "Character.is_admin"`)}
+	}
+	if _, ok := _c.mutation.IsTest(); !ok {
+		return &ValidationError{Name: "is_test", err: errors.New(`db: missing required field "Character.is_test"`)}
 	}
 	if _, ok := _c.mutation.Hitpoints(); !ok {
 		return &ValidationError{Name: "hitpoints", err: errors.New(`db: missing required field "Character.hitpoints"`)}
@@ -752,6 +773,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsAdmin(); ok {
 		_spec.SetField(character.FieldIsAdmin, field.TypeBool, value)
 		_node.IsAdmin = value
+	}
+	if value, ok := _c.mutation.IsTest(); ok {
+		_spec.SetField(character.FieldIsTest, field.TypeBool, value)
+		_node.IsTest = value
 	}
 	if value, ok := _c.mutation.Hitpoints(); ok {
 		_spec.SetField(character.FieldHitpoints, field.TypeInt, value)

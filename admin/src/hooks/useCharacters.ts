@@ -10,6 +10,7 @@ export type Character = Readonly<{
   respawnRoomId: number
   is_admin: boolean
   is_immortal: boolean
+  is_test: boolean
   hitpoints: number
   max_hitpoints: number
   stamina: number
@@ -37,6 +38,7 @@ export type CharacterUpdate = Partial<{
   startingRoomId: number
   respawnRoomId: number
   isAdmin: boolean
+  isTest?: boolean
   gender: string
   description: string
   level: number

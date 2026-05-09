@@ -23,6 +23,8 @@ func (Character) Fields() []ent.Field {
 		field.Int("startingRoomId"),
 		field.Bool("is_admin").
 			Default(false),
+		field.Bool("is_test").
+			Default(false),
 		field.Int("hitpoints").
 			Default(100),
 		field.Int("max_hitpoints").

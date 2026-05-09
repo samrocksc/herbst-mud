@@ -141,6 +141,12 @@ func (m *model) attemptLogin() {
 
 	// Update last seen timestamp
 	m.updateLastSeenAt()
+
+	// Auto-enable debug for test characters
+	if m.isTest {
+		m.debugMode = true
+		m.AppendMessage("Debug mode: ON (test character)", "info")
+	}
 }
 
 func (m *model) handleRegisterInput(input string) {

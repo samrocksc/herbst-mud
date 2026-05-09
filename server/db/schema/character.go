@@ -29,6 +29,9 @@ func (Character) Fields() []ent.Field {
 		field.Bool("is_immortal").
 			Default(false).
 			Comment("Character cannot be killed - takes damage but never dies"),
+		field.Bool("is_test").
+			Default(false).
+			Comment("Test player — can use /debug commands"),
 		field.Bool("is_instance").
 			Default(false).
 			Comment("True if this NPC is an instance of a template"),

@@ -10,7 +10,7 @@ export type TagUsage = Readonly<{ id: number; name: string; type: string }>
 export type TagUsageReport = Readonly<{
   tag_name: string
   total_usages: number
-  skills: TagUsage[]
+  abilities: TagUsage[]
   factions: TagUsage[]
   characters: TagUsage[]
 }>

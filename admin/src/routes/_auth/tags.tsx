@@ -6,7 +6,7 @@ import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
 import { showToast } from '../../components/Toast'
 import { TagForm } from './TagForm'
-import { TagUsagesPanel, ColorDot } from './TagUsagesPanel'
+import { TagUsagesPanelInline, ColorDot } from './TagUsagesPanel'
 
 export const Route = createFileRoute('/_auth/tags')({ component: TagsManagement })
 
@@ -60,8 +60,17 @@ function TagsManagement() {
       {error && <div className="error-banner">{error instanceof Error ? error.message : 'Failed to load tags'}</div>}
       {showForm && !editingTag && <TagForm tag={null} onSubmit={handleCreate} onCancel={() => setShowForm(false)} isLoading={mutations.create.isPending} error={mutations.create.error?.message ?? null} />}
       {editingTag && <TagForm tag={editingTag} onSubmit={handleUpdate} onCancel={() => setEditingTag(null)} isLoading={mutations.update.isPending} error={mutations.update.error?.message ?? null} />}
-      <DataTable columns={columns} data={tags} getKey={(r) => r.id} emptyMessage={isLoading ? 'Loading…' : 'No tags yet. Create one above.'} />
-      {viewingTag && usagesQuery.data && <TagUsagesPanel tag={viewingTag} report={usagesQuery.data} onClose={() => setViewingTag(null)} />}
+      <DataTable
+        columns={columns}
+        data={tags}
+        getKey={(r) => r.id}
+        emptyMessage={isLoading ? 'Loading…' : 'No tags yet. Create one above.'}
+        expandedRow={(row) =>
+          viewingTag?.id === row.id && usagesQuery.data
+            ? <TagUsagesPanelInline tag={row} report={usagesQuery.data} />
+            : null
+        }
+      />
       {confirmDelete !== null && (
         <div className="modal-overlay"><div className="modal-card">
           <h3>Delete Tag?</h3><p>Are you sure? This cannot be undone.</p>

@@ -36,6 +36,8 @@ type Character struct {
 	IsAdmin bool `json:"is_admin,omitempty"`
 	// Character cannot be killed - takes damage but never dies
 	IsImmortal bool `json:"is_immortal,omitempty"`
+	// Test player — can use /debug commands
+	IsTest bool `json:"is_test,omitempty"`
 	// True if this NPC is an instance of a template
 	IsInstance bool `json:"is_instance,omitempty"`
 	// Auto-incremented instance number per template
@@ -207,7 +209,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsImmortal, character.FieldIsInstance:
+		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsImmortal, character.FieldIsTest, character.FieldIsInstance:
 			values[i] = new(sql.NullBool)
 		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldInstanceNumber, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldXp, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
@@ -287,6 +289,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_immortal", values[i])
 			} else if value.Valid {
 				_m.IsImmortal = value.Bool
+			}
+		case character.FieldIsTest:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_test", values[i])
+			} else if value.Valid {
+				_m.IsTest = value.Bool
 			}
 		case character.FieldIsInstance:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -602,6 +610,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_immortal=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsImmortal))
+	builder.WriteString(", ")
+	builder.WriteString("is_test=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsTest))
 	builder.WriteString(", ")
 	builder.WriteString("is_instance=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsInstance))

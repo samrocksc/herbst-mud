@@ -115,6 +115,20 @@ func (_c *CharacterCreate) SetNillableIsImmortal(v *bool) *CharacterCreate {
 	return _c
 }
 
+// SetIsTest sets the "is_test" field.
+func (_c *CharacterCreate) SetIsTest(v bool) *CharacterCreate {
+	_c.mutation.SetIsTest(v)
+	return _c
+}
+
+// SetNillableIsTest sets the "is_test" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableIsTest(v *bool) *CharacterCreate {
+	if v != nil {
+		_c.SetIsTest(*v)
+	}
+	return _c
+}
+
 // SetIsInstance sets the "is_instance" field.
 func (_c *CharacterCreate) SetIsInstance(v bool) *CharacterCreate {
 	_c.mutation.SetIsInstance(v)
@@ -737,6 +751,10 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultIsImmortal
 		_c.mutation.SetIsImmortal(v)
 	}
+	if _, ok := _c.mutation.IsTest(); !ok {
+		v := character.DefaultIsTest
+		_c.mutation.SetIsTest(v)
+	}
 	if _, ok := _c.mutation.IsInstance(); !ok {
 		v := character.DefaultIsInstance
 		_c.mutation.SetIsInstance(v)
@@ -869,6 +887,9 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsImmortal(); !ok {
 		return &ValidationError{Name: "is_immortal", err: errors.New(`db: missing required field "Character.is_immortal"`)}
+	}
+	if _, ok := _c.mutation.IsTest(); !ok {
+		return &ValidationError{Name: "is_test", err: errors.New(`db: missing required field "Character.is_test"`)}
 	}
 	if _, ok := _c.mutation.IsInstance(); !ok {
 		return &ValidationError{Name: "is_instance", err: errors.New(`db: missing required field "Character.is_instance"`)}
@@ -1007,6 +1028,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsImmortal(); ok {
 		_spec.SetField(character.FieldIsImmortal, field.TypeBool, value)
 		_node.IsImmortal = value
+	}
+	if value, ok := _c.mutation.IsTest(); ok {
+		_spec.SetField(character.FieldIsTest, field.TypeBool, value)
+		_node.IsTest = value
 	}
 	if value, ok := _c.mutation.IsInstance(); ok {
 		_spec.SetField(character.FieldIsInstance, field.TypeBool, value)

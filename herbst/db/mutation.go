@@ -2494,6 +2494,7 @@ type CharacterMutation struct {
 	startingRoomId       *int
 	addstartingRoomId    *int
 	is_admin             *bool
+	is_test              *bool
 	hitpoints            *int
 	addhitpoints         *int
 	max_hitpoints        *int
@@ -2897,6 +2898,42 @@ func (m *CharacterMutation) OldIsAdmin(ctx context.Context) (v bool, err error) 
 // ResetIsAdmin resets all changes to the "is_admin" field.
 func (m *CharacterMutation) ResetIsAdmin() {
 	m.is_admin = nil
+}
+
+// SetIsTest sets the "is_test" field.
+func (m *CharacterMutation) SetIsTest(b bool) {
+	m.is_test = &b
+}
+
+// IsTest returns the value of the "is_test" field in the mutation.
+func (m *CharacterMutation) IsTest() (r bool, exists bool) {
+	v := m.is_test
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsTest returns the old "is_test" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldIsTest(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsTest is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsTest requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsTest: %w", err)
+	}
+	return oldValue.IsTest, nil
+}
+
+// ResetIsTest resets all changes to the "is_test" field.
+func (m *CharacterMutation) ResetIsTest() {
+	m.is_test = nil
 }
 
 // SetHitpoints sets the "hitpoints" field.
@@ -4397,7 +4434,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 31)
+	fields := make([]string, 0, 32)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -4415,6 +4452,9 @@ func (m *CharacterMutation) Fields() []string {
 	}
 	if m.is_admin != nil {
 		fields = append(fields, character.FieldIsAdmin)
+	}
+	if m.is_test != nil {
+		fields = append(fields, character.FieldIsTest)
 	}
 	if m.hitpoints != nil {
 		fields = append(fields, character.FieldHitpoints)
@@ -4511,6 +4551,8 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.StartingRoomId()
 	case character.FieldIsAdmin:
 		return m.IsAdmin()
+	case character.FieldIsTest:
+		return m.IsTest()
 	case character.FieldHitpoints:
 		return m.Hitpoints()
 	case character.FieldMaxHitpoints:
@@ -4582,6 +4624,8 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldStartingRoomId(ctx)
 	case character.FieldIsAdmin:
 		return m.OldIsAdmin(ctx)
+	case character.FieldIsTest:
+		return m.OldIsTest(ctx)
 	case character.FieldHitpoints:
 		return m.OldHitpoints(ctx)
 	case character.FieldMaxHitpoints:
@@ -4682,6 +4726,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsAdmin(v)
+		return nil
+	case character.FieldIsTest:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsTest(v)
 		return nil
 	case character.FieldHitpoints:
 		v, ok := value.(int)
@@ -5212,6 +5263,9 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldIsAdmin:
 		m.ResetIsAdmin()
+		return nil
+	case character.FieldIsTest:
+		m.ResetIsTest()
 		return nil
 	case character.FieldHitpoints:
 		m.ResetHitpoints()
