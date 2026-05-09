@@ -25,6 +25,7 @@ import { Route as DocsFactionSystemRouteImport } from './routes/docs/faction-sys
 import { Route as DocsExamineSkillRouteImport } from './routes/docs/examine-skill'
 import { Route as DocsConfigReferenceRouteImport } from './routes/docs/config-reference'
 import { Route as DocsCombatGuideRouteImport } from './routes/docs/combat-guide'
+import { Route as DocsBindPointsRouteImport } from './routes/docs/bind-points'
 import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
 import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
@@ -32,9 +33,11 @@ import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
 import { Route as AuthRacesRouteImport } from './routes/_auth/races'
 import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
 import { Route as AuthNpcsRouteImport } from './routes/_auth/npcs'
+import { Route as AuthLogsRouteImport } from './routes/_auth/logs'
 import { Route as AuthItemsRouteImport } from './routes/_auth/items'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
+import { Route as AuthCharactersRouteImport } from './routes/_auth/characters'
 import { Route as AuthAchievementsRouteImport } from './routes/_auth/achievements'
 import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
 import { Route as AuthNpcsNpcIdRouteImport } from './routes/_auth/npcs.$npcId'
@@ -123,6 +126,11 @@ const DocsCombatGuideRoute = DocsCombatGuideRouteImport.update({
   path: '/combat-guide',
   getParentRoute: () => DocsRoute,
 } as any)
+const DocsBindPointsRoute = DocsBindPointsRouteImport.update({
+  id: '/bind-points',
+  path: '/bind-points',
+  getParentRoute: () => DocsRoute,
+} as any)
 const DocsAbilitySystemRoute = DocsAbilitySystemRouteImport.update({
   id: '/ability-system',
   path: '/ability-system',
@@ -158,6 +166,11 @@ const AuthNpcsRoute = AuthNpcsRouteImport.update({
   path: '/npcs',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthLogsRoute = AuthLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthItemsRoute = AuthItemsRouteImport.update({
   id: '/items',
   path: '/items',
@@ -171,6 +184,11 @@ const AuthFactionsRoute = AuthFactionsRouteImport.update({
 const AuthConfigRoute = AuthConfigRouteImport.update({
   id: '/config',
   path: '/config',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthCharactersRoute = AuthCharactersRouteImport.update({
+  id: '/characters',
+  path: '/characters',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthAchievementsRoute = AuthAchievementsRouteImport.update({
@@ -195,9 +213,9 @@ const AuthItemsItemIdRoute = AuthItemsItemIdRouteImport.update({
 } as any)
 const AuthCharactersCharacterIdRoute =
   AuthCharactersCharacterIdRouteImport.update({
-    id: '/characters/$characterId',
-    path: '/characters/$characterId',
-    getParentRoute: () => AuthRoute,
+    id: '/$characterId',
+    path: '/$characterId',
+    getParentRoute: () => AuthCharactersRoute,
   } as any)
 const AuthNpcsNpcIdIndexRoute = AuthNpcsNpcIdIndexRouteImport.update({
   id: '/',
@@ -227,9 +245,11 @@ export interface FileRoutesByFullPath {
   '/npc-templates': typeof NpcTemplatesRoute
   '/abilities': typeof AuthAbilitiesRoute
   '/achievements': typeof AuthAchievementsRoute
+  '/characters': typeof AuthCharactersRouteWithChildren
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
   '/items': typeof AuthItemsRouteWithChildren
+  '/logs': typeof AuthLogsRoute
   '/npcs': typeof AuthNpcsRouteWithChildren
   '/players': typeof AuthPlayersRoute
   '/races': typeof AuthRacesRoute
@@ -237,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/tags': typeof AuthTagsRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/bind-points': typeof DocsBindPointsRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
   '/docs/config-reference': typeof DocsConfigReferenceRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
@@ -261,9 +282,11 @@ export interface FileRoutesByTo {
   '/npc-templates': typeof NpcTemplatesRoute
   '/abilities': typeof AuthAbilitiesRoute
   '/achievements': typeof AuthAchievementsRoute
+  '/characters': typeof AuthCharactersRouteWithChildren
   '/config': typeof AuthConfigRoute
   '/factions': typeof AuthFactionsRoute
   '/items': typeof AuthItemsRouteWithChildren
+  '/logs': typeof AuthLogsRoute
   '/npcs': typeof AuthNpcsRouteWithChildren
   '/players': typeof AuthPlayersRoute
   '/races': typeof AuthRacesRoute
@@ -271,6 +294,7 @@ export interface FileRoutesByTo {
   '/tags': typeof AuthTagsRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/bind-points': typeof DocsBindPointsRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
   '/docs/config-reference': typeof DocsConfigReferenceRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
@@ -297,9 +321,11 @@ export interface FileRoutesById {
   '/npc-templates': typeof NpcTemplatesRoute
   '/_auth/abilities': typeof AuthAbilitiesRoute
   '/_auth/achievements': typeof AuthAchievementsRoute
+  '/_auth/characters': typeof AuthCharactersRouteWithChildren
   '/_auth/config': typeof AuthConfigRoute
   '/_auth/factions': typeof AuthFactionsRoute
   '/_auth/items': typeof AuthItemsRouteWithChildren
+  '/_auth/logs': typeof AuthLogsRoute
   '/_auth/npcs': typeof AuthNpcsRouteWithChildren
   '/_auth/players': typeof AuthPlayersRoute
   '/_auth/races': typeof AuthRacesRoute
@@ -307,6 +333,7 @@ export interface FileRoutesById {
   '/_auth/tags': typeof AuthTagsRoute
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/bind-points': typeof DocsBindPointsRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
   '/docs/config-reference': typeof DocsConfigReferenceRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
@@ -334,9 +361,11 @@ export interface FileRouteTypes {
     | '/npc-templates'
     | '/abilities'
     | '/achievements'
+    | '/characters'
     | '/config'
     | '/factions'
     | '/items'
+    | '/logs'
     | '/npcs'
     | '/players'
     | '/races'
@@ -344,6 +373,7 @@ export interface FileRouteTypes {
     | '/tags'
     | '/xp'
     | '/docs/ability-system'
+    | '/docs/bind-points'
     | '/docs/combat-guide'
     | '/docs/config-reference'
     | '/docs/examine-skill'
@@ -368,9 +398,11 @@ export interface FileRouteTypes {
     | '/npc-templates'
     | '/abilities'
     | '/achievements'
+    | '/characters'
     | '/config'
     | '/factions'
     | '/items'
+    | '/logs'
     | '/npcs'
     | '/players'
     | '/races'
@@ -378,6 +410,7 @@ export interface FileRouteTypes {
     | '/tags'
     | '/xp'
     | '/docs/ability-system'
+    | '/docs/bind-points'
     | '/docs/combat-guide'
     | '/docs/config-reference'
     | '/docs/examine-skill'
@@ -403,9 +436,11 @@ export interface FileRouteTypes {
     | '/npc-templates'
     | '/_auth/abilities'
     | '/_auth/achievements'
+    | '/_auth/characters'
     | '/_auth/config'
     | '/_auth/factions'
     | '/_auth/items'
+    | '/_auth/logs'
     | '/_auth/npcs'
     | '/_auth/players'
     | '/_auth/races'
@@ -413,6 +448,7 @@ export interface FileRouteTypes {
     | '/_auth/tags'
     | '/_auth/xp'
     | '/docs/ability-system'
+    | '/docs/bind-points'
     | '/docs/combat-guide'
     | '/docs/config-reference'
     | '/docs/examine-skill'
@@ -554,6 +590,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsCombatGuideRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/docs/bind-points': {
+      id: '/docs/bind-points'
+      path: '/bind-points'
+      fullPath: '/docs/bind-points'
+      preLoaderRoute: typeof DocsBindPointsRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/docs/ability-system': {
       id: '/docs/ability-system'
       path: '/ability-system'
@@ -603,6 +646,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthNpcsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/logs': {
+      id: '/_auth/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof AuthLogsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/items': {
       id: '/_auth/items'
       path: '/items'
@@ -622,6 +672,13 @@ declare module '@tanstack/react-router' {
       path: '/config'
       fullPath: '/config'
       preLoaderRoute: typeof AuthConfigRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/characters': {
+      id: '/_auth/characters'
+      path: '/characters'
+      fullPath: '/characters'
+      preLoaderRoute: typeof AuthCharactersRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/achievements': {
@@ -654,10 +711,10 @@ declare module '@tanstack/react-router' {
     }
     '/_auth/characters/$characterId': {
       id: '/_auth/characters/$characterId'
-      path: '/characters/$characterId'
+      path: '/$characterId'
       fullPath: '/characters/$characterId'
       preLoaderRoute: typeof AuthCharactersCharacterIdRouteImport
-      parentRoute: typeof AuthRoute
+      parentRoute: typeof AuthCharactersRoute
     }
     '/_auth/npcs/$npcId/': {
       id: '/_auth/npcs/$npcId/'
@@ -682,6 +739,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthCharactersRouteChildren {
+  AuthCharactersCharacterIdRoute: typeof AuthCharactersCharacterIdRoute
+}
+
+const AuthCharactersRouteChildren: AuthCharactersRouteChildren = {
+  AuthCharactersCharacterIdRoute: AuthCharactersCharacterIdRoute,
+}
+
+const AuthCharactersRouteWithChildren = AuthCharactersRoute._addFileChildren(
+  AuthCharactersRouteChildren,
+)
 
 interface AuthItemsItemIdRouteChildren {
   AuthItemsItemIdInstancesInstanceIdRoute: typeof AuthItemsItemIdInstancesInstanceIdRoute
@@ -737,37 +806,40 @@ const AuthNpcsRouteWithChildren = AuthNpcsRoute._addFileChildren(
 interface AuthRouteChildren {
   AuthAbilitiesRoute: typeof AuthAbilitiesRoute
   AuthAchievementsRoute: typeof AuthAchievementsRoute
+  AuthCharactersRoute: typeof AuthCharactersRouteWithChildren
   AuthConfigRoute: typeof AuthConfigRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
   AuthItemsRoute: typeof AuthItemsRouteWithChildren
+  AuthLogsRoute: typeof AuthLogsRoute
   AuthNpcsRoute: typeof AuthNpcsRouteWithChildren
   AuthPlayersRoute: typeof AuthPlayersRoute
   AuthRacesRoute: typeof AuthRacesRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
   AuthTagsRoute: typeof AuthTagsRoute
   AuthXpRoute: typeof AuthXpRoute
-  AuthCharactersCharacterIdRoute: typeof AuthCharactersCharacterIdRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthAbilitiesRoute: AuthAbilitiesRoute,
   AuthAchievementsRoute: AuthAchievementsRoute,
+  AuthCharactersRoute: AuthCharactersRouteWithChildren,
   AuthConfigRoute: AuthConfigRoute,
   AuthFactionsRoute: AuthFactionsRoute,
   AuthItemsRoute: AuthItemsRouteWithChildren,
+  AuthLogsRoute: AuthLogsRoute,
   AuthNpcsRoute: AuthNpcsRouteWithChildren,
   AuthPlayersRoute: AuthPlayersRoute,
   AuthRacesRoute: AuthRacesRoute,
   AuthSkillsRoute: AuthSkillsRoute,
   AuthTagsRoute: AuthTagsRoute,
   AuthXpRoute: AuthXpRoute,
-  AuthCharactersCharacterIdRoute: AuthCharactersCharacterIdRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface DocsRouteChildren {
   DocsAbilitySystemRoute: typeof DocsAbilitySystemRoute
+  DocsBindPointsRoute: typeof DocsBindPointsRoute
   DocsCombatGuideRoute: typeof DocsCombatGuideRoute
   DocsConfigReferenceRoute: typeof DocsConfigReferenceRoute
   DocsExamineSkillRoute: typeof DocsExamineSkillRoute
@@ -780,6 +852,7 @@ interface DocsRouteChildren {
 
 const DocsRouteChildren: DocsRouteChildren = {
   DocsAbilitySystemRoute: DocsAbilitySystemRoute,
+  DocsBindPointsRoute: DocsBindPointsRoute,
   DocsCombatGuideRoute: DocsCombatGuideRoute,
   DocsConfigReferenceRoute: DocsConfigReferenceRoute,
   DocsExamineSkillRoute: DocsExamineSkillRoute,

@@ -89,6 +89,24 @@ var (
 		Columns:    AchievementsColumns,
 		PrimaryKey: []*schema.Column{AchievementsColumns[0]},
 	}
+	// AppLogsColumns holds the columns for the "app_logs" table.
+	AppLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "level", Type: field.TypeString},
+		{Name: "message", Type: field.TypeString},
+		{Name: "service", Type: field.TypeString, Nullable: true},
+		{Name: "character_id", Type: field.TypeInt, Nullable: true},
+		{Name: "room_id", Type: field.TypeInt, Nullable: true},
+		{Name: "template_id", Type: field.TypeString, Nullable: true},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// AppLogsTable holds the schema information for the "app_logs" table.
+	AppLogsTable = &schema.Table{
+		Name:       "app_logs",
+		Columns:    AppLogsColumns,
+		PrimaryKey: []*schema.Column{AppLogsColumns[0]},
+	}
 	// CharactersColumns holds the columns for the "characters" table.
 	CharactersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -686,6 +704,7 @@ var (
 		AbilitiesTable,
 		AbilityEffectsTable,
 		AchievementsTable,
+		AppLogsTable,
 		CharactersTable,
 		CharacterAbilitiesTable,
 		CharacterCompetenciesTable,

@@ -4,6 +4,7 @@ import { useTags, useCreateTag, useUpdateTag, useDeleteTag, useTagUsages, type T
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
+import { DeleteConfirmation } from '../../components/DeleteConfirmation'
 import { showToast } from '../../components/Toast'
 import { TagForm } from './TagForm'
 import { TagUsagesPanelInline, ColorDot } from './TagUsagesPanel'
@@ -72,14 +73,14 @@ function TagsManagement() {
         }
       />
       {confirmDelete !== null && (
-        <div className="modal-overlay"><div className="modal-card">
-          <h3>Delete Tag?</h3><p>Are you sure? This cannot be undone.</p>
-          {mutations.delete.error && <div className="error-banner">{mutations.delete.error.message}</div>}
-          <div className="form-actions">
-            <Button variant="danger" onClick={() => handleDelete(confirmDelete)} disabled={mutations.delete.isPending}>{mutations.delete.isPending ? 'Deleting…' : 'Delete'}</Button>
-            <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancel</Button>
-          </div>
-        </div></div>
+        <DeleteConfirmation
+          open={confirmDelete !== null}
+          title="Delete Tag"
+          message="Are you sure? This cannot be undone."
+          onConfirm={() => handleDelete(confirmDelete)}
+          onCancel={() => setConfirmDelete(null)}
+          isLoading={mutations.delete.isPending}
+        />
       )}
     </div>
   )

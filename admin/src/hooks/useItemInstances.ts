@@ -19,6 +19,7 @@ export type ItemInstance = Readonly<{
   itemType: string
   equipment_template_id: string
   ownerId: number | null
+  roomId: number
   effect_type: string
   effect_value: number
   effect_duration: number
@@ -30,57 +31,95 @@ export type ItemInstance = Readonly<{
   keyItemID: string
   containedItems: string
   revealCondition: string
+  // Combat fields
+  armor_rating: number
+  armor_type: string
+  stats: Record<string, number> | null
+  rarity: string
+  skill_requirement: string
+  skill_requirement_level: number
+  damage_dice_count: number
+  damage_dice_sides: number
+  damage_bonus: number
+  damage_type: string
+  weapon_type: string
+  is_two_handed: boolean
 }>
 
-export type ItemInstanceCreateInput = Readonly<{
-  equipment_template_id?: string
-  name?: string
-  description?: string
-  slot?: string
-  level?: number
-  weight?: number
-  isEquipped?: boolean
-  isImmovable?: boolean
-  color?: string
-  isVisible?: boolean
-  itemType?: string
-  ownerId?: number | null
-  effect_type?: string
-  effect_value?: number
-  effect_duration?: number
-  healing?: number
-  effect?: string
-  isContainer?: boolean
-  containerCapacity?: number
-  isLocked?: boolean
-  keyItemID?: string
-  containedItems?: string
-  revealCondition?: string
+export type ItemInstanceCreateInput = Partial<{
+  equipment_template_id: string
+  name: string
+  description: string
+  slot: string
+  level: number
+  weight: number
+  isEquipped: boolean
+  isImmovable: boolean
+  color: string
+  isVisible: boolean
+  itemType: string
+  ownerId: number | null
+  room_id: number
+  effect_type: string
+  effect_value: number
+  effect_duration: number
+  healing: number
+  effect: string
+  isContainer: boolean
+  containerCapacity: number
+  isLocked: boolean
+  keyItemID: string
+  containedItems: string
+  revealCondition: string
+  armor_rating: number
+  armor_type: string
+  stats: Record<string, number>
+  rarity: string
+  skill_requirement: string
+  skill_requirement_level: number
+  damage_dice_count: number
+  damage_dice_sides: number
+  damage_bonus: number
+  damage_type: string
+  weapon_type: string
+  is_two_handed: boolean
 }>
 
-export type ItemInstanceUpdateInput = Readonly<{
-  name?: string
-  description?: string
-  slot?: string
-  level?: number
-  weight?: number
-  isEquipped?: boolean
-  isImmovable?: boolean
-  color?: string
-  isVisible?: boolean
-  itemType?: string
-  ownerId?: number | null
-  effect_type?: string
-  effect_value?: number
-  effect_duration?: number
-  healing?: number
-  effect?: string
-  isContainer?: boolean
-  containerCapacity?: number
-  isLocked?: boolean
-  keyItemID?: string
-  containedItems?: string
-  revealCondition?: string
+export type ItemInstanceUpdateInput = Partial<{
+  name: string
+  description: string
+  slot: string
+  level: number
+  weight: number
+  isEquipped: boolean
+  isImmovable: boolean
+  color: string
+  isVisible: boolean
+  itemType: string
+  ownerId: number | null
+  effect_type: string
+  effect_value: number
+  effect_duration: number
+  healing: number
+  effect: string
+  isContainer: boolean
+  containerCapacity: number
+  isLocked: boolean
+  keyItemID: string
+  containedItems: string
+  revealCondition: string
+  armor_rating: number
+  armor_type: string
+  stats: Record<string, number>
+  rarity: string
+  skill_requirement: string
+  skill_requirement_level: number
+  damage_dice_count: number
+  damage_dice_sides: number
+  damage_bonus: number
+  damage_type: string
+  weapon_type: string
+  is_two_handed: boolean
 }>
 
 // ─── Query hooks ────────────────────────────────────────────────────────────
@@ -89,46 +128,47 @@ export function useItemInstances() {
   return useQuery({
     queryKey: ['item-instances'],
     queryFn: async (): Promise<ItemInstance[]> => {
-      const data = await apiGet<ItemInstance[]>(`${API_BASE}/api/item-instances`)
+      const data = await apiGet<unknown[]>(`${API_BASE}/api/item-instances`)
       return Array.isArray(data) ? data : []
     },
+  })
+}
+
+export function useItemInstance(id: number | null) {
+  return useQuery({
+    queryKey: ['item-instance', id],
+    queryFn: () => apiGet<ItemInstance>(`${API_BASE}/api/item-instances/${id}`),
+    enabled: !!id,
   })
 }
 
 // ─── Mutation hooks ─────────────────────────────────────────────────────────
 
 export function useCreateItemInstance() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (input: ItemInstanceCreateInput): Promise<ItemInstance> => {
-      return apiPost<ItemInstance>(`${API_BASE}/api/item-instances`, input)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['item-instances'] })
-    },
+    mutationFn: (input: ItemInstanceCreateInput) =>
+      apiPost<ItemInstance>(`${API_BASE}/api/item-instances`, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['item-instances'] }),
   })
 }
 
 export function useUpdateItemInstance() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, update }: { id: number; update: ItemInstanceUpdateInput }): Promise<ItemInstance> => {
-      return apiPut<ItemInstance>(`${API_BASE}/api/item-instances/${id}`, update)
-    },
+    mutationFn: ({ id, update }: { id: number; update: ItemInstanceUpdateInput }) =>
+      apiPut<ItemInstance>(`${API_BASE}/api/item-instances/${id}`, update),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['item-instances'] })
+      qc.invalidateQueries({ queryKey: ['item-instances'] })
+      qc.invalidateQueries({ queryKey: ['item-instance'] })
     },
   })
 }
 
 export function useDeleteItemInstance() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: number): Promise<void> => {
-      await apiDelete(`${API_BASE}/api/item-instances/${id}`)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['item-instances'] })
-    },
+    mutationFn: (id: number) => apiDelete(`${API_BASE}/api/item-instances/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['item-instances'] }),
   })
 }

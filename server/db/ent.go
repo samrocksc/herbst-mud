@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
+	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/charactercompetency"
@@ -99,6 +100,7 @@ func checkColumn(t, c string) error {
 			ability.Table:                  ability.ValidColumn,
 			abilityeffect.Table:            abilityeffect.ValidColumn,
 			achievement.Table:              achievement.ValidColumn,
+			applog.Table:                   applog.ValidColumn,
 			character.Table:                character.ValidColumn,
 			characterability.Table:         characterability.ValidColumn,
 			charactercompetency.Table:      charactercompetency.ValidColumn,

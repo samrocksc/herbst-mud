@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
+	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/charactercompetency"
@@ -50,6 +51,7 @@ const (
 	TypeAbility                  = "Ability"
 	TypeAbilityEffect            = "AbilityEffect"
 	TypeAchievement              = "Achievement"
+	TypeAppLog                   = "AppLog"
 	TypeCharacter                = "Character"
 	TypeCharacterAbility         = "CharacterAbility"
 	TypeCharacterCompetency      = "CharacterCompetency"
@@ -3719,6 +3721,885 @@ func (m *AchievementMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AchievementMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Achievement edge %s", name)
+}
+
+// AppLogMutation represents an operation that mutates the AppLog nodes in the graph.
+type AppLogMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	level           *string
+	message         *string
+	service         *string
+	character_id    *int
+	addcharacter_id *int
+	room_id         *int
+	addroom_id      *int
+	template_id     *string
+	metadata        *map[string]interface{}
+	created_at      *time.Time
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*AppLog, error)
+	predicates      []predicate.AppLog
+}
+
+var _ ent.Mutation = (*AppLogMutation)(nil)
+
+// applogOption allows management of the mutation configuration using functional options.
+type applogOption func(*AppLogMutation)
+
+// newAppLogMutation creates new mutation for the AppLog entity.
+func newAppLogMutation(c config, op Op, opts ...applogOption) *AppLogMutation {
+	m := &AppLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAppLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAppLogID sets the ID field of the mutation.
+func withAppLogID(id int) applogOption {
+	return func(m *AppLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AppLog
+		)
+		m.oldValue = func(ctx context.Context) (*AppLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AppLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAppLog sets the old AppLog of the mutation.
+func withAppLog(node *AppLog) applogOption {
+	return func(m *AppLogMutation) {
+		m.oldValue = func(context.Context) (*AppLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AppLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AppLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AppLog entities.
+func (m *AppLogMutation) SetID(id int) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AppLogMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AppLogMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AppLog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLevel sets the "level" field.
+func (m *AppLogMutation) SetLevel(s string) {
+	m.level = &s
+}
+
+// Level returns the value of the "level" field in the mutation.
+func (m *AppLogMutation) Level() (r string, exists bool) {
+	v := m.level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevel returns the old "level" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldLevel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
+	}
+	return oldValue.Level, nil
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *AppLogMutation) ResetLevel() {
+	m.level = nil
+}
+
+// SetMessage sets the "message" field.
+func (m *AppLogMutation) SetMessage(s string) {
+	m.message = &s
+}
+
+// Message returns the value of the "message" field in the mutation.
+func (m *AppLogMutation) Message() (r string, exists bool) {
+	v := m.message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessage returns the old "message" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessage: %w", err)
+	}
+	return oldValue.Message, nil
+}
+
+// ResetMessage resets all changes to the "message" field.
+func (m *AppLogMutation) ResetMessage() {
+	m.message = nil
+}
+
+// SetService sets the "service" field.
+func (m *AppLogMutation) SetService(s string) {
+	m.service = &s
+}
+
+// Service returns the value of the "service" field in the mutation.
+func (m *AppLogMutation) Service() (r string, exists bool) {
+	v := m.service
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldService returns the old "service" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldService(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldService is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldService requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldService: %w", err)
+	}
+	return oldValue.Service, nil
+}
+
+// ClearService clears the value of the "service" field.
+func (m *AppLogMutation) ClearService() {
+	m.service = nil
+	m.clearedFields[applog.FieldService] = struct{}{}
+}
+
+// ServiceCleared returns if the "service" field was cleared in this mutation.
+func (m *AppLogMutation) ServiceCleared() bool {
+	_, ok := m.clearedFields[applog.FieldService]
+	return ok
+}
+
+// ResetService resets all changes to the "service" field.
+func (m *AppLogMutation) ResetService() {
+	m.service = nil
+	delete(m.clearedFields, applog.FieldService)
+}
+
+// SetCharacterID sets the "character_id" field.
+func (m *AppLogMutation) SetCharacterID(i int) {
+	m.character_id = &i
+	m.addcharacter_id = nil
+}
+
+// CharacterID returns the value of the "character_id" field in the mutation.
+func (m *AppLogMutation) CharacterID() (r int, exists bool) {
+	v := m.character_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharacterID returns the old "character_id" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldCharacterID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharacterID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharacterID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharacterID: %w", err)
+	}
+	return oldValue.CharacterID, nil
+}
+
+// AddCharacterID adds i to the "character_id" field.
+func (m *AppLogMutation) AddCharacterID(i int) {
+	if m.addcharacter_id != nil {
+		*m.addcharacter_id += i
+	} else {
+		m.addcharacter_id = &i
+	}
+}
+
+// AddedCharacterID returns the value that was added to the "character_id" field in this mutation.
+func (m *AppLogMutation) AddedCharacterID() (r int, exists bool) {
+	v := m.addcharacter_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCharacterID clears the value of the "character_id" field.
+func (m *AppLogMutation) ClearCharacterID() {
+	m.character_id = nil
+	m.addcharacter_id = nil
+	m.clearedFields[applog.FieldCharacterID] = struct{}{}
+}
+
+// CharacterIDCleared returns if the "character_id" field was cleared in this mutation.
+func (m *AppLogMutation) CharacterIDCleared() bool {
+	_, ok := m.clearedFields[applog.FieldCharacterID]
+	return ok
+}
+
+// ResetCharacterID resets all changes to the "character_id" field.
+func (m *AppLogMutation) ResetCharacterID() {
+	m.character_id = nil
+	m.addcharacter_id = nil
+	delete(m.clearedFields, applog.FieldCharacterID)
+}
+
+// SetRoomID sets the "room_id" field.
+func (m *AppLogMutation) SetRoomID(i int) {
+	m.room_id = &i
+	m.addroom_id = nil
+}
+
+// RoomID returns the value of the "room_id" field in the mutation.
+func (m *AppLogMutation) RoomID() (r int, exists bool) {
+	v := m.room_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoomID returns the old "room_id" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldRoomID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoomID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoomID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoomID: %w", err)
+	}
+	return oldValue.RoomID, nil
+}
+
+// AddRoomID adds i to the "room_id" field.
+func (m *AppLogMutation) AddRoomID(i int) {
+	if m.addroom_id != nil {
+		*m.addroom_id += i
+	} else {
+		m.addroom_id = &i
+	}
+}
+
+// AddedRoomID returns the value that was added to the "room_id" field in this mutation.
+func (m *AppLogMutation) AddedRoomID() (r int, exists bool) {
+	v := m.addroom_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRoomID clears the value of the "room_id" field.
+func (m *AppLogMutation) ClearRoomID() {
+	m.room_id = nil
+	m.addroom_id = nil
+	m.clearedFields[applog.FieldRoomID] = struct{}{}
+}
+
+// RoomIDCleared returns if the "room_id" field was cleared in this mutation.
+func (m *AppLogMutation) RoomIDCleared() bool {
+	_, ok := m.clearedFields[applog.FieldRoomID]
+	return ok
+}
+
+// ResetRoomID resets all changes to the "room_id" field.
+func (m *AppLogMutation) ResetRoomID() {
+	m.room_id = nil
+	m.addroom_id = nil
+	delete(m.clearedFields, applog.FieldRoomID)
+}
+
+// SetTemplateID sets the "template_id" field.
+func (m *AppLogMutation) SetTemplateID(s string) {
+	m.template_id = &s
+}
+
+// TemplateID returns the value of the "template_id" field in the mutation.
+func (m *AppLogMutation) TemplateID() (r string, exists bool) {
+	v := m.template_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateID returns the old "template_id" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldTemplateID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateID: %w", err)
+	}
+	return oldValue.TemplateID, nil
+}
+
+// ClearTemplateID clears the value of the "template_id" field.
+func (m *AppLogMutation) ClearTemplateID() {
+	m.template_id = nil
+	m.clearedFields[applog.FieldTemplateID] = struct{}{}
+}
+
+// TemplateIDCleared returns if the "template_id" field was cleared in this mutation.
+func (m *AppLogMutation) TemplateIDCleared() bool {
+	_, ok := m.clearedFields[applog.FieldTemplateID]
+	return ok
+}
+
+// ResetTemplateID resets all changes to the "template_id" field.
+func (m *AppLogMutation) ResetTemplateID() {
+	m.template_id = nil
+	delete(m.clearedFields, applog.FieldTemplateID)
+}
+
+// SetMetadata sets the "metadata" field.
+func (m *AppLogMutation) SetMetadata(value map[string]interface{}) {
+	m.metadata = &value
+}
+
+// Metadata returns the value of the "metadata" field in the mutation.
+func (m *AppLogMutation) Metadata() (r map[string]interface{}, exists bool) {
+	v := m.metadata
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetadata returns the old "metadata" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldMetadata(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetadata is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetadata requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetadata: %w", err)
+	}
+	return oldValue.Metadata, nil
+}
+
+// ClearMetadata clears the value of the "metadata" field.
+func (m *AppLogMutation) ClearMetadata() {
+	m.metadata = nil
+	m.clearedFields[applog.FieldMetadata] = struct{}{}
+}
+
+// MetadataCleared returns if the "metadata" field was cleared in this mutation.
+func (m *AppLogMutation) MetadataCleared() bool {
+	_, ok := m.clearedFields[applog.FieldMetadata]
+	return ok
+}
+
+// ResetMetadata resets all changes to the "metadata" field.
+func (m *AppLogMutation) ResetMetadata() {
+	m.metadata = nil
+	delete(m.clearedFields, applog.FieldMetadata)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AppLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AppLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AppLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the AppLogMutation builder.
+func (m *AppLogMutation) Where(ps ...predicate.AppLog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AppLogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AppLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AppLog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AppLogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AppLogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AppLog).
+func (m *AppLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AppLogMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.level != nil {
+		fields = append(fields, applog.FieldLevel)
+	}
+	if m.message != nil {
+		fields = append(fields, applog.FieldMessage)
+	}
+	if m.service != nil {
+		fields = append(fields, applog.FieldService)
+	}
+	if m.character_id != nil {
+		fields = append(fields, applog.FieldCharacterID)
+	}
+	if m.room_id != nil {
+		fields = append(fields, applog.FieldRoomID)
+	}
+	if m.template_id != nil {
+		fields = append(fields, applog.FieldTemplateID)
+	}
+	if m.metadata != nil {
+		fields = append(fields, applog.FieldMetadata)
+	}
+	if m.created_at != nil {
+		fields = append(fields, applog.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AppLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case applog.FieldLevel:
+		return m.Level()
+	case applog.FieldMessage:
+		return m.Message()
+	case applog.FieldService:
+		return m.Service()
+	case applog.FieldCharacterID:
+		return m.CharacterID()
+	case applog.FieldRoomID:
+		return m.RoomID()
+	case applog.FieldTemplateID:
+		return m.TemplateID()
+	case applog.FieldMetadata:
+		return m.Metadata()
+	case applog.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AppLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case applog.FieldLevel:
+		return m.OldLevel(ctx)
+	case applog.FieldMessage:
+		return m.OldMessage(ctx)
+	case applog.FieldService:
+		return m.OldService(ctx)
+	case applog.FieldCharacterID:
+		return m.OldCharacterID(ctx)
+	case applog.FieldRoomID:
+		return m.OldRoomID(ctx)
+	case applog.FieldTemplateID:
+		return m.OldTemplateID(ctx)
+	case applog.FieldMetadata:
+		return m.OldMetadata(ctx)
+	case applog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AppLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AppLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case applog.FieldLevel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
+	case applog.FieldMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessage(v)
+		return nil
+	case applog.FieldService:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetService(v)
+		return nil
+	case applog.FieldCharacterID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharacterID(v)
+		return nil
+	case applog.FieldRoomID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoomID(v)
+		return nil
+	case applog.FieldTemplateID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateID(v)
+		return nil
+	case applog.FieldMetadata:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetadata(v)
+		return nil
+	case applog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AppLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AppLogMutation) AddedFields() []string {
+	var fields []string
+	if m.addcharacter_id != nil {
+		fields = append(fields, applog.FieldCharacterID)
+	}
+	if m.addroom_id != nil {
+		fields = append(fields, applog.FieldRoomID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AppLogMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case applog.FieldCharacterID:
+		return m.AddedCharacterID()
+	case applog.FieldRoomID:
+		return m.AddedRoomID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AppLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case applog.FieldCharacterID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCharacterID(v)
+		return nil
+	case applog.FieldRoomID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRoomID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AppLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AppLogMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(applog.FieldService) {
+		fields = append(fields, applog.FieldService)
+	}
+	if m.FieldCleared(applog.FieldCharacterID) {
+		fields = append(fields, applog.FieldCharacterID)
+	}
+	if m.FieldCleared(applog.FieldRoomID) {
+		fields = append(fields, applog.FieldRoomID)
+	}
+	if m.FieldCleared(applog.FieldTemplateID) {
+		fields = append(fields, applog.FieldTemplateID)
+	}
+	if m.FieldCleared(applog.FieldMetadata) {
+		fields = append(fields, applog.FieldMetadata)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AppLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AppLogMutation) ClearField(name string) error {
+	switch name {
+	case applog.FieldService:
+		m.ClearService()
+		return nil
+	case applog.FieldCharacterID:
+		m.ClearCharacterID()
+		return nil
+	case applog.FieldRoomID:
+		m.ClearRoomID()
+		return nil
+	case applog.FieldTemplateID:
+		m.ClearTemplateID()
+		return nil
+	case applog.FieldMetadata:
+		m.ClearMetadata()
+		return nil
+	}
+	return fmt.Errorf("unknown AppLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AppLogMutation) ResetField(name string) error {
+	switch name {
+	case applog.FieldLevel:
+		m.ResetLevel()
+		return nil
+	case applog.FieldMessage:
+		m.ResetMessage()
+		return nil
+	case applog.FieldService:
+		m.ResetService()
+		return nil
+	case applog.FieldCharacterID:
+		m.ResetCharacterID()
+		return nil
+	case applog.FieldRoomID:
+		m.ResetRoomID()
+		return nil
+	case applog.FieldTemplateID:
+		m.ResetTemplateID()
+		return nil
+	case applog.FieldMetadata:
+		m.ResetMetadata()
+		return nil
+	case applog.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AppLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AppLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AppLogMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AppLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AppLogMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AppLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AppLogMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AppLogMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AppLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AppLogMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AppLog edge %s", name)
 }
 
 // CharacterMutation represents an operation that mutates the Character nodes in the graph.

@@ -15,6 +15,9 @@ type AbilityEffect func(*sql.Selector)
 // Achievement is the predicate function for achievement builders.
 type Achievement func(*sql.Selector)
 
+// AppLog is the predicate function for applog builders.
+type AppLog func(*sql.Selector)
+
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 

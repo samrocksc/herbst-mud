@@ -19,8 +19,6 @@ func RegisterItemInstanceRoutes(r *gin.Engine, client *db.Client) {
 	g.Use(middleware.AuthMiddleware())
 	g.Use(middleware.AdminMiddleware())
 	{
-		g.GET("/equipment-templates", listEquipmentTemplates(client))
-		g.GET("/equipment-templates/:id", getEquipmentTemplate(client))
 		g.GET("/item-instances", listItemInstances(client))
 		g.POST("/item-instances", createItemInstance(client))
 		g.GET("/item-instances/:id", getItemInstance(client))
@@ -125,7 +123,7 @@ func toItemInstanceView(e *db.Equipment) itemInstanceView {
 func listItemInstances(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := client.Equipment.Query().
-			Where(equipment.EquipmentTemplateIDNEQ(""))
+			Where(equipment.Or(equipment.EquipmentTemplateIDNEQ(""), equipment.EquipmentTemplateIDIsNil()))
 
 		// Optional filters
 		if ownerIDStr := c.Query("ownerId"); ownerIDStr != "" {
@@ -367,7 +365,7 @@ func getItemInstance(client *db.Client) gin.HandlerFunc {
 		}
 
 		eq, err := client.Equipment.Query().
-			Where(equipment.IDEQ(id), equipment.EquipmentTemplateIDNEQ("")).
+			Where(equipment.IDEQ(id), equipment.Or(equipment.EquipmentTemplateIDNEQ(""), equipment.EquipmentTemplateIDIsNil())).
 			Only(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "item instance not found"})
@@ -496,6 +494,42 @@ func updateItemInstance(client *db.Client) gin.HandlerFunc {
 		if req.RevealCondition != nil {
 			updater.SetRevealCondition(*req.RevealCondition)
 		}
+		if req.ArmorRating != nil {
+			updater.SetArmorRating(*req.ArmorRating)
+		}
+		if req.ArmorType != nil {
+			updater.SetArmorType(*req.ArmorType)
+		}
+		if req.Stats != nil {
+			updater.SetStats(req.Stats)
+		}
+		if req.Rarity != nil {
+			updater.SetRarity(*req.Rarity)
+		}
+		if req.SkillRequirement != nil {
+			updater.SetSkillRequirement(*req.SkillRequirement)
+		}
+		if req.SkillRequirementLevel != nil {
+			updater.SetSkillRequirementLevel(*req.SkillRequirementLevel)
+		}
+		if req.DamageDiceCount != nil {
+			updater.SetDamageDiceCount(*req.DamageDiceCount)
+		}
+		if req.DamageDiceSides != nil {
+			updater.SetDamageDiceSides(*req.DamageDiceSides)
+		}
+		if req.DamageBonus != nil {
+			updater.SetDamageBonus(*req.DamageBonus)
+		}
+		if req.DamageType != nil {
+			updater.SetDamageType(*req.DamageType)
+		}
+		if req.WeaponType != nil {
+			updater.SetWeaponType(*req.WeaponType)
+		}
+		if req.IsTwoHanded != nil {
+			updater.SetIsTwoHanded(*req.IsTwoHanded)
+		}
 
 		updated, err := updater.Save(c.Request.Context())
 		if err != nil {
@@ -527,91 +561,3 @@ func deleteItemInstance(client *db.Client) gin.HandlerFunc {
 }
 
 // GET /api/equipment-templates — list all templates for admin spawn UI
-func listEquipmentTemplates(client *db.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		templates, err := client.EquipmentTemplate.Query().All(c.Request.Context())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		result := make([]gin.H, len(templates))
-		for i, t := range templates {
-			result[i] = gin.H{
-				"id":                  t.ID,
-				"name":                t.Name,
-				"description":         t.Description,
-				"slot":                t.Slot,
-				"level":               t.Level,
-				"weight":              t.Weight,
-				"item_type":           t.ItemType,
-				"stats":               t.Stats,
-				"color":               t.Color,
-				"is_visible":          t.IsVisible,
-				"is_immovable":        t.IsImmovable,
-				"effect_type":         t.EffectType,
-				"effect_value":        t.EffectValue,
-				"effect_duration":     t.EffectDuration,
-				"is_container":        t.IsContainer,
-				"container_capacity":  t.ContainerCapacity,
-				"is_locked":           t.IsLocked,
-				"key_item_id":         t.KeyItemID,
-				"reveal_condition":    t.RevealCondition,
-				"expires_at":          t.ExpiresAt,
-			}
-		}
-
-		c.JSON(http.StatusOK, result)
-	}
-}
-
-func getEquipmentTemplate(client *db.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		id := c.Param("id")
-		if id == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
-			return
-		}
-
-		t, err := client.EquipmentTemplate.Get(c.Request.Context(), id)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "template not found: " + id})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"id":                  t.ID,
-			"name":                t.Name,
-			"description":         t.Description,
-			"slot":                t.Slot,
-			"level":               t.Level,
-			"weight":              t.Weight,
-			"item_type":           t.ItemType,
-			"stats":               t.Stats,
-			"color":               t.Color,
-			"is_visible":          t.IsVisible,
-			"is_immovable":        t.IsImmovable,
-			"effect_type":         t.EffectType,
-			"effect_value":        t.EffectValue,
-			"effect_duration":     t.EffectDuration,
-			"is_container":        t.IsContainer,
-			"container_capacity":  t.ContainerCapacity,
-			"is_locked":           t.IsLocked,
-			"key_item_id":         t.KeyItemID,
-			"reveal_condition":    t.RevealCondition,
-			"expires_at":          t.ExpiresAt,
-			// Combat fields (EQUIP-002)
-			"armor_rating":            t.ArmorRating,
-			"armor_type":              t.ArmorType,
-			"rarity":                  t.Rarity,
-			"skill_requirement":       t.SkillRequirement,
-			"skill_requirement_level": t.SkillRequirementLevel,
-			"damage_dice_count":       t.DamageDiceCount,
-			"damage_dice_sides":       t.DamageDiceSides,
-			"damage_bonus":            t.DamageBonus,
-			"damage_type":             t.DamageType,
-			"weapon_type":             t.WeaponType,
-			"is_two_handed":           t.IsTwoHanded,
-		})
-	}
-}

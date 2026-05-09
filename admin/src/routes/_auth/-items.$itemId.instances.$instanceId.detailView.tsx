@@ -1,15 +1,5 @@
 import { CombatFieldsDisplay } from '../../components/CombatFieldsDisplay'
-
-type ItemInstance = Readonly<{
-  id: number; name: string; slot: string; level: number; weight: number
-  isEquipped: boolean; isImmovable: boolean; color: string; isVisible: boolean
-  itemType: string; ownerId: number | null; roomId: number | null
-  armor_rating: number; armor_type: string; rarity: string
-  skill_requirement: string; skill_requirement_level: number
-  damage_dice_count: number; damage_dice_sides: number; damage_bonus: number
-  damage_type: string; weapon_type: string; is_two_handed: boolean
-  stats: Record<string, unknown>
-}>
+import type { ItemInstance } from '../../hooks/useItemInstances'
 
 /** Read-only detail view for an item instance. */
 export function InstanceDetailView({ instance }: Readonly<{ instance: ItemInstance }>) {

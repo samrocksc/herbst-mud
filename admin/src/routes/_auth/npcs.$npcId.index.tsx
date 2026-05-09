@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { apiGet, apiPost, apiPut, apiDelete } from '../../utils/apiFetch'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
+import { DeleteConfirmation } from '../../components/DeleteConfirmation'
 import { Modal } from '../../components/Modal'
 import { Button } from '../../components/Button'
 import {
@@ -172,7 +173,7 @@ export function NpcTemplateDetail() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showSpawnModal, setShowSpawnModal] = useState(false)
   const [form, setForm] = useState<EditForm | null>(null)
   const [spawnForm, setSpawnForm] = useState<SpawnForm>({
@@ -236,11 +237,7 @@ export function NpcTemplateDetail() {
   })
 
   const handleDelete = () => {
-    if (confirmDelete) {
-      deleteMutation.mutate()
-    } else {
-      setConfirmDelete(true)
-    }
+    deleteMutation.mutate()
   }
 
   const handleSpawn = () => {
@@ -320,20 +317,11 @@ export function NpcTemplateDetail() {
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteModal(true)}
                   disabled={deleteMutation.isPending}
                 >
-                  {confirmDelete
-                    ? 'Confirm Delete?'
-                    : deleteMutation.isPending
-                      ? 'Deleting...'
-                      : 'Delete'}
+                  Delete
                 </Button>
-                {confirmDelete && (
-                  <Button variant="secondary" size="sm" onClick={() => setConfirmDelete(false)}>
-                    Cancel
-                  </Button>
-                )}
               </>
             )}
           </div>
@@ -418,11 +406,14 @@ export function NpcTemplateDetail() {
         )}
       </div>
 
-      {deleteMutation.isError && (
-        <div className="mt-3 text-danger text-sm">
-          Failed to delete: {(deleteMutation.error as Error)?.message}
-        </div>
-      )}
+      <DeleteConfirmation
+        open={showDeleteModal}
+        title="Delete NPC Template"
+        message="Are you sure? This will permanently delete this NPC template."
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+        isLoading={deleteMutation.isPending}
+      />
 
       <Modal isOpen={showSpawnModal} onClose={handleSpawnModalClose} title="Add NPC Instance">
         <div className="flex flex-col gap-4">

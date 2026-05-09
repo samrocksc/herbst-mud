@@ -14,6 +14,7 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
+	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/charactercompetency"
@@ -53,6 +54,8 @@ type Client struct {
 	AbilityEffect *AbilityEffectClient
 	// Achievement is the client for interacting with the Achievement builders.
 	Achievement *AchievementClient
+	// AppLog is the client for interacting with the AppLog builders.
+	AppLog *AppLogClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
 	// CharacterAbility is the client for interacting with the CharacterAbility builders.
@@ -109,6 +112,7 @@ func (c *Client) init() {
 	c.Ability = NewAbilityClient(c.config)
 	c.AbilityEffect = NewAbilityEffectClient(c.config)
 	c.Achievement = NewAchievementClient(c.config)
+	c.AppLog = NewAppLogClient(c.config)
 	c.Character = NewCharacterClient(c.config)
 	c.CharacterAbility = NewCharacterAbilityClient(c.config)
 	c.CharacterCompetency = NewCharacterCompetencyClient(c.config)
@@ -225,6 +229,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Ability:                  NewAbilityClient(cfg),
 		AbilityEffect:            NewAbilityEffectClient(cfg),
 		Achievement:              NewAchievementClient(cfg),
+		AppLog:                   NewAppLogClient(cfg),
 		Character:                NewCharacterClient(cfg),
 		CharacterAbility:         NewCharacterAbilityClient(cfg),
 		CharacterCompetency:      NewCharacterCompetencyClient(cfg),
@@ -268,6 +273,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Ability:                  NewAbilityClient(cfg),
 		AbilityEffect:            NewAbilityEffectClient(cfg),
 		Achievement:              NewAchievementClient(cfg),
+		AppLog:                   NewAppLogClient(cfg),
 		Character:                NewCharacterClient(cfg),
 		CharacterAbility:         NewCharacterAbilityClient(cfg),
 		CharacterCompetency:      NewCharacterCompetencyClient(cfg),
@@ -318,8 +324,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Ability, c.AbilityEffect, c.Achievement, c.Character, c.CharacterAbility,
-		c.CharacterCompetency, c.CharacterFaction, c.CharacterTag,
+		c.Ability, c.AbilityEffect, c.Achievement, c.AppLog, c.Character,
+		c.CharacterAbility, c.CharacterCompetency, c.CharacterFaction, c.CharacterTag,
 		c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog, c.Equipment,
 		c.EquipmentTemplate, c.Faction, c.FactionCategory, c.FactionRequiredTag,
 		c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate, c.Race, c.Room, c.Tag,
@@ -333,8 +339,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Ability, c.AbilityEffect, c.Achievement, c.Character, c.CharacterAbility,
-		c.CharacterCompetency, c.CharacterFaction, c.CharacterTag,
+		c.Ability, c.AbilityEffect, c.Achievement, c.AppLog, c.Character,
+		c.CharacterAbility, c.CharacterCompetency, c.CharacterFaction, c.CharacterTag,
 		c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog, c.Equipment,
 		c.EquipmentTemplate, c.Faction, c.FactionCategory, c.FactionRequiredTag,
 		c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate, c.Race, c.Room, c.Tag,
@@ -353,6 +359,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AbilityEffect.mutate(ctx, m)
 	case *AchievementMutation:
 		return c.Achievement.mutate(ctx, m)
+	case *AppLogMutation:
+		return c.AppLog.mutate(ctx, m)
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
 	case *CharacterAbilityMutation:
@@ -876,6 +884,139 @@ func (c *AchievementClient) mutate(ctx context.Context, m *AchievementMutation) 
 		return (&AchievementDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Achievement mutation op: %q", m.Op())
+	}
+}
+
+// AppLogClient is a client for the AppLog schema.
+type AppLogClient struct {
+	config
+}
+
+// NewAppLogClient returns a client for the AppLog from the given config.
+func NewAppLogClient(c config) *AppLogClient {
+	return &AppLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `applog.Hooks(f(g(h())))`.
+func (c *AppLogClient) Use(hooks ...Hook) {
+	c.hooks.AppLog = append(c.hooks.AppLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `applog.Intercept(f(g(h())))`.
+func (c *AppLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AppLog = append(c.inters.AppLog, interceptors...)
+}
+
+// Create returns a builder for creating a AppLog entity.
+func (c *AppLogClient) Create() *AppLogCreate {
+	mutation := newAppLogMutation(c.config, OpCreate)
+	return &AppLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AppLog entities.
+func (c *AppLogClient) CreateBulk(builders ...*AppLogCreate) *AppLogCreateBulk {
+	return &AppLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AppLogClient) MapCreateBulk(slice any, setFunc func(*AppLogCreate, int)) *AppLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AppLogCreateBulk{err: fmt.Errorf("calling to AppLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AppLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AppLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AppLog.
+func (c *AppLogClient) Update() *AppLogUpdate {
+	mutation := newAppLogMutation(c.config, OpUpdate)
+	return &AppLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AppLogClient) UpdateOne(_m *AppLog) *AppLogUpdateOne {
+	mutation := newAppLogMutation(c.config, OpUpdateOne, withAppLog(_m))
+	return &AppLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AppLogClient) UpdateOneID(id int) *AppLogUpdateOne {
+	mutation := newAppLogMutation(c.config, OpUpdateOne, withAppLogID(id))
+	return &AppLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AppLog.
+func (c *AppLogClient) Delete() *AppLogDelete {
+	mutation := newAppLogMutation(c.config, OpDelete)
+	return &AppLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AppLogClient) DeleteOne(_m *AppLog) *AppLogDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AppLogClient) DeleteOneID(id int) *AppLogDeleteOne {
+	builder := c.Delete().Where(applog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AppLogDeleteOne{builder}
+}
+
+// Query returns a query builder for AppLog.
+func (c *AppLogClient) Query() *AppLogQuery {
+	return &AppLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAppLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AppLog entity by its id.
+func (c *AppLogClient) Get(ctx context.Context, id int) (*AppLog, error) {
+	return c.Query().Where(applog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AppLogClient) GetX(ctx context.Context, id int) *AppLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AppLogClient) Hooks() []Hook {
+	return c.hooks.AppLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *AppLogClient) Interceptors() []Interceptor {
+	return c.inters.AppLog
+}
+
+func (c *AppLogClient) mutate(ctx context.Context, m *AppLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AppLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AppLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AppLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AppLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown AppLog mutation op: %q", m.Op())
 	}
 }
 
@@ -4235,14 +4376,14 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Ability, AbilityEffect, Achievement, Character, CharacterAbility,
+		Ability, AbilityEffect, Achievement, AppLog, Character, CharacterAbility,
 		CharacterCompetency, CharacterFaction, CharacterTag, CompetencyCategory,
 		CompetencyLevelThreshold, DamageLog, Equipment, EquipmentTemplate, Faction,
 		FactionCategory, FactionRequiredTag, GameConfig, Gender, NPCAbility,
 		NPCTemplate, Race, Room, Tag, User []ent.Hook
 	}
 	inters struct {
-		Ability, AbilityEffect, Achievement, Character, CharacterAbility,
+		Ability, AbilityEffect, Achievement, AppLog, Character, CharacterAbility,
 		CharacterCompetency, CharacterFaction, CharacterTag, CompetencyCategory,
 		CompetencyLevelThreshold, DamageLog, Equipment, EquipmentTemplate, Faction,
 		FactionCategory, FactionRequiredTag, GameConfig, Gender, NPCAbility,

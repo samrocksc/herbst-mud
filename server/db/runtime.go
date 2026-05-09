@@ -6,6 +6,7 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
+	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
@@ -114,6 +115,12 @@ func init() {
 	achievementDescXpReward := achievementFields[3].Descriptor()
 	// achievement.DefaultXpReward holds the default value on creation for the xp_reward field.
 	achievement.DefaultXpReward = achievementDescXpReward.Default.(int)
+	applogFields := schema.AppLog{}.Fields()
+	_ = applogFields
+	// applogDescCreatedAt is the schema descriptor for created_at field.
+	applogDescCreatedAt := applogFields[8].Descriptor()
+	// applog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	applog.DefaultCreatedAt = applogDescCreatedAt.Default.(func() time.Time)
 	characterFields := schema.Character{}.Fields()
 	_ = characterFields
 	// characterDescIsNPC is the schema descriptor for isNPC field.

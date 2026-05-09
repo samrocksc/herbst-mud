@@ -18,6 +18,8 @@ type Tx struct {
 	AbilityEffect *AbilityEffectClient
 	// Achievement is the client for interacting with the Achievement builders.
 	Achievement *AchievementClient
+	// AppLog is the client for interacting with the AppLog builders.
+	AppLog *AppLogClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
 	// CharacterAbility is the client for interacting with the CharacterAbility builders.
@@ -194,6 +196,7 @@ func (tx *Tx) init() {
 	tx.Ability = NewAbilityClient(tx.config)
 	tx.AbilityEffect = NewAbilityEffectClient(tx.config)
 	tx.Achievement = NewAchievementClient(tx.config)
+	tx.AppLog = NewAppLogClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
 	tx.CharacterAbility = NewCharacterAbilityClient(tx.config)
 	tx.CharacterCompetency = NewCharacterCompetencyClient(tx.config)

@@ -26,6 +26,12 @@ func (m *model) processCommand(cmd string) {
 		return
 	}
 
+	// Handle debug commands (debug, debug on, debug off, debug info)
+	if cmd == "debug" || strings.HasPrefix(cmd, "debug ") {
+		m.handleDebugCommand(cmd)
+		return
+	}
+
 	// Try command registry first
 	parts := strings.Fields(cmd)
 	if len(parts) > 0 {
@@ -44,8 +50,6 @@ func (m *model) processCommand(cmd string) {
 	case "search", "perception":
 		m.handleSearchCommand(cmd)
 
-	case "debug":
-		m.handleDebugCommand(cmd)
 
 	case "peer":
 		m.AppendMessage("Usage: peer <direction>", "error")

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { apiPut, apiDelete } from '../../utils/apiFetch'
 import { Button } from '../../components/Button'
+import { DeleteConfirmation } from '../../components/DeleteConfirmation'
 import { CombatFieldsEditor, type CombatFields } from '../../components/CombatFieldsEditor'
 import { NumberField, SelectField, CheckboxField, TextareaField, FormError } from '../../components/FormFields'
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from '../../components/itemConstants'
@@ -21,7 +22,7 @@ export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [form, setForm] = useState<TemplateEditForm>(() => ({ ...template }))
-  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const API = `${window.location.origin}`
 
   const updateMutation = useMutation({
@@ -69,11 +70,16 @@ export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
       <div className="flex gap-2 mt-4">
         <Button variant="primary" onClick={handleSave} disabled={updateMutation.isPending}>{updateMutation.isPending ? 'Saving...' : 'Save'}</Button>
         <Button variant="secondary" onClick={onDone}>Cancel</Button>
-        <Button variant="danger" onClick={() => deleteConfirm ? deleteMutation.mutate() : setDeleteConfirm(true)} disabled={deleteMutation.isPending}>
-          {deleteConfirm ? 'Confirm Delete?' : 'Delete'}</Button>
-        {deleteConfirm && <Button variant="secondary" onClick={() => setDeleteConfirm(false)}>Cancel Delete</Button>}
+        <Button variant="danger" onClick={() => setShowDeleteModal(true)} disabled={deleteMutation.isPending}>Delete</Button>
       </div>
-      {deleteMutation.isError && <div className="mt-2 text-danger text-sm">Failed to delete: {(deleteMutation.error as Error)?.message}</div>}
+      <DeleteConfirmation
+        open={showDeleteModal}
+        title="Delete Item Template"
+        message="Are you sure? This will permanently delete this item template. Instances based on this template will not be deleted."
+        onConfirm={() => deleteMutation.mutate()}
+        onCancel={() => setShowDeleteModal(false)}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

@@ -5,17 +5,7 @@ import { Button } from '../../components/Button'
 import { CombatFieldsEditor, type CombatFields } from '../../components/CombatFieldsEditor'
 import { NumberField, SelectField, CheckboxField } from '../../components/FormFields'
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from '../../components/itemConstants'
-
-type ItemInstance = Readonly<{
-  id: number; name: string; description: string; slot: string; level: number
-  weight: number; isEquipped: boolean; isImmovable: boolean; color: string
-  isVisible: boolean; itemType: string; ownerId: number | null; roomId: number | null
-  armor_rating: number; armor_type: string; rarity: string
-  skill_requirement: string; skill_requirement_level: number
-  damage_dice_count: number; damage_dice_sides: number; damage_bonus: number
-  damage_type: string; weapon_type: string; is_two_handed: boolean
-  stats: Record<string, unknown>
-}>
+import type { ItemInstance } from '../../hooks/useItemInstances'
 
 type InstanceEditFormState = Readonly<{
   name: string; description: string; slot: string; itemType: string

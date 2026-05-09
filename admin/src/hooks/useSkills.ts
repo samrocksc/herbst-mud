@@ -1,11 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
 
-const API_BASE = `${window.location.origin}`
-
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
+const API = `${window.location.origin}/api/abilities`
 
 export type Skill = Readonly<{
   id: number
@@ -49,91 +45,54 @@ function parseSkillForApi(input: SkillInput): Omit<Skill, 'id'> {
     mana_cost: input.mana_cost,
     stamina_cost: input.stamina_cost,
     classless: input.classless,
-    effects: input.effects ? JSON.parse(input.effects) : undefined
+    effects: input.effects ? JSON.parse(input.effects) : undefined,
   }
 }
 
 export function useSkills(filters?: { type?: string; tag?: string }) {
+  const params = new URLSearchParams()
+  if (filters?.type) params.append('type', filters.type)
+  if (filters?.tag) params.append('tag', filters.tag)
+  const qs = params.toString() ? `?${params.toString()}` : ''
+
   return useQuery({
     queryKey: ['skills', filters],
-    queryFn: async (): Promise<Skill[]> => {
-      const params = new URLSearchParams()
-      if (filters?.type) params.append('type', filters.type)
-      if (filters?.tag) params.append('tag', filters.tag)
-      
-      const url = `${API_BASE}/skills${params.toString() ? '?' + params.toString() : ''}`
-      const response = await fetch(url, { headers: authHeaders() })
-      if (!response.ok) throw new Error('Failed to fetch skills')
-      const data = await response.json()
-      return data.skills ?? []
-    }
+    queryFn: () => apiGet<Skill[]>(`${API}${qs}`),
   })
 }
 
 export function useSkill(id: number | null) {
   return useQuery({
     queryKey: ['skill', id],
-    queryFn: async (): Promise<Skill | null> => {
-      if (!id) return null
-      const response = await fetch(`${API_BASE}/skills/${id}`, { headers: authHeaders() })
-      if (!response.ok) throw new Error('Failed to fetch skill')
-      return response.json()
-    },
-    enabled: !!id
+    queryFn: () => apiGet<Skill>(`${API}/${id}`),
+    enabled: !!id,
   })
 }
 
 export function useCreateSkill() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (input: SkillInput): Promise<Skill> => {
-      const body = parseSkillForApi(input)
-      const response = await fetch(`${API_BASE}/skills`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body)
-      })
-      if (!response.ok) throw new Error('Failed to create skill')
-      return response.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['skills'] })
-    }
+    mutationFn: (input: SkillInput) => apiPost<Skill>(API, parseSkillForApi(input)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['skills'] }),
   })
 }
 
 export function useUpdateSkill() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, input }: { id: number; input: SkillInput }): Promise<Skill> => {
-      const body = parseSkillForApi(input)
-      const response = await fetch(`${API_BASE}/skills/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify(body)
-      })
-      if (!response.ok) throw new Error('Failed to update skill')
-      return response.json()
-    },
+    mutationFn: ({ id, input }: { id: number; input: SkillInput }) =>
+      apiPut<Skill>(`${API}/${id}`, parseSkillForApi(input)),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['skills'] })
-      queryClient.invalidateQueries({ queryKey: ['skill', id] })
-    }
+      qc.invalidateQueries({ queryKey: ['skills'] })
+      qc.invalidateQueries({ queryKey: ['skill', id] })
+    },
   })
 }
 
 export function useDeleteSkill() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: number): Promise<void> => {
-      const response = await fetch(`${API_BASE}/skills/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders()
-      })
-      if (!response.ok) throw new Error('Failed to delete skill')
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['skills'] })
-    }
+    mutationFn: (id: number) => apiDelete(`${API}/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['skills'] }),
   })
 }

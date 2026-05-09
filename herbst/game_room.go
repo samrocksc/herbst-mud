@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -158,6 +159,17 @@ func (m *model) formatRoomCharacters() string {
 			style := lipgloss.NewStyle().Foreground(red)
 			npcs = append(npcs, style.Render(char.Name))
 		} else {
+			// Only show players who are online (seen in the last 15 minutes)
+			if char.LastSeenAt == "" {
+				continue
+			}
+			lastSeen, err := time.Parse(time.RFC3339, char.LastSeenAt)
+			if err != nil {
+				continue
+			}
+			if time.Since(lastSeen) > 15*time.Minute {
+				continue
+			}
 			style := lipgloss.NewStyle().Foreground(green)
 			players = append(players, style.Render(char.Name))
 		}

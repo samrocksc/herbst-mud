@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { apiGet, apiPut, apiDelete } from '../../utils/apiFetch'
 import { PageHeader } from '../../components/PageHeader'
 import { Button } from '../../components/Button'
+import { DeleteConfirmation } from '../../components/DeleteConfirmation'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ function NpcInstanceDetail() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const [form, setForm] = useState<EditForm | null>(null)
 
@@ -98,11 +99,7 @@ function NpcInstanceDetail() {
   }
 
   const handleDelete = () => {
-    if (confirmDelete) {
-      deleteMutation.mutate()
-    } else {
-      setConfirmDelete(true)
-    }
+    deleteMutation.mutate()
   }
 
   // ── Loading / Error ────────────────────────────────────────────────────────
@@ -148,20 +145,11 @@ function NpcInstanceDetail() {
             <Button
               variant="danger"
               size="sm"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteModal(true)}
               disabled={deleteMutation.isPending}
             >
-              {confirmDelete
-                ? 'Confirm Delete?'
-                : deleteMutation.isPending
-                  ? 'Deleting...'
-                  : 'Delete'}
+              Delete
             </Button>
-            {confirmDelete && (
-              <Button variant="secondary" size="sm" onClick={() => setConfirmDelete(false)}>
-                Cancel
-              </Button>
-            )}
           </div>
         }
       />
@@ -251,11 +239,14 @@ function NpcInstanceDetail() {
         </div>
       </div>
 
-      {deleteMutation.isError && (
-        <div className="mt-3 text-danger text-sm">
-          Failed to delete: {(deleteMutation.error as Error)?.message}
-        </div>
-      )}
+      <DeleteConfirmation
+        open={showDeleteModal}
+        title="Delete NPC Instance"
+        message="Are you sure? This will permanently delete this NPC instance."
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

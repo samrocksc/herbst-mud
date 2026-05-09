@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button } from '../../components/Button'
+import { DeleteConfirmation } from '../../components/DeleteConfirmation'
 import { FormError } from '../../components/fields/FormError'
 import { showToast } from '../../components/Toast'
 import { apiPut, apiDelete } from '../../utils/apiFetch'
@@ -34,20 +35,15 @@ export function FactionDetail({
       onRefresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Update failed')
-      showToast('Failed to update faction', 'error')
     } finally {
       setSaving(false)
     }
   }
 
   const handleDelete = async () => {
-    try {
-      await apiDelete(`/api/factions/${faction.id}`)
-      showToast('Faction deleted', 'success')
-      onRefresh()
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Delete failed', 'error')
-    }
+    await apiDelete(`/api/factions/${faction.id}`)
+    showToast('Faction deleted', 'success')
+    onRefresh()
   }
 
   if (editing) {
@@ -81,12 +77,16 @@ export function FactionDetail({
         <DetailRow label="Members" value={faction.member_count != null ? String(faction.member_count) : '0'} />
         <div className="flex gap-2 mt-3">
           <Button variant="primary" size="md" fullWidth onClick={() => setEditing(true)}>Edit</Button>
-          <Button variant={confirmDelete ? 'secondary' : 'danger'} size="md" fullWidth
-            onClick={() => { if (confirmDelete) handleDelete(); else setConfirmDelete(true) }}>
-            {confirmDelete ? 'Confirm Delete?' : 'Delete'}
-          </Button>
+          <Button variant="danger" size="md" fullWidth onClick={() => setConfirmDelete(true)}>Delete</Button>
         </div>
       </div>
+      <DeleteConfirmation
+        open={confirmDelete}
+        title="Delete Faction"
+        message={`Are you sure you want to delete "${faction.display_name || faction.name}"? This cannot be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   )
 }

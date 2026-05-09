@@ -8,14 +8,12 @@ import { Button } from '../../components/Button'
 import { TemplateEditForm } from './-items.$itemId.editForm'
 import { ItemDetailView } from './-items.$itemId.detailView'
 import { SpawnModal } from './-items.$itemId.spawnModal'
+import type { ItemInstance } from '../../hooks/useItemInstances'
+import type { EquipmentTemplate as ItemTemplate } from '../../hooks/useEquipmentTemplates'
 
 export const Route = createFileRoute('/_auth/items/$itemId')({
   component: ItemDetail,
 })
-
-type ItemInstance = Readonly<{
-  id: number; name: string; ownerId: number | null; roomId: number; equipment_template_id: string
-}>
 
 const instanceColumns: Column<ItemInstance>[] = [
   { header: 'ID', accessor: 'id', render: (_, row) => (
@@ -79,15 +77,3 @@ function ItemDetail() {
     </div>
   )
 }
-
-/** Re-exported type for use by child components. */
-export type ItemTemplate = Readonly<{
-  id: string; name: string; description: string; slot: string; level: number; weight: number
-  item_type: string; stats: string; color: string; is_visible: boolean
-  is_immovable: boolean; effect_type: string; effect_value: number; effect_duration: number
-  is_container: boolean; container_capacity: number; is_locked: boolean; key_item_id: string
-  reveal_condition: string; expires_at: string | null; armor_rating: number; armor_type: string
-  rarity: string; skill_requirement: string; skill_requirement_level: number
-  damage_dice_count: number; damage_dice_sides: number; damage_bonus: number
-  damage_type: string; weapon_type: string; is_two_handed: boolean
-}>

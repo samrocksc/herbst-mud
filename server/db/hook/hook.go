@@ -44,6 +44,18 @@ func (f AchievementFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AchievementMutation", m)
 }
 
+// The AppLogFunc type is an adapter to allow the use of ordinary
+// function as AppLog mutator.
+type AppLogFunc func(context.Context, *db.AppLogMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AppLogFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.AppLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AppLogMutation", m)
+}
+
 // The CharacterFunc type is an adapter to allow the use of ordinary
 // function as Character mutator.
 type CharacterFunc func(context.Context, *db.CharacterMutation) (db.Value, error)

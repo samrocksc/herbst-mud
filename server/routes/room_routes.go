@@ -511,14 +511,15 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client) {
 		result := make([]gin.H, len(characters))
 		for i, char := range characters {
 			entry := gin.H{
-				"id":    char.ID,
-				"name":  char.Name,
-				"isNPC": char.IsNPC,
-				"level": char.Level,
-				"class": char.Class,
-				"race":  char.Race,
-				"hp":    char.Hitpoints,
-				"maxHp": char.MaxHitpoints,
+				"id":         char.ID,
+				"name":       char.Name,
+				"isNPC":      char.IsNPC,
+				"level":      char.Level,
+				"class":      char.Class,
+				"race":       char.Race,
+				"hp":         char.Hitpoints,
+				"maxHp":      char.MaxHitpoints,
+				"lastSeenAt": char.LastSeenAt,
 			}
 			if char.IsNPC && char.NpcTemplateID != "" {
 				if tmpl, err := client.NPCTemplate.Get(c.Request.Context(), char.NpcTemplateID); err == nil && tmpl.XpValue > 0 {

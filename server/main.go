@@ -17,6 +17,8 @@ import (
 	"github.com/ulule/limiter/v3/drivers/store/memory"
 	"herbst-server/content"
 	"herbst-server/db"
+	"herbst-server/db/applog"
+	"herbst-server/dblog"
 	"herbst-server/dbinit"
 	"herbst-server/events"
 	"herbst-server/middleware"
@@ -87,6 +89,13 @@ func main() {
 	}
 
 	log.Println("Database initialized successfully")
+
+	// Initialize async log handler (LOGS-002, LOGS-003)
+	dbLogHandler := dblog.NewDBHandler(client, nil)
+	multiHandler := slogmulti{stdout: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}), db: dbLogHandler}
+	multiLogger := slog.New(multiHandler)
+	slog.SetDefault(multiLogger)
+	defer dbLogHandler.GracefulShutdown()
 
 	// Apply database fixes (converts old data types, sets invincible NPCs, etc.)
 	if err := dbinit.ApplyDatabaseFixes(client); err != nil {
@@ -300,6 +309,8 @@ func main() {
 	routes.RegisterNPCInstanceRoutes(router, client)
 	// Register item instance routes (NPC-005)
 	routes.RegisterItemInstanceRoutes(router, client)
+	// Register equipment template routes
+	routes.RegisterEquipmentTemplateRoutes(router, client)
 
 	// Register competency routes (XP-005)
 	routes.RegisterCompetencyRoutes(router, client)
@@ -328,6 +339,12 @@ func main() {
 	// Register admin wipe/reload routes
 	routes.RegisterAdminWipeRoutes(router, client)
 
+	// Register log routes (LOGS-004)
+	routes.RegisterLogRoutes(router, protected, client)
+
+	// Start daily log cleanup goroutine (LOGS-005)
+	go startLogCleanup(client)
+
 	// Start corpse cleanup background goroutine (GitHub #22)
 	startCorpseCleanup(client)
 
@@ -352,4 +369,63 @@ func main() {
 
 	// Start the server
 	router.Run("0.0.0.0:8080")
+}
+
+// slogmulti fans log records to multiple slog.Handler implementations.
+type slogmulti struct {
+	stdout slog.Handler
+	db    slog.Handler
+}
+
+func (h slogmulti) Enabled(ctx context.Context, level slog.Level) bool {
+	return h.stdout.Enabled(ctx, level) || h.db.Enabled(ctx, level)
+}
+
+func (h slogmulti) Handle(ctx context.Context, r slog.Record) error {
+	if err := h.stdout.Handle(ctx, r); err != nil {
+		return err
+	}
+	return h.db.Handle(ctx, r)
+}
+
+func (h slogmulti) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return slogmulti{
+		stdout: h.stdout.WithAttrs(attrs),
+		db:    h.db.WithAttrs(attrs),
+	}
+}
+
+func (h slogmulti) WithGroup(name string) slog.Handler {
+	return slogmulti{
+		stdout: h.stdout.WithGroup(name),
+		db:    h.db.WithGroup(name),
+	}
+}
+
+// startLogCleanup runs a daily goroutine that prunes applog entries older than
+// LOG_RETENTION_DAYS (default 3). Runs once immediately on startup, then every 24h.
+func startLogCleanup(client *db.Client) {
+	retentionDays := 3
+	if v := os.Getenv("LOG_RETENTION_DAYS"); v != "" {
+		if d, err := strconv.Atoi(v); err == nil && d > 0 {
+			retentionDays = d
+		}
+	}
+
+	runCleanup := func() {
+		cutoff := time.Now().Add(-time.Duration(retentionDays) * 24 * time.Hour)
+		count, err := client.AppLog.Delete().Where(applog.CreatedAtLT(cutoff)).Exec(context.Background())
+		if err != nil {
+			slog.Warn("log cleanup failed", "error", err)
+		} else if count > 0 {
+			slog.Info("log cleanup complete", "deleted", count, "retention_days", retentionDays)
+		}
+	}
+
+	runCleanup() // run once on startup
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
+		runCleanup()
+	}
 }
