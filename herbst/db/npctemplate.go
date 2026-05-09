@@ -43,9 +43,11 @@ type NPCTemplate struct {
 type NPCTemplateEdges struct {
 	// Hooks holds the value of the hooks edge.
 	Hooks []*EffectHook `json:"hooks,omitempty"`
+	// DialogNodes holds the value of the dialog_nodes edge.
+	DialogNodes []*DialogNode `json:"dialog_nodes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // HooksOrErr returns the Hooks value or an error if the edge
@@ -55,6 +57,15 @@ func (e NPCTemplateEdges) HooksOrErr() ([]*EffectHook, error) {
 		return e.Hooks, nil
 	}
 	return nil, &NotLoadedError{edge: "hooks"}
+}
+
+// DialogNodesOrErr returns the DialogNodes value or an error if the edge
+// was not loaded in eager-loading.
+func (e NPCTemplateEdges) DialogNodesOrErr() ([]*DialogNode, error) {
+	if e.loadedTypes[1] {
+		return e.DialogNodes, nil
+	}
+	return nil, &NotLoadedError{edge: "dialog_nodes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -157,6 +168,11 @@ func (_m *NPCTemplate) Value(name string) (ent.Value, error) {
 // QueryHooks queries the "hooks" edge of the NPCTemplate entity.
 func (_m *NPCTemplate) QueryHooks() *EffectHookQuery {
 	return NewNPCTemplateClient(_m.config).QueryHooks(_m)
+}
+
+// QueryDialogNodes queries the "dialog_nodes" edge of the NPCTemplate entity.
+func (_m *NPCTemplate) QueryDialogNodes() *DialogNodeQuery {
+	return NewNPCTemplateClient(_m.config).QueryDialogNodes(_m)
 }
 
 // Update returns a builder for updating this NPCTemplate.

@@ -19,6 +19,7 @@ import (
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/damagelog"
+	"herbst-server/db/dialognode"
 	"herbst-server/db/effect"
 	"herbst-server/db/effecthook"
 	"herbst-server/db/equipment"
@@ -115,6 +116,7 @@ func checkColumn(t, c string) error {
 			competencycategory.Table:       competencycategory.ValidColumn,
 			competencylevelthreshold.Table: competencylevelthreshold.ValidColumn,
 			damagelog.Table:                damagelog.ValidColumn,
+			dialognode.Table:               dialognode.ValidColumn,
 			effect.Table:                   effect.ValidColumn,
 			effecthook.Table:               effecthook.ValidColumn,
 			equipment.Table:                equipment.ValidColumn,

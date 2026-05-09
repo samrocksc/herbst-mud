@@ -10,6 +10,7 @@ import (
 	"herbst/db/abilityeffect"
 	"herbst/db/activeeffect"
 	"herbst/db/character"
+	"herbst/db/dialognode"
 	"herbst/db/effect"
 	"herbst/db/effecthook"
 	"herbst/db/equipment"
@@ -90,6 +91,7 @@ func checkColumn(t, c string) error {
 			abilityeffect.Table:     abilityeffect.ValidColumn,
 			activeeffect.Table:      activeeffect.ValidColumn,
 			character.Table:         character.ValidColumn,
+			dialognode.Table:        dialognode.ValidColumn,
 			effect.Table:            effect.ValidColumn,
 			effecthook.Table:        effecthook.ValidColumn,
 			equipment.Table:         equipment.ValidColumn,

@@ -45,6 +45,9 @@ type CompetencyLevelThreshold func(*sql.Selector)
 // DamageLog is the predicate function for damagelog builders.
 type DamageLog func(*sql.Selector)
 
+// DialogNode is the predicate function for dialognode builders.
+type DialogNode func(*sql.Selector)
+
 // Effect is the predicate function for effect builders.
 type Effect func(*sql.Selector)
 

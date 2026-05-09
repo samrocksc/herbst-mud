@@ -15,6 +15,7 @@ import (
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/damagelog"
+	"herbst-server/db/dialognode"
 	"herbst-server/db/effect"
 	"herbst-server/db/effecthook"
 	"herbst-server/db/equipment"
@@ -314,6 +315,12 @@ func init() {
 	damagelogDescCreatedAt := damagelogFields[3].Descriptor()
 	// damagelog.DefaultCreatedAt holds the default value on creation for the created_at field.
 	damagelog.DefaultCreatedAt = damagelogDescCreatedAt.Default.(func() time.Time)
+	dialognodeFields := schema.DialogNode{}.Fields()
+	_ = dialognodeFields
+	// dialognodeDescIsEntry is the schema descriptor for is_entry field.
+	dialognodeDescIsEntry := dialognodeFields[3].Descriptor()
+	// dialognode.DefaultIsEntry holds the default value on creation for the is_entry field.
+	dialognode.DefaultIsEntry = dialognodeDescIsEntry.Default.(bool)
 	effectFields := schema.Effect{}.Fields()
 	_ = effectFields
 	// effectDescDescription is the schema descriptor for description field.

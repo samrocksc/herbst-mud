@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst/db/dialognode"
 	"herbst/db/effecthook"
 	"herbst/db/npctemplate"
 	"herbst/db/predicate"
@@ -153,6 +154,21 @@ func (_u *NPCTemplateUpdate) AddHooks(v ...*EffectHook) *NPCTemplateUpdate {
 	return _u.AddHookIDs(ids...)
 }
 
+// AddDialogNodeIDs adds the "dialog_nodes" edge to the DialogNode entity by IDs.
+func (_u *NPCTemplateUpdate) AddDialogNodeIDs(ids ...string) *NPCTemplateUpdate {
+	_u.mutation.AddDialogNodeIDs(ids...)
+	return _u
+}
+
+// AddDialogNodes adds the "dialog_nodes" edges to the DialogNode entity.
+func (_u *NPCTemplateUpdate) AddDialogNodes(v ...*DialogNode) *NPCTemplateUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDialogNodeIDs(ids...)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_u *NPCTemplateUpdate) Mutation() *NPCTemplateMutation {
 	return _u.mutation
@@ -177,6 +193,27 @@ func (_u *NPCTemplateUpdate) RemoveHooks(v ...*EffectHook) *NPCTemplateUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveHookIDs(ids...)
+}
+
+// ClearDialogNodes clears all "dialog_nodes" edges to the DialogNode entity.
+func (_u *NPCTemplateUpdate) ClearDialogNodes() *NPCTemplateUpdate {
+	_u.mutation.ClearDialogNodes()
+	return _u
+}
+
+// RemoveDialogNodeIDs removes the "dialog_nodes" edge to DialogNode entities by IDs.
+func (_u *NPCTemplateUpdate) RemoveDialogNodeIDs(ids ...string) *NPCTemplateUpdate {
+	_u.mutation.RemoveDialogNodeIDs(ids...)
+	return _u
+}
+
+// RemoveDialogNodes removes "dialog_nodes" edges to DialogNode entities.
+func (_u *NPCTemplateUpdate) RemoveDialogNodes(v ...*DialogNode) *NPCTemplateUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDialogNodeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -298,6 +335,51 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DialogNodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.DialogNodesTable,
+			Columns: []string{npctemplate.DialogNodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dialognode.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDialogNodesIDs(); len(nodes) > 0 && !_u.mutation.DialogNodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.DialogNodesTable,
+			Columns: []string{npctemplate.DialogNodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dialognode.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DialogNodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.DialogNodesTable,
+			Columns: []string{npctemplate.DialogNodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dialognode.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -449,6 +531,21 @@ func (_u *NPCTemplateUpdateOne) AddHooks(v ...*EffectHook) *NPCTemplateUpdateOne
 	return _u.AddHookIDs(ids...)
 }
 
+// AddDialogNodeIDs adds the "dialog_nodes" edge to the DialogNode entity by IDs.
+func (_u *NPCTemplateUpdateOne) AddDialogNodeIDs(ids ...string) *NPCTemplateUpdateOne {
+	_u.mutation.AddDialogNodeIDs(ids...)
+	return _u
+}
+
+// AddDialogNodes adds the "dialog_nodes" edges to the DialogNode entity.
+func (_u *NPCTemplateUpdateOne) AddDialogNodes(v ...*DialogNode) *NPCTemplateUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDialogNodeIDs(ids...)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_u *NPCTemplateUpdateOne) Mutation() *NPCTemplateMutation {
 	return _u.mutation
@@ -473,6 +570,27 @@ func (_u *NPCTemplateUpdateOne) RemoveHooks(v ...*EffectHook) *NPCTemplateUpdate
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveHookIDs(ids...)
+}
+
+// ClearDialogNodes clears all "dialog_nodes" edges to the DialogNode entity.
+func (_u *NPCTemplateUpdateOne) ClearDialogNodes() *NPCTemplateUpdateOne {
+	_u.mutation.ClearDialogNodes()
+	return _u
+}
+
+// RemoveDialogNodeIDs removes the "dialog_nodes" edge to DialogNode entities by IDs.
+func (_u *NPCTemplateUpdateOne) RemoveDialogNodeIDs(ids ...string) *NPCTemplateUpdateOne {
+	_u.mutation.RemoveDialogNodeIDs(ids...)
+	return _u
+}
+
+// RemoveDialogNodes removes "dialog_nodes" edges to DialogNode entities.
+func (_u *NPCTemplateUpdateOne) RemoveDialogNodes(v ...*DialogNode) *NPCTemplateUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDialogNodeIDs(ids...)
 }
 
 // Where appends a list predicates to the NPCTemplateUpdate builder.
@@ -624,6 +742,51 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DialogNodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.DialogNodesTable,
+			Columns: []string{npctemplate.DialogNodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dialognode.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDialogNodesIDs(); len(nodes) > 0 && !_u.mutation.DialogNodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.DialogNodesTable,
+			Columns: []string{npctemplate.DialogNodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dialognode.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DialogNodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.DialogNodesTable,
+			Columns: []string{npctemplate.DialogNodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dialognode.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

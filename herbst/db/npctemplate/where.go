@@ -432,6 +432,29 @@ func HasHooksWith(preds ...predicate.EffectHook) predicate.NPCTemplate {
 	})
 }
 
+// HasDialogNodes applies the HasEdge predicate on the "dialog_nodes" edge.
+func HasDialogNodes() predicate.NPCTemplate {
+	return predicate.NPCTemplate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DialogNodesTable, DialogNodesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDialogNodesWith applies the HasEdge predicate on the "dialog_nodes" edge with a given conditions (other predicates).
+func HasDialogNodesWith(preds ...predicate.DialogNode) predicate.NPCTemplate {
+	return predicate.NPCTemplate(func(s *sql.Selector) {
+		step := newDialogNodesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.NPCTemplate) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.AndPredicates(predicates...))

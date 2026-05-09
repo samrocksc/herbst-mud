@@ -56,6 +56,18 @@ func (f CharacterFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterMutation", m)
 }
 
+// The DialogNodeFunc type is an adapter to allow the use of ordinary
+// function as DialogNode mutator.
+type DialogNodeFunc func(context.Context, *db.DialogNodeMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DialogNodeFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.DialogNodeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.DialogNodeMutation", m)
+}
+
 // The EffectFunc type is an adapter to allow the use of ordinary
 // function as Effect mutator.
 type EffectFunc func(context.Context, *db.EffectMutation) (db.Value, error)

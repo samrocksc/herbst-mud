@@ -38,6 +38,8 @@ type Tx struct {
 	CompetencyLevelThreshold *CompetencyLevelThresholdClient
 	// DamageLog is the client for interacting with the DamageLog builders.
 	DamageLog *DamageLogClient
+	// DialogNode is the client for interacting with the DialogNode builders.
+	DialogNode *DialogNodeClient
 	// Effect is the client for interacting with the Effect builders.
 	Effect *EffectClient
 	// EffectHook is the client for interacting with the EffectHook builders.
@@ -216,6 +218,7 @@ func (tx *Tx) init() {
 	tx.CompetencyCategory = NewCompetencyCategoryClient(tx.config)
 	tx.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(tx.config)
 	tx.DamageLog = NewDamageLogClient(tx.config)
+	tx.DialogNode = NewDialogNodeClient(tx.config)
 	tx.Effect = NewEffectClient(tx.config)
 	tx.EffectHook = NewEffectHookClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)

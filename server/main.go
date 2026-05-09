@@ -332,6 +332,9 @@ func main() {
 	routes.RegisterQuestRoutes(router, client)
 	routes.RegisterQuestProgressRoutes(router, client)
 
+	// Register dialog node routes
+	routes.RegisterDialogNodeRoutes(router, client)
+
 	// Register event routes (HTTP bridge for game server → event bus)
 	routes.RegisterEventRoutes(router, client, slog.Default())
 

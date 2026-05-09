@@ -40,6 +40,8 @@ const (
 	EdgeNpcAbilities = "npc_abilities"
 	// EdgeHooks holds the string denoting the hooks edge name in mutations.
 	EdgeHooks = "hooks"
+	// EdgeDialogNodes holds the string denoting the dialog_nodes edge name in mutations.
+	EdgeDialogNodes = "dialog_nodes"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// Table holds the table name of the npctemplate in the database.
@@ -56,6 +58,13 @@ const (
 	HooksInverseTable = "effect_hooks"
 	// HooksColumn is the table column denoting the hooks relation/edge.
 	HooksColumn = "npc_template_hooks"
+	// DialogNodesTable is the table that holds the dialog_nodes relation/edge.
+	DialogNodesTable = "dialog_nodes"
+	// DialogNodesInverseTable is the table name for the DialogNode entity.
+	// It exists in this package in order to avoid circular dependency with the "dialognode" package.
+	DialogNodesInverseTable = "dialog_nodes"
+	// DialogNodesColumn is the table column denoting the dialog_nodes relation/edge.
+	DialogNodesColumn = "npc_template_dialog_nodes"
 	// CharactersTable is the table that holds the characters relation/edge.
 	CharactersTable = "characters"
 	// CharactersInverseTable is the table name for the Character entity.
@@ -209,6 +218,20 @@ func ByHooks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByDialogNodesCount orders the results by dialog_nodes count.
+func ByDialogNodesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDialogNodesStep(), opts...)
+	}
+}
+
+// ByDialogNodes orders the results by dialog_nodes terms.
+func ByDialogNodes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDialogNodesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByCharactersCount orders the results by characters count.
 func ByCharactersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -234,6 +257,13 @@ func newHooksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(HooksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, HooksTable, HooksColumn),
+	)
+}
+func newDialogNodesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DialogNodesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DialogNodesTable, DialogNodesColumn),
 	)
 }
 func newCharactersStep() *sqlgraph.Step {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -30,6 +31,20 @@ func (m *model) processCommand(cmd string) {
 	if cmd == "debug" || strings.HasPrefix(cmd, "debug ") {
 		m.handleDebugCommand(cmd)
 		return
+	}
+
+	// Handle dialog choices when in a conversation
+	if m.conversation != nil {
+		if cmd == "0" || cmd == "leave" || cmd == "bye" {
+			m.endConversation()
+			return
+		}
+		choice, err := strconv.Atoi(cmd)
+		if err == nil && choice >= 1 && choice <= 9 {
+			m.handleDialogChoice(choice)
+			return
+		}
+		// Fall through to normal commands if not a valid choice
 	}
 
 	// Try command registry first

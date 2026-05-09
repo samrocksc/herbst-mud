@@ -24,6 +24,7 @@ func (m *model) handleHelpCommand(_ *model, args []string) {
   quests/q - Show your quest log
   quest accept <id> - Accept a quest
   quest abandon <id> - Abandon an active quest
+  talk <npc> - Talk to an NPC
   whoami - Show your info
   profile/p - Edit character profile
   skills - Show your equipped combat skills

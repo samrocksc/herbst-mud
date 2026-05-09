@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"herbst-server/db/character"
+	"herbst-server/db/dialognode"
 	"herbst-server/db/effecthook"
 	"herbst-server/db/npcability"
 	"herbst-server/db/npctemplate"
@@ -28,6 +29,7 @@ type NPCTemplateQuery struct {
 	predicates       []predicate.NPCTemplate
 	withNpcAbilities *NPCAbilityQuery
 	withHooks        *EffectHookQuery
+	withDialogNodes  *DialogNodeQuery
 	withCharacters   *CharacterQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -102,6 +104,28 @@ func (_q *NPCTemplateQuery) QueryHooks() *EffectHookQuery {
 			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, selector),
 			sqlgraph.To(effecthook.Table, effecthook.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, npctemplate.HooksTable, npctemplate.HooksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDialogNodes chains the current query on the "dialog_nodes" edge.
+func (_q *NPCTemplateQuery) QueryDialogNodes() *DialogNodeQuery {
+	query := (&DialogNodeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, selector),
+			sqlgraph.To(dialognode.Table, dialognode.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, npctemplate.DialogNodesTable, npctemplate.DialogNodesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -325,6 +349,7 @@ func (_q *NPCTemplateQuery) Clone() *NPCTemplateQuery {
 		predicates:       append([]predicate.NPCTemplate{}, _q.predicates...),
 		withNpcAbilities: _q.withNpcAbilities.Clone(),
 		withHooks:        _q.withHooks.Clone(),
+		withDialogNodes:  _q.withDialogNodes.Clone(),
 		withCharacters:   _q.withCharacters.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -351,6 +376,17 @@ func (_q *NPCTemplateQuery) WithHooks(opts ...func(*EffectHookQuery)) *NPCTempla
 		opt(query)
 	}
 	_q.withHooks = query
+	return _q
+}
+
+// WithDialogNodes tells the query-builder to eager-load the nodes that are connected to
+// the "dialog_nodes" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NPCTemplateQuery) WithDialogNodes(opts ...func(*DialogNodeQuery)) *NPCTemplateQuery {
+	query := (&DialogNodeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDialogNodes = query
 	return _q
 }
 
@@ -443,9 +479,10 @@ func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*NPCTemplate{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withNpcAbilities != nil,
 			_q.withHooks != nil,
+			_q.withDialogNodes != nil,
 			_q.withCharacters != nil,
 		}
 	)
@@ -478,6 +515,13 @@ func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadHooks(ctx, query, nodes,
 			func(n *NPCTemplate) { n.Edges.Hooks = []*EffectHook{} },
 			func(n *NPCTemplate, e *EffectHook) { n.Edges.Hooks = append(n.Edges.Hooks, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDialogNodes; query != nil {
+		if err := _q.loadDialogNodes(ctx, query, nodes,
+			func(n *NPCTemplate) { n.Edges.DialogNodes = []*DialogNode{} },
+			func(n *NPCTemplate, e *DialogNode) { n.Edges.DialogNodes = append(n.Edges.DialogNodes, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -578,6 +622,37 @@ func (_q *NPCTemplateQuery) loadHooks(ctx context.Context, query *EffectHookQuer
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "npc_template_hooks" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *NPCTemplateQuery) loadDialogNodes(ctx context.Context, query *DialogNodeQuery, nodes []*NPCTemplate, init func(*NPCTemplate), assign func(*NPCTemplate, *DialogNode)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*NPCTemplate)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.DialogNode(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(npctemplate.DialogNodesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.npc_template_dialog_nodes
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "npc_template_dialog_nodes" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "npc_template_dialog_nodes" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst/db/dialognode"
 	"herbst/db/effecthook"
 	"herbst/db/npctemplate"
 
@@ -103,6 +104,21 @@ func (_c *NPCTemplateCreate) AddHooks(v ...*EffectHook) *NPCTemplateCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddHookIDs(ids...)
+}
+
+// AddDialogNodeIDs adds the "dialog_nodes" edge to the DialogNode entity by IDs.
+func (_c *NPCTemplateCreate) AddDialogNodeIDs(ids ...string) *NPCTemplateCreate {
+	_c.mutation.AddDialogNodeIDs(ids...)
+	return _c
+}
+
+// AddDialogNodes adds the "dialog_nodes" edges to the DialogNode entity.
+func (_c *NPCTemplateCreate) AddDialogNodes(v ...*DialogNode) *NPCTemplateCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDialogNodeIDs(ids...)
 }
 
 // Mutation returns the NPCTemplateMutation object of the builder.
@@ -257,6 +273,22 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DialogNodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.DialogNodesTable,
+			Columns: []string{npctemplate.DialogNodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dialognode.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

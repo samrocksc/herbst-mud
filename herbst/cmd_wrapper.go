@@ -14,6 +14,9 @@ func (m *model) initCommands() {
 	// Help
 	m.commands.Register("help", m.handleHelpCommand, "?")
 
+	// Dialog
+	m.commands.Register("talk", m.handleTalkWrapperCommand)
+
 	// Info commands
 	m.commands.Register("whoami", m.handleWhoamiCommand)
 	m.commands.Register("profile", m.handleProfileCommand, "p")
@@ -62,4 +65,12 @@ func (m *model) handleClearCommand(_ *model, args []string) {
 func (m *model) handleQuitCommand(_ *model, args []string) {
 	m.AppendMessage("Thanks for playing! Goodbye!", "success")
 	m.inputBuffer = ""
+}
+
+func (m *model) handleTalkWrapperCommand(_ *model, args []string) {
+	cmd := "talk"
+	if len(args) > 1 {
+		cmd = "talk " + strings.Join(args[1:], " ")
+	}
+	m.handleTalkCommand(cmd)
 }

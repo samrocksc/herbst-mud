@@ -33,5 +33,6 @@ func (NPCTemplate) Fields() []ent.Field {
 func (NPCTemplate) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("hooks", EffectHook.Type),
+		edge.To("dialog_nodes", DialogNode.Type),
 	}
 }

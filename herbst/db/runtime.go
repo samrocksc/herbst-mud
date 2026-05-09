@@ -6,6 +6,7 @@ import (
 	"herbst/db/abilityeffect"
 	"herbst/db/activeeffect"
 	"herbst/db/character"
+	"herbst/db/dialognode"
 	"herbst/db/effect"
 	"herbst/db/effecthook"
 	"herbst/db/equipment"
@@ -174,6 +175,12 @@ func init() {
 	characterDescSkillHeavyArmor := characterFields[31].Descriptor()
 	// character.DefaultSkillHeavyArmor holds the default value on creation for the skill_heavy_armor field.
 	character.DefaultSkillHeavyArmor = characterDescSkillHeavyArmor.Default.(int)
+	dialognodeFields := schema.DialogNode{}.Fields()
+	_ = dialognodeFields
+	// dialognodeDescIsEntry is the schema descriptor for is_entry field.
+	dialognodeDescIsEntry := dialognodeFields[3].Descriptor()
+	// dialognode.DefaultIsEntry holds the default value on creation for the is_entry field.
+	dialognode.DefaultIsEntry = dialognodeDescIsEntry.Default.(bool)
 	effectFields := schema.Effect{}.Fields()
 	_ = effectFields
 	// effectDescParameters is the schema descriptor for parameters field.

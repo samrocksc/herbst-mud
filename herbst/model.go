@@ -130,6 +130,9 @@ type model struct {
 
 	// Equipped potion (R slot)
 	equippedPotion *EquippedPotion
+
+	// Conversation state (dialog tree)
+	conversation *ConversationState
 }
 
 // EquippedPotion represents a potion equipped in the R slot

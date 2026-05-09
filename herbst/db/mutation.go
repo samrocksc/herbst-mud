@@ -10,6 +10,7 @@ import (
 	"herbst/db/abilityeffect"
 	"herbst/db/activeeffect"
 	"herbst/db/character"
+	"herbst/db/dialognode"
 	"herbst/db/effect"
 	"herbst/db/effecthook"
 	"herbst/db/equipment"
@@ -42,6 +43,7 @@ const (
 	TypeAbilityEffect     = "AbilityEffect"
 	TypeActiveEffect      = "ActiveEffect"
 	TypeCharacter         = "Character"
+	TypeDialogNode        = "DialogNode"
 	TypeEffect            = "Effect"
 	TypeEffectHook        = "EffectHook"
 	TypeEquipment         = "Equipment"
@@ -6087,6 +6089,715 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Character edge %s", name)
+}
+
+// DialogNodeMutation represents an operation that mutates the DialogNode nodes in the graph.
+type DialogNodeMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *string
+	npc_text               *string
+	responses              *[]schema.DialogResponse
+	appendresponses        []schema.DialogResponse
+	is_entry               *bool
+	entry_condition        *string
+	on_enter_effects       *[]int
+	appendon_enter_effects []int
+	clearedFields          map[string]struct{}
+	npc_template           *string
+	clearednpc_template    bool
+	done                   bool
+	oldValue               func(context.Context) (*DialogNode, error)
+	predicates             []predicate.DialogNode
+}
+
+var _ ent.Mutation = (*DialogNodeMutation)(nil)
+
+// dialognodeOption allows management of the mutation configuration using functional options.
+type dialognodeOption func(*DialogNodeMutation)
+
+// newDialogNodeMutation creates new mutation for the DialogNode entity.
+func newDialogNodeMutation(c config, op Op, opts ...dialognodeOption) *DialogNodeMutation {
+	m := &DialogNodeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDialogNode,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDialogNodeID sets the ID field of the mutation.
+func withDialogNodeID(id string) dialognodeOption {
+	return func(m *DialogNodeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DialogNode
+		)
+		m.oldValue = func(ctx context.Context) (*DialogNode, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DialogNode.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDialogNode sets the old DialogNode of the mutation.
+func withDialogNode(node *DialogNode) dialognodeOption {
+	return func(m *DialogNodeMutation) {
+		m.oldValue = func(context.Context) (*DialogNode, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DialogNodeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DialogNodeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DialogNode entities.
+func (m *DialogNodeMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DialogNodeMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DialogNodeMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DialogNode.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetNpcText sets the "npc_text" field.
+func (m *DialogNodeMutation) SetNpcText(s string) {
+	m.npc_text = &s
+}
+
+// NpcText returns the value of the "npc_text" field in the mutation.
+func (m *DialogNodeMutation) NpcText() (r string, exists bool) {
+	v := m.npc_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNpcText returns the old "npc_text" field's value of the DialogNode entity.
+// If the DialogNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DialogNodeMutation) OldNpcText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNpcText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNpcText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNpcText: %w", err)
+	}
+	return oldValue.NpcText, nil
+}
+
+// ResetNpcText resets all changes to the "npc_text" field.
+func (m *DialogNodeMutation) ResetNpcText() {
+	m.npc_text = nil
+}
+
+// SetResponses sets the "responses" field.
+func (m *DialogNodeMutation) SetResponses(sr []schema.DialogResponse) {
+	m.responses = &sr
+	m.appendresponses = nil
+}
+
+// Responses returns the value of the "responses" field in the mutation.
+func (m *DialogNodeMutation) Responses() (r []schema.DialogResponse, exists bool) {
+	v := m.responses
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponses returns the old "responses" field's value of the DialogNode entity.
+// If the DialogNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DialogNodeMutation) OldResponses(ctx context.Context) (v []schema.DialogResponse, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponses is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponses requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponses: %w", err)
+	}
+	return oldValue.Responses, nil
+}
+
+// AppendResponses adds sr to the "responses" field.
+func (m *DialogNodeMutation) AppendResponses(sr []schema.DialogResponse) {
+	m.appendresponses = append(m.appendresponses, sr...)
+}
+
+// AppendedResponses returns the list of values that were appended to the "responses" field in this mutation.
+func (m *DialogNodeMutation) AppendedResponses() ([]schema.DialogResponse, bool) {
+	if len(m.appendresponses) == 0 {
+		return nil, false
+	}
+	return m.appendresponses, true
+}
+
+// ClearResponses clears the value of the "responses" field.
+func (m *DialogNodeMutation) ClearResponses() {
+	m.responses = nil
+	m.appendresponses = nil
+	m.clearedFields[dialognode.FieldResponses] = struct{}{}
+}
+
+// ResponsesCleared returns if the "responses" field was cleared in this mutation.
+func (m *DialogNodeMutation) ResponsesCleared() bool {
+	_, ok := m.clearedFields[dialognode.FieldResponses]
+	return ok
+}
+
+// ResetResponses resets all changes to the "responses" field.
+func (m *DialogNodeMutation) ResetResponses() {
+	m.responses = nil
+	m.appendresponses = nil
+	delete(m.clearedFields, dialognode.FieldResponses)
+}
+
+// SetIsEntry sets the "is_entry" field.
+func (m *DialogNodeMutation) SetIsEntry(b bool) {
+	m.is_entry = &b
+}
+
+// IsEntry returns the value of the "is_entry" field in the mutation.
+func (m *DialogNodeMutation) IsEntry() (r bool, exists bool) {
+	v := m.is_entry
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsEntry returns the old "is_entry" field's value of the DialogNode entity.
+// If the DialogNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DialogNodeMutation) OldIsEntry(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsEntry is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsEntry requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsEntry: %w", err)
+	}
+	return oldValue.IsEntry, nil
+}
+
+// ResetIsEntry resets all changes to the "is_entry" field.
+func (m *DialogNodeMutation) ResetIsEntry() {
+	m.is_entry = nil
+}
+
+// SetEntryCondition sets the "entry_condition" field.
+func (m *DialogNodeMutation) SetEntryCondition(s string) {
+	m.entry_condition = &s
+}
+
+// EntryCondition returns the value of the "entry_condition" field in the mutation.
+func (m *DialogNodeMutation) EntryCondition() (r string, exists bool) {
+	v := m.entry_condition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntryCondition returns the old "entry_condition" field's value of the DialogNode entity.
+// If the DialogNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DialogNodeMutation) OldEntryCondition(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntryCondition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntryCondition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntryCondition: %w", err)
+	}
+	return oldValue.EntryCondition, nil
+}
+
+// ClearEntryCondition clears the value of the "entry_condition" field.
+func (m *DialogNodeMutation) ClearEntryCondition() {
+	m.entry_condition = nil
+	m.clearedFields[dialognode.FieldEntryCondition] = struct{}{}
+}
+
+// EntryConditionCleared returns if the "entry_condition" field was cleared in this mutation.
+func (m *DialogNodeMutation) EntryConditionCleared() bool {
+	_, ok := m.clearedFields[dialognode.FieldEntryCondition]
+	return ok
+}
+
+// ResetEntryCondition resets all changes to the "entry_condition" field.
+func (m *DialogNodeMutation) ResetEntryCondition() {
+	m.entry_condition = nil
+	delete(m.clearedFields, dialognode.FieldEntryCondition)
+}
+
+// SetOnEnterEffects sets the "on_enter_effects" field.
+func (m *DialogNodeMutation) SetOnEnterEffects(i []int) {
+	m.on_enter_effects = &i
+	m.appendon_enter_effects = nil
+}
+
+// OnEnterEffects returns the value of the "on_enter_effects" field in the mutation.
+func (m *DialogNodeMutation) OnEnterEffects() (r []int, exists bool) {
+	v := m.on_enter_effects
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnEnterEffects returns the old "on_enter_effects" field's value of the DialogNode entity.
+// If the DialogNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DialogNodeMutation) OldOnEnterEffects(ctx context.Context) (v []int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnEnterEffects is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnEnterEffects requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnEnterEffects: %w", err)
+	}
+	return oldValue.OnEnterEffects, nil
+}
+
+// AppendOnEnterEffects adds i to the "on_enter_effects" field.
+func (m *DialogNodeMutation) AppendOnEnterEffects(i []int) {
+	m.appendon_enter_effects = append(m.appendon_enter_effects, i...)
+}
+
+// AppendedOnEnterEffects returns the list of values that were appended to the "on_enter_effects" field in this mutation.
+func (m *DialogNodeMutation) AppendedOnEnterEffects() ([]int, bool) {
+	if len(m.appendon_enter_effects) == 0 {
+		return nil, false
+	}
+	return m.appendon_enter_effects, true
+}
+
+// ClearOnEnterEffects clears the value of the "on_enter_effects" field.
+func (m *DialogNodeMutation) ClearOnEnterEffects() {
+	m.on_enter_effects = nil
+	m.appendon_enter_effects = nil
+	m.clearedFields[dialognode.FieldOnEnterEffects] = struct{}{}
+}
+
+// OnEnterEffectsCleared returns if the "on_enter_effects" field was cleared in this mutation.
+func (m *DialogNodeMutation) OnEnterEffectsCleared() bool {
+	_, ok := m.clearedFields[dialognode.FieldOnEnterEffects]
+	return ok
+}
+
+// ResetOnEnterEffects resets all changes to the "on_enter_effects" field.
+func (m *DialogNodeMutation) ResetOnEnterEffects() {
+	m.on_enter_effects = nil
+	m.appendon_enter_effects = nil
+	delete(m.clearedFields, dialognode.FieldOnEnterEffects)
+}
+
+// SetNpcTemplateID sets the "npc_template" edge to the NPCTemplate entity by id.
+func (m *DialogNodeMutation) SetNpcTemplateID(id string) {
+	m.npc_template = &id
+}
+
+// ClearNpcTemplate clears the "npc_template" edge to the NPCTemplate entity.
+func (m *DialogNodeMutation) ClearNpcTemplate() {
+	m.clearednpc_template = true
+}
+
+// NpcTemplateCleared reports if the "npc_template" edge to the NPCTemplate entity was cleared.
+func (m *DialogNodeMutation) NpcTemplateCleared() bool {
+	return m.clearednpc_template
+}
+
+// NpcTemplateID returns the "npc_template" edge ID in the mutation.
+func (m *DialogNodeMutation) NpcTemplateID() (id string, exists bool) {
+	if m.npc_template != nil {
+		return *m.npc_template, true
+	}
+	return
+}
+
+// NpcTemplateIDs returns the "npc_template" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NpcTemplateID instead. It exists only for internal usage by the builders.
+func (m *DialogNodeMutation) NpcTemplateIDs() (ids []string) {
+	if id := m.npc_template; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNpcTemplate resets all changes to the "npc_template" edge.
+func (m *DialogNodeMutation) ResetNpcTemplate() {
+	m.npc_template = nil
+	m.clearednpc_template = false
+}
+
+// Where appends a list predicates to the DialogNodeMutation builder.
+func (m *DialogNodeMutation) Where(ps ...predicate.DialogNode) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DialogNodeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DialogNodeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DialogNode, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DialogNodeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DialogNodeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DialogNode).
+func (m *DialogNodeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DialogNodeMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.npc_text != nil {
+		fields = append(fields, dialognode.FieldNpcText)
+	}
+	if m.responses != nil {
+		fields = append(fields, dialognode.FieldResponses)
+	}
+	if m.is_entry != nil {
+		fields = append(fields, dialognode.FieldIsEntry)
+	}
+	if m.entry_condition != nil {
+		fields = append(fields, dialognode.FieldEntryCondition)
+	}
+	if m.on_enter_effects != nil {
+		fields = append(fields, dialognode.FieldOnEnterEffects)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DialogNodeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case dialognode.FieldNpcText:
+		return m.NpcText()
+	case dialognode.FieldResponses:
+		return m.Responses()
+	case dialognode.FieldIsEntry:
+		return m.IsEntry()
+	case dialognode.FieldEntryCondition:
+		return m.EntryCondition()
+	case dialognode.FieldOnEnterEffects:
+		return m.OnEnterEffects()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DialogNodeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case dialognode.FieldNpcText:
+		return m.OldNpcText(ctx)
+	case dialognode.FieldResponses:
+		return m.OldResponses(ctx)
+	case dialognode.FieldIsEntry:
+		return m.OldIsEntry(ctx)
+	case dialognode.FieldEntryCondition:
+		return m.OldEntryCondition(ctx)
+	case dialognode.FieldOnEnterEffects:
+		return m.OldOnEnterEffects(ctx)
+	}
+	return nil, fmt.Errorf("unknown DialogNode field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DialogNodeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case dialognode.FieldNpcText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNpcText(v)
+		return nil
+	case dialognode.FieldResponses:
+		v, ok := value.([]schema.DialogResponse)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponses(v)
+		return nil
+	case dialognode.FieldIsEntry:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsEntry(v)
+		return nil
+	case dialognode.FieldEntryCondition:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntryCondition(v)
+		return nil
+	case dialognode.FieldOnEnterEffects:
+		v, ok := value.([]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnEnterEffects(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DialogNode field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DialogNodeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DialogNodeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DialogNodeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DialogNode numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DialogNodeMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(dialognode.FieldResponses) {
+		fields = append(fields, dialognode.FieldResponses)
+	}
+	if m.FieldCleared(dialognode.FieldEntryCondition) {
+		fields = append(fields, dialognode.FieldEntryCondition)
+	}
+	if m.FieldCleared(dialognode.FieldOnEnterEffects) {
+		fields = append(fields, dialognode.FieldOnEnterEffects)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DialogNodeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DialogNodeMutation) ClearField(name string) error {
+	switch name {
+	case dialognode.FieldResponses:
+		m.ClearResponses()
+		return nil
+	case dialognode.FieldEntryCondition:
+		m.ClearEntryCondition()
+		return nil
+	case dialognode.FieldOnEnterEffects:
+		m.ClearOnEnterEffects()
+		return nil
+	}
+	return fmt.Errorf("unknown DialogNode nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DialogNodeMutation) ResetField(name string) error {
+	switch name {
+	case dialognode.FieldNpcText:
+		m.ResetNpcText()
+		return nil
+	case dialognode.FieldResponses:
+		m.ResetResponses()
+		return nil
+	case dialognode.FieldIsEntry:
+		m.ResetIsEntry()
+		return nil
+	case dialognode.FieldEntryCondition:
+		m.ResetEntryCondition()
+		return nil
+	case dialognode.FieldOnEnterEffects:
+		m.ResetOnEnterEffects()
+		return nil
+	}
+	return fmt.Errorf("unknown DialogNode field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DialogNodeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.npc_template != nil {
+		edges = append(edges, dialognode.EdgeNpcTemplate)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DialogNodeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case dialognode.EdgeNpcTemplate:
+		if id := m.npc_template; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DialogNodeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DialogNodeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DialogNodeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearednpc_template {
+		edges = append(edges, dialognode.EdgeNpcTemplate)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DialogNodeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case dialognode.EdgeNpcTemplate:
+		return m.clearednpc_template
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DialogNodeMutation) ClearEdge(name string) error {
+	switch name {
+	case dialognode.EdgeNpcTemplate:
+		m.ClearNpcTemplate()
+		return nil
+	}
+	return fmt.Errorf("unknown DialogNode unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DialogNodeMutation) ResetEdge(name string) error {
+	switch name {
+	case dialognode.EdgeNpcTemplate:
+		m.ResetNpcTemplate()
+		return nil
+	}
+	return fmt.Errorf("unknown DialogNode edge %s", name)
 }
 
 // EffectMutation represents an operation that mutates the Effect nodes in the graph.
@@ -12418,26 +13129,29 @@ func (m *EquipmentTemplateMutation) ResetEdge(name string) error {
 // NPCTemplateMutation represents an operation that mutates the NPCTemplate nodes in the graph.
 type NPCTemplateMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *string
-	name              *string
-	description       *string
-	race              *string
-	disposition       *npctemplate.Disposition
-	level             *int
-	addlevel          *int
-	skills            *map[string]int
-	trades_with       *[]string
-	appendtrades_with []string
-	greeting          *string
-	clearedFields     map[string]struct{}
-	_hooks            map[int]struct{}
-	removed_hooks     map[int]struct{}
-	cleared_hooks     bool
-	done              bool
-	oldValue          func(context.Context) (*NPCTemplate, error)
-	predicates        []predicate.NPCTemplate
+	op                  Op
+	typ                 string
+	id                  *string
+	name                *string
+	description         *string
+	race                *string
+	disposition         *npctemplate.Disposition
+	level               *int
+	addlevel            *int
+	skills              *map[string]int
+	trades_with         *[]string
+	appendtrades_with   []string
+	greeting            *string
+	clearedFields       map[string]struct{}
+	_hooks              map[int]struct{}
+	removed_hooks       map[int]struct{}
+	cleared_hooks       bool
+	dialog_nodes        map[string]struct{}
+	removeddialog_nodes map[string]struct{}
+	cleareddialog_nodes bool
+	done                bool
+	oldValue            func(context.Context) (*NPCTemplate, error)
+	predicates          []predicate.NPCTemplate
 }
 
 var _ ent.Mutation = (*NPCTemplateMutation)(nil)
@@ -12921,6 +13635,60 @@ func (m *NPCTemplateMutation) ResetHooks() {
 	m.removed_hooks = nil
 }
 
+// AddDialogNodeIDs adds the "dialog_nodes" edge to the DialogNode entity by ids.
+func (m *NPCTemplateMutation) AddDialogNodeIDs(ids ...string) {
+	if m.dialog_nodes == nil {
+		m.dialog_nodes = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.dialog_nodes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDialogNodes clears the "dialog_nodes" edge to the DialogNode entity.
+func (m *NPCTemplateMutation) ClearDialogNodes() {
+	m.cleareddialog_nodes = true
+}
+
+// DialogNodesCleared reports if the "dialog_nodes" edge to the DialogNode entity was cleared.
+func (m *NPCTemplateMutation) DialogNodesCleared() bool {
+	return m.cleareddialog_nodes
+}
+
+// RemoveDialogNodeIDs removes the "dialog_nodes" edge to the DialogNode entity by IDs.
+func (m *NPCTemplateMutation) RemoveDialogNodeIDs(ids ...string) {
+	if m.removeddialog_nodes == nil {
+		m.removeddialog_nodes = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.dialog_nodes, ids[i])
+		m.removeddialog_nodes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDialogNodes returns the removed IDs of the "dialog_nodes" edge to the DialogNode entity.
+func (m *NPCTemplateMutation) RemovedDialogNodesIDs() (ids []string) {
+	for id := range m.removeddialog_nodes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DialogNodesIDs returns the "dialog_nodes" edge IDs in the mutation.
+func (m *NPCTemplateMutation) DialogNodesIDs() (ids []string) {
+	for id := range m.dialog_nodes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDialogNodes resets all changes to the "dialog_nodes" edge.
+func (m *NPCTemplateMutation) ResetDialogNodes() {
+	m.dialog_nodes = nil
+	m.cleareddialog_nodes = false
+	m.removeddialog_nodes = nil
+}
+
 // Where appends a list predicates to the NPCTemplateMutation builder.
 func (m *NPCTemplateMutation) Where(ps ...predicate.NPCTemplate) {
 	m.predicates = append(m.predicates, ps...)
@@ -13188,9 +13956,12 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NPCTemplateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m._hooks != nil {
 		edges = append(edges, npctemplate.EdgeHooks)
+	}
+	if m.dialog_nodes != nil {
+		edges = append(edges, npctemplate.EdgeDialogNodes)
 	}
 	return edges
 }
@@ -13205,15 +13976,24 @@ func (m *NPCTemplateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case npctemplate.EdgeDialogNodes:
+		ids := make([]ent.Value, 0, len(m.dialog_nodes))
+		for id := range m.dialog_nodes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NPCTemplateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removed_hooks != nil {
 		edges = append(edges, npctemplate.EdgeHooks)
+	}
+	if m.removeddialog_nodes != nil {
+		edges = append(edges, npctemplate.EdgeDialogNodes)
 	}
 	return edges
 }
@@ -13228,15 +14008,24 @@ func (m *NPCTemplateMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case npctemplate.EdgeDialogNodes:
+		ids := make([]ent.Value, 0, len(m.removeddialog_nodes))
+		for id := range m.removeddialog_nodes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NPCTemplateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleared_hooks {
 		edges = append(edges, npctemplate.EdgeHooks)
+	}
+	if m.cleareddialog_nodes {
+		edges = append(edges, npctemplate.EdgeDialogNodes)
 	}
 	return edges
 }
@@ -13247,6 +14036,8 @@ func (m *NPCTemplateMutation) EdgeCleared(name string) bool {
 	switch name {
 	case npctemplate.EdgeHooks:
 		return m.cleared_hooks
+	case npctemplate.EdgeDialogNodes:
+		return m.cleareddialog_nodes
 	}
 	return false
 }
@@ -13265,6 +14056,9 @@ func (m *NPCTemplateMutation) ResetEdge(name string) error {
 	switch name {
 	case npctemplate.EdgeHooks:
 		m.ResetHooks()
+		return nil
+	case npctemplate.EdgeDialogNodes:
+		m.ResetDialogNodes()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate edge %s", name)

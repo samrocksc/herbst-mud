@@ -18,6 +18,9 @@ type ActiveEffect func(*sql.Selector)
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 
+// DialogNode is the predicate function for dialognode builders.
+type DialogNode func(*sql.Selector)
+
 // Effect is the predicate function for effect builders.
 type Effect func(*sql.Selector)
 

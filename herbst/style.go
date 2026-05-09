@@ -330,6 +330,7 @@ var (
 	exitVisitedColor    = ExitVisited
 	exitKnownColor      = ExitKnown
 	exitNewColor        = ExitNew
+	dialogNPCStyle      = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#87CEEB"))
 	questTitleStyle     = TitleStyle
 	questBoxStyle       = BoxStyle
 	questProgressStyle  = WarningStyle

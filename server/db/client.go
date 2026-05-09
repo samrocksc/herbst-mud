@@ -24,6 +24,7 @@ import (
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/damagelog"
+	"herbst-server/db/dialognode"
 	"herbst-server/db/effect"
 	"herbst-server/db/effecthook"
 	"herbst-server/db/equipment"
@@ -79,6 +80,8 @@ type Client struct {
 	CompetencyLevelThreshold *CompetencyLevelThresholdClient
 	// DamageLog is the client for interacting with the DamageLog builders.
 	DamageLog *DamageLogClient
+	// DialogNode is the client for interacting with the DialogNode builders.
+	DialogNode *DialogNodeClient
 	// Effect is the client for interacting with the Effect builders.
 	Effect *EffectClient
 	// EffectHook is the client for interacting with the EffectHook builders.
@@ -137,6 +140,7 @@ func (c *Client) init() {
 	c.CompetencyCategory = NewCompetencyCategoryClient(c.config)
 	c.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(c.config)
 	c.DamageLog = NewDamageLogClient(c.config)
+	c.DialogNode = NewDialogNodeClient(c.config)
 	c.Effect = NewEffectClient(c.config)
 	c.EffectHook = NewEffectHookClient(c.config)
 	c.Equipment = NewEquipmentClient(c.config)
@@ -259,6 +263,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
 		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
 		DamageLog:                NewDamageLogClient(cfg),
+		DialogNode:               NewDialogNodeClient(cfg),
 		Effect:                   NewEffectClient(cfg),
 		EffectHook:               NewEffectHookClient(cfg),
 		Equipment:                NewEquipmentClient(cfg),
@@ -308,6 +313,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
 		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
 		DamageLog:                NewDamageLogClient(cfg),
+		DialogNode:               NewDialogNodeClient(cfg),
 		Effect:                   NewEffectClient(cfg),
 		EffectHook:               NewEffectHookClient(cfg),
 		Equipment:                NewEquipmentClient(cfg),
@@ -357,9 +363,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
 		c.Character, c.CharacterAbility, c.CharacterCompetency, c.CharacterFaction,
 		c.CharacterTag, c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog,
-		c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate, c.Faction,
-		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility,
-		c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.Tag, c.User,
+		c.DialogNode, c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate,
+		c.Faction, c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender,
+		c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.Tag,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -372,9 +379,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
 		c.Character, c.CharacterAbility, c.CharacterCompetency, c.CharacterFaction,
 		c.CharacterTag, c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog,
-		c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate, c.Faction,
-		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility,
-		c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.Tag, c.User,
+		c.DialogNode, c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate,
+		c.Faction, c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender,
+		c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.Tag,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -409,6 +417,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CompetencyLevelThreshold.mutate(ctx, m)
 	case *DamageLogMutation:
 		return c.DamageLog.mutate(ctx, m)
+	case *DialogNodeMutation:
+		return c.DialogNode.mutate(ctx, m)
 	case *EffectMutation:
 		return c.Effect.mutate(ctx, m)
 	case *EffectHookMutation:
@@ -2593,6 +2603,155 @@ func (c *DamageLogClient) mutate(ctx context.Context, m *DamageLogMutation) (Val
 	}
 }
 
+// DialogNodeClient is a client for the DialogNode schema.
+type DialogNodeClient struct {
+	config
+}
+
+// NewDialogNodeClient returns a client for the DialogNode from the given config.
+func NewDialogNodeClient(c config) *DialogNodeClient {
+	return &DialogNodeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `dialognode.Hooks(f(g(h())))`.
+func (c *DialogNodeClient) Use(hooks ...Hook) {
+	c.hooks.DialogNode = append(c.hooks.DialogNode, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dialognode.Intercept(f(g(h())))`.
+func (c *DialogNodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DialogNode = append(c.inters.DialogNode, interceptors...)
+}
+
+// Create returns a builder for creating a DialogNode entity.
+func (c *DialogNodeClient) Create() *DialogNodeCreate {
+	mutation := newDialogNodeMutation(c.config, OpCreate)
+	return &DialogNodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DialogNode entities.
+func (c *DialogNodeClient) CreateBulk(builders ...*DialogNodeCreate) *DialogNodeCreateBulk {
+	return &DialogNodeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DialogNodeClient) MapCreateBulk(slice any, setFunc func(*DialogNodeCreate, int)) *DialogNodeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DialogNodeCreateBulk{err: fmt.Errorf("calling to DialogNodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DialogNodeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DialogNodeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DialogNode.
+func (c *DialogNodeClient) Update() *DialogNodeUpdate {
+	mutation := newDialogNodeMutation(c.config, OpUpdate)
+	return &DialogNodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DialogNodeClient) UpdateOne(_m *DialogNode) *DialogNodeUpdateOne {
+	mutation := newDialogNodeMutation(c.config, OpUpdateOne, withDialogNode(_m))
+	return &DialogNodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DialogNodeClient) UpdateOneID(id string) *DialogNodeUpdateOne {
+	mutation := newDialogNodeMutation(c.config, OpUpdateOne, withDialogNodeID(id))
+	return &DialogNodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DialogNode.
+func (c *DialogNodeClient) Delete() *DialogNodeDelete {
+	mutation := newDialogNodeMutation(c.config, OpDelete)
+	return &DialogNodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DialogNodeClient) DeleteOne(_m *DialogNode) *DialogNodeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DialogNodeClient) DeleteOneID(id string) *DialogNodeDeleteOne {
+	builder := c.Delete().Where(dialognode.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DialogNodeDeleteOne{builder}
+}
+
+// Query returns a query builder for DialogNode.
+func (c *DialogNodeClient) Query() *DialogNodeQuery {
+	return &DialogNodeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDialogNode},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DialogNode entity by its id.
+func (c *DialogNodeClient) Get(ctx context.Context, id string) (*DialogNode, error) {
+	return c.Query().Where(dialognode.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DialogNodeClient) GetX(ctx context.Context, id string) *DialogNode {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryNpcTemplate queries the npc_template edge of a DialogNode.
+func (c *DialogNodeClient) QueryNpcTemplate(_m *DialogNode) *NPCTemplateQuery {
+	query := (&NPCTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dialognode.Table, dialognode.FieldID, id),
+			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, dialognode.NpcTemplateTable, dialognode.NpcTemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DialogNodeClient) Hooks() []Hook {
+	return c.hooks.DialogNode
+}
+
+// Interceptors returns the client interceptors.
+func (c *DialogNodeClient) Interceptors() []Interceptor {
+	return c.inters.DialogNode
+}
+
+func (c *DialogNodeClient) mutate(ctx context.Context, m *DialogNodeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DialogNodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DialogNodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DialogNodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DialogNodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown DialogNode mutation op: %q", m.Op())
+	}
+}
+
 // EffectClient is a client for the Effect schema.
 type EffectClient struct {
 	config
@@ -4303,6 +4462,22 @@ func (c *NPCTemplateClient) QueryHooks(_m *NPCTemplate) *EffectHookQuery {
 	return query
 }
 
+// QueryDialogNodes queries the dialog_nodes edge of a NPCTemplate.
+func (c *NPCTemplateClient) QueryDialogNodes(_m *NPCTemplate) *DialogNodeQuery {
+	query := (&DialogNodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, id),
+			sqlgraph.To(dialognode.Table, dialognode.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, npctemplate.DialogNodesTable, npctemplate.DialogNodesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryCharacters queries the characters edge of a NPCTemplate.
 func (c *NPCTemplateClient) QueryCharacters(_m *NPCTemplate) *CharacterQuery {
 	query := (&CharacterClient{config: c.config}).Query()
@@ -5275,17 +5450,17 @@ type (
 	hooks struct {
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, Character,
 		CharacterAbility, CharacterCompetency, CharacterFaction, CharacterTag,
-		CompetencyCategory, CompetencyLevelThreshold, DamageLog, Effect, EffectHook,
-		Equipment, EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag,
-		GameConfig, Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room,
-		Tag, User []ent.Hook
+		CompetencyCategory, CompetencyLevelThreshold, DamageLog, DialogNode, Effect,
+		EffectHook, Equipment, EquipmentTemplate, Faction, FactionCategory,
+		FactionRequiredTag, GameConfig, Gender, NPCAbility, NPCTemplate, Quest,
+		QuestProgress, Race, Room, Tag, User []ent.Hook
 	}
 	inters struct {
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, Character,
 		CharacterAbility, CharacterCompetency, CharacterFaction, CharacterTag,
-		CompetencyCategory, CompetencyLevelThreshold, DamageLog, Effect, EffectHook,
-		Equipment, EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag,
-		GameConfig, Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room,
-		Tag, User []ent.Interceptor
+		CompetencyCategory, CompetencyLevelThreshold, DamageLog, DialogNode, Effect,
+		EffectHook, Equipment, EquipmentTemplate, Faction, FactionCategory,
+		FactionRequiredTag, GameConfig, Gender, NPCAbility, NPCTemplate, Quest,
+		QuestProgress, Race, Room, Tag, User []ent.Interceptor
 	}
 )

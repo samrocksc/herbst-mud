@@ -163,6 +163,30 @@ var (
 			},
 		},
 	}
+	// DialogNodesColumns holds the columns for the "dialog_nodes" table.
+	DialogNodesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "npc_text", Type: field.TypeString},
+		{Name: "responses", Type: field.TypeJSON, Nullable: true},
+		{Name: "is_entry", Type: field.TypeBool, Default: false},
+		{Name: "entry_condition", Type: field.TypeString, Nullable: true},
+		{Name: "on_enter_effects", Type: field.TypeJSON, Nullable: true},
+		{Name: "npc_template_dialog_nodes", Type: field.TypeString},
+	}
+	// DialogNodesTable holds the schema information for the "dialog_nodes" table.
+	DialogNodesTable = &schema.Table{
+		Name:       "dialog_nodes",
+		Columns:    DialogNodesColumns,
+		PrimaryKey: []*schema.Column{DialogNodesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "dialog_nodes_npc_templates_dialog_nodes",
+				Columns:    []*schema.Column{DialogNodesColumns[6]},
+				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// EffectsColumns holds the columns for the "effects" table.
 	EffectsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -426,6 +450,7 @@ var (
 		AbilityEffectsTable,
 		ActiveEffectsTable,
 		CharactersTable,
+		DialogNodesTable,
 		EffectsTable,
 		EffectHooksTable,
 		EquipmentTable,
@@ -448,6 +473,7 @@ func init() {
 	CharactersTable.ForeignKeys[2].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[3].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[4].RefTable = UsersTable
+	DialogNodesTable.ForeignKeys[0].RefTable = NpcTemplatesTable
 	EffectHooksTable.ForeignKeys[0].RefTable = EffectsTable
 	EffectHooksTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTemplatesTable

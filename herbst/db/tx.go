@@ -20,6 +20,8 @@ type Tx struct {
 	ActiveEffect *ActiveEffectClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// DialogNode is the client for interacting with the DialogNode builders.
+	DialogNode *DialogNodeClient
 	// Effect is the client for interacting with the Effect builders.
 	Effect *EffectClient
 	// EffectHook is the client for interacting with the EffectHook builders.
@@ -175,6 +177,7 @@ func (tx *Tx) init() {
 	tx.AbilityEffect = NewAbilityEffectClient(tx.config)
 	tx.ActiveEffect = NewActiveEffectClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
+	tx.DialogNode = NewDialogNodeClient(tx.config)
 	tx.Effect = NewEffectClient(tx.config)
 	tx.EffectHook = NewEffectHookClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
