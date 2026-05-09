@@ -25,17 +25,17 @@ function Dashboard() {
 
     const fetchStats = async () => {
       try {
-        const [rooms, npcs, abilities, equipment, characters] = await Promise.all([
+        const [rooms, npcs, abilities, templates, characters] = await Promise.all([
           apiGet<unknown[]>(`${window.location.origin}/rooms`),
           apiGet<unknown[]>(`${window.location.origin}/npcs`),
           apiGet<unknown[]>(`${window.location.origin}/api/abilities`),
-          apiGet<unknown[]>(`${window.location.origin}/equipment`),
+          apiGet<unknown[]>(`${window.location.origin}/api/equipment-templates`),
           apiGet<unknown[]>(`${window.location.origin}/characters`),
         ])
         setStats({
           rooms: Array.isArray(rooms) ? rooms.length : 0,
           npcs: Array.isArray(npcs) ? npcs.length : 0,
-          items: Array.isArray(equipment) ? equipment.length : 0,
+          items: Array.isArray(templates) ? templates.length : 0,
           players: Array.isArray(characters) ? characters.length : 0,
           skills: Array.isArray(abilities) ? abilities.length : 0,
         })
