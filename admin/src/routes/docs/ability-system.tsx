@@ -111,6 +111,7 @@ function AbilitySystemDoc() {
             ['stun', 'Target skips their next turn. Resisted by CON contest.', 'enemy'],
             ['accuracy_boost', 'Increases hit chance for a duration.', 'self'],
             ['dodge_all', 'Avoids all attacks for the duration.', 'self'],
+            ['set_bind_point', 'Sets the character\'s respawn point to the current room.', 'self'],
           ]}
         />
       </Section>

@@ -47,6 +47,11 @@ const DOC_PAGES = [
     path: '/docs/config-reference',
     desc: 'What each config key does and how it affects the game world.',
   },
+  {
+    title: 'Bind Points & Root Room',
+    path: '/docs/bind-points',
+    desc: 'Root room, bind points, respawn mechanics, and reconnect positioning.',
+  },
 ]
 
 function DocsIndex() {
