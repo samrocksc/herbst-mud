@@ -262,6 +262,15 @@ func main() {
 	// Register effect routes (ability effects)
 	routes.RegisterEffectRoutes(router, client)
 
+	// Register effect definition routes (EFF-003)
+	routes.RegisterEffectDefRoutes(router, client)
+
+	// Register hook routes (EFF-004)
+	routes.RegisterHookRoutes(router, client)
+
+	// Register active effect routes (EFF-005)
+	routes.RegisterActiveEffectRoutes(router, client)
+
 	// Register user routes
 	routes.RegisterUserRoutes(router, client)
 

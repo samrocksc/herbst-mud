@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/character"
+	"herbst-server/db/effecthook"
 	"herbst-server/db/npcability"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
@@ -220,6 +221,21 @@ func (_u *NPCTemplateUpdate) AddNpcAbilities(v ...*NPCAbility) *NPCTemplateUpdat
 	return _u.AddNpcAbilityIDs(ids...)
 }
 
+// AddHookIDs adds the "hooks" edge to the EffectHook entity by IDs.
+func (_u *NPCTemplateUpdate) AddHookIDs(ids ...int) *NPCTemplateUpdate {
+	_u.mutation.AddHookIDs(ids...)
+	return _u
+}
+
+// AddHooks adds the "hooks" edges to the EffectHook entity.
+func (_u *NPCTemplateUpdate) AddHooks(v ...*EffectHook) *NPCTemplateUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddHookIDs(ids...)
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *NPCTemplateUpdate) AddCharacterIDs(ids ...int) *NPCTemplateUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -259,6 +275,27 @@ func (_u *NPCTemplateUpdate) RemoveNpcAbilities(v ...*NPCAbility) *NPCTemplateUp
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNpcAbilityIDs(ids...)
+}
+
+// ClearHooks clears all "hooks" edges to the EffectHook entity.
+func (_u *NPCTemplateUpdate) ClearHooks() *NPCTemplateUpdate {
+	_u.mutation.ClearHooks()
+	return _u
+}
+
+// RemoveHookIDs removes the "hooks" edge to EffectHook entities by IDs.
+func (_u *NPCTemplateUpdate) RemoveHookIDs(ids ...int) *NPCTemplateUpdate {
+	_u.mutation.RemoveHookIDs(ids...)
+	return _u
+}
+
+// RemoveHooks removes "hooks" edges to EffectHook entities.
+func (_u *NPCTemplateUpdate) RemoveHooks(v ...*EffectHook) *NPCTemplateUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveHookIDs(ids...)
 }
 
 // ClearCharacters clears all "characters" edges to the Character entity.
@@ -427,6 +464,51 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npcability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.HooksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.HooksTable,
+			Columns: []string{npctemplate.HooksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedHooksIDs(); len(nodes) > 0 && !_u.mutation.HooksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.HooksTable,
+			Columns: []string{npctemplate.HooksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.HooksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.HooksTable,
+			Columns: []string{npctemplate.HooksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -689,6 +771,21 @@ func (_u *NPCTemplateUpdateOne) AddNpcAbilities(v ...*NPCAbility) *NPCTemplateUp
 	return _u.AddNpcAbilityIDs(ids...)
 }
 
+// AddHookIDs adds the "hooks" edge to the EffectHook entity by IDs.
+func (_u *NPCTemplateUpdateOne) AddHookIDs(ids ...int) *NPCTemplateUpdateOne {
+	_u.mutation.AddHookIDs(ids...)
+	return _u
+}
+
+// AddHooks adds the "hooks" edges to the EffectHook entity.
+func (_u *NPCTemplateUpdateOne) AddHooks(v ...*EffectHook) *NPCTemplateUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddHookIDs(ids...)
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *NPCTemplateUpdateOne) AddCharacterIDs(ids ...int) *NPCTemplateUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -728,6 +825,27 @@ func (_u *NPCTemplateUpdateOne) RemoveNpcAbilities(v ...*NPCAbility) *NPCTemplat
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNpcAbilityIDs(ids...)
+}
+
+// ClearHooks clears all "hooks" edges to the EffectHook entity.
+func (_u *NPCTemplateUpdateOne) ClearHooks() *NPCTemplateUpdateOne {
+	_u.mutation.ClearHooks()
+	return _u
+}
+
+// RemoveHookIDs removes the "hooks" edge to EffectHook entities by IDs.
+func (_u *NPCTemplateUpdateOne) RemoveHookIDs(ids ...int) *NPCTemplateUpdateOne {
+	_u.mutation.RemoveHookIDs(ids...)
+	return _u
+}
+
+// RemoveHooks removes "hooks" edges to EffectHook entities.
+func (_u *NPCTemplateUpdateOne) RemoveHooks(v ...*EffectHook) *NPCTemplateUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveHookIDs(ids...)
 }
 
 // ClearCharacters clears all "characters" edges to the Character entity.
@@ -926,6 +1044,51 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npcability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.HooksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.HooksTable,
+			Columns: []string{npctemplate.HooksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedHooksIDs(); len(nodes) > 0 && !_u.mutation.HooksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.HooksTable,
+			Columns: []string{npctemplate.HooksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.HooksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.HooksTable,
+			Columns: []string{npctemplate.HooksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

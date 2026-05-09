@@ -101,9 +101,11 @@ type CharacterEdges struct {
 	Room *Room `json:"room,omitempty"`
 	// NpcTemplate holds the value of the npcTemplate edge.
 	NpcTemplate *NPCTemplate `json:"npcTemplate,omitempty"`
+	// ActiveEffects holds the value of the active_effects edge.
+	ActiveEffects []*ActiveEffect `json:"active_effects,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -137,6 +139,15 @@ func (e CharacterEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
 		return nil, &NotFoundError{label: npctemplate.Label}
 	}
 	return nil, &NotLoadedError{edge: "npcTemplate"}
+}
+
+// ActiveEffectsOrErr returns the ActiveEffects value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) ActiveEffectsOrErr() ([]*ActiveEffect, error) {
+	if e.loadedTypes[3] {
+		return e.ActiveEffects, nil
+	}
+	return nil, &NotLoadedError{edge: "active_effects"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -425,6 +436,11 @@ func (_m *Character) QueryRoom() *RoomQuery {
 // QueryNpcTemplate queries the "npcTemplate" edge of the Character entity.
 func (_m *Character) QueryNpcTemplate() *NPCTemplateQuery {
 	return NewCharacterClient(_m.config).QueryNpcTemplate(_m)
+}
+
+// QueryActiveEffects queries the "active_effects" edge of the Character entity.
+func (_m *Character) QueryActiveEffects() *ActiveEffectQuery {
+	return NewCharacterClient(_m.config).QueryActiveEffects(_m)
 }
 
 // Update returns a builder for updating this Character.

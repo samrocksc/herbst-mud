@@ -89,6 +89,37 @@ var (
 		Columns:    AchievementsColumns,
 		PrimaryKey: []*schema.Column{AchievementsColumns[0]},
 	}
+	// ActiveEffectsColumns holds the columns for the "active_effects" table.
+	ActiveEffectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "applied_by_id", Type: field.TypeInt, Default: 0},
+		{Name: "stack_count", Type: field.TypeInt, Default: 1},
+		{Name: "started_at", Type: field.TypeTime},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "character_id", Type: field.TypeInt},
+		{Name: "effect_id", Type: field.TypeInt},
+	}
+	// ActiveEffectsTable holds the schema information for the "active_effects" table.
+	ActiveEffectsTable = &schema.Table{
+		Name:       "active_effects",
+		Columns:    ActiveEffectsColumns,
+		PrimaryKey: []*schema.Column{ActiveEffectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "active_effects_characters_active_effects",
+				Columns:    []*schema.Column{ActiveEffectsColumns[6]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "active_effects_effects_active_effect_instances",
+				Columns:    []*schema.Column{ActiveEffectsColumns[7]},
+				RefColumns: []*schema.Column{EffectsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// AppLogsColumns holds the columns for the "app_logs" table.
 	AppLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -106,6 +137,23 @@ var (
 		Name:       "app_logs",
 		Columns:    AppLogsColumns,
 		PrimaryKey: []*schema.Column{AppLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "applog_level",
+				Unique:  false,
+				Columns: []*schema.Column{AppLogsColumns[1]},
+			},
+			{
+				Name:    "applog_service",
+				Unique:  false,
+				Columns: []*schema.Column{AppLogsColumns[3]},
+			},
+			{
+				Name:    "applog_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AppLogsColumns[8]},
+			},
+		},
 	}
 	// CharactersColumns holds the columns for the "characters" table.
 	CharactersColumns = []*schema.Column{
@@ -342,6 +390,56 @@ var (
 		Name:       "damage_logs",
 		Columns:    DamageLogsColumns,
 		PrimaryKey: []*schema.Column{DamageLogsColumns[0]},
+	}
+	// EffectsColumns holds the columns for the "effects" table.
+	EffectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "effect_type", Type: field.TypeString},
+		{Name: "parameters", Type: field.TypeJSON},
+		{Name: "stack_mode", Type: field.TypeString, Default: "replace"},
+		{Name: "stack_limit", Type: field.TypeInt, Default: 1},
+		{Name: "is_permanent", Type: field.TypeBool, Default: false},
+		{Name: "duration_secs", Type: field.TypeInt, Default: 0},
+		{Name: "messages", Type: field.TypeJSON},
+	}
+	// EffectsTable holds the schema information for the "effects" table.
+	EffectsTable = &schema.Table{
+		Name:       "effects",
+		Columns:    EffectsColumns,
+		PrimaryKey: []*schema.Column{EffectsColumns[0]},
+	}
+	// EffectHooksColumns holds the columns for the "effect_hooks" table.
+	EffectHooksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "event", Type: field.TypeString},
+		{Name: "target", Type: field.TypeString, Default: "self"},
+		{Name: "condition", Type: field.TypeString, Nullable: true},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "effect_hooks", Type: field.TypeInt},
+		{Name: "npc_template_hooks", Type: field.TypeString, Nullable: true},
+	}
+	// EffectHooksTable holds the schema information for the "effect_hooks" table.
+	EffectHooksTable = &schema.Table{
+		Name:       "effect_hooks",
+		Columns:    EffectHooksColumns,
+		PrimaryKey: []*schema.Column{EffectHooksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "effect_hooks_effects_hooks",
+				Columns:    []*schema.Column{EffectHooksColumns[6]},
+				RefColumns: []*schema.Column{EffectsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "effect_hooks_npc_templates_hooks",
+				Columns:    []*schema.Column{EffectHooksColumns[7]},
+				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// EquipmentColumns holds the columns for the "equipment" table.
 	EquipmentColumns = []*schema.Column{
@@ -704,6 +802,7 @@ var (
 		AbilitiesTable,
 		AbilityEffectsTable,
 		AchievementsTable,
+		ActiveEffectsTable,
 		AppLogsTable,
 		CharactersTable,
 		CharacterAbilitiesTable,
@@ -713,6 +812,8 @@ var (
 		CompetencyCategoriesTable,
 		CompetencyLevelThresholdsTable,
 		DamageLogsTable,
+		EffectsTable,
+		EffectHooksTable,
 		EquipmentTable,
 		EquipmentTemplatesTable,
 		FactionsTable,
@@ -735,6 +836,8 @@ var (
 func init() {
 	AbilitiesTable.ForeignKeys[0].RefTable = FactionsTable
 	AbilityEffectsTable.ForeignKeys[0].RefTable = AbilitiesTable
+	ActiveEffectsTable.ForeignKeys[0].RefTable = CharactersTable
+	ActiveEffectsTable.ForeignKeys[1].RefTable = EffectsTable
 	CharactersTable.ForeignKeys[0].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
@@ -747,6 +850,8 @@ func init() {
 	CharacterFactionsTable.ForeignKeys[1].RefTable = FactionsTable
 	CharacterTagsTable.ForeignKeys[0].RefTable = CharactersTable
 	CompetencyLevelThresholdsTable.ForeignKeys[0].RefTable = CompetencyCategoriesTable
+	EffectHooksTable.ForeignKeys[0].RefTable = EffectsTable
+	EffectHooksTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTemplatesTable
 	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
 	FactionsTable.ForeignKeys[0].RefTable = FactionCategoriesTable

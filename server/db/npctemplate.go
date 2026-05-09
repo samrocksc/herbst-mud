@@ -49,11 +49,13 @@ type NPCTemplate struct {
 type NPCTemplateEdges struct {
 	// NpcAbilities holds the value of the npc_abilities edge.
 	NpcAbilities []*NPCAbility `json:"npc_abilities,omitempty"`
+	// Hooks holds the value of the hooks edge.
+	Hooks []*EffectHook `json:"hooks,omitempty"`
 	// Characters holds the value of the characters edge.
 	Characters []*Character `json:"characters,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // NpcAbilitiesOrErr returns the NpcAbilities value or an error if the edge
@@ -65,10 +67,19 @@ func (e NPCTemplateEdges) NpcAbilitiesOrErr() ([]*NPCAbility, error) {
 	return nil, &NotLoadedError{edge: "npc_abilities"}
 }
 
+// HooksOrErr returns the Hooks value or an error if the edge
+// was not loaded in eager-loading.
+func (e NPCTemplateEdges) HooksOrErr() ([]*EffectHook, error) {
+	if e.loadedTypes[1] {
+		return e.Hooks, nil
+	}
+	return nil, &NotLoadedError{edge: "hooks"}
+}
+
 // CharactersOrErr returns the Characters value or an error if the edge
 // was not loaded in eager-loading.
 func (e NPCTemplateEdges) CharactersOrErr() ([]*Character, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Characters, nil
 	}
 	return nil, &NotLoadedError{edge: "characters"}
@@ -194,6 +205,11 @@ func (_m *NPCTemplate) Value(name string) (ent.Value, error) {
 // QueryNpcAbilities queries the "npc_abilities" edge of the NPCTemplate entity.
 func (_m *NPCTemplate) QueryNpcAbilities() *NPCAbilityQuery {
 	return NewNPCTemplateClient(_m.config).QueryNpcAbilities(_m)
+}
+
+// QueryHooks queries the "hooks" edge of the NPCTemplate entity.
+func (_m *NPCTemplate) QueryHooks() *EffectHookQuery {
+	return NewNPCTemplateClient(_m.config).QueryHooks(_m)
 }
 
 // QueryCharacters queries the "characters" edge of the NPCTemplate entity.

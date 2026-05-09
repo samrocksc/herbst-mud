@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst/db/effecthook"
 	"herbst/db/npctemplate"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -87,6 +88,21 @@ func (_c *NPCTemplateCreate) SetGreeting(v string) *NPCTemplateCreate {
 func (_c *NPCTemplateCreate) SetID(v string) *NPCTemplateCreate {
 	_c.mutation.SetID(v)
 	return _c
+}
+
+// AddHookIDs adds the "hooks" edge to the EffectHook entity by IDs.
+func (_c *NPCTemplateCreate) AddHookIDs(ids ...int) *NPCTemplateCreate {
+	_c.mutation.AddHookIDs(ids...)
+	return _c
+}
+
+// AddHooks adds the "hooks" edges to the EffectHook entity.
+func (_c *NPCTemplateCreate) AddHooks(v ...*EffectHook) *NPCTemplateCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddHookIDs(ids...)
 }
 
 // Mutation returns the NPCTemplateMutation object of the builder.
@@ -231,6 +247,22 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Greeting(); ok {
 		_spec.SetField(npctemplate.FieldGreeting, field.TypeString, value)
 		_node.Greeting = value
+	}
+	if nodes := _c.mutation.HooksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.HooksTable,
+			Columns: []string{npctemplate.HooksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

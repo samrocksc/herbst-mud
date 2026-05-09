@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"herbst/db/ability"
 	"herbst/db/abilityeffect"
+	"herbst/db/activeeffect"
 	"herbst/db/character"
+	"herbst/db/effect"
+	"herbst/db/effecthook"
 	"herbst/db/equipment"
 	"herbst/db/equipmenttemplate"
 	"herbst/db/npctemplate"
@@ -83,7 +86,10 @@ func checkColumn(t, c string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			ability.Table:           ability.ValidColumn,
 			abilityeffect.Table:     abilityeffect.ValidColumn,
+			activeeffect.Table:      activeeffect.ValidColumn,
 			character.Table:         character.ValidColumn,
+			effect.Table:            effect.ValidColumn,
+			effecthook.Table:        effecthook.ValidColumn,
 			equipment.Table:         equipment.ValidColumn,
 			equipmenttemplate.Table: equipmenttemplate.ValidColumn,
 			npctemplate.Table:       npctemplate.ValidColumn,

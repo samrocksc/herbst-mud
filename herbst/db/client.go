@@ -13,7 +13,10 @@ import (
 
 	"herbst/db/ability"
 	"herbst/db/abilityeffect"
+	"herbst/db/activeeffect"
 	"herbst/db/character"
+	"herbst/db/effect"
+	"herbst/db/effecthook"
 	"herbst/db/equipment"
 	"herbst/db/equipmenttemplate"
 	"herbst/db/npctemplate"
@@ -36,8 +39,14 @@ type Client struct {
 	Ability *AbilityClient
 	// AbilityEffect is the client for interacting with the AbilityEffect builders.
 	AbilityEffect *AbilityEffectClient
+	// ActiveEffect is the client for interacting with the ActiveEffect builders.
+	ActiveEffect *ActiveEffectClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// Effect is the client for interacting with the Effect builders.
+	Effect *EffectClient
+	// EffectHook is the client for interacting with the EffectHook builders.
+	EffectHook *EffectHookClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
 	// EquipmentTemplate is the client for interacting with the EquipmentTemplate builders.
@@ -63,7 +72,10 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Ability = NewAbilityClient(c.config)
 	c.AbilityEffect = NewAbilityEffectClient(c.config)
+	c.ActiveEffect = NewActiveEffectClient(c.config)
 	c.Character = NewCharacterClient(c.config)
+	c.Effect = NewEffectClient(c.config)
+	c.EffectHook = NewEffectHookClient(c.config)
 	c.Equipment = NewEquipmentClient(c.config)
 	c.EquipmentTemplate = NewEquipmentTemplateClient(c.config)
 	c.NPCTemplate = NewNPCTemplateClient(c.config)
@@ -164,7 +176,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:            cfg,
 		Ability:           NewAbilityClient(cfg),
 		AbilityEffect:     NewAbilityEffectClient(cfg),
+		ActiveEffect:      NewActiveEffectClient(cfg),
 		Character:         NewCharacterClient(cfg),
+		Effect:            NewEffectClient(cfg),
+		EffectHook:        NewEffectHookClient(cfg),
 		Equipment:         NewEquipmentClient(cfg),
 		EquipmentTemplate: NewEquipmentTemplateClient(cfg),
 		NPCTemplate:       NewNPCTemplateClient(cfg),
@@ -192,7 +207,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:            cfg,
 		Ability:           NewAbilityClient(cfg),
 		AbilityEffect:     NewAbilityEffectClient(cfg),
+		ActiveEffect:      NewActiveEffectClient(cfg),
 		Character:         NewCharacterClient(cfg),
+		Effect:            NewEffectClient(cfg),
+		EffectHook:        NewEffectHookClient(cfg),
 		Equipment:         NewEquipmentClient(cfg),
 		EquipmentTemplate: NewEquipmentTemplateClient(cfg),
 		NPCTemplate:       NewNPCTemplateClient(cfg),
@@ -228,8 +246,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Ability, c.AbilityEffect, c.Character, c.Equipment, c.EquipmentTemplate,
-		c.NPCTemplate, c.Race, c.Room, c.User,
+		c.Ability, c.AbilityEffect, c.ActiveEffect, c.Character, c.Effect, c.EffectHook,
+		c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Race, c.Room, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -239,8 +257,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Ability, c.AbilityEffect, c.Character, c.Equipment, c.EquipmentTemplate,
-		c.NPCTemplate, c.Race, c.Room, c.User,
+		c.Ability, c.AbilityEffect, c.ActiveEffect, c.Character, c.Effect, c.EffectHook,
+		c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Race, c.Room, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -253,8 +271,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Ability.mutate(ctx, m)
 	case *AbilityEffectMutation:
 		return c.AbilityEffect.mutate(ctx, m)
+	case *ActiveEffectMutation:
+		return c.ActiveEffect.mutate(ctx, m)
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
+	case *EffectMutation:
+		return c.Effect.mutate(ctx, m)
+	case *EffectHookMutation:
+		return c.EffectHook.mutate(ctx, m)
 	case *EquipmentMutation:
 		return c.Equipment.mutate(ctx, m)
 	case *EquipmentTemplateMutation:
@@ -586,6 +610,171 @@ func (c *AbilityEffectClient) mutate(ctx context.Context, m *AbilityEffectMutati
 	}
 }
 
+// ActiveEffectClient is a client for the ActiveEffect schema.
+type ActiveEffectClient struct {
+	config
+}
+
+// NewActiveEffectClient returns a client for the ActiveEffect from the given config.
+func NewActiveEffectClient(c config) *ActiveEffectClient {
+	return &ActiveEffectClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `activeeffect.Hooks(f(g(h())))`.
+func (c *ActiveEffectClient) Use(hooks ...Hook) {
+	c.hooks.ActiveEffect = append(c.hooks.ActiveEffect, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `activeeffect.Intercept(f(g(h())))`.
+func (c *ActiveEffectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ActiveEffect = append(c.inters.ActiveEffect, interceptors...)
+}
+
+// Create returns a builder for creating a ActiveEffect entity.
+func (c *ActiveEffectClient) Create() *ActiveEffectCreate {
+	mutation := newActiveEffectMutation(c.config, OpCreate)
+	return &ActiveEffectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ActiveEffect entities.
+func (c *ActiveEffectClient) CreateBulk(builders ...*ActiveEffectCreate) *ActiveEffectCreateBulk {
+	return &ActiveEffectCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ActiveEffectClient) MapCreateBulk(slice any, setFunc func(*ActiveEffectCreate, int)) *ActiveEffectCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ActiveEffectCreateBulk{err: fmt.Errorf("calling to ActiveEffectClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ActiveEffectCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ActiveEffectCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ActiveEffect.
+func (c *ActiveEffectClient) Update() *ActiveEffectUpdate {
+	mutation := newActiveEffectMutation(c.config, OpUpdate)
+	return &ActiveEffectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ActiveEffectClient) UpdateOne(_m *ActiveEffect) *ActiveEffectUpdateOne {
+	mutation := newActiveEffectMutation(c.config, OpUpdateOne, withActiveEffect(_m))
+	return &ActiveEffectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ActiveEffectClient) UpdateOneID(id int) *ActiveEffectUpdateOne {
+	mutation := newActiveEffectMutation(c.config, OpUpdateOne, withActiveEffectID(id))
+	return &ActiveEffectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ActiveEffect.
+func (c *ActiveEffectClient) Delete() *ActiveEffectDelete {
+	mutation := newActiveEffectMutation(c.config, OpDelete)
+	return &ActiveEffectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ActiveEffectClient) DeleteOne(_m *ActiveEffect) *ActiveEffectDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ActiveEffectClient) DeleteOneID(id int) *ActiveEffectDeleteOne {
+	builder := c.Delete().Where(activeeffect.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ActiveEffectDeleteOne{builder}
+}
+
+// Query returns a query builder for ActiveEffect.
+func (c *ActiveEffectClient) Query() *ActiveEffectQuery {
+	return &ActiveEffectQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeActiveEffect},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ActiveEffect entity by its id.
+func (c *ActiveEffectClient) Get(ctx context.Context, id int) (*ActiveEffect, error) {
+	return c.Query().Where(activeeffect.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ActiveEffectClient) GetX(ctx context.Context, id int) *ActiveEffect {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacter queries the character edge of a ActiveEffect.
+func (c *ActiveEffectClient) QueryCharacter(_m *ActiveEffect) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activeeffect.Table, activeeffect.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, activeeffect.CharacterTable, activeeffect.CharacterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEffect queries the effect edge of a ActiveEffect.
+func (c *ActiveEffectClient) QueryEffect(_m *ActiveEffect) *EffectQuery {
+	query := (&EffectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activeeffect.Table, activeeffect.FieldID, id),
+			sqlgraph.To(effect.Table, effect.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, activeeffect.EffectTable, activeeffect.EffectColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ActiveEffectClient) Hooks() []Hook {
+	return c.hooks.ActiveEffect
+}
+
+// Interceptors returns the client interceptors.
+func (c *ActiveEffectClient) Interceptors() []Interceptor {
+	return c.inters.ActiveEffect
+}
+
+func (c *ActiveEffectClient) mutate(ctx context.Context, m *ActiveEffectMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ActiveEffectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ActiveEffectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ActiveEffectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ActiveEffectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown ActiveEffect mutation op: %q", m.Op())
+	}
+}
+
 // CharacterClient is a client for the Character schema.
 type CharacterClient struct {
 	config
@@ -742,6 +931,22 @@ func (c *CharacterClient) QueryNpcTemplate(_m *Character) *NPCTemplateQuery {
 	return query
 }
 
+// QueryActiveEffects queries the active_effects edge of a Character.
+func (c *CharacterClient) QueryActiveEffects(_m *Character) *ActiveEffectQuery {
+	query := (&ActiveEffectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(activeeffect.Table, activeeffect.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.ActiveEffectsTable, character.ActiveEffectsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CharacterClient) Hooks() []Hook {
 	return c.hooks.Character
@@ -764,6 +969,336 @@ func (c *CharacterClient) mutate(ctx context.Context, m *CharacterMutation) (Val
 		return (&CharacterDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Character mutation op: %q", m.Op())
+	}
+}
+
+// EffectClient is a client for the Effect schema.
+type EffectClient struct {
+	config
+}
+
+// NewEffectClient returns a client for the Effect from the given config.
+func NewEffectClient(c config) *EffectClient {
+	return &EffectClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `effect.Hooks(f(g(h())))`.
+func (c *EffectClient) Use(hooks ...Hook) {
+	c.hooks.Effect = append(c.hooks.Effect, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `effect.Intercept(f(g(h())))`.
+func (c *EffectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Effect = append(c.inters.Effect, interceptors...)
+}
+
+// Create returns a builder for creating a Effect entity.
+func (c *EffectClient) Create() *EffectCreate {
+	mutation := newEffectMutation(c.config, OpCreate)
+	return &EffectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Effect entities.
+func (c *EffectClient) CreateBulk(builders ...*EffectCreate) *EffectCreateBulk {
+	return &EffectCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EffectClient) MapCreateBulk(slice any, setFunc func(*EffectCreate, int)) *EffectCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EffectCreateBulk{err: fmt.Errorf("calling to EffectClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EffectCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EffectCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Effect.
+func (c *EffectClient) Update() *EffectUpdate {
+	mutation := newEffectMutation(c.config, OpUpdate)
+	return &EffectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EffectClient) UpdateOne(_m *Effect) *EffectUpdateOne {
+	mutation := newEffectMutation(c.config, OpUpdateOne, withEffect(_m))
+	return &EffectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EffectClient) UpdateOneID(id int) *EffectUpdateOne {
+	mutation := newEffectMutation(c.config, OpUpdateOne, withEffectID(id))
+	return &EffectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Effect.
+func (c *EffectClient) Delete() *EffectDelete {
+	mutation := newEffectMutation(c.config, OpDelete)
+	return &EffectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EffectClient) DeleteOne(_m *Effect) *EffectDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EffectClient) DeleteOneID(id int) *EffectDeleteOne {
+	builder := c.Delete().Where(effect.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EffectDeleteOne{builder}
+}
+
+// Query returns a query builder for Effect.
+func (c *EffectClient) Query() *EffectQuery {
+	return &EffectQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEffect},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Effect entity by its id.
+func (c *EffectClient) Get(ctx context.Context, id int) (*Effect, error) {
+	return c.Query().Where(effect.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EffectClient) GetX(ctx context.Context, id int) *Effect {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryHooks queries the hooks edge of a Effect.
+func (c *EffectClient) QueryHooks(_m *Effect) *EffectHookQuery {
+	query := (&EffectHookClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(effect.Table, effect.FieldID, id),
+			sqlgraph.To(effecthook.Table, effecthook.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, effect.HooksTable, effect.HooksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryActiveEffectInstances queries the active_effect_instances edge of a Effect.
+func (c *EffectClient) QueryActiveEffectInstances(_m *Effect) *ActiveEffectQuery {
+	query := (&ActiveEffectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(effect.Table, effect.FieldID, id),
+			sqlgraph.To(activeeffect.Table, activeeffect.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, effect.ActiveEffectInstancesTable, effect.ActiveEffectInstancesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EffectClient) Hooks() []Hook {
+	return c.hooks.Effect
+}
+
+// Interceptors returns the client interceptors.
+func (c *EffectClient) Interceptors() []Interceptor {
+	return c.inters.Effect
+}
+
+func (c *EffectClient) mutate(ctx context.Context, m *EffectMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EffectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EffectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EffectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EffectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Effect mutation op: %q", m.Op())
+	}
+}
+
+// EffectHookClient is a client for the EffectHook schema.
+type EffectHookClient struct {
+	config
+}
+
+// NewEffectHookClient returns a client for the EffectHook from the given config.
+func NewEffectHookClient(c config) *EffectHookClient {
+	return &EffectHookClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `effecthook.Hooks(f(g(h())))`.
+func (c *EffectHookClient) Use(hooks ...Hook) {
+	c.hooks.EffectHook = append(c.hooks.EffectHook, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `effecthook.Intercept(f(g(h())))`.
+func (c *EffectHookClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EffectHook = append(c.inters.EffectHook, interceptors...)
+}
+
+// Create returns a builder for creating a EffectHook entity.
+func (c *EffectHookClient) Create() *EffectHookCreate {
+	mutation := newEffectHookMutation(c.config, OpCreate)
+	return &EffectHookCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EffectHook entities.
+func (c *EffectHookClient) CreateBulk(builders ...*EffectHookCreate) *EffectHookCreateBulk {
+	return &EffectHookCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EffectHookClient) MapCreateBulk(slice any, setFunc func(*EffectHookCreate, int)) *EffectHookCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EffectHookCreateBulk{err: fmt.Errorf("calling to EffectHookClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EffectHookCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EffectHookCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EffectHook.
+func (c *EffectHookClient) Update() *EffectHookUpdate {
+	mutation := newEffectHookMutation(c.config, OpUpdate)
+	return &EffectHookUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EffectHookClient) UpdateOne(_m *EffectHook) *EffectHookUpdateOne {
+	mutation := newEffectHookMutation(c.config, OpUpdateOne, withEffectHook(_m))
+	return &EffectHookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EffectHookClient) UpdateOneID(id int) *EffectHookUpdateOne {
+	mutation := newEffectHookMutation(c.config, OpUpdateOne, withEffectHookID(id))
+	return &EffectHookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EffectHook.
+func (c *EffectHookClient) Delete() *EffectHookDelete {
+	mutation := newEffectHookMutation(c.config, OpDelete)
+	return &EffectHookDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EffectHookClient) DeleteOne(_m *EffectHook) *EffectHookDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EffectHookClient) DeleteOneID(id int) *EffectHookDeleteOne {
+	builder := c.Delete().Where(effecthook.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EffectHookDeleteOne{builder}
+}
+
+// Query returns a query builder for EffectHook.
+func (c *EffectHookClient) Query() *EffectHookQuery {
+	return &EffectHookQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEffectHook},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EffectHook entity by its id.
+func (c *EffectHookClient) Get(ctx context.Context, id int) (*EffectHook, error) {
+	return c.Query().Where(effecthook.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EffectHookClient) GetX(ctx context.Context, id int) *EffectHook {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryEffect queries the effect edge of a EffectHook.
+func (c *EffectHookClient) QueryEffect(_m *EffectHook) *EffectQuery {
+	query := (&EffectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(effecthook.Table, effecthook.FieldID, id),
+			sqlgraph.To(effect.Table, effect.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, effecthook.EffectTable, effecthook.EffectColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNpcTemplate queries the npc_template edge of a EffectHook.
+func (c *EffectHookClient) QueryNpcTemplate(_m *EffectHook) *NPCTemplateQuery {
+	query := (&NPCTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(effecthook.Table, effecthook.FieldID, id),
+			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, effecthook.NpcTemplateTable, effecthook.NpcTemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EffectHookClient) Hooks() []Hook {
+	return c.hooks.EffectHook
+}
+
+// Interceptors returns the client interceptors.
+func (c *EffectHookClient) Interceptors() []Interceptor {
+	return c.inters.EffectHook
+}
+
+func (c *EffectHookClient) mutate(ctx context.Context, m *EffectHookMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EffectHookCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EffectHookUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EffectHookUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EffectHookDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown EffectHook mutation op: %q", m.Op())
 	}
 }
 
@@ -1187,6 +1722,22 @@ func (c *NPCTemplateClient) GetX(ctx context.Context, id string) *NPCTemplate {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryHooks queries the hooks edge of a NPCTemplate.
+func (c *NPCTemplateClient) QueryHooks(_m *NPCTemplate) *EffectHookQuery {
+	query := (&EffectHookClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, id),
+			sqlgraph.To(effecthook.Table, effecthook.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, npctemplate.HooksTable, npctemplate.HooksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1664,11 +2215,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Ability, AbilityEffect, Character, Equipment, EquipmentTemplate, NPCTemplate,
-		Race, Room, User []ent.Hook
+		Ability, AbilityEffect, ActiveEffect, Character, Effect, EffectHook, Equipment,
+		EquipmentTemplate, NPCTemplate, Race, Room, User []ent.Hook
 	}
 	inters struct {
-		Ability, AbilityEffect, Character, Equipment, EquipmentTemplate, NPCTemplate,
-		Race, Room, User []ent.Interceptor
+		Ability, AbilityEffect, ActiveEffect, Character, Effect, EffectHook, Equipment,
+		EquipmentTemplate, NPCTemplate, Race, Room, User []ent.Interceptor
 	}
 )

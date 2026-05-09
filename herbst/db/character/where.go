@@ -1633,6 +1633,29 @@ func HasNpcTemplateWith(preds ...predicate.NPCTemplate) predicate.Character {
 	})
 }
 
+// HasActiveEffects applies the HasEdge predicate on the "active_effects" edge.
+func HasActiveEffects() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ActiveEffectsTable, ActiveEffectsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasActiveEffectsWith applies the HasEdge predicate on the "active_effects" edge with a given conditions (other predicates).
+func HasActiveEffectsWith(preds ...predicate.ActiveEffect) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newActiveEffectsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Character) predicate.Character {
 	return predicate.Character(sql.AndPredicates(predicates...))

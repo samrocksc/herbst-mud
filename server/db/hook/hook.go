@@ -44,6 +44,18 @@ func (f AchievementFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AchievementMutation", m)
 }
 
+// The ActiveEffectFunc type is an adapter to allow the use of ordinary
+// function as ActiveEffect mutator.
+type ActiveEffectFunc func(context.Context, *db.ActiveEffectMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ActiveEffectFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ActiveEffectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ActiveEffectMutation", m)
+}
+
 // The AppLogFunc type is an adapter to allow the use of ordinary
 // function as AppLog mutator.
 type AppLogFunc func(context.Context, *db.AppLogMutation) (db.Value, error)
@@ -150,6 +162,30 @@ func (f DamageLogFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.DamageLogMutation", m)
+}
+
+// The EffectFunc type is an adapter to allow the use of ordinary
+// function as Effect mutator.
+type EffectFunc func(context.Context, *db.EffectMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EffectFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.EffectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EffectMutation", m)
+}
+
+// The EffectHookFunc type is an adapter to allow the use of ordinary
+// function as EffectHook mutator.
+type EffectHookFunc func(context.Context, *db.EffectHookMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EffectHookFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.EffectHookMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.EffectHookMutation", m)
 }
 
 // The EquipmentFunc type is an adapter to allow the use of ordinary

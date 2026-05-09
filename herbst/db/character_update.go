@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst/db/activeeffect"
 	"herbst/db/character"
 	"herbst/db/npctemplate"
 	"herbst/db/predicate"
@@ -699,6 +700,21 @@ func (_u *CharacterUpdate) SetNpcTemplate(v *NPCTemplate) *CharacterUpdate {
 	return _u.SetNpcTemplateID(v.ID)
 }
 
+// AddActiveEffectIDs adds the "active_effects" edge to the ActiveEffect entity by IDs.
+func (_u *CharacterUpdate) AddActiveEffectIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddActiveEffectIDs(ids...)
+	return _u
+}
+
+// AddActiveEffects adds the "active_effects" edges to the ActiveEffect entity.
+func (_u *CharacterUpdate) AddActiveEffects(v ...*ActiveEffect) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddActiveEffectIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -720,6 +736,27 @@ func (_u *CharacterUpdate) ClearRoom() *CharacterUpdate {
 func (_u *CharacterUpdate) ClearNpcTemplate() *CharacterUpdate {
 	_u.mutation.ClearNpcTemplate()
 	return _u
+}
+
+// ClearActiveEffects clears all "active_effects" edges to the ActiveEffect entity.
+func (_u *CharacterUpdate) ClearActiveEffects() *CharacterUpdate {
+	_u.mutation.ClearActiveEffects()
+	return _u
+}
+
+// RemoveActiveEffectIDs removes the "active_effects" edge to ActiveEffect entities by IDs.
+func (_u *CharacterUpdate) RemoveActiveEffectIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveActiveEffectIDs(ids...)
+	return _u
+}
+
+// RemoveActiveEffects removes "active_effects" edges to ActiveEffect entities.
+func (_u *CharacterUpdate) RemoveActiveEffects(v ...*ActiveEffect) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveActiveEffectIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1017,6 +1054,51 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ActiveEffectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ActiveEffectsTable,
+			Columns: []string{character.ActiveEffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedActiveEffectsIDs(); len(nodes) > 0 && !_u.mutation.ActiveEffectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ActiveEffectsTable,
+			Columns: []string{character.ActiveEffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ActiveEffectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ActiveEffectsTable,
+			Columns: []string{character.ActiveEffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1713,6 +1795,21 @@ func (_u *CharacterUpdateOne) SetNpcTemplate(v *NPCTemplate) *CharacterUpdateOne
 	return _u.SetNpcTemplateID(v.ID)
 }
 
+// AddActiveEffectIDs adds the "active_effects" edge to the ActiveEffect entity by IDs.
+func (_u *CharacterUpdateOne) AddActiveEffectIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddActiveEffectIDs(ids...)
+	return _u
+}
+
+// AddActiveEffects adds the "active_effects" edges to the ActiveEffect entity.
+func (_u *CharacterUpdateOne) AddActiveEffects(v ...*ActiveEffect) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddActiveEffectIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -1734,6 +1831,27 @@ func (_u *CharacterUpdateOne) ClearRoom() *CharacterUpdateOne {
 func (_u *CharacterUpdateOne) ClearNpcTemplate() *CharacterUpdateOne {
 	_u.mutation.ClearNpcTemplate()
 	return _u
+}
+
+// ClearActiveEffects clears all "active_effects" edges to the ActiveEffect entity.
+func (_u *CharacterUpdateOne) ClearActiveEffects() *CharacterUpdateOne {
+	_u.mutation.ClearActiveEffects()
+	return _u
+}
+
+// RemoveActiveEffectIDs removes the "active_effects" edge to ActiveEffect entities by IDs.
+func (_u *CharacterUpdateOne) RemoveActiveEffectIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveActiveEffectIDs(ids...)
+	return _u
+}
+
+// RemoveActiveEffects removes "active_effects" edges to ActiveEffect entities.
+func (_u *CharacterUpdateOne) RemoveActiveEffects(v ...*ActiveEffect) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveActiveEffectIDs(ids...)
 }
 
 // Where appends a list predicates to the CharacterUpdate builder.
@@ -2061,6 +2179,51 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ActiveEffectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ActiveEffectsTable,
+			Columns: []string{character.ActiveEffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedActiveEffectsIDs(); len(nodes) > 0 && !_u.mutation.ActiveEffectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ActiveEffectsTable,
+			Columns: []string{character.ActiveEffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ActiveEffectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ActiveEffectsTable,
+			Columns: []string{character.ActiveEffectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

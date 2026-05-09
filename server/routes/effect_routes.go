@@ -20,8 +20,8 @@ func RegisterEffectRoutes(r *gin.Engine, client *db.Client) {
 	{
 		effects.GET("/abilities/:id/effects", listEffects(client))
 		effects.POST("/abilities/:id/effects", createEffect(client))
-		effects.PUT("/effects/:id", updateEffect(client))
-		effects.DELETE("/effects/:id", deleteEffect(client))
+		effects.PUT("/ability-effects/:id", updateEffect(client))
+		effects.DELETE("/ability-effects/:id", deleteEffect(client))
 	}
 }
 

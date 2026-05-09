@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"herbst/db/ability"
 	"herbst/db/abilityeffect"
+	"herbst/db/activeeffect"
 	"herbst/db/character"
+	"herbst/db/effect"
+	"herbst/db/effecthook"
 	"herbst/db/equipment"
 	"herbst/db/equipmenttemplate"
 	"herbst/db/npctemplate"
@@ -17,6 +20,7 @@ import (
 	"herbst/db/room"
 	"herbst/db/user"
 	"sync"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -33,7 +37,10 @@ const (
 	// Node types.
 	TypeAbility           = "Ability"
 	TypeAbilityEffect     = "AbilityEffect"
+	TypeActiveEffect      = "ActiveEffect"
 	TypeCharacter         = "Character"
+	TypeEffect            = "Effect"
+	TypeEffectHook        = "EffectHook"
 	TypeEquipment         = "Equipment"
 	TypeEquipmentTemplate = "EquipmentTemplate"
 	TypeNPCTemplate       = "NPCTemplate"
@@ -2482,75 +2489,919 @@ func (m *AbilityEffectMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AbilityEffect edge %s", name)
 }
 
+// ActiveEffectMutation represents an operation that mutates the ActiveEffect nodes in the graph.
+type ActiveEffectMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	applied_by_id    *int
+	addapplied_by_id *int
+	stack_count      *int
+	addstack_count   *int
+	started_at       *time.Time
+	expires_at       *time.Time
+	is_active        *bool
+	clearedFields    map[string]struct{}
+	character        *int
+	clearedcharacter bool
+	effect           *int
+	clearedeffect    bool
+	done             bool
+	oldValue         func(context.Context) (*ActiveEffect, error)
+	predicates       []predicate.ActiveEffect
+}
+
+var _ ent.Mutation = (*ActiveEffectMutation)(nil)
+
+// activeeffectOption allows management of the mutation configuration using functional options.
+type activeeffectOption func(*ActiveEffectMutation)
+
+// newActiveEffectMutation creates new mutation for the ActiveEffect entity.
+func newActiveEffectMutation(c config, op Op, opts ...activeeffectOption) *ActiveEffectMutation {
+	m := &ActiveEffectMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeActiveEffect,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withActiveEffectID sets the ID field of the mutation.
+func withActiveEffectID(id int) activeeffectOption {
+	return func(m *ActiveEffectMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ActiveEffect
+		)
+		m.oldValue = func(ctx context.Context) (*ActiveEffect, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ActiveEffect.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withActiveEffect sets the old ActiveEffect of the mutation.
+func withActiveEffect(node *ActiveEffect) activeeffectOption {
+	return func(m *ActiveEffectMutation) {
+		m.oldValue = func(context.Context) (*ActiveEffect, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ActiveEffectMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ActiveEffectMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ActiveEffectMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ActiveEffectMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ActiveEffect.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCharacterID sets the "character_id" field.
+func (m *ActiveEffectMutation) SetCharacterID(i int) {
+	m.character = &i
+}
+
+// CharacterID returns the value of the "character_id" field in the mutation.
+func (m *ActiveEffectMutation) CharacterID() (r int, exists bool) {
+	v := m.character
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharacterID returns the old "character_id" field's value of the ActiveEffect entity.
+// If the ActiveEffect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveEffectMutation) OldCharacterID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharacterID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharacterID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharacterID: %w", err)
+	}
+	return oldValue.CharacterID, nil
+}
+
+// ResetCharacterID resets all changes to the "character_id" field.
+func (m *ActiveEffectMutation) ResetCharacterID() {
+	m.character = nil
+}
+
+// SetEffectID sets the "effect_id" field.
+func (m *ActiveEffectMutation) SetEffectID(i int) {
+	m.effect = &i
+}
+
+// EffectID returns the value of the "effect_id" field in the mutation.
+func (m *ActiveEffectMutation) EffectID() (r int, exists bool) {
+	v := m.effect
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectID returns the old "effect_id" field's value of the ActiveEffect entity.
+// If the ActiveEffect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveEffectMutation) OldEffectID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectID: %w", err)
+	}
+	return oldValue.EffectID, nil
+}
+
+// ResetEffectID resets all changes to the "effect_id" field.
+func (m *ActiveEffectMutation) ResetEffectID() {
+	m.effect = nil
+}
+
+// SetAppliedByID sets the "applied_by_id" field.
+func (m *ActiveEffectMutation) SetAppliedByID(i int) {
+	m.applied_by_id = &i
+	m.addapplied_by_id = nil
+}
+
+// AppliedByID returns the value of the "applied_by_id" field in the mutation.
+func (m *ActiveEffectMutation) AppliedByID() (r int, exists bool) {
+	v := m.applied_by_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAppliedByID returns the old "applied_by_id" field's value of the ActiveEffect entity.
+// If the ActiveEffect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveEffectMutation) OldAppliedByID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAppliedByID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAppliedByID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAppliedByID: %w", err)
+	}
+	return oldValue.AppliedByID, nil
+}
+
+// AddAppliedByID adds i to the "applied_by_id" field.
+func (m *ActiveEffectMutation) AddAppliedByID(i int) {
+	if m.addapplied_by_id != nil {
+		*m.addapplied_by_id += i
+	} else {
+		m.addapplied_by_id = &i
+	}
+}
+
+// AddedAppliedByID returns the value that was added to the "applied_by_id" field in this mutation.
+func (m *ActiveEffectMutation) AddedAppliedByID() (r int, exists bool) {
+	v := m.addapplied_by_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAppliedByID resets all changes to the "applied_by_id" field.
+func (m *ActiveEffectMutation) ResetAppliedByID() {
+	m.applied_by_id = nil
+	m.addapplied_by_id = nil
+}
+
+// SetStackCount sets the "stack_count" field.
+func (m *ActiveEffectMutation) SetStackCount(i int) {
+	m.stack_count = &i
+	m.addstack_count = nil
+}
+
+// StackCount returns the value of the "stack_count" field in the mutation.
+func (m *ActiveEffectMutation) StackCount() (r int, exists bool) {
+	v := m.stack_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStackCount returns the old "stack_count" field's value of the ActiveEffect entity.
+// If the ActiveEffect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveEffectMutation) OldStackCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStackCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStackCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStackCount: %w", err)
+	}
+	return oldValue.StackCount, nil
+}
+
+// AddStackCount adds i to the "stack_count" field.
+func (m *ActiveEffectMutation) AddStackCount(i int) {
+	if m.addstack_count != nil {
+		*m.addstack_count += i
+	} else {
+		m.addstack_count = &i
+	}
+}
+
+// AddedStackCount returns the value that was added to the "stack_count" field in this mutation.
+func (m *ActiveEffectMutation) AddedStackCount() (r int, exists bool) {
+	v := m.addstack_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStackCount resets all changes to the "stack_count" field.
+func (m *ActiveEffectMutation) ResetStackCount() {
+	m.stack_count = nil
+	m.addstack_count = nil
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *ActiveEffectMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *ActiveEffectMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the ActiveEffect entity.
+// If the ActiveEffect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveEffectMutation) OldStartedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *ActiveEffectMutation) ResetStartedAt() {
+	m.started_at = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *ActiveEffectMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *ActiveEffectMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the ActiveEffect entity.
+// If the ActiveEffect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveEffectMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (m *ActiveEffectMutation) ClearExpiresAt() {
+	m.expires_at = nil
+	m.clearedFields[activeeffect.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
+func (m *ActiveEffectMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[activeeffect.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *ActiveEffectMutation) ResetExpiresAt() {
+	m.expires_at = nil
+	delete(m.clearedFields, activeeffect.FieldExpiresAt)
+}
+
+// SetIsActive sets the "is_active" field.
+func (m *ActiveEffectMutation) SetIsActive(b bool) {
+	m.is_active = &b
+}
+
+// IsActive returns the value of the "is_active" field in the mutation.
+func (m *ActiveEffectMutation) IsActive() (r bool, exists bool) {
+	v := m.is_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsActive returns the old "is_active" field's value of the ActiveEffect entity.
+// If the ActiveEffect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveEffectMutation) OldIsActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
+	}
+	return oldValue.IsActive, nil
+}
+
+// ResetIsActive resets all changes to the "is_active" field.
+func (m *ActiveEffectMutation) ResetIsActive() {
+	m.is_active = nil
+}
+
+// ClearCharacter clears the "character" edge to the Character entity.
+func (m *ActiveEffectMutation) ClearCharacter() {
+	m.clearedcharacter = true
+	m.clearedFields[activeeffect.FieldCharacterID] = struct{}{}
+}
+
+// CharacterCleared reports if the "character" edge to the Character entity was cleared.
+func (m *ActiveEffectMutation) CharacterCleared() bool {
+	return m.clearedcharacter
+}
+
+// CharacterIDs returns the "character" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CharacterID instead. It exists only for internal usage by the builders.
+func (m *ActiveEffectMutation) CharacterIDs() (ids []int) {
+	if id := m.character; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCharacter resets all changes to the "character" edge.
+func (m *ActiveEffectMutation) ResetCharacter() {
+	m.character = nil
+	m.clearedcharacter = false
+}
+
+// ClearEffect clears the "effect" edge to the Effect entity.
+func (m *ActiveEffectMutation) ClearEffect() {
+	m.clearedeffect = true
+	m.clearedFields[activeeffect.FieldEffectID] = struct{}{}
+}
+
+// EffectCleared reports if the "effect" edge to the Effect entity was cleared.
+func (m *ActiveEffectMutation) EffectCleared() bool {
+	return m.clearedeffect
+}
+
+// EffectIDs returns the "effect" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EffectID instead. It exists only for internal usage by the builders.
+func (m *ActiveEffectMutation) EffectIDs() (ids []int) {
+	if id := m.effect; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEffect resets all changes to the "effect" edge.
+func (m *ActiveEffectMutation) ResetEffect() {
+	m.effect = nil
+	m.clearedeffect = false
+}
+
+// Where appends a list predicates to the ActiveEffectMutation builder.
+func (m *ActiveEffectMutation) Where(ps ...predicate.ActiveEffect) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ActiveEffectMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ActiveEffectMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ActiveEffect, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ActiveEffectMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ActiveEffectMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ActiveEffect).
+func (m *ActiveEffectMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ActiveEffectMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.character != nil {
+		fields = append(fields, activeeffect.FieldCharacterID)
+	}
+	if m.effect != nil {
+		fields = append(fields, activeeffect.FieldEffectID)
+	}
+	if m.applied_by_id != nil {
+		fields = append(fields, activeeffect.FieldAppliedByID)
+	}
+	if m.stack_count != nil {
+		fields = append(fields, activeeffect.FieldStackCount)
+	}
+	if m.started_at != nil {
+		fields = append(fields, activeeffect.FieldStartedAt)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, activeeffect.FieldExpiresAt)
+	}
+	if m.is_active != nil {
+		fields = append(fields, activeeffect.FieldIsActive)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ActiveEffectMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case activeeffect.FieldCharacterID:
+		return m.CharacterID()
+	case activeeffect.FieldEffectID:
+		return m.EffectID()
+	case activeeffect.FieldAppliedByID:
+		return m.AppliedByID()
+	case activeeffect.FieldStackCount:
+		return m.StackCount()
+	case activeeffect.FieldStartedAt:
+		return m.StartedAt()
+	case activeeffect.FieldExpiresAt:
+		return m.ExpiresAt()
+	case activeeffect.FieldIsActive:
+		return m.IsActive()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ActiveEffectMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case activeeffect.FieldCharacterID:
+		return m.OldCharacterID(ctx)
+	case activeeffect.FieldEffectID:
+		return m.OldEffectID(ctx)
+	case activeeffect.FieldAppliedByID:
+		return m.OldAppliedByID(ctx)
+	case activeeffect.FieldStackCount:
+		return m.OldStackCount(ctx)
+	case activeeffect.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case activeeffect.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case activeeffect.FieldIsActive:
+		return m.OldIsActive(ctx)
+	}
+	return nil, fmt.Errorf("unknown ActiveEffect field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ActiveEffectMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case activeeffect.FieldCharacterID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharacterID(v)
+		return nil
+	case activeeffect.FieldEffectID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectID(v)
+		return nil
+	case activeeffect.FieldAppliedByID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAppliedByID(v)
+		return nil
+	case activeeffect.FieldStackCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStackCount(v)
+		return nil
+	case activeeffect.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case activeeffect.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case activeeffect.FieldIsActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsActive(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ActiveEffect field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ActiveEffectMutation) AddedFields() []string {
+	var fields []string
+	if m.addapplied_by_id != nil {
+		fields = append(fields, activeeffect.FieldAppliedByID)
+	}
+	if m.addstack_count != nil {
+		fields = append(fields, activeeffect.FieldStackCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ActiveEffectMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case activeeffect.FieldAppliedByID:
+		return m.AddedAppliedByID()
+	case activeeffect.FieldStackCount:
+		return m.AddedStackCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ActiveEffectMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case activeeffect.FieldAppliedByID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAppliedByID(v)
+		return nil
+	case activeeffect.FieldStackCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStackCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ActiveEffect numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ActiveEffectMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(activeeffect.FieldExpiresAt) {
+		fields = append(fields, activeeffect.FieldExpiresAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ActiveEffectMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ActiveEffectMutation) ClearField(name string) error {
+	switch name {
+	case activeeffect.FieldExpiresAt:
+		m.ClearExpiresAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ActiveEffect nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ActiveEffectMutation) ResetField(name string) error {
+	switch name {
+	case activeeffect.FieldCharacterID:
+		m.ResetCharacterID()
+		return nil
+	case activeeffect.FieldEffectID:
+		m.ResetEffectID()
+		return nil
+	case activeeffect.FieldAppliedByID:
+		m.ResetAppliedByID()
+		return nil
+	case activeeffect.FieldStackCount:
+		m.ResetStackCount()
+		return nil
+	case activeeffect.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case activeeffect.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case activeeffect.FieldIsActive:
+		m.ResetIsActive()
+		return nil
+	}
+	return fmt.Errorf("unknown ActiveEffect field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ActiveEffectMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.character != nil {
+		edges = append(edges, activeeffect.EdgeCharacter)
+	}
+	if m.effect != nil {
+		edges = append(edges, activeeffect.EdgeEffect)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ActiveEffectMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case activeeffect.EdgeCharacter:
+		if id := m.character; id != nil {
+			return []ent.Value{*id}
+		}
+	case activeeffect.EdgeEffect:
+		if id := m.effect; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ActiveEffectMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ActiveEffectMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ActiveEffectMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedcharacter {
+		edges = append(edges, activeeffect.EdgeCharacter)
+	}
+	if m.clearedeffect {
+		edges = append(edges, activeeffect.EdgeEffect)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ActiveEffectMutation) EdgeCleared(name string) bool {
+	switch name {
+	case activeeffect.EdgeCharacter:
+		return m.clearedcharacter
+	case activeeffect.EdgeEffect:
+		return m.clearedeffect
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ActiveEffectMutation) ClearEdge(name string) error {
+	switch name {
+	case activeeffect.EdgeCharacter:
+		m.ClearCharacter()
+		return nil
+	case activeeffect.EdgeEffect:
+		m.ClearEffect()
+		return nil
+	}
+	return fmt.Errorf("unknown ActiveEffect unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ActiveEffectMutation) ResetEdge(name string) error {
+	switch name {
+	case activeeffect.EdgeCharacter:
+		m.ResetCharacter()
+		return nil
+	case activeeffect.EdgeEffect:
+		m.ResetEffect()
+		return nil
+	}
+	return fmt.Errorf("unknown ActiveEffect edge %s", name)
+}
+
 // CharacterMutation represents an operation that mutates the Character nodes in the graph.
 type CharacterMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	name                 *string
-	password             *string
-	isNPC                *bool
-	startingRoomId       *int
-	addstartingRoomId    *int
-	is_admin             *bool
-	is_test              *bool
-	hitpoints            *int
-	addhitpoints         *int
-	max_hitpoints        *int
-	addmax_hitpoints     *int
-	stamina              *int
-	addstamina           *int
-	max_stamina          *int
-	addmax_stamina       *int
-	mana                 *int
-	addmana              *int
-	max_mana             *int
-	addmax_mana          *int
-	race                 *string
-	class                *string
-	level                *int
-	addlevel             *int
-	constitution         *int
-	addconstitution      *int
-	gender               *string
-	description          *string
-	strength             *int
-	addstrength          *int
-	dexterity            *int
-	adddexterity         *int
-	intelligence         *int
-	addintelligence      *int
-	wisdom               *int
-	addwisdom            *int
-	skill_blades         *int
-	addskill_blades      *int
-	skill_staves         *int
-	addskill_staves      *int
-	skill_knives         *int
-	addskill_knives      *int
-	skill_martial        *int
-	addskill_martial     *int
-	skill_brawling       *int
-	addskill_brawling    *int
-	skill_tech           *int
-	addskill_tech        *int
-	skill_light_armor    *int
-	addskill_light_armor *int
-	skill_cloth_armor    *int
-	addskill_cloth_armor *int
-	skill_heavy_armor    *int
-	addskill_heavy_armor *int
-	clearedFields        map[string]struct{}
-	user                 *int
-	cleareduser          bool
-	room                 *int
-	clearedroom          bool
-	npcTemplate          *string
-	clearednpcTemplate   bool
-	done                 bool
-	oldValue             func(context.Context) (*Character, error)
-	predicates           []predicate.Character
+	op                    Op
+	typ                   string
+	id                    *int
+	name                  *string
+	password              *string
+	isNPC                 *bool
+	startingRoomId        *int
+	addstartingRoomId     *int
+	is_admin              *bool
+	is_test               *bool
+	hitpoints             *int
+	addhitpoints          *int
+	max_hitpoints         *int
+	addmax_hitpoints      *int
+	stamina               *int
+	addstamina            *int
+	max_stamina           *int
+	addmax_stamina        *int
+	mana                  *int
+	addmana               *int
+	max_mana              *int
+	addmax_mana           *int
+	race                  *string
+	class                 *string
+	level                 *int
+	addlevel              *int
+	constitution          *int
+	addconstitution       *int
+	gender                *string
+	description           *string
+	strength              *int
+	addstrength           *int
+	dexterity             *int
+	adddexterity          *int
+	intelligence          *int
+	addintelligence       *int
+	wisdom                *int
+	addwisdom             *int
+	skill_blades          *int
+	addskill_blades       *int
+	skill_staves          *int
+	addskill_staves       *int
+	skill_knives          *int
+	addskill_knives       *int
+	skill_martial         *int
+	addskill_martial      *int
+	skill_brawling        *int
+	addskill_brawling     *int
+	skill_tech            *int
+	addskill_tech         *int
+	skill_light_armor     *int
+	addskill_light_armor  *int
+	skill_cloth_armor     *int
+	addskill_cloth_armor  *int
+	skill_heavy_armor     *int
+	addskill_heavy_armor  *int
+	clearedFields         map[string]struct{}
+	user                  *int
+	cleareduser           bool
+	room                  *int
+	clearedroom           bool
+	npcTemplate           *string
+	clearednpcTemplate    bool
+	active_effects        map[int]struct{}
+	removedactive_effects map[int]struct{}
+	clearedactive_effects bool
+	done                  bool
+	oldValue              func(context.Context) (*Character, error)
+	predicates            []predicate.Character
 }
 
 var _ ent.Mutation = (*CharacterMutation)(nil)
@@ -4400,6 +5251,60 @@ func (m *CharacterMutation) ResetNpcTemplate() {
 	m.clearednpcTemplate = false
 }
 
+// AddActiveEffectIDs adds the "active_effects" edge to the ActiveEffect entity by ids.
+func (m *CharacterMutation) AddActiveEffectIDs(ids ...int) {
+	if m.active_effects == nil {
+		m.active_effects = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.active_effects[ids[i]] = struct{}{}
+	}
+}
+
+// ClearActiveEffects clears the "active_effects" edge to the ActiveEffect entity.
+func (m *CharacterMutation) ClearActiveEffects() {
+	m.clearedactive_effects = true
+}
+
+// ActiveEffectsCleared reports if the "active_effects" edge to the ActiveEffect entity was cleared.
+func (m *CharacterMutation) ActiveEffectsCleared() bool {
+	return m.clearedactive_effects
+}
+
+// RemoveActiveEffectIDs removes the "active_effects" edge to the ActiveEffect entity by IDs.
+func (m *CharacterMutation) RemoveActiveEffectIDs(ids ...int) {
+	if m.removedactive_effects == nil {
+		m.removedactive_effects = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.active_effects, ids[i])
+		m.removedactive_effects[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedActiveEffects returns the removed IDs of the "active_effects" edge to the ActiveEffect entity.
+func (m *CharacterMutation) RemovedActiveEffectsIDs() (ids []int) {
+	for id := range m.removedactive_effects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ActiveEffectsIDs returns the "active_effects" edge IDs in the mutation.
+func (m *CharacterMutation) ActiveEffectsIDs() (ids []int) {
+	for id := range m.active_effects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetActiveEffects resets all changes to the "active_effects" edge.
+func (m *CharacterMutation) ResetActiveEffects() {
+	m.active_effects = nil
+	m.clearedactive_effects = false
+	m.removedactive_effects = nil
+}
+
 // Where appends a list predicates to the CharacterMutation builder.
 func (m *CharacterMutation) Where(ps ...predicate.Character) {
 	m.predicates = append(m.predicates, ps...)
@@ -5348,7 +6253,7 @@ func (m *CharacterMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CharacterMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.user != nil {
 		edges = append(edges, character.EdgeUser)
 	}
@@ -5357,6 +6262,9 @@ func (m *CharacterMutation) AddedEdges() []string {
 	}
 	if m.npcTemplate != nil {
 		edges = append(edges, character.EdgeNpcTemplate)
+	}
+	if m.active_effects != nil {
+		edges = append(edges, character.EdgeActiveEffects)
 	}
 	return edges
 }
@@ -5377,25 +6285,42 @@ func (m *CharacterMutation) AddedIDs(name string) []ent.Value {
 		if id := m.npcTemplate; id != nil {
 			return []ent.Value{*id}
 		}
+	case character.EdgeActiveEffects:
+		ids := make([]ent.Value, 0, len(m.active_effects))
+		for id := range m.active_effects {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CharacterMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
+	if m.removedactive_effects != nil {
+		edges = append(edges, character.EdgeActiveEffects)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CharacterMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case character.EdgeActiveEffects:
+		ids := make([]ent.Value, 0, len(m.removedactive_effects))
+		for id := range m.removedactive_effects {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CharacterMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.cleareduser {
 		edges = append(edges, character.EdgeUser)
 	}
@@ -5404,6 +6329,9 @@ func (m *CharacterMutation) ClearedEdges() []string {
 	}
 	if m.clearednpcTemplate {
 		edges = append(edges, character.EdgeNpcTemplate)
+	}
+	if m.clearedactive_effects {
+		edges = append(edges, character.EdgeActiveEffects)
 	}
 	return edges
 }
@@ -5418,6 +6346,8 @@ func (m *CharacterMutation) EdgeCleared(name string) bool {
 		return m.clearedroom
 	case character.EdgeNpcTemplate:
 		return m.clearednpcTemplate
+	case character.EdgeActiveEffects:
+		return m.clearedactive_effects
 	}
 	return false
 }
@@ -5452,8 +6382,1596 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 	case character.EdgeNpcTemplate:
 		m.ResetNpcTemplate()
 		return nil
+	case character.EdgeActiveEffects:
+		m.ResetActiveEffects()
+		return nil
 	}
 	return fmt.Errorf("unknown Character edge %s", name)
+}
+
+// EffectMutation represents an operation that mutates the Effect nodes in the graph.
+type EffectMutation struct {
+	config
+	op                             Op
+	typ                            string
+	id                             *int
+	name                           *string
+	effect_type                    *string
+	parameters                     *map[string]interface{}
+	stack_mode                     *string
+	stack_limit                    *int
+	addstack_limit                 *int
+	is_permanent                   *bool
+	duration_secs                  *int
+	addduration_secs               *int
+	clearedFields                  map[string]struct{}
+	_hooks                         map[int]struct{}
+	removed_hooks                  map[int]struct{}
+	cleared_hooks                  bool
+	active_effect_instances        map[int]struct{}
+	removedactive_effect_instances map[int]struct{}
+	clearedactive_effect_instances bool
+	done                           bool
+	oldValue                       func(context.Context) (*Effect, error)
+	predicates                     []predicate.Effect
+}
+
+var _ ent.Mutation = (*EffectMutation)(nil)
+
+// effectOption allows management of the mutation configuration using functional options.
+type effectOption func(*EffectMutation)
+
+// newEffectMutation creates new mutation for the Effect entity.
+func newEffectMutation(c config, op Op, opts ...effectOption) *EffectMutation {
+	m := &EffectMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEffect,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEffectID sets the ID field of the mutation.
+func withEffectID(id int) effectOption {
+	return func(m *EffectMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Effect
+		)
+		m.oldValue = func(ctx context.Context) (*Effect, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Effect.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEffect sets the old Effect of the mutation.
+func withEffect(node *Effect) effectOption {
+	return func(m *EffectMutation) {
+		m.oldValue = func(context.Context) (*Effect, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EffectMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EffectMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EffectMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EffectMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Effect.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *EffectMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *EffectMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Effect entity.
+// If the Effect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *EffectMutation) ResetName() {
+	m.name = nil
+}
+
+// SetEffectType sets the "effect_type" field.
+func (m *EffectMutation) SetEffectType(s string) {
+	m.effect_type = &s
+}
+
+// EffectType returns the value of the "effect_type" field in the mutation.
+func (m *EffectMutation) EffectType() (r string, exists bool) {
+	v := m.effect_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectType returns the old "effect_type" field's value of the Effect entity.
+// If the Effect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectMutation) OldEffectType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectType: %w", err)
+	}
+	return oldValue.EffectType, nil
+}
+
+// ResetEffectType resets all changes to the "effect_type" field.
+func (m *EffectMutation) ResetEffectType() {
+	m.effect_type = nil
+}
+
+// SetParameters sets the "parameters" field.
+func (m *EffectMutation) SetParameters(value map[string]interface{}) {
+	m.parameters = &value
+}
+
+// Parameters returns the value of the "parameters" field in the mutation.
+func (m *EffectMutation) Parameters() (r map[string]interface{}, exists bool) {
+	v := m.parameters
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParameters returns the old "parameters" field's value of the Effect entity.
+// If the Effect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectMutation) OldParameters(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParameters is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParameters requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParameters: %w", err)
+	}
+	return oldValue.Parameters, nil
+}
+
+// ResetParameters resets all changes to the "parameters" field.
+func (m *EffectMutation) ResetParameters() {
+	m.parameters = nil
+}
+
+// SetStackMode sets the "stack_mode" field.
+func (m *EffectMutation) SetStackMode(s string) {
+	m.stack_mode = &s
+}
+
+// StackMode returns the value of the "stack_mode" field in the mutation.
+func (m *EffectMutation) StackMode() (r string, exists bool) {
+	v := m.stack_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStackMode returns the old "stack_mode" field's value of the Effect entity.
+// If the Effect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectMutation) OldStackMode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStackMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStackMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStackMode: %w", err)
+	}
+	return oldValue.StackMode, nil
+}
+
+// ResetStackMode resets all changes to the "stack_mode" field.
+func (m *EffectMutation) ResetStackMode() {
+	m.stack_mode = nil
+}
+
+// SetStackLimit sets the "stack_limit" field.
+func (m *EffectMutation) SetStackLimit(i int) {
+	m.stack_limit = &i
+	m.addstack_limit = nil
+}
+
+// StackLimit returns the value of the "stack_limit" field in the mutation.
+func (m *EffectMutation) StackLimit() (r int, exists bool) {
+	v := m.stack_limit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStackLimit returns the old "stack_limit" field's value of the Effect entity.
+// If the Effect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectMutation) OldStackLimit(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStackLimit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStackLimit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStackLimit: %w", err)
+	}
+	return oldValue.StackLimit, nil
+}
+
+// AddStackLimit adds i to the "stack_limit" field.
+func (m *EffectMutation) AddStackLimit(i int) {
+	if m.addstack_limit != nil {
+		*m.addstack_limit += i
+	} else {
+		m.addstack_limit = &i
+	}
+}
+
+// AddedStackLimit returns the value that was added to the "stack_limit" field in this mutation.
+func (m *EffectMutation) AddedStackLimit() (r int, exists bool) {
+	v := m.addstack_limit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStackLimit resets all changes to the "stack_limit" field.
+func (m *EffectMutation) ResetStackLimit() {
+	m.stack_limit = nil
+	m.addstack_limit = nil
+}
+
+// SetIsPermanent sets the "is_permanent" field.
+func (m *EffectMutation) SetIsPermanent(b bool) {
+	m.is_permanent = &b
+}
+
+// IsPermanent returns the value of the "is_permanent" field in the mutation.
+func (m *EffectMutation) IsPermanent() (r bool, exists bool) {
+	v := m.is_permanent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPermanent returns the old "is_permanent" field's value of the Effect entity.
+// If the Effect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectMutation) OldIsPermanent(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPermanent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPermanent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPermanent: %w", err)
+	}
+	return oldValue.IsPermanent, nil
+}
+
+// ResetIsPermanent resets all changes to the "is_permanent" field.
+func (m *EffectMutation) ResetIsPermanent() {
+	m.is_permanent = nil
+}
+
+// SetDurationSecs sets the "duration_secs" field.
+func (m *EffectMutation) SetDurationSecs(i int) {
+	m.duration_secs = &i
+	m.addduration_secs = nil
+}
+
+// DurationSecs returns the value of the "duration_secs" field in the mutation.
+func (m *EffectMutation) DurationSecs() (r int, exists bool) {
+	v := m.duration_secs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationSecs returns the old "duration_secs" field's value of the Effect entity.
+// If the Effect object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectMutation) OldDurationSecs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationSecs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationSecs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationSecs: %w", err)
+	}
+	return oldValue.DurationSecs, nil
+}
+
+// AddDurationSecs adds i to the "duration_secs" field.
+func (m *EffectMutation) AddDurationSecs(i int) {
+	if m.addduration_secs != nil {
+		*m.addduration_secs += i
+	} else {
+		m.addduration_secs = &i
+	}
+}
+
+// AddedDurationSecs returns the value that was added to the "duration_secs" field in this mutation.
+func (m *EffectMutation) AddedDurationSecs() (r int, exists bool) {
+	v := m.addduration_secs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationSecs resets all changes to the "duration_secs" field.
+func (m *EffectMutation) ResetDurationSecs() {
+	m.duration_secs = nil
+	m.addduration_secs = nil
+}
+
+// AddHookIDs adds the "hooks" edge to the EffectHook entity by ids.
+func (m *EffectMutation) AddHookIDs(ids ...int) {
+	if m._hooks == nil {
+		m._hooks = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._hooks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHooks clears the "hooks" edge to the EffectHook entity.
+func (m *EffectMutation) ClearHooks() {
+	m.cleared_hooks = true
+}
+
+// HooksCleared reports if the "hooks" edge to the EffectHook entity was cleared.
+func (m *EffectMutation) HooksCleared() bool {
+	return m.cleared_hooks
+}
+
+// RemoveHookIDs removes the "hooks" edge to the EffectHook entity by IDs.
+func (m *EffectMutation) RemoveHookIDs(ids ...int) {
+	if m.removed_hooks == nil {
+		m.removed_hooks = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m._hooks, ids[i])
+		m.removed_hooks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHooks returns the removed IDs of the "hooks" edge to the EffectHook entity.
+func (m *EffectMutation) RemovedHooksIDs() (ids []int) {
+	for id := range m.removed_hooks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HooksIDs returns the "hooks" edge IDs in the mutation.
+func (m *EffectMutation) HooksIDs() (ids []int) {
+	for id := range m._hooks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHooks resets all changes to the "hooks" edge.
+func (m *EffectMutation) ResetHooks() {
+	m._hooks = nil
+	m.cleared_hooks = false
+	m.removed_hooks = nil
+}
+
+// AddActiveEffectInstanceIDs adds the "active_effect_instances" edge to the ActiveEffect entity by ids.
+func (m *EffectMutation) AddActiveEffectInstanceIDs(ids ...int) {
+	if m.active_effect_instances == nil {
+		m.active_effect_instances = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.active_effect_instances[ids[i]] = struct{}{}
+	}
+}
+
+// ClearActiveEffectInstances clears the "active_effect_instances" edge to the ActiveEffect entity.
+func (m *EffectMutation) ClearActiveEffectInstances() {
+	m.clearedactive_effect_instances = true
+}
+
+// ActiveEffectInstancesCleared reports if the "active_effect_instances" edge to the ActiveEffect entity was cleared.
+func (m *EffectMutation) ActiveEffectInstancesCleared() bool {
+	return m.clearedactive_effect_instances
+}
+
+// RemoveActiveEffectInstanceIDs removes the "active_effect_instances" edge to the ActiveEffect entity by IDs.
+func (m *EffectMutation) RemoveActiveEffectInstanceIDs(ids ...int) {
+	if m.removedactive_effect_instances == nil {
+		m.removedactive_effect_instances = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.active_effect_instances, ids[i])
+		m.removedactive_effect_instances[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedActiveEffectInstances returns the removed IDs of the "active_effect_instances" edge to the ActiveEffect entity.
+func (m *EffectMutation) RemovedActiveEffectInstancesIDs() (ids []int) {
+	for id := range m.removedactive_effect_instances {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ActiveEffectInstancesIDs returns the "active_effect_instances" edge IDs in the mutation.
+func (m *EffectMutation) ActiveEffectInstancesIDs() (ids []int) {
+	for id := range m.active_effect_instances {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetActiveEffectInstances resets all changes to the "active_effect_instances" edge.
+func (m *EffectMutation) ResetActiveEffectInstances() {
+	m.active_effect_instances = nil
+	m.clearedactive_effect_instances = false
+	m.removedactive_effect_instances = nil
+}
+
+// Where appends a list predicates to the EffectMutation builder.
+func (m *EffectMutation) Where(ps ...predicate.Effect) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EffectMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EffectMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Effect, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EffectMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EffectMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Effect).
+func (m *EffectMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EffectMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.name != nil {
+		fields = append(fields, effect.FieldName)
+	}
+	if m.effect_type != nil {
+		fields = append(fields, effect.FieldEffectType)
+	}
+	if m.parameters != nil {
+		fields = append(fields, effect.FieldParameters)
+	}
+	if m.stack_mode != nil {
+		fields = append(fields, effect.FieldStackMode)
+	}
+	if m.stack_limit != nil {
+		fields = append(fields, effect.FieldStackLimit)
+	}
+	if m.is_permanent != nil {
+		fields = append(fields, effect.FieldIsPermanent)
+	}
+	if m.duration_secs != nil {
+		fields = append(fields, effect.FieldDurationSecs)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EffectMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case effect.FieldName:
+		return m.Name()
+	case effect.FieldEffectType:
+		return m.EffectType()
+	case effect.FieldParameters:
+		return m.Parameters()
+	case effect.FieldStackMode:
+		return m.StackMode()
+	case effect.FieldStackLimit:
+		return m.StackLimit()
+	case effect.FieldIsPermanent:
+		return m.IsPermanent()
+	case effect.FieldDurationSecs:
+		return m.DurationSecs()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EffectMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case effect.FieldName:
+		return m.OldName(ctx)
+	case effect.FieldEffectType:
+		return m.OldEffectType(ctx)
+	case effect.FieldParameters:
+		return m.OldParameters(ctx)
+	case effect.FieldStackMode:
+		return m.OldStackMode(ctx)
+	case effect.FieldStackLimit:
+		return m.OldStackLimit(ctx)
+	case effect.FieldIsPermanent:
+		return m.OldIsPermanent(ctx)
+	case effect.FieldDurationSecs:
+		return m.OldDurationSecs(ctx)
+	}
+	return nil, fmt.Errorf("unknown Effect field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EffectMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case effect.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case effect.FieldEffectType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectType(v)
+		return nil
+	case effect.FieldParameters:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParameters(v)
+		return nil
+	case effect.FieldStackMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStackMode(v)
+		return nil
+	case effect.FieldStackLimit:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStackLimit(v)
+		return nil
+	case effect.FieldIsPermanent:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPermanent(v)
+		return nil
+	case effect.FieldDurationSecs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationSecs(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Effect field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EffectMutation) AddedFields() []string {
+	var fields []string
+	if m.addstack_limit != nil {
+		fields = append(fields, effect.FieldStackLimit)
+	}
+	if m.addduration_secs != nil {
+		fields = append(fields, effect.FieldDurationSecs)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EffectMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case effect.FieldStackLimit:
+		return m.AddedStackLimit()
+	case effect.FieldDurationSecs:
+		return m.AddedDurationSecs()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EffectMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case effect.FieldStackLimit:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStackLimit(v)
+		return nil
+	case effect.FieldDurationSecs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationSecs(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Effect numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EffectMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EffectMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EffectMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Effect nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EffectMutation) ResetField(name string) error {
+	switch name {
+	case effect.FieldName:
+		m.ResetName()
+		return nil
+	case effect.FieldEffectType:
+		m.ResetEffectType()
+		return nil
+	case effect.FieldParameters:
+		m.ResetParameters()
+		return nil
+	case effect.FieldStackMode:
+		m.ResetStackMode()
+		return nil
+	case effect.FieldStackLimit:
+		m.ResetStackLimit()
+		return nil
+	case effect.FieldIsPermanent:
+		m.ResetIsPermanent()
+		return nil
+	case effect.FieldDurationSecs:
+		m.ResetDurationSecs()
+		return nil
+	}
+	return fmt.Errorf("unknown Effect field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EffectMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m._hooks != nil {
+		edges = append(edges, effect.EdgeHooks)
+	}
+	if m.active_effect_instances != nil {
+		edges = append(edges, effect.EdgeActiveEffectInstances)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EffectMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case effect.EdgeHooks:
+		ids := make([]ent.Value, 0, len(m._hooks))
+		for id := range m._hooks {
+			ids = append(ids, id)
+		}
+		return ids
+	case effect.EdgeActiveEffectInstances:
+		ids := make([]ent.Value, 0, len(m.active_effect_instances))
+		for id := range m.active_effect_instances {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EffectMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removed_hooks != nil {
+		edges = append(edges, effect.EdgeHooks)
+	}
+	if m.removedactive_effect_instances != nil {
+		edges = append(edges, effect.EdgeActiveEffectInstances)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EffectMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case effect.EdgeHooks:
+		ids := make([]ent.Value, 0, len(m.removed_hooks))
+		for id := range m.removed_hooks {
+			ids = append(ids, id)
+		}
+		return ids
+	case effect.EdgeActiveEffectInstances:
+		ids := make([]ent.Value, 0, len(m.removedactive_effect_instances))
+		for id := range m.removedactive_effect_instances {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EffectMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleared_hooks {
+		edges = append(edges, effect.EdgeHooks)
+	}
+	if m.clearedactive_effect_instances {
+		edges = append(edges, effect.EdgeActiveEffectInstances)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EffectMutation) EdgeCleared(name string) bool {
+	switch name {
+	case effect.EdgeHooks:
+		return m.cleared_hooks
+	case effect.EdgeActiveEffectInstances:
+		return m.clearedactive_effect_instances
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EffectMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Effect unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EffectMutation) ResetEdge(name string) error {
+	switch name {
+	case effect.EdgeHooks:
+		m.ResetHooks()
+		return nil
+	case effect.EdgeActiveEffectInstances:
+		m.ResetActiveEffectInstances()
+		return nil
+	}
+	return fmt.Errorf("unknown Effect edge %s", name)
+}
+
+// EffectHookMutation represents an operation that mutates the EffectHook nodes in the graph.
+type EffectHookMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *int
+	name                *string
+	event               *string
+	target              *string
+	condition           *string
+	enabled             *bool
+	clearedFields       map[string]struct{}
+	effect              *int
+	clearedeffect       bool
+	npc_template        *string
+	clearednpc_template bool
+	done                bool
+	oldValue            func(context.Context) (*EffectHook, error)
+	predicates          []predicate.EffectHook
+}
+
+var _ ent.Mutation = (*EffectHookMutation)(nil)
+
+// effecthookOption allows management of the mutation configuration using functional options.
+type effecthookOption func(*EffectHookMutation)
+
+// newEffectHookMutation creates new mutation for the EffectHook entity.
+func newEffectHookMutation(c config, op Op, opts ...effecthookOption) *EffectHookMutation {
+	m := &EffectHookMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEffectHook,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEffectHookID sets the ID field of the mutation.
+func withEffectHookID(id int) effecthookOption {
+	return func(m *EffectHookMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EffectHook
+		)
+		m.oldValue = func(ctx context.Context) (*EffectHook, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EffectHook.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEffectHook sets the old EffectHook of the mutation.
+func withEffectHook(node *EffectHook) effecthookOption {
+	return func(m *EffectHookMutation) {
+		m.oldValue = func(context.Context) (*EffectHook, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EffectHookMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EffectHookMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EffectHookMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EffectHookMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EffectHook.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *EffectHookMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *EffectHookMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the EffectHook entity.
+// If the EffectHook object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectHookMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *EffectHookMutation) ResetName() {
+	m.name = nil
+}
+
+// SetEvent sets the "event" field.
+func (m *EffectHookMutation) SetEvent(s string) {
+	m.event = &s
+}
+
+// Event returns the value of the "event" field in the mutation.
+func (m *EffectHookMutation) Event() (r string, exists bool) {
+	v := m.event
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEvent returns the old "event" field's value of the EffectHook entity.
+// If the EffectHook object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectHookMutation) OldEvent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEvent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEvent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEvent: %w", err)
+	}
+	return oldValue.Event, nil
+}
+
+// ResetEvent resets all changes to the "event" field.
+func (m *EffectHookMutation) ResetEvent() {
+	m.event = nil
+}
+
+// SetTarget sets the "target" field.
+func (m *EffectHookMutation) SetTarget(s string) {
+	m.target = &s
+}
+
+// Target returns the value of the "target" field in the mutation.
+func (m *EffectHookMutation) Target() (r string, exists bool) {
+	v := m.target
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTarget returns the old "target" field's value of the EffectHook entity.
+// If the EffectHook object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectHookMutation) OldTarget(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTarget is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTarget requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTarget: %w", err)
+	}
+	return oldValue.Target, nil
+}
+
+// ResetTarget resets all changes to the "target" field.
+func (m *EffectHookMutation) ResetTarget() {
+	m.target = nil
+}
+
+// SetCondition sets the "condition" field.
+func (m *EffectHookMutation) SetCondition(s string) {
+	m.condition = &s
+}
+
+// Condition returns the value of the "condition" field in the mutation.
+func (m *EffectHookMutation) Condition() (r string, exists bool) {
+	v := m.condition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCondition returns the old "condition" field's value of the EffectHook entity.
+// If the EffectHook object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectHookMutation) OldCondition(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCondition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCondition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCondition: %w", err)
+	}
+	return oldValue.Condition, nil
+}
+
+// ClearCondition clears the value of the "condition" field.
+func (m *EffectHookMutation) ClearCondition() {
+	m.condition = nil
+	m.clearedFields[effecthook.FieldCondition] = struct{}{}
+}
+
+// ConditionCleared returns if the "condition" field was cleared in this mutation.
+func (m *EffectHookMutation) ConditionCleared() bool {
+	_, ok := m.clearedFields[effecthook.FieldCondition]
+	return ok
+}
+
+// ResetCondition resets all changes to the "condition" field.
+func (m *EffectHookMutation) ResetCondition() {
+	m.condition = nil
+	delete(m.clearedFields, effecthook.FieldCondition)
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *EffectHookMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *EffectHookMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the EffectHook entity.
+// If the EffectHook object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectHookMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *EffectHookMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetEffectID sets the "effect" edge to the Effect entity by id.
+func (m *EffectHookMutation) SetEffectID(id int) {
+	m.effect = &id
+}
+
+// ClearEffect clears the "effect" edge to the Effect entity.
+func (m *EffectHookMutation) ClearEffect() {
+	m.clearedeffect = true
+}
+
+// EffectCleared reports if the "effect" edge to the Effect entity was cleared.
+func (m *EffectHookMutation) EffectCleared() bool {
+	return m.clearedeffect
+}
+
+// EffectID returns the "effect" edge ID in the mutation.
+func (m *EffectHookMutation) EffectID() (id int, exists bool) {
+	if m.effect != nil {
+		return *m.effect, true
+	}
+	return
+}
+
+// EffectIDs returns the "effect" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EffectID instead. It exists only for internal usage by the builders.
+func (m *EffectHookMutation) EffectIDs() (ids []int) {
+	if id := m.effect; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEffect resets all changes to the "effect" edge.
+func (m *EffectHookMutation) ResetEffect() {
+	m.effect = nil
+	m.clearedeffect = false
+}
+
+// SetNpcTemplateID sets the "npc_template" edge to the NPCTemplate entity by id.
+func (m *EffectHookMutation) SetNpcTemplateID(id string) {
+	m.npc_template = &id
+}
+
+// ClearNpcTemplate clears the "npc_template" edge to the NPCTemplate entity.
+func (m *EffectHookMutation) ClearNpcTemplate() {
+	m.clearednpc_template = true
+}
+
+// NpcTemplateCleared reports if the "npc_template" edge to the NPCTemplate entity was cleared.
+func (m *EffectHookMutation) NpcTemplateCleared() bool {
+	return m.clearednpc_template
+}
+
+// NpcTemplateID returns the "npc_template" edge ID in the mutation.
+func (m *EffectHookMutation) NpcTemplateID() (id string, exists bool) {
+	if m.npc_template != nil {
+		return *m.npc_template, true
+	}
+	return
+}
+
+// NpcTemplateIDs returns the "npc_template" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NpcTemplateID instead. It exists only for internal usage by the builders.
+func (m *EffectHookMutation) NpcTemplateIDs() (ids []string) {
+	if id := m.npc_template; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNpcTemplate resets all changes to the "npc_template" edge.
+func (m *EffectHookMutation) ResetNpcTemplate() {
+	m.npc_template = nil
+	m.clearednpc_template = false
+}
+
+// Where appends a list predicates to the EffectHookMutation builder.
+func (m *EffectHookMutation) Where(ps ...predicate.EffectHook) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EffectHookMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EffectHookMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EffectHook, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EffectHookMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EffectHookMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EffectHook).
+func (m *EffectHookMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EffectHookMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.name != nil {
+		fields = append(fields, effecthook.FieldName)
+	}
+	if m.event != nil {
+		fields = append(fields, effecthook.FieldEvent)
+	}
+	if m.target != nil {
+		fields = append(fields, effecthook.FieldTarget)
+	}
+	if m.condition != nil {
+		fields = append(fields, effecthook.FieldCondition)
+	}
+	if m.enabled != nil {
+		fields = append(fields, effecthook.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EffectHookMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case effecthook.FieldName:
+		return m.Name()
+	case effecthook.FieldEvent:
+		return m.Event()
+	case effecthook.FieldTarget:
+		return m.Target()
+	case effecthook.FieldCondition:
+		return m.Condition()
+	case effecthook.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EffectHookMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case effecthook.FieldName:
+		return m.OldName(ctx)
+	case effecthook.FieldEvent:
+		return m.OldEvent(ctx)
+	case effecthook.FieldTarget:
+		return m.OldTarget(ctx)
+	case effecthook.FieldCondition:
+		return m.OldCondition(ctx)
+	case effecthook.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown EffectHook field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EffectHookMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case effecthook.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case effecthook.FieldEvent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEvent(v)
+		return nil
+	case effecthook.FieldTarget:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTarget(v)
+		return nil
+	case effecthook.FieldCondition:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCondition(v)
+		return nil
+	case effecthook.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EffectHook field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EffectHookMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EffectHookMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EffectHookMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EffectHook numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EffectHookMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(effecthook.FieldCondition) {
+		fields = append(fields, effecthook.FieldCondition)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EffectHookMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EffectHookMutation) ClearField(name string) error {
+	switch name {
+	case effecthook.FieldCondition:
+		m.ClearCondition()
+		return nil
+	}
+	return fmt.Errorf("unknown EffectHook nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EffectHookMutation) ResetField(name string) error {
+	switch name {
+	case effecthook.FieldName:
+		m.ResetName()
+		return nil
+	case effecthook.FieldEvent:
+		m.ResetEvent()
+		return nil
+	case effecthook.FieldTarget:
+		m.ResetTarget()
+		return nil
+	case effecthook.FieldCondition:
+		m.ResetCondition()
+		return nil
+	case effecthook.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown EffectHook field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EffectHookMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.effect != nil {
+		edges = append(edges, effecthook.EdgeEffect)
+	}
+	if m.npc_template != nil {
+		edges = append(edges, effecthook.EdgeNpcTemplate)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EffectHookMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case effecthook.EdgeEffect:
+		if id := m.effect; id != nil {
+			return []ent.Value{*id}
+		}
+	case effecthook.EdgeNpcTemplate:
+		if id := m.npc_template; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EffectHookMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EffectHookMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EffectHookMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedeffect {
+		edges = append(edges, effecthook.EdgeEffect)
+	}
+	if m.clearednpc_template {
+		edges = append(edges, effecthook.EdgeNpcTemplate)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EffectHookMutation) EdgeCleared(name string) bool {
+	switch name {
+	case effecthook.EdgeEffect:
+		return m.clearedeffect
+	case effecthook.EdgeNpcTemplate:
+		return m.clearednpc_template
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EffectHookMutation) ClearEdge(name string) error {
+	switch name {
+	case effecthook.EdgeEffect:
+		m.ClearEffect()
+		return nil
+	case effecthook.EdgeNpcTemplate:
+		m.ClearNpcTemplate()
+		return nil
+	}
+	return fmt.Errorf("unknown EffectHook unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EffectHookMutation) ResetEdge(name string) error {
+	switch name {
+	case effecthook.EdgeEffect:
+		m.ResetEffect()
+		return nil
+	case effecthook.EdgeNpcTemplate:
+		m.ResetNpcTemplate()
+		return nil
+	}
+	return fmt.Errorf("unknown EffectHook edge %s", name)
 }
 
 // EquipmentMutation represents an operation that mutates the Equipment nodes in the graph.
@@ -10214,6 +12732,9 @@ type NPCTemplateMutation struct {
 	appendtrades_with []string
 	greeting          *string
 	clearedFields     map[string]struct{}
+	_hooks            map[int]struct{}
+	removed_hooks     map[int]struct{}
+	cleared_hooks     bool
 	done              bool
 	oldValue          func(context.Context) (*NPCTemplate, error)
 	predicates        []predicate.NPCTemplate
@@ -10646,6 +13167,60 @@ func (m *NPCTemplateMutation) ResetGreeting() {
 	m.greeting = nil
 }
 
+// AddHookIDs adds the "hooks" edge to the EffectHook entity by ids.
+func (m *NPCTemplateMutation) AddHookIDs(ids ...int) {
+	if m._hooks == nil {
+		m._hooks = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._hooks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHooks clears the "hooks" edge to the EffectHook entity.
+func (m *NPCTemplateMutation) ClearHooks() {
+	m.cleared_hooks = true
+}
+
+// HooksCleared reports if the "hooks" edge to the EffectHook entity was cleared.
+func (m *NPCTemplateMutation) HooksCleared() bool {
+	return m.cleared_hooks
+}
+
+// RemoveHookIDs removes the "hooks" edge to the EffectHook entity by IDs.
+func (m *NPCTemplateMutation) RemoveHookIDs(ids ...int) {
+	if m.removed_hooks == nil {
+		m.removed_hooks = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m._hooks, ids[i])
+		m.removed_hooks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHooks returns the removed IDs of the "hooks" edge to the EffectHook entity.
+func (m *NPCTemplateMutation) RemovedHooksIDs() (ids []int) {
+	for id := range m.removed_hooks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HooksIDs returns the "hooks" edge IDs in the mutation.
+func (m *NPCTemplateMutation) HooksIDs() (ids []int) {
+	for id := range m._hooks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHooks resets all changes to the "hooks" edge.
+func (m *NPCTemplateMutation) ResetHooks() {
+	m._hooks = nil
+	m.cleared_hooks = false
+	m.removed_hooks = nil
+}
+
 // Where appends a list predicates to the NPCTemplateMutation builder.
 func (m *NPCTemplateMutation) Where(ps ...predicate.NPCTemplate) {
 	m.predicates = append(m.predicates, ps...)
@@ -10913,49 +13488,85 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NPCTemplateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m._hooks != nil {
+		edges = append(edges, npctemplate.EdgeHooks)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *NPCTemplateMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case npctemplate.EdgeHooks:
+		ids := make([]ent.Value, 0, len(m._hooks))
+		for id := range m._hooks {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NPCTemplateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removed_hooks != nil {
+		edges = append(edges, npctemplate.EdgeHooks)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *NPCTemplateMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case npctemplate.EdgeHooks:
+		ids := make([]ent.Value, 0, len(m.removed_hooks))
+		for id := range m.removed_hooks {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NPCTemplateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.cleared_hooks {
+		edges = append(edges, npctemplate.EdgeHooks)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *NPCTemplateMutation) EdgeCleared(name string) bool {
+	switch name {
+	case npctemplate.EdgeHooks:
+		return m.cleared_hooks
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *NPCTemplateMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown NPCTemplate unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *NPCTemplateMutation) ResetEdge(name string) error {
+	switch name {
+	case npctemplate.EdgeHooks:
+		m.ResetHooks()
+		return nil
+	}
 	return fmt.Errorf("unknown NPCTemplate edge %s", name)
 }
 

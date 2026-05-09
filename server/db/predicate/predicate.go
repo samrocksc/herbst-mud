@@ -15,6 +15,9 @@ type AbilityEffect func(*sql.Selector)
 // Achievement is the predicate function for achievement builders.
 type Achievement func(*sql.Selector)
 
+// ActiveEffect is the predicate function for activeeffect builders.
+type ActiveEffect func(*sql.Selector)
+
 // AppLog is the predicate function for applog builders.
 type AppLog func(*sql.Selector)
 
@@ -41,6 +44,12 @@ type CompetencyLevelThreshold func(*sql.Selector)
 
 // DamageLog is the predicate function for damagelog builders.
 type DamageLog func(*sql.Selector)
+
+// Effect is the predicate function for effect builders.
+type Effect func(*sql.Selector)
+
+// EffectHook is the predicate function for effecthook builders.
+type EffectHook func(*sql.Selector)
 
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)

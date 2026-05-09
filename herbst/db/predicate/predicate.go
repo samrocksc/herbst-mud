@@ -12,8 +12,17 @@ type Ability func(*sql.Selector)
 // AbilityEffect is the predicate function for abilityeffect builders.
 type AbilityEffect func(*sql.Selector)
 
+// ActiveEffect is the predicate function for activeeffect builders.
+type ActiveEffect func(*sql.Selector)
+
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
+
+// Effect is the predicate function for effect builders.
+type Effect func(*sql.Selector)
+
+// EffectHook is the predicate function for effecthook builders.
+type EffectHook func(*sql.Selector)
 
 // Equipment is the predicate function for equipment builders.
 type Equipment func(*sql.Selector)

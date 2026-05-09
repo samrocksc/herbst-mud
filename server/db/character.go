@@ -130,9 +130,11 @@ type CharacterEdges struct {
 	FactionMemberships []*CharacterFaction `json:"faction_memberships,omitempty"`
 	// Competencies holds the value of the competencies edge.
 	Competencies []*CharacterCompetency `json:"competencies,omitempty"`
+	// ActiveEffects holds the value of the active_effects edge.
+	ActiveEffects []*ActiveEffect `json:"active_effects,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -202,6 +204,15 @@ func (e CharacterEdges) CompetenciesOrErr() ([]*CharacterCompetency, error) {
 		return e.Competencies, nil
 	}
 	return nil, &NotLoadedError{edge: "competencies"}
+}
+
+// ActiveEffectsOrErr returns the ActiveEffects value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) ActiveEffectsOrErr() ([]*ActiveEffect, error) {
+	if e.loadedTypes[7] {
+		return e.ActiveEffects, nil
+	}
+	return nil, &NotLoadedError{edge: "active_effects"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -562,6 +573,11 @@ func (_m *Character) QueryFactionMemberships() *CharacterFactionQuery {
 // QueryCompetencies queries the "competencies" edge of the Character entity.
 func (_m *Character) QueryCompetencies() *CharacterCompetencyQuery {
 	return NewCharacterClient(_m.config).QueryCompetencies(_m)
+}
+
+// QueryActiveEffects queries the "active_effects" edge of the Character entity.
+func (_m *Character) QueryActiveEffects() *ActiveEffectQuery {
+	return NewCharacterClient(_m.config).QueryActiveEffects(_m)
 }
 
 // Update returns a builder for updating this Character.

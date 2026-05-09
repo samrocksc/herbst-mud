@@ -4,7 +4,9 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
+	"herbst/db/activeeffect"
 	"herbst/db/character"
 	"herbst/db/npctemplate"
 	"herbst/db/predicate"
@@ -21,14 +23,15 @@ import (
 // CharacterQuery is the builder for querying Character entities.
 type CharacterQuery struct {
 	config
-	ctx             *QueryContext
-	order           []character.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Character
-	withUser        *UserQuery
-	withRoom        *RoomQuery
-	withNpcTemplate *NPCTemplateQuery
-	withFKs         bool
+	ctx               *QueryContext
+	order             []character.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Character
+	withUser          *UserQuery
+	withRoom          *RoomQuery
+	withNpcTemplate   *NPCTemplateQuery
+	withActiveEffects *ActiveEffectQuery
+	withFKs           bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +127,28 @@ func (_q *CharacterQuery) QueryNpcTemplate() *NPCTemplateQuery {
 			sqlgraph.From(character.Table, character.FieldID, selector),
 			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, character.NpcTemplateTable, character.NpcTemplateColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryActiveEffects chains the current query on the "active_effects" edge.
+func (_q *CharacterQuery) QueryActiveEffects() *ActiveEffectQuery {
+	query := (&ActiveEffectClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(activeeffect.Table, activeeffect.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.ActiveEffectsTable, character.ActiveEffectsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -318,14 +343,15 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		return nil
 	}
 	return &CharacterQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]character.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.Character{}, _q.predicates...),
-		withUser:        _q.withUser.Clone(),
-		withRoom:        _q.withRoom.Clone(),
-		withNpcTemplate: _q.withNpcTemplate.Clone(),
+		config:            _q.config,
+		ctx:               _q.ctx.Clone(),
+		order:             append([]character.OrderOption{}, _q.order...),
+		inters:            append([]Interceptor{}, _q.inters...),
+		predicates:        append([]predicate.Character{}, _q.predicates...),
+		withUser:          _q.withUser.Clone(),
+		withRoom:          _q.withRoom.Clone(),
+		withNpcTemplate:   _q.withNpcTemplate.Clone(),
+		withActiveEffects: _q.withActiveEffects.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -362,6 +388,17 @@ func (_q *CharacterQuery) WithNpcTemplate(opts ...func(*NPCTemplateQuery)) *Char
 		opt(query)
 	}
 	_q.withNpcTemplate = query
+	return _q
+}
+
+// WithActiveEffects tells the query-builder to eager-load the nodes that are connected to
+// the "active_effects" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithActiveEffects(opts ...func(*ActiveEffectQuery)) *CharacterQuery {
+	query := (&ActiveEffectClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withActiveEffects = query
 	return _q
 }
 
@@ -444,10 +481,11 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withUser != nil,
 			_q.withRoom != nil,
 			_q.withNpcTemplate != nil,
+			_q.withActiveEffects != nil,
 		}
 	)
 	if _q.withUser != nil || _q.withNpcTemplate != nil {
@@ -489,6 +527,13 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 	if query := _q.withNpcTemplate; query != nil {
 		if err := _q.loadNpcTemplate(ctx, query, nodes, nil,
 			func(n *Character, e *NPCTemplate) { n.Edges.NpcTemplate = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withActiveEffects; query != nil {
+		if err := _q.loadActiveEffects(ctx, query, nodes,
+			func(n *Character) { n.Edges.ActiveEffects = []*ActiveEffect{} },
+			func(n *Character, e *ActiveEffect) { n.Edges.ActiveEffects = append(n.Edges.ActiveEffects, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -585,6 +630,36 @@ func (_q *CharacterQuery) loadNpcTemplate(ctx context.Context, query *NPCTemplat
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadActiveEffects(ctx context.Context, query *ActiveEffectQuery, nodes []*Character, init func(*Character), assign func(*Character, *ActiveEffect)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(activeeffect.FieldCharacterID)
+	}
+	query.Where(predicate.ActiveEffect(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.ActiveEffectsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CharacterID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

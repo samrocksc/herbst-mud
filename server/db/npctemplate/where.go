@@ -542,6 +542,29 @@ func HasNpcAbilitiesWith(preds ...predicate.NPCAbility) predicate.NPCTemplate {
 	})
 }
 
+// HasHooks applies the HasEdge predicate on the "hooks" edge.
+func HasHooks() predicate.NPCTemplate {
+	return predicate.NPCTemplate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HooksTable, HooksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHooksWith applies the HasEdge predicate on the "hooks" edge with a given conditions (other predicates).
+func HasHooksWith(preds ...predicate.EffectHook) predicate.NPCTemplate {
+	return predicate.NPCTemplate(func(s *sql.Selector) {
+		step := newHooksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
 func HasCharacters() predicate.NPCTemplate {
 	return predicate.NPCTemplate(func(s *sql.Selector) {

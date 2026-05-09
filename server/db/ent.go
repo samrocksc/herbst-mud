@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
+	"herbst-server/db/activeeffect"
 	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
@@ -18,6 +19,8 @@ import (
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/damagelog"
+	"herbst-server/db/effect"
+	"herbst-server/db/effecthook"
 	"herbst-server/db/equipment"
 	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/faction"
@@ -100,6 +103,7 @@ func checkColumn(t, c string) error {
 			ability.Table:                  ability.ValidColumn,
 			abilityeffect.Table:            abilityeffect.ValidColumn,
 			achievement.Table:              achievement.ValidColumn,
+			activeeffect.Table:             activeeffect.ValidColumn,
 			applog.Table:                   applog.ValidColumn,
 			character.Table:                character.ValidColumn,
 			characterability.Table:         characterability.ValidColumn,
@@ -109,6 +113,8 @@ func checkColumn(t, c string) error {
 			competencycategory.Table:       competencycategory.ValidColumn,
 			competencylevelthreshold.Table: competencylevelthreshold.ValidColumn,
 			damagelog.Table:                damagelog.ValidColumn,
+			effect.Table:                   effect.ValidColumn,
+			effecthook.Table:               effecthook.ValidColumn,
 			equipment.Table:                equipment.ValidColumn,
 			equipmenttemplate.Table:        equipmenttemplate.ValidColumn,
 			faction.Table:                  faction.ValidColumn,

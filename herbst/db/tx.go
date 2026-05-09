@@ -16,8 +16,14 @@ type Tx struct {
 	Ability *AbilityClient
 	// AbilityEffect is the client for interacting with the AbilityEffect builders.
 	AbilityEffect *AbilityEffectClient
+	// ActiveEffect is the client for interacting with the ActiveEffect builders.
+	ActiveEffect *ActiveEffectClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
+	// Effect is the client for interacting with the Effect builders.
+	Effect *EffectClient
+	// EffectHook is the client for interacting with the EffectHook builders.
+	EffectHook *EffectHookClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
 	// EquipmentTemplate is the client for interacting with the EquipmentTemplate builders.
@@ -163,7 +169,10 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Ability = NewAbilityClient(tx.config)
 	tx.AbilityEffect = NewAbilityEffectClient(tx.config)
+	tx.ActiveEffect = NewActiveEffectClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
+	tx.Effect = NewEffectClient(tx.config)
+	tx.EffectHook = NewEffectHookClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
 	tx.EquipmentTemplate = NewEquipmentTemplateClient(tx.config)
 	tx.NPCTemplate = NewNPCTemplateClient(tx.config)

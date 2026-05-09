@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/character"
+	"herbst-server/db/effecthook"
 	"herbst-server/db/npcability"
 	"herbst-server/db/npctemplate"
 
@@ -138,6 +139,21 @@ func (_c *NPCTemplateCreate) AddNpcAbilities(v ...*NPCAbility) *NPCTemplateCreat
 		ids[i] = v[i].ID
 	}
 	return _c.AddNpcAbilityIDs(ids...)
+}
+
+// AddHookIDs adds the "hooks" edge to the EffectHook entity by IDs.
+func (_c *NPCTemplateCreate) AddHookIDs(ids ...int) *NPCTemplateCreate {
+	_c.mutation.AddHookIDs(ids...)
+	return _c
+}
+
+// AddHooks adds the "hooks" edges to the EffectHook entity.
+func (_c *NPCTemplateCreate) AddHooks(v ...*EffectHook) *NPCTemplateCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddHookIDs(ids...)
 }
 
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
@@ -330,6 +346,22 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npcability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.HooksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npctemplate.HooksTable,
+			Columns: []string{npctemplate.HooksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

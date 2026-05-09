@@ -90,5 +90,6 @@ func (Character) Edges() []ent.Edge {
 			Unique(),
 		edge.To("npcTemplate", NPCTemplate.Type).
 			Unique(),
+		edge.To("active_effects", ActiveEffect.Type),
 	}
 }

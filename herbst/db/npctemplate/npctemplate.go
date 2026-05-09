@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -29,8 +30,17 @@ const (
 	FieldTradesWith = "trades_with"
 	// FieldGreeting holds the string denoting the greeting field in the database.
 	FieldGreeting = "greeting"
+	// EdgeHooks holds the string denoting the hooks edge name in mutations.
+	EdgeHooks = "hooks"
 	// Table holds the table name of the npctemplate in the database.
 	Table = "npc_templates"
+	// HooksTable is the table that holds the hooks relation/edge.
+	HooksTable = "effect_hooks"
+	// HooksInverseTable is the table name for the EffectHook entity.
+	// It exists in this package in order to avoid circular dependency with the "effecthook" package.
+	HooksInverseTable = "effect_hooks"
+	// HooksColumn is the table column denoting the hooks relation/edge.
+	HooksColumn = "npc_template_hooks"
 )
 
 // Columns holds all SQL columns for npctemplate fields.
@@ -124,4 +134,25 @@ func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 // ByGreeting orders the results by the greeting field.
 func ByGreeting(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGreeting, opts...).ToFunc()
+}
+
+// ByHooksCount orders the results by hooks count.
+func ByHooksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newHooksStep(), opts...)
+	}
+}
+
+// ByHooks orders the results by hooks terms.
+func ByHooks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newHooksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newHooksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(HooksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, HooksTable, HooksColumn),
+	)
 }

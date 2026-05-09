@@ -38,6 +38,8 @@ const (
 	FieldRespawnCooldown = "respawn_cooldown"
 	// EdgeNpcAbilities holds the string denoting the npc_abilities edge name in mutations.
 	EdgeNpcAbilities = "npc_abilities"
+	// EdgeHooks holds the string denoting the hooks edge name in mutations.
+	EdgeHooks = "hooks"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// Table holds the table name of the npctemplate in the database.
@@ -47,6 +49,13 @@ const (
 	// NpcAbilitiesInverseTable is the table name for the NPCAbility entity.
 	// It exists in this package in order to avoid circular dependency with the "npcability" package.
 	NpcAbilitiesInverseTable = "npc_abilities"
+	// HooksTable is the table that holds the hooks relation/edge.
+	HooksTable = "effect_hooks"
+	// HooksInverseTable is the table name for the EffectHook entity.
+	// It exists in this package in order to avoid circular dependency with the "effecthook" package.
+	HooksInverseTable = "effect_hooks"
+	// HooksColumn is the table column denoting the hooks relation/edge.
+	HooksColumn = "npc_template_hooks"
 	// CharactersTable is the table that holds the characters relation/edge.
 	CharactersTable = "characters"
 	// CharactersInverseTable is the table name for the Character entity.
@@ -186,6 +195,20 @@ func ByNpcAbilities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByHooksCount orders the results by hooks count.
+func ByHooksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newHooksStep(), opts...)
+	}
+}
+
+// ByHooks orders the results by hooks terms.
+func ByHooks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newHooksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByCharactersCount orders the results by characters count.
 func ByCharactersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -204,6 +227,13 @@ func newNpcAbilitiesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NpcAbilitiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, NpcAbilitiesTable, NpcAbilitiesPrimaryKey...),
+	)
+}
+func newHooksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(HooksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, HooksTable, HooksColumn),
 	)
 }
 func newCharactersStep() *sqlgraph.Step {

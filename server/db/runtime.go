@@ -6,6 +6,7 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/db/achievement"
+	"herbst-server/db/activeeffect"
 	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/charactercompetency"
@@ -14,6 +15,8 @@ import (
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/db/damagelog"
+	"herbst-server/db/effect"
+	"herbst-server/db/effecthook"
 	"herbst-server/db/equipment"
 	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/factioncategory"
@@ -115,6 +118,24 @@ func init() {
 	achievementDescXpReward := achievementFields[3].Descriptor()
 	// achievement.DefaultXpReward holds the default value on creation for the xp_reward field.
 	achievement.DefaultXpReward = achievementDescXpReward.Default.(int)
+	activeeffectFields := schema.ActiveEffect{}.Fields()
+	_ = activeeffectFields
+	// activeeffectDescAppliedByID is the schema descriptor for applied_by_id field.
+	activeeffectDescAppliedByID := activeeffectFields[2].Descriptor()
+	// activeeffect.DefaultAppliedByID holds the default value on creation for the applied_by_id field.
+	activeeffect.DefaultAppliedByID = activeeffectDescAppliedByID.Default.(int)
+	// activeeffectDescStackCount is the schema descriptor for stack_count field.
+	activeeffectDescStackCount := activeeffectFields[3].Descriptor()
+	// activeeffect.DefaultStackCount holds the default value on creation for the stack_count field.
+	activeeffect.DefaultStackCount = activeeffectDescStackCount.Default.(int)
+	// activeeffectDescStartedAt is the schema descriptor for started_at field.
+	activeeffectDescStartedAt := activeeffectFields[4].Descriptor()
+	// activeeffect.DefaultStartedAt holds the default value on creation for the started_at field.
+	activeeffect.DefaultStartedAt = activeeffectDescStartedAt.Default.(func() time.Time)
+	// activeeffectDescIsActive is the schema descriptor for is_active field.
+	activeeffectDescIsActive := activeeffectFields[6].Descriptor()
+	// activeeffect.DefaultIsActive holds the default value on creation for the is_active field.
+	activeeffect.DefaultIsActive = activeeffectDescIsActive.Default.(bool)
 	applogFields := schema.AppLog{}.Fields()
 	_ = applogFields
 	// applogDescCreatedAt is the schema descriptor for created_at field.
@@ -307,6 +328,46 @@ func init() {
 	damagelogDescCreatedAt := damagelogFields[3].Descriptor()
 	// damagelog.DefaultCreatedAt holds the default value on creation for the created_at field.
 	damagelog.DefaultCreatedAt = damagelogDescCreatedAt.Default.(func() time.Time)
+	effectFields := schema.Effect{}.Fields()
+	_ = effectFields
+	// effectDescDescription is the schema descriptor for description field.
+	effectDescDescription := effectFields[1].Descriptor()
+	// effect.DefaultDescription holds the default value on creation for the description field.
+	effect.DefaultDescription = effectDescDescription.Default.(string)
+	// effectDescParameters is the schema descriptor for parameters field.
+	effectDescParameters := effectFields[3].Descriptor()
+	// effect.DefaultParameters holds the default value on creation for the parameters field.
+	effect.DefaultParameters = effectDescParameters.Default.(map[string]interface{})
+	// effectDescStackMode is the schema descriptor for stack_mode field.
+	effectDescStackMode := effectFields[4].Descriptor()
+	// effect.DefaultStackMode holds the default value on creation for the stack_mode field.
+	effect.DefaultStackMode = effectDescStackMode.Default.(string)
+	// effectDescStackLimit is the schema descriptor for stack_limit field.
+	effectDescStackLimit := effectFields[5].Descriptor()
+	// effect.DefaultStackLimit holds the default value on creation for the stack_limit field.
+	effect.DefaultStackLimit = effectDescStackLimit.Default.(int)
+	// effectDescIsPermanent is the schema descriptor for is_permanent field.
+	effectDescIsPermanent := effectFields[6].Descriptor()
+	// effect.DefaultIsPermanent holds the default value on creation for the is_permanent field.
+	effect.DefaultIsPermanent = effectDescIsPermanent.Default.(bool)
+	// effectDescDurationSecs is the schema descriptor for duration_secs field.
+	effectDescDurationSecs := effectFields[7].Descriptor()
+	// effect.DefaultDurationSecs holds the default value on creation for the duration_secs field.
+	effect.DefaultDurationSecs = effectDescDurationSecs.Default.(int)
+	// effectDescMessages is the schema descriptor for messages field.
+	effectDescMessages := effectFields[8].Descriptor()
+	// effect.DefaultMessages holds the default value on creation for the messages field.
+	effect.DefaultMessages = effectDescMessages.Default.(map[string]string)
+	effecthookFields := schema.EffectHook{}.Fields()
+	_ = effecthookFields
+	// effecthookDescTarget is the schema descriptor for target field.
+	effecthookDescTarget := effecthookFields[2].Descriptor()
+	// effecthook.DefaultTarget holds the default value on creation for the target field.
+	effecthook.DefaultTarget = effecthookDescTarget.Default.(string)
+	// effecthookDescEnabled is the schema descriptor for enabled field.
+	effecthookDescEnabled := effecthookFields[4].Descriptor()
+	// effecthook.DefaultEnabled holds the default value on creation for the enabled field.
+	effecthook.DefaultEnabled = effecthookDescEnabled.Default.(bool)
 	equipmentFields := schema.Equipment{}.Fields()
 	_ = equipmentFields
 	// equipmentDescLevel is the schema descriptor for level field.

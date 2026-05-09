@@ -82,6 +82,8 @@ const (
 	EdgeRoom = "room"
 	// EdgeNpcTemplate holds the string denoting the npctemplate edge name in mutations.
 	EdgeNpcTemplate = "npcTemplate"
+	// EdgeActiveEffects holds the string denoting the active_effects edge name in mutations.
+	EdgeActiveEffects = "active_effects"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -105,6 +107,13 @@ const (
 	NpcTemplateInverseTable = "npc_templates"
 	// NpcTemplateColumn is the table column denoting the npcTemplate relation/edge.
 	NpcTemplateColumn = "character_npc_template"
+	// ActiveEffectsTable is the table that holds the active_effects relation/edge.
+	ActiveEffectsTable = "active_effects"
+	// ActiveEffectsInverseTable is the table name for the ActiveEffect entity.
+	// It exists in this package in order to avoid circular dependency with the "activeeffect" package.
+	ActiveEffectsInverseTable = "active_effects"
+	// ActiveEffectsColumn is the table column denoting the active_effects relation/edge.
+	ActiveEffectsColumn = "character_id"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -411,6 +420,20 @@ func ByNpcTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newNpcTemplateStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByActiveEffectsCount orders the results by active_effects count.
+func ByActiveEffectsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newActiveEffectsStep(), opts...)
+	}
+}
+
+// ByActiveEffects orders the results by active_effects terms.
+func ByActiveEffects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newActiveEffectsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -430,5 +453,12 @@ func newNpcTemplateStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NpcTemplateInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, NpcTemplateTable, NpcTemplateColumn),
+	)
+}
+func newActiveEffectsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ActiveEffectsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ActiveEffectsTable, ActiveEffectsColumn),
 	)
 }

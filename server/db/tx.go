@@ -18,6 +18,8 @@ type Tx struct {
 	AbilityEffect *AbilityEffectClient
 	// Achievement is the client for interacting with the Achievement builders.
 	Achievement *AchievementClient
+	// ActiveEffect is the client for interacting with the ActiveEffect builders.
+	ActiveEffect *ActiveEffectClient
 	// AppLog is the client for interacting with the AppLog builders.
 	AppLog *AppLogClient
 	// Character is the client for interacting with the Character builders.
@@ -36,6 +38,10 @@ type Tx struct {
 	CompetencyLevelThreshold *CompetencyLevelThresholdClient
 	// DamageLog is the client for interacting with the DamageLog builders.
 	DamageLog *DamageLogClient
+	// Effect is the client for interacting with the Effect builders.
+	Effect *EffectClient
+	// EffectHook is the client for interacting with the EffectHook builders.
+	EffectHook *EffectHookClient
 	// Equipment is the client for interacting with the Equipment builders.
 	Equipment *EquipmentClient
 	// EquipmentTemplate is the client for interacting with the EquipmentTemplate builders.
@@ -196,6 +202,7 @@ func (tx *Tx) init() {
 	tx.Ability = NewAbilityClient(tx.config)
 	tx.AbilityEffect = NewAbilityEffectClient(tx.config)
 	tx.Achievement = NewAchievementClient(tx.config)
+	tx.ActiveEffect = NewActiveEffectClient(tx.config)
 	tx.AppLog = NewAppLogClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
 	tx.CharacterAbility = NewCharacterAbilityClient(tx.config)
@@ -205,6 +212,8 @@ func (tx *Tx) init() {
 	tx.CompetencyCategory = NewCompetencyCategoryClient(tx.config)
 	tx.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(tx.config)
 	tx.DamageLog = NewDamageLogClient(tx.config)
+	tx.Effect = NewEffectClient(tx.config)
+	tx.EffectHook = NewEffectHookClient(tx.config)
 	tx.Equipment = NewEquipmentClient(tx.config)
 	tx.EquipmentTemplate = NewEquipmentTemplateClient(tx.config)
 	tx.Faction = NewFactionClient(tx.config)

@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"herbst-server/db/character"
+	"herbst-server/db/effecthook"
 	"herbst-server/db/npcability"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
@@ -26,6 +27,7 @@ type NPCTemplateQuery struct {
 	inters           []Interceptor
 	predicates       []predicate.NPCTemplate
 	withNpcAbilities *NPCAbilityQuery
+	withHooks        *EffectHookQuery
 	withCharacters   *CharacterQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -78,6 +80,28 @@ func (_q *NPCTemplateQuery) QueryNpcAbilities() *NPCAbilityQuery {
 			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, selector),
 			sqlgraph.To(npcability.Table, npcability.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, npctemplate.NpcAbilitiesTable, npctemplate.NpcAbilitiesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHooks chains the current query on the "hooks" edge.
+func (_q *NPCTemplateQuery) QueryHooks() *EffectHookQuery {
+	query := (&EffectHookClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, selector),
+			sqlgraph.To(effecthook.Table, effecthook.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, npctemplate.HooksTable, npctemplate.HooksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -300,6 +324,7 @@ func (_q *NPCTemplateQuery) Clone() *NPCTemplateQuery {
 		inters:           append([]Interceptor{}, _q.inters...),
 		predicates:       append([]predicate.NPCTemplate{}, _q.predicates...),
 		withNpcAbilities: _q.withNpcAbilities.Clone(),
+		withHooks:        _q.withHooks.Clone(),
 		withCharacters:   _q.withCharacters.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -315,6 +340,17 @@ func (_q *NPCTemplateQuery) WithNpcAbilities(opts ...func(*NPCAbilityQuery)) *NP
 		opt(query)
 	}
 	_q.withNpcAbilities = query
+	return _q
+}
+
+// WithHooks tells the query-builder to eager-load the nodes that are connected to
+// the "hooks" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NPCTemplateQuery) WithHooks(opts ...func(*EffectHookQuery)) *NPCTemplateQuery {
+	query := (&EffectHookClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withHooks = query
 	return _q
 }
 
@@ -407,8 +443,9 @@ func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*NPCTemplate{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withNpcAbilities != nil,
+			_q.withHooks != nil,
 			_q.withCharacters != nil,
 		}
 	)
@@ -434,6 +471,13 @@ func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadNpcAbilities(ctx, query, nodes,
 			func(n *NPCTemplate) { n.Edges.NpcAbilities = []*NPCAbility{} },
 			func(n *NPCTemplate, e *NPCAbility) { n.Edges.NpcAbilities = append(n.Edges.NpcAbilities, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withHooks; query != nil {
+		if err := _q.loadHooks(ctx, query, nodes,
+			func(n *NPCTemplate) { n.Edges.Hooks = []*EffectHook{} },
+			func(n *NPCTemplate, e *EffectHook) { n.Edges.Hooks = append(n.Edges.Hooks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -505,6 +549,37 @@ func (_q *NPCTemplateQuery) loadNpcAbilities(ctx context.Context, query *NPCAbil
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (_q *NPCTemplateQuery) loadHooks(ctx context.Context, query *EffectHookQuery, nodes []*NPCTemplate, init func(*NPCTemplate), assign func(*NPCTemplate, *EffectHook)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*NPCTemplate)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.EffectHook(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(npctemplate.HooksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.npc_template_hooks
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "npc_template_hooks" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "npc_template_hooks" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
