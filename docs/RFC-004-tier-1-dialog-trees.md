@@ -1,6 +1,6 @@
 # RFC-004: NPC Dialog System — Tier 1 (Dialog Trees)
 
-**Status:** Draft
+**Status:** Final
 **Author:** Leonardo (with Sam)
 **Created:** 2026-05-08
 **Supersedes:** N/A
@@ -294,21 +294,21 @@ edge.To("dialog_nodes", DialogNode.Type),
 
 ## 10. Acceptance Criteria
 
-- [ ] `dialog_node.go` ent schema with all fields
-- [ ] `NPCTemplate` has `dialog_nodes` edge
-- [ ] `ent generate` clean
-- [ ] `talk <npc_name>` command in herbst TUI — starts conversation
-- [ ] Numbered response selection (1-9) — navigates tree
-- [ ] `0` / `leave` / `bye` — ends conversation
-- [ ] `ConversationState` stored on model in memory
-- [ ] Multiple entry nodes with conditions resolved correctly
-- [ ] Quest offer flow from dialog responses
-- [ ] Effects application from dialog nodes and responses
-- [ ] Dialog editor in admin UI on NPC template detail
-- [ ] Node CRUD with response management
-- [ ] Dialog test simulator in admin UI
-- [ ] `npm run build` passes
-- [ ] Unit tests for dialog tree traversal
+- [x] `dialog_node.go` ent schema with all fields
+- [x] `NPCTemplate` has `dialog_nodes` edge
+- [x] `ent generate` clean
+- [x] `talk <npc_name>` command in herbst TUI — starts conversation
+- [x] Numbered response selection (1-9) — navigates tree
+- [x] `0` / `leave` / `bye` — ends conversation
+- [x] `ConversationState` stored on model in memory
+- [ ] Multiple entry nodes with conditions resolved correctly (deferred — entry_condition evaluation not yet implemented)
+- [x] Quest offer flow from dialog responses
+- [x] Effects application from dialog nodes and responses
+- [x] Dialog editor in admin UI on NPC template detail
+- [x] Node CRUD with response management
+- [ ] Dialog test simulator in admin UI (deferred)
+- [x] `npm run build` passes
+- [ ] Unit tests for dialog tree traversal (deferred)
 
 ---
 

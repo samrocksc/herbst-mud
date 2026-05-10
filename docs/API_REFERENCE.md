@@ -1,6 +1,6 @@
 # API Reference
 
-> 🔵 Last Updated: 2026-04-04
+> 🔵 Last Updated: 2026-05-10
 
 Complete REST API documentation for the Herbst MUD server.
 
@@ -22,6 +22,8 @@ Complete REST API documentation for the Herbst MUD server.
 - [Equipment](#equipment)
 - [Skills & Talents](#skills--talents)
 - [Quests](#quests)
+- [Dialog Nodes](#dialog-nodes)
+- [Logs](#logs)
 - [Backups](#backups)
 - [Error Handling](#error-handling)
 
@@ -706,52 +708,116 @@ Content-Type: application/json
 
 ## Quests
 
-### Get Active Quests
+### Quest Definitions (Admin CRUD)
 
 ```http
-GET /characters/{id}/quests
-```
-
-**Authentication:** Required (Owner)
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "name": "The Beginning",
-    "description": "Find the Fountain of Dreams",
-    "status": "in_progress",
-    "objectives": [
-      {
-        "id": 1,
-        "description": "Visit the Fountain",
-        "completed": false
-      }
-    ],
-    "rewards": {
-      "xp": 100,
-      "gold": 50
-    }
-  }
-]
-```
-
-### Get Quest by ID
-
-```http
-GET /quests/{id}
-```
-
-**Authentication:** Required
-
-### List All Quests
-
-```http
-GET /quests
+GET    /api/quests              # List all quest definitions
+POST   /api/quests              # Create quest definition
+GET    /api/quests/{id}          # Get quest definition
+PUT    /api/quests/{id}          # Update quest definition
+DELETE /api/quests/{id}          # Delete quest definition
 ```
 
 **Authentication:** Required (Admin)
+
+**Quest Definition Object:**
+```json
+{
+  "id": 1,
+  "name": "The Shadows Grow Long",
+  "description": "Elder Myrddin has noticed the growing darkness...",
+  "prerequisite_quest_ids": [],
+  "objectives": [
+    { "type": "kill", "target_id": "goblin_shaman", "count": 3, "label": "Kill Goblin Shamans", "hint": "They lurk in the northern caves" }
+  ],
+  "rewards": { "xp": 500, "item_ids": [], "effect_ids": [], "tag_adds": ["quest_shadows_complete"], "tag_removes": [], "achievement_ids": [] },
+  "repeat_mode": "none",
+  "cooldown_hours": 0,
+  "is_active": true
+}
+```
+
+### Quest Progress (Game Client)
+
+```http
+GET  /api/characters/{id}/quests                    # List character's quest progress
+POST /api/characters/{id}/quests                    # Accept a quest (body: { "quest_id": 1 })
+PUT  /api/characters/{id}/quests/{questId}/check    # Check progress (body: { "objective_key": "kill:goblin", "count": 1 })
+PUT  /api/characters/{id}/quests/{questId}/abandon   # Abandon a quest
+POST /api/characters/{id}/quests/check-all           # Bulk check all quests (admin, body: { "objective_type": "kill", "target_id": "goblin_shaman" })
+```
+
+**Quest Progress Object:**
+```json
+{
+  "id": 1,
+  "character_id": 9,
+  "quest_id": 1,
+  "quest_name": "The Shadows Grow Long",
+  "status": "active",
+  "current_step": 0,
+  "objective_counts": { "kill:goblin_shaman": 2 },
+  "started_at": "2026-05-10T12:00:00Z"
+}
+```
+
+## Dialog Nodes
+
+### Dialog Node CRUD (Admin)
+
+```http
+GET    /api/dialog-nodes                        # List all dialog nodes
+POST   /api/dialog-nodes                        # Create dialog node
+GET    /api/dialog-nodes/{id}                    # Get dialog node
+PUT    /api/dialog-nodes/{id}                    # Update dialog node
+DELETE /api/dialog-nodes/{id}                    # Delete dialog node
+```
+
+**Authentication:** Required (Admin)
+
+### Dialog Nodes for NPC Template (Public)
+
+```http
+GET /api/npc-templates/{templateId}/dialog-nodes  # Get all dialog nodes for an NPC
+```
+
+**Dialog Node Object:**
+```json
+{
+  "id": "node_001_greeting",
+  "npc_text": "Welcome, traveler. What brings you here?",
+  "responses": [
+    { "label": "What troubles you?", "next_node_id": "node_002_troubles" },
+    { "label": "I'll handle it.", "next_node_id": "node_005_accept", "quest_offer_id": "1" },
+    { "label": "[Leave]", "next_node_id": "" }
+  ],
+  "is_entry": true,
+  "entry_condition": "",
+  "on_enter_effects": [],
+  "npc_template_id": "npc_elder_myrddin"
+}
+```
+
+## Logs
+
+### Query Logs
+
+```http
+GET /api/logs?level=ERROR&service=ssh&limit=100&offset=0
+GET /api/logs/services                              # List distinct service names
+```
+
+**Authentication:** Required (Admin)
+
+**Query Parameters:** `level`, `service`, `character_id`, `room_id`, `template_id`, `limit` (max 1000), `offset`
+
+### SSE Stream
+
+```http
+GET /api/logs/stream?token=<jwt>                    # Real-time log stream via Server-Sent Events
+```
+
+The SSE stream requires a valid JWT token as a query parameter (EventSource cannot send headers).
 
 ---
 

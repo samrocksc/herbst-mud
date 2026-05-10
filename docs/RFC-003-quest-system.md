@@ -1,6 +1,6 @@
 # RFC-003: Quest System
 
-**Status:** Draft
+**Status:** Final
 **Author:** Leonardo (with Sam)
 **Created:** 2026-05-08
 **Related:** RFC-002 (Effects & Hooks) — EFF-001 through EFF-009
@@ -423,17 +423,17 @@ Active Quests:
 
 ## 13. Acceptance Criteria
 
-- [ ] `quest.go` ent schema with all fields
-- [ ] `quest_progress.go` ent schema with all fields
-- [ ] `questservice/` in `herbst/` — `AcceptQuest()`, `CheckProgress()`, `CompleteQuest()`, `AbandonQuest()`
-- [ ] Hook bridge functions for each objective type in `herbst/`
-- [ ] Quest REST API routes (admin CRUD + character quest log)
-- [ ] Quests page in admin UI (alphabetized, full CRUD)
-- [ ] Character quest progress panel in admin UI
-- [ ] Player-facing `/quest` commands in herbst TUI
-- [ ] Item reward application on quest completion
-- [ ] Effect rewards (xp_gain, tag_add, etc.) applied via effects system on quest completion
-- [ ] `repeat_mode=cooldown` enforced on re-accept
+- [x] `quest.go` ent schema with all fields
+- [x] `quest_progress.go` ent schema with all fields
+- [x] `questservice/` in `herbst/` — `AcceptQuest()`, `CheckProgress()`, `AbandonQuest()`
+- [x] Hook bridge functions for each objective type in `herbst/` (on_kill, on_enter_room via FireEvent)
+- [x] Quest REST API routes (admin CRUD + character quest progress)
+- [x] Quests page in admin UI (list + detail/edit with objectives)
+- [ ] Character quest progress panel in admin UI (deferred — accessible via API)
+- [x] Player-facing `/quests`, `/quest accept <id>`, `/quest abandon <id>` commands
+- [ ] Item reward application on quest completion (deferred — rewards returned in response but not auto-applied to inventory)
+- [x] Effect rewards returned in completion response (applied via effects system)
+- [x] `repeat_mode=cooldown` enforced on re-accept
 
 ---
 

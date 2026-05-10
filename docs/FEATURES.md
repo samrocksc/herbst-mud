@@ -13,7 +13,7 @@ Feature tracking for the Herbst MUD project.
 
 | Status | Count | Description |
 |--------|-------|-------------|
-| 🟢 Complete | 12 | Features in production |
+| 🟢 Complete | 16 | Features in production |
 | 🟡 In Progress | 2 | Currently being developed |
 | 🔴 Planned | 7 | On the roadmap |
 
@@ -51,6 +51,15 @@ Feature tracking for the Herbst MUD project.
 | Invincibility | 0 max HP = no damage taken | ✅ Complete |
 | Immortal Mode | Takes damage but HP never below 1 | ✅ Complete |
 | **Game Export/Import** | Export/import world data (rooms, NPCs, skills) | ✅ Complete |
+
+### Effects, Hooks & Quests
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Effects System** | AbilityEffect entities, hooks, active effects, expiry | ✅ Complete |
+| **Quest System** | Quest definitions, progress tracking, objectives, rewards | ✅ Complete |
+| **NPC Dialog Trees** | Branching dialog with numbered responses, quest offers | ✅ Complete |
+| **Logging Pipeline** | Structured DB logging, SSE streaming, admin viewer | ✅ Complete |
 
 ### Deployment & Operations
 
@@ -242,4 +251,4 @@ See `docs/GHERKIN_TESTING.md` for testing guidelines.
 
 ---
 
-🔵 Document version: 2026-04-05
+🔵 Document version: 2026-05-10
