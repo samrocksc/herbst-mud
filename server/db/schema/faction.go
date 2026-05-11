@@ -20,6 +20,9 @@ func (Faction) Fields() []ent.Field {
 			Comment("e.g., Ninja, Foot Clan, Surf Warden"),
 		field.String("description").
 			Optional(),
+		field.JSON("member_tags", []string{}).
+			Optional().
+			Comment("Tags auto-applied to characters when they join this faction"),
 	}
 }
 

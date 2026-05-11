@@ -39,6 +39,9 @@ func (r *entFactionRepo) Create(ctx context.Context, input CreateFactionInput) (
 	if input.Description != "" {
 		builder = builder.SetDescription(input.Description)
 	}
+	if len(input.MemberTags) > 0 {
+		builder = builder.SetMemberTags(input.MemberTags)
+	}
 	return builder.Save(ctx)
 }
 
@@ -52,6 +55,9 @@ func (r *entFactionRepo) Update(ctx context.Context, id int, updates FactionUpda
 	}
 	if updates.Description != nil {
 		builder = builder.SetDescription(*updates.Description)
+	}
+	if updates.MemberTags != nil {
+		builder = builder.SetMemberTags(updates.MemberTags)
 	}
 	return builder.Save(ctx)
 }

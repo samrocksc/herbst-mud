@@ -1,10 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCharacter, useUpdateCharacter, type CharacterUpdate } from '../../hooks/useCharacters'
+import { useCreateItemInstance } from '../../hooks/useItemInstances'
+import { apiPost } from '../../utils/apiFetch'
 import { PageHeader } from '../../components/PageHeader'
 import { EquippedItemsView } from '../../components/EquippedItemsView'
 import { ActiveEffectsPanel } from '../../components/ActiveEffectsPanel'
 import { CharacterStats } from './-characters.$characterId.stats'
+import { AddItemModal } from './-characters.$characterId.addItemModal'
 
 export const Route = createFileRoute('/_auth/characters/$characterId')({
   component: CharacterDetail,
@@ -13,10 +17,32 @@ export const Route = createFileRoute('/_auth/characters/$characterId')({
 function CharacterDetail() {
   const { characterId } = Route.useParams()
   const id = Number(characterId)
+  const queryClient = useQueryClient()
   const { data: character, isLoading, isError, error } = useCharacter(id)
   const updateMutation = useUpdateCharacter()
   const [editing, setEditing] = useState(false)
   const [showEquipped, setShowEquipped] = useState(true)
+  const [addItemOpen, setAddItemOpen] = useState(false)
+  const [spawnError, setSpawnError] = useState<string | null>(null)
+  const [spawning, setSpawning] = useState(false)
+
+  const handleSpawnItem = async (templateId: string) => {
+    setSpawning(true)
+    setSpawnError(null)
+    try {
+      await apiPost(`${window.location.origin}/api/item-instances`, {
+        equipment_template_id: templateId,
+        ownerId: id,
+      })
+      queryClient.invalidateQueries({ queryKey: ['item-instances'] })
+      queryClient.invalidateQueries({ queryKey: ['character', id] })
+      setAddItemOpen(false)
+    } catch (err) {
+      setSpawnError(err instanceof Error ? err.message : 'Failed to spawn item')
+    } finally {
+      setSpawning(false)
+    }
+  }
 
   if (isLoading) return <div className="p-8 text-text-muted">Loading character...</div>
   if (isError || !character) return <div className="p-8 text-danger">Error: {error?.message ?? 'Not found'}</div>
@@ -25,6 +51,12 @@ function CharacterDetail() {
     <div className="p-6 max-w-[800px] mx-auto">
       <PageHeader title={character.name} showBack backTo="/characters" actions={
         <div className="flex gap-2">
+          <button
+            onClick={() => setAddItemOpen(true)}
+            className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-text hover:bg-surface-muted"
+          >
+            + Add Item
+          </button>
           <button
             onClick={() => setShowEquipped(!showEquipped)}
             className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-text hover:bg-surface-muted"
@@ -48,6 +80,8 @@ function CharacterDetail() {
       )}
       {showEquipped && <EquippedItemsView characterId={character.id} characterRace={character.race} />}
       <ActiveEffectsPanel characterId={character.id} />
+      <AddItemModal open={addItemOpen} onClose={() => { setAddItemOpen(false); setSpawnError(null) }}
+        onSpawn={handleSpawnItem} isLoading={spawning} error={spawnError} />
     </div>
   )
 }

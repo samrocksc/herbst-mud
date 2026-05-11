@@ -22,7 +22,7 @@ const instanceColumns: Column<ItemInstance>[] = [
   )},
   { header: 'Name', accessor: 'name' },
   { header: 'Location', accessor: 'ownerId', render: (_, row) => {
-    if (row.ownerId != null) return <Link to="/npcs" className="text-primary text-xs no-underline hover:underline">Held by Character #{row.ownerId}</Link>
+    if (row.ownerId != null) return <Link to="/characters/$characterId" params={{ characterId: String(row.ownerId) }} className="text-primary text-xs no-underline hover:underline">Character #{row.ownerId}</Link>
     if (row.roomId > 0) return <Link to="/map" className="text-primary text-xs no-underline hover:underline">In Room #{row.roomId}</Link>
     return <span className="text-text-muted text-xs">Nowhere</span>
   }},
@@ -34,7 +34,6 @@ function ItemDetail() {
   const { itemId } = Route.useParams()
   const queryClient = useQueryClient()
   const [modalOpen, setModalOpen] = useState(false)
-  const [spawnRoomId, setSpawnRoomId] = useState('')
   const [editing, setEditing] = useState(false)
 
   const templateQuery = useQuery({
@@ -48,8 +47,13 @@ function ItemDetail() {
   })
 
   const spawnMutation = useMutation({
-    mutationFn: (roomId: number) => apiPost(`${API}/api/item-instances`, { equipment_template_id: itemId, room_id: roomId }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['item-instances', 'template', itemId] }); setModalOpen(false); setSpawnRoomId('') },
+    mutationFn: ({ targetType, targetId }: { targetType: 'room' | 'character'; targetId: number }) => {
+      const body: Record<string, unknown> = { equipment_template_id: itemId }
+      if (targetType === 'room') body.room_id = targetId
+      else body.ownerId = targetId
+      return apiPost(`${API}/api/item-instances`, body)
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['item-instances', 'template', itemId] }); setModalOpen(false) },
   })
 
   const template = templateQuery.data
@@ -72,8 +76,9 @@ function ItemDetail() {
         {instancesQuery.isError && <div className="text-danger text-xs mb-3">Failed to load instances</div>}
         <DataTable<ItemInstance> columns={instanceColumns} data={instances} getKey={(row) => row.id} emptyMessage="No instances found." variant="dark" />
       </div>
-      <SpawnModal open={modalOpen} onClose={() => { setModalOpen(false); setSpawnRoomId('') }} spawnRoomId={spawnRoomId} setSpawnRoomId={setSpawnRoomId}
-        onSpawn={() => spawnMutation.mutate(Number(spawnRoomId))} isLoading={spawnMutation.isPending} error={spawnMutation.isError ? (spawnMutation.error as Error)?.message ?? 'Failed' : null} />
+      <SpawnModal open={modalOpen} onClose={() => setModalOpen(false)}
+        onSpawn={(targetType, targetId) => spawnMutation.mutate({ targetType, targetId })}
+        isLoading={spawnMutation.isPending} error={spawnMutation.isError ? (spawnMutation.error as Error)?.message ?? 'Failed' : null} />
     </div>
   )
 }

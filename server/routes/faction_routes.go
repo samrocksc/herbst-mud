@@ -66,10 +66,11 @@ func getFaction(repos *repository.Container) gin.HandlerFunc {
 func createFaction(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
-			Name        string `json:"name" binding:"required"`
-			DisplayName string `json:"display_name" binding:"required"`
-			Description string `json:"description"`
-			CategoryID  int    `json:"category_id"`
+			Name        string   `json:"name" binding:"required"`
+			DisplayName string   `json:"display_name" binding:"required"`
+			Description string   `json:"description"`
+			CategoryID  int      `json:"category_id"`
+			MemberTags  []string `json:"member_tags"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -80,6 +81,7 @@ func createFaction(repos *repository.Container) gin.HandlerFunc {
 			Name:        req.Name,
 			DisplayName: req.DisplayName,
 			Description: req.Description,
+			MemberTags:  req.MemberTags,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -97,18 +99,23 @@ func updateFaction(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 		var req struct {
-			DisplayName string `json:"display_name"`
-			Description string `json:"description"`
-			CategoryID  int    `json:"category_id"`
+			DisplayName string   `json:"display_name"`
+			Description string   `json:"description"`
+			CategoryID  int      `json:"category_id"`
+			MemberTags  []string `json:"member_tags"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		_, err = repos.Faction.Update(c.Request.Context(), id, repository.FactionUpdates{
+		updates := repository.FactionUpdates{
 			DisplayName: &req.DisplayName,
 			Description: &req.Description,
-		})
+		}
+		if req.MemberTags != nil {
+			updates.MemberTags = req.MemberTags
+		}
+		_, err = repos.Faction.Update(c.Request.Context(), id, updates)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -222,6 +229,9 @@ func factionToJSON(f *db.Faction) gin.H {
 		"name":         f.Name,
 		"display_name": f.DisplayName,
 		"description":  f.Description,
+	}
+	if f.MemberTags != nil {
+		result["member_tags"] = f.MemberTags
 	}
 	if f.Edges.Category != nil {
 		result["category"] = gin.H{

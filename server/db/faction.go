@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
@@ -23,6 +24,8 @@ type Faction struct {
 	DisplayName string `json:"display_name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Tags auto-applied to characters when they join this faction
+	MemberTags []string `json:"member_tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FactionQuery when eager-loading is set.
 	Edges                     FactionEdges `json:"edges"`
@@ -88,6 +91,8 @@ func (*Faction) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case faction.FieldMemberTags:
+			values[i] = new([]byte)
 		case faction.FieldID:
 			values[i] = new(sql.NullInt64)
 		case faction.FieldName, faction.FieldDisplayName, faction.FieldDescription:
@@ -132,6 +137,14 @@ func (_m *Faction) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				_m.Description = value.String
+			}
+		case faction.FieldMemberTags:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field member_tags", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.MemberTags); err != nil {
+					return fmt.Errorf("unmarshal field member_tags: %w", err)
+				}
 			}
 		case faction.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -204,6 +217,9 @@ func (_m *Faction) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("member_tags=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MemberTags))
 	builder.WriteByte(')')
 	return builder.String()
 }

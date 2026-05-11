@@ -18,6 +18,8 @@ const (
 	FieldDisplayName = "display_name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldMemberTags holds the string denoting the member_tags field in the database.
+	FieldMemberTags = "member_tags"
 	// EdgeCategory holds the string denoting the category edge name in mutations.
 	EdgeCategory = "category"
 	// EdgeRequiredTags holds the string denoting the required_tags edge name in mutations.
@@ -64,6 +66,7 @@ var Columns = []string{
 	FieldName,
 	FieldDisplayName,
 	FieldDescription,
+	FieldMemberTags,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "factions"

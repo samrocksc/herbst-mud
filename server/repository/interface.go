@@ -654,12 +654,14 @@ type CreateFactionInput struct {
 	Name        string
 	DisplayName string
 	Description string
+	MemberTags  []string
 }
 
 type FactionUpdates struct {
 	Name        *string
 	DisplayName *string
 	Description *string
+	MemberTags  []string
 }
 
 type CreateTagInput struct {

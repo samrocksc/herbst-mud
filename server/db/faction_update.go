@@ -15,6 +15,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -76,6 +77,24 @@ func (_u *FactionUpdate) SetNillableDescription(v *string) *FactionUpdate {
 // ClearDescription clears the value of the "description" field.
 func (_u *FactionUpdate) ClearDescription() *FactionUpdate {
 	_u.mutation.ClearDescription()
+	return _u
+}
+
+// SetMemberTags sets the "member_tags" field.
+func (_u *FactionUpdate) SetMemberTags(v []string) *FactionUpdate {
+	_u.mutation.SetMemberTags(v)
+	return _u
+}
+
+// AppendMemberTags appends value to the "member_tags" field.
+func (_u *FactionUpdate) AppendMemberTags(v []string) *FactionUpdate {
+	_u.mutation.AppendMemberTags(v)
+	return _u
+}
+
+// ClearMemberTags clears the value of the "member_tags" field.
+func (_u *FactionUpdate) ClearMemberTags() *FactionUpdate {
+	_u.mutation.ClearMemberTags()
 	return _u
 }
 
@@ -264,6 +283,17 @@ func (_u *FactionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(faction.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.MemberTags(); ok {
+		_spec.SetField(faction.FieldMemberTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedMemberTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, faction.FieldMemberTags, value)
+		})
+	}
+	if _u.mutation.MemberTagsCleared() {
+		_spec.ClearField(faction.FieldMemberTags, field.TypeJSON)
 	}
 	if _u.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -497,6 +527,24 @@ func (_u *FactionUpdateOne) ClearDescription() *FactionUpdateOne {
 	return _u
 }
 
+// SetMemberTags sets the "member_tags" field.
+func (_u *FactionUpdateOne) SetMemberTags(v []string) *FactionUpdateOne {
+	_u.mutation.SetMemberTags(v)
+	return _u
+}
+
+// AppendMemberTags appends value to the "member_tags" field.
+func (_u *FactionUpdateOne) AppendMemberTags(v []string) *FactionUpdateOne {
+	_u.mutation.AppendMemberTags(v)
+	return _u
+}
+
+// ClearMemberTags clears the value of the "member_tags" field.
+func (_u *FactionUpdateOne) ClearMemberTags() *FactionUpdateOne {
+	_u.mutation.ClearMemberTags()
+	return _u
+}
+
 // SetCategoryID sets the "category" edge to the FactionCategory entity by ID.
 func (_u *FactionUpdateOne) SetCategoryID(id int) *FactionUpdateOne {
 	_u.mutation.SetCategoryID(id)
@@ -712,6 +760,17 @@ func (_u *FactionUpdateOne) sqlSave(ctx context.Context) (_node *Faction, err er
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(faction.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.MemberTags(); ok {
+		_spec.SetField(faction.FieldMemberTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedMemberTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, faction.FieldMemberTags, value)
+		})
+	}
+	if _u.mutation.MemberTagsCleared() {
+		_spec.ClearField(faction.FieldMemberTags, field.TypeJSON)
 	}
 	if _u.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{

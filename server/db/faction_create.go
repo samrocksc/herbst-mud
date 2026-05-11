@@ -49,6 +49,12 @@ func (_c *FactionCreate) SetNillableDescription(v *string) *FactionCreate {
 	return _c
 }
 
+// SetMemberTags sets the "member_tags" field.
+func (_c *FactionCreate) SetMemberTags(v []string) *FactionCreate {
+	_c.mutation.SetMemberTags(v)
+	return _c
+}
+
 // SetCategoryID sets the "category" edge to the FactionCategory entity by ID.
 func (_c *FactionCreate) SetCategoryID(id int) *FactionCreate {
 	_c.mutation.SetCategoryID(id)
@@ -190,6 +196,10 @@ func (_c *FactionCreate) createSpec() (*Faction, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(faction.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := _c.mutation.MemberTags(); ok {
+		_spec.SetField(faction.FieldMemberTags, field.TypeJSON, value)
+		_node.MemberTags = value
 	}
 	if nodes := _c.mutation.CategoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -20997,6 +20997,8 @@ type FactionMutation struct {
 	name                      *string
 	display_name              *string
 	description               *string
+	member_tags               *[]string
+	appendmember_tags         []string
 	clearedFields             map[string]struct{}
 	category                  *int
 	clearedcategory           bool
@@ -21231,6 +21233,71 @@ func (m *FactionMutation) DescriptionCleared() bool {
 func (m *FactionMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, faction.FieldDescription)
+}
+
+// SetMemberTags sets the "member_tags" field.
+func (m *FactionMutation) SetMemberTags(s []string) {
+	m.member_tags = &s
+	m.appendmember_tags = nil
+}
+
+// MemberTags returns the value of the "member_tags" field in the mutation.
+func (m *FactionMutation) MemberTags() (r []string, exists bool) {
+	v := m.member_tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMemberTags returns the old "member_tags" field's value of the Faction entity.
+// If the Faction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FactionMutation) OldMemberTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMemberTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMemberTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMemberTags: %w", err)
+	}
+	return oldValue.MemberTags, nil
+}
+
+// AppendMemberTags adds s to the "member_tags" field.
+func (m *FactionMutation) AppendMemberTags(s []string) {
+	m.appendmember_tags = append(m.appendmember_tags, s...)
+}
+
+// AppendedMemberTags returns the list of values that were appended to the "member_tags" field in this mutation.
+func (m *FactionMutation) AppendedMemberTags() ([]string, bool) {
+	if len(m.appendmember_tags) == 0 {
+		return nil, false
+	}
+	return m.appendmember_tags, true
+}
+
+// ClearMemberTags clears the value of the "member_tags" field.
+func (m *FactionMutation) ClearMemberTags() {
+	m.member_tags = nil
+	m.appendmember_tags = nil
+	m.clearedFields[faction.FieldMemberTags] = struct{}{}
+}
+
+// MemberTagsCleared returns if the "member_tags" field was cleared in this mutation.
+func (m *FactionMutation) MemberTagsCleared() bool {
+	_, ok := m.clearedFields[faction.FieldMemberTags]
+	return ok
+}
+
+// ResetMemberTags resets all changes to the "member_tags" field.
+func (m *FactionMutation) ResetMemberTags() {
+	m.member_tags = nil
+	m.appendmember_tags = nil
+	delete(m.clearedFields, faction.FieldMemberTags)
 }
 
 // SetCategoryID sets the "category" edge to the FactionCategory entity by id.
@@ -21468,7 +21535,7 @@ func (m *FactionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FactionMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, faction.FieldName)
 	}
@@ -21477,6 +21544,9 @@ func (m *FactionMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, faction.FieldDescription)
+	}
+	if m.member_tags != nil {
+		fields = append(fields, faction.FieldMemberTags)
 	}
 	return fields
 }
@@ -21492,6 +21562,8 @@ func (m *FactionMutation) Field(name string) (ent.Value, bool) {
 		return m.DisplayName()
 	case faction.FieldDescription:
 		return m.Description()
+	case faction.FieldMemberTags:
+		return m.MemberTags()
 	}
 	return nil, false
 }
@@ -21507,6 +21579,8 @@ func (m *FactionMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDisplayName(ctx)
 	case faction.FieldDescription:
 		return m.OldDescription(ctx)
+	case faction.FieldMemberTags:
+		return m.OldMemberTags(ctx)
 	}
 	return nil, fmt.Errorf("unknown Faction field %s", name)
 }
@@ -21536,6 +21610,13 @@ func (m *FactionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case faction.FieldMemberTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMemberTags(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Faction field %s", name)
@@ -21570,6 +21651,9 @@ func (m *FactionMutation) ClearedFields() []string {
 	if m.FieldCleared(faction.FieldDescription) {
 		fields = append(fields, faction.FieldDescription)
 	}
+	if m.FieldCleared(faction.FieldMemberTags) {
+		fields = append(fields, faction.FieldMemberTags)
+	}
 	return fields
 }
 
@@ -21587,6 +21671,9 @@ func (m *FactionMutation) ClearField(name string) error {
 	case faction.FieldDescription:
 		m.ClearDescription()
 		return nil
+	case faction.FieldMemberTags:
+		m.ClearMemberTags()
+		return nil
 	}
 	return fmt.Errorf("unknown Faction nullable field %s", name)
 }
@@ -21603,6 +21690,9 @@ func (m *FactionMutation) ResetField(name string) error {
 		return nil
 	case faction.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case faction.FieldMemberTags:
+		m.ResetMemberTags()
 		return nil
 	}
 	return fmt.Errorf("unknown Faction field %s", name)

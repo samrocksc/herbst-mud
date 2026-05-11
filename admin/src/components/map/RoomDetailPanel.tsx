@@ -47,7 +47,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
 
       <div className="p-3 flex-1 overflow-y-auto">
         <div className="text-text-muted text-[10px] mb-2">
-          Room ID: {selectedRoom.id}
+          Room ID: <a href={`/map?room=${selectedRoom.id}`} className="text-primary hover:underline" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(`${window.location.origin}/map?room=${selectedRoom.id}`) }}>#{selectedRoom.id}</a>
           {selectedRoom.atmosphere && ` • ${selectedRoom.atmosphere}`}
         </div>
         <div className="text-text mb-3 text-sm">{selectedRoom.description}</div>

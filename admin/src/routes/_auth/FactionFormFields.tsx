@@ -5,6 +5,8 @@ import {
   SelectField,
   CheckboxField,
 } from '../../components/FormFields'
+import { TagInput } from '../../components/TagInput'
+import { useTags } from '../../hooks/useTags'
 import type { FactionCategory, FactionForm } from './factionTypes'
 
 export function FactionFormFields({
@@ -17,13 +19,15 @@ export function FactionFormFields({
   categories: FactionCategory[]
 }>) {
   const set = (patch: Partial<FactionForm>) => setForm({ ...form, ...patch })
+  const { data: tags } = useTags()
+  const availableTags = (tags ?? []).map((t) => t.name)
   const catOptions = [
     { value: '', label: 'None' },
     ...categories.map((c) => ({ value: String(c.id), label: c.display_name || c.name })),
   ]
 
   return (
-    <div className="bg-surface-muted rounded-lg p-4 border border-border space-y-3">
+    <div className="space-y-3">
       <FormField
         label="Name"
         value={form.name}
@@ -59,6 +63,13 @@ export function FactionFormFields({
         label="Universal (applies to all characters)"
         checked={form.is_universal}
         onChange={(v) => set({ is_universal: v })}
+      />
+      <TagInput
+        label="Member Tags"
+        value={form.member_tags}
+        onChange={(tags) => set({ member_tags: tags })}
+        availableTags={availableTags}
+        placeholder="Tags auto-applied when characters join"
       />
     </div>
   )

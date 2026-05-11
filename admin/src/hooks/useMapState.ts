@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useRooms } from './useRooms'
 import { useNPCs } from './useNPCs'
 import { useRoomEquipment } from './useRoomEquipment'
@@ -8,23 +8,36 @@ import { GRID, MIN_ZOOM, MAX_ZOOM, ZOOM_FINE_STEP } from '../components/map/cons
 import { DIRECTION_OFFSETS } from '../components/map/DirectionUtils'
 import type { Room } from '../components/map/types'
 
+type MapSearch = {
+  room?: number
+  floor?: number
+}
+
+function parseSearch(raw: Record<string, unknown>): MapSearch {
+  return {
+    room: raw.room != null ? Number(raw.room) || undefined : undefined,
+    floor: raw.floor != null ? Number(raw.floor) || undefined : undefined,
+  }
+}
+
 export function useMapState() {
   const navigate = useNavigate()
+  const rawSearch = useSearch({ from: '/map' }) as Record<string, unknown>
+  const search = parseSearch(rawSearch)
   const { rooms, isLoading: roomsLoading, updateRoom, createRoom, createRoomAsync, deleteRoom, isCreating, cleanupOrphanExits, createBidirectionalExit } = useRooms()
   const npcsQuery = useNPCs()
 
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+  const [selectedRoom, setSelectedRoomState] = useState<Room | null>(null)
   const [zoom, setZoom] = useState(1)
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
-  const [currentZLevel, setCurrentZLevel] = useState(() => {
-    const params = new URLSearchParams(window.location.search)
-    return Math.max(0, parseInt(params.get('floor') || '0') || 0)
-  })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+
+  const currentZLevel = search.floor ?? 0
+  const initialSyncDone = useRef(false)
 
   const viewportRef = useRef<HTMLDivElement>(null)
 
@@ -32,13 +45,35 @@ export function useMapState() {
 
   const { zLevels, nodePositions } = useNodeLayout(rooms, currentZLevel)
 
+  // Sync selected room from URL search param on mount and when rooms load
+  useEffect(() => {
+    if (roomsLoading || !rooms.length) return
+    const roomId = search.room
+    if (roomId != null && (selectedRoom == null || selectedRoom.id !== roomId)) {
+      const room = rooms.find(r => r.id === roomId)
+      if (room) setSelectedRoomState(room)
+    }
+    if (roomId == null && selectedRoom != null && initialSyncDone.current) {
+      setSelectedRoomState(null)
+    }
+    initialSyncDone.current = true
+  }, [rooms, roomsLoading, search.room])
+
+  const updateSearchParams = useCallback((updates: { room?: number | null; floor?: number }) => {
+    const params: Record<string, number> = {}
+    if (updates.room != null) params.room = updates.room
+    else if (updates.room === null && search.room != null) { /* clear room */ }
+    else if (search.room != null) params.room = search.room
+
+    if (updates.floor != null) params.floor = updates.floor
+    else if (currentZLevel !== 0) params.floor = currentZLevel
+
+    navigate({ to: '/map', search: Object.keys(params).length > 0 ? params : undefined, replace: true })
+  }, [navigate, search.room, currentZLevel])
+
   const handleSetZLevel = useCallback((z: number) => {
-    setCurrentZLevel(z)
-    const url = new URL(window.location.href)
-    if (z === 0) url.searchParams.delete('floor')
-    else url.searchParams.set('floor', String(z))
-    window.history.replaceState(null, '', url.toString())
-  }, [])
+    updateSearchParams({ floor: z })
+  }, [updateSearchParams])
 
   const handleRelayout = useCallback(() => {
     const clean = nodePositions
@@ -104,10 +139,11 @@ export function useMapState() {
   }, [])
 
   const handleSelectRoom = useCallback((room: Room | null) => {
-    setSelectedRoom(room)
+    setSelectedRoomState(room)
     setSidebarOpen(false)
     if (room) setEditingRoom(null)
-  }, [])
+    updateSearchParams({ room: room?.id ?? null })
+  }, [updateSearchParams])
 
   const handleEditRoom = useCallback((room: Room) => {
     setEditingRoom(room)

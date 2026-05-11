@@ -567,6 +567,7 @@ var (
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "display_name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "member_tags", Type: field.TypeJSON, Nullable: true},
 		{Name: "faction_category_factions", Type: field.TypeInt, Nullable: true},
 	}
 	// FactionsTable holds the schema information for the "factions" table.
@@ -577,7 +578,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "factions_faction_categories_factions",
-				Columns:    []*schema.Column{FactionsColumns[4]},
+				Columns:    []*schema.Column{FactionsColumns[5]},
 				RefColumns: []*schema.Column{FactionCategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

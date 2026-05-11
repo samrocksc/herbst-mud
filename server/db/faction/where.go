@@ -274,6 +274,16 @@ func DescriptionContainsFold(v string) predicate.Faction {
 	return predicate.Faction(sql.FieldContainsFold(FieldDescription, v))
 }
 
+// MemberTagsIsNil applies the IsNil predicate on the "member_tags" field.
+func MemberTagsIsNil() predicate.Faction {
+	return predicate.Faction(sql.FieldIsNull(FieldMemberTags))
+}
+
+// MemberTagsNotNil applies the NotNil predicate on the "member_tags" field.
+func MemberTagsNotNil() predicate.Faction {
+	return predicate.Faction(sql.FieldNotNull(FieldMemberTags))
+}
+
 // HasCategory applies the HasEdge predicate on the "category" edge.
 func HasCategory() predicate.Faction {
 	return predicate.Faction(func(s *sql.Selector) {

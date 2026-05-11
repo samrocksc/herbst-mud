@@ -48,7 +48,7 @@ export function FactionDetail({
 
   if (editing) {
     return (
-      <div className="max-w-[600px] mx-auto">
+      <div>
         <h2 className="mt-0 mb-4 text-text">Edit Faction</h2>
         {error && <FormError message={error} />}
         <FactionFormFields form={form} setForm={setForm} categories={categories} />
@@ -64,8 +64,10 @@ export function FactionDetail({
     )
   }
 
+  const memberTags = faction.member_tags ?? []
+
   return (
-    <div className="max-w-[600px] mx-auto">
+    <div>
       <h2 className="mt-0 mb-4 text-text">{faction.display_name || faction.name}</h2>
       <div className="bg-surface-muted rounded-lg p-4 border border-border space-y-2">
         <DetailRow label="ID" value={String(faction.id)} />
@@ -75,6 +77,16 @@ export function FactionDetail({
         <DetailRow label="Standing" value={String(faction.standing ?? 0)} />
         <DetailRow label="Universal" value={faction.is_universal ? 'Yes' : 'No'} />
         <DetailRow label="Members" value={faction.member_count != null ? String(faction.member_count) : '0'} />
+        {memberTags.length > 0 && (
+          <div className="detail-row">
+            <label>Member Tags</label>
+            <div className="flex flex-wrap gap-1">
+              {memberTags.map((tag) => (
+                <span key={tag} className="px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-full">{tag}</span>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex gap-2 mt-3">
           <Button variant="primary" size="md" fullWidth onClick={() => setEditing(true)}>Edit</Button>
           <Button variant="danger" size="md" fullWidth onClick={() => setConfirmDelete(true)}>Delete</Button>
