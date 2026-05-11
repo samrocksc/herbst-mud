@@ -5,17 +5,12 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/effecthook"
-	"herbst-server/db/npctemplate"
+	"herbst-server/repository"
 )
 
-func listHooks(client *db.Client) gin.HandlerFunc {
+func listHooks(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		hooks, err := client.EffectHook.Query().
-			WithEffect().
-			WithNpcTemplate().
-			All(c.Request.Context())
+		hooks, err := repos.EffectHook.ListWithEdges(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -28,17 +23,13 @@ func listHooks(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func getHook(client *db.Client) gin.HandlerFunc {
+func getHook(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := parseHookID(c)
 		if err != nil {
 			return
 		}
-		h, err := client.EffectHook.Query().
-			Where(effecthook.IDEQ(id)).
-			WithEffect().
-			WithNpcTemplate().
-			Only(c.Request.Context())
+		h, err := repos.EffectHook.GetWithEdges(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "hook not found"})
 			return
@@ -47,14 +38,14 @@ func getHook(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func listTemplateHooks(client *db.Client) gin.HandlerFunc {
+func listTemplateHooks(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		templateID := c.Param("id")
-		hooks, err := client.EffectHook.Query().
-			Where(effecthook.HasNpcTemplateWith(npctemplate.IDEQ(templateID))).
-			WithEffect().
-			WithNpcTemplate().
-			All(c.Request.Context())
+		if templateID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
+			return
+		}
+		hooks, err := repos.EffectHook.ListByTemplateWithEdges(c.Request.Context(), templateID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -67,9 +58,13 @@ func listTemplateHooks(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func createTemplateHook(client *db.Client) gin.HandlerFunc {
+func createTemplateHook(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		templateID := c.Param("id")
+		if templateID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
+			return
+		}
 		var input hookInput
 		if err := c.ShouldBindJSON(&input); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -87,45 +82,49 @@ func createTemplateHook(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "effect_id is required"})
 			return
 		}
-		mut := client.EffectHook.Create().
-			SetName(*input.Name).
-			SetEvent(*input.Event).
-			SetNpcTemplateID(templateID).
-			SetEffectID(*input.EffectID)
+		enabled := true
+		if input.Enabled != nil {
+			enabled = *input.Enabled
+		}
+		target := ""
 		if input.Target != nil {
 			if !validHookTargets[*input.Target] {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid target"})
 				return
 			}
-			mut.SetTarget(*input.Target)
+			target = *input.Target
 		}
+		condition := ""
 		if input.Condition != nil {
-			mut.SetCondition(*input.Condition)
+			condition = *input.Condition
 		}
-		if input.Enabled != nil {
-			mut.SetEnabled(*input.Enabled)
-		}
-		h, err := mut.Save(c.Request.Context())
+		h, err := repos.EffectHook.Create(c.Request.Context(), repository.CreateEffectHookInput{
+			Name:          *input.Name,
+			Event:         *input.Event,
+			Target:        target,
+			Condition:     condition,
+			Enabled:       enabled,
+			EffectID:      *input.EffectID,
+			NPCTemplateID: &templateID,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		h, _ = client.EffectHook.Query().
-			Where(effecthook.IDEQ(h.ID)).
-			WithEffect().
-			WithNpcTemplate().
-			Only(c.Request.Context())
+		// Re-fetch with edges for response
+		h, _ = repos.EffectHook.GetWithEdges(c.Request.Context(), h.ID)
 		c.JSON(http.StatusCreated, hookToView(h))
 	}
 }
 
-func updateHook(client *db.Client) gin.HandlerFunc {
+func updateHook(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := parseHookID(c)
 		if err != nil {
 			return
 		}
-		h, err := client.EffectHook.Get(c.Request.Context(), id)
+		// Verify hook exists
+		_, err = repos.EffectHook.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "hook not found"})
 			return
@@ -135,54 +134,34 @@ func updateHook(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		mut := client.EffectHook.UpdateOne(h)
-		if input.Name != nil {
-			mut.SetName(*input.Name)
+
+		updates := repository.EffectHookUpdates{
+			Name:      input.Name,
+			Event:     input.Event,
+			Target:    input.Target,
+			Condition: input.Condition,
+			Enabled:   input.Enabled,
+			EffectID:  input.EffectID,
 		}
-		if input.Event != nil {
-			if !validHookEvents[*input.Event] {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event"})
-				return
-			}
-			mut.SetEvent(*input.Event)
-		}
-		if input.Target != nil {
-			if !validHookTargets[*input.Target] {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid target"})
-				return
-			}
-			mut.SetTarget(*input.Target)
-		}
-		if input.Condition != nil {
-			mut.SetCondition(*input.Condition)
-		}
-		if input.Enabled != nil {
-			mut.SetEnabled(*input.Enabled)
-		}
-		if input.EffectID != nil {
-			mut.SetEffectID(*input.EffectID)
-		}
-		updated, err := mut.Save(c.Request.Context())
+
+		_, err = repos.EffectHook.Update(c.Request.Context(), id, updates)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		updated, _ = client.EffectHook.Query().
-			Where(effecthook.IDEQ(updated.ID)).
-			WithEffect().
-			WithNpcTemplate().
-			Only(c.Request.Context())
+		// Re-fetch with edges for response
+		updated, _ := repos.EffectHook.GetWithEdges(c.Request.Context(), id)
 		c.JSON(http.StatusOK, hookToView(updated))
 	}
 }
 
-func deleteHook(client *db.Client) gin.HandlerFunc {
+func deleteHook(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := parseHookID(c)
 		if err != nil {
 			return
 		}
-		err = client.EffectHook.DeleteOneID(id).Exec(c.Request.Context())
+		err = repos.EffectHook.Delete(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "hook not found"})
 			return

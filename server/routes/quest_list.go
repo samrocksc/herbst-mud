@@ -5,16 +5,13 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/quest"
+	"herbst-server/service"
 )
 
 // listQuests returns all quests ordered by name.
-func listQuests(client *db.Client) gin.HandlerFunc {
+func listQuests(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		quests, err := client.Quest.Query().
-			Order(db.Asc(quest.FieldName)).
-			All(c.Request.Context())
+		quests, err := svc.Quest.ListQuests(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -28,14 +25,14 @@ func listQuests(client *db.Client) gin.HandlerFunc {
 }
 
 // getQuest returns a single quest by ID.
-func getQuest(client *db.Client) gin.HandlerFunc {
+func getQuest(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid quest id"})
 			return
 		}
-		q, err := client.Quest.Get(c.Request.Context(), id)
+		q, err := svc.Quest.GetQuest(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "quest not found"})
 			return

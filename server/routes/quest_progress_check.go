@@ -9,11 +9,13 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/quest"
 	"herbst-server/db/questprogress"
+	"herbst-server/repository"
 )
 
 // checkProgress increments objective counts and advances quest progress.
 // If all objectives are complete, the quest is marked completed and rewards applied.
-func checkProgress(client *db.Client) gin.HandlerFunc {
+// TODO: migrate to fully use repos once QuestProgressRepo supports complex queries
+func checkProgress(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -25,7 +27,7 @@ func checkProgress(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid quest id"})
 			return
 		}
-		_, err = client.Character.Get(c.Request.Context(), charID)
+		_, err = repos.Character.Get(c.Request.Context(), charID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "character not found"})
 			return
@@ -35,6 +37,7 @@ func checkProgress(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		// TODO: replace with repo method once QuestProgressRepo supports filtered queries
 		progress, err := client.QuestProgress.Query().
 			Where(
 				questprogress.HasCharacterWith(character.IDEQ(charID)),
@@ -47,7 +50,7 @@ func checkProgress(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "active quest progress not found"})
 			return
 		}
-		result := advanceObjective(client, c, progress, input, questID)
+		result := advanceObjective(client, repos, c, progress, input, questID)
 		if result.err != nil {
 			status := http.StatusInternalServerError
 			if result.notFound {

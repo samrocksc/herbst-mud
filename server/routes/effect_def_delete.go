@@ -5,22 +5,17 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/effect"
-	"herbst-server/db/effecthook"
+	"herbst-server/repository"
 )
 
-func deleteEffectDef(client *db.Client) gin.HandlerFunc {
+func deleteEffectDef(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect id"})
 			return
 		}
-		// Check if any hooks reference this effect
-		hookCount, err := client.EffectHook.Query().
-			Where(effecthook.HasEffectWith(effect.IDEQ(id))).
-			Count(c.Request.Context())
+		hookCount, err := repos.EffectHook.CountByEffect(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -32,7 +27,7 @@ func deleteEffectDef(client *db.Client) gin.HandlerFunc {
 			})
 			return
 		}
-		err = client.Effect.DeleteOneID(id).Exec(c.Request.Context())
+		err = repos.Effect.Delete(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "effect not found"})
 			return

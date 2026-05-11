@@ -3,26 +3,28 @@ package routes
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/ability"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
-func RegisterAbilityRoutes(r *gin.Engine, client *db.Client) {
-	r.GET("/abilities/classless", listClasslessAbilities(client))
+func RegisterAbilityRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
+	r.GET("/abilities/classless", listClasslessAbilities(repos))
 
 	abilities := r.Group("/api")
 	abilities.Use(middleware.AuthMiddleware())
 	abilities.Use(middleware.AdminMiddleware())
 	{
 		abilities.GET("/abilities", listAbilities(client))
-		abilities.POST("/abilities", createAbility(client))
-		abilities.GET("/abilities/:id", getAbility(client))
-		abilities.PUT("/abilities/:id", updateAbility(client))
-		abilities.DELETE("/abilities/:id", deleteAbility(client))
+		abilities.POST("/abilities", createAbility(repos, client))
+		abilities.GET("/abilities/:id", getAbility(repos, client))
+		abilities.PUT("/abilities/:id", updateAbility(repos, client))
+		abilities.DELETE("/abilities/:id", deleteAbility(repos))
 	}
 }
 
@@ -49,23 +51,23 @@ type abilityView struct {
 }
 
 type abilityInput struct {
-	Name            string   `json:"name"`
-	Description     string   `json:"description"`
-	AbilityType     string   `json:"ability_type"`
-	Cost            *int     `json:"cost"`
-	Cooldown        *int     `json:"cooldown"`
-	Requirements    string   `json:"requirements"`
-	ManaCost        *int     `json:"mana_cost"`
-	StaminaCost     *int     `json:"stamina_cost"`
-	HpCost          *int     `json:"hp_cost"`
-	Slug            string   `json:"slug"`
-	RequiredTag     string   `json:"required_tag"`
-	AbilityClass    string   `json:"ability_class"`
-	ProcChance      *float64 `json:"proc_chance"`
-	ProcEvent       string   `json:"proc_event"`
-	CooldownSeconds *int     `json:"cooldown_seconds"`
-	Tags            []string `json:"tags"`
-	FactionID       *int     `json:"faction_id"`
+	Name            string    `json:"name"`
+	Description     string    `json:"description"`
+	AbilityType     string    `json:"ability_type"`
+	Cost            *int      `json:"cost"`
+	Cooldown        *int      `json:"cooldown"`
+	Requirements    string    `json:"requirements"`
+	ManaCost        *int      `json:"mana_cost"`
+	StaminaCost     *int      `json:"stamina_cost"`
+	HpCost          *int      `json:"hp_cost"`
+	Slug            string    `json:"slug"`
+	RequiredTag     string    `json:"required_tag"`
+	AbilityClass    string    `json:"ability_class"`
+	ProcChance      *float64  `json:"proc_chance"`
+	ProcEvent       string    `json:"proc_event"`
+	CooldownSeconds *int      `json:"cooldown_seconds"`
+	Tags            []string  `json:"tags"`
+	FactionID       *int      `json:"faction_id"`
 }
 
 func parseTagsFromRequirements(req string) []string {
@@ -117,6 +119,7 @@ func abilityToView(s *db.Ability) abilityView {
 	return v
 }
 
+// TODO: Migrate to repos.Ability.List once repo supports filtering and WithFaction edge loading
 func listAbilities(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := client.Ability.Query().WithFaction()
@@ -139,13 +142,14 @@ func listAbilities(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func getAbility(client *db.Client) gin.HandlerFunc {
+func getAbility(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
+		// TODO: Migrate to repos.Ability.Get once repo supports WithFaction edge loading
 		s, err := client.Ability.Query().Where(ability.ID(id)).WithFaction().Only(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
@@ -155,7 +159,7 @@ func getAbility(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func createAbility(client *db.Client) gin.HandlerFunc {
+func createAbility(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input abilityInput
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -166,57 +170,56 @@ func createAbility(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
-		mut := client.Ability.Create().
-			SetName(input.Name).
-			SetDescription(input.Description).
-			SetAbilityType(input.AbilityType).
-			SetRequirements(buildRequirementsJSON(input.Tags)).
-			SetSlug(input.Slug).
-			SetRequiredTag(input.RequiredTag).
-			SetAbilityClass(input.AbilityClass).
-			SetProcEvent(input.ProcEvent)
-		if input.Cost != nil {
-			mut.SetCost(*input.Cost)
-		}
-		if input.Cooldown != nil {
-			mut.SetCooldown(*input.Cooldown)
-		}
-		if input.ManaCost != nil {
-			mut.SetManaCost(*input.ManaCost)
-		}
-		if input.StaminaCost != nil {
-			mut.SetStaminaCost(*input.StaminaCost)
-		}
-		if input.HpCost != nil {
-			mut.SetHpCost(*input.HpCost)
-		}
-		if input.ProcChance != nil {
-			mut.SetProcChance(*input.ProcChance)
-		}
-		if input.CooldownSeconds != nil {
-			mut.SetCooldownSeconds(*input.CooldownSeconds)
-		}
-		if input.FactionID != nil {
-			mut.SetFactionID(*input.FactionID)
-		}
-		s, err := mut.Save(c.Request.Context())
+		s, err := repos.Ability.Create(c.Request.Context(), repository.CreateAbilityInput{
+			Name:            input.Name,
+			Description:     input.Description,
+			AbilityType:     input.AbilityType,
+			Cost:            derefInt(input.Cost),
+			Cooldown:        derefInt(input.Cooldown),
+			ManaCost:        derefInt(input.ManaCost),
+			StaminaCost:     derefInt(input.StaminaCost),
+			HPCost:          derefInt(input.HpCost),
+			Requirements:    buildRequirementsJSON(input.Tags),
+			RequiredTag:     input.RequiredTag,
+			ProcChance:      derefFloat64(input.ProcChance),
+			ProcEvent:       input.ProcEvent,
+			CooldownSeconds: derefInt(input.CooldownSeconds),
+			Slug:            input.Slug,
+			AbilityClass:    input.AbilityClass,
+			FactionID:       input.FactionID,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		// Reload with faction edge for response.
 		s, _ = client.Ability.Query().WithFaction().Where(ability.ID(s.ID)).Only(c.Request.Context())
 		c.JSON(http.StatusCreated, abilityToView(s))
 	}
 }
 
-func updateAbility(client *db.Client) gin.HandlerFunc {
+func derefInt(p *int) int {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+func derefFloat64(p *float64) float64 {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+func updateAbility(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
-		s, err := client.Ability.Query().Where(ability.ID(id)).Only(c.Request.Context())
+		_, err = repos.Ability.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
 			return
@@ -226,58 +229,43 @@ func updateAbility(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		mut := client.Ability.UpdateOne(s).
-			SetName(input.Name).
-			SetDescription(input.Description).
-			SetAbilityType(input.AbilityType).
-			SetRequirements(buildRequirementsJSON(input.Tags)).
-			SetSlug(input.Slug).
-			SetRequiredTag(input.RequiredTag).
-			SetAbilityClass(input.AbilityClass).
-			SetProcEvent(input.ProcEvent)
-		if input.Cost != nil {
-			mut.SetCost(*input.Cost)
-		}
-		if input.Cooldown != nil {
-			mut.SetCooldown(*input.Cooldown)
-		}
-		if input.ManaCost != nil {
-			mut.SetManaCost(*input.ManaCost)
-		}
-		if input.StaminaCost != nil {
-			mut.SetStaminaCost(*input.StaminaCost)
-		}
-		if input.HpCost != nil {
-			mut.SetHpCost(*input.HpCost)
-		}
-		if input.ProcChance != nil {
-			mut.SetProcChance(*input.ProcChance)
-		}
-		if input.CooldownSeconds != nil {
-			mut.SetCooldownSeconds(*input.CooldownSeconds)
-		}
-		if input.FactionID != nil {
-			mut.SetFactionID(*input.FactionID)
-		}
-		updated, err := mut.Save(c.Request.Context())
+		_, err = repos.Ability.Update(c.Request.Context(), id, repository.AbilityUpdates{
+			Name:            &input.Name,
+			Description:     &input.Description,
+			AbilityType:    &input.AbilityType,
+			AbilityClass:   &input.AbilityClass,
+			Cost:            input.Cost,
+			Cooldown:        input.Cooldown,
+			ManaCost:        input.ManaCost,
+			StaminaCost:     input.StaminaCost,
+			HPCost:          input.HpCost,
+			Requirements:    strPtr(buildRequirementsJSON(input.Tags)),
+			RequiredTag:     &input.RequiredTag,
+			ProcChance:      input.ProcChance,
+			ProcEvent:       &input.ProcEvent,
+			CooldownSeconds: input.CooldownSeconds,
+			Slug:            &input.Slug,
+			FactionID:       input.FactionID,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		updated, _ = client.Ability.Query().WithFaction().Where(ability.ID(updated.ID)).Only(c.Request.Context())
+		// Reload with faction edge for response.
+		updated, _ := client.Ability.Query().WithFaction().Where(ability.ID(id)).Only(c.Request.Context())
 		c.JSON(http.StatusOK, abilityToView(updated))
 	}
 }
 
-func deleteAbility(client *db.Client) gin.HandlerFunc {
+
+func deleteAbility(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
-		err = client.Ability.DeleteOneID(id).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.Ability.Delete(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
 			return
 		}
@@ -285,16 +273,16 @@ func deleteAbility(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func listClasslessAbilities(client *db.Client) gin.HandlerFunc {
+func listClasslessAbilities(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		abilities, err := client.Ability.Query().
-			Where(ability.AbilityClassEQ("active")).
-			Order(ability.ByName()).
-			All(c.Request.Context())
+		abilities, err := repos.Ability.ListByClass(c.Request.Context(), "active")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		sort.Slice(abilities, func(i, j int) bool {
+			return abilities[i].Name < abilities[j].Name
+		})
 		result := make([]gin.H, len(abilities))
 		for i, a := range abilities {
 			result[i] = gin.H{
@@ -303,7 +291,7 @@ func listClasslessAbilities(client *db.Client) gin.HandlerFunc {
 				"description":  a.Description,
 				"ability_type": a.AbilityType,
 				"mana_cost":    a.ManaCost,
-				"stamina_cost": a.StaminaCost,
+				"stamina_cost":  a.StaminaCost,
 				"hp_cost":      a.HpCost,
 				"cooldown":     a.Cooldown,
 			}

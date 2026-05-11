@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/questprogress"
+	"herbst-server/repository"
 )
 
 // progressResult holds the result of advancing a quest objective.
@@ -16,7 +17,8 @@ type progressResult struct {
 }
 
 // advanceObjective increments counts and checks for completion.
-func advanceObjective(client *db.Client, c *gin.Context, progress *db.QuestProgress, input questCheckInput, questID int) progressResult {
+// TODO: migrate to fully use repos once QuestProgressRepo supports update+query
+func advanceObjective(client *db.Client, repos *repository.Container, c *gin.Context, progress *db.QuestProgress, input questCheckInput, questID int) progressResult {
 	counts := progress.ObjectiveCounts
 	if counts == nil {
 		counts = map[string]int{}
@@ -28,11 +30,11 @@ func advanceObjective(client *db.Client, c *gin.Context, progress *db.QuestProgr
 	counts[input.ObjectiveKey] += increment
 	q := progress.Edges.Quest
 	if q == nil {
-		var err error
-		q, err = client.Quest.Get(c.Request.Context(), questID)
+		questObj, err := repos.Quest.Get(c.Request.Context(), questID)
 		if err != nil {
 			return progressResult{err: err, notFound: true}
 		}
+		q = questObj
 	}
 	mut := client.QuestProgress.UpdateOne(progress).
 		SetObjectiveCounts(counts)

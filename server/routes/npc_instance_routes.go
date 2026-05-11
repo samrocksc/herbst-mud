@@ -8,27 +8,27 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/character"
-	"herbst-server/db/equipment"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterNPCInstanceRoutes registers REST endpoints for NPC instances.
 // NPC instances are Character rows with isNPC=true and is_instance=true.
-func RegisterNPCInstanceRoutes(r *gin.Engine, client *db.Client) {
+func RegisterNPCInstanceRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	g := r.Group("/api")
 	g.Use(middleware.AuthMiddleware())
 	g.Use(middleware.AdminMiddleware())
 	{
-		g.GET("/npc-instances", listNPCInstances(client))
-		g.POST("/npc-instances", createNPCInstance(client))
-		g.GET("/npc-instances/:id", getNPCInstance(client))
+		g.GET("/npc-instances", listNPCInstances(repos, client))
+		g.POST("/npc-instances", createNPCInstance(repos, client))
+		g.GET("/npc-instances/:id", getNPCInstance(repos))
 		g.PUT("/npc-instances/:id", updateNPCInstance(client))
-		g.DELETE("/npc-instances/:id", deleteNPCInstance(client))
+		g.DELETE("/npc-instances/:id", deleteNPCInstance(repos))
 
 		// Equipment management for NPC instances
-		g.GET("/npc-instances/:id/equipment", listNPCInstanceEquipment(client))
-		g.POST("/npc-instances/:id/equipment", addNPCInstanceEquipment(client))
-		g.DELETE("/npc-instances/:id/equipment/:eqid", removeNPCInstanceEquipment(client))
+		g.GET("/npc-instances/:id/equipment", listNPCInstanceEquipment(repos))
+		g.POST("/npc-instances/:id/equipment", addNPCInstanceEquipment(repos))
+		g.DELETE("/npc-instances/:id/equipment/:eqid", removeNPCInstanceEquipment(repos))
 	}
 }
 
@@ -78,8 +78,9 @@ func toView(c *db.Character) npcInstanceView {
 // ─── Handlers ───────────────────────────────────────────────────────────────
 
 // GET /api/npc-instances?roomId=X&templateId=X&active=true
-func listNPCInstances(client *db.Client) gin.HandlerFunc {
+func listNPCInstances(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// TODO: Remove client dependency once repos support is_instance and roomId/templateId filters
 		query := client.Character.Query().
 			Where(character.IsNPCEQ(true), character.IsInstanceEQ(true))
 
@@ -121,7 +122,7 @@ func listNPCInstances(client *db.Client) gin.HandlerFunc {
 }
 
 // POST /api/npc-instances — create instance from template
-func createNPCInstance(client *db.Client) gin.HandlerFunc {
+func createNPCInstance(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			TemplateID     string `json:"template_id"`
@@ -141,8 +142,8 @@ func createNPCInstance(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Fetch the NPC template
-		tmpl, err := client.NPCTemplate.Get(c.Request.Context(), req.TemplateID)
+		// Fetch the NPC template via repo
+		tmpl, err := repos.NPCTemplate.Get(c.Request.Context(), req.TemplateID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "npc template not found: " + req.TemplateID})
 			return
@@ -158,6 +159,7 @@ func createNPCInstance(client *db.Client) gin.HandlerFunc {
 			}
 		}
 
+		// TODO: Use repos.Character.Create once CreateCharacterInput supports IsInstance and InstanceNumber
 		builder := client.Character.Create().
 			SetName(tmpl.Name).
 			SetLevel(tmpl.Level).
@@ -186,7 +188,7 @@ func createNPCInstance(client *db.Client) gin.HandlerFunc {
 }
 
 // GET /api/npc-instances/:id
-func getNPCInstance(client *db.Client) gin.HandlerFunc {
+func getNPCInstance(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -194,10 +196,8 @@ func getNPCInstance(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		inst, err := client.Character.Query().
-			Where(character.IDEQ(id), character.IsNPCEQ(true), character.IsInstanceEQ(true)).
-			Only(c.Request.Context())
-		if err != nil {
+		inst, err := repos.Character.Get(c.Request.Context(), id)
+		if err != nil || !inst.IsNPC || !inst.IsInstance {
 			c.JSON(http.StatusNotFound, gin.H{"error": "npc instance not found"})
 			return
 		}
@@ -207,9 +207,7 @@ func getNPCInstance(client *db.Client) gin.HandlerFunc {
 }
 
 // PUT /api/npc-instances/:id — update instance fields (admin)
-//
-// Accepts: { room_id?, starting_room_id?, hitpoints?, instance_number? }
-// room_id maps to CurrentRoomId; starting_room_id maps to StartingRoomId
+// TODO: Use repos.Character.Update once CharacterUpdates supports IsInstance and InstanceNumber
 func updateNPCInstance(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
@@ -230,6 +228,7 @@ func updateNPCInstance(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
+		// TODO: Use repos.Character.Update once CharacterUpdates supports IsInstance and InstanceNumber
 		updater := client.Character.UpdateOneID(id)
 
 		if req.RoomID != nil {
@@ -259,7 +258,7 @@ func updateNPCInstance(client *db.Client) gin.HandlerFunc {
 }
 
 // DELETE /api/npc-instances/:id — hard delete from DB
-func deleteNPCInstance(client *db.Client) gin.HandlerFunc {
+func deleteNPCInstance(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -267,8 +266,7 @@ func deleteNPCInstance(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		err = client.Character.DeleteOneID(id).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.Character.Delete(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "npc instance not found"})
 			return
 		}
@@ -289,7 +287,7 @@ type equipmentItemView struct {
 }
 
 // GET /api/npc-instances/:id/equipment — list equipment owned by this instance
-func listNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
+func listNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -297,9 +295,7 @@ func listNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		items, err := client.Equipment.Query().
-			Where(equipment.OwnerIdEQ(id)).
-			All(c.Request.Context())
+		items, err := repos.Equipment.ListByOwner(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -321,10 +317,7 @@ func listNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
 }
 
 // POST /api/npc-instances/:id/equipment — add equipment to instance
-//
-// Accepts: { equipment_template_id: string, slot?: string }
-// Creates a new Equipment row from the template and assigns it to the character.
-func addNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
+func addNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -333,10 +326,8 @@ func addNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
 		}
 
 		// Verify the character exists and is an NPC instance
-		_, err = client.Character.Query().
-			Where(character.IDEQ(id), character.IsNPCEQ(true), character.IsInstanceEQ(true)).
-			Only(c.Request.Context())
-		if err != nil {
+		char, err := repos.Character.Get(c.Request.Context(), id)
+		if err != nil || !char.IsNPC || !char.IsInstance {
 			c.JSON(http.StatusNotFound, gin.H{"error": "npc instance not found"})
 			return
 		}
@@ -351,7 +342,7 @@ func addNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
 		}
 
 		// Fetch the equipment template
-		eqTmpl, err := client.EquipmentTemplate.Get(c.Request.Context(), req.EquipmentTemplateID)
+		eqTmpl, err := repos.EquipmentTemplate.Get(c.Request.Context(), req.EquipmentTemplateID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "equipment template not found: " + req.EquipmentTemplateID})
 			return
@@ -362,27 +353,26 @@ func addNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
 			slot = req.SlotOverride
 		}
 
-		// Create the equipment item and assign it to the character
-		eqItem, err := client.Equipment.Create().
-			SetEquipmentTemplateID(eqTmpl.ID).
-			SetName(eqTmpl.Name).
-			SetDescription(eqTmpl.Description).
-			SetSlot(slot).
-			SetLevel(eqTmpl.Level).
-			SetWeight(eqTmpl.Weight).
-			SetItemType(eqTmpl.ItemType).
-			SetColor(eqTmpl.Color).
-			SetIsVisible(eqTmpl.IsVisible).
-			SetIsImmovable(eqTmpl.IsImmovable).
-			SetEffectType(eqTmpl.EffectType).
-			SetEffectValue(eqTmpl.EffectValue).
-			SetEffectDuration(eqTmpl.EffectDuration).
-			SetIsContainer(eqTmpl.IsContainer).
-			SetContainerCapacity(eqTmpl.ContainerCapacity).
-			SetIsLocked(eqTmpl.IsLocked).
-			SetOwnerId(id).
-			SetIsEquipped(true).
-			Save(c.Request.Context())
+		eqItem, err := repos.Equipment.Create(c.Request.Context(), repository.CreateEquipmentInput{
+			Name:                  eqTmpl.Name,
+			Description:           eqTmpl.Description,
+			Slot:                  slot,
+			OwnerID:               &id,
+			Level:                 eqTmpl.Level,
+			Weight:                 eqTmpl.Weight,
+			ItemType:              eqTmpl.ItemType,
+			Color:                  eqTmpl.Color,
+			IsVisible:             eqTmpl.IsVisible,
+			IsImmovable:           eqTmpl.IsImmovable,
+			EffectType:            eqTmpl.EffectType,
+			EffectValue:           eqTmpl.EffectValue,
+			EffectDuration:        eqTmpl.EffectDuration,
+			IsContainer:           eqTmpl.IsContainer,
+			ContainerCapacity:     eqTmpl.ContainerCapacity,
+			IsLocked:              eqTmpl.IsLocked,
+			IsEquipped:            true,
+			EquipmentTemplateID:   &eqTmpl.ID,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -399,7 +389,7 @@ func addNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
 }
 
 // DELETE /api/npc-instances/:id/equipment/:eqid — remove equipment from instance
-func removeNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
+func removeNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		instID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -413,16 +403,13 @@ func removeNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
 		}
 
 		// Verify this equipment belongs to this instance
-		item, err := client.Equipment.Query().
-			Where(equipment.IDEQ(eqID), equipment.OwnerIdEQ(instID)).
-			Only(c.Request.Context())
-		if err != nil {
+		item, err := repos.Equipment.Get(c.Request.Context(), eqID)
+		if err != nil || item.OwnerId == nil || *item.OwnerId != instID {
 			c.JSON(http.StatusNotFound, gin.H{"error": "equipment not found for this instance"})
 			return
 		}
 
-		err = client.Equipment.DeleteOne(item).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.Equipment.Delete(c.Request.Context(), eqID); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -434,7 +421,6 @@ func removeNPCInstanceEquipment(client *db.Client) gin.HandlerFunc {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 // nextInstanceNumber returns the next available instance_number for a given template.
-// It queries all NPC instances with the given template_id and finds max(instance_number) + 1.
 func nextInstanceNumber(client *db.Client, ctx context.Context, templateID string) (int, error) {
 	instances, err := client.Character.Query().
 		Where(character.IsNPCEQ(true), character.IsInstanceEQ(true), character.NpcTemplateIDEQ(templateID)).

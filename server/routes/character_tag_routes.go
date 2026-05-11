@@ -5,20 +5,18 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/character"
-	"herbst-server/db/charactertag"
+	"herbst-server/repository"
 )
 
 // RegisterCharacterTagRoutes registers character tag endpoints.
-func RegisterCharacterTagRoutes(r *gin.Engine, client *db.Client) {
-	r.GET("/characters/:id/tags", getCharacterTags(client))
-	r.POST("/characters/:id/tags", addCharacterTag(client))
-	r.DELETE("/characters/:id/tags/:tagId", removeCharacterTag(client))
+func RegisterCharacterTagRoutes(r *gin.Engine, repos *repository.Container) {
+	r.GET("/characters/:id/tags", getCharacterTags(repos))
+	r.POST("/characters/:id/tags", addCharacterTag(repos))
+	r.DELETE("/characters/:id/tags/:tagId", removeCharacterTag(repos))
 }
 
 // getCharacterTags returns all tags for a character.
-func getCharacterTags(client *db.Client) gin.HandlerFunc {
+func getCharacterTags(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -26,9 +24,7 @@ func getCharacterTags(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		tags, err := client.CharacterTag.Query().
-			Where(charactertag.HasCharacterWith(character.ID(id))).
-			All(c.Request.Context())
+		tags, err := repos.CharacterTag.ListByCharacter(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -48,7 +44,7 @@ func getCharacterTags(client *db.Client) gin.HandlerFunc {
 }
 
 // addCharacterTag adds a tag to a character.
-func addCharacterTag(client *db.Client) gin.HandlerFunc {
+func addCharacterTag(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -68,26 +64,22 @@ func addCharacterTag(client *db.Client) gin.HandlerFunc {
 			req.Source = "admin"
 		}
 
-		ct, err := client.CharacterTag.Create().
-			SetTag(req.Tag).
-			SetSource(req.Source).
-			SetCharacterID(id).
-			Save(c.Request.Context())
+		ct, err := repos.CharacterTag.Create(c.Request.Context(), id, req.Tag, req.Source)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"id":       ct.ID,
-			"tag":      ct.Tag,
-			"source":   ct.Source,
+			"id":     ct.ID,
+			"tag":    ct.Tag,
+			"source": ct.Source,
 		})
 	}
 }
 
 // removeCharacterTag removes a tag from a character.
-func removeCharacterTag(client *db.Client) gin.HandlerFunc {
+func removeCharacterTag(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tagID, err := strconv.Atoi(c.Param("tagId"))
 		if err != nil {
@@ -95,8 +87,7 @@ func removeCharacterTag(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		err = client.CharacterTag.DeleteOneID(tagID).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.CharacterTag.Delete(c.Request.Context(), tagID); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
 			return
 		}

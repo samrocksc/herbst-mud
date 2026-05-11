@@ -52,29 +52,7 @@ func questToView(q *db.Quest) questView {
 	}
 }
 
-// questObjectivesToSchema converts input objectives to schema types.
-func questObjectivesToSchema(objs []questObjectiveInput) []schema.QuestObjective {
-	result := make([]schema.QuestObjective, len(objs))
-	for i, o := range objs {
-		result[i] = schema.QuestObjective{
-			Type: o.Type, TargetID: o.TargetID,
-			Count: o.Count, Label: o.Label, Hint: o.Hint,
-		}
-	}
-	return result
-}
-
-// questRewardsToSchema converts input rewards to schema type.
-func questRewardsToSchema(r questRewardsInput) schema.QuestRewards {
-	return schema.QuestRewards{
-		XP: r.XP, ItemIDs: r.ItemIDs, EffectIDs: r.EffectIDs,
-		TagAdds: r.TagAdds, TagRemoves: r.TagRemoves,
-		AchievementIDs: r.AchievementIDs,
-	}
-}
-
 // applyQuestRewards returns a summary of rewards that would be applied.
-// Actual reward application is handled by the game engine events system.
 func applyQuestRewards(rewards schema.QuestRewards) map[string]interface{} {
 	return map[string]interface{}{
 		"xp":              rewards.XP,

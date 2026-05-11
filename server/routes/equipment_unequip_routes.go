@@ -5,11 +5,11 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
+	"herbst-server/repository"
 )
 
 // unequipItem handles PUT /equipment/:id/unequip
-func unequipItem(client *db.Client) gin.HandlerFunc {
+func unequipItem(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -25,7 +25,7 @@ func unequipItem(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		item, err := client.Equipment.Get(c.Request.Context(), id)
+		item, err := repos.Equipment.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Equipment not found"})
 			return
@@ -46,9 +46,8 @@ func unequipItem(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		_, err = client.Equipment.UpdateOneID(id).
-			SetIsEquipped(false).
-			Save(c.Request.Context())
+		falseVal := false
+		_, err = repos.Equipment.Update(c.Request.Context(), id, repository.EquipmentUpdates{IsEquipped: &falseVal})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unequip item"})
 			return

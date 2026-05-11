@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/user"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"herbst-server/repository"
 )
 
 // getJWTSecret returns the JWT secret from environment variable
@@ -24,7 +23,7 @@ func getJWTSecret() []byte {
 }
 
 // RegisterUserRoutes registers all user-related routes
-func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
+func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 	// Create a new user
 	router.POST("/users", func(c *gin.Context) {
 		var req struct {
@@ -45,12 +44,11 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		user, err := client.User.
-			Create().
-			SetEmail(req.Email).
-			SetPassword(string(hashedPassword)).
-			SetIsAdmin(req.IsAdmin).
-			Save(c.Request.Context())
+		user, err := repos.User.Create(c.Request.Context(), repository.CreateUserInput{
+			Email:    req.Email,
+			Password: string(hashedPassword),
+			IsAdmin:  req.IsAdmin,
+		})
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -78,13 +76,11 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// Find user by email
-		users, err := client.User.Query().Where(user.Email(req.Email)).All(c.Request.Context())
-		if err != nil || len(users) == 0 {
+		user, err := repos.User.GetByEmail(c.Request.Context(), req.Email)
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 			return
 		}
-
-		user := users[0]
 
 		// Compare password with bcrypt hash
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
@@ -118,7 +114,7 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 
 	// Get all users
 	router.GET("/users", func(c *gin.Context) {
-		users, err := client.User.Query().All(c.Request.Context())
+		users, err := repos.User.List(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -145,7 +141,7 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		user, err := client.User.Get(c.Request.Context(), id)
+		user, err := repos.User.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
@@ -177,12 +173,12 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		updater := client.User.UpdateOneID(id)
-
-		// Only update fields that are provided
-		if req.Email != "" {
-			updater.SetEmail(req.Email)
+		updates := repository.UserUpdates{
+			Email:   &req.Email,
+			IsAdmin: req.IsAdmin,
 		}
+
+		// Only update password if provided
 		if req.Password != "" {
 			// Hash the new password with bcrypt
 			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -190,13 +186,16 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 				return
 			}
-			updater.SetPassword(string(hashedPassword))
-		}
-		if req.IsAdmin != nil {
-			updater.SetIsAdmin(*req.IsAdmin)
+			updates.Password = new(string)
+			*updates.Password = string(hashedPassword)
 		}
 
-		user, err := updater.Save(c.Request.Context())
+		// Only set email if provided
+		if req.Email == "" {
+			updates.Email = nil
+		}
+
+		user, err := repos.User.Update(c.Request.Context(), id, updates)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
@@ -224,7 +223,9 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		user, err := client.User.UpdateOneID(id).SetPassword(string(hashedPassword)).Save(c.Request.Context())
+		user, err := repos.User.Update(c.Request.Context(), id, repository.UserUpdates{
+			Password: newString(string(hashedPassword)),
+		})
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
@@ -245,12 +246,16 @@ func RegisterUserRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		err = client.User.DeleteOneID(id).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.User.Delete(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
 		}
 
 		c.JSON(http.StatusNoContent, nil)
 	})
+}
+
+// newString is a helper to create a *string from a string value.
+func newString(s string) *string {
+	return &s
 }

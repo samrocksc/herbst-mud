@@ -11,26 +11,25 @@ import (
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
-func RegisterCompetencyRoutes(r *gin.Engine, client *db.Client) {
+func RegisterCompetencyRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	competencies := r.Group("/api")
 	competencies.Use(middleware.AuthMiddleware())
 	competencies.Use(middleware.AdminMiddleware())
 	{
-		competencies.GET("/competency-categories", listCompetencyCategories(client))
-		competencies.POST("/competency-categories", createCompetencyCategory(client))
-		competencies.PUT("/competency-categories/:id", updateCompetencyCategory(client))
-		competencies.DELETE("/competency-categories/:id", deleteCompetencyCategory(client))
-		competencies.GET("/characters/:id/competencies", listCharacterCompetencies(client))
+		competencies.GET("/competency-categories", listCompetencyCategories(repos))
+		competencies.POST("/competency-categories", createCompetencyCategory(repos, client))
+		competencies.PUT("/competency-categories/:id", updateCompetencyCategory(repos, client))
+		competencies.DELETE("/competency-categories/:id", deleteCompetencyCategory(repos, client))
+		competencies.GET("/characters/:id/competencies", listCharacterCompetencies(repos, client))
 	}
 }
 
-func listCompetencyCategories(client *db.Client) gin.HandlerFunc {
+func listCompetencyCategories(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cats, err := client.CompetencyCategory.Query().
-			WithThresholds().
-			All(c.Request.Context())
+		cats, err := repos.Competency.ListCategories(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -50,23 +49,23 @@ type thresholdInput struct {
 	DefenseMultiplier float64 `json:"defense_multiplier"`
 }
 
-func createCompetencyCategory(client *db.Client) gin.HandlerFunc {
+func createCompetencyCategory(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	var req struct {
-		ID           string            `json:"id" binding:"required"`
-		Name         string            `json:"name" binding:"required"`
-		XpMultiplier float64          `json:"xp_multiplier"`
-		Thresholds   []thresholdInput  `json:"thresholds"`
+		ID           string           `json:"id" binding:"required"`
+		Name         string           `json:"name" binding:"required"`
+		XpMultiplier float64         `json:"xp_multiplier"`
+		Thresholds   []thresholdInput `json:"thresholds"`
 	}
 	return func(c *gin.Context) {
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		cat, err := client.CompetencyCategory.Create().
-			SetID(req.ID).
-			SetName(req.Name).
-			SetXpMultiplier(req.XpMultiplier).
-			Save(c.Request.Context())
+		cat, err := repos.Competency.CreateCategory(c.Request.Context(), repository.CreateCompetencyInput{
+			ID:           req.ID,
+			Name:         req.Name,
+			XPMultiplier: req.XpMultiplier,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -78,13 +77,14 @@ func createCompetencyCategory(client *db.Client) gin.HandlerFunc {
 				SetXpRequired(t.XpRequired).
 				SetDamageMultiplier(t.DamageMultiplier).
 				SetDefenseMultiplier(t.DefenseMultiplier).
-				SetCategory(cat).
+				SetCategoryID(cat.ID).
 				Save(c.Request.Context())
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		}
+		// Reload with thresholds
 		cat, err = client.CompetencyCategory.Query().
 			Where(competencycategory.ID(cat.ID)).
 			WithThresholds().
@@ -97,17 +97,15 @@ func createCompetencyCategory(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func updateCompetencyCategory(client *db.Client) gin.HandlerFunc {
+func updateCompetencyCategory(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	var req struct {
-		Name         string            `json:"name"`
-		XpMultiplier *float64          `json:"xp_multiplier"`
-		Thresholds   []thresholdInput  `json:"thresholds"`
+		Name         string           `json:"name"`
+		XpMultiplier *float64         `json:"xp_multiplier"`
+		Thresholds   []thresholdInput `json:"thresholds"`
 	}
 	return func(c *gin.Context) {
 		id := c.Param("id")
-		_, err := client.CompetencyCategory.Query().
-			Where(competencycategory.ID(id)).
-			Only(c.Request.Context())
+		_, err := repos.Competency.GetCategory(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
 			return
@@ -116,11 +114,16 @@ func updateCompetencyCategory(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		mutation := client.CompetencyCategory.UpdateOneID(id).
-			SetName(req.Name)
-		if req.XpMultiplier != nil {
-			mutation = mutation.SetXpMultiplier(*req.XpMultiplier)
+		// Update category via repo
+		cat, err := repos.Competency.UpdateCategory(c.Request.Context(), id, repository.CompetencyCategoryUpdates{
+			Name:         &req.Name,
+			XPMultiplier: req.XpMultiplier,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
+		// TODO: Migrate threshold CRUD to CompetencyRepo
 		if req.Thresholds != nil {
 			_, err := client.CompetencyLevelThreshold.Delete().
 				Where(competencylevelthreshold.HasCategoryWith(competencycategory.ID(id))).
@@ -144,15 +147,8 @@ func updateCompetencyCategory(client *db.Client) gin.HandlerFunc {
 				}
 			}
 		}
-		cat, err := mutation.Save(c.Request.Context())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		cat, err = client.CompetencyCategory.Query().
-			Where(competencycategory.ID(cat.ID)).
-			WithThresholds().
-			Only(c.Request.Context())
+		// Reload with thresholds
+		cat, err = repos.Competency.GetCategoryWithThresholds(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -161,12 +157,10 @@ func updateCompetencyCategory(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func deleteCompetencyCategory(client *db.Client) gin.HandlerFunc {
+func deleteCompetencyCategory(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
-		count, err := client.CharacterCompetency.Query().
-			Where(charactercompetency.HasCategoryWith(competencycategory.ID(id))).
-			Count(c.Request.Context())
+		count, err := repos.Competency.CountCompetenciesByCategory(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -175,7 +169,7 @@ func deleteCompetencyCategory(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusConflict, gin.H{"error": "Cannot delete: characters have XP in this category"})
 			return
 		}
-		if err := client.CompetencyCategory.DeleteOneID(id).Exec(c.Request.Context()); err != nil {
+		if err := repos.Competency.DeleteCategory(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
 			return
 		}
@@ -183,7 +177,7 @@ func deleteCompetencyCategory(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func listCharacterCompetencies(client *db.Client) gin.HandlerFunc {
+func listCharacterCompetencies(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		charIDStr := c.Param("id")
 		charID, err := strconv.Atoi(charIDStr)
@@ -191,10 +185,11 @@ func listCharacterCompetencies(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid character id"})
 			return
 		}
-		if _, err := client.Character.Get(c.Request.Context(), charID); err != nil {
+		if _, err := repos.Character.Get(c.Request.Context(), charID); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "character not found"})
 			return
 		}
+		// TODO: Add ListByCharacterWithDetails to CompetencyRepo for edge-loading
 		ccs, err := client.CharacterCompetency.Query().
 			Where(charactercompetency.HasCharacterWith(character.ID(charID))).
 			WithCategory(func(q *db.CompetencyCategoryQuery) {

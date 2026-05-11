@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/quest"
 	"herbst-server/db/questprogress"
+	"herbst-server/repository"
 )
 
 // validationError is a simple error for validation failures.
@@ -19,7 +20,8 @@ type validationError struct {
 func (e *validationError) Error() string { return e.msg }
 
 // validatePrerequisites verifies all prerequisite quests are completed.
-func validatePrerequisites(client *db.Client, c *gin.Context, charID int, q *db.Quest) error {
+// TODO: migrate to use repos once QuestProgressRepo supports complex filtered count queries
+func validatePrerequisites(client *db.Client, repos *repository.Container, c *gin.Context, charID int, q *db.Quest) error {
 	for _, prereqStr := range q.PrerequisiteQuestIds {
 		prereqID, err := strconv.Atoi(prereqStr)
 		if err != nil {
@@ -43,7 +45,8 @@ func validatePrerequisites(client *db.Client, c *gin.Context, charID int, q *db.
 }
 
 // validateCooldown ensures the character is not within the cooldown period.
-func validateCooldown(client *db.Client, c *gin.Context, charID int, q *db.Quest) error {
+// TODO: migrate to use repos once QuestProgressRepo supports complex filtered queries
+func validateCooldown(client *db.Client, repos *repository.Container, c *gin.Context, charID int, q *db.Quest) error {
 	if q.RepeatMode == quest.RepeatModeNone {
 		return nil
 	}

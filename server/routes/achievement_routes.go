@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
-	"herbst-server/db/achievement"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // achievementView is the JSON shape returned by the API.
@@ -41,25 +41,22 @@ func achievementToView(a *db.Achievement) achievementView {
 }
 
 // RegisterAchievementRoutes registers REST endpoints for achievements.
-// Protected /api routes — all require JWT auth + admin check
-func RegisterAchievementRoutes(r *gin.Engine, client *db.Client) {
+func RegisterAchievementRoutes(r *gin.Engine, repos *repository.Container) {
 	achievements := r.Group("/api")
 	achievements.Use(middleware.AuthMiddleware())
 	achievements.Use(middleware.AdminMiddleware())
 	{
-		achievements.GET("/achievements", listAchievements(client))
-		achievements.POST("/achievements", createAchievement(client))
-		achievements.GET("/achievements/:id", getAchievement(client))
-		achievements.PUT("/achievements/:id", updateAchievement(client))
-		achievements.DELETE("/achievements/:id", deleteAchievement(client))
+		achievements.GET("/achievements", listAchievements(repos))
+		achievements.POST("/achievements", createAchievement(repos))
+		achievements.GET("/achievements/:id", getAchievement(repos))
+		achievements.PUT("/achievements/:id", updateAchievement(repos))
+		achievements.DELETE("/achievements/:id", deleteAchievement(repos))
 	}
 }
 
-func listAchievements(client *db.Client) gin.HandlerFunc {
+func listAchievements(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		achievements, err := client.Achievement.Query().
-			Order(achievement.ByName()).
-			All(c.Request.Context())
+		achievements, err := repos.Achievement.List(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -72,7 +69,7 @@ func listAchievements(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func createAchievement(client *db.Client) gin.HandlerFunc {
+func createAchievement(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input achievementInput
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -85,17 +82,18 @@ func createAchievement(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		mut := client.Achievement.Create().
-			SetName(input.Name).
-			SetDescription(input.Desc).
-			SetIcon(input.Icon).
-			SetCriteria(input.Criteria)
-
+		xpReward := 0
 		if input.XPReward != nil {
-			mut.SetXpReward(*input.XPReward)
+			xpReward = *input.XPReward
 		}
 
-		a, err := mut.Save(c.Request.Context())
+		a, err := repos.Achievement.Create(c.Request.Context(), repository.CreateAchievementInput{
+			Name:        input.Name,
+			Description: input.Desc,
+			Icon:        input.Icon,
+			XPReward:    xpReward,
+			Criteria:    input.Criteria,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -105,7 +103,7 @@ func createAchievement(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func getAchievement(client *db.Client) gin.HandlerFunc {
+func getAchievement(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -113,7 +111,7 @@ func getAchievement(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		a, err := client.Achievement.Get(c.Request.Context(), id)
+		a, err := repos.Achievement.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "achievement not found"})
 			return
@@ -123,7 +121,7 @@ func getAchievement(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func updateAchievement(client *db.Client) gin.HandlerFunc {
+func updateAchievement(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -131,7 +129,7 @@ func updateAchievement(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		a, err := client.Achievement.Get(c.Request.Context(), id)
+		_, err = repos.Achievement.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "achievement not found"})
 			return
@@ -143,20 +141,19 @@ func updateAchievement(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		mut := client.Achievement.UpdateOne(a)
-
+		updates := repository.AchievementUpdates{
+			Description: &input.Desc,
+			Icon:        &input.Icon,
+			Criteria:    &input.Criteria,
+		}
 		if input.Name != "" {
-			mut.SetName(input.Name)
+			updates.Name = &input.Name
 		}
-		mut.SetDescription(input.Desc)
-		mut.SetIcon(input.Icon)
-		mut.SetCriteria(input.Criteria)
-
 		if input.XPReward != nil {
-			mut.SetXpReward(*input.XPReward)
+			updates.XPReward = input.XPReward
 		}
 
-		updated, err := mut.Save(c.Request.Context())
+		updated, err := repos.Achievement.Update(c.Request.Context(), id, updates)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -166,7 +163,7 @@ func updateAchievement(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func deleteAchievement(client *db.Client) gin.HandlerFunc {
+func deleteAchievement(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -174,8 +171,7 @@ func deleteAchievement(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		err = client.Achievement.DeleteOneID(id).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.Achievement.Delete(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "achievement not found"})
 			return
 		}

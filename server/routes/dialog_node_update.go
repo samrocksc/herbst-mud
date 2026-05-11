@@ -6,17 +6,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/dialognode"
+	"herbst-server/repository"
 )
 
 // updateDialogNode updates an existing dialog node definition.
-func updateDialogNode(client *db.Client) gin.HandlerFunc {
+func updateDialogNode(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid dialog node id"})
 			return
 		}
-		existing, err := client.DialogNode.Get(c.Request.Context(), id)
+		// Verify it exists
+		_, err := repos.DialogNode.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "dialog node not found"})
 			return
@@ -26,33 +28,31 @@ func updateDialogNode(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		mut := client.DialogNode.UpdateOne(existing)
-		if input.NpcText != nil {
-			mut.SetNpcText(*input.NpcText)
-		}
-		if input.IsEntry != nil {
-			mut.SetIsEntry(*input.IsEntry)
-		}
-		if input.EntryCondition != nil {
-			mut.SetEntryCondition(*input.EntryCondition)
+
+		updates := repository.DialogNodeUpdates{
+			NPCText:        input.NpcText,
+			IsEntry:        input.IsEntry,
+			EntryCondition: input.EntryCondition,
 		}
 		if input.Responses != nil {
-			mut.SetResponses(responsesToSchema(*input.Responses))
+			responses := responsesToSchema(*input.Responses)
+			updates.Responses = &responses
 		}
 		if input.OnEnterEffects != nil {
-			mut.SetOnEnterEffects(*input.OnEnterEffects)
+			updates.OnEnterEffects = input.OnEnterEffects
 		}
 		if input.NpcTemplateID != nil {
-			mut.SetNpcTemplateID(*input.NpcTemplateID)
+			updates.NPCTemplateID = input.NpcTemplateID
 		}
-		updated, err := mut.Save(c.Request.Context())
+
+		_, err = repos.DialogNode.Update(c.Request.Context(), id, updates)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		// Reload with npc_template edge for response.
-		updated, err = client.DialogNode.Query().
-			Where(dialognode.IDEQ(updated.ID)).
+		updated, err := client.DialogNode.Query().
+			Where(dialognode.IDEQ(id)).
 			WithNpcTemplate().
 			Only(c.Request.Context())
 		if err != nil {

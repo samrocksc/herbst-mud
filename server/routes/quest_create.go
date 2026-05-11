@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/quest"
+	"herbst-server/db/schema"
+	"herbst-server/service"
 )
 
 // createQuest creates a new quest definition.
-func createQuest(client *db.Client) gin.HandlerFunc {
+func createQuest(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input questInput
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -20,36 +20,49 @@ func createQuest(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
-		repeatMode := quest.RepeatModeNone
+		name := *input.Name
+		description := ""
+		if input.Description != nil {
+			description = *input.Description
+		}
+		var prereqs []string
+		if input.PrerequisiteQuestIDs != nil {
+			prereqs = *input.PrerequisiteQuestIDs
+		}
+		var objectives []schema.QuestObjective
+		if input.Objectives != nil {
+			objectives = objectivesToSchema(*input.Objectives)
+		}
+		var rewards schema.QuestRewards
+		if input.Rewards != nil {
+			rewards = rewardsToSchema(*input.Rewards)
+		}
+		repeatMode := "none"
 		if input.RepeatMode != nil {
 			if !validRepeatModes[*input.RepeatMode] {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid repeat_mode"})
 				return
 			}
-			repeatMode = quest.RepeatMode(*input.RepeatMode)
+			repeatMode = *input.RepeatMode
 		}
-		mut := client.Quest.Create().
-			SetName(*input.Name).
-			SetRepeatMode(repeatMode)
-		if input.Description != nil {
-			mut.SetDescription(*input.Description)
-		}
-		if input.PrerequisiteQuestIDs != nil {
-			mut.SetPrerequisiteQuestIds(*input.PrerequisiteQuestIDs)
-		}
-		if input.Objectives != nil {
-			mut.SetObjectives(questObjectivesToSchema(*input.Objectives))
-		}
-		if input.Rewards != nil {
-			mut.SetRewards(questRewardsToSchema(*input.Rewards))
-		}
+		cooldownHours := 0
 		if input.CooldownHours != nil {
-			mut.SetCooldownHours(*input.CooldownHours)
+			cooldownHours = *input.CooldownHours
 		}
+		isActive := true
 		if input.IsActive != nil {
-			mut.SetIsActive(*input.IsActive)
+			isActive = *input.IsActive
 		}
-		q, err := mut.Save(c.Request.Context())
+		q, err := svc.Quest.CreateQuest(c.Request.Context(), service.CreateQuestInput{
+			Name:                 name,
+			Description:          description,
+			PrerequisiteQuestIDs: prereqs,
+			Objectives:           objectives,
+			Rewards:              rewards,
+			RepeatMode:           repeatMode,
+			CooldownHours:        cooldownHours,
+			IsActive:             isActive,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

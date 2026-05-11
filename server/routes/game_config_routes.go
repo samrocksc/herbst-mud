@@ -4,8 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/gameconfig"
+	"herbst-server/repository"
 )
 
 // GameConfigResponse is the API shape for a single game config entry.
@@ -21,10 +20,10 @@ type GameConfigResponse struct {
 // GET /game-configs/:key  — get a single config (public, used by game server)
 // PUT /game-configs/:key  — update a config (auth required)
 // DELETE /game-configs/:key — delete a config (auth required)
-func RegisterGameConfigRoutes(router *gin.RouterGroup, client *db.Client) {
+func RegisterGameConfigRoutes(router *gin.RouterGroup, repos *repository.Container) {
 	// List all configs — auth required
 	router.GET("/game-configs", func(c *gin.Context) {
-		configs, err := client.GameConfig.Query().All(c.Request.Context())
+		configs, err := repos.GameConfig.List(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -46,10 +45,7 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, client *db.Client) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		created, err := client.GameConfig.Create().
-			SetKey(req.Key).
-			SetValue(req.Value).
-			Save(c.Request.Context())
+		created, err := repos.GameConfig.GetOrCreate(c.Request.Context(), req.Key, req.Value)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -60,7 +56,7 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, client *db.Client) {
 	// Get a single config by key — public (game server reads without auth)
 	router.GET("/game-configs/:key", func(c *gin.Context) {
 		key := c.Param("key")
-		cfg, err := client.GameConfig.Query().Where(gameconfig.Key(key)).Only(c.Request.Context())
+		cfg, err := repos.GameConfig.Get(c.Request.Context(), key)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "config key not found"})
 			return
@@ -78,16 +74,9 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, client *db.Client) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		cfg, err := client.GameConfig.Query().Where(gameconfig.Key(key)).Only(c.Request.Context())
+		updated, err := repos.GameConfig.Set(c.Request.Context(), key, req.Value)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "config key not found"})
-			return
-		}
-		updated, err := client.GameConfig.UpdateOne(cfg).
-			SetValue(req.Value).
-			Save(c.Request.Context())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, GameConfigResponse{ID: updated.ID, Key: updated.Key, Value: updated.Value})
@@ -96,13 +85,8 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, client *db.Client) {
 	// Delete a config — auth required
 	router.DELETE("/game-configs/:key", func(c *gin.Context) {
 		key := c.Param("key")
-		cfg, err := client.GameConfig.Query().Where(gameconfig.Key(key)).Only(c.Request.Context())
-		if err != nil {
+		if err := repos.GameConfig.Delete(c.Request.Context(), key); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "config key not found"})
-			return
-		}
-		if err := client.GameConfig.DeleteOne(cfg).Exec(c.Request.Context()); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"deleted": key})

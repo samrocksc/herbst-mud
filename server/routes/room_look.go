@@ -1,0 +1,146 @@
+package routes
+
+import (
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"herbst-server/db"
+	"herbst-server/db/character"
+	"herbst-server/service"
+)
+
+// roomClient holds both service container and raw DB client
+// for handlers still needing direct DB access during migration.
+type roomClient struct {
+	svc *service.Container
+	db  *db.Client
+}
+
+// getRoomCharacters returns all characters (NPCs and players) in a room.
+func getRoomCharacters(svc *service.Container) gin.HandlerFunc {
+	// Uses service for room lookup, but direct DB for character query
+	// until CharacterService.GetCharactersInRoom is implemented.
+	rc := &roomClient{svc: svc}
+	return rc.getCharacters
+}
+
+func (rc *roomClient) getCharacters(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
+		return
+	}
+	characters, err := rc.db.Character.Query().
+		Where(character.CurrentRoomId(id)).
+		All(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	type charView struct {
+		ID            int    `json:"id"`
+		Name          string `json:"name"`
+		IsNPC         bool   `json:"isNPC"`
+		Level         int    `json:"level"`
+		Class         string `json:"class"`
+		Race          string `json:"race"`
+		Hp            int    `json:"hp"`
+		MaxHp         int    `json:"maxHp"`
+		NpcTemplateID string `json:"npcTemplateId,omitempty"`
+		XpValue       int    `json:"xpValue,omitempty"`
+		LastSeenAt    string `json:"lastSeenAt,omitempty"`
+	}
+	result := make([]charView, 0, len(characters))
+	for _, ch := range characters {
+		cv := charView{
+			ID: ch.ID, Name: ch.Name, IsNPC: ch.IsNPC,
+			Level: ch.Level, Class: ch.Class, Race: ch.Race,
+			Hp: ch.Hitpoints, MaxHp: ch.MaxHitpoints,
+			NpcTemplateID: ch.NpcTemplateID,
+		}
+		if ch.LastSeenAt != nil {
+			cv.LastSeenAt = ch.LastSeenAt.Format("2006-01-02T15:04:05Z07:00")
+		}
+		if ch.IsNPC && ch.NpcTemplateID != "" {
+			tmpl, err := rc.db.NPCTemplate.Get(c.Request.Context(), ch.NpcTemplateID)
+			if err == nil && tmpl.XpValue > 0 {
+				cv.XpValue = tmpl.XpValue
+			} else {
+				cv.XpValue = ch.Level * 10
+			}
+		}
+		result = append(result, cv)
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+// getRoomLook returns a composite room view with characters and items.
+func getRoomLook(svc *service.Container) gin.HandlerFunc {
+	rc := &roomClient{svc: svc}
+	return rc.getLook
+}
+
+func (rc *roomClient) getLook(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
+		return
+	}
+	room, err := rc.svc.Room.GetRoom(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "room not found"})
+		return
+	}
+	characters, _ := rc.db.Character.Query().
+		Where(character.CurrentRoomId(id)).
+		All(c.Request.Context())
+	var npcs, players []interface{}
+	for _, ch := range characters {
+		entry := map[string]interface{}{
+			"id":     ch.ID,
+			"name":   ch.Name,
+			"level":  ch.Level,
+			"class":  ch.Class,
+			"race":   ch.Race,
+			"hp":     ch.Hitpoints,
+			"maxHp":  ch.MaxHitpoints,
+		}
+		if ch.IsNPC {
+			if ch.NpcTemplateID != "" {
+				entry["npcTemplateId"] = ch.NpcTemplateID
+				tmpl, err := rc.db.NPCTemplate.Get(c.Request.Context(), ch.NpcTemplateID)
+				if err == nil {
+					entry["xpValue"] = tmpl.XpValue
+				}
+			}
+			npcs = append(npcs, entry)
+		} else {
+			players = append(players, entry)
+		}
+	}
+	equipments, _ := rc.db.Equipment.Query().All(c.Request.Context())
+	var items []interface{}
+	for _, item := range equipments {
+		if item.Edges.Room != nil && item.Edges.Room.ID == id && item.IsVisible {
+			items = append(items, map[string]interface{}{
+				"id":          item.ID,
+				"name":        item.Name,
+				"slot":        item.Slot,
+				"itemType":    item.ItemType,
+				"description": item.Description,
+			})
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"id":             room.ID,
+		"name":           room.Name,
+		"description":    room.Description,
+		"isStartingRoom": room.IsStartingRoom,
+		"exits":          room.Exits,
+		"items":          items,
+		"npcs":           npcs,
+		"players":        players,
+		"z_level":        0,
+	})
+}

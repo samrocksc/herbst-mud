@@ -3,16 +3,35 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"herbst-server/db"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 	"herbst-server/routes"
+	"herbst-server/service"
 )
+
+// generateTokenWithSecret creates a JWT token signed with the given secret.
+func generateTokenWithSecret(userID uint, email string, isAdmin bool, secret string) (string, error) {
+	claims := &middleware.Claims{
+		UserID:  userID,
+		Email:   email,
+		IsAdmin: isAdmin,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
 
 // TestAuthMiddlewareIntegration tests the auth middleware integration with routes
 func TestAuthMiddlewareIntegration(t *testing.T) {
@@ -30,10 +49,12 @@ func TestAuthMiddlewareIntegration(t *testing.T) {
 
 	// Create router with routes
 	router := gin.New()
-	routes.RegisterRoomRoutes(router, client)
-	routes.RegisterUserRoutes(router, client)
-	routes.RegisterCharacterRoutes(router, client)
-	routes.RegisterEquipmentRoutes(router, client)
+	repos := repository.NewContainer(client)
+	services := service.NewContainer(client, repos, slog.Default())
+	routes.RegisterRoomRoutes(router, client, services)
+	routes.RegisterUserRoutes(router, repos)
+	routes.RegisterCharacterRoutes(router, services, repos)
+	routes.RegisterEquipmentRoutes(router, repos, client)
 
 	t.Run("PublicRoutesWorkWithoutAuth", func(t *testing.T) {
 		// GET /rooms should work without auth (public)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	dbcharacter "herbst-server/db/character"
+	"herbst-server/repository"
 	"herbst-server/routes"
+	"herbst-server/service"
 )
 
 func TestCharacterAuthentication(t *testing.T) {
@@ -27,7 +30,9 @@ func TestCharacterAuthentication(t *testing.T) {
 
 	// Create router
 	router := gin.New()
-	routes.RegisterCharacterRoutes(router, client)
+	repos := repository.NewContainer(client)
+	services := service.NewContainer(client, repos, slog.Default())
+	routes.RegisterCharacterRoutes(router, client, services, repos)
 
 	// Test creating a character with password
 	t.Run("CreateCharacterWithPassword", func(t *testing.T) {

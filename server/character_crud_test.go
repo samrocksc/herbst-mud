@@ -3,13 +3,16 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/repository"
 	"herbst-server/routes"
+	"herbst-server/service"
 )
 
 func TestCharacterCRUD(t *testing.T) {
@@ -25,7 +28,9 @@ func TestCharacterCRUD(t *testing.T) {
 
 	// Create router
 	router := gin.New()
-	routes.RegisterCharacterRoutes(router, client)
+	repos := repository.NewContainer(client)
+	services := service.NewContainer(client, repos, slog.Default())
+	routes.RegisterCharacterRoutes(router, client, services, repos)
 
 	// First create a room to reference
 	roomData := map[string]interface{}{

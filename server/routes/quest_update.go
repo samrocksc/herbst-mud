@@ -5,21 +5,16 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/quest"
+	"herbst-server/db/schema"
+	"herbst-server/service"
 )
 
 // updateQuest updates an existing quest definition.
-func updateQuest(client *db.Client) gin.HandlerFunc {
+func updateQuest(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid quest id"})
-			return
-		}
-		existing, err := client.Quest.Get(c.Request.Context(), id)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "quest not found"})
 			return
 		}
 		var input questInput
@@ -27,40 +22,61 @@ func updateQuest(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		mut := client.Quest.UpdateOne(existing)
-		if input.Name != nil {
-			mut.SetName(*input.Name)
+		if input.RepeatMode != nil && !validRepeatModes[*input.RepeatMode] {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid repeat_mode"})
+			return
 		}
-		if input.Description != nil {
-			mut.SetDescription(*input.Description)
+		updateInput := service.UpdateQuestInput{
+			Name:                 input.Name,
+			Description:          input.Description,
+			PrerequisiteQuestIDs: input.PrerequisiteQuestIDs,
+			CooldownHours:       input.CooldownHours,
+			IsActive:            input.IsActive,
 		}
 		if input.RepeatMode != nil {
-			if !validRepeatModes[*input.RepeatMode] {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid repeat_mode"})
-				return
-			}
-			mut.SetRepeatMode(quest.RepeatMode(*input.RepeatMode))
-		}
-		if input.PrerequisiteQuestIDs != nil {
-			mut.SetPrerequisiteQuestIds(*input.PrerequisiteQuestIDs)
+			rm := *input.RepeatMode
+			updateInput.RepeatMode = &rm
 		}
 		if input.Objectives != nil {
-			mut.SetObjectives(questObjectivesToSchema(*input.Objectives))
+			objs := objectivesToSchema(*input.Objectives)
+			updateInput.Objectives = &objs
 		}
 		if input.Rewards != nil {
-			mut.SetRewards(questRewardsToSchema(*input.Rewards))
+			rwds := rewardsToSchema(*input.Rewards)
+			updateInput.Rewards = &rwds
 		}
-		if input.CooldownHours != nil {
-			mut.SetCooldownHours(*input.CooldownHours)
-		}
-		if input.IsActive != nil {
-			mut.SetIsActive(*input.IsActive)
-		}
-		updated, err := mut.Save(c.Request.Context())
+		updated, err := svc.Quest.UpdateQuest(c.Request.Context(), id, updateInput)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, questToView(updated))
+	}
+}
+
+// objectivesToSchema converts route input types to schema types.
+func objectivesToSchema(objs []questObjectiveInput) []schema.QuestObjective {
+	result := make([]schema.QuestObjective, len(objs))
+	for i, o := range objs {
+		result[i] = schema.QuestObjective{
+			Type:     o.Type,
+			TargetID: o.TargetID,
+			Count:    o.Count,
+			Label:    o.Label,
+			Hint:     o.Hint,
+		}
+	}
+	return result
+}
+
+// rewardsToSchema converts route input type to schema type.
+func rewardsToSchema(r questRewardsInput) schema.QuestRewards {
+	return schema.QuestRewards{
+		XP:             r.XP,
+		ItemIDs:        r.ItemIDs,
+		EffectIDs:      r.EffectIDs,
+		TagAdds:        r.TagAdds,
+		TagRemoves:     r.TagRemoves,
+		AchievementIDs: r.AchievementIDs,
 	}
 }

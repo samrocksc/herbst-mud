@@ -4,8 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/effect"
+	"herbst-server/repository"
 )
 
 var validEffectTypes = map[string]bool{
@@ -15,7 +14,7 @@ var validEffectTypes = map[string]bool{
 	"apply_effect": true, "tag_add": true, "tag_remove": true,
 }
 
-func createEffectDef(client *db.Client) gin.HandlerFunc {
+func createEffectDef(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input effectDefInput
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -30,39 +29,44 @@ func createEffectDef(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
-		mut := client.Effect.Create().
-		SetName(*input.Name).
-			SetEffectType(*input.EffectType)
+
+		desc := ""
 		if input.Description != nil {
-			mut.SetDescription(*input.Description)
+			desc = *input.Description
 		}
-		if input.Parameters != nil {
-			mut.SetParameters(*input.Parameters)
-		}
+		stackMode := ""
 		if input.StackMode != nil {
-			mut.SetStackMode(*input.StackMode)
+			stackMode = *input.StackMode
 		}
+		stackLimit := 0
 		if input.StackLimit != nil {
-			mut.SetStackLimit(*input.StackLimit)
+			stackLimit = *input.StackLimit
 		}
-		if input.IsPermanent != nil {
-			mut.SetIsPermanent(*input.IsPermanent)
+		var params map[string]interface{}
+		if input.Parameters != nil {
+			params = *input.Parameters
 		}
-		if input.DurationSecs != nil {
-			mut.SetDurationSecs(*input.DurationSecs)
-		}
+		var msgs map[string]string
 		if input.Messages != nil {
-			mut.SetMessages(*input.Messages)
+			msgs = *input.Messages
 		}
-		e, err := mut.Save(c.Request.Context())
+		e, err := repos.Effect.Create(c.Request.Context(), repository.CreateEffectInput{
+			Name:         *input.Name,
+			Description:  desc,
+			EffectType:   *input.EffectType,
+			Parameters:   params,
+			StackMode:    stackMode,
+			StackLimit:   stackLimit,
+			IsPermanent:  input.IsPermanent != nil && *input.IsPermanent,
+			DurationSecs: 0,
+			Messages:     msgs,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		e, _ = client.Effect.Query().
-			Where(effect.IDEQ(e.ID)).
-			WithHooks().
-			Only(c.Request.Context())
+		// Re-fetch with hooks edge loaded for hook count in response
+		e, _ = repos.Effect.GetWithHooks(c.Request.Context(), e.ID)
 		c.JSON(http.StatusCreated, effectDefToView(e))
 	}
 }

@@ -6,10 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/dialognode"
+	"herbst-server/repository"
+	"herbst-server/db/schema"
 )
 
 // createDialogNode creates a new dialog node definition.
-func createDialogNode(client *db.Client) gin.HandlerFunc {
+func createDialogNode(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input dialogNodeInput
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -28,23 +30,25 @@ func createDialogNode(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "npc_template_id is required"})
 			return
 		}
-		mut := client.DialogNode.Create().
-			SetID(*input.ID).
-			SetNpcText(*input.NpcText).
-			SetNpcTemplateID(*input.NpcTemplateID)
-		if input.IsEntry != nil {
-			mut.SetIsEntry(*input.IsEntry)
-		}
-		if input.EntryCondition != nil {
-			mut.SetEntryCondition(*input.EntryCondition)
-		}
+
+		var responses []schema.DialogResponse
 		if input.Responses != nil {
-			mut.SetResponses(responsesToSchema(*input.Responses))
+			responses = responsesToSchema(*input.Responses)
 		}
+		var onEnterEffects []int
 		if input.OnEnterEffects != nil {
-			mut.SetOnEnterEffects(*input.OnEnterEffects)
+			onEnterEffects = *input.OnEnterEffects
 		}
-		dn, err := mut.Save(c.Request.Context())
+
+		dn, err := repos.DialogNode.Create(c.Request.Context(), repository.CreateDialogNodeInput{
+			ID:             *input.ID,
+			NPCTemplateID:  *input.NpcTemplateID,
+			NPCText:        *input.NpcText,
+			Responses:      responses,
+			IsEntry:        input.IsEntry != nil && *input.IsEntry,
+			EntryCondition: "",
+			OnEnterEffects: onEnterEffects,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

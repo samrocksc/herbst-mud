@@ -8,6 +8,7 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/questprogress"
+	"herbst-server/repository"
 )
 
 // checkAllInput is the JSON request body for bulk quest progress checking.
@@ -19,7 +20,8 @@ type checkAllInput struct {
 
 // checkAllQuests finds all active quests for a character that match the
 // given objective type and target, then increments progress on each.
-func checkAllQuests(client *db.Client) gin.HandlerFunc {
+// TODO: migrate to fully use repos once QuestProgressRepo supports complex queries
+func checkAllQuests(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {

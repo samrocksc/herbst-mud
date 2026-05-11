@@ -22,7 +22,9 @@ import (
 	"herbst-server/dbinit"
 	"herbst-server/events"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 	"herbst-server/routes"
+	"herbst-server/service"
 )
 
 // getDBConfig returns database connection config from environment variables
@@ -89,6 +91,11 @@ func main() {
 	}
 
 	log.Println("Database initialized successfully")
+
+	// Initialize repository and service containers (3-tier architecture)
+	repos := repository.NewContainer(client)
+	services := service.NewContainer(client, repos, slog.Default())
+	_ = services // Will be wired to routes in Phase 2
 
 	// Initialize async log handler (LOGS-002, LOGS-003)
 	dbLogHandler := dblog.NewDBHandler(client, nil)
@@ -254,31 +261,31 @@ func main() {
 	})
 
 	// Register room routes
-	routes.RegisterRoomRoutes(router, client)
+	routes.RegisterRoomRoutes(router, client, services)
 
 	// Register ability routes
-	routes.RegisterAbilityRoutes(router, client)
+	routes.RegisterAbilityRoutes(router, repos, client)
 
 	// Register effect routes (ability effects)
-	routes.RegisterEffectRoutes(router, client)
+	routes.RegisterEffectRoutes(router, repos, client)
 
 	// Register effect definition routes (EFF-003)
-	routes.RegisterEffectDefRoutes(router, client)
+	routes.RegisterEffectDefRoutes(router, repos)
 
 	// Register hook routes (EFF-004)
-	routes.RegisterHookRoutes(router, client)
+	routes.RegisterHookRoutes(router, repos)
 
 	// Register active effect routes (EFF-005)
-	routes.RegisterActiveEffectRoutes(router, client)
+	routes.RegisterActiveEffectRoutes(router, repos)
 
 	// Register effect expiry routes
-	routes.RegisterExpiryRoutes(router, client)
+	routes.RegisterExpiryRoutes(router, repos)
 
 	// Register user routes
-	routes.RegisterUserRoutes(router, client)
+	routes.RegisterUserRoutes(router, repos)
 
 	// Register character routes (public endpoints)
-	routes.RegisterCharacterRoutes(router, client)
+	routes.RegisterCharacterRoutes(router, services, repos)
 
 	// Protected routes - require authentication
 	protected := router.Group("/api")
@@ -289,10 +296,10 @@ func main() {
 	}
 
 	// Register equipment routes (GitHub #89 - Item system)
-	routes.RegisterEquipmentRoutes(router, client)
+	routes.RegisterEquipmentRoutes(router, repos, client)
 
 	// Register equipment equip/unequip routes (EQUIP-003)
-	routes.RegisterEquipmentEquipRoutes(router, client)
+	routes.RegisterEquipmentEquipRoutes(router, repos)
 
 	// Register backup routes
 	routes.RegisterBackupRoutes(router, client)
@@ -301,39 +308,39 @@ func main() {
 	events.Init(slog.Default())
 
 	// Register faction routes
-	routes.RegisterFactionRoutes(router, client)
+	routes.RegisterFactionRoutes(router, repos, client)
 
 	// Register race routes (RACES-001)
-	routes.RegisterRaceRoutes(router, client)
+	routes.RegisterRaceRoutes(router, repos, client)
 
 	// Register character tag routes
-	routes.RegisterCharacterTagRoutes(router, client)
+	routes.RegisterCharacterTagRoutes(router, repos)
 
 	// Register tag routes (TAG-001)
-	routes.RegisterTagRoutes(router, client)
+	routes.RegisterTagRoutes(router, repos, client)
 
 	// Register achievement routes (ACH-001)
-	routes.RegisterAchievementRoutes(router, client)
+	routes.RegisterAchievementRoutes(router, repos)
 
 	// Register NPC template routes (XP-008)
-	routes.RegisterNPCTemplateRoutes(router, client)
+	routes.RegisterNPCTemplateRoutes(router, repos)
 
 	// Register NPC instance routes (NPC-004)
-	routes.RegisterNPCInstanceRoutes(router, client)
+	routes.RegisterNPCInstanceRoutes(router, repos, client)
 	// Register item instance routes (NPC-005)
-	routes.RegisterItemInstanceRoutes(router, client)
+	routes.RegisterItemInstanceRoutes(router, repos, client)
 	// Register equipment template routes
-	routes.RegisterEquipmentTemplateRoutes(router, client)
+	routes.RegisterEquipmentTemplateRoutes(router, repos)
 
 	// Register competency routes (XP-005)
-	routes.RegisterCompetencyRoutes(router, client)
+	routes.RegisterCompetencyRoutes(router, repos, client)
 
 	// Register quest routes
-	routes.RegisterQuestRoutes(router, client)
-	routes.RegisterQuestProgressRoutes(router, client)
+	routes.RegisterQuestRoutes(router, services)
+	routes.RegisterQuestProgressRoutes(router, repos, services, client)
 
 	// Register dialog node routes
-	routes.RegisterDialogNodeRoutes(router, client)
+	routes.RegisterDialogNodeRoutes(router, repos, client)
 
 	// Register event routes (HTTP bridge for game server → event bus)
 	routes.RegisterEventRoutes(router, client, slog.Default())
@@ -343,7 +350,7 @@ func main() {
 	respawnSvc.Start()
 
 	// Register game config routes (protected — admin management)
-	routes.RegisterGameConfigRoutes(protected, client)
+	routes.RegisterGameConfigRoutes(protected, repos)
 
 	// Register game export/import routes
 	routes.RegisterGameExportRoutes(router, client)

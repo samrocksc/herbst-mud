@@ -3,12 +3,16 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/repository"
+	"herbst-server/routes"
+	"herbst-server/service"
 )
 
 func init() {
@@ -28,7 +32,9 @@ func TestCharacterCreationFlow(t *testing.T) {
 	defer client.Close()
 
 	router := gin.New()
-	RegisterCharacterRoutes(router, client)
+	repos := repository.NewContainer(client)
+	services := service.NewContainer(client, repos, slog.Default())
+	routes.RegisterCharacterRoutes(router, client, services, repos)
 
 	// First, create a test user
 	userReq := map[string]interface{}{

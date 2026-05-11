@@ -6,26 +6,17 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/activeeffect"
-	"herbst-server/db/character"
-	"herbst-server/db/effect"
+	"herbst-server/repository"
 )
 
-func listActiveEffects(client *db.Client) gin.HandlerFunc {
+func listActiveEffects(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid character id"})
 			return
 		}
-		effects, err := client.ActiveEffect.Query().
-			Where(
-				activeeffect.CharacterIDEQ(charID),
-				activeeffect.IsActiveEQ(true),
-			).
-			WithEffect().
-			All(c.Request.Context())
+		effects, err := repos.ActiveEffect.ListActiveByCharacter(c.Request.Context(), charID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -38,21 +29,16 @@ func listActiveEffects(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func removeActiveEffect(client *db.Client) gin.HandlerFunc {
+func removeActiveEffect(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		_, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid character id"})
-			return
-		}
 		effectID, err := strconv.Atoi(c.Param("effect_id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect id"})
 			return
 		}
-		err = client.ActiveEffect.UpdateOneID(effectID).
-			SetIsActive(false).
-			Exec(c.Request.Context())
+		_, err = repos.ActiveEffect.Update(c.Request.Context(), effectID, repository.ActiveEffectUpdates{
+			IsActive: ptrBool(false),
+		})
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "active effect not found"})
 			return
@@ -61,7 +47,7 @@ func removeActiveEffect(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func applyEffect(client *db.Client) gin.HandlerFunc {
+func applyEffect(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -73,74 +59,68 @@ func applyEffect(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		// Verify character exists
-		_, err = client.Character.Get(c.Request.Context(), charID)
-		if err != nil {
+		if _, err := repos.Character.Get(c.Request.Context(), charID); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "character not found"})
 			return
 		}
-		// Load effect definition
-		eff, err := client.Effect.Get(c.Request.Context(), input.EffectID)
+		eff, err := repos.Effect.Get(c.Request.Context(), input.EffectID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "effect not found"})
 			return
 		}
-		// Handle stack mode
-		existing, _ := client.ActiveEffect.Query().
-			Where(
-				activeeffect.HasCharacterWith(character.IDEQ(charID)),
-				activeeffect.HasEffectWith(effect.IDEQ(input.EffectID)),
-				activeeffect.IsActiveEQ(true),
-			).
-			Only(c.Request.Context())
+		// Handle stack mode — find existing active effect for same character+effect
+		existing, _ := repos.ActiveEffect.GetActiveByCharacterAndEffect(c.Request.Context(), charID, input.EffectID)
 
 		if existing != nil {
 			switch eff.StackMode {
 			case "replace":
-				client.ActiveEffect.UpdateOne(existing).
-					SetStackCount(1).
-					SetStartedAt(time.Now()).
-					Save(c.Request.Context())
+				now := time.Now()
+				repos.ActiveEffect.Update(c.Request.Context(), existing.ID, repository.ActiveEffectUpdates{
+					StackCount: ptrInt(1),
+					StartedAt:   &now,
+				})
 			case "refresh":
 				if !eff.IsPermanent && eff.DurationSecs > 0 {
-					client.ActiveEffect.UpdateOne(existing).
-						SetExpiresAt(time.Now().Add(time.Duration(eff.DurationSecs) * time.Second)).
-						Save(c.Request.Context())
+					expiresAt := time.Now().Add(time.Duration(eff.DurationSecs) * time.Second)
+					repos.ActiveEffect.Update(c.Request.Context(), existing.ID, repository.ActiveEffectUpdates{
+						ExpiresAt: &expiresAt,
+					})
 				}
 			case "stack":
 				if existing.StackCount < eff.StackLimit {
-					client.ActiveEffect.UpdateOne(existing).
-						SetStackCount(existing.StackCount + 1).
-						Save(c.Request.Context())
+					repos.ActiveEffect.Update(c.Request.Context(), existing.ID, repository.ActiveEffectUpdates{
+						StackCount: ptrInt(existing.StackCount + 1),
+					})
 				}
 			}
-			// Return updated
-			updated, _ := client.ActiveEffect.Query().
-				Where(activeeffect.IDEQ(existing.ID)).
-				WithEffect().
-				Only(c.Request.Context())
+			updated, _ := repos.ActiveEffect.GetWithEffect(c.Request.Context(), existing.ID)
 			c.JSON(http.StatusOK, activeEffectToView(updated))
 			return
 		}
 		// Create new active effect
-		mut := client.ActiveEffect.Create().
-			SetCharacterID(charID).
-			SetEffectID(input.EffectID).
-			SetAppliedByID(input.AppliedByID)
+		var expiresAt *time.Time
 		if input.DurationSecs != nil && *input.DurationSecs > 0 {
-			mut.SetExpiresAt(time.Now().Add(time.Duration(*input.DurationSecs) * time.Second))
+			t := time.Now().Add(time.Duration(*input.DurationSecs) * time.Second)
+			expiresAt = &t
 		} else if !eff.IsPermanent && eff.DurationSecs > 0 {
-			mut.SetExpiresAt(time.Now().Add(time.Duration(eff.DurationSecs) * time.Second))
+			t := time.Now().Add(time.Duration(eff.DurationSecs) * time.Second)
+			expiresAt = &t
 		}
-		ae, err := mut.Save(c.Request.Context())
+		ae, err := repos.ActiveEffect.Create(c.Request.Context(), repository.CreateActiveEffectInput{
+			CharacterID: charID,
+			EffectID:    input.EffectID,
+			AppliedByID: input.AppliedByID,
+			StackCount:  1,
+			ExpiresAt:   expiresAt,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		ae, _ = client.ActiveEffect.Query().
-			Where(activeeffect.IDEQ(ae.ID)).
-			WithEffect().
-			Only(c.Request.Context())
+		ae, _ = repos.ActiveEffect.GetWithEffect(c.Request.Context(), ae.ID)
 		c.JSON(http.StatusCreated, activeEffectToView(ae))
 	}
 }
+
+func ptrInt(v int) *int    { return &v }
+func ptrBool(v bool) *bool { return &v }

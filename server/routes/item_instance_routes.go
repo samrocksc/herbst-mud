@@ -10,20 +10,21 @@ import (
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterItemInstanceRoutes registers REST endpoints for item instances.
 // Item instances are Equipment rows with equipment_template_id set.
-func RegisterItemInstanceRoutes(r *gin.Engine, client *db.Client) {
+func RegisterItemInstanceRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	g := r.Group("/api")
 	g.Use(middleware.AuthMiddleware())
 	g.Use(middleware.AdminMiddleware())
 	{
-		g.GET("/item-instances", listItemInstances(client))
-		g.POST("/item-instances", createItemInstance(client))
-		g.GET("/item-instances/:id", getItemInstance(client))
-		g.PUT("/item-instances/:id", updateItemInstance(client))
-		g.DELETE("/item-instances/:id", deleteItemInstance(client))
+		g.GET("/item-instances", listItemInstances(repos, client))
+		g.POST("/item-instances", createItemInstance(repos, client))
+		g.GET("/item-instances/:id", getItemInstance(repos, client))
+		g.PUT("/item-instances/:id", updateItemInstance(repos, client))
+		g.DELETE("/item-instances/:id", deleteItemInstance(repos, client))
 	}
 }
 
@@ -120,7 +121,8 @@ func toItemInstanceView(e *db.Equipment) itemInstanceView {
 // ─── Handlers ───────────────────────────────────────────────────────────────
 
 // GET /api/item-instances?ownerId=X&templateId=X&type=X
-func listItemInstances(client *db.Client) gin.HandlerFunc {
+// TODO: Add filtered list method to EquipmentRepo for complex queries
+func listItemInstances(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := client.Equipment.Query().
 			Where(equipment.Or(equipment.EquipmentTemplateIDNEQ(""), equipment.EquipmentTemplateIDIsNil()))
@@ -161,7 +163,8 @@ func listItemInstances(client *db.Client) gin.HandlerFunc {
 }
 
 // POST /api/item-instances — create instance from template or bare item
-func createItemInstance(client *db.Client) gin.HandlerFunc {
+// TODO: Move creation logic to EquipmentRepo.Create with template expansion
+func createItemInstance(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			EquipmentTemplateID string `json:"equipment_template_id"`
@@ -211,7 +214,7 @@ func createItemInstance(client *db.Client) gin.HandlerFunc {
 
 		// If template provided, auto-fill fields from template
 		if req.EquipmentTemplateID != "" {
-			tmpl, err := client.EquipmentTemplate.Get(c.Request.Context(), req.EquipmentTemplateID)
+			tmpl, err := repos.EquipmentTemplate.Get(c.Request.Context(), req.EquipmentTemplateID)
 			if err != nil {
 				c.JSON(http.StatusNotFound, gin.H{"error": "equipment template not found: " + req.EquipmentTemplateID})
 				return
@@ -356,7 +359,8 @@ func createItemInstance(client *db.Client) gin.HandlerFunc {
 }
 
 // GET /api/item-instances/:id
-func getItemInstance(client *db.Client) gin.HandlerFunc {
+// TODO: Add GetWithFilters method to EquipmentRepo
+func getItemInstance(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -377,7 +381,8 @@ func getItemInstance(client *db.Client) gin.HandlerFunc {
 }
 
 // PUT /api/item-instances/:id — update instance fields
-func updateItemInstance(client *db.Client) gin.HandlerFunc {
+// TODO: Move to EquipmentRepo.Update once EquipmentUpdates supports all fields
+func updateItemInstance(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -542,7 +547,7 @@ func updateItemInstance(client *db.Client) gin.HandlerFunc {
 }
 
 // DELETE /api/item-instances/:id — hard delete from DB
-func deleteItemInstance(client *db.Client) gin.HandlerFunc {
+func deleteItemInstance(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -550,6 +555,7 @@ func deleteItemInstance(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
+		// TODO: Add Delete method to EquipmentRepo
 		err = client.Equipment.DeleteOneID(id).Exec(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "item instance not found"})

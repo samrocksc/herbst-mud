@@ -6,10 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/dialognode"
+	"herbst-server/repository"
 )
 
-// listDialogNodes returns all dialog nodes ordered by ID (with npc_template edge).
-func listDialogNodes(client *db.Client) gin.HandlerFunc {
+// TODO: Use repos.DialogNode.List once repo supports ordering and WithNpcTemplate edge loading
+func listDialogNodes(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		nodes, err := client.DialogNode.Query().
 			WithNpcTemplate().

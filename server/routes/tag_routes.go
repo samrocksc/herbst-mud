@@ -6,26 +6,27 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/db/ability"
 	"herbst-server/db/character"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/faction"
 	"herbst-server/db/factionrequiredtag"
-	"herbst-server/db/ability"
-	"herbst-server/db/tag"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterTagRoutes registers REST endpoints for tags.
-func RegisterTagRoutes(r *gin.Engine, client *db.Client) {
+func RegisterTagRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	tags := r.Group("/api/tags")
 	tags.Use(middleware.AuthMiddleware())
 	tags.Use(middleware.AdminMiddleware())
 	{
-		tags.GET("", listTags(client))
-		tags.POST("", createTag(client))
-		tags.PUT("/:id", updateTag(client))
-		tags.DELETE("/:id", deleteTag(client))
-		tags.GET("/:id/usages", tagUsages(client))
+		tags.GET("", listTags(repos))
+		tags.POST("", createTag(repos))
+		tags.PUT("/:id", updateTag(repos))
+		tags.DELETE("/:id", deleteTag(repos))
+		// TODO: migrate tagUsages to repo methods for cross-entity queries
+		tags.GET("/:id/usages", tagUsages(repos, client))
 	}
 }
 
@@ -53,9 +54,9 @@ type tagUsageReport struct {
 }
 
 // listTags returns all tags.
-func listTags(client *db.Client) gin.HandlerFunc {
+func listTags(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tags, err := client.Tag.Query().Order(tag.ByName()).All(c.Request.Context())
+		tags, err := repos.Tag.List(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query tags"})
 			return
@@ -69,7 +70,7 @@ func listTags(client *db.Client) gin.HandlerFunc {
 }
 
 // createTag creates a new tag.
-func createTag(client *db.Client) gin.HandlerFunc {
+func createTag(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input struct {
 			Name  string `json:"name" binding:"required"`
@@ -80,10 +81,10 @@ func createTag(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		t, err := client.Tag.Create().
-			SetName(input.Name).
-			SetColor(input.Color).
-			Save(c.Request.Context())
+		t, err := repos.Tag.Create(c.Request.Context(), repository.CreateTagInput{
+			Name:  input.Name,
+			Color: input.Color,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create tag"})
 			return
@@ -93,7 +94,7 @@ func createTag(client *db.Client) gin.HandlerFunc {
 }
 
 // updateTag updates an existing tag.
-func updateTag(client *db.Client) gin.HandlerFunc {
+func updateTag(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -111,16 +112,10 @@ func updateTag(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Build update mutation
-		mut := client.Tag.UpdateOneID(id)
-		if input.Name != nil {
-			mut = mut.SetName(*input.Name)
-		}
-		if input.Color != nil {
-			mut = mut.SetColor(*input.Color)
-		}
-
-		t, err := mut.Save(c.Request.Context())
+		t, err := repos.Tag.Update(c.Request.Context(), id, repository.TagUpdates{
+			Name:  input.Name,
+			Color: input.Color,
+		})
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
 			return
@@ -131,7 +126,7 @@ func updateTag(client *db.Client) gin.HandlerFunc {
 }
 
 // deleteTag deletes a tag by ID.
-func deleteTag(client *db.Client) gin.HandlerFunc {
+func deleteTag(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -140,8 +135,7 @@ func deleteTag(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		err = client.Tag.DeleteOneID(id).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.Tag.Delete(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
 			return
 		}
@@ -150,7 +144,8 @@ func deleteTag(client *db.Client) gin.HandlerFunc {
 }
 
 // tagUsages returns every entity that references the given tag name.
-func tagUsages(client *db.Client) gin.HandlerFunc {
+// TODO: Add usage-tracking methods to repos — currently uses client directly for cross-entity queries.
+func tagUsages(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -159,7 +154,7 @@ func tagUsages(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		tagEntity, err := client.Tag.Get(c.Request.Context(), id)
+		tagEntity, err := repos.Tag.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
 			return

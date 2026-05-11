@@ -1,0 +1,88 @@
+package routes
+
+import (
+	"errors"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"herbst-server/repository"
+	"herbst-server/service"
+)
+
+// createCharacterForUser handles POST /user-characters/:id (create character for existing user).
+func createCharacterForUser(svc *service.Container, repos *repository.Container) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, err := parseIntParam(c, "id")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
+		if _, err := repos.User.Get(c.Request.Context(), userID); err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		var req struct {
+			Name     string `json:"name" binding:"required"`
+			Password string `json:"password" binding:"required"`
+			Class    string `json:"class"`
+			Race     string `json:"race"`
+			Gender   string `json:"gender"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		hashedPassword, err := service.HashPassword(req.Password)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			return
+		}
+		char, err := svc.Character.CreateCharacter(c.Request.Context(), service.CreateCharacterInput{
+			UserID:   userID,
+			Name:     req.Name,
+			Password: hashedPassword,
+			Class:    req.Class,
+			Race:     req.Race,
+			Gender:   req.Gender,
+		})
+		if err != nil {
+			switch {
+			case errors.Is(err, service.ErrCharacterNameTaken):
+				c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			case errors.Is(err, service.ErrTooManyCharacters):
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			case errors.Is(err, service.ErrInvalidRace):
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race"})
+			case errors.Is(err, service.ErrInvalidGender):
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gender"})
+			default:
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{
+			"id":            char.ID,
+			"name":          char.Name,
+			"isNPC":         char.IsNPC,
+			"is_admin":      char.IsAdmin,
+			"currentRoomId": char.CurrentRoomId,
+			"startingRoomId": char.StartingRoomId,
+			"hitpoints":     char.Hitpoints,
+			"max_hitpoints": char.MaxHitpoints,
+			"stamina":       char.Stamina,
+			"max_stamina":   char.MaxStamina,
+			"mana":          char.Mana,
+			"max_mana":      char.MaxMana,
+			"race":          char.Race,
+			"class":         char.Class,
+			"specialty":     char.Specialty,
+			"strength":      char.Strength,
+			"dexterity":     char.Dexterity,
+			"constitution":  char.Constitution,
+			"intelligence":  char.Intelligence,
+			"wisdom":        char.Wisdom,
+			"level":         char.Level,
+			"xp":           char.Xp,
+		})
+	}
+}

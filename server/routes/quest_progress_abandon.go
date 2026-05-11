@@ -9,10 +9,12 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/quest"
 	"herbst-server/db/questprogress"
+	"herbst-server/repository"
 )
 
 // abandonQuest marks an active quest progress as abandoned.
-func abandonQuest(client *db.Client) gin.HandlerFunc {
+// TODO: migrate to fully use repos once QuestProgressRepo supports complex queries
+func abandonQuest(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -24,13 +26,12 @@ func abandonQuest(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid quest id"})
 			return
 		}
-		// Verify character exists
-		_, err = client.Character.Get(c.Request.Context(), charID)
+		_, err = repos.Character.Get(c.Request.Context(), charID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "character not found"})
 			return
 		}
-		// Find active progress record
+		// TODO: replace with repo method once QuestProgressRepo supports filtered queries
 		progress, err := client.QuestProgress.Query().
 			Where(
 				questprogress.HasCharacterWith(character.IDEQ(charID)),
@@ -42,7 +43,6 @@ func abandonQuest(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "active quest progress not found"})
 			return
 		}
-		// Mark as abandoned
 		updated, err := client.QuestProgress.UpdateOne(progress).
 			SetStatus(questprogress.StatusAbandoned).
 			Save(c.Request.Context())
@@ -52,8 +52,7 @@ func abandonQuest(client *db.Client) gin.HandlerFunc {
 		}
 		updated, _ = client.QuestProgress.Query().
 			Where(questprogress.IDEQ(updated.ID)).
-			WithQuest().
-			WithCharacter().
+			WithQuest().WithCharacter().
 			Only(c.Request.Context())
 		c.JSON(http.StatusOK, questProgressToView(updated))
 	}

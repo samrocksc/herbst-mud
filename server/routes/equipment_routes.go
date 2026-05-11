@@ -10,6 +10,7 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
+	"herbst-server/repository"
 )
 
 // revealConditions stores reveal conditions in memory (GitHub #12)
@@ -20,8 +21,9 @@ var (
 )
 
 // RegisterEquipmentRoutes registers all equipment-related routes
-func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
+func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, client *db.Client) {
 	// Create a new equipment item
+	// TODO: migrate to repos.Equipment.Create() when repo Create is implemented
 	router.POST("/equipment", func(c *gin.Context) {
 		var req struct {
 			Name        string `json:"name" binding:"required"`
@@ -149,6 +151,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 	})
 
 	// Get all equipment
+	// TODO: migrate to repo methods when filtered list is supported
 	router.GET("/equipment", func(c *gin.Context) {
 		query := client.Equipment.Query()
 
@@ -259,18 +262,21 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 
 		includeHidden := c.Query("includeHidden") == "true"
 
-		query := client.Equipment.Query().
-			Where(equipment.HasRoomWith(room.IDEQ(id)))
-
-		// By default, only show visible items (GitHub #12)
-		if !includeHidden {
-			query = query.Where(equipment.IsVisible(true))
-		}
-
-		items, err := query.All(c.Request.Context())
+		allItems, err := repos.Equipment.ListByRoom(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+
+		// By default, only show visible items (GitHub #12)
+		items := allItems
+		if !includeHidden {
+			items = make([]*db.Equipment, 0)
+			for _, item := range allItems {
+				if item.IsVisible {
+					items = append(items, item)
+				}
+			}
 		}
 
 		// Add reveal conditions to response
@@ -322,7 +328,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		eq, err := client.Equipment.Get(c.Request.Context(), id)
+		eq, err := repos.Equipment.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Equipment not found"})
 			return
@@ -394,6 +400,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 	})
 
 	// Update equipment by ID
+	// TODO: migrate to repos.Equipment.Update() when EquipmentUpdates covers all fields
 	router.PUT("/equipment/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -551,7 +558,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		err = client.Equipment.DeleteOneID(id).Exec(c.Request.Context())
+		err = repos.Equipment.Delete(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Equipment not found"})
 			return
@@ -573,7 +580,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
-		eq, err := client.Equipment.Get(c.Request.Context(), id)
+		eq, err := repos.Equipment.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Equipment not found"})
 			return
@@ -634,7 +641,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// Get the equipment item
-		eq, err := client.Equipment.Get(c.Request.Context(), id)
+		eq, err := repos.Equipment.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Equipment not found"})
 			return
@@ -680,6 +687,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// All checks passed - reveal the item
+		// TODO: migrate to repos.Equipment.Update() when EquipmentUpdates covers IsVisible
 		visible := true
 		updated, err := client.Equipment.UpdateOneID(id).
 			SetIsVisible(visible).

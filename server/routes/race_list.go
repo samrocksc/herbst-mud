@@ -8,10 +8,11 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/race"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterRaceRoutes registers REST endpoints for races.
-func RegisterRaceRoutes(r *gin.Engine, client *db.Client) {
+func RegisterRaceRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	races := r.Group("/api/races")
 	races.Use(middleware.AuthMiddleware())
 	races.Use(middleware.AdminMiddleware())
@@ -20,8 +21,8 @@ func RegisterRaceRoutes(r *gin.Engine, client *db.Client) {
 		races.GET("/:id", getRace(client))
 		races.POST("", createRace(client))
 		races.PUT("/:id", updateRace(client))
-		races.DELETE("/:id", deleteRace(client))
-		races.POST("/:id/apply-tags", applyRaceTags(client))
+		races.DELETE("/:id", deleteRace(repos))
+		races.POST("/:id/apply-tags", applyRaceTags(repos, client))
 	}
 }
 

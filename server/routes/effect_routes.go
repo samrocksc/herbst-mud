@@ -9,19 +9,20 @@ import (
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterEffectRoutes registers REST endpoints for ability effects.
 // Protected /api routes — all require JWT auth + admin check
-func RegisterEffectRoutes(r *gin.Engine, client *db.Client) {
+func RegisterEffectRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	effects := r.Group("/api")
 	effects.Use(middleware.AuthMiddleware())
 	effects.Use(middleware.AdminMiddleware())
 	{
-		effects.GET("/abilities/:id/effects", listEffects(client))
-		effects.POST("/abilities/:id/effects", createEffect(client))
-		effects.PUT("/ability-effects/:id", updateEffect(client))
-		effects.DELETE("/ability-effects/:id", deleteEffect(client))
+		effects.GET("/abilities/:id/effects", listEffects(repos, client))
+		effects.POST("/abilities/:id/effects", createEffect(repos, client))
+		effects.PUT("/ability-effects/:id", updateEffect(repos, client))
+		effects.DELETE("/ability-effects/:id", deleteEffect(repos, client))
 	}
 }
 
@@ -66,7 +67,7 @@ func effectToView(e *db.AbilityEffect) effectView {
 	}
 }
 
-func listEffects(client *db.Client) gin.HandlerFunc {
+func listEffects(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		abilityID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -74,13 +75,12 @@ func listEffects(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Verify ability exists
-		_, err = client.Ability.Get(c.Request.Context(), abilityID)
-		if err != nil {
+		if _, err := repos.Ability.Get(c.Request.Context(), abilityID); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
 			return
 		}
 
+		// TODO: Add AbilityEffectRepo and replace direct client usage
 		effects, err := client.AbilityEffect.Query().
 			Where(abilityeffect.HasAbilityWith(ability.ID(abilityID))).
 			Order(abilityeffect.BySortOrder()).
@@ -98,7 +98,7 @@ func listEffects(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func createEffect(client *db.Client) gin.HandlerFunc {
+func createEffect(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		abilityID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -106,9 +106,7 @@ func createEffect(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Verify ability exists
-		_, err = client.Ability.Get(c.Request.Context(), abilityID)
-		if err != nil {
+		if _, err := repos.Ability.Get(c.Request.Context(), abilityID); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
 			return
 		}
@@ -124,6 +122,7 @@ func createEffect(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
+		// TODO: Add AbilityEffectRepo and replace direct client usage
 		mut := client.AbilityEffect.Create().
 			SetEffectType(input.EffectType).
 			SetAbilityID(abilityID).
@@ -160,7 +159,8 @@ func createEffect(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func updateEffect(client *db.Client) gin.HandlerFunc {
+// TODO: Add AbilityEffectRepo and replace direct client usage
+func updateEffect(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -215,7 +215,8 @@ func updateEffect(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func deleteEffect(client *db.Client) gin.HandlerFunc {
+// TODO: Add AbilityEffectRepo and replace direct client usage
+func deleteEffect(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {

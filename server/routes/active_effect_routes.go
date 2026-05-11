@@ -6,17 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterActiveEffectRoutes registers endpoints for managing active effects on characters.
-func RegisterActiveEffectRoutes(r *gin.Engine, client *db.Client) {
+func RegisterActiveEffectRoutes(r *gin.Engine, repos *repository.Container) {
 	effects := r.Group("/api")
 	effects.Use(middleware.AuthMiddleware())
 	effects.Use(middleware.AdminMiddleware())
 	{
-		effects.GET("/characters/:id/effects", listActiveEffects(client))
-		effects.DELETE("/characters/:id/effects/:effect_id", removeActiveEffect(client))
-		effects.POST("/characters/:id/effects/apply", applyEffect(client))
+		effects.GET("/characters/:id/effects", listActiveEffects(repos))
+		effects.DELETE("/characters/:id/effects/:effect_id", removeActiveEffect(repos))
+		effects.POST("/characters/:id/effects/apply", applyEffect(repos))
 	}
 }
 

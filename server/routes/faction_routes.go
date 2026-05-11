@@ -6,25 +6,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
-	"herbst-server/db/characterfaction"
-	"herbst-server/db/faction"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterFactionRoutes registers REST endpoints for factions and faction categories.
-func RegisterFactionRoutes(r *gin.Engine, client *db.Client) {
+func RegisterFactionRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	// Protected /api routes — all require JWT auth + admin check
 	factions := r.Group("/api")
 	factions.Use(middleware.AuthMiddleware())
 	factions.Use(middleware.AdminMiddleware())
 	{
-		factions.GET("/factions", listFactions(client))
-		factions.GET("/factions/:id", getFaction(client))
-		factions.POST("/factions", createFaction(client))
-		factions.PUT("/factions/:id", updateFaction(client))
-		factions.DELETE("/factions/:id", deleteFaction(client))
-		factions.GET("/factions/:id/members", getFactionMembers(client))
+		factions.GET("/factions", listFactions(repos))
+		factions.GET("/factions/:id", getFaction(repos))
+		factions.POST("/factions", createFaction(repos))
+		factions.PUT("/factions/:id", updateFaction(repos))
+		factions.DELETE("/factions/:id", deleteFaction(repos))
+		factions.GET("/factions/:id/members", getFactionMembers(repos))
 
+		// TODO: Migrate to FactionCategoryRepo once created
 		factions.GET("/faction-categories", listFactionCategories(client))
 		factions.POST("/faction-categories", createFactionCategory(client))
 	}
@@ -32,12 +32,9 @@ func RegisterFactionRoutes(r *gin.Engine, client *db.Client) {
 
 // ─── Faction CRUD ─────────────────────────────────────────────────────────────
 
-func listFactions(client *db.Client) gin.HandlerFunc {
+func listFactions(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		factions, err := client.Faction.Query().
-			WithCategory().
-			WithRequiredTags().
-			All(c.Request.Context())
+		factions, err := repos.Faction.List(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -50,19 +47,14 @@ func listFactions(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func getFaction(client *db.Client) gin.HandlerFunc {
+func getFaction(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid faction id"})
 			return
 		}
-		f, err := client.Faction.Query().
-			Where(faction.ID(id)).
-			WithCategory().
-			WithRequiredTags().
-			WithAbilities().
-			Only(c.Request.Context())
+		f, err := repos.Faction.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "faction not found"})
 			return
@@ -71,7 +63,7 @@ func getFaction(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func createFaction(client *db.Client) gin.HandlerFunc {
+func createFaction(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			Name        string `json:"name" binding:"required"`
@@ -83,31 +75,21 @@ func createFaction(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		created, err := client.Faction.Create().
-			SetName(req.Name).
-			SetDisplayName(req.DisplayName).
-			SetDescription(req.Description).
-			SetCategoryID(req.CategoryID).
-			Save(c.Request.Context())
+		// TODO: Add CategoryID to CreateFactionInput once repo supports it
+		created, err := repos.Faction.Create(c.Request.Context(), repository.CreateFactionInput{
+			Name:        req.Name,
+			DisplayName: req.DisplayName,
+			Description: req.Description,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		// Reload with edges
-		f, err := client.Faction.Query().
-			Where(faction.ID(created.ID)).
-			WithCategory().
-			WithRequiredTags().
-			Only(c.Request.Context())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, factionToJSON(f))
+		c.JSON(http.StatusCreated, factionToJSON(created))
 	}
 }
 
-func updateFaction(client *db.Client) gin.HandlerFunc {
+func updateFaction(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -123,20 +105,16 @@ func updateFaction(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		updated, err := client.Faction.UpdateOneID(id).
-			SetDisplayName(req.DisplayName).
-			SetDescription(req.Description).
-			Save(c.Request.Context())
+		_, err = repos.Faction.Update(c.Request.Context(), id, repository.FactionUpdates{
+			DisplayName: &req.DisplayName,
+			Description: &req.Description,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		// Reload with edges
-		f, err := client.Faction.Query().
-			Where(faction.ID(updated.ID)).
-			WithCategory().
-			WithRequiredTags().
-			Only(c.Request.Context())
+		// Reload with edges for response
+		f, err := repos.Faction.GetWithEdges(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -145,15 +123,14 @@ func updateFaction(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func deleteFaction(client *db.Client) gin.HandlerFunc {
+func deleteFaction(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid faction id"})
 			return
 		}
-		_, err = client.Faction.Delete().Where(faction.ID(id)).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.Faction.Delete(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -161,40 +138,38 @@ func deleteFaction(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func getFactionMembers(client *db.Client) gin.HandlerFunc {
+func getFactionMembers(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid faction id"})
 			return
 		}
-		memberships, err := client.CharacterFaction.Query().
-			Where(characterfaction.HasFactionWith(faction.ID(id))).
-			WithCharacter().
-			All(c.Request.Context())
+		memberships, err := repos.CharacterFaction.ListByFactionWithDetails(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		result := make([]gin.H, len(memberships))
-		for i, m := range memberships {
+		result := make([]gin.H, 0, len(memberships))
+		for _, m := range memberships {
 			char := m.Edges.Character
 			if char == nil {
 				continue
 			}
-			result[i] = gin.H{
+			result = append(result, gin.H{
 				"character_id": char.ID,
 				"name":         char.Name,
-				"reputation":    m.Reputation,
+				"reputation":   m.Reputation,
 				"status":       m.Status,
 				"joined_at":    m.JoinedAt.Format("2006-01-02T15:04:05Z"),
-			}
+			})
 		}
 		c.JSON(http.StatusOK, result)
 	}
 }
 
 // ─── Faction Category CRUD ────────────────────────────────────────────────────
+// TODO: Migrate to FactionCategoryRepo once created
 
 func listFactionCategories(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {

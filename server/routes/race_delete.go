@@ -5,13 +5,11 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/character"
-	"herbst-server/db/race"
+	"herbst-server/repository"
 )
 
 // deleteRace deletes a race by ID.
-func deleteRace(client *db.Client) gin.HandlerFunc {
+func deleteRace(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -19,17 +17,19 @@ func deleteRace(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		raceName := client.Race.Query().Where(race.ID(id)).OnlyX(c.Request.Context()).Name
-		count, err := client.Character.Query().
-			Where(character.RaceEQ(raceName)).
-			Count(c.Request.Context())
+		r, err := repos.Race.GetWithTags(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "race not found"})
+			return
+		}
+
+		count, err := repos.Race.CountCharactersByRaceName(c.Request.Context(), r.Name)
 		if err == nil && count > 0 {
 			c.JSON(http.StatusConflict, gin.H{"error": "cannot delete: race is in use by characters"})
 			return
 		}
 
-		err = client.Race.DeleteOneID(id).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.Race.Delete(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "race not found"})
 			return
 		}

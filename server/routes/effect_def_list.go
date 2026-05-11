@@ -5,16 +5,12 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/effect"
+	"herbst-server/repository"
 )
 
-func listEffectDefs(client *db.Client) gin.HandlerFunc {
+func listEffectDefs(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		effects, err := client.Effect.Query().
-			Order(db.Asc(effect.FieldName)).
-			WithHooks().
-			All(c.Request.Context())
+		effects, err := repos.Effect.ListWithHooks(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -27,17 +23,14 @@ func listEffectDefs(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func getEffectDef(client *db.Client) gin.HandlerFunc {
+func getEffectDef(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect id"})
 			return
 		}
-		e, err := client.Effect.Query().
-			Where(effect.IDEQ(id)).
-			WithHooks().
-			Only(c.Request.Context())
+		e, err := repos.Effect.GetWithHooks(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "effect not found"})
 			return

@@ -5,73 +5,60 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
-	"herbst-server/db/equipment"
+	"herbst-server/repository"
 )
 
 // handleEquipSlotLogic handles slot occupation, two-handed logic, and final equip.
-func handleEquipSlotLogic(c *gin.Context, client *db.Client, id int, item *db.Equipment, char *db.Character, slot string, raceObj *db.Race) {
+func handleEquipSlotLogic(c *gin.Context, repos *repository.Container, id int, item *db.Equipment, char *db.Character, slot string, raceObj *db.Race) {
 	messages := []string{}
+	falseVal := false
 
 	// If two-handed weapon going to main_hand, auto-unequip off_hand
 	if item.IsTwoHanded && slot == "main_hand" {
-		offHandItems, err := client.Equipment.Query().
-			Where(
-				equipment.OwnerIdEQ(char.ID),
-				equipment.IsEquipped(true),
-				equipment.SlotEQ("off_hand"),
-			).
-			All(c.Request.Context())
+		allItems, err := repos.Equipment.ListByOwner(c.Request.Context(), char.ID)
 		if err == nil {
-			for _, offItem := range offHandItems {
-				client.Equipment.UpdateOneID(offItem.ID).
-					SetIsEquipped(false).
-					Save(c.Request.Context())
-				messages = append(messages, "Unequipped "+offItem.Name+" from off_hand")
+			for _, offItem := range allItems {
+				if offItem.IsEquipped && offItem.Slot == "off_hand" {
+					repos.Equipment.Update(c.Request.Context(), offItem.ID, repository.EquipmentUpdates{IsEquipped: &falseVal})
+					messages = append(messages, "Unequipped "+offItem.Name+" from off_hand")
+				}
 			}
 		}
 	}
 
 	// If equipping to off_hand when main_hand has two-handed weapon, block
 	if slot == "off_hand" {
-		mainHandItems, err := client.Equipment.Query().
-			Where(
-				equipment.OwnerIdEQ(char.ID),
-				equipment.IsEquipped(true),
-				equipment.SlotEQ("main_hand"),
-			).
-			All(c.Request.Context())
-		if err == nil && len(mainHandItems) > 0 && mainHandItems[0].IsTwoHanded {
-			c.JSON(http.StatusConflict, gin.H{
-				"error": "Cannot equip off-hand item while wielding a two-handed weapon",
-			})
-			return
+		allItems, err := repos.Equipment.ListByOwner(c.Request.Context(), char.ID)
+		if err == nil {
+			for _, mainItem := range allItems {
+				if mainItem.IsEquipped && mainItem.Slot == "main_hand" && mainItem.IsTwoHanded {
+					c.JSON(http.StatusConflict, gin.H{
+						"error": "Cannot equip off-hand item while wielding a two-handed weapon",
+					})
+					return
+				}
+			}
 		}
 	}
 
 	// Auto-unequip any existing item in the same slot
-	existingItems, err := client.Equipment.Query().
-		Where(
-			equipment.OwnerIdEQ(char.ID),
-			equipment.IsEquipped(true),
-			equipment.SlotEQ(slot),
-		).
-		All(c.Request.Context())
+	allItems, err := repos.Equipment.ListByOwner(c.Request.Context(), char.ID)
 	if err == nil {
-		for _, existing := range existingItems {
-			if existing.ID != id {
-				client.Equipment.UpdateOneID(existing.ID).
-					SetIsEquipped(false).
-					Save(c.Request.Context())
+		for _, existing := range allItems {
+			if existing.IsEquipped && existing.Slot == slot && existing.ID != id {
+				repos.Equipment.Update(c.Request.Context(), existing.ID, repository.EquipmentUpdates{IsEquipped: &falseVal})
 				messages = append(messages, "Unequipped "+existing.Name+" from "+slot)
 			}
 		}
 	}
 
 	// Equip the new item
-	_, err = client.Equipment.UpdateOneID(id).
-		SetIsEquipped(true).
-		SetOwnerId(char.ID).
-		Save(c.Request.Context())
+	trueVal := true
+	ownerID := char.ID
+	_, err = repos.Equipment.Update(c.Request.Context(), id, repository.EquipmentUpdates{
+		IsEquipped: &trueVal,
+		OwnerID:    &ownerID,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to equip item"})
 		return

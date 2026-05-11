@@ -2,21 +2,21 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
 	"herbst-server/middleware"
+	"herbst-server/service"
 )
 
 // RegisterQuestRoutes registers CRUD endpoints for Quest definitions.
 // All quest routes require admin authentication.
-func RegisterQuestRoutes(r *gin.Engine, client *db.Client) {
+func RegisterQuestRoutes(r *gin.Engine, svc *service.Container) {
 	quests := r.Group("/api/quests")
 	quests.Use(middleware.AuthMiddleware())
 	quests.Use(middleware.AdminMiddleware())
 	{
-		quests.GET("", listQuests(client))
-		quests.POST("", createQuest(client))
-		quests.GET("/:id", getQuest(client))
-		quests.PUT("/:id", updateQuest(client))
-		quests.DELETE("/:id", deleteQuest(client))
+		quests.GET("", listQuests(svc))
+		quests.POST("", createQuest(svc))
+		quests.GET("/:id", getQuest(svc))
+		quests.PUT("/:id", updateQuest(svc))
+		quests.DELETE("/:id", deleteQuest(svc))
 	}
 }

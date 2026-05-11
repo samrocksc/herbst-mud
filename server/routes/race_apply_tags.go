@@ -8,11 +8,12 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/charactertag"
-	"herbst-server/db/race"
+	"herbst-server/repository"
 )
 
 // applyRaceTags syncs a race's tags to all characters of that race.
-func applyRaceTags(client *db.Client) gin.HandlerFunc {
+// TODO: Migrate character tag operations to CharacterTagRepo
+func applyRaceTags(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -20,7 +21,7 @@ func applyRaceTags(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		r, err := client.Race.Query().Where(race.ID(id)).WithTags().Only(c.Request.Context())
+		r, err := repos.Race.GetWithTags(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "race not found"})
 			return
@@ -65,7 +66,7 @@ func applyRaceTags(client *db.Client) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"race":              r.Name,
+			"race":               r.Name,
 			"characters_updated": updated,
 			"tags_applied":      tagNames,
 		})

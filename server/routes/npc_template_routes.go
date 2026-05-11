@@ -2,25 +2,25 @@ package routes
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/db"
-	"herbst-server/db/npctemplate"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterNPCTemplateRoutes registers REST endpoints for NPC templates.
-func RegisterNPCTemplateRoutes(r *gin.Engine, client *db.Client) {
+func RegisterNPCTemplateRoutes(r *gin.Engine, repos *repository.Container) {
 	// Protected /api routes — all require JWT auth + admin check
 	templates := r.Group("/api")
 	templates.Use(middleware.AuthMiddleware())
 	templates.Use(middleware.AdminMiddleware())
 	{
-		templates.GET("/npc-templates", listNPCTemplates(client))
-		templates.GET("/npc-templates/:id", getNPCTemplate(client))
-		templates.POST("/npc-templates", createNPCTemplate(client))
-		templates.PUT("/npc-templates/:id", updateNPCTemplate(client))
-		templates.DELETE("/npc-templates/:id", deleteNPCTemplate(client))
+		templates.GET("/npc-templates", listNPCTemplates(repos))
+		templates.GET("/npc-templates/:id", getNPCTemplate(repos))
+		templates.POST("/npc-templates", createNPCTemplate(repos))
+		templates.PUT("/npc-templates/:id", updateNPCTemplate(repos))
+		templates.DELETE("/npc-templates/:id", deleteNPCTemplate(repos))
 	}
 }
 
@@ -42,15 +42,16 @@ type npcTemplateView struct {
 	RespawnCooldown int            `json:"respawn_cooldown"`
 }
 
-func listNPCTemplates(client *db.Client) gin.HandlerFunc {
+func listNPCTemplates(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		templates, err := client.NPCTemplate.Query().
-			Order(npctemplate.ByName()).
-			All(c.Request.Context())
+		templates, err := repos.NPCTemplate.List(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		sort.Slice(templates, func(i, j int) bool {
+			return templates[i].Name < templates[j].Name
+		})
 		result := make([]npcTemplateView, len(templates))
 		for i, t := range templates {
 			result[i] = npcTemplateView{
@@ -72,7 +73,7 @@ func listNPCTemplates(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func getNPCTemplate(client *db.Client) gin.HandlerFunc {
+func getNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
@@ -80,9 +81,7 @@ func getNPCTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		tmpl, err := client.NPCTemplate.Query().
-			Where(npctemplate.IDEQ(id)).
-			Only(c.Request.Context())
+		tmpl, err := repos.NPCTemplate.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "npc template not found"})
 			return
@@ -105,7 +104,7 @@ func getNPCTemplate(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func createNPCTemplate(client *db.Client) gin.HandlerFunc {
+func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			ID              string         `json:"id"`
@@ -130,30 +129,32 @@ func createNPCTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		builder := client.NPCTemplate.Create().
-			SetID(req.ID).
-			SetName(req.Name).
-			SetDescription(req.Description).
-			SetRace(req.Race).
-			SetLevel(req.Level).
-			SetXpValue(req.XpValue).
-			SetSkills(req.Skills).
-			SetTradesWith(req.TradesWith).
-			SetGreeting(req.Greeting).
-			SetRespawnRooms(req.RespawnRooms).
-			SetRespawnCooldown(req.RespawnCooldown)
-
+		disposition := "neutral"
 		if req.Disposition != "" {
 			switch req.Disposition {
 			case "hostile", "friendly", "neutral":
-				builder.SetDisposition(npctemplate.Disposition(req.Disposition))
+				disposition = req.Disposition
 			default:
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid disposition: " + req.Disposition})
 				return
 			}
 		}
 
-		created, err := builder.Save(c.Request.Context())
+		cooldown := req.RespawnCooldown
+		created, err := repos.NPCTemplate.Create(c.Request.Context(), repository.CreateNPCTemplateInput{
+			ID:              req.ID,
+			Name:            req.Name,
+			Description:     req.Description,
+			Race:            req.Race,
+			Disposition:     disposition,
+			Level:           req.Level,
+			XPValue:         req.XpValue,
+			Skills:          req.Skills,
+			TradesWith:      req.TradesWith,
+			Greeting:        req.Greeting,
+			RespawnRooms:    req.RespawnRooms,
+			RespawnCooldown: &cooldown,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -192,7 +193,7 @@ type updateNPCTemplateRequest struct {
 	RespawnCooldown *int            `json:"respawn_cooldown"`
 }
 
-func updateNPCTemplate(client *db.Client) gin.HandlerFunc {
+func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
@@ -206,49 +207,29 @@ func updateNPCTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		updater := client.NPCTemplate.UpdateOneID(id)
-
-		if req.Name != nil {
-			updater.SetName(*req.Name)
-		}
-		if req.Description != nil {
-			updater.SetDescription(*req.Description)
-		}
-		if req.Race != nil {
-			updater.SetRace(*req.Race)
+		updates := repository.NPCTemplateUpdates{
+			Name:            req.Name,
+			Description:     req.Description,
+			Race:            req.Race,
+			Level:           req.Level,
+			XPValue:         req.XpValue,
+			Skills:          req.Skills,
+			TradesWith:      req.TradesWith,
+			Greeting:        req.Greeting,
+			RespawnRooms:    req.RespawnRooms,
+			RespawnCooldown: req.RespawnCooldown,
 		}
 		if req.Disposition != nil {
 			switch *req.Disposition {
 			case "hostile", "friendly", "neutral":
-				updater.SetDisposition(npctemplate.Disposition(*req.Disposition))
+				updates.Disposition = req.Disposition
 			default:
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid disposition: " + *req.Disposition})
 				return
 			}
 		}
-		if req.Level != nil {
-			updater.SetLevel(*req.Level)
-		}
-		if req.XpValue != nil {
-			updater.SetXpValue(*req.XpValue)
-		}
-		if req.Skills != nil {
-			updater.SetSkills(*req.Skills)
-		}
-		if req.TradesWith != nil {
-			updater.SetTradesWith(*req.TradesWith)
-		}
-		if req.Greeting != nil {
-			updater.SetGreeting(*req.Greeting)
-		}
-		if req.RespawnRooms != nil {
-			updater.SetRespawnRooms(*req.RespawnRooms)
-		}
-		if req.RespawnCooldown != nil {
-			updater.SetRespawnCooldown(*req.RespawnCooldown)
-		}
 
-		updated, err := updater.Save(c.Request.Context())
+		updated, err := repos.NPCTemplate.Update(c.Request.Context(), id, updates)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -272,7 +253,7 @@ func updateNPCTemplate(client *db.Client) gin.HandlerFunc {
 }
 
 // deleteNPCTemplate removes an NPC template by ID.
-func deleteNPCTemplate(client *db.Client) gin.HandlerFunc {
+func deleteNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
@@ -280,7 +261,7 @@ func deleteNPCTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		err := client.NPCTemplate.DeleteOneID(id).Exec(c.Request.Context())
+		err := repos.NPCTemplate.Delete(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "npc template not found"})
 			return

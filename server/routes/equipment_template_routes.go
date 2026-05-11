@@ -5,27 +5,27 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
-	"herbst-server/db/equipment"
 	"herbst-server/middleware"
+	"herbst-server/repository"
 )
 
 // RegisterEquipmentTemplateRoutes registers REST endpoints for equipment templates.
-func RegisterEquipmentTemplateRoutes(r *gin.Engine, client *db.Client) {
+func RegisterEquipmentTemplateRoutes(r *gin.Engine, repos *repository.Container) {
 	g := r.Group("/api")
 	g.Use(middleware.AuthMiddleware())
 	g.Use(middleware.AdminMiddleware())
 	{
-		g.GET("/equipment-templates", listEquipmentTemplates(client))
-		g.GET("/equipment-templates/:id", getEquipmentTemplate(client))
-		g.POST("/equipment-templates", createEquipmentTemplate(client))
-		g.PUT("/equipment-templates/:id", updateEquipmentTemplate(client))
-		g.DELETE("/equipment-templates/:id", deleteEquipmentTemplate(client))
+		g.GET("/equipment-templates", listEquipmentTemplates(repos))
+		g.GET("/equipment-templates/:id", getEquipmentTemplate(repos))
+		g.POST("/equipment-templates", createEquipmentTemplate(repos))
+		g.PUT("/equipment-templates/:id", updateEquipmentTemplate(repos))
+		g.DELETE("/equipment-templates/:id", deleteEquipmentTemplate(repos))
 	}
 }
 
-func listEquipmentTemplates(client *db.Client) gin.HandlerFunc {
+func listEquipmentTemplates(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		templates, err := client.EquipmentTemplate.Query().All(c.Request.Context())
+		templates, err := repos.EquipmentTemplate.List(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -38,14 +38,14 @@ func listEquipmentTemplates(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func getEquipmentTemplate(client *db.Client) gin.HandlerFunc {
+func getEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
-		t, err := client.EquipmentTemplate.Get(c.Request.Context(), id)
+		t, err := repos.EquipmentTemplate.Get(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "template not found: " + id})
 			return
@@ -54,8 +54,7 @@ func getEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-
-func createEquipmentTemplate(client *db.Client) gin.HandlerFunc {
+func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			Name                string         `json:"name" binding:"required"`
@@ -93,51 +92,58 @@ func createEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		builder := client.EquipmentTemplate.Create().
-			SetName(req.Name).
-			SetDescription(req.Description).
-			SetSlot(req.Slot).
-			SetLevel(req.Level).
-			SetWeight(req.Weight).
-			SetItemType(req.ItemType).
-			SetColor(req.Color).
-			SetEffectType(req.EffectType).
-			SetEffectValue(req.EffectValue).
-			SetEffectDuration(req.EffectDuration).
-			SetContainerCapacity(req.ContainerCapacity).
-			SetKeyItemID(req.KeyItemID).
-			SetRevealCondition(req.RevealCondition).
-			SetArmorRating(req.ArmorRating).
-			SetArmorType(req.ArmorType).
-			SetRarity(req.Rarity).
-			SetSkillRequirement(req.SkillRequirement).
-			SetSkillRequirementLevel(req.SkillRequirementLvl).
-			SetDamageDiceCount(req.DamageDiceCount).
-			SetDamageDiceSides(req.DamageDiceSides).
-			SetDamageBonus(req.DamageBonus).
-			SetDamageType(req.DamageType).
-			SetWeaponType(req.WeaponType)
-
-		if req.Stats != nil {
-			builder.SetStats(req.Stats)
-		}
+		isVisible := false
 		if req.IsVisible != nil {
-			builder.SetIsVisible(*req.IsVisible)
+			isVisible = *req.IsVisible
 		}
+		isImmovable := false
 		if req.IsImmovable != nil {
-			builder.SetIsImmovable(*req.IsImmovable)
+			isImmovable = *req.IsImmovable
 		}
+		isContainer := false
 		if req.IsContainer != nil {
-			builder.SetIsContainer(*req.IsContainer)
+			isContainer = *req.IsContainer
 		}
+		isLocked := false
 		if req.IsLocked != nil {
-			builder.SetIsLocked(*req.IsLocked)
+			isLocked = *req.IsLocked
 		}
+		isTwoHanded := false
 		if req.IsTwoHanded != nil {
-			builder.SetIsTwoHanded(*req.IsTwoHanded)
+			isTwoHanded = *req.IsTwoHanded
 		}
 
-		t, err := builder.Save(c.Request.Context())
+		t, err := repos.EquipmentTemplate.Create(c.Request.Context(), repository.CreateEquipmentTemplateInput{
+			Name:                  req.Name,
+			Description:           req.Description,
+			Slot:                  req.Slot,
+			Level:                 req.Level,
+			Weight:                req.Weight,
+			ItemType:              req.ItemType,
+			Stats:                 req.Stats,
+			Color:                 req.Color,
+			IsVisible:             isVisible,
+			IsImmovable:           isImmovable,
+			EffectType:            req.EffectType,
+			EffectValue:           req.EffectValue,
+			EffectDuration:        req.EffectDuration,
+			IsContainer:           isContainer,
+			ContainerCapacity:     req.ContainerCapacity,
+			IsLocked:              isLocked,
+			KeyItemID:             req.KeyItemID,
+			RevealCondition:       req.RevealCondition,
+			ArmorRating:           req.ArmorRating,
+			ArmorType:             req.ArmorType,
+			Rarity:                req.Rarity,
+			SkillRequirement:      req.SkillRequirement,
+			SkillRequirementLevel: req.SkillRequirementLvl,
+			DamageDiceCount:       req.DamageDiceCount,
+			DamageDiceSides:       req.DamageDiceSides,
+			DamageBonus:           req.DamageBonus,
+			DamageType:            req.DamageType,
+			WeaponType:            req.WeaponType,
+			IsTwoHanded:           isTwoHanded,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -147,7 +153,7 @@ func createEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func updateEquipmentTemplate(client *db.Client) gin.HandlerFunc {
+func updateEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
@@ -162,7 +168,7 @@ func updateEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 			Level               *int            `json:"level"`
 			Weight              *int            `json:"weight"`
 			ItemType            *string         `json:"item_type"`
-			Stats               map[string]int `json:"stats"`
+			Stats               map[string]int  `json:"stats"`
 			Color               *string         `json:"color"`
 			IsVisible           *bool           `json:"is_visible"`
 			IsImmovable         *bool           `json:"is_immovable"`
@@ -191,96 +197,37 @@ func updateEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		builder := client.EquipmentTemplate.UpdateOneID(id)
-		if req.Name != nil {
-			builder.SetName(*req.Name)
-		}
-		if req.Description != nil {
-			builder.SetDescription(*req.Description)
-		}
-		if req.Slot != nil {
-			builder.SetSlot(*req.Slot)
-		}
-		if req.Level != nil {
-			builder.SetLevel(*req.Level)
-		}
-		if req.Weight != nil {
-			builder.SetWeight(*req.Weight)
-		}
-		if req.ItemType != nil {
-			builder.SetItemType(*req.ItemType)
-		}
-		if req.Stats != nil {
-			builder.SetStats(req.Stats)
-		}
-		if req.Color != nil {
-			builder.SetColor(*req.Color)
-		}
-		if req.IsVisible != nil {
-			builder.SetIsVisible(*req.IsVisible)
-		}
-		if req.IsImmovable != nil {
-			builder.SetIsImmovable(*req.IsImmovable)
-		}
-		if req.EffectType != nil {
-			builder.SetEffectType(*req.EffectType)
-		}
-		if req.EffectValue != nil {
-			builder.SetEffectValue(*req.EffectValue)
-		}
-		if req.EffectDuration != nil {
-			builder.SetEffectDuration(*req.EffectDuration)
-		}
-		if req.IsContainer != nil {
-			builder.SetIsContainer(*req.IsContainer)
-		}
-		if req.ContainerCapacity != nil {
-			builder.SetContainerCapacity(*req.ContainerCapacity)
-		}
-		if req.IsLocked != nil {
-			builder.SetIsLocked(*req.IsLocked)
-		}
-		if req.KeyItemID != nil {
-			builder.SetKeyItemID(*req.KeyItemID)
-		}
-		if req.RevealCondition != nil {
-			builder.SetRevealCondition(*req.RevealCondition)
-		}
-		if req.ArmorRating != nil {
-			builder.SetArmorRating(*req.ArmorRating)
-		}
-		if req.ArmorType != nil {
-			builder.SetArmorType(*req.ArmorType)
-		}
-		if req.Rarity != nil {
-			builder.SetRarity(*req.Rarity)
-		}
-		if req.SkillRequirement != nil {
-			builder.SetSkillRequirement(*req.SkillRequirement)
-		}
-		if req.SkillRequirementLvl != nil {
-			builder.SetSkillRequirementLevel(*req.SkillRequirementLvl)
-		}
-		if req.DamageDiceCount != nil {
-			builder.SetDamageDiceCount(*req.DamageDiceCount)
-		}
-		if req.DamageDiceSides != nil {
-			builder.SetDamageDiceSides(*req.DamageDiceSides)
-		}
-		if req.DamageBonus != nil {
-			builder.SetDamageBonus(*req.DamageBonus)
-		}
-		if req.DamageType != nil {
-			builder.SetDamageType(*req.DamageType)
-		}
-		if req.WeaponType != nil {
-			builder.SetWeaponType(*req.WeaponType)
-		}
-		if req.IsTwoHanded != nil {
-			builder.SetIsTwoHanded(*req.IsTwoHanded)
-		}
-
-		t, err := builder.Save(c.Request.Context())
+		t, err := repos.EquipmentTemplate.Update(c.Request.Context(), id, repository.EquipmentTemplateUpdates{
+			Name:                  req.Name,
+			Description:           req.Description,
+			Slot:                  req.Slot,
+			Level:                 req.Level,
+			Weight:                req.Weight,
+			ItemType:              req.ItemType,
+			Stats:                 req.Stats,
+			Color:                 req.Color,
+			IsVisible:             req.IsVisible,
+			IsImmovable:           req.IsImmovable,
+			EffectType:            req.EffectType,
+			EffectValue:           req.EffectValue,
+			EffectDuration:        req.EffectDuration,
+			IsContainer:           req.IsContainer,
+			ContainerCapacity:      req.ContainerCapacity,
+			IsLocked:              req.IsLocked,
+			KeyItemID:             req.KeyItemID,
+			RevealCondition:       req.RevealCondition,
+			ArmorRating:           req.ArmorRating,
+			ArmorType:             req.ArmorType,
+			Rarity:                req.Rarity,
+			SkillRequirement:      req.SkillRequirement,
+			SkillRequirementLevel: req.SkillRequirementLvl,
+			DamageDiceCount:       req.DamageDiceCount,
+			DamageDiceSides:       req.DamageDiceSides,
+			DamageBonus:           req.DamageBonus,
+			DamageType:            req.DamageType,
+			WeaponType:            req.WeaponType,
+			IsTwoHanded:           req.IsTwoHanded,
+		})
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "template not found"})
 			return
@@ -290,7 +237,7 @@ func updateEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 	}
 }
 
-func deleteEquipmentTemplate(client *db.Client) gin.HandlerFunc {
+func deleteEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
@@ -299,9 +246,7 @@ func deleteEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 		}
 
 		// Check if any instances reference this template
-		count, err := client.Equipment.Query().
-			Where(equipment.EquipmentTemplateIDEQ(id)).
-			Count(c.Request.Context())
+		count, err := repos.Equipment.CountByTemplateID(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -311,8 +256,7 @@ func deleteEquipmentTemplate(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		err = client.EquipmentTemplate.DeleteOneID(id).Exec(c.Request.Context())
-		if err != nil {
+		if err := repos.EquipmentTemplate.Delete(c.Request.Context(), id); err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "template not found"})
 			return
 		}
