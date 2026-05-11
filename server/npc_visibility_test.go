@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	dbcharacter "herbst-server/db/character"
+	"herbst-server/repository"
 	"herbst-server/routes"
+	"herbst-server/service"
 )
 
 func TestNPCRoomVisibility(t *testing.T) {
@@ -27,8 +30,10 @@ func TestNPCRoomVisibility(t *testing.T) {
 
 	// Create router
 	router := gin.New()
-	routes.RegisterCharacterRoutes(router, client)
-	routes.RegisterRoomRoutes(router, client)
+	repos := repository.NewContainer(client)
+	services := service.NewContainer(client, repos, slog.Default())
+	routes.RegisterCharacterRoutes(router, services, repos)
+	routes.RegisterRoomRoutes(router, client, services)
 
 	// Create test room first
 	var testRoomID int

@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
-	"herbst-server/db/race"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -17,19 +16,19 @@ func RegisterRaceRoutes(r *gin.Engine, repos *repository.Container, client *db.C
 	races.Use(middleware.AuthMiddleware())
 	races.Use(middleware.AdminMiddleware())
 	{
-		races.GET("", listRaces(client))
-		races.GET("/:id", getRace(client))
-		races.POST("", createRace(client))
-		races.PUT("/:id", updateRace(client))
+		races.GET("", listRaces(repos))
+		races.GET("/:id", getRace(repos))
+		races.POST("", createRace(repos, client))
+		races.PUT("/:id", updateRace(repos, client))
 		races.DELETE("/:id", deleteRace(repos))
 		races.POST("/:id/apply-tags", applyRaceTags(repos, client))
 	}
 }
 
 // listRaces returns all races.
-func listRaces(client *db.Client) gin.HandlerFunc {
+func listRaces(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		races, err := client.Race.Query().WithTags().Order(race.ByDisplayName()).All(c.Request.Context())
+		races, err := repos.Race.ListWithTags(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -43,14 +42,14 @@ func listRaces(client *db.Client) gin.HandlerFunc {
 }
 
 // getRace returns a single race by ID.
-func getRace(client *db.Client) gin.HandlerFunc {
+func getRace(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid race id"})
 			return
 		}
-		r, err := client.Race.Query().Where(race.ID(id)).WithTags().Only(c.Request.Context())
+		r, err := repos.Race.GetWithTags(c.Request.Context(), id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "race not found"})
 			return

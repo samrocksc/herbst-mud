@@ -55,6 +55,7 @@ func TestAuthMiddlewareIntegration(t *testing.T) {
 	routes.RegisterUserRoutes(router, repos)
 	routes.RegisterCharacterRoutes(router, services, repos)
 	routes.RegisterEquipmentRoutes(router, repos, client)
+	routes.RegisterAdminWipeRoutes(router, client)
 
 	t.Run("PublicRoutesWorkWithoutAuth", func(t *testing.T) {
 		// GET /rooms should work without auth (public)
@@ -87,7 +88,7 @@ func TestAuthMiddlewareIntegration(t *testing.T) {
 
 	t.Run("ProtectedRoutesWorkWithValidToken", func(t *testing.T) {
 		// Generate a valid token
-		token, err := middleware.GenerateTokenWithSecret(1, "test@example.com", false, "user", "test-secret-key-for-integration-tests")
+		token, err := generateTokenWithSecret(1, "test@example.com", false, "test-secret-key-for-integration-tests")
 		if err != nil {
 			t.Fatalf("Failed to generate token: %v", err)
 		}
@@ -230,11 +231,11 @@ func TestAdminMiddleware(t *testing.T) {
 	}
 	defer client.Close()
 
-	routes.RegisterAdminRoutes(router, client)
+	routes.RegisterAdminWipeRoutes(router, client)
 
 	t.Run("AdminRoutesRequireAdminToken", func(t *testing.T) {
 		// Generate a non-admin token
-		token, _ := middleware.GenerateTokenWithSecret(1, "user@example.com", false, "user", testSecret)
+		token, _ := generateTokenWithSecret(1, "user@example.com", false, testSecret)
 
 		req, _ := http.NewRequest("GET", "/admin/stats", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
@@ -248,7 +249,7 @@ func TestAdminMiddleware(t *testing.T) {
 
 	t.Run("AdminRoutesWorkWithAdminToken", func(t *testing.T) {
 		// Generate an admin token
-		token, _ := middleware.GenerateTokenWithSecret(1, "admin@example.com", true, "user", testSecret)
+		token, _ := generateTokenWithSecret(1, "admin@example.com", true, testSecret)
 
 		req, _ := http.NewRequest("GET", "/admin/stats", nil)
 		req.Header.Set("Authorization", "Bearer "+token)

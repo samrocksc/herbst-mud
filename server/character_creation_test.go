@@ -34,7 +34,7 @@ func TestCharacterCreationFlow(t *testing.T) {
 	router := gin.New()
 	repos := repository.NewContainer(client)
 	services := service.NewContainer(client, repos, slog.Default())
-	routes.RegisterCharacterRoutes(router, client, services, repos)
+	routes.RegisterCharacterRoutes(router, services, repos)
 
 	// First, create a test user
 	userReq := map[string]interface{}{
@@ -113,11 +113,11 @@ func TestCharacterCreationFlow(t *testing.T) {
 	t.Logf("Needs character after creation: %s", needsWriter2.Body.String())
 
 	// Test: Duplicate character name should fail
-	charReq2 = map[string]interface{}{
+	dupCharReq := map[string]interface{}{
 		"name":     "TestHero",
 		"password": "heropass123",
 	}
-	charJSON2, _ := json.Marshal(charReq2)
+	charJSON2, _ := json.Marshal(dupCharReq)
 	dupeReq, _ := http.NewRequest("POST", "/users/1/characters", bytes.NewBuffer(charJSON2))
 	dupeReq.Header.Set("Content-Type", "application/json")
 	dupeWriter := httptest.NewRecorder()

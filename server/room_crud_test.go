@@ -3,13 +3,16 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/repository"
 	"herbst-server/routes"
+	"herbst-server/service"
 )
 
 func TestRoomCRUD(t *testing.T) {
@@ -25,7 +28,9 @@ func TestRoomCRUD(t *testing.T) {
 
 	// Create router
 	router := gin.New()
-	routes.RegisterRoomRoutes(router, client)
+	repos := repository.NewContainer(client)
+	services := service.NewContainer(client, repos, slog.Default())
+	routes.RegisterRoomRoutes(router, client, services)
 
 	// Test creating a room
 	t.Run("CreateRoom", func(t *testing.T) {

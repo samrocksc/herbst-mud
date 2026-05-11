@@ -32,7 +32,7 @@ func TestCharacterAuthentication(t *testing.T) {
 	router := gin.New()
 	repos := repository.NewContainer(client)
 	services := service.NewContainer(client, repos, slog.Default())
-	routes.RegisterCharacterRoutes(router, client, services, repos)
+	routes.RegisterCharacterRoutes(router, services, repos)
 
 	// Test creating a character with password
 	t.Run("CreateCharacterWithPassword", func(t *testing.T) {

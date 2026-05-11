@@ -30,7 +30,7 @@ func TestCharacterCRUD(t *testing.T) {
 	router := gin.New()
 	repos := repository.NewContainer(client)
 	services := service.NewContainer(client, repos, slog.Default())
-	routes.RegisterCharacterRoutes(router, client, services, repos)
+	routes.RegisterCharacterRoutes(router, services, repos)
 
 	// First create a room to reference
 	roomData := map[string]interface{}{

@@ -7,12 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/constants"
 	"herbst-server/db"
-	"herbst-server/db/race"
 	"herbst-server/db/tag"
+	"herbst-server/repository"
 )
 
 // createRace creates a new race.
-func createRace(client *db.Client) gin.HandlerFunc {
+func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			Name           string   `json:"name" binding:"required"`
@@ -35,7 +35,8 @@ func createRace(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
-		existing, err := client.Race.Query().Where(race.NameEQ(req.Name)).Only(c.Request.Context())
+		// Check for duplicate name
+		existing, err := repos.Race.GetByName(c.Request.Context(), req.Name)
 		if err == nil && existing != nil {
 			c.JSON(http.StatusConflict, gin.H{"error": "a race with this name already exists"})
 			return
@@ -50,45 +51,37 @@ func createRace(client *db.Client) gin.HandlerFunc {
 			displayName = req.Name
 		}
 
-		mut := client.Race.Create().
-			SetName(req.Name).
-			SetDisplayName(displayName).
-			SetDescription(req.Description).
-			SetIsPlayable(isPlayable).
-			SetColor(req.Color)
-
-		if req.StatModifiers != nil {
-			mut = mut.SetStatModifiers(*req.StatModifiers)
-		}
-		if len(req.EquipmentSlots) > 0 {
-			mut = mut.SetEquipmentSlots(req.EquipmentSlots)
-		}
-
+		// Resolve tag names to IDs
+		var tagIDs []int
 		if len(req.Tags) > 0 {
-			tagIDs, err := resolveTagIDs(c, client, req.Tags)
+			tagIDs, err = resolveTagIDs(c, client, req.Tags)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
-			mut = mut.AddTagIDs(tagIDs...)
 		}
 
-		r, err := mut.Save(c.Request.Context())
+		r, err := repos.Race.Create(c.Request.Context(), repository.CreateRaceInput{
+			Name:           req.Name,
+			DisplayName:    displayName,
+			Description:    req.Description,
+			StatModifiers:  req.StatModifiers,
+			IsPlayable:     isPlayable,
+			Color:          req.Color,
+			EquipmentSlots: req.EquipmentSlots,
+			TagIDs:         tagIDs,
+		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		r, err = client.Race.Query().Where(race.IDEQ(r.ID)).WithTags().Only(c.Request.Context())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
 		c.JSON(http.StatusCreated, raceToView(r))
 	}
 }
 
 // resolveTagIDs resolves tag names to IDs, creating tags that don't exist yet.
+// TODO: Move tag resolution to TagRepo
 func resolveTagIDs(c *gin.Context, client *db.Client, names []string) ([]int, error) {
 	if len(names) == 0 {
 		return nil, nil

@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/repository"
 	"herbst-server/routes"
 )
 
@@ -25,7 +26,8 @@ func TestUserAuthBcrypt(t *testing.T) {
 
 	// Create router
 	router := gin.New()
-	routes.RegisterUserRoutes(router, client)
+	repos := repository.NewContainer(client)
+	routes.RegisterUserRoutes(router, repos)
 
 	// Test user authentication with bcrypt
 	t.Run("AuthenticateUserWithBcrypt", func(t *testing.T) {
