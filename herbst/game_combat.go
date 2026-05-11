@@ -36,6 +36,7 @@ func (m *model) getCharacterStrength() int {
 
 // startCombat initializes a combat encounter
 func (m *model) startCombat(target *RoomCharacter) {
+	m.debugLogf("combat started vs %s (room %d)", target.Name, m.currentRoom)
 	m.inCombat = true
 	m.combatTarget = target
 	m.combatLog = []string{}
@@ -199,6 +200,7 @@ func containsAny(s string, substrings ...string) bool {
 
 // handleTargetDefeat processes defeating a combat target.
 func (m *model) handleTargetDefeat() {
+	m.debugLogf("defeated %s (room %d)", m.combatTarget.Name, m.currentRoom)
 	m.addCombatLog(fmt.Sprintf("✦ %s has been defeated!", m.combatTarget.Name))
 	m.AppendMessage(fmt.Sprintf("⚔ You defeated %s!", m.combatTarget.Name), "success")
 
@@ -483,6 +485,7 @@ func (m *model) logEnemyHit(damage int, isCrit bool) {
 
 // handlePlayerDefeat processes player being defeated.
 func (m *model) handlePlayerDefeat() {
+	m.debugLogf("player died in room %d", m.currentRoom)
 	m.addCombatLog("☠ You have been defeated!")
 	m.AppendMessage("☠ You have been defeated! Respawning...", "error")
 
@@ -552,7 +555,7 @@ func (m *model) addCombatLog(msg string) {
 
 // respawnPlayer handles player defeat
 func (m *model) respawnPlayer() {
-	// Reset HP to max
+	m.debugLogf("respawning at room %d", m.respawnRoom)
 	m.characterHP = m.characterMaxHP
 
 	// Fetch respawn room from server

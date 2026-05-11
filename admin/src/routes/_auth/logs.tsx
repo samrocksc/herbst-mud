@@ -163,7 +163,7 @@ function LogsPage() {
               </div>
 
               {/* Timestamp */}
-              <div className="flex-shrink-0 w-16 text-xs text-text-muted/70 pt-0.5">
+              <div className="flex-shrink-0 w-28 text-xs text-text-muted/70 pt-0.5">
                 {formatTime(log.created_at)}
               </div>
 
@@ -217,7 +217,11 @@ function formatTime(t: string): string {
     const diffMin = Math.floor(diffMs / 60000)
     if (diffMin < 1) return 'just now'
     if (diffMin < 60) return `${diffMin}m ago`
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const isToday = d.toDateString() === now.toDateString()
+    if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const isThisYear = d.getFullYear() === now.getFullYear()
+    if (isThisYear) return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   } catch {
     return t
   }

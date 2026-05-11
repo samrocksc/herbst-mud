@@ -39,6 +39,8 @@ func (m *model) handleMovement(cmd string) bool {
 
 	m.knownExits[direction] = true
 
+	m.debugLogf("leaving room %d → %s (room %d)", m.currentRoom, direction, nextRoomID)
+
 	m.effectsService.FireEvent("on_leave_room", m.currentCharacterID, "", map[string]interface{}{
 		"room_id": m.currentRoom,
 	})
@@ -67,6 +69,8 @@ func (m *model) handleMovement(cmd string) bool {
 			m.knownExits[dir] = true
 		}
 
+
+		m.debugLogf("entered room %d \"%s\" — %d items, %d chars", m.currentRoom, m.roomName, len(m.roomItems), len(m.roomCharacters))
 
 		m.effectsService.FireEvent("on_enter_room", m.currentCharacterID, "", map[string]interface{}{
 			"room_id": m.currentRoom,

@@ -369,6 +369,9 @@ func main() {
 	// Register log routes (LOGS-004)
 	routes.RegisterLogRoutes(router, protected, client)
 
+	// Register debug log routes — SSH client debug messages flow to applogs
+	routes.RegisterDebugLogRoutes(protected)
+
 	// Start daily log cleanup goroutine (LOGS-005)
 	go startLogCleanup(client)
 

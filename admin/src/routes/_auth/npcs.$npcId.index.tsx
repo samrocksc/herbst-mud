@@ -361,11 +361,11 @@ export function NpcTemplateDetail() {
                 </div>
               )}
 
-              {Object.keys(template.skills).length > 0 && (
+              {Object.keys(template.skills ?? {}).length > 0 && (
                 <div className="mt-4 pt-4 border-t border-border">
                   <span className="text-text-muted text-xs block mb-2">Skills</span>
                   <div className="grid grid-cols-3 gap-x-4 gap-y-1">
-                    {Object.entries(template.skills).map(([skill, value]) => (
+                    {Object.entries(template.skills ?? {}).map(([skill, value]) => (
                       <div key={skill} className="flex justify-between text-sm">
                         <span className="text-text-muted">{skill}</span>
                         <span className="text-text font-medium">{value}</span>

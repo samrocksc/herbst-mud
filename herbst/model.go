@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/ssh"
 	"herbst/combat"
 	"herbst/db"
+	"herbst/debuglog"
 	"herbst/effects"
 	"herbst/questservice"
 )
@@ -88,6 +89,7 @@ type model struct {
 	// Debug mode
 	debugMode bool
 	isTest   bool
+	debugLog *debuglog.Logger
 
 	// Message history
 	messageHistory  []string
@@ -193,6 +195,16 @@ type InventoryItem struct {
 	ItemType    string `json:"itemType"`
 	IsEquipped  bool   `json:"isEquipped"`
 	Rarity      string `json:"rarity"`
+}
+
+// debugLogf emits a structured debug log entry to the admin log viewer.
+// Only emits when debugMode is enabled. The message is prefixed with [char:Name]
+// and tagged with the character's ID and current room for filtering.
+func (m *model) debugLogf(format string, args ...any) {
+	if !m.debugMode || m.debugLog == nil {
+		return
+	}
+	m.debugLog.Log(m.currentCharacterID, m.currentRoom, "[char:%s] "+format, append([]any{m.currentCharacterName}, args...)...)
 }
 
 var RESTAPIBase string

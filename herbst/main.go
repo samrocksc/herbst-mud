@@ -19,6 +19,7 @@ import (
 	"github.com/muesli/termenv"
 	"herbst/db"
 	"herbst/dbinit"
+	"herbst/debuglog"
 	"herbst/effects"
 	"herbst/questservice"
 )
@@ -155,6 +156,7 @@ func main() {
 						commands:      NewCommandRegistry(),
 						effectsService: effectsSvc,
 						questService:   questSvc,
+						debugLog:       debuglog.New(restBase, fetchAdminEventsToken),
 					}
 
 					// Initialize commands

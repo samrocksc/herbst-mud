@@ -32,10 +32,14 @@ async function apiFetch<T = unknown>(input: RequestInfo, init?: RequestInit): Pr
   if (!text) return undefined as T
   try {
     const parsed = JSON.parse(text)
-    // Unwrap known { key: [...] } response shapes from the backend
-    for (const key of ['skills', 'npcs', 'characters', 'abilities', 'users', 'items', 'rooms', 'races', 'achievements', 'factions', 'faction_categories', 'effects', 'hooks', 'active_effects', 'tags']) {
-      if (Object.prototype.hasOwnProperty.call(parsed, key) && Array.isArray(parsed[key])) {
-        return parsed[key] as T
+    // Unwrap known { key: [...] } response shapes from the backend,
+    // but only when the response is a simple wrapper (1–2 top-level keys)
+    const keys = Object.keys(parsed)
+    if (keys.length <= 2) {
+      for (const key of ['skills', 'npcs', 'characters', 'abilities', 'users', 'items', 'rooms', 'races', 'achievements', 'factions', 'faction_categories', 'effects', 'hooks', 'active_effects', 'tags']) {
+        if (Object.prototype.hasOwnProperty.call(parsed, key) && Array.isArray(parsed[key])) {
+          return parsed[key] as T
+        }
       }
     }
     return parsed as T

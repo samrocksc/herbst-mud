@@ -67,6 +67,7 @@ func (m *model) handleTakeCommand(cmd string) {
 	}
 
 	m.AppendMessage(fmt.Sprintf("You pick up the %s.", targetItem.Name), "success")
+	m.debugLogf("picked up \"%s\" (id %d) from room %d", targetItem.Name, targetItem.ID, m.currentRoom)
 }
 
 // handleDropCommand drops an item from inventory.

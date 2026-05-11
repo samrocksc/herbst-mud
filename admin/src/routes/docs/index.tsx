@@ -38,6 +38,11 @@ const DOC_PAGES = [
     desc: 'Standing mechanics, categories, and how factions affect gameplay.',
   },
   {
+    title: 'Quest System',
+    path: '/docs/quest-system',
+    desc: 'Quest objectives, progress tracking, repeat modes, rewards, and player commands.',
+  },
+  {
     title: 'Examine Skill',
     path: '/docs/examine-skill',
     desc: 'The examine command, hidden details, skill levels, and DC checks.',
