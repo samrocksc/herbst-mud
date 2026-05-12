@@ -127,6 +127,9 @@ func (m *model) attemptLogin() {
 	if email, ok := result["email"].(string); ok {
 		m.currentUserName = email
 	}
+	if token, ok := result["token"].(string); ok {
+		m.characterToken = token
+	}
 	m.screen = ScreenPlaying
 	m.textInput.SetValue("")
 	m.inputBuffer = ""

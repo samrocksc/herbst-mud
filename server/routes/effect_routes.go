@@ -81,8 +81,13 @@ func listEffects(repos *repository.Container, client *db.Client) gin.HandlerFunc
 		}
 
 		// TODO: Add AbilityEffectRepo and replace direct client usage
-		effects, err := client.AbilityEffect.Query().
-			Where(abilityeffect.HasAbilityWith(ability.ID(abilityID))).
+		query := client.AbilityEffect.Query().
+			Where(abilityeffect.HasAbilityWith(ability.ID(abilityID)))
+		if search := c.Query("search"); search != "" {
+			query = query.Where(abilityeffect.EffectTypeContains(search))
+		}
+		effects, err := query.
+			WithAbility().
 			Order(abilityeffect.BySortOrder()).
 			All(c.Request.Context())
 		if err != nil {

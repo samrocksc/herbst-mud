@@ -57,3 +57,6 @@ herbst-admin-tui
 herbst-mud
 server/herbst-web
 server/herbst-mud
+
+# Claude memory (project-specific)
+memory/

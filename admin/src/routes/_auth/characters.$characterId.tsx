@@ -7,6 +7,8 @@ import { apiPost } from '../../utils/apiFetch'
 import { PageHeader } from '../../components/PageHeader'
 import { EquippedItemsView } from '../../components/EquippedItemsView'
 import { ActiveEffectsPanel } from '../../components/ActiveEffectsPanel'
+import { ResourceIdField } from '../../components/ResourceIdField'
+import { RESOURCE_ENDPOINTS } from '../../utils/resourceEndpoints'
 import { CharacterStats } from './-characters.$characterId.stats'
 import { AddItemModal } from './-characters.$characterId.addItemModal'
 
@@ -220,9 +222,28 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
       </Section>
 
       <Section title="Location">
-        {numField('currentRoomId', 'Current Room #')}
-        {numField('startingRoomId', 'Starting Room #')}
-        {numField('respawnRoomId', 'Respawn Room #')}
+        <ResourceIdField
+          label="Current Room"
+          value={form.currentRoomId}
+          onChange={(id) => setForm({ ...form, currentRoomId: Number(id) })}
+          {...RESOURCE_ENDPOINTS.rooms}
+        />
+        <div className="mt-2">
+          <ResourceIdField
+            label="Starting Room"
+            value={form.startingRoomId}
+            onChange={(id) => setForm({ ...form, startingRoomId: Number(id) })}
+            {...RESOURCE_ENDPOINTS.rooms}
+          />
+        </div>
+        <div className="mt-2">
+          <ResourceIdField
+            label="Respawn Room"
+            value={form.respawnRoomId}
+            onChange={(id) => setForm({ ...form, respawnRoomId: Number(id) })}
+            {...RESOURCE_ENDPOINTS.rooms}
+          />
+        </div>
       </Section>
 
       <Section title="Vitals">

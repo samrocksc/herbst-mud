@@ -13,6 +13,7 @@ type CharacterService interface {
 	DeleteCharacter(ctx context.Context, charID int) error
 	GrantTag(ctx context.Context, charID int, tag, source string) error
 	SyncRaceTags(ctx context.Context, charID int, raceName string) error
+	QueryCharacterByName(ctx context.Context, name string) (*db.Character, error)
 }
 
 // XPAwardService handles XP awards, death penalties, and competency tracking.
@@ -132,6 +133,25 @@ type DialogService interface {
 	CreateNode(ctx context.Context, input CreateDialogNodeInput) (*db.DialogNode, error)
 	UpdateNode(ctx context.Context, id string, input UpdateDialogNodeInput) (*db.DialogNode, error)
 	DeleteNode(ctx context.Context, id string) error
+}
+
+// ChatService handles messaging: say/yell/shout/tell/whisper/emote, channel chat, and ignore system.
+type ChatService interface {
+	SendSay(ctx context.Context, charID, roomID int, message string) (*MessageResult, error)
+	SendYell(ctx context.Context, charID, roomID int, message string) (*MessageResult, error)
+	SendShout(ctx context.Context, charID int, message string) (*MessageResult, error)
+	SendTell(ctx context.Context, fromID, toID int, message string) (*MessageResult, error)
+	SendWhisper(ctx context.Context, fromID, toID int, message string) (*MessageResult, error)
+	SendEmote(ctx context.Context, charID int, action string) (*MessageResult, error)
+	SendChannel(ctx context.Context, channel, message string, charID int) (*MessageResult, error)
+	GetChannels(charID int) ([]ChannelState, error)
+	SetChannelEnabled(ctx context.Context, charID int, channel string, enabled bool) error
+	SetChannelColor(ctx context.Context, charID int, channel string, color string) error
+	IgnorePlayer(ctx context.Context, charID, ignoredID int) error
+	UnignorePlayer(ctx context.Context, charID, ignoredID int) error
+	GetIgnoredPlayers(ctx context.Context, charID int) ([]int, error)
+	QueueOfflineTell(ctx context.Context, fromID int, recipientName string, message string) error
+	DeliverQueuedTells(ctx context.Context, charID int) ([]QueuedTell, error)
 }
 
 // --- View/Result types (service-layer DTOs) ---
@@ -377,4 +397,33 @@ type UpdateDialogNodeInput struct {
 	IsEntry        *bool
 	EntryCondition *string
 	OnEnterEffects *[]int
+}
+
+// MessageResult is returned by chat operations.
+type MessageResult struct {
+	FromCharacterID   int      `json:"from_character_id"`
+	FromCharacterName string   `json:"from_character_name"`
+	ToCharacterIDs    []int    `json:"to_character_ids"`
+	Channel           string   `json:"channel"`
+	Message           string   `json:"message"`
+	Type              string   `json:"type"` // say, yell, shout, tell, whisper, emote, channel, system
+	RoomID            *int     `json:"room_id,omitempty"`
+	DisplayMessage    string   `json:"display_message,omitempty"` // Message to display to the sender
+}
+
+// ChannelState describes a chat channel subscription.
+type ChannelState struct {
+	Name    string `json:"name"`
+	Color   string `json:"color"`
+	Enabled bool   `json:"enabled"`
+}
+
+// QueuedTell is an offline message waiting for delivery.
+type QueuedTell struct {
+	ID            int    `json:"id"`
+	FromID        int    `json:"from_id"`
+	FromName      string `json:"from_name"`
+	RecipientName string `json:"recipient_name"`
+	Message       string `json:"message"`
+	QueuedAt      string `json:"queued_at"`
 }

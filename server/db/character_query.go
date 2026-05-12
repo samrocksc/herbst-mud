@@ -9,13 +9,16 @@ import (
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
+	"herbst-server/db/characterchannel"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
+	"herbst-server/db/characterignore"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/questprogress"
 	"herbst-server/db/room"
+	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
 	"math"
 
@@ -41,6 +44,9 @@ type CharacterQuery struct {
 	withCompetencies       *CharacterCompetencyQuery
 	withActiveEffects      *ActiveEffectQuery
 	withQuestProgress      *QuestProgressQuery
+	withChannelSettings    *CharacterChannelQuery
+	withIgnoring           *CharacterIgnoreQuery
+	withTellQueue          *TellQueueQuery
 	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -276,6 +282,72 @@ func (_q *CharacterQuery) QueryQuestProgress() *QuestProgressQuery {
 	return query
 }
 
+// QueryChannelSettings chains the current query on the "channelSettings" edge.
+func (_q *CharacterQuery) QueryChannelSettings() *CharacterChannelQuery {
+	query := (&CharacterChannelClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(characterchannel.Table, characterchannel.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.ChannelSettingsTable, character.ChannelSettingsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIgnoring chains the current query on the "ignoring" edge.
+func (_q *CharacterQuery) QueryIgnoring() *CharacterIgnoreQuery {
+	query := (&CharacterIgnoreClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(characterignore.Table, characterignore.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.IgnoringTable, character.IgnoringColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTellQueue chains the current query on the "tellQueue" edge.
+func (_q *CharacterQuery) QueryTellQueue() *TellQueueQuery {
+	query := (&TellQueueClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(tellqueue.Table, tellqueue.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.TellQueueTable, character.TellQueueColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Character entity from the query.
 // Returns a *NotFoundError when no Character was found.
 func (_q *CharacterQuery) First(ctx context.Context) (*Character, error) {
@@ -477,6 +549,9 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		withCompetencies:       _q.withCompetencies.Clone(),
 		withActiveEffects:      _q.withActiveEffects.Clone(),
 		withQuestProgress:      _q.withQuestProgress.Clone(),
+		withChannelSettings:    _q.withChannelSettings.Clone(),
+		withIgnoring:           _q.withIgnoring.Clone(),
+		withTellQueue:          _q.withTellQueue.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -582,6 +657,39 @@ func (_q *CharacterQuery) WithQuestProgress(opts ...func(*QuestProgressQuery)) *
 	return _q
 }
 
+// WithChannelSettings tells the query-builder to eager-load the nodes that are connected to
+// the "channelSettings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithChannelSettings(opts ...func(*CharacterChannelQuery)) *CharacterQuery {
+	query := (&CharacterChannelClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withChannelSettings = query
+	return _q
+}
+
+// WithIgnoring tells the query-builder to eager-load the nodes that are connected to
+// the "ignoring" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithIgnoring(opts ...func(*CharacterIgnoreQuery)) *CharacterQuery {
+	query := (&CharacterIgnoreClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withIgnoring = query
+	return _q
+}
+
+// WithTellQueue tells the query-builder to eager-load the nodes that are connected to
+// the "tellQueue" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithTellQueue(opts ...func(*TellQueueQuery)) *CharacterQuery {
+	query := (&TellQueueClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTellQueue = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -661,7 +769,7 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [12]bool{
 			_q.withUser != nil,
 			_q.withRoom != nil,
 			_q.withNpcTemplate != nil,
@@ -671,6 +779,9 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 			_q.withCompetencies != nil,
 			_q.withActiveEffects != nil,
 			_q.withQuestProgress != nil,
+			_q.withChannelSettings != nil,
+			_q.withIgnoring != nil,
+			_q.withTellQueue != nil,
 		}
 	)
 	if _q.withUser != nil {
@@ -756,6 +867,27 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		if err := _q.loadQuestProgress(ctx, query, nodes,
 			func(n *Character) { n.Edges.QuestProgress = []*QuestProgress{} },
 			func(n *Character, e *QuestProgress) { n.Edges.QuestProgress = append(n.Edges.QuestProgress, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withChannelSettings; query != nil {
+		if err := _q.loadChannelSettings(ctx, query, nodes,
+			func(n *Character) { n.Edges.ChannelSettings = []*CharacterChannel{} },
+			func(n *Character, e *CharacterChannel) { n.Edges.ChannelSettings = append(n.Edges.ChannelSettings, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withIgnoring; query != nil {
+		if err := _q.loadIgnoring(ctx, query, nodes,
+			func(n *Character) { n.Edges.Ignoring = []*CharacterIgnore{} },
+			func(n *Character, e *CharacterIgnore) { n.Edges.Ignoring = append(n.Edges.Ignoring, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTellQueue; query != nil {
+		if err := _q.loadTellQueue(ctx, query, nodes,
+			func(n *Character) { n.Edges.TellQueue = []*TellQueue{} },
+			func(n *Character, e *TellQueue) { n.Edges.TellQueue = append(n.Edges.TellQueue, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1032,6 +1164,99 @@ func (_q *CharacterQuery) loadQuestProgress(ctx context.Context, query *QuestPro
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "character_quest_progress" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadChannelSettings(ctx context.Context, query *CharacterChannelQuery, nodes []*Character, init func(*Character), assign func(*Character, *CharacterChannel)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.CharacterChannel(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.ChannelSettingsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_channel_settings
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_channel_settings" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_channel_settings" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadIgnoring(ctx context.Context, query *CharacterIgnoreQuery, nodes []*Character, init func(*Character), assign func(*Character, *CharacterIgnore)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.CharacterIgnore(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.IgnoringColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_ignoring
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_ignoring" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_ignoring" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadTellQueue(ctx context.Context, query *TellQueueQuery, nodes []*Character, init func(*Character), assign func(*Character, *TellQueue)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.TellQueue(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.TellQueueColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_tell_queue
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_tell_queue" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_tell_queue" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

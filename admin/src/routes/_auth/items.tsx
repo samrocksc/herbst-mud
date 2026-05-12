@@ -1,13 +1,12 @@
-import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
-import { useEquipmentTemplates, useCreateTemplate, useDeleteTemplate } from '../../hooks/useEquipmentTemplates'
+import { useEquipmentTemplates, useDeleteTemplate } from '../../hooks/useEquipmentTemplates'
 import { useItemInstances } from '../../hooks/useItemInstances'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
 import { DeleteConfirmation } from '../../components/DeleteConfirmation'
 import { showToast } from '../../components/Toast'
-import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from '../../components/itemConstants'
 import type { EquipmentTemplate } from '../../hooks/useEquipmentTemplates'
 
 export const Route = createFileRoute('/_auth/items')({
@@ -16,8 +15,8 @@ export const Route = createFileRoute('/_auth/items')({
 
 function ItemsIndex() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [showForm, setShowForm] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   const templatesQuery = useEquipmentTemplates()
   const instancesQuery = useItemInstances()
@@ -90,7 +89,7 @@ function ItemsIndex() {
   return (
     <div className="p-6 max-w-[1200px] mx-auto">
       <PageHeader title="Items" showBack backTo="/dashboard" actions={
-        <Button variant="primary" onClick={() => setShowForm(true)}>+ Add Item</Button>
+        <Button variant="primary" onClick={() => navigate({ to: '/items/new' })}>+ Add Item</Button>
       } />
 
       <div className="mb-4">
@@ -119,10 +118,6 @@ function ItemsIndex() {
         />
       )}
 
-      {showForm && (
-        <CreateItemModal onClose={() => setShowForm(false)} />
-      )}
-
       {deleteId && (
         <DeleteConfirmation
           open={!!deleteId}
@@ -137,108 +132,3 @@ function ItemsIndex() {
   )
 }
 
-function CreateItemModal({ onClose }: { onClose: () => void }) {
-  const { mutate: createTemplate, isPending } = useCreateTemplate()
-
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    slot: '',
-    item_type: 'misc',
-    level: 1,
-    weight: 0,
-    color: '',
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.name.trim()) return
-    createTemplate(form, {
-      onSuccess: () => {
-        showToast('Item template created', 'success')
-        onClose()
-      },
-    })
-  }
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <h3 className="mt-0">Create Item Template</h3>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block text-sm text-text-muted mb-1">Name *</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-text-muted mb-1">Description</label>
-            <input
-              type="text"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-            />
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-sm text-text-muted mb-1">Slot</label>
-              <select
-                value={form.slot}
-                onChange={(e) => setForm({ ...form, slot: e.target.value })}
-                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              >
-                {SLOT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm text-text-muted mb-1">Type</label>
-              <select
-                value={form.item_type}
-                onChange={(e) => setForm({ ...form, item_type: e.target.value })}
-                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              >
-                {ITEM_TYPE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-sm text-text-muted mb-1">Level</label>
-              <input
-                type="number"
-                value={form.level}
-                onChange={(e) => setForm({ ...form, level: parseInt(e.target.value) || 1 })}
-                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm text-text-muted mb-1">Weight</label>
-              <input
-                type="number"
-                value={form.weight}
-                onChange={(e) => setForm({ ...form, weight: parseInt(e.target.value) || 0 })}
-                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 justify-end mt-4">
-            <Button variant="secondary" onClick={onClose}>Cancel</Button>
-            <Button variant="primary" type="submit" disabled={isPending || !form.name.trim()}>
-              {isPending ? 'Creating…' : 'Create'}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}

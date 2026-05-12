@@ -13,8 +13,10 @@ import (
 	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
+	"herbst-server/db/characterchannel"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
+	"herbst-server/db/characterignore"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
@@ -35,7 +37,9 @@ import (
 	"herbst-server/db/questprogress"
 	"herbst-server/db/race"
 	"herbst-server/db/room"
+	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
+	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
 	"reflect"
 	"sync"
@@ -110,8 +114,10 @@ func checkColumn(t, c string) error {
 			applog.Table:                   applog.ValidColumn,
 			character.Table:                character.ValidColumn,
 			characterability.Table:         characterability.ValidColumn,
+			characterchannel.Table:         characterchannel.ValidColumn,
 			charactercompetency.Table:      charactercompetency.ValidColumn,
 			characterfaction.Table:         characterfaction.ValidColumn,
+			characterignore.Table:          characterignore.ValidColumn,
 			charactertag.Table:             charactertag.ValidColumn,
 			competencycategory.Table:       competencycategory.ValidColumn,
 			competencylevelthreshold.Table: competencylevelthreshold.ValidColumn,
@@ -132,7 +138,9 @@ func checkColumn(t, c string) error {
 			questprogress.Table:            questprogress.ValidColumn,
 			race.Table:                     race.ValidColumn,
 			room.Table:                     room.ValidColumn,
+			socialcommand.Table:            socialcommand.ValidColumn,
 			tag.Table:                      tag.ValidColumn,
+			tellqueue.Table:                tellqueue.ValidColumn,
 			user.Table:                     user.ValidColumn,
 		})
 	})

@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
@@ -32,6 +33,16 @@ func listRaces(repos *repository.Container) gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		if search := c.Query("search"); search != "" {
+			s := strings.ToLower(search)
+			filtered := make([]*db.Race, 0, len(races))
+			for _, r := range races {
+				if strings.Contains(strings.ToLower(r.Name), s) {
+					filtered = append(filtered, r)
+				}
+			}
+			races = filtered
 		}
 		views := make([]raceView, len(races))
 		for i, r := range races {

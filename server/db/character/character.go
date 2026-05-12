@@ -116,6 +116,12 @@ const (
 	EdgeActiveEffects = "active_effects"
 	// EdgeQuestProgress holds the string denoting the quest_progress edge name in mutations.
 	EdgeQuestProgress = "quest_progress"
+	// EdgeChannelSettings holds the string denoting the channelsettings edge name in mutations.
+	EdgeChannelSettings = "channelSettings"
+	// EdgeIgnoring holds the string denoting the ignoring edge name in mutations.
+	EdgeIgnoring = "ignoring"
+	// EdgeTellQueue holds the string denoting the tellqueue edge name in mutations.
+	EdgeTellQueue = "tellQueue"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -181,6 +187,27 @@ const (
 	QuestProgressInverseTable = "quest_progresses"
 	// QuestProgressColumn is the table column denoting the quest_progress relation/edge.
 	QuestProgressColumn = "character_quest_progress"
+	// ChannelSettingsTable is the table that holds the channelSettings relation/edge.
+	ChannelSettingsTable = "character_channels"
+	// ChannelSettingsInverseTable is the table name for the CharacterChannel entity.
+	// It exists in this package in order to avoid circular dependency with the "characterchannel" package.
+	ChannelSettingsInverseTable = "character_channels"
+	// ChannelSettingsColumn is the table column denoting the channelSettings relation/edge.
+	ChannelSettingsColumn = "character_channel_settings"
+	// IgnoringTable is the table that holds the ignoring relation/edge.
+	IgnoringTable = "character_ignores"
+	// IgnoringInverseTable is the table name for the CharacterIgnore entity.
+	// It exists in this package in order to avoid circular dependency with the "characterignore" package.
+	IgnoringInverseTable = "character_ignores"
+	// IgnoringColumn is the table column denoting the ignoring relation/edge.
+	IgnoringColumn = "character_ignoring"
+	// TellQueueTable is the table that holds the tellQueue relation/edge.
+	TellQueueTable = "tell_queues"
+	// TellQueueInverseTable is the table name for the TellQueue entity.
+	// It exists in this package in order to avoid circular dependency with the "tellqueue" package.
+	TellQueueInverseTable = "tell_queues"
+	// TellQueueColumn is the table column denoting the tellQueue relation/edge.
+	TellQueueColumn = "character_tell_queue"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -647,6 +674,48 @@ func ByQuestProgress(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newQuestProgressStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByChannelSettingsCount orders the results by channelSettings count.
+func ByChannelSettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newChannelSettingsStep(), opts...)
+	}
+}
+
+// ByChannelSettings orders the results by channelSettings terms.
+func ByChannelSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newChannelSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByIgnoringCount orders the results by ignoring count.
+func ByIgnoringCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIgnoringStep(), opts...)
+	}
+}
+
+// ByIgnoring orders the results by ignoring terms.
+func ByIgnoring(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIgnoringStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTellQueueCount orders the results by tellQueue count.
+func ByTellQueueCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTellQueueStep(), opts...)
+	}
+}
+
+// ByTellQueue orders the results by tellQueue terms.
+func ByTellQueue(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTellQueueStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -708,5 +777,26 @@ func newQuestProgressStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(QuestProgressInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, QuestProgressTable, QuestProgressColumn),
+	)
+}
+func newChannelSettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ChannelSettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ChannelSettingsTable, ChannelSettingsColumn),
+	)
+}
+func newIgnoringStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IgnoringInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IgnoringTable, IgnoringColumn),
+	)
+}
+func newTellQueueStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TellQueueInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TellQueueTable, TellQueueColumn),
 	)
 }

@@ -18,8 +18,10 @@ import (
 	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
+	"herbst-server/db/characterchannel"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
+	"herbst-server/db/characterignore"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
@@ -40,7 +42,9 @@ import (
 	"herbst-server/db/questprogress"
 	"herbst-server/db/race"
 	"herbst-server/db/room"
+	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
+	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
 
 	"entgo.io/ent"
@@ -68,10 +72,14 @@ type Client struct {
 	Character *CharacterClient
 	// CharacterAbility is the client for interacting with the CharacterAbility builders.
 	CharacterAbility *CharacterAbilityClient
+	// CharacterChannel is the client for interacting with the CharacterChannel builders.
+	CharacterChannel *CharacterChannelClient
 	// CharacterCompetency is the client for interacting with the CharacterCompetency builders.
 	CharacterCompetency *CharacterCompetencyClient
 	// CharacterFaction is the client for interacting with the CharacterFaction builders.
 	CharacterFaction *CharacterFactionClient
+	// CharacterIgnore is the client for interacting with the CharacterIgnore builders.
+	CharacterIgnore *CharacterIgnoreClient
 	// CharacterTag is the client for interacting with the CharacterTag builders.
 	CharacterTag *CharacterTagClient
 	// CompetencyCategory is the client for interacting with the CompetencyCategory builders.
@@ -112,8 +120,12 @@ type Client struct {
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
+	// SocialCommand is the client for interacting with the SocialCommand builders.
+	SocialCommand *SocialCommandClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
+	// TellQueue is the client for interacting with the TellQueue builders.
+	TellQueue *TellQueueClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -134,8 +146,10 @@ func (c *Client) init() {
 	c.AppLog = NewAppLogClient(c.config)
 	c.Character = NewCharacterClient(c.config)
 	c.CharacterAbility = NewCharacterAbilityClient(c.config)
+	c.CharacterChannel = NewCharacterChannelClient(c.config)
 	c.CharacterCompetency = NewCharacterCompetencyClient(c.config)
 	c.CharacterFaction = NewCharacterFactionClient(c.config)
+	c.CharacterIgnore = NewCharacterIgnoreClient(c.config)
 	c.CharacterTag = NewCharacterTagClient(c.config)
 	c.CompetencyCategory = NewCompetencyCategoryClient(c.config)
 	c.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(c.config)
@@ -156,7 +170,9 @@ func (c *Client) init() {
 	c.QuestProgress = NewQuestProgressClient(c.config)
 	c.Race = NewRaceClient(c.config)
 	c.Room = NewRoomClient(c.config)
+	c.SocialCommand = NewSocialCommandClient(c.config)
 	c.Tag = NewTagClient(c.config)
+	c.TellQueue = NewTellQueueClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -257,8 +273,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AppLog:                   NewAppLogClient(cfg),
 		Character:                NewCharacterClient(cfg),
 		CharacterAbility:         NewCharacterAbilityClient(cfg),
+		CharacterChannel:         NewCharacterChannelClient(cfg),
 		CharacterCompetency:      NewCharacterCompetencyClient(cfg),
 		CharacterFaction:         NewCharacterFactionClient(cfg),
+		CharacterIgnore:          NewCharacterIgnoreClient(cfg),
 		CharacterTag:             NewCharacterTagClient(cfg),
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
 		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
@@ -279,7 +297,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		QuestProgress:            NewQuestProgressClient(cfg),
 		Race:                     NewRaceClient(cfg),
 		Room:                     NewRoomClient(cfg),
+		SocialCommand:            NewSocialCommandClient(cfg),
 		Tag:                      NewTagClient(cfg),
+		TellQueue:                NewTellQueueClient(cfg),
 		User:                     NewUserClient(cfg),
 	}, nil
 }
@@ -307,8 +327,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AppLog:                   NewAppLogClient(cfg),
 		Character:                NewCharacterClient(cfg),
 		CharacterAbility:         NewCharacterAbilityClient(cfg),
+		CharacterChannel:         NewCharacterChannelClient(cfg),
 		CharacterCompetency:      NewCharacterCompetencyClient(cfg),
 		CharacterFaction:         NewCharacterFactionClient(cfg),
+		CharacterIgnore:          NewCharacterIgnoreClient(cfg),
 		CharacterTag:             NewCharacterTagClient(cfg),
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
 		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
@@ -329,7 +351,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		QuestProgress:            NewQuestProgressClient(cfg),
 		Race:                     NewRaceClient(cfg),
 		Room:                     NewRoomClient(cfg),
+		SocialCommand:            NewSocialCommandClient(cfg),
 		Tag:                      NewTagClient(cfg),
+		TellQueue:                NewTellQueueClient(cfg),
 		User:                     NewUserClient(cfg),
 	}, nil
 }
@@ -361,11 +385,12 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
-		c.Character, c.CharacterAbility, c.CharacterCompetency, c.CharacterFaction,
-		c.CharacterTag, c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog,
-		c.DialogNode, c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate,
-		c.Faction, c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender,
-		c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.Tag,
+		c.Character, c.CharacterAbility, c.CharacterChannel, c.CharacterCompetency,
+		c.CharacterFaction, c.CharacterIgnore, c.CharacterTag, c.CompetencyCategory,
+		c.CompetencyLevelThreshold, c.DamageLog, c.DialogNode, c.Effect, c.EffectHook,
+		c.Equipment, c.EquipmentTemplate, c.Faction, c.FactionCategory,
+		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate,
+		c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue,
 		c.User,
 	} {
 		n.Use(hooks...)
@@ -377,11 +402,12 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
-		c.Character, c.CharacterAbility, c.CharacterCompetency, c.CharacterFaction,
-		c.CharacterTag, c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog,
-		c.DialogNode, c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate,
-		c.Faction, c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender,
-		c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.Tag,
+		c.Character, c.CharacterAbility, c.CharacterChannel, c.CharacterCompetency,
+		c.CharacterFaction, c.CharacterIgnore, c.CharacterTag, c.CompetencyCategory,
+		c.CompetencyLevelThreshold, c.DamageLog, c.DialogNode, c.Effect, c.EffectHook,
+		c.Equipment, c.EquipmentTemplate, c.Faction, c.FactionCategory,
+		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate,
+		c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue,
 		c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -405,10 +431,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Character.mutate(ctx, m)
 	case *CharacterAbilityMutation:
 		return c.CharacterAbility.mutate(ctx, m)
+	case *CharacterChannelMutation:
+		return c.CharacterChannel.mutate(ctx, m)
 	case *CharacterCompetencyMutation:
 		return c.CharacterCompetency.mutate(ctx, m)
 	case *CharacterFactionMutation:
 		return c.CharacterFaction.mutate(ctx, m)
+	case *CharacterIgnoreMutation:
+		return c.CharacterIgnore.mutate(ctx, m)
 	case *CharacterTagMutation:
 		return c.CharacterTag.mutate(ctx, m)
 	case *CompetencyCategoryMutation:
@@ -449,8 +479,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Race.mutate(ctx, m)
 	case *RoomMutation:
 		return c.Room.mutate(ctx, m)
+	case *SocialCommandMutation:
+		return c.SocialCommand.mutate(ctx, m)
 	case *TagMutation:
 		return c.Tag.mutate(ctx, m)
+	case *TellQueueMutation:
+		return c.TellQueue.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -1487,6 +1521,54 @@ func (c *CharacterClient) QueryQuestProgress(_m *Character) *QuestProgressQuery 
 	return query
 }
 
+// QueryChannelSettings queries the channelSettings edge of a Character.
+func (c *CharacterClient) QueryChannelSettings(_m *Character) *CharacterChannelQuery {
+	query := (&CharacterChannelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(characterchannel.Table, characterchannel.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.ChannelSettingsTable, character.ChannelSettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIgnoring queries the ignoring edge of a Character.
+func (c *CharacterClient) QueryIgnoring(_m *Character) *CharacterIgnoreQuery {
+	query := (&CharacterIgnoreClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(characterignore.Table, characterignore.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.IgnoringTable, character.IgnoringColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTellQueue queries the tellQueue edge of a Character.
+func (c *CharacterClient) QueryTellQueue(_m *Character) *TellQueueQuery {
+	query := (&TellQueueClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(tellqueue.Table, tellqueue.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.TellQueueTable, character.TellQueueColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CharacterClient) Hooks() []Hook {
 	return c.hooks.Character
@@ -1674,6 +1756,155 @@ func (c *CharacterAbilityClient) mutate(ctx context.Context, m *CharacterAbility
 		return (&CharacterAbilityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CharacterAbility mutation op: %q", m.Op())
+	}
+}
+
+// CharacterChannelClient is a client for the CharacterChannel schema.
+type CharacterChannelClient struct {
+	config
+}
+
+// NewCharacterChannelClient returns a client for the CharacterChannel from the given config.
+func NewCharacterChannelClient(c config) *CharacterChannelClient {
+	return &CharacterChannelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `characterchannel.Hooks(f(g(h())))`.
+func (c *CharacterChannelClient) Use(hooks ...Hook) {
+	c.hooks.CharacterChannel = append(c.hooks.CharacterChannel, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `characterchannel.Intercept(f(g(h())))`.
+func (c *CharacterChannelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CharacterChannel = append(c.inters.CharacterChannel, interceptors...)
+}
+
+// Create returns a builder for creating a CharacterChannel entity.
+func (c *CharacterChannelClient) Create() *CharacterChannelCreate {
+	mutation := newCharacterChannelMutation(c.config, OpCreate)
+	return &CharacterChannelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CharacterChannel entities.
+func (c *CharacterChannelClient) CreateBulk(builders ...*CharacterChannelCreate) *CharacterChannelCreateBulk {
+	return &CharacterChannelCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CharacterChannelClient) MapCreateBulk(slice any, setFunc func(*CharacterChannelCreate, int)) *CharacterChannelCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CharacterChannelCreateBulk{err: fmt.Errorf("calling to CharacterChannelClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CharacterChannelCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CharacterChannelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CharacterChannel.
+func (c *CharacterChannelClient) Update() *CharacterChannelUpdate {
+	mutation := newCharacterChannelMutation(c.config, OpUpdate)
+	return &CharacterChannelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CharacterChannelClient) UpdateOne(_m *CharacterChannel) *CharacterChannelUpdateOne {
+	mutation := newCharacterChannelMutation(c.config, OpUpdateOne, withCharacterChannel(_m))
+	return &CharacterChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CharacterChannelClient) UpdateOneID(id int) *CharacterChannelUpdateOne {
+	mutation := newCharacterChannelMutation(c.config, OpUpdateOne, withCharacterChannelID(id))
+	return &CharacterChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CharacterChannel.
+func (c *CharacterChannelClient) Delete() *CharacterChannelDelete {
+	mutation := newCharacterChannelMutation(c.config, OpDelete)
+	return &CharacterChannelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CharacterChannelClient) DeleteOne(_m *CharacterChannel) *CharacterChannelDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CharacterChannelClient) DeleteOneID(id int) *CharacterChannelDeleteOne {
+	builder := c.Delete().Where(characterchannel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CharacterChannelDeleteOne{builder}
+}
+
+// Query returns a query builder for CharacterChannel.
+func (c *CharacterChannelClient) Query() *CharacterChannelQuery {
+	return &CharacterChannelQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCharacterChannel},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CharacterChannel entity by its id.
+func (c *CharacterChannelClient) Get(ctx context.Context, id int) (*CharacterChannel, error) {
+	return c.Query().Where(characterchannel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CharacterChannelClient) GetX(ctx context.Context, id int) *CharacterChannel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacter queries the character edge of a CharacterChannel.
+func (c *CharacterChannelClient) QueryCharacter(_m *CharacterChannel) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(characterchannel.Table, characterchannel.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, characterchannel.CharacterTable, characterchannel.CharacterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CharacterChannelClient) Hooks() []Hook {
+	return c.hooks.CharacterChannel
+}
+
+// Interceptors returns the client interceptors.
+func (c *CharacterChannelClient) Interceptors() []Interceptor {
+	return c.inters.CharacterChannel
+}
+
+func (c *CharacterChannelClient) mutate(ctx context.Context, m *CharacterChannelMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CharacterChannelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CharacterChannelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CharacterChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CharacterChannelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CharacterChannel mutation op: %q", m.Op())
 	}
 }
 
@@ -2004,6 +2235,155 @@ func (c *CharacterFactionClient) mutate(ctx context.Context, m *CharacterFaction
 		return (&CharacterFactionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CharacterFaction mutation op: %q", m.Op())
+	}
+}
+
+// CharacterIgnoreClient is a client for the CharacterIgnore schema.
+type CharacterIgnoreClient struct {
+	config
+}
+
+// NewCharacterIgnoreClient returns a client for the CharacterIgnore from the given config.
+func NewCharacterIgnoreClient(c config) *CharacterIgnoreClient {
+	return &CharacterIgnoreClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `characterignore.Hooks(f(g(h())))`.
+func (c *CharacterIgnoreClient) Use(hooks ...Hook) {
+	c.hooks.CharacterIgnore = append(c.hooks.CharacterIgnore, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `characterignore.Intercept(f(g(h())))`.
+func (c *CharacterIgnoreClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CharacterIgnore = append(c.inters.CharacterIgnore, interceptors...)
+}
+
+// Create returns a builder for creating a CharacterIgnore entity.
+func (c *CharacterIgnoreClient) Create() *CharacterIgnoreCreate {
+	mutation := newCharacterIgnoreMutation(c.config, OpCreate)
+	return &CharacterIgnoreCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CharacterIgnore entities.
+func (c *CharacterIgnoreClient) CreateBulk(builders ...*CharacterIgnoreCreate) *CharacterIgnoreCreateBulk {
+	return &CharacterIgnoreCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CharacterIgnoreClient) MapCreateBulk(slice any, setFunc func(*CharacterIgnoreCreate, int)) *CharacterIgnoreCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CharacterIgnoreCreateBulk{err: fmt.Errorf("calling to CharacterIgnoreClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CharacterIgnoreCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CharacterIgnoreCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CharacterIgnore.
+func (c *CharacterIgnoreClient) Update() *CharacterIgnoreUpdate {
+	mutation := newCharacterIgnoreMutation(c.config, OpUpdate)
+	return &CharacterIgnoreUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CharacterIgnoreClient) UpdateOne(_m *CharacterIgnore) *CharacterIgnoreUpdateOne {
+	mutation := newCharacterIgnoreMutation(c.config, OpUpdateOne, withCharacterIgnore(_m))
+	return &CharacterIgnoreUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CharacterIgnoreClient) UpdateOneID(id int) *CharacterIgnoreUpdateOne {
+	mutation := newCharacterIgnoreMutation(c.config, OpUpdateOne, withCharacterIgnoreID(id))
+	return &CharacterIgnoreUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CharacterIgnore.
+func (c *CharacterIgnoreClient) Delete() *CharacterIgnoreDelete {
+	mutation := newCharacterIgnoreMutation(c.config, OpDelete)
+	return &CharacterIgnoreDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CharacterIgnoreClient) DeleteOne(_m *CharacterIgnore) *CharacterIgnoreDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CharacterIgnoreClient) DeleteOneID(id int) *CharacterIgnoreDeleteOne {
+	builder := c.Delete().Where(characterignore.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CharacterIgnoreDeleteOne{builder}
+}
+
+// Query returns a query builder for CharacterIgnore.
+func (c *CharacterIgnoreClient) Query() *CharacterIgnoreQuery {
+	return &CharacterIgnoreQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCharacterIgnore},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CharacterIgnore entity by its id.
+func (c *CharacterIgnoreClient) Get(ctx context.Context, id int) (*CharacterIgnore, error) {
+	return c.Query().Where(characterignore.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CharacterIgnoreClient) GetX(ctx context.Context, id int) *CharacterIgnore {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryIgnorer queries the ignorer edge of a CharacterIgnore.
+func (c *CharacterIgnoreClient) QueryIgnorer(_m *CharacterIgnore) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(characterignore.Table, characterignore.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, characterignore.IgnorerTable, characterignore.IgnorerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CharacterIgnoreClient) Hooks() []Hook {
+	return c.hooks.CharacterIgnore
+}
+
+// Interceptors returns the client interceptors.
+func (c *CharacterIgnoreClient) Interceptors() []Interceptor {
+	return c.inters.CharacterIgnore
+}
+
+func (c *CharacterIgnoreClient) mutate(ctx context.Context, m *CharacterIgnoreMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CharacterIgnoreCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CharacterIgnoreUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CharacterIgnoreUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CharacterIgnoreDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CharacterIgnore mutation op: %q", m.Op())
 	}
 }
 
@@ -5147,6 +5527,139 @@ func (c *RoomClient) mutate(ctx context.Context, m *RoomMutation) (Value, error)
 	}
 }
 
+// SocialCommandClient is a client for the SocialCommand schema.
+type SocialCommandClient struct {
+	config
+}
+
+// NewSocialCommandClient returns a client for the SocialCommand from the given config.
+func NewSocialCommandClient(c config) *SocialCommandClient {
+	return &SocialCommandClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `socialcommand.Hooks(f(g(h())))`.
+func (c *SocialCommandClient) Use(hooks ...Hook) {
+	c.hooks.SocialCommand = append(c.hooks.SocialCommand, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `socialcommand.Intercept(f(g(h())))`.
+func (c *SocialCommandClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SocialCommand = append(c.inters.SocialCommand, interceptors...)
+}
+
+// Create returns a builder for creating a SocialCommand entity.
+func (c *SocialCommandClient) Create() *SocialCommandCreate {
+	mutation := newSocialCommandMutation(c.config, OpCreate)
+	return &SocialCommandCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SocialCommand entities.
+func (c *SocialCommandClient) CreateBulk(builders ...*SocialCommandCreate) *SocialCommandCreateBulk {
+	return &SocialCommandCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SocialCommandClient) MapCreateBulk(slice any, setFunc func(*SocialCommandCreate, int)) *SocialCommandCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SocialCommandCreateBulk{err: fmt.Errorf("calling to SocialCommandClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SocialCommandCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SocialCommandCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SocialCommand.
+func (c *SocialCommandClient) Update() *SocialCommandUpdate {
+	mutation := newSocialCommandMutation(c.config, OpUpdate)
+	return &SocialCommandUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SocialCommandClient) UpdateOne(_m *SocialCommand) *SocialCommandUpdateOne {
+	mutation := newSocialCommandMutation(c.config, OpUpdateOne, withSocialCommand(_m))
+	return &SocialCommandUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SocialCommandClient) UpdateOneID(id int) *SocialCommandUpdateOne {
+	mutation := newSocialCommandMutation(c.config, OpUpdateOne, withSocialCommandID(id))
+	return &SocialCommandUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SocialCommand.
+func (c *SocialCommandClient) Delete() *SocialCommandDelete {
+	mutation := newSocialCommandMutation(c.config, OpDelete)
+	return &SocialCommandDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SocialCommandClient) DeleteOne(_m *SocialCommand) *SocialCommandDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SocialCommandClient) DeleteOneID(id int) *SocialCommandDeleteOne {
+	builder := c.Delete().Where(socialcommand.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SocialCommandDeleteOne{builder}
+}
+
+// Query returns a query builder for SocialCommand.
+func (c *SocialCommandClient) Query() *SocialCommandQuery {
+	return &SocialCommandQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSocialCommand},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SocialCommand entity by its id.
+func (c *SocialCommandClient) Get(ctx context.Context, id int) (*SocialCommand, error) {
+	return c.Query().Where(socialcommand.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SocialCommandClient) GetX(ctx context.Context, id int) *SocialCommand {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SocialCommandClient) Hooks() []Hook {
+	return c.hooks.SocialCommand
+}
+
+// Interceptors returns the client interceptors.
+func (c *SocialCommandClient) Interceptors() []Interceptor {
+	return c.inters.SocialCommand
+}
+
+func (c *SocialCommandClient) mutate(ctx context.Context, m *SocialCommandMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SocialCommandCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SocialCommandUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SocialCommandUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SocialCommandDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown SocialCommand mutation op: %q", m.Op())
+	}
+}
+
 // TagClient is a client for the Tag schema.
 type TagClient struct {
 	config
@@ -5293,6 +5806,155 @@ func (c *TagClient) mutate(ctx context.Context, m *TagMutation) (Value, error) {
 		return (&TagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Tag mutation op: %q", m.Op())
+	}
+}
+
+// TellQueueClient is a client for the TellQueue schema.
+type TellQueueClient struct {
+	config
+}
+
+// NewTellQueueClient returns a client for the TellQueue from the given config.
+func NewTellQueueClient(c config) *TellQueueClient {
+	return &TellQueueClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tellqueue.Hooks(f(g(h())))`.
+func (c *TellQueueClient) Use(hooks ...Hook) {
+	c.hooks.TellQueue = append(c.hooks.TellQueue, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tellqueue.Intercept(f(g(h())))`.
+func (c *TellQueueClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TellQueue = append(c.inters.TellQueue, interceptors...)
+}
+
+// Create returns a builder for creating a TellQueue entity.
+func (c *TellQueueClient) Create() *TellQueueCreate {
+	mutation := newTellQueueMutation(c.config, OpCreate)
+	return &TellQueueCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TellQueue entities.
+func (c *TellQueueClient) CreateBulk(builders ...*TellQueueCreate) *TellQueueCreateBulk {
+	return &TellQueueCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TellQueueClient) MapCreateBulk(slice any, setFunc func(*TellQueueCreate, int)) *TellQueueCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TellQueueCreateBulk{err: fmt.Errorf("calling to TellQueueClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TellQueueCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TellQueueCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TellQueue.
+func (c *TellQueueClient) Update() *TellQueueUpdate {
+	mutation := newTellQueueMutation(c.config, OpUpdate)
+	return &TellQueueUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TellQueueClient) UpdateOne(_m *TellQueue) *TellQueueUpdateOne {
+	mutation := newTellQueueMutation(c.config, OpUpdateOne, withTellQueue(_m))
+	return &TellQueueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TellQueueClient) UpdateOneID(id int) *TellQueueUpdateOne {
+	mutation := newTellQueueMutation(c.config, OpUpdateOne, withTellQueueID(id))
+	return &TellQueueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TellQueue.
+func (c *TellQueueClient) Delete() *TellQueueDelete {
+	mutation := newTellQueueMutation(c.config, OpDelete)
+	return &TellQueueDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TellQueueClient) DeleteOne(_m *TellQueue) *TellQueueDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TellQueueClient) DeleteOneID(id int) *TellQueueDeleteOne {
+	builder := c.Delete().Where(tellqueue.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TellQueueDeleteOne{builder}
+}
+
+// Query returns a query builder for TellQueue.
+func (c *TellQueueClient) Query() *TellQueueQuery {
+	return &TellQueueQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTellQueue},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TellQueue entity by its id.
+func (c *TellQueueClient) Get(ctx context.Context, id int) (*TellQueue, error) {
+	return c.Query().Where(tellqueue.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TellQueueClient) GetX(ctx context.Context, id int) *TellQueue {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRecipient queries the recipient edge of a TellQueue.
+func (c *TellQueueClient) QueryRecipient(_m *TellQueue) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tellqueue.Table, tellqueue.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tellqueue.RecipientTable, tellqueue.RecipientColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TellQueueClient) Hooks() []Hook {
+	return c.hooks.TellQueue
+}
+
+// Interceptors returns the client interceptors.
+func (c *TellQueueClient) Interceptors() []Interceptor {
+	return c.inters.TellQueue
+}
+
+func (c *TellQueueClient) mutate(ctx context.Context, m *TellQueueMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TellQueueCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TellQueueUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TellQueueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TellQueueDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown TellQueue mutation op: %q", m.Op())
 	}
 }
 
@@ -5449,18 +6111,20 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, Character,
-		CharacterAbility, CharacterCompetency, CharacterFaction, CharacterTag,
-		CompetencyCategory, CompetencyLevelThreshold, DamageLog, DialogNode, Effect,
-		EffectHook, Equipment, EquipmentTemplate, Faction, FactionCategory,
-		FactionRequiredTag, GameConfig, Gender, NPCAbility, NPCTemplate, Quest,
-		QuestProgress, Race, Room, Tag, User []ent.Hook
+		CharacterAbility, CharacterChannel, CharacterCompetency, CharacterFaction,
+		CharacterIgnore, CharacterTag, CompetencyCategory, CompetencyLevelThreshold,
+		DamageLog, DialogNode, Effect, EffectHook, Equipment, EquipmentTemplate,
+		Faction, FactionCategory, FactionRequiredTag, GameConfig, Gender, NPCAbility,
+		NPCTemplate, Quest, QuestProgress, Race, Room, SocialCommand, Tag, TellQueue,
+		User []ent.Hook
 	}
 	inters struct {
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, Character,
-		CharacterAbility, CharacterCompetency, CharacterFaction, CharacterTag,
-		CompetencyCategory, CompetencyLevelThreshold, DamageLog, DialogNode, Effect,
-		EffectHook, Equipment, EquipmentTemplate, Faction, FactionCategory,
-		FactionRequiredTag, GameConfig, Gender, NPCAbility, NPCTemplate, Quest,
-		QuestProgress, Race, Room, Tag, User []ent.Interceptor
+		CharacterAbility, CharacterChannel, CharacterCompetency, CharacterFaction,
+		CharacterIgnore, CharacterTag, CompetencyCategory, CompetencyLevelThreshold,
+		DamageLog, DialogNode, Effect, EffectHook, Equipment, EquipmentTemplate,
+		Faction, FactionCategory, FactionRequiredTag, GameConfig, Gender, NPCAbility,
+		NPCTemplate, Quest, QuestProgress, Race, Room, SocialCommand, Tag, TellQueue,
+		User []ent.Interceptor
 	}
 )

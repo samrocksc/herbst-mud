@@ -41,6 +41,12 @@ on port 3000.
 - `herbst/cmd_*.go` — MUD command handlers
 - `features/` — Gherkin BDD feature files
 
+## Admin Routing (TanStack Router file-based)
+- `resource.tsx` → list page, `resource.$id.tsx` → detail/edit, `resource.new.tsx` → create page
+- Create forms are standalone pages at `/resource/new` (NOT modals/inline toggles)
+- List pages use location gating: `pathname === '/resource' ? <List/> : <Outlet/>`
+- After tsr generate: `admin/src/routeTree.gen.ts` is auto-generated, do not edit manually
+
 ## Domain Model (Ability/Skill/Stat/Effect)
 - **Abilities** = actions characters perform (Concentrate, Haymaker, Fireball). Entity: `Ability`
 - **Skills** = leveled proficiencies (Blades, Staves). Stored as flat Character columns, future: `Skill` entity

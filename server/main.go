@@ -339,6 +339,9 @@ func main() {
 	routes.RegisterQuestRoutes(router, services)
 	routes.RegisterQuestProgressRoutes(router, repos, services, client)
 
+	// Register chat/messaging routes (RFC-009)
+	routes.RegisterChatRoutes(router, services)
+
 	// Register dialog node routes
 	routes.RegisterDialogNodeRoutes(router, repos, client)
 

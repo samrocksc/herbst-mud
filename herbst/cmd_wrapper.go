@@ -28,6 +28,22 @@ func (m *model) initCommands() {
 	m.commands.Register("loot", m.handleLootWrapperCommand)
 	m.commands.Register("clear", m.handleClearCommand, "cls")
 	m.commands.Register("quit", m.handleQuitCommand, "q")
+
+	// Chat commands
+	m.commands.Register("say", m.handleSayWrapperCommand)
+	m.commands.Register("yell", m.handleYellWrapperCommand)
+	m.commands.Register("shout", m.handleShoutWrapperCommand)
+	m.commands.Register("tell", m.handleTellWrapperCommand, "t", "w")
+	m.commands.Register("reply", m.handleReplyWrapperCommand, "r")
+	m.commands.Register("whisper", m.handleWhisperWrapperCommand)
+	m.commands.Register("emote", m.handleEmoteWrapperCommand)
+	m.commands.Register("ignore", m.handleIgnoreWrapperCommand)
+	m.commands.Register("unignore", m.handleIgnoreWrapperCommand)
+	m.commands.Register("chat", m.handleChannelWrapperCommand)
+	m.commands.Register("newbie", m.handleChannelWrapperCommand)
+	m.commands.Register("trade", m.handleChannelWrapperCommand)
+	m.commands.Register("channels", m.handleChannelWrapperCommand)
+	m.commands.Register("channel", m.handleChannelWrapperCommand)
 }
 
 func (m *model) handleInventoryWrapperCommand(_ *model, args []string) {
@@ -73,4 +89,40 @@ func (m *model) handleTalkWrapperCommand(_ *model, args []string) {
 		cmd = "talk " + strings.Join(args[1:], " ")
 	}
 	m.handleTalkCommand(cmd)
+}
+
+func (m *model) handleSayWrapperCommand(_ *model, args []string) {
+	m.handleSayCommand(args)
+}
+
+func (m *model) handleYellWrapperCommand(_ *model, args []string) {
+	m.handleYellCommand(args)
+}
+
+func (m *model) handleShoutWrapperCommand(_ *model, args []string) {
+	m.handleShoutCommand(args)
+}
+
+func (m *model) handleTellWrapperCommand(_ *model, args []string) {
+	m.handleTellCommand(args)
+}
+
+func (m *model) handleReplyWrapperCommand(_ *model, args []string) {
+	m.handleReplyCommand(args)
+}
+
+func (m *model) handleWhisperWrapperCommand(_ *model, args []string) {
+	m.handleWhisperCommand(args)
+}
+
+func (m *model) handleEmoteWrapperCommand(_ *model, args []string) {
+	m.handleEmoteCommand(args)
+}
+
+func (m *model) handleIgnoreWrapperCommand(_ *model, args []string) {
+	m.handleIgnoreCommand(args)
+}
+
+func (m *model) handleChannelWrapperCommand(_ *model, args []string) {
+	m.handleChannelCommand(args)
 }

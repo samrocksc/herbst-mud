@@ -9,13 +9,16 @@ import (
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
+	"herbst-server/db/characterchannel"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
+	"herbst-server/db/characterignore"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/questprogress"
 	"herbst-server/db/room"
+	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
 	"time"
 
@@ -994,6 +997,51 @@ func (_u *CharacterUpdate) AddQuestProgress(v ...*QuestProgress) *CharacterUpdat
 	return _u.AddQuestProgresIDs(ids...)
 }
 
+// AddChannelSettingIDs adds the "channelSettings" edge to the CharacterChannel entity by IDs.
+func (_u *CharacterUpdate) AddChannelSettingIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddChannelSettingIDs(ids...)
+	return _u
+}
+
+// AddChannelSettings adds the "channelSettings" edges to the CharacterChannel entity.
+func (_u *CharacterUpdate) AddChannelSettings(v ...*CharacterChannel) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddChannelSettingIDs(ids...)
+}
+
+// AddIgnoringIDs adds the "ignoring" edge to the CharacterIgnore entity by IDs.
+func (_u *CharacterUpdate) AddIgnoringIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddIgnoringIDs(ids...)
+	return _u
+}
+
+// AddIgnoring adds the "ignoring" edges to the CharacterIgnore entity.
+func (_u *CharacterUpdate) AddIgnoring(v ...*CharacterIgnore) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddIgnoringIDs(ids...)
+}
+
+// AddTellQueueIDs adds the "tellQueue" edge to the TellQueue entity by IDs.
+func (_u *CharacterUpdate) AddTellQueueIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddTellQueueIDs(ids...)
+	return _u
+}
+
+// AddTellQueue adds the "tellQueue" edges to the TellQueue entity.
+func (_u *CharacterUpdate) AddTellQueue(v ...*TellQueue) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTellQueueIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -1141,6 +1189,69 @@ func (_u *CharacterUpdate) RemoveQuestProgress(v ...*QuestProgress) *CharacterUp
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveQuestProgresIDs(ids...)
+}
+
+// ClearChannelSettings clears all "channelSettings" edges to the CharacterChannel entity.
+func (_u *CharacterUpdate) ClearChannelSettings() *CharacterUpdate {
+	_u.mutation.ClearChannelSettings()
+	return _u
+}
+
+// RemoveChannelSettingIDs removes the "channelSettings" edge to CharacterChannel entities by IDs.
+func (_u *CharacterUpdate) RemoveChannelSettingIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveChannelSettingIDs(ids...)
+	return _u
+}
+
+// RemoveChannelSettings removes "channelSettings" edges to CharacterChannel entities.
+func (_u *CharacterUpdate) RemoveChannelSettings(v ...*CharacterChannel) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveChannelSettingIDs(ids...)
+}
+
+// ClearIgnoring clears all "ignoring" edges to the CharacterIgnore entity.
+func (_u *CharacterUpdate) ClearIgnoring() *CharacterUpdate {
+	_u.mutation.ClearIgnoring()
+	return _u
+}
+
+// RemoveIgnoringIDs removes the "ignoring" edge to CharacterIgnore entities by IDs.
+func (_u *CharacterUpdate) RemoveIgnoringIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveIgnoringIDs(ids...)
+	return _u
+}
+
+// RemoveIgnoring removes "ignoring" edges to CharacterIgnore entities.
+func (_u *CharacterUpdate) RemoveIgnoring(v ...*CharacterIgnore) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveIgnoringIDs(ids...)
+}
+
+// ClearTellQueue clears all "tellQueue" edges to the TellQueue entity.
+func (_u *CharacterUpdate) ClearTellQueue() *CharacterUpdate {
+	_u.mutation.ClearTellQueue()
+	return _u
+}
+
+// RemoveTellQueueIDs removes the "tellQueue" edge to TellQueue entities by IDs.
+func (_u *CharacterUpdate) RemoveTellQueueIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveTellQueueIDs(ids...)
+	return _u
+}
+
+// RemoveTellQueue removes "tellQueue" edges to TellQueue entities.
+func (_u *CharacterUpdate) RemoveTellQueue(v ...*TellQueue) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTellQueueIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1762,6 +1873,141 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ChannelSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ChannelSettingsTable,
+			Columns: []string{character.ChannelSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterchannel.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedChannelSettingsIDs(); len(nodes) > 0 && !_u.mutation.ChannelSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ChannelSettingsTable,
+			Columns: []string{character.ChannelSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterchannel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ChannelSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ChannelSettingsTable,
+			Columns: []string{character.ChannelSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterchannel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.IgnoringCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.IgnoringTable,
+			Columns: []string{character.IgnoringColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterignore.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedIgnoringIDs(); len(nodes) > 0 && !_u.mutation.IgnoringCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.IgnoringTable,
+			Columns: []string{character.IgnoringColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterignore.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.IgnoringIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.IgnoringTable,
+			Columns: []string{character.IgnoringColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterignore.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TellQueueCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TellQueueTable,
+			Columns: []string{character.TellQueueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTellQueueIDs(); len(nodes) > 0 && !_u.mutation.TellQueueCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TellQueueTable,
+			Columns: []string{character.TellQueueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TellQueueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TellQueueTable,
+			Columns: []string{character.TellQueueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -2746,6 +2992,51 @@ func (_u *CharacterUpdateOne) AddQuestProgress(v ...*QuestProgress) *CharacterUp
 	return _u.AddQuestProgresIDs(ids...)
 }
 
+// AddChannelSettingIDs adds the "channelSettings" edge to the CharacterChannel entity by IDs.
+func (_u *CharacterUpdateOne) AddChannelSettingIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddChannelSettingIDs(ids...)
+	return _u
+}
+
+// AddChannelSettings adds the "channelSettings" edges to the CharacterChannel entity.
+func (_u *CharacterUpdateOne) AddChannelSettings(v ...*CharacterChannel) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddChannelSettingIDs(ids...)
+}
+
+// AddIgnoringIDs adds the "ignoring" edge to the CharacterIgnore entity by IDs.
+func (_u *CharacterUpdateOne) AddIgnoringIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddIgnoringIDs(ids...)
+	return _u
+}
+
+// AddIgnoring adds the "ignoring" edges to the CharacterIgnore entity.
+func (_u *CharacterUpdateOne) AddIgnoring(v ...*CharacterIgnore) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddIgnoringIDs(ids...)
+}
+
+// AddTellQueueIDs adds the "tellQueue" edge to the TellQueue entity by IDs.
+func (_u *CharacterUpdateOne) AddTellQueueIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddTellQueueIDs(ids...)
+	return _u
+}
+
+// AddTellQueue adds the "tellQueue" edges to the TellQueue entity.
+func (_u *CharacterUpdateOne) AddTellQueue(v ...*TellQueue) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTellQueueIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -2893,6 +3184,69 @@ func (_u *CharacterUpdateOne) RemoveQuestProgress(v ...*QuestProgress) *Characte
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveQuestProgresIDs(ids...)
+}
+
+// ClearChannelSettings clears all "channelSettings" edges to the CharacterChannel entity.
+func (_u *CharacterUpdateOne) ClearChannelSettings() *CharacterUpdateOne {
+	_u.mutation.ClearChannelSettings()
+	return _u
+}
+
+// RemoveChannelSettingIDs removes the "channelSettings" edge to CharacterChannel entities by IDs.
+func (_u *CharacterUpdateOne) RemoveChannelSettingIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveChannelSettingIDs(ids...)
+	return _u
+}
+
+// RemoveChannelSettings removes "channelSettings" edges to CharacterChannel entities.
+func (_u *CharacterUpdateOne) RemoveChannelSettings(v ...*CharacterChannel) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveChannelSettingIDs(ids...)
+}
+
+// ClearIgnoring clears all "ignoring" edges to the CharacterIgnore entity.
+func (_u *CharacterUpdateOne) ClearIgnoring() *CharacterUpdateOne {
+	_u.mutation.ClearIgnoring()
+	return _u
+}
+
+// RemoveIgnoringIDs removes the "ignoring" edge to CharacterIgnore entities by IDs.
+func (_u *CharacterUpdateOne) RemoveIgnoringIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveIgnoringIDs(ids...)
+	return _u
+}
+
+// RemoveIgnoring removes "ignoring" edges to CharacterIgnore entities.
+func (_u *CharacterUpdateOne) RemoveIgnoring(v ...*CharacterIgnore) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveIgnoringIDs(ids...)
+}
+
+// ClearTellQueue clears all "tellQueue" edges to the TellQueue entity.
+func (_u *CharacterUpdateOne) ClearTellQueue() *CharacterUpdateOne {
+	_u.mutation.ClearTellQueue()
+	return _u
+}
+
+// RemoveTellQueueIDs removes the "tellQueue" edge to TellQueue entities by IDs.
+func (_u *CharacterUpdateOne) RemoveTellQueueIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveTellQueueIDs(ids...)
+	return _u
+}
+
+// RemoveTellQueue removes "tellQueue" edges to TellQueue entities.
+func (_u *CharacterUpdateOne) RemoveTellQueue(v ...*TellQueue) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTellQueueIDs(ids...)
 }
 
 // Where appends a list predicates to the CharacterUpdate builder.
@@ -3544,6 +3898,141 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ChannelSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ChannelSettingsTable,
+			Columns: []string{character.ChannelSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterchannel.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedChannelSettingsIDs(); len(nodes) > 0 && !_u.mutation.ChannelSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ChannelSettingsTable,
+			Columns: []string{character.ChannelSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterchannel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ChannelSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ChannelSettingsTable,
+			Columns: []string{character.ChannelSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterchannel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.IgnoringCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.IgnoringTable,
+			Columns: []string{character.IgnoringColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterignore.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedIgnoringIDs(); len(nodes) > 0 && !_u.mutation.IgnoringCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.IgnoringTable,
+			Columns: []string{character.IgnoringColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterignore.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.IgnoringIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.IgnoringTable,
+			Columns: []string{character.IgnoringColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterignore.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TellQueueCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TellQueueTable,
+			Columns: []string{character.TellQueueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTellQueueIDs(); len(nodes) > 0 && !_u.mutation.TellQueueCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TellQueueTable,
+			Columns: []string{character.TellQueueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TellQueueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TellQueueTable,
+			Columns: []string{character.TellQueueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -92,6 +92,18 @@ func (f CharacterAbilityFunc) Mutate(ctx context.Context, m db.Mutation) (db.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterAbilityMutation", m)
 }
 
+// The CharacterChannelFunc type is an adapter to allow the use of ordinary
+// function as CharacterChannel mutator.
+type CharacterChannelFunc func(context.Context, *db.CharacterChannelMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterChannelFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterChannelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterChannelMutation", m)
+}
+
 // The CharacterCompetencyFunc type is an adapter to allow the use of ordinary
 // function as CharacterCompetency mutator.
 type CharacterCompetencyFunc func(context.Context, *db.CharacterCompetencyMutation) (db.Value, error)
@@ -114,6 +126,18 @@ func (f CharacterFactionFunc) Mutate(ctx context.Context, m db.Mutation) (db.Val
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterFactionMutation", m)
+}
+
+// The CharacterIgnoreFunc type is an adapter to allow the use of ordinary
+// function as CharacterIgnore mutator.
+type CharacterIgnoreFunc func(context.Context, *db.CharacterIgnoreMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterIgnoreFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterIgnoreMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterIgnoreMutation", m)
 }
 
 // The CharacterTagFunc type is an adapter to allow the use of ordinary
@@ -356,6 +380,18 @@ func (f RoomFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RoomMutation", m)
 }
 
+// The SocialCommandFunc type is an adapter to allow the use of ordinary
+// function as SocialCommand mutator.
+type SocialCommandFunc func(context.Context, *db.SocialCommandMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SocialCommandFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.SocialCommandMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SocialCommandMutation", m)
+}
+
 // The TagFunc type is an adapter to allow the use of ordinary
 // function as Tag mutator.
 type TagFunc func(context.Context, *db.TagMutation) (db.Value, error)
@@ -366,6 +402,18 @@ func (f TagFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TagMutation", m)
+}
+
+// The TellQueueFunc type is an adapter to allow the use of ordinary
+// function as TellQueue mutator.
+type TellQueueFunc func(context.Context, *db.TellQueueMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TellQueueFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.TellQueueMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TellQueueMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

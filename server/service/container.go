@@ -9,18 +9,19 @@ import (
 
 // Container holds all service instances.
 type Container struct {
-	Character         CharacterService
-	XP                XPAwardService
+	Character          CharacterService
+	XP                 XPAwardService
 	AbilityEligibility AbilityEligibilityService
-	Room              RoomService
-	Quest             QuestService
-	QuestProgress     QuestProgressService
-	Combat            CombatService
-	Equipment         EquipmentService
-	NPC               NPCService
-	Ability           AbilityService
-	Effect            EffectService
-	Dialog            DialogService
+	Room               RoomService
+	Quest              QuestService
+	QuestProgress      QuestProgressService
+	Combat             CombatService
+	Equipment          EquipmentService
+	NPC                NPCService
+	Ability            AbilityService
+	Effect             EffectService
+	Dialog             DialogService
+	Chat               ChatService
 }
 
 // NewContainer creates all services with their dependencies wired.
@@ -38,9 +39,10 @@ func NewContainer(client *db.Client, repos *repository.Container, logger *slog.L
 		AbilityEligibility: abilityEligSvc,
 		Quest:             NewQuestService(repos.Quest, repos.QuestProgress),
 		QuestProgress:     NewQuestProgressService(repos.QuestProgress, repos.Quest, repos.Character),
-		Room:              NewRoomService(repos.Room, repos.Character, repos.Equipment, repos.NPCTemplate, repos.Tx),
-		Combat:            NewCombatService(repos.Character, repos.DamageLog, repos.NPCTemplate, logger),
-		Ability:           NewAbilityService(repos.CharacterAbility, repos.Ability, repos.Character),
+		Room:               NewRoomService(repos.Room, repos.Character, repos.Equipment, repos.NPCTemplate, repos.Tx),
+		Combat:             NewCombatService(repos.Character, repos.DamageLog, repos.NPCTemplate, logger),
+		Ability:            NewAbilityService(repos.CharacterAbility, repos.Ability, repos.Character),
+		Chat:               NewChatService(repos.Character, repos.ChannelSubscription, repos.OfflineTell, repos.Ignore),
 		// Remaining services will be implemented in later phases
 	}
 }

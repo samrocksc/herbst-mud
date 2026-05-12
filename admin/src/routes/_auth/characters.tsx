@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react'
 import { useCharacters, type Character } from '../../hooks/useCharacters'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
+import { fuzzyMatch } from '../../components/fuzzyMatch'
 
 export const Route = createFileRoute('/_auth/characters')({
   component: CharactersIndex,
@@ -17,7 +18,7 @@ function CharactersIndex() {
   const filteredCharacters = useMemo(() => {
     let list = (characters ?? []).filter((c) => {
       if (!showNPCs && c.isNPC) return false
-      if (searchQuery && !c.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
+      if (searchQuery && !fuzzyMatch(c.name, searchQuery) && !fuzzyMatch(String(c.id), searchQuery)) return false
       if (showOnlineOnly) {
         if (!c.lastSeenAt) return false
         const lastSeen = new Date(c.lastSeenAt)

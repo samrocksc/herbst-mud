@@ -14,6 +14,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -419,6 +420,53 @@ func (_u *EquipmentUpdate) SetNillableRevealCondition(v *string) *EquipmentUpdat
 	return _u
 }
 
+// SetExamineDesc sets the "examineDesc" field.
+func (_u *EquipmentUpdate) SetExamineDesc(v string) *EquipmentUpdate {
+	_u.mutation.SetExamineDesc(v)
+	return _u
+}
+
+// SetNillableExamineDesc sets the "examineDesc" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableExamineDesc(v *string) *EquipmentUpdate {
+	if v != nil {
+		_u.SetExamineDesc(*v)
+	}
+	return _u
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_u *EquipmentUpdate) SetHiddenDetails(v []map[string]interface{}) *EquipmentUpdate {
+	_u.mutation.SetHiddenDetails(v)
+	return _u
+}
+
+// AppendHiddenDetails appends value to the "hiddenDetails" field.
+func (_u *EquipmentUpdate) AppendHiddenDetails(v []map[string]interface{}) *EquipmentUpdate {
+	_u.mutation.AppendHiddenDetails(v)
+	return _u
+}
+
+// SetHiddenThreshold sets the "hiddenThreshold" field.
+func (_u *EquipmentUpdate) SetHiddenThreshold(v int) *EquipmentUpdate {
+	_u.mutation.ResetHiddenThreshold()
+	_u.mutation.SetHiddenThreshold(v)
+	return _u
+}
+
+// SetNillableHiddenThreshold sets the "hiddenThreshold" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableHiddenThreshold(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetHiddenThreshold(*v)
+	}
+	return _u
+}
+
+// AddHiddenThreshold adds value to the "hiddenThreshold" field.
+func (_u *EquipmentUpdate) AddHiddenThreshold(v int) *EquipmentUpdate {
+	_u.mutation.AddHiddenThreshold(v)
+	return _u
+}
+
 // SetExpiresAt sets the "expiresAt" field.
 func (_u *EquipmentUpdate) SetExpiresAt(v time.Time) *EquipmentUpdate {
 	_u.mutation.SetExpiresAt(v)
@@ -803,6 +851,23 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.RevealCondition(); ok {
 		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExamineDesc(); ok {
+		_spec.SetField(equipment.FieldExamineDesc, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedHiddenDetails(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, equipment.FieldHiddenDetails, value)
+		})
+	}
+	if value, ok := _u.mutation.HiddenThreshold(); ok {
+		_spec.SetField(equipment.FieldHiddenThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHiddenThreshold(); ok {
+		_spec.AddField(equipment.FieldHiddenThreshold, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(equipment.FieldExpiresAt, field.TypeTime, value)
@@ -1328,6 +1393,53 @@ func (_u *EquipmentUpdateOne) SetNillableRevealCondition(v *string) *EquipmentUp
 	return _u
 }
 
+// SetExamineDesc sets the "examineDesc" field.
+func (_u *EquipmentUpdateOne) SetExamineDesc(v string) *EquipmentUpdateOne {
+	_u.mutation.SetExamineDesc(v)
+	return _u
+}
+
+// SetNillableExamineDesc sets the "examineDesc" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableExamineDesc(v *string) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetExamineDesc(*v)
+	}
+	return _u
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_u *EquipmentUpdateOne) SetHiddenDetails(v []map[string]interface{}) *EquipmentUpdateOne {
+	_u.mutation.SetHiddenDetails(v)
+	return _u
+}
+
+// AppendHiddenDetails appends value to the "hiddenDetails" field.
+func (_u *EquipmentUpdateOne) AppendHiddenDetails(v []map[string]interface{}) *EquipmentUpdateOne {
+	_u.mutation.AppendHiddenDetails(v)
+	return _u
+}
+
+// SetHiddenThreshold sets the "hiddenThreshold" field.
+func (_u *EquipmentUpdateOne) SetHiddenThreshold(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetHiddenThreshold()
+	_u.mutation.SetHiddenThreshold(v)
+	return _u
+}
+
+// SetNillableHiddenThreshold sets the "hiddenThreshold" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableHiddenThreshold(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetHiddenThreshold(*v)
+	}
+	return _u
+}
+
+// AddHiddenThreshold adds value to the "hiddenThreshold" field.
+func (_u *EquipmentUpdateOne) AddHiddenThreshold(v int) *EquipmentUpdateOne {
+	_u.mutation.AddHiddenThreshold(v)
+	return _u
+}
+
 // SetExpiresAt sets the "expiresAt" field.
 func (_u *EquipmentUpdateOne) SetExpiresAt(v time.Time) *EquipmentUpdateOne {
 	_u.mutation.SetExpiresAt(v)
@@ -1742,6 +1854,23 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if value, ok := _u.mutation.RevealCondition(); ok {
 		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExamineDesc(); ok {
+		_spec.SetField(equipment.FieldExamineDesc, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedHiddenDetails(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, equipment.FieldHiddenDetails, value)
+		})
+	}
+	if value, ok := _u.mutation.HiddenThreshold(); ok {
+		_spec.SetField(equipment.FieldHiddenThreshold, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedHiddenThreshold(); ok {
+		_spec.AddField(equipment.FieldHiddenThreshold, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(equipment.FieldExpiresAt, field.TypeTime, value)

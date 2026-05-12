@@ -1,8 +1,9 @@
 # RFC-002: Effects & Hooks System
 
-**Status:** Draft
+**Status:** Implemented
 **Author:** Leonardo (with Sam)
 **Created:** 2026-05-08
+**Implemented:** 2026-05-12
 **Supersedes:** N/A
 **Related:** RFC-001 (Web Client Architecture)
 

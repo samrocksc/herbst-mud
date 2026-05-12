@@ -58,6 +58,12 @@ const (
 	FieldContainedItems = "contained_items"
 	// FieldRevealCondition holds the string denoting the revealcondition field in the database.
 	FieldRevealCondition = "reveal_condition"
+	// FieldExamineDesc holds the string denoting the examinedesc field in the database.
+	FieldExamineDesc = "examine_desc"
+	// FieldHiddenDetails holds the string denoting the hiddendetails field in the database.
+	FieldHiddenDetails = "hidden_details"
+	// FieldHiddenThreshold holds the string denoting the hiddenthreshold field in the database.
+	FieldHiddenThreshold = "hidden_threshold"
 	// FieldExpiresAt holds the string denoting the expiresat field in the database.
 	FieldExpiresAt = "expires_at"
 	// FieldArmorRating holds the string denoting the armor_rating field in the database.
@@ -132,6 +138,9 @@ var Columns = []string{
 	FieldKeyItemID,
 	FieldContainedItems,
 	FieldRevealCondition,
+	FieldExamineDesc,
+	FieldHiddenDetails,
+	FieldHiddenThreshold,
 	FieldExpiresAt,
 	FieldArmorRating,
 	FieldArmorType,
@@ -203,6 +212,12 @@ var (
 	DefaultContainedItems string
 	// DefaultRevealCondition holds the default value on creation for the "revealCondition" field.
 	DefaultRevealCondition string
+	// DefaultExamineDesc holds the default value on creation for the "examineDesc" field.
+	DefaultExamineDesc string
+	// DefaultHiddenDetails holds the default value on creation for the "hiddenDetails" field.
+	DefaultHiddenDetails []map[string]interface{}
+	// DefaultHiddenThreshold holds the default value on creation for the "hiddenThreshold" field.
+	DefaultHiddenThreshold int
 	// DefaultArmorRating holds the default value on creation for the "armor_rating" field.
 	DefaultArmorRating int
 	// DefaultArmorType holds the default value on creation for the "armor_type" field.
@@ -350,6 +365,16 @@ func ByContainedItems(opts ...sql.OrderTermOption) OrderOption {
 // ByRevealCondition orders the results by the revealCondition field.
 func ByRevealCondition(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRevealCondition, opts...).ToFunc()
+}
+
+// ByExamineDesc orders the results by the examineDesc field.
+func ByExamineDesc(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExamineDesc, opts...).ToFunc()
+}
+
+// ByHiddenThreshold orders the results by the hiddenThreshold field.
+func ByHiddenThreshold(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHiddenThreshold, opts...).ToFunc()
 }
 
 // ByExpiresAt orders the results by the expiresAt field.

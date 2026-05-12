@@ -9,8 +9,10 @@ import (
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/applog"
 	"herbst-server/db/character"
+	"herbst-server/db/characterchannel"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
+	"herbst-server/db/characterignore"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
@@ -27,6 +29,8 @@ import (
 	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/schema"
+	"herbst-server/db/socialcommand"
+	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
 	"time"
 )
@@ -259,6 +263,52 @@ func init() {
 	characterDescSkillHeavyArmor := characterFields[42].Descriptor()
 	// character.DefaultSkillHeavyArmor holds the default value on creation for the skill_heavy_armor field.
 	character.DefaultSkillHeavyArmor = characterDescSkillHeavyArmor.Default.(int)
+	characterchannelFields := schema.CharacterChannel{}.Fields()
+	_ = characterchannelFields
+	// characterchannelDescChatEnabled is the schema descriptor for chatEnabled field.
+	characterchannelDescChatEnabled := characterchannelFields[0].Descriptor()
+	// characterchannel.DefaultChatEnabled holds the default value on creation for the chatEnabled field.
+	characterchannel.DefaultChatEnabled = characterchannelDescChatEnabled.Default.(bool)
+	// characterchannelDescNewbieEnabled is the schema descriptor for newbieEnabled field.
+	characterchannelDescNewbieEnabled := characterchannelFields[1].Descriptor()
+	// characterchannel.DefaultNewbieEnabled holds the default value on creation for the newbieEnabled field.
+	characterchannel.DefaultNewbieEnabled = characterchannelDescNewbieEnabled.Default.(bool)
+	// characterchannelDescTradeEnabled is the schema descriptor for tradeEnabled field.
+	characterchannelDescTradeEnabled := characterchannelFields[2].Descriptor()
+	// characterchannel.DefaultTradeEnabled holds the default value on creation for the tradeEnabled field.
+	characterchannel.DefaultTradeEnabled = characterchannelDescTradeEnabled.Default.(bool)
+	// characterchannelDescClanEnabled is the schema descriptor for clanEnabled field.
+	characterchannelDescClanEnabled := characterchannelFields[3].Descriptor()
+	// characterchannel.DefaultClanEnabled holds the default value on creation for the clanEnabled field.
+	characterchannel.DefaultClanEnabled = characterchannelDescClanEnabled.Default.(bool)
+	// characterchannelDescAuctionEnabled is the schema descriptor for auctionEnabled field.
+	characterchannelDescAuctionEnabled := characterchannelFields[4].Descriptor()
+	// characterchannel.DefaultAuctionEnabled holds the default value on creation for the auctionEnabled field.
+	characterchannel.DefaultAuctionEnabled = characterchannelDescAuctionEnabled.Default.(bool)
+	// characterchannelDescChatColor is the schema descriptor for chatColor field.
+	characterchannelDescChatColor := characterchannelFields[5].Descriptor()
+	// characterchannel.DefaultChatColor holds the default value on creation for the chatColor field.
+	characterchannel.DefaultChatColor = characterchannelDescChatColor.Default.(string)
+	// characterchannelDescNewbieColor is the schema descriptor for newbieColor field.
+	characterchannelDescNewbieColor := characterchannelFields[6].Descriptor()
+	// characterchannel.DefaultNewbieColor holds the default value on creation for the newbieColor field.
+	characterchannel.DefaultNewbieColor = characterchannelDescNewbieColor.Default.(string)
+	// characterchannelDescTradeColor is the schema descriptor for tradeColor field.
+	characterchannelDescTradeColor := characterchannelFields[7].Descriptor()
+	// characterchannel.DefaultTradeColor holds the default value on creation for the tradeColor field.
+	characterchannel.DefaultTradeColor = characterchannelDescTradeColor.Default.(string)
+	// characterchannelDescClanColor is the schema descriptor for clanColor field.
+	characterchannelDescClanColor := characterchannelFields[8].Descriptor()
+	// characterchannel.DefaultClanColor holds the default value on creation for the clanColor field.
+	characterchannel.DefaultClanColor = characterchannelDescClanColor.Default.(string)
+	// characterchannelDescTimestamps is the schema descriptor for timestamps field.
+	characterchannelDescTimestamps := characterchannelFields[9].Descriptor()
+	// characterchannel.DefaultTimestamps holds the default value on creation for the timestamps field.
+	characterchannel.DefaultTimestamps = characterchannelDescTimestamps.Default.(bool)
+	// characterchannelDescProfanityFilter is the schema descriptor for profanityFilter field.
+	characterchannelDescProfanityFilter := characterchannelFields[10].Descriptor()
+	// characterchannel.DefaultProfanityFilter holds the default value on creation for the profanityFilter field.
+	characterchannel.DefaultProfanityFilter = characterchannelDescProfanityFilter.Default.(bool)
 	charactercompetencyFields := schema.CharacterCompetency{}.Fields()
 	_ = charactercompetencyFields
 	// charactercompetencyDescXp is the schema descriptor for xp field.
@@ -283,6 +333,12 @@ func init() {
 	characterfactionDescJoinedAt := characterfactionFields[2].Descriptor()
 	// characterfaction.DefaultJoinedAt holds the default value on creation for the joined_at field.
 	characterfaction.DefaultJoinedAt = characterfactionDescJoinedAt.Default.(func() time.Time)
+	characterignoreFields := schema.CharacterIgnore{}.Fields()
+	_ = characterignoreFields
+	// characterignoreDescIgnoredAt is the schema descriptor for ignoredAt field.
+	characterignoreDescIgnoredAt := characterignoreFields[1].Descriptor()
+	// characterignore.DefaultIgnoredAt holds the default value on creation for the ignoredAt field.
+	characterignore.DefaultIgnoredAt = characterignoreDescIgnoredAt.Default.(func() time.Time)
 	charactertagFields := schema.CharacterTag{}.Fields()
 	_ = charactertagFields
 	// charactertagDescSource is the schema descriptor for source field.
@@ -431,52 +487,64 @@ func init() {
 	equipmentDescRevealCondition := equipmentFields[22].Descriptor()
 	// equipment.DefaultRevealCondition holds the default value on creation for the revealCondition field.
 	equipment.DefaultRevealCondition = equipmentDescRevealCondition.Default.(string)
+	// equipmentDescExamineDesc is the schema descriptor for examineDesc field.
+	equipmentDescExamineDesc := equipmentFields[23].Descriptor()
+	// equipment.DefaultExamineDesc holds the default value on creation for the examineDesc field.
+	equipment.DefaultExamineDesc = equipmentDescExamineDesc.Default.(string)
+	// equipmentDescHiddenDetails is the schema descriptor for hiddenDetails field.
+	equipmentDescHiddenDetails := equipmentFields[24].Descriptor()
+	// equipment.DefaultHiddenDetails holds the default value on creation for the hiddenDetails field.
+	equipment.DefaultHiddenDetails = equipmentDescHiddenDetails.Default.([]map[string]interface{})
+	// equipmentDescHiddenThreshold is the schema descriptor for hiddenThreshold field.
+	equipmentDescHiddenThreshold := equipmentFields[25].Descriptor()
+	// equipment.DefaultHiddenThreshold holds the default value on creation for the hiddenThreshold field.
+	equipment.DefaultHiddenThreshold = equipmentDescHiddenThreshold.Default.(int)
 	// equipmentDescArmorRating is the schema descriptor for armor_rating field.
-	equipmentDescArmorRating := equipmentFields[24].Descriptor()
+	equipmentDescArmorRating := equipmentFields[27].Descriptor()
 	// equipment.DefaultArmorRating holds the default value on creation for the armor_rating field.
 	equipment.DefaultArmorRating = equipmentDescArmorRating.Default.(int)
 	// equipmentDescArmorType is the schema descriptor for armor_type field.
-	equipmentDescArmorType := equipmentFields[25].Descriptor()
+	equipmentDescArmorType := equipmentFields[28].Descriptor()
 	// equipment.DefaultArmorType holds the default value on creation for the armor_type field.
 	equipment.DefaultArmorType = equipmentDescArmorType.Default.(string)
 	// equipmentDescStats is the schema descriptor for stats field.
-	equipmentDescStats := equipmentFields[26].Descriptor()
+	equipmentDescStats := equipmentFields[29].Descriptor()
 	// equipment.DefaultStats holds the default value on creation for the stats field.
 	equipment.DefaultStats = equipmentDescStats.Default.(map[string]int)
 	// equipmentDescRarity is the schema descriptor for rarity field.
-	equipmentDescRarity := equipmentFields[27].Descriptor()
+	equipmentDescRarity := equipmentFields[30].Descriptor()
 	// equipment.DefaultRarity holds the default value on creation for the rarity field.
 	equipment.DefaultRarity = equipmentDescRarity.Default.(string)
 	// equipmentDescSkillRequirement is the schema descriptor for skill_requirement field.
-	equipmentDescSkillRequirement := equipmentFields[28].Descriptor()
+	equipmentDescSkillRequirement := equipmentFields[31].Descriptor()
 	// equipment.DefaultSkillRequirement holds the default value on creation for the skill_requirement field.
 	equipment.DefaultSkillRequirement = equipmentDescSkillRequirement.Default.(string)
 	// equipmentDescSkillRequirementLevel is the schema descriptor for skill_requirement_level field.
-	equipmentDescSkillRequirementLevel := equipmentFields[29].Descriptor()
+	equipmentDescSkillRequirementLevel := equipmentFields[32].Descriptor()
 	// equipment.DefaultSkillRequirementLevel holds the default value on creation for the skill_requirement_level field.
 	equipment.DefaultSkillRequirementLevel = equipmentDescSkillRequirementLevel.Default.(int)
 	// equipmentDescDamageDiceCount is the schema descriptor for damage_dice_count field.
-	equipmentDescDamageDiceCount := equipmentFields[30].Descriptor()
+	equipmentDescDamageDiceCount := equipmentFields[33].Descriptor()
 	// equipment.DefaultDamageDiceCount holds the default value on creation for the damage_dice_count field.
 	equipment.DefaultDamageDiceCount = equipmentDescDamageDiceCount.Default.(int)
 	// equipmentDescDamageDiceSides is the schema descriptor for damage_dice_sides field.
-	equipmentDescDamageDiceSides := equipmentFields[31].Descriptor()
+	equipmentDescDamageDiceSides := equipmentFields[34].Descriptor()
 	// equipment.DefaultDamageDiceSides holds the default value on creation for the damage_dice_sides field.
 	equipment.DefaultDamageDiceSides = equipmentDescDamageDiceSides.Default.(int)
 	// equipmentDescDamageBonus is the schema descriptor for damage_bonus field.
-	equipmentDescDamageBonus := equipmentFields[32].Descriptor()
+	equipmentDescDamageBonus := equipmentFields[35].Descriptor()
 	// equipment.DefaultDamageBonus holds the default value on creation for the damage_bonus field.
 	equipment.DefaultDamageBonus = equipmentDescDamageBonus.Default.(int)
 	// equipmentDescDamageType is the schema descriptor for damage_type field.
-	equipmentDescDamageType := equipmentFields[33].Descriptor()
+	equipmentDescDamageType := equipmentFields[36].Descriptor()
 	// equipment.DefaultDamageType holds the default value on creation for the damage_type field.
 	equipment.DefaultDamageType = equipmentDescDamageType.Default.(string)
 	// equipmentDescWeaponType is the schema descriptor for weapon_type field.
-	equipmentDescWeaponType := equipmentFields[34].Descriptor()
+	equipmentDescWeaponType := equipmentFields[37].Descriptor()
 	// equipment.DefaultWeaponType holds the default value on creation for the weapon_type field.
 	equipment.DefaultWeaponType = equipmentDescWeaponType.Default.(string)
 	// equipmentDescIsTwoHanded is the schema descriptor for is_two_handed field.
-	equipmentDescIsTwoHanded := equipmentFields[35].Descriptor()
+	equipmentDescIsTwoHanded := equipmentFields[38].Descriptor()
 	// equipment.DefaultIsTwoHanded holds the default value on creation for the is_two_handed field.
 	equipment.DefaultIsTwoHanded = equipmentDescIsTwoHanded.Default.(bool)
 	equipmenttemplateFields := schema.EquipmentTemplate{}.Fields()
@@ -653,6 +721,26 @@ func init() {
 	roomDescVersion := roomFields[9].Descriptor()
 	// room.DefaultVersion holds the default value on creation for the version field.
 	room.DefaultVersion = roomDescVersion.Default.(int)
+	socialcommandFields := schema.SocialCommand{}.Fields()
+	_ = socialcommandFields
+	// socialcommandDescRequiresTarget is the schema descriptor for requiresTarget field.
+	socialcommandDescRequiresTarget := socialcommandFields[7].Descriptor()
+	// socialcommand.DefaultRequiresTarget holds the default value on creation for the requiresTarget field.
+	socialcommand.DefaultRequiresTarget = socialcommandDescRequiresTarget.Default.(bool)
+	// socialcommandDescIsEmote is the schema descriptor for isEmote field.
+	socialcommandDescIsEmote := socialcommandFields[8].Descriptor()
+	// socialcommand.DefaultIsEmote holds the default value on creation for the isEmote field.
+	socialcommand.DefaultIsEmote = socialcommandDescIsEmote.Default.(bool)
+	tellqueueFields := schema.TellQueue{}.Fields()
+	_ = tellqueueFields
+	// tellqueueDescSentAt is the schema descriptor for sentAt field.
+	tellqueueDescSentAt := tellqueueFields[3].Descriptor()
+	// tellqueue.DefaultSentAt holds the default value on creation for the sentAt field.
+	tellqueue.DefaultSentAt = tellqueueDescSentAt.Default.(func() time.Time)
+	// tellqueueDescIsRead is the schema descriptor for isRead field.
+	tellqueueDescIsRead := tellqueueFields[5].Descriptor()
+	// tellqueue.DefaultIsRead holds the default value on creation for the isRead field.
+	tellqueue.DefaultIsRead = tellqueueDescIsRead.Default.(bool)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescIsAdmin is the schema descriptor for is_admin field.

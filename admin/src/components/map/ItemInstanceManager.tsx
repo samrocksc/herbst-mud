@@ -1,6 +1,6 @@
+import { Link } from '@tanstack/react-router'
 import { Button } from '../Button'
 import { ItemEditRow } from './ItemEditRow'
-import { ItemSpawnModal } from './ItemSpawnModal'
 import { ItemInstanceRow } from './ItemInstanceRow'
 import { useItemInstances } from './useItemInstances'
 import type { ItemInstanceView } from './types'
@@ -9,11 +9,11 @@ type ItemInstanceManagerProps = Readonly<{ roomId: number }>
 
 export function ItemInstanceManager({ roomId }: ItemInstanceManagerProps) {
   const {
-    instancesQuery, createMutation, updateMutation,
-    templatesQuery, showSpawn, setShowSpawn, editingId, setEditingId,
-    confirmDeleteId, setConfirmDeleteId, spawnForm, setSpawnForm,
-    editForm, setEditForm, selectedTemplate, applyTemplateDefaults,
-    handleSpawn, handleUpdate, handleDelete, handleOpenSpawn,
+    instancesQuery, updateMutation,
+    editingId, setEditingId,
+    confirmDeleteId, setConfirmDeleteId,
+    editForm, setEditForm,
+    handleUpdate, handleDelete,
   } = useItemInstances(roomId)
 
   const instances = instancesQuery.data ?? []
@@ -40,7 +40,9 @@ export function ItemInstanceManager({ roomId }: ItemInstanceManagerProps) {
     <div className="mb-3">
       <div className="flex items-center justify-between mb-1">
         <strong className="text-success text-xs">Items:</strong>
-        <Button variant="primary" size="sm" className="!px-1.5 !py-0 !text-[10px]" onClick={handleOpenSpawn}>+ Add Instance</Button>
+        <Link to="/map/rooms/$roomId/items/spawn" params={{ roomId: String(roomId) }} className="no-underline">
+          <Button variant="primary" size="sm" className="!px-1.5 !py-0 !text-[10px]">+ Add Instance</Button>
+        </Link>
       </div>
       {instances.length === 0 ? (
         <div className="text-text-muted text-[10px]">No item instances in this room.</div>
@@ -67,11 +69,6 @@ export function ItemInstanceManager({ roomId }: ItemInstanceManagerProps) {
           ))}
         </div>
       )}
-      <ItemSpawnModal isOpen={showSpawn} onClose={() => setShowSpawn(false)} spawnForm={spawnForm}
-        setSpawnForm={setSpawnForm} onSpawn={handleSpawn} isPending={createMutation.isPending}
-        error={createMutation.error as Error | null} templates={templatesQuery.data ?? []}
-        templatesLoading={templatesQuery.isLoading} selectedTemplate={selectedTemplate}
-        applyTemplateDefaults={applyTemplateDefaults} />
     </div>
   )
 }

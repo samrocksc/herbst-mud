@@ -129,6 +129,9 @@ func listAbilities(client *db.Client) gin.HandlerFunc {
 		if ac := c.Query("ability_class"); ac != "" {
 			query = query.Where(ability.AbilityClass(ac))
 		}
+		if s := c.Query("search"); s != "" {
+			query = query.Where(ability.NameContains(s))
+		}
 		abilities, err := query.Order(ability.ByName()).All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

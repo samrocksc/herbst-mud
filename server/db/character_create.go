@@ -9,12 +9,15 @@ import (
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
+	"herbst-server/db/characterchannel"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
+	"herbst-server/db/characterignore"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/questprogress"
 	"herbst-server/db/room"
+	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
 	"time"
 
@@ -732,6 +735,51 @@ func (_c *CharacterCreate) AddQuestProgress(v ...*QuestProgress) *CharacterCreat
 	return _c.AddQuestProgresIDs(ids...)
 }
 
+// AddChannelSettingIDs adds the "channelSettings" edge to the CharacterChannel entity by IDs.
+func (_c *CharacterCreate) AddChannelSettingIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddChannelSettingIDs(ids...)
+	return _c
+}
+
+// AddChannelSettings adds the "channelSettings" edges to the CharacterChannel entity.
+func (_c *CharacterCreate) AddChannelSettings(v ...*CharacterChannel) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddChannelSettingIDs(ids...)
+}
+
+// AddIgnoringIDs adds the "ignoring" edge to the CharacterIgnore entity by IDs.
+func (_c *CharacterCreate) AddIgnoringIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddIgnoringIDs(ids...)
+	return _c
+}
+
+// AddIgnoring adds the "ignoring" edges to the CharacterIgnore entity.
+func (_c *CharacterCreate) AddIgnoring(v ...*CharacterIgnore) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddIgnoringIDs(ids...)
+}
+
+// AddTellQueueIDs adds the "tellQueue" edge to the TellQueue entity by IDs.
+func (_c *CharacterCreate) AddTellQueueIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddTellQueueIDs(ids...)
+	return _c
+}
+
+// AddTellQueue adds the "tellQueue" edges to the TellQueue entity.
+func (_c *CharacterCreate) AddTellQueue(v ...*TellQueue) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTellQueueIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_c *CharacterCreate) Mutation() *CharacterMutation {
 	return _c.mutation
@@ -1337,6 +1385,54 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(questprogress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ChannelSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ChannelSettingsTable,
+			Columns: []string{character.ChannelSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterchannel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.IgnoringIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.IgnoringTable,
+			Columns: []string{character.IgnoringColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterignore.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TellQueueIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.TellQueueTable,
+			Columns: []string{character.TellQueueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -2332,6 +2332,75 @@ func HasQuestProgressWith(preds ...predicate.QuestProgress) predicate.Character 
 	})
 }
 
+// HasChannelSettings applies the HasEdge predicate on the "channelSettings" edge.
+func HasChannelSettings() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ChannelSettingsTable, ChannelSettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasChannelSettingsWith applies the HasEdge predicate on the "channelSettings" edge with a given conditions (other predicates).
+func HasChannelSettingsWith(preds ...predicate.CharacterChannel) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newChannelSettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasIgnoring applies the HasEdge predicate on the "ignoring" edge.
+func HasIgnoring() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IgnoringTable, IgnoringColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIgnoringWith applies the HasEdge predicate on the "ignoring" edge with a given conditions (other predicates).
+func HasIgnoringWith(preds ...predicate.CharacterIgnore) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newIgnoringStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTellQueue applies the HasEdge predicate on the "tellQueue" edge.
+func HasTellQueue() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TellQueueTable, TellQueueColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTellQueueWith applies the HasEdge predicate on the "tellQueue" edge with a given conditions (other predicates).
+func HasTellQueueWith(preds ...predicate.TellQueue) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newTellQueueStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Character) predicate.Character {
 	return predicate.Character(sql.AndPredicates(predicates...))

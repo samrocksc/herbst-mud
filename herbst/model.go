@@ -29,6 +29,7 @@ type model struct {
 	// Auth state
 	currentUserID   int
 	currentUserName string
+	characterToken  string // Token for character-specific API access
 
 	// Input handling
 	textInput textinput.Model
@@ -135,6 +136,13 @@ type model struct {
 
 	// Conversation state (dialog tree)
 	conversation *ConversationState
+
+	// Chat state (cooldowns, ignores, channels)
+	yellCooldown    *time.Time // Cooldown for yell command
+	shoutCooldown   *time.Time // Cooldown for shout command
+	lastTeller      string     // Last player who sent a tell (for reply)
+	ignoredPlayers  []string   // List of ignored player names
+	activeChannels  []string    // List of subscribed channel names
 }
 
 // EquippedPotion represents a potion equipped in the R slot

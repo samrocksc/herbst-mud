@@ -27,11 +27,17 @@ type Character func(*sql.Selector)
 // CharacterAbility is the predicate function for characterability builders.
 type CharacterAbility func(*sql.Selector)
 
+// CharacterChannel is the predicate function for characterchannel builders.
+type CharacterChannel func(*sql.Selector)
+
 // CharacterCompetency is the predicate function for charactercompetency builders.
 type CharacterCompetency func(*sql.Selector)
 
 // CharacterFaction is the predicate function for characterfaction builders.
 type CharacterFaction func(*sql.Selector)
+
+// CharacterIgnore is the predicate function for characterignore builders.
+type CharacterIgnore func(*sql.Selector)
 
 // CharacterTag is the predicate function for charactertag builders.
 type CharacterTag func(*sql.Selector)
@@ -93,8 +99,14 @@ type Race func(*sql.Selector)
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
 
+// SocialCommand is the predicate function for socialcommand builders.
+type SocialCommand func(*sql.Selector)
+
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)
+
+// TellQueue is the predicate function for tellqueue builders.
+type TellQueue func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

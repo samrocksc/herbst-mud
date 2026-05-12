@@ -66,6 +66,12 @@ type Equipment struct {
 	ContainedItems string `json:"containedItems,omitempty"`
 	// JSON: {type: examine|perception_check|use_item|event, target, minLevel}
 	RevealCondition string `json:"revealCondition,omitempty"`
+	// Detailed description shown with examine command
+	ExamineDesc string `json:"examineDesc,omitempty"`
+	// Details revealed based on examine skill
+	HiddenDetails []map[string]interface{} `json:"hiddenDetails,omitempty"`
+	// Examine skill required to reveal hidden details
+	HiddenThreshold int `json:"hiddenThreshold,omitempty"`
 	// When this item expires and is auto-deleted. nil = never rots.
 	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
 	// Flat AC bonus when equipped
@@ -137,13 +143,13 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case equipment.FieldStats:
+		case equipment.FieldHiddenDetails, equipment.FieldStats:
 			values[i] = new([]byte)
 		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsContainer, equipment.FieldIsLocked, equipment.FieldIsTwoHanded:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity, equipment.FieldArmorRating, equipment.FieldSkillRequirementLevel, equipment.FieldDamageDiceCount, equipment.FieldDamageDiceSides, equipment.FieldDamageBonus:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity, equipment.FieldHiddenThreshold, equipment.FieldArmorRating, equipment.FieldSkillRequirementLevel, equipment.FieldDamageDiceCount, equipment.FieldDamageDiceSides, equipment.FieldDamageBonus:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEquipmentTemplateID, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition, equipment.FieldArmorType, equipment.FieldRarity, equipment.FieldSkillRequirement, equipment.FieldDamageType, equipment.FieldWeaponType:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEquipmentTemplateID, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition, equipment.FieldExamineDesc, equipment.FieldArmorType, equipment.FieldRarity, equipment.FieldSkillRequirement, equipment.FieldDamageType, equipment.FieldWeaponType:
 			values[i] = new(sql.NullString)
 		case equipment.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -308,6 +314,26 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field revealCondition", values[i])
 			} else if value.Valid {
 				_m.RevealCondition = value.String
+			}
+		case equipment.FieldExamineDesc:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field examineDesc", values[i])
+			} else if value.Valid {
+				_m.ExamineDesc = value.String
+			}
+		case equipment.FieldHiddenDetails:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field hiddenDetails", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.HiddenDetails); err != nil {
+					return fmt.Errorf("unmarshal field hiddenDetails: %w", err)
+				}
+			}
+		case equipment.FieldHiddenThreshold:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field hiddenThreshold", values[i])
+			} else if value.Valid {
+				_m.HiddenThreshold = int(value.Int64)
 			}
 		case equipment.FieldExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -513,6 +539,15 @@ func (_m *Equipment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("revealCondition=")
 	builder.WriteString(_m.RevealCondition)
+	builder.WriteString(", ")
+	builder.WriteString("examineDesc=")
+	builder.WriteString(_m.ExamineDesc)
+	builder.WriteString(", ")
+	builder.WriteString("hiddenDetails=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HiddenDetails))
+	builder.WriteString(", ")
+	builder.WriteString("hiddenThreshold=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HiddenThreshold))
 	builder.WriteString(", ")
 	if v := _m.ExpiresAt; v != nil {
 		builder.WriteString("expiresAt=")

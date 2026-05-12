@@ -88,7 +88,7 @@ function EffectRow({
       {statLabel && <span className="text-muted">scales {statLabel}</span>}
       {effect.scaling_ratio > 0 && <span className="text-muted">×{effect.scaling_ratio}</span>}
       <span className="text-muted ml-auto">#{effect.sort_order}</span>
-      <Button variant="danger" size="sm" onClick={onDelete} disabled={isDeleting}>
+      <Button variant="danger" size="sm" onClick={onDelete} disabled={isDeleting} type="button">
         {isDeleting ? '...' : '×'}
       </Button>
     </div>
@@ -106,13 +106,12 @@ function NewEffectForm({
   const [form, setForm] = useState<EffectInput>({ ...EMPTY_EFFECT, sort_order: sortOrder })
   const set = (patch: Partial<EffectInput>) => setForm((prev) => ({ ...prev, ...patch }))
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleAdd = () => {
     createEffect.mutate({ abilityId, input: form }, { onSuccess: () => setForm({ ...EMPTY_EFFECT, sort_order: sortOrder + 1 }) })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2 p-2 border border-dashed rounded">
+    <div className="space-y-2 p-2 border border-dashed rounded">
       <div className="grid grid-cols-3 gap-2">
         <SelectField label="Type" value={form.effect_type} onChange={(v) => set({ effect_type: v })} options={EFFECT_TYPE_OPTS} />
         <SelectField label="Target" value={form.target ?? 'enemy'} onChange={(v) => set({ target: v })} options={TARGET_OPTS} />
@@ -127,10 +126,10 @@ function NewEffectForm({
         <SelectField label="Scaling Stat" value={form.scaling_stat ?? ''} onChange={(v) => set({ scaling_stat: v })} options={SCALING_STAT_OPTS} />
         <NumberField label="Scaling Ratio" value={form.scaling_ratio ?? 0} onChange={(v) => set({ scaling_ratio: v })} step={0.1} />
       </div>
-      <Button type="submit" variant="primary" size="sm" fullWidth disabled={createEffect.isPending}>
+      <Button variant="primary" size="sm" fullWidth disabled={createEffect.isPending} onClick={handleAdd} type="button">
         {createEffect.isPending ? 'Adding...' : '+ Add Effect'}
       </Button>
-    </form>
+    </div>
   )
 }
 
@@ -146,7 +145,7 @@ export function EffectsSubForm({ abilityId }: Readonly<{ abilityId: number }>) {
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-text m-0">Effects</h4>
-        <Button variant="ghost" size="sm" onClick={() => setShowAdd(!showAdd)}>
+        <Button variant="ghost" size="sm" onClick={() => setShowAdd(!showAdd)} type="button">
           {showAdd ? 'Cancel' : '+ Add'}
         </Button>
       </div>

@@ -3,9 +3,11 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/db/factioncategory"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -38,6 +40,16 @@ func listFactions(repos *repository.Container) gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		if search := c.Query("search"); search != "" {
+			s := strings.ToLower(search)
+			filtered := make([]*db.Faction, 0, len(factions))
+			for _, f := range factions {
+				if strings.Contains(strings.ToLower(f.Name), s) {
+					filtered = append(filtered, f)
+				}
+			}
+			factions = filtered
 		}
 		result := make([]gin.H, len(factions))
 		for i, f := range factions {
@@ -180,7 +192,11 @@ func getFactionMembers(repos *repository.Container) gin.HandlerFunc {
 
 func listFactionCategories(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cats, err := client.FactionCategory.Query().All(c.Request.Context())
+		query := client.FactionCategory.Query()
+		if search := c.Query("search"); search != "" {
+			query = query.Where(factioncategory.NameContains(search))
+		}
+		cats, err := query.All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

@@ -320,6 +320,40 @@ func (_c *EquipmentCreate) SetNillableRevealCondition(v *string) *EquipmentCreat
 	return _c
 }
 
+// SetExamineDesc sets the "examineDesc" field.
+func (_c *EquipmentCreate) SetExamineDesc(v string) *EquipmentCreate {
+	_c.mutation.SetExamineDesc(v)
+	return _c
+}
+
+// SetNillableExamineDesc sets the "examineDesc" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableExamineDesc(v *string) *EquipmentCreate {
+	if v != nil {
+		_c.SetExamineDesc(*v)
+	}
+	return _c
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (_c *EquipmentCreate) SetHiddenDetails(v []map[string]interface{}) *EquipmentCreate {
+	_c.mutation.SetHiddenDetails(v)
+	return _c
+}
+
+// SetHiddenThreshold sets the "hiddenThreshold" field.
+func (_c *EquipmentCreate) SetHiddenThreshold(v int) *EquipmentCreate {
+	_c.mutation.SetHiddenThreshold(v)
+	return _c
+}
+
+// SetNillableHiddenThreshold sets the "hiddenThreshold" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableHiddenThreshold(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetHiddenThreshold(*v)
+	}
+	return _c
+}
+
 // SetExpiresAt sets the "expiresAt" field.
 func (_c *EquipmentCreate) SetExpiresAt(v time.Time) *EquipmentCreate {
 	_c.mutation.SetExpiresAt(v)
@@ -621,6 +655,18 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultRevealCondition
 		_c.mutation.SetRevealCondition(v)
 	}
+	if _, ok := _c.mutation.ExamineDesc(); !ok {
+		v := equipment.DefaultExamineDesc
+		_c.mutation.SetExamineDesc(v)
+	}
+	if _, ok := _c.mutation.HiddenDetails(); !ok {
+		v := equipment.DefaultHiddenDetails
+		_c.mutation.SetHiddenDetails(v)
+	}
+	if _, ok := _c.mutation.HiddenThreshold(); !ok {
+		v := equipment.DefaultHiddenThreshold
+		_c.mutation.SetHiddenThreshold(v)
+	}
 	if _, ok := _c.mutation.ArmorRating(); !ok {
 		v := equipment.DefaultArmorRating
 		_c.mutation.SetArmorRating(v)
@@ -732,6 +778,15 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.RevealCondition(); !ok {
 		return &ValidationError{Name: "revealCondition", err: errors.New(`db: missing required field "Equipment.revealCondition"`)}
+	}
+	if _, ok := _c.mutation.ExamineDesc(); !ok {
+		return &ValidationError{Name: "examineDesc", err: errors.New(`db: missing required field "Equipment.examineDesc"`)}
+	}
+	if _, ok := _c.mutation.HiddenDetails(); !ok {
+		return &ValidationError{Name: "hiddenDetails", err: errors.New(`db: missing required field "Equipment.hiddenDetails"`)}
+	}
+	if _, ok := _c.mutation.HiddenThreshold(); !ok {
+		return &ValidationError{Name: "hiddenThreshold", err: errors.New(`db: missing required field "Equipment.hiddenThreshold"`)}
 	}
 	if _, ok := _c.mutation.ArmorRating(); !ok {
 		return &ValidationError{Name: "armor_rating", err: errors.New(`db: missing required field "Equipment.armor_rating"`)}
@@ -882,6 +937,18 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.RevealCondition(); ok {
 		_spec.SetField(equipment.FieldRevealCondition, field.TypeString, value)
 		_node.RevealCondition = value
+	}
+	if value, ok := _c.mutation.ExamineDesc(); ok {
+		_spec.SetField(equipment.FieldExamineDesc, field.TypeString, value)
+		_node.ExamineDesc = value
+	}
+	if value, ok := _c.mutation.HiddenDetails(); ok {
+		_spec.SetField(equipment.FieldHiddenDetails, field.TypeJSON, value)
+		_node.HiddenDetails = value
+	}
+	if value, ok := _c.mutation.HiddenThreshold(); ok {
+		_spec.SetField(equipment.FieldHiddenThreshold, field.TypeInt, value)
+		_node.HiddenThreshold = value
 	}
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(equipment.FieldExpiresAt, field.TypeTime, value)

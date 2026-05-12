@@ -26,10 +26,14 @@ type Tx struct {
 	Character *CharacterClient
 	// CharacterAbility is the client for interacting with the CharacterAbility builders.
 	CharacterAbility *CharacterAbilityClient
+	// CharacterChannel is the client for interacting with the CharacterChannel builders.
+	CharacterChannel *CharacterChannelClient
 	// CharacterCompetency is the client for interacting with the CharacterCompetency builders.
 	CharacterCompetency *CharacterCompetencyClient
 	// CharacterFaction is the client for interacting with the CharacterFaction builders.
 	CharacterFaction *CharacterFactionClient
+	// CharacterIgnore is the client for interacting with the CharacterIgnore builders.
+	CharacterIgnore *CharacterIgnoreClient
 	// CharacterTag is the client for interacting with the CharacterTag builders.
 	CharacterTag *CharacterTagClient
 	// CompetencyCategory is the client for interacting with the CompetencyCategory builders.
@@ -70,8 +74,12 @@ type Tx struct {
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
+	// SocialCommand is the client for interacting with the SocialCommand builders.
+	SocialCommand *SocialCommandClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
+	// TellQueue is the client for interacting with the TellQueue builders.
+	TellQueue *TellQueueClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -212,8 +220,10 @@ func (tx *Tx) init() {
 	tx.AppLog = NewAppLogClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
 	tx.CharacterAbility = NewCharacterAbilityClient(tx.config)
+	tx.CharacterChannel = NewCharacterChannelClient(tx.config)
 	tx.CharacterCompetency = NewCharacterCompetencyClient(tx.config)
 	tx.CharacterFaction = NewCharacterFactionClient(tx.config)
+	tx.CharacterIgnore = NewCharacterIgnoreClient(tx.config)
 	tx.CharacterTag = NewCharacterTagClient(tx.config)
 	tx.CompetencyCategory = NewCompetencyCategoryClient(tx.config)
 	tx.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(tx.config)
@@ -234,7 +244,9 @@ func (tx *Tx) init() {
 	tx.QuestProgress = NewQuestProgressClient(tx.config)
 	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
+	tx.SocialCommand = NewSocialCommandClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
+	tx.TellQueue = NewTellQueueClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

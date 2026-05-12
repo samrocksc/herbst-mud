@@ -1,6 +1,7 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, Link, Outlet } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
+import { useLocation } from '@tanstack/react-router'
 import { apiGet, apiPost, apiPut, apiDelete } from '../../utils/apiFetch'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
@@ -172,6 +173,7 @@ function editFormToPayload(form: EditForm) {
 
 export function NpcTemplateDetail() {
   const { npcId } = Route.useParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState(false)
@@ -183,6 +185,11 @@ export function NpcTemplateDetail() {
     instance_number: 1,
     instance_name: '',
   })
+
+  // Render outlet for child routes (instances, etc.)
+  if (location.pathname !== `/npcs/${npcId}`) {
+    return <Outlet />
+  }
 
   const templateQuery = useQuery<NPCTemplate>({
     queryKey: ['npc-templates', npcId],

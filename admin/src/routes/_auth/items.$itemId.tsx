@@ -1,13 +1,13 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost } from '../../utils/apiFetch'
+import { useQuery } from '@tanstack/react-query'
+import { useLocation } from '@tanstack/react-router'
+import { apiGet } from '../../utils/apiFetch'
 import { PageHeader } from '../../components/PageHeader'
 import { DataTable, type Column } from '../../components/DataTable'
 import { Button } from '../../components/Button'
 import { TemplateEditForm } from './-items.$itemId.editForm'
 import { ItemDetailView } from './-items.$itemId.detailView'
-import { SpawnModal } from './-items.$itemId.spawnModal'
 import type { ItemInstance } from '../../hooks/useItemInstances'
 import type { EquipmentTemplate as ItemTemplate } from '../../hooks/useEquipmentTemplates'
 
@@ -32,8 +32,7 @@ const API = `${window.location.origin}`
 
 function ItemDetail() {
   const { itemId } = Route.useParams()
-  const queryClient = useQueryClient()
-  const [modalOpen, setModalOpen] = useState(false)
+  const location = useLocation()
   const [editing, setEditing] = useState(false)
 
   const templateQuery = useQuery({
@@ -46,18 +45,13 @@ function ItemDetail() {
     queryFn: () => apiGet<ItemInstance[]>(`${API}/api/item-instances?templateId=${itemId}`),
   })
 
-  const spawnMutation = useMutation({
-    mutationFn: ({ targetType, targetId }: { targetType: 'room' | 'character'; targetId: number }) => {
-      const body: Record<string, unknown> = { equipment_template_id: itemId }
-      if (targetType === 'room') body.room_id = targetId
-      else body.ownerId = targetId
-      return apiPost(`${API}/api/item-instances`, body)
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['item-instances', 'template', itemId] }); setModalOpen(false) },
-  })
-
   const template = templateQuery.data
   const instances = instancesQuery.data ?? []
+
+  // Render outlet for child routes (spawn, instances, etc.)
+  if (location.pathname !== `/items/${itemId}`) {
+    return <Outlet />
+  }
 
   if (templateQuery.isLoading) return <div className="p-8"><PageHeader title="Loading..." backTo="/items" /></div>
   if (templateQuery.error || !template) return <div className="p-8"><PageHeader title="Error" backTo="/items" /><div className="text-danger">Failed to load item</div></div>
@@ -71,14 +65,13 @@ function ItemDetail() {
       <div className="bg-surface-muted rounded-lg p-6 border border-border mt-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="m-0 text-text text-lg font-semibold">Instances ({instances.length})</h2>
-          <Button variant="secondary" size="sm" onClick={() => setModalOpen(true)}>+ Add Instance</Button>
+          <Link to="/items/$itemId/spawn" params={{ itemId }} className="no-underline">
+            <Button variant="secondary" size="sm">+ Add Instance</Button>
+          </Link>
         </div>
         {instancesQuery.isError && <div className="text-danger text-xs mb-3">Failed to load instances</div>}
         <DataTable<ItemInstance> columns={instanceColumns} data={instances} getKey={(row) => row.id} emptyMessage="No instances found." variant="dark" />
       </div>
-      <SpawnModal open={modalOpen} onClose={() => setModalOpen(false)}
-        onSpawn={(targetType, targetId) => spawnMutation.mutate({ targetType, targetId })}
-        isLoading={spawnMutation.isPending} error={spawnMutation.isError ? (spawnMutation.error as Error)?.message ?? 'Failed' : null} />
     </div>
   )
 }

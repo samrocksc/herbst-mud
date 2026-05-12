@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
   useQuests,
@@ -132,7 +132,10 @@ const COLUMNS: Column<Quest>[] = [
 function QuestsManagement() {
   const [showCreate, setShowCreate] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { data: quests, isLoading, error } = useQuests()
+
+  if (location.pathname !== '/quests') return <Outlet />
 
   if (isLoading) return <div className="loading">Loading quests...</div>
   if (error) return <div className="error">Failed to load quests: {error.message}</div>

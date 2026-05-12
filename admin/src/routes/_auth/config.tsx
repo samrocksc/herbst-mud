@@ -1,12 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useCallback, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/Button'
 import { DataTable } from '../../components/DataTable'
 import { showToast } from '../../components/Toast'
 import { apiGet, apiDelete } from '../../utils/apiFetch'
-import { ConfigForm, humanizeKey, tryParseJSON } from './ConfigForm'
-import type { GameConfig } from './ConfigForm'
+import { humanizeKey, tryParseJSON } from './-configUtils'
+import type { GameConfig } from './-configUtils'
 
 export const Route = createFileRoute('/_auth/config')({ component: ConfigManagement })
 
@@ -31,8 +31,6 @@ function ConfigManagement() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [activeForm, setActiveForm] = useState<'create' | 'edit' | null>(null)
-  const [editing, setEditing] = useState<GameConfig | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<GameConfig | null>(null)
 
   const fetchConfigs = useCallback(async () => {
@@ -51,13 +49,14 @@ function ConfigManagement() {
   }
 
   const filtered = configs.filter(c => c.key.toLowerCase().includes(search.toLowerCase()) || c.value.toLowerCase().includes(search.toLowerCase()))
-  const closeForm = () => { setActiveForm(null); setEditing(null); fetchConfigs() }
 
   return (
     <div className="management-page">
       <div className="page-header">
         <h2>Game Configs</h2>
-        <Button variant="primary" onClick={() => { setActiveForm('create'); setEditing(null) }}>+ New Config</Button>
+        <Link to="/config/new" className="no-underline">
+          <Button variant="primary">+ New Config</Button>
+        </Link>
       </div>
       {error && <div className="error-banner">{error}</div>}
       <div className="flex items-center gap-3 mb-4">
@@ -67,15 +66,23 @@ function ConfigManagement() {
       </div>
       {loading ? <div className="loading">Loading configs...</div> : (
         <DataTable columns={[
-          { header: 'Key', accessor: 'key', render: (_, row): ReactNode => <div><span className="text-text text-sm font-medium">{humanizeKey(row.key)}</span><br /><code className="text-primary text-xs">{row.key}</code></div> },
+          { header: 'Key', accessor: 'key', render: (_, row): ReactNode => (
+            <Link to="/config/$key" params={{ key: row.key }} className="no-underline">
+              <div><span className="text-text text-sm font-medium">{humanizeKey(row.key)}</span><br /><code className="text-primary text-xs">{row.key}</code></div>
+            </Link>
+          )},
           { header: 'Value', accessor: 'value', render: (val) => <ConfigValueCell value={val as string} /> },
-          { header: 'Actions', accessor: '_actions', render: (_, row): ReactNode => <div className="flex gap-2">
-            <Button variant="accent" size="sm" onClick={() => { setEditing(row); setActiveForm('edit') }}>Edit</Button>
-            <Button variant="danger" size="sm" onClick={() => setDeleteTarget(row)}>Delete</Button></div> },
+          { header: 'Actions', accessor: '_actions', render: (_, row): ReactNode => (
+            <div className="flex gap-2">
+              <Link to="/config/$key" params={{ key: row.key }} className="no-underline">
+                <Button variant="accent" size="sm">Edit</Button>
+              </Link>
+              <Button variant="danger" size="sm" onClick={() => setDeleteTarget(row)}>Delete</Button>
+            </div>
+          )},
         ]} data={filtered} getKey={row => row.id}
           emptyMessage={configs.length === 0 ? 'No configs found. Create one below.' : 'No configs match your search.'} />
       )}
-      {activeForm && <ConfigForm editing={editing} onDone={closeForm} />}
       {deleteTarget && (
         <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
           <div className="modal-content max-w-md" onClick={e => e.stopPropagation()}>

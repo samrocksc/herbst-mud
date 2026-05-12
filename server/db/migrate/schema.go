@@ -258,6 +258,36 @@ var (
 			},
 		},
 	}
+	// CharacterChannelsColumns holds the columns for the "character_channels" table.
+	CharacterChannelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "chat_enabled", Type: field.TypeBool, Default: true},
+		{Name: "newbie_enabled", Type: field.TypeBool, Default: true},
+		{Name: "trade_enabled", Type: field.TypeBool, Default: false},
+		{Name: "clan_enabled", Type: field.TypeBool, Default: true},
+		{Name: "auction_enabled", Type: field.TypeBool, Default: false},
+		{Name: "chat_color", Type: field.TypeString, Default: "#00FF00"},
+		{Name: "newbie_color", Type: field.TypeString, Default: "#00FFFF"},
+		{Name: "trade_color", Type: field.TypeString, Default: "#FFFF00"},
+		{Name: "clan_color", Type: field.TypeString, Default: "#FF00FF"},
+		{Name: "timestamps", Type: field.TypeBool, Default: true},
+		{Name: "profanity_filter", Type: field.TypeBool, Default: false},
+		{Name: "character_channel_settings", Type: field.TypeInt, Nullable: true},
+	}
+	// CharacterChannelsTable holds the schema information for the "character_channels" table.
+	CharacterChannelsTable = &schema.Table{
+		Name:       "character_channels",
+		Columns:    CharacterChannelsColumns,
+		PrimaryKey: []*schema.Column{CharacterChannelsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_channels_characters_channelSettings",
+				Columns:    []*schema.Column{CharacterChannelsColumns[12]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CharacterCompetenciesColumns holds the columns for the "character_competencies" table.
 	CharacterCompetenciesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -311,6 +341,28 @@ var (
 				Symbol:     "character_factions_factions_character_factions",
 				Columns:    []*schema.Column{CharacterFactionsColumns[5]},
 				RefColumns: []*schema.Column{FactionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CharacterIgnoresColumns holds the columns for the "character_ignores" table.
+	CharacterIgnoresColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "ignored_character_id", Type: field.TypeInt},
+		{Name: "ignored_at", Type: field.TypeTime},
+		{Name: "reason", Type: field.TypeString, Nullable: true},
+		{Name: "character_ignoring", Type: field.TypeInt, Nullable: true},
+	}
+	// CharacterIgnoresTable holds the schema information for the "character_ignores" table.
+	CharacterIgnoresTable = &schema.Table{
+		Name:       "character_ignores",
+		Columns:    CharacterIgnoresColumns,
+		PrimaryKey: []*schema.Column{CharacterIgnoresColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_ignores_characters_ignoring",
+				Columns:    []*schema.Column{CharacterIgnoresColumns[4]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -485,6 +537,9 @@ var (
 		{Name: "key_item_id", Type: field.TypeString, Nullable: true},
 		{Name: "contained_items", Type: field.TypeString, Default: ""},
 		{Name: "reveal_condition", Type: field.TypeString, Default: ""},
+		{Name: "examine_desc", Type: field.TypeString, Default: ""},
+		{Name: "hidden_details", Type: field.TypeJSON},
+		{Name: "hidden_threshold", Type: field.TypeInt, Default: 0},
 		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
 		{Name: "armor_rating", Type: field.TypeInt, Default: 0},
 		{Name: "armor_type", Type: field.TypeString, Default: ""},
@@ -509,13 +564,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "equipment_equipment_templates_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[36]},
+				Columns:    []*schema.Column{EquipmentColumns[39]},
 				RefColumns: []*schema.Column{EquipmentTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[37]},
+				Columns:    []*schema.Column{EquipmentColumns[40]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -765,6 +820,25 @@ var (
 		Columns:    RoomsColumns,
 		PrimaryKey: []*schema.Column{RoomsColumns[0]},
 	}
+	// SocialCommandsColumns holds the columns for the "social_commands" table.
+	SocialCommandsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "self_text", Type: field.TypeString},
+		{Name: "room_text", Type: field.TypeString},
+		{Name: "target_self_text", Type: field.TypeString},
+		{Name: "target_text", Type: field.TypeString},
+		{Name: "target_room_text", Type: field.TypeString},
+		{Name: "requires_target", Type: field.TypeBool, Default: false},
+		{Name: "is_emote", Type: field.TypeBool, Default: true},
+	}
+	// SocialCommandsTable holds the schema information for the "social_commands" table.
+	SocialCommandsTable = &schema.Table{
+		Name:       "social_commands",
+		Columns:    SocialCommandsColumns,
+		PrimaryKey: []*schema.Column{SocialCommandsColumns[0]},
+	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -776,6 +850,31 @@ var (
 		Name:       "tags",
 		Columns:    TagsColumns,
 		PrimaryKey: []*schema.Column{TagsColumns[0]},
+	}
+	// TellQueuesColumns holds the columns for the "tell_queues" table.
+	TellQueuesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "sender_id", Type: field.TypeInt},
+		{Name: "sender_name", Type: field.TypeString},
+		{Name: "message", Type: field.TypeString},
+		{Name: "sent_at", Type: field.TypeTime},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "is_read", Type: field.TypeBool, Default: false},
+		{Name: "character_tell_queue", Type: field.TypeInt, Nullable: true},
+	}
+	// TellQueuesTable holds the schema information for the "tell_queues" table.
+	TellQueuesTable = &schema.Table{
+		Name:       "tell_queues",
+		Columns:    TellQueuesColumns,
+		PrimaryKey: []*schema.Column{TellQueuesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tell_queues_characters_tellQueue",
+				Columns:    []*schema.Column{TellQueuesColumns[7]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -875,8 +974,10 @@ var (
 		AppLogsTable,
 		CharactersTable,
 		CharacterAbilitiesTable,
+		CharacterChannelsTable,
 		CharacterCompetenciesTable,
 		CharacterFactionsTable,
+		CharacterIgnoresTable,
 		CharacterTagsTable,
 		CompetencyCategoriesTable,
 		CompetencyLevelThresholdsTable,
@@ -897,7 +998,9 @@ var (
 		QuestProgressesTable,
 		RacesTable,
 		RoomsTable,
+		SocialCommandsTable,
 		TagsTable,
+		TellQueuesTable,
 		UsersTable,
 		AbilityNpcAbilitiesTable,
 		NpcTemplateNpcAbilitiesTable,
@@ -916,10 +1019,12 @@ func init() {
 	CharactersTable.ForeignKeys[3].RefTable = UsersTable
 	CharacterAbilitiesTable.ForeignKeys[0].RefTable = AbilitiesTable
 	CharacterAbilitiesTable.ForeignKeys[1].RefTable = CharactersTable
+	CharacterChannelsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterCompetenciesTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterCompetenciesTable.ForeignKeys[1].RefTable = CompetencyCategoriesTable
 	CharacterFactionsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterFactionsTable.ForeignKeys[1].RefTable = FactionsTable
+	CharacterIgnoresTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterTagsTable.ForeignKeys[0].RefTable = CharactersTable
 	CompetencyLevelThresholdsTable.ForeignKeys[0].RefTable = CompetencyCategoriesTable
 	DialogNodesTable.ForeignKeys[0].RefTable = NpcTemplatesTable
@@ -931,6 +1036,7 @@ func init() {
 	FactionRequiredTagsTable.ForeignKeys[0].RefTable = FactionsTable
 	QuestProgressesTable.ForeignKeys[0].RefTable = CharactersTable
 	QuestProgressesTable.ForeignKeys[1].RefTable = QuestsTable
+	TellQueuesTable.ForeignKeys[0].RefTable = CharactersTable
 	AbilityNpcAbilitiesTable.ForeignKeys[0].RefTable = AbilitiesTable
 	AbilityNpcAbilitiesTable.ForeignKeys[1].RefTable = NpcAbilitiesTable
 	NpcTemplateNpcAbilitiesTable.ForeignKeys[0].RefTable = NpcTemplatesTable

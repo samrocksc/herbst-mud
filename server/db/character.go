@@ -134,9 +134,15 @@ type CharacterEdges struct {
 	ActiveEffects []*ActiveEffect `json:"active_effects,omitempty"`
 	// QuestProgress holds the value of the quest_progress edge.
 	QuestProgress []*QuestProgress `json:"quest_progress,omitempty"`
+	// ChannelSettings holds the value of the channelSettings edge.
+	ChannelSettings []*CharacterChannel `json:"channelSettings,omitempty"`
+	// Ignoring holds the value of the ignoring edge.
+	Ignoring []*CharacterIgnore `json:"ignoring,omitempty"`
+	// TellQueue holds the value of the tellQueue edge.
+	TellQueue []*TellQueue `json:"tellQueue,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [12]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -224,6 +230,33 @@ func (e CharacterEdges) QuestProgressOrErr() ([]*QuestProgress, error) {
 		return e.QuestProgress, nil
 	}
 	return nil, &NotLoadedError{edge: "quest_progress"}
+}
+
+// ChannelSettingsOrErr returns the ChannelSettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) ChannelSettingsOrErr() ([]*CharacterChannel, error) {
+	if e.loadedTypes[9] {
+		return e.ChannelSettings, nil
+	}
+	return nil, &NotLoadedError{edge: "channelSettings"}
+}
+
+// IgnoringOrErr returns the Ignoring value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) IgnoringOrErr() ([]*CharacterIgnore, error) {
+	if e.loadedTypes[10] {
+		return e.Ignoring, nil
+	}
+	return nil, &NotLoadedError{edge: "ignoring"}
+}
+
+// TellQueueOrErr returns the TellQueue value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) TellQueueOrErr() ([]*TellQueue, error) {
+	if e.loadedTypes[11] {
+		return e.TellQueue, nil
+	}
+	return nil, &NotLoadedError{edge: "tellQueue"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -594,6 +627,21 @@ func (_m *Character) QueryActiveEffects() *ActiveEffectQuery {
 // QueryQuestProgress queries the "quest_progress" edge of the Character entity.
 func (_m *Character) QueryQuestProgress() *QuestProgressQuery {
 	return NewCharacterClient(_m.config).QueryQuestProgress(_m)
+}
+
+// QueryChannelSettings queries the "channelSettings" edge of the Character entity.
+func (_m *Character) QueryChannelSettings() *CharacterChannelQuery {
+	return NewCharacterClient(_m.config).QueryChannelSettings(_m)
+}
+
+// QueryIgnoring queries the "ignoring" edge of the Character entity.
+func (_m *Character) QueryIgnoring() *CharacterIgnoreQuery {
+	return NewCharacterClient(_m.config).QueryIgnoring(_m)
+}
+
+// QueryTellQueue queries the "tellQueue" edge of the Character entity.
+func (_m *Character) QueryTellQueue() *TellQueueQuery {
+	return NewCharacterClient(_m.config).QueryTellQueue(_m)
 }
 
 // Update returns a builder for updating this Character.

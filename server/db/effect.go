@@ -21,9 +21,9 @@ type Effect struct {
 	Name string `json:"name,omitempty"`
 	// Human-readable description
 	Description string `json:"description,omitempty"`
-	// xp_drain|xp_gain|xp_set|bind_point_set|hp_change|stamina_change|mana_change|message|teleport|apply_effect|tag_add|tag_remove
+	// xp_drain|xp_gain|xp_set|bind_point_set|hp_change|stamina_change|mana_change|message|send_message|teleport|apply_effect|tag_add|tag_remove
 	EffectType string `json:"effect_type,omitempty"`
-	// Type-specific params: {amount:500}, {room_id:12}, etc.
+	// Type-specific params: {amount:500}, {room_id:12}, etc. send_message: {message:"...",channel:"room"|"yell"|"shout"|"tell"|"whisper"|"chat"|"newbie"|"trade"|"ooc"|"admin"|"emote",target_type:"player"|"npc",target_id:123}
 	Parameters map[string]interface{} `json:"parameters,omitempty"`
 	// replace|refresh|stack — how stacking works
 	StackMode string `json:"stack_mode,omitempty"`

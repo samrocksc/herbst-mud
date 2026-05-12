@@ -3,8 +3,10 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/db"
 	"herbst-server/service"
 )
 
@@ -45,13 +47,23 @@ func createRoom(svc *service.Container) gin.HandlerFunc {
 	}
 }
 
-// listRooms returns all rooms.
+// listRooms returns all rooms, optionally filtered by name.
 func listRooms(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rooms, err := svc.Room.ListRooms(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		if search := c.Query("search"); search != "" {
+			s := strings.ToLower(search)
+			filtered := make([]*db.Room, 0, len(rooms))
+			for _, r := range rooms {
+				if strings.Contains(strings.ToLower(r.Name), s) {
+					filtered = append(filtered, r)
+				}
+			}
+			rooms = filtered
 		}
 		c.JSON(http.StatusOK, rooms)
 	}

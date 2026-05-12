@@ -2,8 +2,11 @@ package routes
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/db"
 	"herbst-server/repository"
 	"herbst-server/service"
 )
@@ -74,13 +77,26 @@ func createCharacter(svc *service.Container, repos *repository.Container) gin.Ha
 	}
 }
 
-// listCharacters handles GET /characters.
+// listCharacters handles GET /characters, optionally filtered by name or ID.
 func listCharacters(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		characters, err := repos.Character.ListAll(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		if search := c.Query("search"); search != "" {
+			s := strings.ToLower(search)
+			filtered := make([]*db.Character, 0, len(characters))
+			for _, ch := range characters {
+				// Match by name or by ID
+				nameMatch := strings.Contains(strings.ToLower(ch.Name), s)
+				idMatch := strings.Contains(strings.ToLower(strconv.Itoa(ch.ID)), s)
+				if nameMatch || idMatch {
+					filtered = append(filtered, ch)
+				}
+			}
+			characters = filtered
 		}
 		c.JSON(http.StatusOK, characters)
 	}

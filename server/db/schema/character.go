@@ -133,5 +133,8 @@ func (Character) Edges() []ent.Edge {
 		edge.To("competencies", CharacterCompetency.Type),
 		edge.To("active_effects", ActiveEffect.Type),
 		edge.To("quest_progress", QuestProgress.Type),
+		edge.To("channelSettings", CharacterChannel.Type),
+		edge.To("ignoring", CharacterIgnore.Type),
+		edge.To("tellQueue", TellQueue.Type),
 	}
 }

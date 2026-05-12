@@ -32,7 +32,6 @@ export function useMapState() {
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
-  const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -185,7 +184,7 @@ export function useMapState() {
     rooms, roomsLoading, selectedRoom, setSelectedRoom: handleSelectRoom,
     zoom, panOffset, currentZLevel, setCurrentZLevel: handleSetZLevel,
     sidebarOpen, setSidebarOpen, isDragging,
-    showCreateModal, setShowCreateModal, editingRoom, setEditingRoom,
+    editingRoom, setEditingRoom,
     toast, showToast,
     viewportRef, handleWheel, handleZoom, handleResetView,
     handleRelayout, handleDragStart, handleRoomDragEnd, handleEditRoom,

@@ -168,3 +168,7 @@ func (s *characterService) SyncRaceTags(ctx context.Context, characterID int, ra
 	}
 	return nil
 }
+
+func (s *characterService) QueryCharacterByName(ctx context.Context, name string) (*db.Character, error) {
+	return s.repos.Character.GetByName(ctx, name)
+}

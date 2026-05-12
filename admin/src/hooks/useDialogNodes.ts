@@ -36,8 +36,8 @@ export function useDialogNodes(templateId: string) {
   return useQuery({
     queryKey: ['dialog-nodes', templateId],
     queryFn: async (): Promise<DialogNode[]> => {
-      const data = await apiGet<{ nodes: DialogNode[] }>(`${API}/api/npc-templates/${templateId}/dialog-nodes`)
-      return data.nodes ?? []
+      const data = await apiGet<{ dialog_nodes: DialogNode[] }>(`${API}/api/npc-templates/${templateId}/dialog-nodes`)
+      return data.dialog_nodes ?? []
     },
     enabled: !!templateId,
   })

@@ -3,8 +3,10 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/db"
 	"herbst-server/repository"
 )
 
@@ -14,6 +16,16 @@ func listEffectDefs(repos *repository.Container) gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		if search := c.Query("search"); search != "" {
+			s := strings.ToLower(search)
+			filtered := make([]*db.Effect, 0, len(effects))
+			for _, e := range effects {
+				if strings.Contains(strings.ToLower(e.Name), s) {
+					filtered = append(filtered, e)
+				}
+			}
+			effects = filtered
 		}
 		result := make([]effectDefView, len(effects))
 		for i, e := range effects {

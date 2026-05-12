@@ -69,6 +69,15 @@ func equipmentBaseFields() []ent.Field {
 		field.String("revealCondition").
 			Default("").
 			Comment("JSON: {type: examine|perception_check|use_item|event, target, minLevel}"),
+		field.String("examineDesc").
+			Default("").
+			Comment("Detailed description shown with examine command"),
+		field.JSON("hiddenDetails", []map[string]any{}).
+			Default([]map[string]any{}).
+			Comment("Details revealed based on examine skill"),
+		field.Int("hiddenThreshold").
+			Default(0).
+			Comment("Examine skill required to reveal hidden details"),
 		field.Time("expiresAt").
 			Optional().
 			Nillable().

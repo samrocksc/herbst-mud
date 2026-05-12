@@ -13,8 +13,10 @@ import (
 	"herbst-server/db/applog"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
+	"herbst-server/db/characterchannel"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
+	"herbst-server/db/characterignore"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
@@ -37,7 +39,9 @@ import (
 	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/schema"
+	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
+	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
 	"sync"
 	"time"
@@ -62,8 +66,10 @@ const (
 	TypeAppLog                   = "AppLog"
 	TypeCharacter                = "Character"
 	TypeCharacterAbility         = "CharacterAbility"
+	TypeCharacterChannel         = "CharacterChannel"
 	TypeCharacterCompetency      = "CharacterCompetency"
 	TypeCharacterFaction         = "CharacterFaction"
+	TypeCharacterIgnore          = "CharacterIgnore"
 	TypeCharacterTag             = "CharacterTag"
 	TypeCompetencyCategory       = "CompetencyCategory"
 	TypeCompetencyLevelThreshold = "CompetencyLevelThreshold"
@@ -84,7 +90,9 @@ const (
 	TypeQuestProgress            = "QuestProgress"
 	TypeRace                     = "Race"
 	TypeRoom                     = "Room"
+	TypeSocialCommand            = "SocialCommand"
 	TypeTag                      = "Tag"
+	TypeTellQueue                = "TellQueue"
 	TypeUser                     = "User"
 )
 
@@ -5166,6 +5174,15 @@ type CharacterMutation struct {
 	quest_progress             map[int]struct{}
 	removedquest_progress      map[int]struct{}
 	clearedquest_progress      bool
+	channelSettings            map[int]struct{}
+	removedchannelSettings     map[int]struct{}
+	clearedchannelSettings     bool
+	ignoring                   map[int]struct{}
+	removedignoring            map[int]struct{}
+	clearedignoring            bool
+	tellQueue                  map[int]struct{}
+	removedtellQueue           map[int]struct{}
+	clearedtellQueue           bool
 	done                       bool
 	oldValue                   func(context.Context) (*Character, error)
 	predicates                 []predicate.Character
@@ -7871,6 +7888,168 @@ func (m *CharacterMutation) ResetQuestProgress() {
 	m.removedquest_progress = nil
 }
 
+// AddChannelSettingIDs adds the "channelSettings" edge to the CharacterChannel entity by ids.
+func (m *CharacterMutation) AddChannelSettingIDs(ids ...int) {
+	if m.channelSettings == nil {
+		m.channelSettings = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.channelSettings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChannelSettings clears the "channelSettings" edge to the CharacterChannel entity.
+func (m *CharacterMutation) ClearChannelSettings() {
+	m.clearedchannelSettings = true
+}
+
+// ChannelSettingsCleared reports if the "channelSettings" edge to the CharacterChannel entity was cleared.
+func (m *CharacterMutation) ChannelSettingsCleared() bool {
+	return m.clearedchannelSettings
+}
+
+// RemoveChannelSettingIDs removes the "channelSettings" edge to the CharacterChannel entity by IDs.
+func (m *CharacterMutation) RemoveChannelSettingIDs(ids ...int) {
+	if m.removedchannelSettings == nil {
+		m.removedchannelSettings = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.channelSettings, ids[i])
+		m.removedchannelSettings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChannelSettings returns the removed IDs of the "channelSettings" edge to the CharacterChannel entity.
+func (m *CharacterMutation) RemovedChannelSettingsIDs() (ids []int) {
+	for id := range m.removedchannelSettings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChannelSettingsIDs returns the "channelSettings" edge IDs in the mutation.
+func (m *CharacterMutation) ChannelSettingsIDs() (ids []int) {
+	for id := range m.channelSettings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChannelSettings resets all changes to the "channelSettings" edge.
+func (m *CharacterMutation) ResetChannelSettings() {
+	m.channelSettings = nil
+	m.clearedchannelSettings = false
+	m.removedchannelSettings = nil
+}
+
+// AddIgnoringIDs adds the "ignoring" edge to the CharacterIgnore entity by ids.
+func (m *CharacterMutation) AddIgnoringIDs(ids ...int) {
+	if m.ignoring == nil {
+		m.ignoring = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.ignoring[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIgnoring clears the "ignoring" edge to the CharacterIgnore entity.
+func (m *CharacterMutation) ClearIgnoring() {
+	m.clearedignoring = true
+}
+
+// IgnoringCleared reports if the "ignoring" edge to the CharacterIgnore entity was cleared.
+func (m *CharacterMutation) IgnoringCleared() bool {
+	return m.clearedignoring
+}
+
+// RemoveIgnoringIDs removes the "ignoring" edge to the CharacterIgnore entity by IDs.
+func (m *CharacterMutation) RemoveIgnoringIDs(ids ...int) {
+	if m.removedignoring == nil {
+		m.removedignoring = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.ignoring, ids[i])
+		m.removedignoring[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIgnoring returns the removed IDs of the "ignoring" edge to the CharacterIgnore entity.
+func (m *CharacterMutation) RemovedIgnoringIDs() (ids []int) {
+	for id := range m.removedignoring {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IgnoringIDs returns the "ignoring" edge IDs in the mutation.
+func (m *CharacterMutation) IgnoringIDs() (ids []int) {
+	for id := range m.ignoring {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIgnoring resets all changes to the "ignoring" edge.
+func (m *CharacterMutation) ResetIgnoring() {
+	m.ignoring = nil
+	m.clearedignoring = false
+	m.removedignoring = nil
+}
+
+// AddTellQueueIDs adds the "tellQueue" edge to the TellQueue entity by ids.
+func (m *CharacterMutation) AddTellQueueIDs(ids ...int) {
+	if m.tellQueue == nil {
+		m.tellQueue = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.tellQueue[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTellQueue clears the "tellQueue" edge to the TellQueue entity.
+func (m *CharacterMutation) ClearTellQueue() {
+	m.clearedtellQueue = true
+}
+
+// TellQueueCleared reports if the "tellQueue" edge to the TellQueue entity was cleared.
+func (m *CharacterMutation) TellQueueCleared() bool {
+	return m.clearedtellQueue
+}
+
+// RemoveTellQueueIDs removes the "tellQueue" edge to the TellQueue entity by IDs.
+func (m *CharacterMutation) RemoveTellQueueIDs(ids ...int) {
+	if m.removedtellQueue == nil {
+		m.removedtellQueue = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.tellQueue, ids[i])
+		m.removedtellQueue[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTellQueue returns the removed IDs of the "tellQueue" edge to the TellQueue entity.
+func (m *CharacterMutation) RemovedTellQueueIDs() (ids []int) {
+	for id := range m.removedtellQueue {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TellQueueIDs returns the "tellQueue" edge IDs in the mutation.
+func (m *CharacterMutation) TellQueueIDs() (ids []int) {
+	for id := range m.tellQueue {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTellQueue resets all changes to the "tellQueue" edge.
+func (m *CharacterMutation) ResetTellQueue() {
+	m.tellQueue = nil
+	m.clearedtellQueue = false
+	m.removedtellQueue = nil
+}
+
 // Where appends a list predicates to the CharacterMutation builder.
 func (m *CharacterMutation) Where(ps ...predicate.Character) {
 	m.predicates = append(m.predicates, ps...)
@@ -9084,7 +9263,7 @@ func (m *CharacterMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CharacterMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 12)
 	if m.user != nil {
 		edges = append(edges, character.EdgeUser)
 	}
@@ -9111,6 +9290,15 @@ func (m *CharacterMutation) AddedEdges() []string {
 	}
 	if m.quest_progress != nil {
 		edges = append(edges, character.EdgeQuestProgress)
+	}
+	if m.channelSettings != nil {
+		edges = append(edges, character.EdgeChannelSettings)
+	}
+	if m.ignoring != nil {
+		edges = append(edges, character.EdgeIgnoring)
+	}
+	if m.tellQueue != nil {
+		edges = append(edges, character.EdgeTellQueue)
 	}
 	return edges
 }
@@ -9167,13 +9355,31 @@ func (m *CharacterMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case character.EdgeChannelSettings:
+		ids := make([]ent.Value, 0, len(m.channelSettings))
+		for id := range m.channelSettings {
+			ids = append(ids, id)
+		}
+		return ids
+	case character.EdgeIgnoring:
+		ids := make([]ent.Value, 0, len(m.ignoring))
+		for id := range m.ignoring {
+			ids = append(ids, id)
+		}
+		return ids
+	case character.EdgeTellQueue:
+		ids := make([]ent.Value, 0, len(m.tellQueue))
+		for id := range m.tellQueue {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CharacterMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 12)
 	if m.removedabilities != nil {
 		edges = append(edges, character.EdgeAbilities)
 	}
@@ -9191,6 +9397,15 @@ func (m *CharacterMutation) RemovedEdges() []string {
 	}
 	if m.removedquest_progress != nil {
 		edges = append(edges, character.EdgeQuestProgress)
+	}
+	if m.removedchannelSettings != nil {
+		edges = append(edges, character.EdgeChannelSettings)
+	}
+	if m.removedignoring != nil {
+		edges = append(edges, character.EdgeIgnoring)
+	}
+	if m.removedtellQueue != nil {
+		edges = append(edges, character.EdgeTellQueue)
 	}
 	return edges
 }
@@ -9235,13 +9450,31 @@ func (m *CharacterMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case character.EdgeChannelSettings:
+		ids := make([]ent.Value, 0, len(m.removedchannelSettings))
+		for id := range m.removedchannelSettings {
+			ids = append(ids, id)
+		}
+		return ids
+	case character.EdgeIgnoring:
+		ids := make([]ent.Value, 0, len(m.removedignoring))
+		for id := range m.removedignoring {
+			ids = append(ids, id)
+		}
+		return ids
+	case character.EdgeTellQueue:
+		ids := make([]ent.Value, 0, len(m.removedtellQueue))
+		for id := range m.removedtellQueue {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CharacterMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 12)
 	if m.cleareduser {
 		edges = append(edges, character.EdgeUser)
 	}
@@ -9269,6 +9502,15 @@ func (m *CharacterMutation) ClearedEdges() []string {
 	if m.clearedquest_progress {
 		edges = append(edges, character.EdgeQuestProgress)
 	}
+	if m.clearedchannelSettings {
+		edges = append(edges, character.EdgeChannelSettings)
+	}
+	if m.clearedignoring {
+		edges = append(edges, character.EdgeIgnoring)
+	}
+	if m.clearedtellQueue {
+		edges = append(edges, character.EdgeTellQueue)
+	}
 	return edges
 }
 
@@ -9294,6 +9536,12 @@ func (m *CharacterMutation) EdgeCleared(name string) bool {
 		return m.clearedactive_effects
 	case character.EdgeQuestProgress:
 		return m.clearedquest_progress
+	case character.EdgeChannelSettings:
+		return m.clearedchannelSettings
+	case character.EdgeIgnoring:
+		return m.clearedignoring
+	case character.EdgeTellQueue:
+		return m.clearedtellQueue
 	}
 	return false
 }
@@ -9345,6 +9593,15 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 		return nil
 	case character.EdgeQuestProgress:
 		m.ResetQuestProgress()
+		return nil
+	case character.EdgeChannelSettings:
+		m.ResetChannelSettings()
+		return nil
+	case character.EdgeIgnoring:
+		m.ResetIgnoring()
+		return nil
+	case character.EdgeTellQueue:
+		m.ResetTellQueue()
 		return nil
 	}
 	return fmt.Errorf("unknown Character edge %s", name)
@@ -9836,6 +10093,939 @@ func (m *CharacterAbilityMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CharacterAbility edge %s", name)
+}
+
+// CharacterChannelMutation represents an operation that mutates the CharacterChannel nodes in the graph.
+type CharacterChannelMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	chatEnabled      *bool
+	newbieEnabled    *bool
+	tradeEnabled     *bool
+	clanEnabled      *bool
+	auctionEnabled   *bool
+	chatColor        *string
+	newbieColor      *string
+	tradeColor       *string
+	clanColor        *string
+	timestamps       *bool
+	profanityFilter  *bool
+	clearedFields    map[string]struct{}
+	character        *int
+	clearedcharacter bool
+	done             bool
+	oldValue         func(context.Context) (*CharacterChannel, error)
+	predicates       []predicate.CharacterChannel
+}
+
+var _ ent.Mutation = (*CharacterChannelMutation)(nil)
+
+// characterchannelOption allows management of the mutation configuration using functional options.
+type characterchannelOption func(*CharacterChannelMutation)
+
+// newCharacterChannelMutation creates new mutation for the CharacterChannel entity.
+func newCharacterChannelMutation(c config, op Op, opts ...characterchannelOption) *CharacterChannelMutation {
+	m := &CharacterChannelMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCharacterChannel,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCharacterChannelID sets the ID field of the mutation.
+func withCharacterChannelID(id int) characterchannelOption {
+	return func(m *CharacterChannelMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CharacterChannel
+		)
+		m.oldValue = func(ctx context.Context) (*CharacterChannel, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CharacterChannel.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCharacterChannel sets the old CharacterChannel of the mutation.
+func withCharacterChannel(node *CharacterChannel) characterchannelOption {
+	return func(m *CharacterChannelMutation) {
+		m.oldValue = func(context.Context) (*CharacterChannel, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CharacterChannelMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CharacterChannelMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CharacterChannelMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CharacterChannelMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CharacterChannel.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetChatEnabled sets the "chatEnabled" field.
+func (m *CharacterChannelMutation) SetChatEnabled(b bool) {
+	m.chatEnabled = &b
+}
+
+// ChatEnabled returns the value of the "chatEnabled" field in the mutation.
+func (m *CharacterChannelMutation) ChatEnabled() (r bool, exists bool) {
+	v := m.chatEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChatEnabled returns the old "chatEnabled" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldChatEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChatEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChatEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChatEnabled: %w", err)
+	}
+	return oldValue.ChatEnabled, nil
+}
+
+// ResetChatEnabled resets all changes to the "chatEnabled" field.
+func (m *CharacterChannelMutation) ResetChatEnabled() {
+	m.chatEnabled = nil
+}
+
+// SetNewbieEnabled sets the "newbieEnabled" field.
+func (m *CharacterChannelMutation) SetNewbieEnabled(b bool) {
+	m.newbieEnabled = &b
+}
+
+// NewbieEnabled returns the value of the "newbieEnabled" field in the mutation.
+func (m *CharacterChannelMutation) NewbieEnabled() (r bool, exists bool) {
+	v := m.newbieEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewbieEnabled returns the old "newbieEnabled" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldNewbieEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNewbieEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNewbieEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewbieEnabled: %w", err)
+	}
+	return oldValue.NewbieEnabled, nil
+}
+
+// ResetNewbieEnabled resets all changes to the "newbieEnabled" field.
+func (m *CharacterChannelMutation) ResetNewbieEnabled() {
+	m.newbieEnabled = nil
+}
+
+// SetTradeEnabled sets the "tradeEnabled" field.
+func (m *CharacterChannelMutation) SetTradeEnabled(b bool) {
+	m.tradeEnabled = &b
+}
+
+// TradeEnabled returns the value of the "tradeEnabled" field in the mutation.
+func (m *CharacterChannelMutation) TradeEnabled() (r bool, exists bool) {
+	v := m.tradeEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTradeEnabled returns the old "tradeEnabled" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldTradeEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTradeEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTradeEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTradeEnabled: %w", err)
+	}
+	return oldValue.TradeEnabled, nil
+}
+
+// ResetTradeEnabled resets all changes to the "tradeEnabled" field.
+func (m *CharacterChannelMutation) ResetTradeEnabled() {
+	m.tradeEnabled = nil
+}
+
+// SetClanEnabled sets the "clanEnabled" field.
+func (m *CharacterChannelMutation) SetClanEnabled(b bool) {
+	m.clanEnabled = &b
+}
+
+// ClanEnabled returns the value of the "clanEnabled" field in the mutation.
+func (m *CharacterChannelMutation) ClanEnabled() (r bool, exists bool) {
+	v := m.clanEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClanEnabled returns the old "clanEnabled" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldClanEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClanEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClanEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClanEnabled: %w", err)
+	}
+	return oldValue.ClanEnabled, nil
+}
+
+// ResetClanEnabled resets all changes to the "clanEnabled" field.
+func (m *CharacterChannelMutation) ResetClanEnabled() {
+	m.clanEnabled = nil
+}
+
+// SetAuctionEnabled sets the "auctionEnabled" field.
+func (m *CharacterChannelMutation) SetAuctionEnabled(b bool) {
+	m.auctionEnabled = &b
+}
+
+// AuctionEnabled returns the value of the "auctionEnabled" field in the mutation.
+func (m *CharacterChannelMutation) AuctionEnabled() (r bool, exists bool) {
+	v := m.auctionEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAuctionEnabled returns the old "auctionEnabled" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldAuctionEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAuctionEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAuctionEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAuctionEnabled: %w", err)
+	}
+	return oldValue.AuctionEnabled, nil
+}
+
+// ResetAuctionEnabled resets all changes to the "auctionEnabled" field.
+func (m *CharacterChannelMutation) ResetAuctionEnabled() {
+	m.auctionEnabled = nil
+}
+
+// SetChatColor sets the "chatColor" field.
+func (m *CharacterChannelMutation) SetChatColor(s string) {
+	m.chatColor = &s
+}
+
+// ChatColor returns the value of the "chatColor" field in the mutation.
+func (m *CharacterChannelMutation) ChatColor() (r string, exists bool) {
+	v := m.chatColor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChatColor returns the old "chatColor" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldChatColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChatColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChatColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChatColor: %w", err)
+	}
+	return oldValue.ChatColor, nil
+}
+
+// ResetChatColor resets all changes to the "chatColor" field.
+func (m *CharacterChannelMutation) ResetChatColor() {
+	m.chatColor = nil
+}
+
+// SetNewbieColor sets the "newbieColor" field.
+func (m *CharacterChannelMutation) SetNewbieColor(s string) {
+	m.newbieColor = &s
+}
+
+// NewbieColor returns the value of the "newbieColor" field in the mutation.
+func (m *CharacterChannelMutation) NewbieColor() (r string, exists bool) {
+	v := m.newbieColor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewbieColor returns the old "newbieColor" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldNewbieColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNewbieColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNewbieColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewbieColor: %w", err)
+	}
+	return oldValue.NewbieColor, nil
+}
+
+// ResetNewbieColor resets all changes to the "newbieColor" field.
+func (m *CharacterChannelMutation) ResetNewbieColor() {
+	m.newbieColor = nil
+}
+
+// SetTradeColor sets the "tradeColor" field.
+func (m *CharacterChannelMutation) SetTradeColor(s string) {
+	m.tradeColor = &s
+}
+
+// TradeColor returns the value of the "tradeColor" field in the mutation.
+func (m *CharacterChannelMutation) TradeColor() (r string, exists bool) {
+	v := m.tradeColor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTradeColor returns the old "tradeColor" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldTradeColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTradeColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTradeColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTradeColor: %w", err)
+	}
+	return oldValue.TradeColor, nil
+}
+
+// ResetTradeColor resets all changes to the "tradeColor" field.
+func (m *CharacterChannelMutation) ResetTradeColor() {
+	m.tradeColor = nil
+}
+
+// SetClanColor sets the "clanColor" field.
+func (m *CharacterChannelMutation) SetClanColor(s string) {
+	m.clanColor = &s
+}
+
+// ClanColor returns the value of the "clanColor" field in the mutation.
+func (m *CharacterChannelMutation) ClanColor() (r string, exists bool) {
+	v := m.clanColor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClanColor returns the old "clanColor" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldClanColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClanColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClanColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClanColor: %w", err)
+	}
+	return oldValue.ClanColor, nil
+}
+
+// ResetClanColor resets all changes to the "clanColor" field.
+func (m *CharacterChannelMutation) ResetClanColor() {
+	m.clanColor = nil
+}
+
+// SetTimestamps sets the "timestamps" field.
+func (m *CharacterChannelMutation) SetTimestamps(b bool) {
+	m.timestamps = &b
+}
+
+// Timestamps returns the value of the "timestamps" field in the mutation.
+func (m *CharacterChannelMutation) Timestamps() (r bool, exists bool) {
+	v := m.timestamps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimestamps returns the old "timestamps" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldTimestamps(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimestamps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimestamps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimestamps: %w", err)
+	}
+	return oldValue.Timestamps, nil
+}
+
+// ResetTimestamps resets all changes to the "timestamps" field.
+func (m *CharacterChannelMutation) ResetTimestamps() {
+	m.timestamps = nil
+}
+
+// SetProfanityFilter sets the "profanityFilter" field.
+func (m *CharacterChannelMutation) SetProfanityFilter(b bool) {
+	m.profanityFilter = &b
+}
+
+// ProfanityFilter returns the value of the "profanityFilter" field in the mutation.
+func (m *CharacterChannelMutation) ProfanityFilter() (r bool, exists bool) {
+	v := m.profanityFilter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfanityFilter returns the old "profanityFilter" field's value of the CharacterChannel entity.
+// If the CharacterChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterChannelMutation) OldProfanityFilter(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfanityFilter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfanityFilter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfanityFilter: %w", err)
+	}
+	return oldValue.ProfanityFilter, nil
+}
+
+// ResetProfanityFilter resets all changes to the "profanityFilter" field.
+func (m *CharacterChannelMutation) ResetProfanityFilter() {
+	m.profanityFilter = nil
+}
+
+// SetCharacterID sets the "character" edge to the Character entity by id.
+func (m *CharacterChannelMutation) SetCharacterID(id int) {
+	m.character = &id
+}
+
+// ClearCharacter clears the "character" edge to the Character entity.
+func (m *CharacterChannelMutation) ClearCharacter() {
+	m.clearedcharacter = true
+}
+
+// CharacterCleared reports if the "character" edge to the Character entity was cleared.
+func (m *CharacterChannelMutation) CharacterCleared() bool {
+	return m.clearedcharacter
+}
+
+// CharacterID returns the "character" edge ID in the mutation.
+func (m *CharacterChannelMutation) CharacterID() (id int, exists bool) {
+	if m.character != nil {
+		return *m.character, true
+	}
+	return
+}
+
+// CharacterIDs returns the "character" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CharacterID instead. It exists only for internal usage by the builders.
+func (m *CharacterChannelMutation) CharacterIDs() (ids []int) {
+	if id := m.character; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCharacter resets all changes to the "character" edge.
+func (m *CharacterChannelMutation) ResetCharacter() {
+	m.character = nil
+	m.clearedcharacter = false
+}
+
+// Where appends a list predicates to the CharacterChannelMutation builder.
+func (m *CharacterChannelMutation) Where(ps ...predicate.CharacterChannel) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CharacterChannelMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CharacterChannelMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CharacterChannel, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CharacterChannelMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CharacterChannelMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CharacterChannel).
+func (m *CharacterChannelMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CharacterChannelMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.chatEnabled != nil {
+		fields = append(fields, characterchannel.FieldChatEnabled)
+	}
+	if m.newbieEnabled != nil {
+		fields = append(fields, characterchannel.FieldNewbieEnabled)
+	}
+	if m.tradeEnabled != nil {
+		fields = append(fields, characterchannel.FieldTradeEnabled)
+	}
+	if m.clanEnabled != nil {
+		fields = append(fields, characterchannel.FieldClanEnabled)
+	}
+	if m.auctionEnabled != nil {
+		fields = append(fields, characterchannel.FieldAuctionEnabled)
+	}
+	if m.chatColor != nil {
+		fields = append(fields, characterchannel.FieldChatColor)
+	}
+	if m.newbieColor != nil {
+		fields = append(fields, characterchannel.FieldNewbieColor)
+	}
+	if m.tradeColor != nil {
+		fields = append(fields, characterchannel.FieldTradeColor)
+	}
+	if m.clanColor != nil {
+		fields = append(fields, characterchannel.FieldClanColor)
+	}
+	if m.timestamps != nil {
+		fields = append(fields, characterchannel.FieldTimestamps)
+	}
+	if m.profanityFilter != nil {
+		fields = append(fields, characterchannel.FieldProfanityFilter)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CharacterChannelMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case characterchannel.FieldChatEnabled:
+		return m.ChatEnabled()
+	case characterchannel.FieldNewbieEnabled:
+		return m.NewbieEnabled()
+	case characterchannel.FieldTradeEnabled:
+		return m.TradeEnabled()
+	case characterchannel.FieldClanEnabled:
+		return m.ClanEnabled()
+	case characterchannel.FieldAuctionEnabled:
+		return m.AuctionEnabled()
+	case characterchannel.FieldChatColor:
+		return m.ChatColor()
+	case characterchannel.FieldNewbieColor:
+		return m.NewbieColor()
+	case characterchannel.FieldTradeColor:
+		return m.TradeColor()
+	case characterchannel.FieldClanColor:
+		return m.ClanColor()
+	case characterchannel.FieldTimestamps:
+		return m.Timestamps()
+	case characterchannel.FieldProfanityFilter:
+		return m.ProfanityFilter()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CharacterChannelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case characterchannel.FieldChatEnabled:
+		return m.OldChatEnabled(ctx)
+	case characterchannel.FieldNewbieEnabled:
+		return m.OldNewbieEnabled(ctx)
+	case characterchannel.FieldTradeEnabled:
+		return m.OldTradeEnabled(ctx)
+	case characterchannel.FieldClanEnabled:
+		return m.OldClanEnabled(ctx)
+	case characterchannel.FieldAuctionEnabled:
+		return m.OldAuctionEnabled(ctx)
+	case characterchannel.FieldChatColor:
+		return m.OldChatColor(ctx)
+	case characterchannel.FieldNewbieColor:
+		return m.OldNewbieColor(ctx)
+	case characterchannel.FieldTradeColor:
+		return m.OldTradeColor(ctx)
+	case characterchannel.FieldClanColor:
+		return m.OldClanColor(ctx)
+	case characterchannel.FieldTimestamps:
+		return m.OldTimestamps(ctx)
+	case characterchannel.FieldProfanityFilter:
+		return m.OldProfanityFilter(ctx)
+	}
+	return nil, fmt.Errorf("unknown CharacterChannel field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterChannelMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case characterchannel.FieldChatEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChatEnabled(v)
+		return nil
+	case characterchannel.FieldNewbieEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewbieEnabled(v)
+		return nil
+	case characterchannel.FieldTradeEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTradeEnabled(v)
+		return nil
+	case characterchannel.FieldClanEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClanEnabled(v)
+		return nil
+	case characterchannel.FieldAuctionEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAuctionEnabled(v)
+		return nil
+	case characterchannel.FieldChatColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChatColor(v)
+		return nil
+	case characterchannel.FieldNewbieColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewbieColor(v)
+		return nil
+	case characterchannel.FieldTradeColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTradeColor(v)
+		return nil
+	case characterchannel.FieldClanColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClanColor(v)
+		return nil
+	case characterchannel.FieldTimestamps:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimestamps(v)
+		return nil
+	case characterchannel.FieldProfanityFilter:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfanityFilter(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterChannel field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CharacterChannelMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CharacterChannelMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterChannelMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CharacterChannel numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CharacterChannelMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CharacterChannelMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CharacterChannelMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CharacterChannel nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CharacterChannelMutation) ResetField(name string) error {
+	switch name {
+	case characterchannel.FieldChatEnabled:
+		m.ResetChatEnabled()
+		return nil
+	case characterchannel.FieldNewbieEnabled:
+		m.ResetNewbieEnabled()
+		return nil
+	case characterchannel.FieldTradeEnabled:
+		m.ResetTradeEnabled()
+		return nil
+	case characterchannel.FieldClanEnabled:
+		m.ResetClanEnabled()
+		return nil
+	case characterchannel.FieldAuctionEnabled:
+		m.ResetAuctionEnabled()
+		return nil
+	case characterchannel.FieldChatColor:
+		m.ResetChatColor()
+		return nil
+	case characterchannel.FieldNewbieColor:
+		m.ResetNewbieColor()
+		return nil
+	case characterchannel.FieldTradeColor:
+		m.ResetTradeColor()
+		return nil
+	case characterchannel.FieldClanColor:
+		m.ResetClanColor()
+		return nil
+	case characterchannel.FieldTimestamps:
+		m.ResetTimestamps()
+		return nil
+	case characterchannel.FieldProfanityFilter:
+		m.ResetProfanityFilter()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterChannel field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CharacterChannelMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.character != nil {
+		edges = append(edges, characterchannel.EdgeCharacter)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CharacterChannelMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case characterchannel.EdgeCharacter:
+		if id := m.character; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CharacterChannelMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CharacterChannelMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CharacterChannelMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedcharacter {
+		edges = append(edges, characterchannel.EdgeCharacter)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CharacterChannelMutation) EdgeCleared(name string) bool {
+	switch name {
+	case characterchannel.EdgeCharacter:
+		return m.clearedcharacter
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CharacterChannelMutation) ClearEdge(name string) error {
+	switch name {
+	case characterchannel.EdgeCharacter:
+		m.ClearCharacter()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterChannel unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CharacterChannelMutation) ResetEdge(name string) error {
+	switch name {
+	case characterchannel.EdgeCharacter:
+		m.ResetCharacter()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterChannel edge %s", name)
 }
 
 // CharacterCompetencyMutation represents an operation that mutates the CharacterCompetency nodes in the graph.
@@ -11007,6 +12197,565 @@ func (m *CharacterFactionMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CharacterFaction edge %s", name)
+}
+
+// CharacterIgnoreMutation represents an operation that mutates the CharacterIgnore nodes in the graph.
+type CharacterIgnoreMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	ignoredCharacterId    *int
+	addignoredCharacterId *int
+	ignoredAt             *time.Time
+	reason                *string
+	clearedFields         map[string]struct{}
+	ignorer               *int
+	clearedignorer        bool
+	done                  bool
+	oldValue              func(context.Context) (*CharacterIgnore, error)
+	predicates            []predicate.CharacterIgnore
+}
+
+var _ ent.Mutation = (*CharacterIgnoreMutation)(nil)
+
+// characterignoreOption allows management of the mutation configuration using functional options.
+type characterignoreOption func(*CharacterIgnoreMutation)
+
+// newCharacterIgnoreMutation creates new mutation for the CharacterIgnore entity.
+func newCharacterIgnoreMutation(c config, op Op, opts ...characterignoreOption) *CharacterIgnoreMutation {
+	m := &CharacterIgnoreMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCharacterIgnore,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCharacterIgnoreID sets the ID field of the mutation.
+func withCharacterIgnoreID(id int) characterignoreOption {
+	return func(m *CharacterIgnoreMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CharacterIgnore
+		)
+		m.oldValue = func(ctx context.Context) (*CharacterIgnore, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CharacterIgnore.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCharacterIgnore sets the old CharacterIgnore of the mutation.
+func withCharacterIgnore(node *CharacterIgnore) characterignoreOption {
+	return func(m *CharacterIgnoreMutation) {
+		m.oldValue = func(context.Context) (*CharacterIgnore, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CharacterIgnoreMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CharacterIgnoreMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CharacterIgnoreMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CharacterIgnoreMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CharacterIgnore.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetIgnoredCharacterId sets the "ignoredCharacterId" field.
+func (m *CharacterIgnoreMutation) SetIgnoredCharacterId(i int) {
+	m.ignoredCharacterId = &i
+	m.addignoredCharacterId = nil
+}
+
+// IgnoredCharacterId returns the value of the "ignoredCharacterId" field in the mutation.
+func (m *CharacterIgnoreMutation) IgnoredCharacterId() (r int, exists bool) {
+	v := m.ignoredCharacterId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIgnoredCharacterId returns the old "ignoredCharacterId" field's value of the CharacterIgnore entity.
+// If the CharacterIgnore object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterIgnoreMutation) OldIgnoredCharacterId(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIgnoredCharacterId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIgnoredCharacterId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIgnoredCharacterId: %w", err)
+	}
+	return oldValue.IgnoredCharacterId, nil
+}
+
+// AddIgnoredCharacterId adds i to the "ignoredCharacterId" field.
+func (m *CharacterIgnoreMutation) AddIgnoredCharacterId(i int) {
+	if m.addignoredCharacterId != nil {
+		*m.addignoredCharacterId += i
+	} else {
+		m.addignoredCharacterId = &i
+	}
+}
+
+// AddedIgnoredCharacterId returns the value that was added to the "ignoredCharacterId" field in this mutation.
+func (m *CharacterIgnoreMutation) AddedIgnoredCharacterId() (r int, exists bool) {
+	v := m.addignoredCharacterId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIgnoredCharacterId resets all changes to the "ignoredCharacterId" field.
+func (m *CharacterIgnoreMutation) ResetIgnoredCharacterId() {
+	m.ignoredCharacterId = nil
+	m.addignoredCharacterId = nil
+}
+
+// SetIgnoredAt sets the "ignoredAt" field.
+func (m *CharacterIgnoreMutation) SetIgnoredAt(t time.Time) {
+	m.ignoredAt = &t
+}
+
+// IgnoredAt returns the value of the "ignoredAt" field in the mutation.
+func (m *CharacterIgnoreMutation) IgnoredAt() (r time.Time, exists bool) {
+	v := m.ignoredAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIgnoredAt returns the old "ignoredAt" field's value of the CharacterIgnore entity.
+// If the CharacterIgnore object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterIgnoreMutation) OldIgnoredAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIgnoredAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIgnoredAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIgnoredAt: %w", err)
+	}
+	return oldValue.IgnoredAt, nil
+}
+
+// ResetIgnoredAt resets all changes to the "ignoredAt" field.
+func (m *CharacterIgnoreMutation) ResetIgnoredAt() {
+	m.ignoredAt = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *CharacterIgnoreMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *CharacterIgnoreMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the CharacterIgnore entity.
+// If the CharacterIgnore object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterIgnoreMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ClearReason clears the value of the "reason" field.
+func (m *CharacterIgnoreMutation) ClearReason() {
+	m.reason = nil
+	m.clearedFields[characterignore.FieldReason] = struct{}{}
+}
+
+// ReasonCleared returns if the "reason" field was cleared in this mutation.
+func (m *CharacterIgnoreMutation) ReasonCleared() bool {
+	_, ok := m.clearedFields[characterignore.FieldReason]
+	return ok
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *CharacterIgnoreMutation) ResetReason() {
+	m.reason = nil
+	delete(m.clearedFields, characterignore.FieldReason)
+}
+
+// SetIgnorerID sets the "ignorer" edge to the Character entity by id.
+func (m *CharacterIgnoreMutation) SetIgnorerID(id int) {
+	m.ignorer = &id
+}
+
+// ClearIgnorer clears the "ignorer" edge to the Character entity.
+func (m *CharacterIgnoreMutation) ClearIgnorer() {
+	m.clearedignorer = true
+}
+
+// IgnorerCleared reports if the "ignorer" edge to the Character entity was cleared.
+func (m *CharacterIgnoreMutation) IgnorerCleared() bool {
+	return m.clearedignorer
+}
+
+// IgnorerID returns the "ignorer" edge ID in the mutation.
+func (m *CharacterIgnoreMutation) IgnorerID() (id int, exists bool) {
+	if m.ignorer != nil {
+		return *m.ignorer, true
+	}
+	return
+}
+
+// IgnorerIDs returns the "ignorer" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// IgnorerID instead. It exists only for internal usage by the builders.
+func (m *CharacterIgnoreMutation) IgnorerIDs() (ids []int) {
+	if id := m.ignorer; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetIgnorer resets all changes to the "ignorer" edge.
+func (m *CharacterIgnoreMutation) ResetIgnorer() {
+	m.ignorer = nil
+	m.clearedignorer = false
+}
+
+// Where appends a list predicates to the CharacterIgnoreMutation builder.
+func (m *CharacterIgnoreMutation) Where(ps ...predicate.CharacterIgnore) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CharacterIgnoreMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CharacterIgnoreMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CharacterIgnore, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CharacterIgnoreMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CharacterIgnoreMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CharacterIgnore).
+func (m *CharacterIgnoreMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CharacterIgnoreMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.ignoredCharacterId != nil {
+		fields = append(fields, characterignore.FieldIgnoredCharacterId)
+	}
+	if m.ignoredAt != nil {
+		fields = append(fields, characterignore.FieldIgnoredAt)
+	}
+	if m.reason != nil {
+		fields = append(fields, characterignore.FieldReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CharacterIgnoreMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case characterignore.FieldIgnoredCharacterId:
+		return m.IgnoredCharacterId()
+	case characterignore.FieldIgnoredAt:
+		return m.IgnoredAt()
+	case characterignore.FieldReason:
+		return m.Reason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CharacterIgnoreMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case characterignore.FieldIgnoredCharacterId:
+		return m.OldIgnoredCharacterId(ctx)
+	case characterignore.FieldIgnoredAt:
+		return m.OldIgnoredAt(ctx)
+	case characterignore.FieldReason:
+		return m.OldReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown CharacterIgnore field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterIgnoreMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case characterignore.FieldIgnoredCharacterId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIgnoredCharacterId(v)
+		return nil
+	case characterignore.FieldIgnoredAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIgnoredAt(v)
+		return nil
+	case characterignore.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterIgnore field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CharacterIgnoreMutation) AddedFields() []string {
+	var fields []string
+	if m.addignoredCharacterId != nil {
+		fields = append(fields, characterignore.FieldIgnoredCharacterId)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CharacterIgnoreMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case characterignore.FieldIgnoredCharacterId:
+		return m.AddedIgnoredCharacterId()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterIgnoreMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case characterignore.FieldIgnoredCharacterId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIgnoredCharacterId(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterIgnore numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CharacterIgnoreMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(characterignore.FieldReason) {
+		fields = append(fields, characterignore.FieldReason)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CharacterIgnoreMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CharacterIgnoreMutation) ClearField(name string) error {
+	switch name {
+	case characterignore.FieldReason:
+		m.ClearReason()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterIgnore nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CharacterIgnoreMutation) ResetField(name string) error {
+	switch name {
+	case characterignore.FieldIgnoredCharacterId:
+		m.ResetIgnoredCharacterId()
+		return nil
+	case characterignore.FieldIgnoredAt:
+		m.ResetIgnoredAt()
+		return nil
+	case characterignore.FieldReason:
+		m.ResetReason()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterIgnore field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CharacterIgnoreMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.ignorer != nil {
+		edges = append(edges, characterignore.EdgeIgnorer)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CharacterIgnoreMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case characterignore.EdgeIgnorer:
+		if id := m.ignorer; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CharacterIgnoreMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CharacterIgnoreMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CharacterIgnoreMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedignorer {
+		edges = append(edges, characterignore.EdgeIgnorer)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CharacterIgnoreMutation) EdgeCleared(name string) bool {
+	switch name {
+	case characterignore.EdgeIgnorer:
+		return m.clearedignorer
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CharacterIgnoreMutation) ClearEdge(name string) error {
+	switch name {
+	case characterignore.EdgeIgnorer:
+		m.ClearIgnorer()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterIgnore unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CharacterIgnoreMutation) ResetEdge(name string) error {
+	switch name {
+	case characterignore.EdgeIgnorer:
+		m.ResetIgnorer()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterIgnore edge %s", name)
 }
 
 // CharacterTagMutation represents an operation that mutates the CharacterTag nodes in the graph.
@@ -15831,6 +17580,11 @@ type EquipmentMutation struct {
 	keyItemID                  *string
 	containedItems             *string
 	revealCondition            *string
+	examineDesc                *string
+	hiddenDetails              *[]map[string]interface{}
+	appendhiddenDetails        []map[string]interface{}
+	hiddenThreshold            *int
+	addhiddenThreshold         *int
 	expiresAt                  *time.Time
 	armor_rating               *int
 	addarmor_rating            *int
@@ -16965,6 +18719,149 @@ func (m *EquipmentMutation) ResetRevealCondition() {
 	m.revealCondition = nil
 }
 
+// SetExamineDesc sets the "examineDesc" field.
+func (m *EquipmentMutation) SetExamineDesc(s string) {
+	m.examineDesc = &s
+}
+
+// ExamineDesc returns the value of the "examineDesc" field in the mutation.
+func (m *EquipmentMutation) ExamineDesc() (r string, exists bool) {
+	v := m.examineDesc
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExamineDesc returns the old "examineDesc" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldExamineDesc(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExamineDesc is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExamineDesc requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExamineDesc: %w", err)
+	}
+	return oldValue.ExamineDesc, nil
+}
+
+// ResetExamineDesc resets all changes to the "examineDesc" field.
+func (m *EquipmentMutation) ResetExamineDesc() {
+	m.examineDesc = nil
+}
+
+// SetHiddenDetails sets the "hiddenDetails" field.
+func (m *EquipmentMutation) SetHiddenDetails(value []map[string]interface{}) {
+	m.hiddenDetails = &value
+	m.appendhiddenDetails = nil
+}
+
+// HiddenDetails returns the value of the "hiddenDetails" field in the mutation.
+func (m *EquipmentMutation) HiddenDetails() (r []map[string]interface{}, exists bool) {
+	v := m.hiddenDetails
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHiddenDetails returns the old "hiddenDetails" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldHiddenDetails(ctx context.Context) (v []map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHiddenDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHiddenDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHiddenDetails: %w", err)
+	}
+	return oldValue.HiddenDetails, nil
+}
+
+// AppendHiddenDetails adds value to the "hiddenDetails" field.
+func (m *EquipmentMutation) AppendHiddenDetails(value []map[string]interface{}) {
+	m.appendhiddenDetails = append(m.appendhiddenDetails, value...)
+}
+
+// AppendedHiddenDetails returns the list of values that were appended to the "hiddenDetails" field in this mutation.
+func (m *EquipmentMutation) AppendedHiddenDetails() ([]map[string]interface{}, bool) {
+	if len(m.appendhiddenDetails) == 0 {
+		return nil, false
+	}
+	return m.appendhiddenDetails, true
+}
+
+// ResetHiddenDetails resets all changes to the "hiddenDetails" field.
+func (m *EquipmentMutation) ResetHiddenDetails() {
+	m.hiddenDetails = nil
+	m.appendhiddenDetails = nil
+}
+
+// SetHiddenThreshold sets the "hiddenThreshold" field.
+func (m *EquipmentMutation) SetHiddenThreshold(i int) {
+	m.hiddenThreshold = &i
+	m.addhiddenThreshold = nil
+}
+
+// HiddenThreshold returns the value of the "hiddenThreshold" field in the mutation.
+func (m *EquipmentMutation) HiddenThreshold() (r int, exists bool) {
+	v := m.hiddenThreshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHiddenThreshold returns the old "hiddenThreshold" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldHiddenThreshold(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHiddenThreshold is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHiddenThreshold requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHiddenThreshold: %w", err)
+	}
+	return oldValue.HiddenThreshold, nil
+}
+
+// AddHiddenThreshold adds i to the "hiddenThreshold" field.
+func (m *EquipmentMutation) AddHiddenThreshold(i int) {
+	if m.addhiddenThreshold != nil {
+		*m.addhiddenThreshold += i
+	} else {
+		m.addhiddenThreshold = &i
+	}
+}
+
+// AddedHiddenThreshold returns the value that was added to the "hiddenThreshold" field in this mutation.
+func (m *EquipmentMutation) AddedHiddenThreshold() (r int, exists bool) {
+	v := m.addhiddenThreshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHiddenThreshold resets all changes to the "hiddenThreshold" field.
+func (m *EquipmentMutation) ResetHiddenThreshold() {
+	m.hiddenThreshold = nil
+	m.addhiddenThreshold = nil
+}
+
 // SetExpiresAt sets the "expiresAt" field.
 func (m *EquipmentMutation) SetExpiresAt(t time.Time) {
 	m.expiresAt = &t
@@ -17646,7 +19543,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 36)
+	fields := make([]string, 0, 39)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -17715,6 +19612,15 @@ func (m *EquipmentMutation) Fields() []string {
 	}
 	if m.revealCondition != nil {
 		fields = append(fields, equipment.FieldRevealCondition)
+	}
+	if m.examineDesc != nil {
+		fields = append(fields, equipment.FieldExamineDesc)
+	}
+	if m.hiddenDetails != nil {
+		fields = append(fields, equipment.FieldHiddenDetails)
+	}
+	if m.hiddenThreshold != nil {
+		fields = append(fields, equipment.FieldHiddenThreshold)
 	}
 	if m.expiresAt != nil {
 		fields = append(fields, equipment.FieldExpiresAt)
@@ -17809,6 +19715,12 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.ContainedItems()
 	case equipment.FieldRevealCondition:
 		return m.RevealCondition()
+	case equipment.FieldExamineDesc:
+		return m.ExamineDesc()
+	case equipment.FieldHiddenDetails:
+		return m.HiddenDetails()
+	case equipment.FieldHiddenThreshold:
+		return m.HiddenThreshold()
 	case equipment.FieldExpiresAt:
 		return m.ExpiresAt()
 	case equipment.FieldArmorRating:
@@ -17890,6 +19802,12 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldContainedItems(ctx)
 	case equipment.FieldRevealCondition:
 		return m.OldRevealCondition(ctx)
+	case equipment.FieldExamineDesc:
+		return m.OldExamineDesc(ctx)
+	case equipment.FieldHiddenDetails:
+		return m.OldHiddenDetails(ctx)
+	case equipment.FieldHiddenThreshold:
+		return m.OldHiddenThreshold(ctx)
 	case equipment.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
 	case equipment.FieldArmorRating:
@@ -18086,6 +20004,27 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRevealCondition(v)
 		return nil
+	case equipment.FieldExamineDesc:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExamineDesc(v)
+		return nil
+	case equipment.FieldHiddenDetails:
+		v, ok := value.([]map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHiddenDetails(v)
+		return nil
+	case equipment.FieldHiddenThreshold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHiddenThreshold(v)
+		return nil
 	case equipment.FieldExpiresAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -18206,6 +20145,9 @@ func (m *EquipmentMutation) AddedFields() []string {
 	if m.addcontainerCapacity != nil {
 		fields = append(fields, equipment.FieldContainerCapacity)
 	}
+	if m.addhiddenThreshold != nil {
+		fields = append(fields, equipment.FieldHiddenThreshold)
+	}
 	if m.addarmor_rating != nil {
 		fields = append(fields, equipment.FieldArmorRating)
 	}
@@ -18243,6 +20185,8 @@ func (m *EquipmentMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedHealing()
 	case equipment.FieldContainerCapacity:
 		return m.AddedContainerCapacity()
+	case equipment.FieldHiddenThreshold:
+		return m.AddedHiddenThreshold()
 	case equipment.FieldArmorRating:
 		return m.AddedArmorRating()
 	case equipment.FieldSkillRequirementLevel:
@@ -18310,6 +20254,13 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddContainerCapacity(v)
+		return nil
+	case equipment.FieldHiddenThreshold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHiddenThreshold(v)
 		return nil
 	case equipment.FieldArmorRating:
 		v, ok := value.(int)
@@ -18468,6 +20419,15 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldRevealCondition:
 		m.ResetRevealCondition()
+		return nil
+	case equipment.FieldExamineDesc:
+		m.ResetExamineDesc()
+		return nil
+	case equipment.FieldHiddenDetails:
+		m.ResetHiddenDetails()
+		return nil
+	case equipment.FieldHiddenThreshold:
+		m.ResetHiddenThreshold()
 		return nil
 	case equipment.FieldExpiresAt:
 		m.ResetExpiresAt()
@@ -29462,6 +31422,764 @@ func (m *RoomMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Room edge %s", name)
 }
 
+// SocialCommandMutation represents an operation that mutates the SocialCommand nodes in the graph.
+type SocialCommandMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	name           *string
+	displayName    *string
+	selfText       *string
+	roomText       *string
+	targetSelfText *string
+	targetText     *string
+	targetRoomText *string
+	requiresTarget *bool
+	isEmote        *bool
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*SocialCommand, error)
+	predicates     []predicate.SocialCommand
+}
+
+var _ ent.Mutation = (*SocialCommandMutation)(nil)
+
+// socialcommandOption allows management of the mutation configuration using functional options.
+type socialcommandOption func(*SocialCommandMutation)
+
+// newSocialCommandMutation creates new mutation for the SocialCommand entity.
+func newSocialCommandMutation(c config, op Op, opts ...socialcommandOption) *SocialCommandMutation {
+	m := &SocialCommandMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSocialCommand,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSocialCommandID sets the ID field of the mutation.
+func withSocialCommandID(id int) socialcommandOption {
+	return func(m *SocialCommandMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SocialCommand
+		)
+		m.oldValue = func(ctx context.Context) (*SocialCommand, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SocialCommand.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSocialCommand sets the old SocialCommand of the mutation.
+func withSocialCommand(node *SocialCommand) socialcommandOption {
+	return func(m *SocialCommandMutation) {
+		m.oldValue = func(context.Context) (*SocialCommand, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SocialCommandMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SocialCommandMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SocialCommandMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SocialCommandMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SocialCommand.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *SocialCommandMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *SocialCommandMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *SocialCommandMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDisplayName sets the "displayName" field.
+func (m *SocialCommandMutation) SetDisplayName(s string) {
+	m.displayName = &s
+}
+
+// DisplayName returns the value of the "displayName" field in the mutation.
+func (m *SocialCommandMutation) DisplayName() (r string, exists bool) {
+	v := m.displayName
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayName returns the old "displayName" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldDisplayName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayName: %w", err)
+	}
+	return oldValue.DisplayName, nil
+}
+
+// ResetDisplayName resets all changes to the "displayName" field.
+func (m *SocialCommandMutation) ResetDisplayName() {
+	m.displayName = nil
+}
+
+// SetSelfText sets the "selfText" field.
+func (m *SocialCommandMutation) SetSelfText(s string) {
+	m.selfText = &s
+}
+
+// SelfText returns the value of the "selfText" field in the mutation.
+func (m *SocialCommandMutation) SelfText() (r string, exists bool) {
+	v := m.selfText
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSelfText returns the old "selfText" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldSelfText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSelfText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSelfText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSelfText: %w", err)
+	}
+	return oldValue.SelfText, nil
+}
+
+// ResetSelfText resets all changes to the "selfText" field.
+func (m *SocialCommandMutation) ResetSelfText() {
+	m.selfText = nil
+}
+
+// SetRoomText sets the "roomText" field.
+func (m *SocialCommandMutation) SetRoomText(s string) {
+	m.roomText = &s
+}
+
+// RoomText returns the value of the "roomText" field in the mutation.
+func (m *SocialCommandMutation) RoomText() (r string, exists bool) {
+	v := m.roomText
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoomText returns the old "roomText" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldRoomText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoomText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoomText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoomText: %w", err)
+	}
+	return oldValue.RoomText, nil
+}
+
+// ResetRoomText resets all changes to the "roomText" field.
+func (m *SocialCommandMutation) ResetRoomText() {
+	m.roomText = nil
+}
+
+// SetTargetSelfText sets the "targetSelfText" field.
+func (m *SocialCommandMutation) SetTargetSelfText(s string) {
+	m.targetSelfText = &s
+}
+
+// TargetSelfText returns the value of the "targetSelfText" field in the mutation.
+func (m *SocialCommandMutation) TargetSelfText() (r string, exists bool) {
+	v := m.targetSelfText
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetSelfText returns the old "targetSelfText" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldTargetSelfText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetSelfText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetSelfText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetSelfText: %w", err)
+	}
+	return oldValue.TargetSelfText, nil
+}
+
+// ResetTargetSelfText resets all changes to the "targetSelfText" field.
+func (m *SocialCommandMutation) ResetTargetSelfText() {
+	m.targetSelfText = nil
+}
+
+// SetTargetText sets the "targetText" field.
+func (m *SocialCommandMutation) SetTargetText(s string) {
+	m.targetText = &s
+}
+
+// TargetText returns the value of the "targetText" field in the mutation.
+func (m *SocialCommandMutation) TargetText() (r string, exists bool) {
+	v := m.targetText
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetText returns the old "targetText" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldTargetText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetText: %w", err)
+	}
+	return oldValue.TargetText, nil
+}
+
+// ResetTargetText resets all changes to the "targetText" field.
+func (m *SocialCommandMutation) ResetTargetText() {
+	m.targetText = nil
+}
+
+// SetTargetRoomText sets the "targetRoomText" field.
+func (m *SocialCommandMutation) SetTargetRoomText(s string) {
+	m.targetRoomText = &s
+}
+
+// TargetRoomText returns the value of the "targetRoomText" field in the mutation.
+func (m *SocialCommandMutation) TargetRoomText() (r string, exists bool) {
+	v := m.targetRoomText
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetRoomText returns the old "targetRoomText" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldTargetRoomText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetRoomText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetRoomText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetRoomText: %w", err)
+	}
+	return oldValue.TargetRoomText, nil
+}
+
+// ResetTargetRoomText resets all changes to the "targetRoomText" field.
+func (m *SocialCommandMutation) ResetTargetRoomText() {
+	m.targetRoomText = nil
+}
+
+// SetRequiresTarget sets the "requiresTarget" field.
+func (m *SocialCommandMutation) SetRequiresTarget(b bool) {
+	m.requiresTarget = &b
+}
+
+// RequiresTarget returns the value of the "requiresTarget" field in the mutation.
+func (m *SocialCommandMutation) RequiresTarget() (r bool, exists bool) {
+	v := m.requiresTarget
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiresTarget returns the old "requiresTarget" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldRequiresTarget(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiresTarget is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiresTarget requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiresTarget: %w", err)
+	}
+	return oldValue.RequiresTarget, nil
+}
+
+// ResetRequiresTarget resets all changes to the "requiresTarget" field.
+func (m *SocialCommandMutation) ResetRequiresTarget() {
+	m.requiresTarget = nil
+}
+
+// SetIsEmote sets the "isEmote" field.
+func (m *SocialCommandMutation) SetIsEmote(b bool) {
+	m.isEmote = &b
+}
+
+// IsEmote returns the value of the "isEmote" field in the mutation.
+func (m *SocialCommandMutation) IsEmote() (r bool, exists bool) {
+	v := m.isEmote
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsEmote returns the old "isEmote" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldIsEmote(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsEmote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsEmote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsEmote: %w", err)
+	}
+	return oldValue.IsEmote, nil
+}
+
+// ResetIsEmote resets all changes to the "isEmote" field.
+func (m *SocialCommandMutation) ResetIsEmote() {
+	m.isEmote = nil
+}
+
+// Where appends a list predicates to the SocialCommandMutation builder.
+func (m *SocialCommandMutation) Where(ps ...predicate.SocialCommand) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SocialCommandMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SocialCommandMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SocialCommand, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SocialCommandMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SocialCommandMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SocialCommand).
+func (m *SocialCommandMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SocialCommandMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.name != nil {
+		fields = append(fields, socialcommand.FieldName)
+	}
+	if m.displayName != nil {
+		fields = append(fields, socialcommand.FieldDisplayName)
+	}
+	if m.selfText != nil {
+		fields = append(fields, socialcommand.FieldSelfText)
+	}
+	if m.roomText != nil {
+		fields = append(fields, socialcommand.FieldRoomText)
+	}
+	if m.targetSelfText != nil {
+		fields = append(fields, socialcommand.FieldTargetSelfText)
+	}
+	if m.targetText != nil {
+		fields = append(fields, socialcommand.FieldTargetText)
+	}
+	if m.targetRoomText != nil {
+		fields = append(fields, socialcommand.FieldTargetRoomText)
+	}
+	if m.requiresTarget != nil {
+		fields = append(fields, socialcommand.FieldRequiresTarget)
+	}
+	if m.isEmote != nil {
+		fields = append(fields, socialcommand.FieldIsEmote)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SocialCommandMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case socialcommand.FieldName:
+		return m.Name()
+	case socialcommand.FieldDisplayName:
+		return m.DisplayName()
+	case socialcommand.FieldSelfText:
+		return m.SelfText()
+	case socialcommand.FieldRoomText:
+		return m.RoomText()
+	case socialcommand.FieldTargetSelfText:
+		return m.TargetSelfText()
+	case socialcommand.FieldTargetText:
+		return m.TargetText()
+	case socialcommand.FieldTargetRoomText:
+		return m.TargetRoomText()
+	case socialcommand.FieldRequiresTarget:
+		return m.RequiresTarget()
+	case socialcommand.FieldIsEmote:
+		return m.IsEmote()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SocialCommandMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case socialcommand.FieldName:
+		return m.OldName(ctx)
+	case socialcommand.FieldDisplayName:
+		return m.OldDisplayName(ctx)
+	case socialcommand.FieldSelfText:
+		return m.OldSelfText(ctx)
+	case socialcommand.FieldRoomText:
+		return m.OldRoomText(ctx)
+	case socialcommand.FieldTargetSelfText:
+		return m.OldTargetSelfText(ctx)
+	case socialcommand.FieldTargetText:
+		return m.OldTargetText(ctx)
+	case socialcommand.FieldTargetRoomText:
+		return m.OldTargetRoomText(ctx)
+	case socialcommand.FieldRequiresTarget:
+		return m.OldRequiresTarget(ctx)
+	case socialcommand.FieldIsEmote:
+		return m.OldIsEmote(ctx)
+	}
+	return nil, fmt.Errorf("unknown SocialCommand field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SocialCommandMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case socialcommand.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case socialcommand.FieldDisplayName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayName(v)
+		return nil
+	case socialcommand.FieldSelfText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSelfText(v)
+		return nil
+	case socialcommand.FieldRoomText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoomText(v)
+		return nil
+	case socialcommand.FieldTargetSelfText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetSelfText(v)
+		return nil
+	case socialcommand.FieldTargetText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetText(v)
+		return nil
+	case socialcommand.FieldTargetRoomText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetRoomText(v)
+		return nil
+	case socialcommand.FieldRequiresTarget:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiresTarget(v)
+		return nil
+	case socialcommand.FieldIsEmote:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsEmote(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SocialCommand field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SocialCommandMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SocialCommandMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SocialCommandMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SocialCommand numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SocialCommandMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SocialCommandMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SocialCommandMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SocialCommand nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SocialCommandMutation) ResetField(name string) error {
+	switch name {
+	case socialcommand.FieldName:
+		m.ResetName()
+		return nil
+	case socialcommand.FieldDisplayName:
+		m.ResetDisplayName()
+		return nil
+	case socialcommand.FieldSelfText:
+		m.ResetSelfText()
+		return nil
+	case socialcommand.FieldRoomText:
+		m.ResetRoomText()
+		return nil
+	case socialcommand.FieldTargetSelfText:
+		m.ResetTargetSelfText()
+		return nil
+	case socialcommand.FieldTargetText:
+		m.ResetTargetText()
+		return nil
+	case socialcommand.FieldTargetRoomText:
+		m.ResetTargetRoomText()
+		return nil
+	case socialcommand.FieldRequiresTarget:
+		m.ResetRequiresTarget()
+		return nil
+	case socialcommand.FieldIsEmote:
+		m.ResetIsEmote()
+		return nil
+	}
+	return fmt.Errorf("unknown SocialCommand field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SocialCommandMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SocialCommandMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SocialCommandMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SocialCommandMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SocialCommandMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SocialCommandMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SocialCommandMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown SocialCommand unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SocialCommandMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown SocialCommand edge %s", name)
+}
+
 // TagMutation represents an operation that mutates the Tag nodes in the graph.
 type TagMutation struct {
 	config
@@ -29955,6 +32673,705 @@ func (m *TagMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Tag edge %s", name)
+}
+
+// TellQueueMutation represents an operation that mutates the TellQueue nodes in the graph.
+type TellQueueMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	senderId         *int
+	addsenderId      *int
+	senderName       *string
+	message          *string
+	sentAt           *time.Time
+	expiresAt        *time.Time
+	isRead           *bool
+	clearedFields    map[string]struct{}
+	recipient        *int
+	clearedrecipient bool
+	done             bool
+	oldValue         func(context.Context) (*TellQueue, error)
+	predicates       []predicate.TellQueue
+}
+
+var _ ent.Mutation = (*TellQueueMutation)(nil)
+
+// tellqueueOption allows management of the mutation configuration using functional options.
+type tellqueueOption func(*TellQueueMutation)
+
+// newTellQueueMutation creates new mutation for the TellQueue entity.
+func newTellQueueMutation(c config, op Op, opts ...tellqueueOption) *TellQueueMutation {
+	m := &TellQueueMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTellQueue,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTellQueueID sets the ID field of the mutation.
+func withTellQueueID(id int) tellqueueOption {
+	return func(m *TellQueueMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TellQueue
+		)
+		m.oldValue = func(ctx context.Context) (*TellQueue, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TellQueue.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTellQueue sets the old TellQueue of the mutation.
+func withTellQueue(node *TellQueue) tellqueueOption {
+	return func(m *TellQueueMutation) {
+		m.oldValue = func(context.Context) (*TellQueue, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TellQueueMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TellQueueMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TellQueueMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TellQueueMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().TellQueue.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetSenderId sets the "senderId" field.
+func (m *TellQueueMutation) SetSenderId(i int) {
+	m.senderId = &i
+	m.addsenderId = nil
+}
+
+// SenderId returns the value of the "senderId" field in the mutation.
+func (m *TellQueueMutation) SenderId() (r int, exists bool) {
+	v := m.senderId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSenderId returns the old "senderId" field's value of the TellQueue entity.
+// If the TellQueue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TellQueueMutation) OldSenderId(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSenderId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSenderId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSenderId: %w", err)
+	}
+	return oldValue.SenderId, nil
+}
+
+// AddSenderId adds i to the "senderId" field.
+func (m *TellQueueMutation) AddSenderId(i int) {
+	if m.addsenderId != nil {
+		*m.addsenderId += i
+	} else {
+		m.addsenderId = &i
+	}
+}
+
+// AddedSenderId returns the value that was added to the "senderId" field in this mutation.
+func (m *TellQueueMutation) AddedSenderId() (r int, exists bool) {
+	v := m.addsenderId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSenderId resets all changes to the "senderId" field.
+func (m *TellQueueMutation) ResetSenderId() {
+	m.senderId = nil
+	m.addsenderId = nil
+}
+
+// SetSenderName sets the "senderName" field.
+func (m *TellQueueMutation) SetSenderName(s string) {
+	m.senderName = &s
+}
+
+// SenderName returns the value of the "senderName" field in the mutation.
+func (m *TellQueueMutation) SenderName() (r string, exists bool) {
+	v := m.senderName
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSenderName returns the old "senderName" field's value of the TellQueue entity.
+// If the TellQueue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TellQueueMutation) OldSenderName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSenderName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSenderName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSenderName: %w", err)
+	}
+	return oldValue.SenderName, nil
+}
+
+// ResetSenderName resets all changes to the "senderName" field.
+func (m *TellQueueMutation) ResetSenderName() {
+	m.senderName = nil
+}
+
+// SetMessage sets the "message" field.
+func (m *TellQueueMutation) SetMessage(s string) {
+	m.message = &s
+}
+
+// Message returns the value of the "message" field in the mutation.
+func (m *TellQueueMutation) Message() (r string, exists bool) {
+	v := m.message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessage returns the old "message" field's value of the TellQueue entity.
+// If the TellQueue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TellQueueMutation) OldMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessage: %w", err)
+	}
+	return oldValue.Message, nil
+}
+
+// ResetMessage resets all changes to the "message" field.
+func (m *TellQueueMutation) ResetMessage() {
+	m.message = nil
+}
+
+// SetSentAt sets the "sentAt" field.
+func (m *TellQueueMutation) SetSentAt(t time.Time) {
+	m.sentAt = &t
+}
+
+// SentAt returns the value of the "sentAt" field in the mutation.
+func (m *TellQueueMutation) SentAt() (r time.Time, exists bool) {
+	v := m.sentAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSentAt returns the old "sentAt" field's value of the TellQueue entity.
+// If the TellQueue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TellQueueMutation) OldSentAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSentAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSentAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSentAt: %w", err)
+	}
+	return oldValue.SentAt, nil
+}
+
+// ResetSentAt resets all changes to the "sentAt" field.
+func (m *TellQueueMutation) ResetSentAt() {
+	m.sentAt = nil
+}
+
+// SetExpiresAt sets the "expiresAt" field.
+func (m *TellQueueMutation) SetExpiresAt(t time.Time) {
+	m.expiresAt = &t
+}
+
+// ExpiresAt returns the value of the "expiresAt" field in the mutation.
+func (m *TellQueueMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expiresAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expiresAt" field's value of the TellQueue entity.
+// If the TellQueue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TellQueueMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ResetExpiresAt resets all changes to the "expiresAt" field.
+func (m *TellQueueMutation) ResetExpiresAt() {
+	m.expiresAt = nil
+}
+
+// SetIsRead sets the "isRead" field.
+func (m *TellQueueMutation) SetIsRead(b bool) {
+	m.isRead = &b
+}
+
+// IsRead returns the value of the "isRead" field in the mutation.
+func (m *TellQueueMutation) IsRead() (r bool, exists bool) {
+	v := m.isRead
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsRead returns the old "isRead" field's value of the TellQueue entity.
+// If the TellQueue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TellQueueMutation) OldIsRead(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsRead is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsRead requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsRead: %w", err)
+	}
+	return oldValue.IsRead, nil
+}
+
+// ResetIsRead resets all changes to the "isRead" field.
+func (m *TellQueueMutation) ResetIsRead() {
+	m.isRead = nil
+}
+
+// SetRecipientID sets the "recipient" edge to the Character entity by id.
+func (m *TellQueueMutation) SetRecipientID(id int) {
+	m.recipient = &id
+}
+
+// ClearRecipient clears the "recipient" edge to the Character entity.
+func (m *TellQueueMutation) ClearRecipient() {
+	m.clearedrecipient = true
+}
+
+// RecipientCleared reports if the "recipient" edge to the Character entity was cleared.
+func (m *TellQueueMutation) RecipientCleared() bool {
+	return m.clearedrecipient
+}
+
+// RecipientID returns the "recipient" edge ID in the mutation.
+func (m *TellQueueMutation) RecipientID() (id int, exists bool) {
+	if m.recipient != nil {
+		return *m.recipient, true
+	}
+	return
+}
+
+// RecipientIDs returns the "recipient" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RecipientID instead. It exists only for internal usage by the builders.
+func (m *TellQueueMutation) RecipientIDs() (ids []int) {
+	if id := m.recipient; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRecipient resets all changes to the "recipient" edge.
+func (m *TellQueueMutation) ResetRecipient() {
+	m.recipient = nil
+	m.clearedrecipient = false
+}
+
+// Where appends a list predicates to the TellQueueMutation builder.
+func (m *TellQueueMutation) Where(ps ...predicate.TellQueue) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TellQueueMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TellQueueMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TellQueue, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TellQueueMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TellQueueMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (TellQueue).
+func (m *TellQueueMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TellQueueMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.senderId != nil {
+		fields = append(fields, tellqueue.FieldSenderId)
+	}
+	if m.senderName != nil {
+		fields = append(fields, tellqueue.FieldSenderName)
+	}
+	if m.message != nil {
+		fields = append(fields, tellqueue.FieldMessage)
+	}
+	if m.sentAt != nil {
+		fields = append(fields, tellqueue.FieldSentAt)
+	}
+	if m.expiresAt != nil {
+		fields = append(fields, tellqueue.FieldExpiresAt)
+	}
+	if m.isRead != nil {
+		fields = append(fields, tellqueue.FieldIsRead)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TellQueueMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case tellqueue.FieldSenderId:
+		return m.SenderId()
+	case tellqueue.FieldSenderName:
+		return m.SenderName()
+	case tellqueue.FieldMessage:
+		return m.Message()
+	case tellqueue.FieldSentAt:
+		return m.SentAt()
+	case tellqueue.FieldExpiresAt:
+		return m.ExpiresAt()
+	case tellqueue.FieldIsRead:
+		return m.IsRead()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TellQueueMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case tellqueue.FieldSenderId:
+		return m.OldSenderId(ctx)
+	case tellqueue.FieldSenderName:
+		return m.OldSenderName(ctx)
+	case tellqueue.FieldMessage:
+		return m.OldMessage(ctx)
+	case tellqueue.FieldSentAt:
+		return m.OldSentAt(ctx)
+	case tellqueue.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case tellqueue.FieldIsRead:
+		return m.OldIsRead(ctx)
+	}
+	return nil, fmt.Errorf("unknown TellQueue field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TellQueueMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case tellqueue.FieldSenderId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSenderId(v)
+		return nil
+	case tellqueue.FieldSenderName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSenderName(v)
+		return nil
+	case tellqueue.FieldMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessage(v)
+		return nil
+	case tellqueue.FieldSentAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSentAt(v)
+		return nil
+	case tellqueue.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case tellqueue.FieldIsRead:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsRead(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TellQueue field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TellQueueMutation) AddedFields() []string {
+	var fields []string
+	if m.addsenderId != nil {
+		fields = append(fields, tellqueue.FieldSenderId)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TellQueueMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case tellqueue.FieldSenderId:
+		return m.AddedSenderId()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TellQueueMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case tellqueue.FieldSenderId:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSenderId(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TellQueue numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TellQueueMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TellQueueMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TellQueueMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown TellQueue nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TellQueueMutation) ResetField(name string) error {
+	switch name {
+	case tellqueue.FieldSenderId:
+		m.ResetSenderId()
+		return nil
+	case tellqueue.FieldSenderName:
+		m.ResetSenderName()
+		return nil
+	case tellqueue.FieldMessage:
+		m.ResetMessage()
+		return nil
+	case tellqueue.FieldSentAt:
+		m.ResetSentAt()
+		return nil
+	case tellqueue.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case tellqueue.FieldIsRead:
+		m.ResetIsRead()
+		return nil
+	}
+	return fmt.Errorf("unknown TellQueue field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TellQueueMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.recipient != nil {
+		edges = append(edges, tellqueue.EdgeRecipient)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TellQueueMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case tellqueue.EdgeRecipient:
+		if id := m.recipient; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TellQueueMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TellQueueMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TellQueueMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedrecipient {
+		edges = append(edges, tellqueue.EdgeRecipient)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TellQueueMutation) EdgeCleared(name string) bool {
+	switch name {
+	case tellqueue.EdgeRecipient:
+		return m.clearedrecipient
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TellQueueMutation) ClearEdge(name string) error {
+	switch name {
+	case tellqueue.EdgeRecipient:
+		m.ClearRecipient()
+		return nil
+	}
+	return fmt.Errorf("unknown TellQueue unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TellQueueMutation) ResetEdge(name string) error {
+	switch name {
+	case tellqueue.EdgeRecipient:
+		m.ResetRecipient()
+		return nil
+	}
+	return fmt.Errorf("unknown TellQueue edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

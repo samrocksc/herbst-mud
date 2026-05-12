@@ -17,8 +17,10 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MapIndexRouteImport } from './routes/map.index'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DocsTrainableSkillsRouteImport } from './routes/docs/trainable-skills'
+import { Route as DocsQuestSystemRouteImport } from './routes/docs/quest-system'
 import { Route as DocsNpcSystemRouteImport } from './routes/docs/npc-system'
 import { Route as DocsItemSystemRouteImport } from './routes/docs/item-system'
 import { Route as DocsFactionSystemRouteImport } from './routes/docs/faction-system'
@@ -28,7 +30,9 @@ import { Route as DocsCombatGuideRouteImport } from './routes/docs/combat-guide'
 import { Route as DocsBindPointsRouteImport } from './routes/docs/bind-points'
 import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
+import { Route as AuthTellQueueRouteImport } from './routes/_auth/tell-queue'
 import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
+import { Route as AuthSocialsRouteImport } from './routes/_auth/socials'
 import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
 import { Route as AuthRacesRouteImport } from './routes/_auth/races'
 import { Route as AuthQuestsRouteImport } from './routes/_auth/quests'
@@ -40,14 +44,25 @@ import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthEffectsRouteImport } from './routes/_auth/effects'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
 import { Route as AuthCharactersRouteImport } from './routes/_auth/characters'
+import { Route as AuthChannelsRouteImport } from './routes/_auth/channels'
 import { Route as AuthAchievementsRouteImport } from './routes/_auth/achievements'
 import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
+import { Route as MapRoomsNewRouteImport } from './routes/map.rooms.new'
+import { Route as AuthSocialsNewRouteImport } from './routes/_auth/socials.new'
+import { Route as AuthSocialsSocialIdRouteImport } from './routes/_auth/socials.$socialId'
 import { Route as AuthQuestsQuestIdRouteImport } from './routes/_auth/quests.$questId'
 import { Route as AuthNpcsNpcIdRouteImport } from './routes/_auth/npcs.$npcId'
+import { Route as AuthItemsNewRouteImport } from './routes/_auth/items.new'
 import { Route as AuthItemsItemIdRouteImport } from './routes/_auth/items.$itemId'
+import { Route as AuthConfigNewRouteImport } from './routes/_auth/config.new'
+import { Route as AuthConfigKeyRouteImport } from './routes/_auth/config.$key'
 import { Route as AuthCharactersCharacterIdRouteImport } from './routes/_auth/characters.$characterId'
+import { Route as AuthAbilitiesNewRouteImport } from './routes/_auth/abilities.new'
 import { Route as AuthAbilitiesAbilityIdRouteImport } from './routes/_auth/abilities.$abilityId'
 import { Route as AuthNpcsNpcIdIndexRouteImport } from './routes/_auth/npcs.$npcId.index'
+import { Route as AuthItemsItemIdSpawnRouteImport } from './routes/_auth/items.$itemId.spawn'
+import { Route as MapRoomsRoomIdNpcsSpawnRouteImport } from './routes/map.rooms.$roomId.npcs.spawn'
+import { Route as MapRoomsRoomIdItemsSpawnRouteImport } from './routes/map.rooms.$roomId.items.spawn'
 import { Route as AuthNpcsNpcIdInstancesInstanceIdRouteImport } from './routes/_auth/npcs.$npcId.instances.$instanceId'
 import { Route as AuthItemsItemIdInstancesInstanceIdRouteImport } from './routes/_auth/items.$itemId.instances.$instanceId'
 
@@ -90,6 +105,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MapIndexRoute = MapIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MapRoute,
+} as any)
 const DocsIndexRoute = DocsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -98,6 +118,11 @@ const DocsIndexRoute = DocsIndexRouteImport.update({
 const DocsTrainableSkillsRoute = DocsTrainableSkillsRouteImport.update({
   id: '/trainable-skills',
   path: '/trainable-skills',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsQuestSystemRoute = DocsQuestSystemRouteImport.update({
+  id: '/quest-system',
+  path: '/quest-system',
   getParentRoute: () => DocsRoute,
 } as any)
 const DocsNpcSystemRoute = DocsNpcSystemRouteImport.update({
@@ -145,9 +170,19 @@ const AuthXpRoute = AuthXpRouteImport.update({
   path: '/xp',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthTellQueueRoute = AuthTellQueueRouteImport.update({
+  id: '/tell-queue',
+  path: '/tell-queue',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthTagsRoute = AuthTagsRouteImport.update({
   id: '/tags',
   path: '/tags',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSocialsRoute = AuthSocialsRouteImport.update({
+  id: '/socials',
+  path: '/socials',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthSkillsRoute = AuthSkillsRouteImport.update({
@@ -205,6 +240,11 @@ const AuthCharactersRoute = AuthCharactersRouteImport.update({
   path: '/characters',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthChannelsRoute = AuthChannelsRouteImport.update({
+  id: '/channels',
+  path: '/channels',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthAchievementsRoute = AuthAchievementsRouteImport.update({
   id: '/achievements',
   path: '/achievements',
@@ -214,6 +254,21 @@ const AuthAbilitiesRoute = AuthAbilitiesRouteImport.update({
   id: '/abilities',
   path: '/abilities',
   getParentRoute: () => AuthRoute,
+} as any)
+const MapRoomsNewRoute = MapRoomsNewRouteImport.update({
+  id: '/rooms/new',
+  path: '/rooms/new',
+  getParentRoute: () => MapRoute,
+} as any)
+const AuthSocialsNewRoute = AuthSocialsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthSocialsRoute,
+} as any)
+const AuthSocialsSocialIdRoute = AuthSocialsSocialIdRouteImport.update({
+  id: '/$socialId',
+  path: '/$socialId',
+  getParentRoute: () => AuthSocialsRoute,
 } as any)
 const AuthQuestsQuestIdRoute = AuthQuestsQuestIdRouteImport.update({
   id: '/$questId',
@@ -225,10 +280,25 @@ const AuthNpcsNpcIdRoute = AuthNpcsNpcIdRouteImport.update({
   path: '/$npcId',
   getParentRoute: () => AuthNpcsRoute,
 } as any)
+const AuthItemsNewRoute = AuthItemsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthItemsRoute,
+} as any)
 const AuthItemsItemIdRoute = AuthItemsItemIdRouteImport.update({
   id: '/$itemId',
   path: '/$itemId',
   getParentRoute: () => AuthItemsRoute,
+} as any)
+const AuthConfigNewRoute = AuthConfigNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthConfigRoute,
+} as any)
+const AuthConfigKeyRoute = AuthConfigKeyRouteImport.update({
+  id: '/$key',
+  path: '/$key',
+  getParentRoute: () => AuthConfigRoute,
 } as any)
 const AuthCharactersCharacterIdRoute =
   AuthCharactersCharacterIdRouteImport.update({
@@ -236,6 +306,11 @@ const AuthCharactersCharacterIdRoute =
     path: '/$characterId',
     getParentRoute: () => AuthCharactersRoute,
   } as any)
+const AuthAbilitiesNewRoute = AuthAbilitiesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthAbilitiesRoute,
+} as any)
 const AuthAbilitiesAbilityIdRoute = AuthAbilitiesAbilityIdRouteImport.update({
   id: '/$abilityId',
   path: '/$abilityId',
@@ -246,6 +321,22 @@ const AuthNpcsNpcIdIndexRoute = AuthNpcsNpcIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthNpcsNpcIdRoute,
 } as any)
+const AuthItemsItemIdSpawnRoute = AuthItemsItemIdSpawnRouteImport.update({
+  id: '/spawn',
+  path: '/spawn',
+  getParentRoute: () => AuthItemsItemIdRoute,
+} as any)
+const MapRoomsRoomIdNpcsSpawnRoute = MapRoomsRoomIdNpcsSpawnRouteImport.update({
+  id: '/rooms/$roomId/npcs/spawn',
+  path: '/rooms/$roomId/npcs/spawn',
+  getParentRoute: () => MapRoute,
+} as any)
+const MapRoomsRoomIdItemsSpawnRoute =
+  MapRoomsRoomIdItemsSpawnRouteImport.update({
+    id: '/rooms/$roomId/items/spawn',
+    path: '/rooms/$roomId/items/spawn',
+    getParentRoute: () => MapRoute,
+  } as any)
 const AuthNpcsNpcIdInstancesInstanceIdRoute =
   AuthNpcsNpcIdInstancesInstanceIdRouteImport.update({
     id: '/instances/$instanceId',
@@ -265,12 +356,13 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRouteWithChildren
   '/export': typeof ExportRoute
   '/login': typeof LoginRoute
-  '/map': typeof MapRoute
+  '/map': typeof MapRouteWithChildren
   '/npc-templates': typeof NpcTemplatesRoute
   '/abilities': typeof AuthAbilitiesRouteWithChildren
   '/achievements': typeof AuthAchievementsRoute
+  '/channels': typeof AuthChannelsRoute
   '/characters': typeof AuthCharactersRouteWithChildren
-  '/config': typeof AuthConfigRoute
+  '/config': typeof AuthConfigRouteWithChildren
   '/effects': typeof AuthEffectsRoute
   '/factions': typeof AuthFactionsRoute
   '/items': typeof AuthItemsRouteWithChildren
@@ -280,7 +372,9 @@ export interface FileRoutesByFullPath {
   '/quests': typeof AuthQuestsRouteWithChildren
   '/races': typeof AuthRacesRoute
   '/skills': typeof AuthSkillsRoute
+  '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
+  '/tell-queue': typeof AuthTellQueueRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
@@ -290,28 +384,40 @@ export interface FileRoutesByFullPath {
   '/docs/faction-system': typeof DocsFactionSystemRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
+  '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/docs/': typeof DocsIndexRoute
+  '/map/': typeof MapIndexRoute
   '/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
+  '/abilities/new': typeof AuthAbilitiesNewRoute
   '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
+  '/config/$key': typeof AuthConfigKeyRoute
+  '/config/new': typeof AuthConfigNewRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
+  '/items/new': typeof AuthItemsNewRoute
   '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/socials/$socialId': typeof AuthSocialsSocialIdRoute
+  '/socials/new': typeof AuthSocialsNewRoute
+  '/map/rooms/new': typeof MapRoomsNewRoute
+  '/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+  '/map/rooms/$roomId/items/spawn': typeof MapRoomsRoomIdItemsSpawnRoute
+  '/map/rooms/$roomId/npcs/spawn': typeof MapRoomsRoomIdNpcsSpawnRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/export': typeof ExportRoute
   '/login': typeof LoginRoute
-  '/map': typeof MapRoute
   '/npc-templates': typeof NpcTemplatesRoute
   '/abilities': typeof AuthAbilitiesRouteWithChildren
   '/achievements': typeof AuthAchievementsRoute
+  '/channels': typeof AuthChannelsRoute
   '/characters': typeof AuthCharactersRouteWithChildren
-  '/config': typeof AuthConfigRoute
+  '/config': typeof AuthConfigRouteWithChildren
   '/effects': typeof AuthEffectsRoute
   '/factions': typeof AuthFactionsRoute
   '/items': typeof AuthItemsRouteWithChildren
@@ -321,7 +427,9 @@ export interface FileRoutesByTo {
   '/quests': typeof AuthQuestsRouteWithChildren
   '/races': typeof AuthRacesRoute
   '/skills': typeof AuthSkillsRoute
+  '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
+  '/tell-queue': typeof AuthTellQueueRoute
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
@@ -331,15 +439,27 @@ export interface FileRoutesByTo {
   '/docs/faction-system': typeof DocsFactionSystemRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
+  '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/docs': typeof DocsIndexRoute
+  '/map': typeof MapIndexRoute
   '/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
+  '/abilities/new': typeof AuthAbilitiesNewRoute
   '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
+  '/config/$key': typeof AuthConfigKeyRoute
+  '/config/new': typeof AuthConfigNewRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
+  '/items/new': typeof AuthItemsNewRoute
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/socials/$socialId': typeof AuthSocialsSocialIdRoute
+  '/socials/new': typeof AuthSocialsNewRoute
+  '/map/rooms/new': typeof MapRoomsNewRoute
+  '/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+  '/map/rooms/$roomId/items/spawn': typeof MapRoomsRoomIdItemsSpawnRoute
+  '/map/rooms/$roomId/npcs/spawn': typeof MapRoomsRoomIdNpcsSpawnRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -349,12 +469,13 @@ export interface FileRoutesById {
   '/docs': typeof DocsRouteWithChildren
   '/export': typeof ExportRoute
   '/login': typeof LoginRoute
-  '/map': typeof MapRoute
+  '/map': typeof MapRouteWithChildren
   '/npc-templates': typeof NpcTemplatesRoute
   '/_auth/abilities': typeof AuthAbilitiesRouteWithChildren
   '/_auth/achievements': typeof AuthAchievementsRoute
+  '/_auth/channels': typeof AuthChannelsRoute
   '/_auth/characters': typeof AuthCharactersRouteWithChildren
-  '/_auth/config': typeof AuthConfigRoute
+  '/_auth/config': typeof AuthConfigRouteWithChildren
   '/_auth/effects': typeof AuthEffectsRoute
   '/_auth/factions': typeof AuthFactionsRoute
   '/_auth/items': typeof AuthItemsRouteWithChildren
@@ -364,7 +485,9 @@ export interface FileRoutesById {
   '/_auth/quests': typeof AuthQuestsRouteWithChildren
   '/_auth/races': typeof AuthRacesRoute
   '/_auth/skills': typeof AuthSkillsRoute
+  '/_auth/socials': typeof AuthSocialsRouteWithChildren
   '/_auth/tags': typeof AuthTagsRoute
+  '/_auth/tell-queue': typeof AuthTellQueueRoute
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
@@ -374,16 +497,28 @@ export interface FileRoutesById {
   '/docs/faction-system': typeof DocsFactionSystemRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
+  '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/docs/': typeof DocsIndexRoute
+  '/map/': typeof MapIndexRoute
   '/_auth/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
+  '/_auth/abilities/new': typeof AuthAbilitiesNewRoute
   '/_auth/characters/$characterId': typeof AuthCharactersCharacterIdRoute
+  '/_auth/config/$key': typeof AuthConfigKeyRoute
+  '/_auth/config/new': typeof AuthConfigNewRoute
   '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
+  '/_auth/items/new': typeof AuthItemsNewRoute
   '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
   '/_auth/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/_auth/socials/$socialId': typeof AuthSocialsSocialIdRoute
+  '/_auth/socials/new': typeof AuthSocialsNewRoute
+  '/map/rooms/new': typeof MapRoomsNewRoute
+  '/_auth/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/_auth/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
   '/_auth/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/_auth/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+  '/map/rooms/$roomId/items/spawn': typeof MapRoomsRoomIdItemsSpawnRoute
+  '/map/rooms/$roomId/npcs/spawn': typeof MapRoomsRoomIdNpcsSpawnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -397,6 +532,7 @@ export interface FileRouteTypes {
     | '/npc-templates'
     | '/abilities'
     | '/achievements'
+    | '/channels'
     | '/characters'
     | '/config'
     | '/effects'
@@ -408,7 +544,9 @@ export interface FileRouteTypes {
     | '/quests'
     | '/races'
     | '/skills'
+    | '/socials'
     | '/tags'
+    | '/tell-queue'
     | '/xp'
     | '/docs/ability-system'
     | '/docs/bind-points'
@@ -418,26 +556,38 @@ export interface FileRouteTypes {
     | '/docs/faction-system'
     | '/docs/item-system'
     | '/docs/npc-system'
+    | '/docs/quest-system'
     | '/docs/trainable-skills'
     | '/docs/'
+    | '/map/'
     | '/abilities/$abilityId'
+    | '/abilities/new'
     | '/characters/$characterId'
+    | '/config/$key'
+    | '/config/new'
     | '/items/$itemId'
+    | '/items/new'
     | '/npcs/$npcId'
     | '/quests/$questId'
+    | '/socials/$socialId'
+    | '/socials/new'
+    | '/map/rooms/new'
+    | '/items/$itemId/spawn'
     | '/npcs/$npcId/'
     | '/items/$itemId/instances/$instanceId'
     | '/npcs/$npcId/instances/$instanceId'
+    | '/map/rooms/$roomId/items/spawn'
+    | '/map/rooms/$roomId/npcs/spawn'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
     | '/export'
     | '/login'
-    | '/map'
     | '/npc-templates'
     | '/abilities'
     | '/achievements'
+    | '/channels'
     | '/characters'
     | '/config'
     | '/effects'
@@ -449,7 +599,9 @@ export interface FileRouteTypes {
     | '/quests'
     | '/races'
     | '/skills'
+    | '/socials'
     | '/tags'
+    | '/tell-queue'
     | '/xp'
     | '/docs/ability-system'
     | '/docs/bind-points'
@@ -459,15 +611,27 @@ export interface FileRouteTypes {
     | '/docs/faction-system'
     | '/docs/item-system'
     | '/docs/npc-system'
+    | '/docs/quest-system'
     | '/docs/trainable-skills'
     | '/docs'
+    | '/map'
     | '/abilities/$abilityId'
+    | '/abilities/new'
     | '/characters/$characterId'
+    | '/config/$key'
+    | '/config/new'
     | '/items/$itemId'
+    | '/items/new'
     | '/quests/$questId'
+    | '/socials/$socialId'
+    | '/socials/new'
+    | '/map/rooms/new'
+    | '/items/$itemId/spawn'
     | '/npcs/$npcId'
     | '/items/$itemId/instances/$instanceId'
     | '/npcs/$npcId/instances/$instanceId'
+    | '/map/rooms/$roomId/items/spawn'
+    | '/map/rooms/$roomId/npcs/spawn'
   id:
     | '__root__'
     | '/'
@@ -480,6 +644,7 @@ export interface FileRouteTypes {
     | '/npc-templates'
     | '/_auth/abilities'
     | '/_auth/achievements'
+    | '/_auth/channels'
     | '/_auth/characters'
     | '/_auth/config'
     | '/_auth/effects'
@@ -491,7 +656,9 @@ export interface FileRouteTypes {
     | '/_auth/quests'
     | '/_auth/races'
     | '/_auth/skills'
+    | '/_auth/socials'
     | '/_auth/tags'
+    | '/_auth/tell-queue'
     | '/_auth/xp'
     | '/docs/ability-system'
     | '/docs/bind-points'
@@ -501,16 +668,28 @@ export interface FileRouteTypes {
     | '/docs/faction-system'
     | '/docs/item-system'
     | '/docs/npc-system'
+    | '/docs/quest-system'
     | '/docs/trainable-skills'
     | '/docs/'
+    | '/map/'
     | '/_auth/abilities/$abilityId'
+    | '/_auth/abilities/new'
     | '/_auth/characters/$characterId'
+    | '/_auth/config/$key'
+    | '/_auth/config/new'
     | '/_auth/items/$itemId'
+    | '/_auth/items/new'
     | '/_auth/npcs/$npcId'
     | '/_auth/quests/$questId'
+    | '/_auth/socials/$socialId'
+    | '/_auth/socials/new'
+    | '/map/rooms/new'
+    | '/_auth/items/$itemId/spawn'
     | '/_auth/npcs/$npcId/'
     | '/_auth/items/$itemId/instances/$instanceId'
     | '/_auth/npcs/$npcId/instances/$instanceId'
+    | '/map/rooms/$roomId/items/spawn'
+    | '/map/rooms/$roomId/npcs/spawn'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -520,7 +699,7 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRouteWithChildren
   ExportRoute: typeof ExportRoute
   LoginRoute: typeof LoginRoute
-  MapRoute: typeof MapRoute
+  MapRoute: typeof MapRouteWithChildren
   NpcTemplatesRoute: typeof NpcTemplatesRoute
 }
 
@@ -582,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/map/': {
+      id: '/map/'
+      path: '/'
+      fullPath: '/map/'
+      preLoaderRoute: typeof MapIndexRouteImport
+      parentRoute: typeof MapRoute
+    }
     '/docs/': {
       id: '/docs/'
       path: '/'
@@ -594,6 +780,13 @@ declare module '@tanstack/react-router' {
       path: '/trainable-skills'
       fullPath: '/docs/trainable-skills'
       preLoaderRoute: typeof DocsTrainableSkillsRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/quest-system': {
+      id: '/docs/quest-system'
+      path: '/quest-system'
+      fullPath: '/docs/quest-system'
+      preLoaderRoute: typeof DocsQuestSystemRouteImport
       parentRoute: typeof DocsRoute
     }
     '/docs/npc-system': {
@@ -659,11 +852,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthXpRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/tell-queue': {
+      id: '/_auth/tell-queue'
+      path: '/tell-queue'
+      fullPath: '/tell-queue'
+      preLoaderRoute: typeof AuthTellQueueRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/tags': {
       id: '/_auth/tags'
       path: '/tags'
       fullPath: '/tags'
       preLoaderRoute: typeof AuthTagsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/socials': {
+      id: '/_auth/socials'
+      path: '/socials'
+      fullPath: '/socials'
+      preLoaderRoute: typeof AuthSocialsRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/skills': {
@@ -743,6 +950,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCharactersRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/channels': {
+      id: '/_auth/channels'
+      path: '/channels'
+      fullPath: '/channels'
+      preLoaderRoute: typeof AuthChannelsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/achievements': {
       id: '/_auth/achievements'
       path: '/achievements'
@@ -756,6 +970,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/abilities'
       preLoaderRoute: typeof AuthAbilitiesRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/map/rooms/new': {
+      id: '/map/rooms/new'
+      path: '/rooms/new'
+      fullPath: '/map/rooms/new'
+      preLoaderRoute: typeof MapRoomsNewRouteImport
+      parentRoute: typeof MapRoute
+    }
+    '/_auth/socials/new': {
+      id: '/_auth/socials/new'
+      path: '/new'
+      fullPath: '/socials/new'
+      preLoaderRoute: typeof AuthSocialsNewRouteImport
+      parentRoute: typeof AuthSocialsRoute
+    }
+    '/_auth/socials/$socialId': {
+      id: '/_auth/socials/$socialId'
+      path: '/$socialId'
+      fullPath: '/socials/$socialId'
+      preLoaderRoute: typeof AuthSocialsSocialIdRouteImport
+      parentRoute: typeof AuthSocialsRoute
     }
     '/_auth/quests/$questId': {
       id: '/_auth/quests/$questId'
@@ -771,6 +1006,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthNpcsNpcIdRouteImport
       parentRoute: typeof AuthNpcsRoute
     }
+    '/_auth/items/new': {
+      id: '/_auth/items/new'
+      path: '/new'
+      fullPath: '/items/new'
+      preLoaderRoute: typeof AuthItemsNewRouteImport
+      parentRoute: typeof AuthItemsRoute
+    }
     '/_auth/items/$itemId': {
       id: '/_auth/items/$itemId'
       path: '/$itemId'
@@ -778,12 +1020,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthItemsItemIdRouteImport
       parentRoute: typeof AuthItemsRoute
     }
+    '/_auth/config/new': {
+      id: '/_auth/config/new'
+      path: '/new'
+      fullPath: '/config/new'
+      preLoaderRoute: typeof AuthConfigNewRouteImport
+      parentRoute: typeof AuthConfigRoute
+    }
+    '/_auth/config/$key': {
+      id: '/_auth/config/$key'
+      path: '/$key'
+      fullPath: '/config/$key'
+      preLoaderRoute: typeof AuthConfigKeyRouteImport
+      parentRoute: typeof AuthConfigRoute
+    }
     '/_auth/characters/$characterId': {
       id: '/_auth/characters/$characterId'
       path: '/$characterId'
       fullPath: '/characters/$characterId'
       preLoaderRoute: typeof AuthCharactersCharacterIdRouteImport
       parentRoute: typeof AuthCharactersRoute
+    }
+    '/_auth/abilities/new': {
+      id: '/_auth/abilities/new'
+      path: '/new'
+      fullPath: '/abilities/new'
+      preLoaderRoute: typeof AuthAbilitiesNewRouteImport
+      parentRoute: typeof AuthAbilitiesRoute
     }
     '/_auth/abilities/$abilityId': {
       id: '/_auth/abilities/$abilityId'
@@ -798,6 +1061,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/npcs/$npcId/'
       preLoaderRoute: typeof AuthNpcsNpcIdIndexRouteImport
       parentRoute: typeof AuthNpcsNpcIdRoute
+    }
+    '/_auth/items/$itemId/spawn': {
+      id: '/_auth/items/$itemId/spawn'
+      path: '/spawn'
+      fullPath: '/items/$itemId/spawn'
+      preLoaderRoute: typeof AuthItemsItemIdSpawnRouteImport
+      parentRoute: typeof AuthItemsItemIdRoute
+    }
+    '/map/rooms/$roomId/npcs/spawn': {
+      id: '/map/rooms/$roomId/npcs/spawn'
+      path: '/rooms/$roomId/npcs/spawn'
+      fullPath: '/map/rooms/$roomId/npcs/spawn'
+      preLoaderRoute: typeof MapRoomsRoomIdNpcsSpawnRouteImport
+      parentRoute: typeof MapRoute
+    }
+    '/map/rooms/$roomId/items/spawn': {
+      id: '/map/rooms/$roomId/items/spawn'
+      path: '/rooms/$roomId/items/spawn'
+      fullPath: '/map/rooms/$roomId/items/spawn'
+      preLoaderRoute: typeof MapRoomsRoomIdItemsSpawnRouteImport
+      parentRoute: typeof MapRoute
     }
     '/_auth/npcs/$npcId/instances/$instanceId': {
       id: '/_auth/npcs/$npcId/instances/$instanceId'
@@ -818,10 +1102,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthAbilitiesRouteChildren {
   AuthAbilitiesAbilityIdRoute: typeof AuthAbilitiesAbilityIdRoute
+  AuthAbilitiesNewRoute: typeof AuthAbilitiesNewRoute
 }
 
 const AuthAbilitiesRouteChildren: AuthAbilitiesRouteChildren = {
   AuthAbilitiesAbilityIdRoute: AuthAbilitiesAbilityIdRoute,
+  AuthAbilitiesNewRoute: AuthAbilitiesNewRoute,
 }
 
 const AuthAbilitiesRouteWithChildren = AuthAbilitiesRoute._addFileChildren(
@@ -840,11 +1126,27 @@ const AuthCharactersRouteWithChildren = AuthCharactersRoute._addFileChildren(
   AuthCharactersRouteChildren,
 )
 
+interface AuthConfigRouteChildren {
+  AuthConfigKeyRoute: typeof AuthConfigKeyRoute
+  AuthConfigNewRoute: typeof AuthConfigNewRoute
+}
+
+const AuthConfigRouteChildren: AuthConfigRouteChildren = {
+  AuthConfigKeyRoute: AuthConfigKeyRoute,
+  AuthConfigNewRoute: AuthConfigNewRoute,
+}
+
+const AuthConfigRouteWithChildren = AuthConfigRoute._addFileChildren(
+  AuthConfigRouteChildren,
+)
+
 interface AuthItemsItemIdRouteChildren {
+  AuthItemsItemIdSpawnRoute: typeof AuthItemsItemIdSpawnRoute
   AuthItemsItemIdInstancesInstanceIdRoute: typeof AuthItemsItemIdInstancesInstanceIdRoute
 }
 
 const AuthItemsItemIdRouteChildren: AuthItemsItemIdRouteChildren = {
+  AuthItemsItemIdSpawnRoute: AuthItemsItemIdSpawnRoute,
   AuthItemsItemIdInstancesInstanceIdRoute:
     AuthItemsItemIdInstancesInstanceIdRoute,
 }
@@ -855,10 +1157,12 @@ const AuthItemsItemIdRouteWithChildren = AuthItemsItemIdRoute._addFileChildren(
 
 interface AuthItemsRouteChildren {
   AuthItemsItemIdRoute: typeof AuthItemsItemIdRouteWithChildren
+  AuthItemsNewRoute: typeof AuthItemsNewRoute
 }
 
 const AuthItemsRouteChildren: AuthItemsRouteChildren = {
   AuthItemsItemIdRoute: AuthItemsItemIdRouteWithChildren,
+  AuthItemsNewRoute: AuthItemsNewRoute,
 }
 
 const AuthItemsRouteWithChildren = AuthItemsRoute._addFileChildren(
@@ -903,11 +1207,26 @@ const AuthQuestsRouteWithChildren = AuthQuestsRoute._addFileChildren(
   AuthQuestsRouteChildren,
 )
 
+interface AuthSocialsRouteChildren {
+  AuthSocialsSocialIdRoute: typeof AuthSocialsSocialIdRoute
+  AuthSocialsNewRoute: typeof AuthSocialsNewRoute
+}
+
+const AuthSocialsRouteChildren: AuthSocialsRouteChildren = {
+  AuthSocialsSocialIdRoute: AuthSocialsSocialIdRoute,
+  AuthSocialsNewRoute: AuthSocialsNewRoute,
+}
+
+const AuthSocialsRouteWithChildren = AuthSocialsRoute._addFileChildren(
+  AuthSocialsRouteChildren,
+)
+
 interface AuthRouteChildren {
   AuthAbilitiesRoute: typeof AuthAbilitiesRouteWithChildren
   AuthAchievementsRoute: typeof AuthAchievementsRoute
+  AuthChannelsRoute: typeof AuthChannelsRoute
   AuthCharactersRoute: typeof AuthCharactersRouteWithChildren
-  AuthConfigRoute: typeof AuthConfigRoute
+  AuthConfigRoute: typeof AuthConfigRouteWithChildren
   AuthEffectsRoute: typeof AuthEffectsRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
   AuthItemsRoute: typeof AuthItemsRouteWithChildren
@@ -917,15 +1236,18 @@ interface AuthRouteChildren {
   AuthQuestsRoute: typeof AuthQuestsRouteWithChildren
   AuthRacesRoute: typeof AuthRacesRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
+  AuthSocialsRoute: typeof AuthSocialsRouteWithChildren
   AuthTagsRoute: typeof AuthTagsRoute
+  AuthTellQueueRoute: typeof AuthTellQueueRoute
   AuthXpRoute: typeof AuthXpRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthAbilitiesRoute: AuthAbilitiesRouteWithChildren,
   AuthAchievementsRoute: AuthAchievementsRoute,
+  AuthChannelsRoute: AuthChannelsRoute,
   AuthCharactersRoute: AuthCharactersRouteWithChildren,
-  AuthConfigRoute: AuthConfigRoute,
+  AuthConfigRoute: AuthConfigRouteWithChildren,
   AuthEffectsRoute: AuthEffectsRoute,
   AuthFactionsRoute: AuthFactionsRoute,
   AuthItemsRoute: AuthItemsRouteWithChildren,
@@ -935,7 +1257,9 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthQuestsRoute: AuthQuestsRouteWithChildren,
   AuthRacesRoute: AuthRacesRoute,
   AuthSkillsRoute: AuthSkillsRoute,
+  AuthSocialsRoute: AuthSocialsRouteWithChildren,
   AuthTagsRoute: AuthTagsRoute,
+  AuthTellQueueRoute: AuthTellQueueRoute,
   AuthXpRoute: AuthXpRoute,
 }
 
@@ -950,6 +1274,7 @@ interface DocsRouteChildren {
   DocsFactionSystemRoute: typeof DocsFactionSystemRoute
   DocsItemSystemRoute: typeof DocsItemSystemRoute
   DocsNpcSystemRoute: typeof DocsNpcSystemRoute
+  DocsQuestSystemRoute: typeof DocsQuestSystemRoute
   DocsTrainableSkillsRoute: typeof DocsTrainableSkillsRoute
   DocsIndexRoute: typeof DocsIndexRoute
 }
@@ -963,11 +1288,28 @@ const DocsRouteChildren: DocsRouteChildren = {
   DocsFactionSystemRoute: DocsFactionSystemRoute,
   DocsItemSystemRoute: DocsItemSystemRoute,
   DocsNpcSystemRoute: DocsNpcSystemRoute,
+  DocsQuestSystemRoute: DocsQuestSystemRoute,
   DocsTrainableSkillsRoute: DocsTrainableSkillsRoute,
   DocsIndexRoute: DocsIndexRoute,
 }
 
 const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
+interface MapRouteChildren {
+  MapIndexRoute: typeof MapIndexRoute
+  MapRoomsNewRoute: typeof MapRoomsNewRoute
+  MapRoomsRoomIdItemsSpawnRoute: typeof MapRoomsRoomIdItemsSpawnRoute
+  MapRoomsRoomIdNpcsSpawnRoute: typeof MapRoomsRoomIdNpcsSpawnRoute
+}
+
+const MapRouteChildren: MapRouteChildren = {
+  MapIndexRoute: MapIndexRoute,
+  MapRoomsNewRoute: MapRoomsNewRoute,
+  MapRoomsRoomIdItemsSpawnRoute: MapRoomsRoomIdItemsSpawnRoute,
+  MapRoomsRoomIdNpcsSpawnRoute: MapRoomsRoomIdNpcsSpawnRoute,
+}
+
+const MapRouteWithChildren = MapRoute._addFileChildren(MapRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -976,7 +1318,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRouteWithChildren,
   ExportRoute: ExportRoute,
   LoginRoute: LoginRoute,
-  MapRoute: MapRoute,
+  MapRoute: MapRouteWithChildren,
   NpcTemplatesRoute: NpcTemplatesRoute,
 }
 export const routeTree = rootRouteImport

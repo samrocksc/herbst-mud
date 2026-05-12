@@ -19,7 +19,7 @@ func RegisterHookRoutes(r *gin.Engine, repos *repository.Container) {
 		hooks.DELETE("/:id", deleteHook(repos))
 	}
 	// Template-scoped routes
-	r.GET("/api/npc-templates/:id/hooks", listTemplateHooks(repos))
+	r.GET("/api/npc-templates/:id/hooks", middleware.AuthMiddleware(), middleware.AdminMiddleware(), listTemplateHooks(repos))
 	r.POST("/api/npc-templates/:id/hooks", middleware.AuthMiddleware(), middleware.AdminMiddleware(), createTemplateHook(repos))
 }
 

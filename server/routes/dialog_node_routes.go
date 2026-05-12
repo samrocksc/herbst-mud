@@ -21,7 +21,7 @@ func RegisterDialogNodeRoutes(r *gin.Engine, repos *repository.Container, client
 		nodes.DELETE("/:id", deleteDialogNode(repos))
 	}
 	// Public: game client fetches dialog tree for a specific NPC template.
-	r.GET("/api/npc-templates/:id/dialog-nodes", getDialogNodesForTemplate(repos))
+	r.GET("/api/npc-templates/:id/dialog-nodes", middleware.AuthMiddleware(), middleware.AdminMiddleware(), getDialogNodesForTemplate(repos))
 }
 
 // TODO: Use repos.DialogNode.Get once repo supports WithNpcTemplate edge loading

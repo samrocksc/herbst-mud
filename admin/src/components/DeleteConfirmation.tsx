@@ -15,8 +15,8 @@ export function DeleteConfirmation({ open, title = 'Confirm Delete', message, on
     <Modal isOpen={open} onClose={onCancel} title={title}>
       <p className="text-text mb-4">{message}</p>
       <div className="flex gap-2 justify-end">
-        <Button variant="secondary" onClick={onCancel} disabled={isLoading}>Cancel</Button>
-        <Button variant="danger" onClick={onConfirm} disabled={isLoading}>
+        <Button variant="secondary" onClick={onCancel} disabled={isLoading} type="button">Cancel</Button>
+        <Button variant="danger" onClick={onConfirm} disabled={isLoading} type="button">
           {isLoading ? 'Deleting…' : 'Delete'}
         </Button>
       </div>

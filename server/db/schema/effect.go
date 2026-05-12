@@ -21,10 +21,10 @@ func (Effect) Fields() []ent.Field {
 			Default("").
 			Comment("Human-readable description"),
 		field.String("effect_type").
-			Comment("xp_drain|xp_gain|xp_set|bind_point_set|hp_change|stamina_change|mana_change|message|teleport|apply_effect|tag_add|tag_remove"),
+			Comment("xp_drain|xp_gain|xp_set|bind_point_set|hp_change|stamina_change|mana_change|message|send_message|teleport|apply_effect|tag_add|tag_remove"),
 		field.JSON("parameters", map[string]interface{}{}).
 			Default(map[string]interface{}{}).
-			Comment("Type-specific params: {amount:500}, {room_id:12}, etc."),
+			Comment(`Type-specific params: {amount:500}, {room_id:12}, etc. send_message: {message:"...",channel:"room"|"yell"|"shout"|"tell"|"whisper"|"chat"|"newbie"|"trade"|"ooc"|"admin"|"emote",target_type:"player"|"npc",target_id:123}`),
 		field.String("stack_mode").
 			Default("replace").
 			Comment("replace|refresh|stack — how stacking works"),

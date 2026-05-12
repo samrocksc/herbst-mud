@@ -13,7 +13,6 @@ type MapSidebarProps = {
   selectedRoom: Room | null
   setCurrentZLevel: (z: number) => void
   setSelectedRoom: (room: Room | null) => void
-  setShowCreateModal: (show: boolean) => void
 }
 
 export function MapSidebar({
@@ -24,7 +23,6 @@ export function MapSidebar({
   selectedRoom,
   setCurrentZLevel,
   setSelectedRoom,
-  setShowCreateModal,
 }: MapSidebarProps) {
   const zLevelRange = Array.from(new Set(Array.from(zLevels.values()))).sort((a, b) => a - b)
   const roomsOnFloor = Array.from(zLevels.values()).filter((z) => z === currentZLevel).length
@@ -82,14 +80,11 @@ export function MapSidebar({
 
       {/* Add Room button */}
       <div className="p-3 border-b border-border">
-        <Button
-          variant="primary"
-          size="md"
-          fullWidth
-          onClick={() => setShowCreateModal(true)}
-        >
-          + Add Room
-        </Button>
+        <Link to="/map/rooms/new" className="no-underline">
+          <Button variant="primary" size="md" fullWidth>
+            + Add Room
+          </Button>
+        </Link>
       </div>
 
       {/* Floor selector */}

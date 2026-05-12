@@ -1,5 +1,5 @@
+import { Link } from '@tanstack/react-router'
 import { Button } from '../Button'
-import { NPCSpawnModal } from './NPCSpawnModal'
 import { NPCInstanceRow } from './NPCEditRow'
 import { useNPCInstances } from './useNPCInstances'
 
@@ -22,24 +22,6 @@ export type NPCInstanceView = Readonly<{
   is_instance: boolean
 }>
 
-export type NPCTemplate = Readonly<{
-  id: string
-  name: string
-  race: string
-  level: number
-  respawn_rooms: string[]
-  respawn_cooldown: number
-}>
-
-export type SpawnFormData = {
-  template_id: string
-  level: number
-  hitpoints: number
-  room_id: number
-  respawn_cooldown: number
-  respawn_rooms: string
-}
-
 export type EditFormData = {
   level: number
   hitpoints: number
@@ -51,10 +33,10 @@ type Props = Readonly<{ roomId: number }>
 
 export function NPCInstanceManager({ roomId }: Props) {
   const {
-    instancesQuery, templatesQuery, createMutation, updateMutation,
-    showSpawn, setShowSpawn, editingId, setEditingId, confirmDeleteId, setConfirmDeleteId,
-    spawnForm, setSpawnForm, editForm, setEditForm,
-    handleSpawn, handleUpdate, handleDelete, startEdit,
+    instancesQuery, updateMutation,
+    editingId, setEditingId, confirmDeleteId, setConfirmDeleteId,
+    editForm, setEditForm,
+    handleUpdate, handleDelete, startEdit,
   } = useNPCInstances(roomId)
 
   if (instancesQuery.isLoading) {
@@ -65,16 +47,14 @@ export function NPCInstanceManager({ roomId }: Props) {
   }
 
   const instances = instancesQuery.data ?? []
-  const templates = templatesQuery.data ?? []
 
   return (
     <div className="mb-3">
       <div className="flex items-center justify-between mb-1">
         <strong className="text-warning text-xs">NPCs:</strong>
-        <Button variant="primary" size="sm" className="!px-1.5 !py-0 !text-[10px]"
-          onClick={() => { setSpawnForm({ template_id: '', level: 0, hitpoints: 0, room_id: roomId, respawn_cooldown: 0, respawn_rooms: '' }); setShowSpawn(true) }}>
-          + Spawn
-        </Button>
+        <Link to="/map/rooms/$roomId/npcs/spawn" params={{ roomId: String(roomId) }} className="no-underline">
+          <Button variant="primary" size="sm" className="!px-1.5 !py-0 !text-[10px]">+ Spawn</Button>
+        </Link>
       </div>
       {instances.length === 0 ? (
         <div className="text-text-muted text-[10px]">No NPCs in this room.</div>
@@ -89,11 +69,6 @@ export function NPCInstanceManager({ roomId }: Props) {
           ))}
         </div>
       )}
-      <NPCSpawnModal showSpawn={showSpawn} setShowSpawn={setShowSpawn} spawnForm={spawnForm}
-        setSpawnForm={setSpawnForm} templates={templates} templatesLoading={templatesQuery.isLoading}
-        onSpawn={handleSpawn} isPending={createMutation.isPending} error={createMutation.error}
-        selectedTemplate={spawnForm.template_id ? templates.find((t) => t.id === spawnForm.template_id) ?? null : null} />
     </div>
   )
 }
-

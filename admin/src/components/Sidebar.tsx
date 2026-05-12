@@ -19,6 +19,8 @@ import { RacesIcon } from './icons/RacesIcon'
 import { LogsIcon } from './icons/LogsIcon'
 import { EffectsIcon } from './icons/EffectsIcon'
 import { QuestsIcon } from './icons/QuestsIcon'
+import { SocialsIcon } from './icons/SocialsIcon'
+import { ChannelsIcon } from './icons/ChannelsIcon'
 
 const STORAGE_KEY = 'sidebar-collapsed'
 
@@ -30,6 +32,8 @@ const navItems = [
   { label: 'Items', path: '/items', Icon: ItemsIcon },
   { label: 'Abilities', path: '/abilities', Icon: AbilitiesIcon },
   { label: 'Effects', path: '/effects', Icon: EffectsIcon },
+  { label: 'Socials', path: '/socials', Icon: SocialsIcon },
+  { label: 'Channels', path: '/channels', Icon: ChannelsIcon },
   { label: 'Skills', path: '/skills', Icon: SkillsIcon },
   { label: 'Tags', path: '/tags', Icon: TagsIcon },
   { label: 'Players', path: '/players', Icon: PlayersIcon },

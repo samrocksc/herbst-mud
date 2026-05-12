@@ -3,8 +3,10 @@ package routes
 import (
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/db"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -48,6 +50,16 @@ func listNPCTemplates(repos *repository.Container) gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		if search := c.Query("search"); search != "" {
+			s := strings.ToLower(search)
+			filtered := make([]*db.NPCTemplate, 0, len(templates))
+			for _, t := range templates {
+				if strings.Contains(strings.ToLower(t.Name), s) {
+					filtered = append(filtered, t)
+				}
+			}
+			templates = filtered
 		}
 		sort.Slice(templates, func(i, j int) bool {
 			return templates[i].Name < templates[j].Name

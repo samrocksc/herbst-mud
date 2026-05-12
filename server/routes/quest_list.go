@@ -3,18 +3,30 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/db"
 	"herbst-server/service"
 )
 
-// listQuests returns all quests ordered by name.
+// listQuests returns all quests, optionally filtered by name.
 func listQuests(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		quests, err := svc.Quest.ListQuests(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		if search := c.Query("search"); search != "" {
+			s := strings.ToLower(search)
+			filtered := make([]*db.Quest, 0, len(quests))
+			for _, q := range quests {
+				if strings.Contains(strings.ToLower(q.Name), s) {
+					filtered = append(filtered, q)
+				}
+			}
+			quests = filtered
 		}
 		result := make([]questView, len(quests))
 		for i, q := range quests {
