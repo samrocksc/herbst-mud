@@ -15,6 +15,14 @@ type ExportData = Readonly<{
   items: readonly unknown[]
 }>
 
+type WorldInfo = Readonly<{
+  id: string
+  name: string
+  description: string
+  status: string
+  contentPath: string
+}>
+
 function ExportPage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
@@ -24,33 +32,64 @@ function ExportPage() {
   const [showImportConfirm, setShowImportConfirm] = useState(false)
   const [showWipeConfirm, setShowWipeConfirm] = useState(false)
   const [importData, setImportData] = useState<ExportData | null>(null)
+  const [availableWorlds, setAvailableWorlds] = useState<WorldInfo[]>([])
+  const [selectedWorldId, setSelectedWorldId] = useState<string>('default')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Fetch available worlds on mount
+  const fetchWorlds = async () => {
+    try {
+      const response = await fetch(`${window.location.origin}/admin/export/worlds`)
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableWorlds(data.worlds || [])
+        if (data.default) {
+          setSelectedWorldId(data.default)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch worlds:', err)
+    }
+  }
 
   const handleExport = async () => {
     setLoading(true)
     setMessage('')
-    
+
     try {
-      const response = await fetch(`\${window.location.origin}/admin/export`)
+      const response = await fetch(`${window.location.origin}/admin/export/worlds`)
       if (!response.ok) {
-        throw new Error('Export failed: ' + response.statusText)
+        throw new Error('Failed to fetch world list: ' + response.statusText)
       }
-      
-      const data: ExportData = await response.json()
+
+      const worldsData = await response.json()
+      const selectedWorld = worldsData.worlds?.find((w: WorldInfo) => w.id === selectedWorldId)
+
+      if (!selectedWorld) {
+        throw new Error(`World not found: ${selectedWorldId}`)
+      }
+
+      // Export the selected world
+      const exportResponse = await fetch(`${window.location.origin}/admin/export`)
+      if (!exportResponse.ok) {
+        throw new Error('Export failed: ' + exportResponse.statusText)
+      }
+
+      const data: ExportData = await exportResponse.json()
       setExportPreview(data)
-      
+
       // Create and download JSON file
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `herbst-mud-export-${new Date().toISOString().split('T')[0]}.json`
+      a.download = `herbst-mud-export-${selectedWorld.id}-${new Date().toISOString().split('T')[0]}.json`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      
-      setMessage(`Exported ${data.rooms.length} rooms, ${data.npcs.length} NPCs, ${data.skills.length} skills`)
+
+      setMessage(`Exported ${data.rooms.length} rooms, ${data.npcs.length} NPCs, ${data.skills.length} skills from world: ${selectedWorld.name}`)
       setMessageType('success')
     } catch (err) {
       setMessage('Export failed: ' + (err instanceof Error ? err.message : 'Unknown error'))
@@ -70,22 +109,22 @@ function ExportPage() {
     try {
       const text = await file.text()
       const data: ExportData = JSON.parse(text)
-      
+
       // Validate the file
       const response = await fetch(`${window.location.origin}/admin/import/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: text
       })
-      
+
       const validation = await response.json()
-      
+
       if (!validation.is_valid) {
         setMessage('Validation failed: ' + validation.errors.join(', '))
         setMessageType('error')
         return
       }
-      
+
       setImportData(data)
       setShowImportConfirm(true)
       setMessage(`File validated: ${validation.rooms} rooms, ${validation.npcs} NPCs, ${validation.skills} skills`)
@@ -110,11 +149,11 @@ function ExportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(importData)
       })
-      
+
       if (!response.ok) {
         throw new Error('Import failed: ' + response.statusText)
       }
-      
+
       const result = await response.json()
       setMessage(`Import successful! imported ${result.imported.rooms} rooms, ${result.imported.npcs} NPCs`)
       setMessageType('success')
@@ -138,11 +177,11 @@ function ExportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}) // Full wipe uses POST body
       })
-      
+
       if (!response.ok) {
         throw new Error('Wipe failed: ' + response.statusText)
       }
-      
+
       const result = await response.json()
       setMessage(`Wiped ${result.npcs_wiped} NPCs, ${result.rooms_wiped} rooms. Reinitialized: ${result.reinitialized.join(', ')}`)
       setMessageType('success')
@@ -195,9 +234,36 @@ function ExportPage() {
               <span>💾</span>
               Export Game World
             </h2>
-            
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-text-muted mb-2">
+                Select World to Export
+              </label>
+              <select
+                value={selectedWorldId}
+                onChange={(e) => setSelectedWorldId(e.target.value)}
+                className="w-full p-3 bg-surface border border-border rounded focus:ring-2 focus:ring-primary focus:border-transparent"
+                disabled={loading || availableWorlds.length === 0}
+              >
+                {availableWorlds.length === 0 ? (
+                  <option>Loading worlds...</option>
+                ) : (
+                  availableWorlds.map((world) => (
+                    <option key={world.id} value={world.id}>
+                      {world.name} ({world.id}) - {world.description}
+                    </option>
+                  ))
+                )}
+              </select>
+              {availableWorlds.length > 0 && (
+                <p className="text-xs text-text-muted mt-1">
+                  Available worlds: {availableWorlds.length} | Default: {availableWorlds.find(w => w.id === selectedWorldId)?.id}
+                </p>
+              )}
+            </div>
+
             <p className="text-text-muted mb-4">
-              Export all game data including rooms, NPCs, skills, and items. 
+              Export all game data including rooms, NPCs, skills, and items.
               Player accounts and player characters are excluded.
             </p>
 
@@ -238,9 +304,9 @@ function ExportPage() {
               <span>📂</span>
               Import Game World
             </h2>
-            
+
             <p className="text-text-muted mb-4">
-              Import a previously exported game world. Existing data will be updated, 
+              Import a previously exported game world. Existing data will be updated,
               new data will be created. Player data is never imported.
             </p>
 
@@ -307,7 +373,7 @@ function ExportPage() {
               <span>⚠️</span>
               Danger Zone: Wipe & Reload
             </h2>
-            
+
             <p className="text-text-muted mb-4">
               <strong>WARNING:</strong> This will delete ALL game data (NPCs, rooms, items, skills, abilities)
               and reinitialize with fresh default data. Player accounts and characters are preserved.
