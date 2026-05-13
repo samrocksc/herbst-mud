@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { apiGet } from '../utils/apiFetch'
+
+const API = `${window.location.origin}`
+
 import { DashboardIcon } from './icons/DashboardIcon'
 import { XpIcon } from './icons/XpIcon'
 import { ConfigIcon } from './icons/ConfigIcon'
@@ -46,6 +51,28 @@ const navItems = [
   { label: 'Docs', path: '/docs', Icon: DocsIcon },
 ]
 
+type World = {
+  id: number
+  name: string
+  title: string
+  description: string
+  active: boolean
+}
+
+function useActiveWorld() {
+  return useQuery({
+    queryKey: ['activeWorld'],
+    queryFn: async (): Promise<World | null> => {
+      try {
+        const data = await apiGet<{ world: World }>(`${API}/worlds/active`)
+        return data.world
+      } catch {
+        return null
+      }
+    },
+  })
+}
+
 /** Toggle button for collapsing/expanding the sidebar. Named component for DevTools clarity. */
 function SidebarCollapseToggle({
   collapsed,
@@ -86,6 +113,9 @@ export function Sidebar() {
     }
   })
 
+  // Fetch active world for title display
+  const { data: activeWorld, isLoading: worldLoading, error } = useActiveWorld()
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, String(collapsed))
@@ -93,6 +123,16 @@ export function Sidebar() {
       // localStorage unavailable
     }
   }, [collapsed])
+
+  // World title to display — defaults to 'Herbst MUD' when no world selected
+  let worldTitle = 'Herbst MUD'
+  if (worldLoading) {
+    worldTitle = 'Loading...'
+  } else if (error) {
+    worldTitle = 'Error'
+  } else if (activeWorld?.title) {
+    worldTitle = activeWorld.title
+  }
 
   return (
     <nav
@@ -120,7 +160,7 @@ export function Sidebar() {
           ].join(' ')}
         >
           <span className="text-primary font-bold text-lg whitespace-nowrap block overflow-hidden text-ellipsis">
-            Herbst MUD
+            {worldTitle}
           </span>
         </div>
         <SidebarCollapseToggle
