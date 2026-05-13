@@ -30,6 +30,7 @@ import { Route as DocsCombatGuideRouteImport } from './routes/docs/combat-guide'
 import { Route as DocsBindPointsRouteImport } from './routes/docs/bind-points'
 import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
+import { Route as AuthWorldsRouteImport } from './routes/_auth/worlds'
 import { Route as AuthTellQueueRouteImport } from './routes/_auth/tell-queue'
 import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
 import { Route as AuthSocialsRouteImport } from './routes/_auth/socials'
@@ -48,6 +49,8 @@ import { Route as AuthChannelsRouteImport } from './routes/_auth/channels'
 import { Route as AuthAchievementsRouteImport } from './routes/_auth/achievements'
 import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
 import { Route as MapRoomsNewRouteImport } from './routes/map.rooms.new'
+import { Route as AuthWorldsNewRouteImport } from './routes/_auth/worlds.new'
+import { Route as AuthWorldsWorldIdRouteImport } from './routes/_auth/worlds.$worldId'
 import { Route as AuthSocialsNewRouteImport } from './routes/_auth/socials.new'
 import { Route as AuthSocialsSocialIdRouteImport } from './routes/_auth/socials.$socialId'
 import { Route as AuthQuestsQuestIdRouteImport } from './routes/_auth/quests.$questId'
@@ -170,6 +173,11 @@ const AuthXpRoute = AuthXpRouteImport.update({
   path: '/xp',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthWorldsRoute = AuthWorldsRouteImport.update({
+  id: '/worlds',
+  path: '/worlds',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthTellQueueRoute = AuthTellQueueRouteImport.update({
   id: '/tell-queue',
   path: '/tell-queue',
@@ -259,6 +267,16 @@ const MapRoomsNewRoute = MapRoomsNewRouteImport.update({
   id: '/rooms/new',
   path: '/rooms/new',
   getParentRoute: () => MapRoute,
+} as any)
+const AuthWorldsNewRoute = AuthWorldsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthWorldsRoute,
+} as any)
+const AuthWorldsWorldIdRoute = AuthWorldsWorldIdRouteImport.update({
+  id: '/$worldId',
+  path: '/$worldId',
+  getParentRoute: () => AuthWorldsRoute,
 } as any)
 const AuthSocialsNewRoute = AuthSocialsNewRouteImport.update({
   id: '/new',
@@ -375,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
   '/tell-queue': typeof AuthTellQueueRoute
+  '/worlds': typeof AuthWorldsRouteWithChildren
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
@@ -399,6 +418,8 @@ export interface FileRoutesByFullPath {
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
+  '/worlds/$worldId': typeof AuthWorldsWorldIdRoute
+  '/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
   '/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
@@ -430,6 +451,7 @@ export interface FileRoutesByTo {
   '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
   '/tell-queue': typeof AuthTellQueueRoute
+  '/worlds': typeof AuthWorldsRouteWithChildren
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
@@ -453,6 +475,8 @@ export interface FileRoutesByTo {
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
+  '/worlds/$worldId': typeof AuthWorldsWorldIdRoute
+  '/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
   '/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
@@ -488,6 +512,7 @@ export interface FileRoutesById {
   '/_auth/socials': typeof AuthSocialsRouteWithChildren
   '/_auth/tags': typeof AuthTagsRoute
   '/_auth/tell-queue': typeof AuthTellQueueRoute
+  '/_auth/worlds': typeof AuthWorldsRouteWithChildren
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
@@ -512,6 +537,8 @@ export interface FileRoutesById {
   '/_auth/quests/$questId': typeof AuthQuestsQuestIdRoute
   '/_auth/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/_auth/socials/new': typeof AuthSocialsNewRoute
+  '/_auth/worlds/$worldId': typeof AuthWorldsWorldIdRoute
+  '/_auth/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
   '/_auth/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/_auth/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
@@ -547,6 +574,7 @@ export interface FileRouteTypes {
     | '/socials'
     | '/tags'
     | '/tell-queue'
+    | '/worlds'
     | '/xp'
     | '/docs/ability-system'
     | '/docs/bind-points'
@@ -571,6 +599,8 @@ export interface FileRouteTypes {
     | '/quests/$questId'
     | '/socials/$socialId'
     | '/socials/new'
+    | '/worlds/$worldId'
+    | '/worlds/new'
     | '/map/rooms/new'
     | '/items/$itemId/spawn'
     | '/npcs/$npcId/'
@@ -602,6 +632,7 @@ export interface FileRouteTypes {
     | '/socials'
     | '/tags'
     | '/tell-queue'
+    | '/worlds'
     | '/xp'
     | '/docs/ability-system'
     | '/docs/bind-points'
@@ -625,6 +656,8 @@ export interface FileRouteTypes {
     | '/quests/$questId'
     | '/socials/$socialId'
     | '/socials/new'
+    | '/worlds/$worldId'
+    | '/worlds/new'
     | '/map/rooms/new'
     | '/items/$itemId/spawn'
     | '/npcs/$npcId'
@@ -659,6 +692,7 @@ export interface FileRouteTypes {
     | '/_auth/socials'
     | '/_auth/tags'
     | '/_auth/tell-queue'
+    | '/_auth/worlds'
     | '/_auth/xp'
     | '/docs/ability-system'
     | '/docs/bind-points'
@@ -683,6 +717,8 @@ export interface FileRouteTypes {
     | '/_auth/quests/$questId'
     | '/_auth/socials/$socialId'
     | '/_auth/socials/new'
+    | '/_auth/worlds/$worldId'
+    | '/_auth/worlds/new'
     | '/map/rooms/new'
     | '/_auth/items/$itemId/spawn'
     | '/_auth/npcs/$npcId/'
@@ -852,6 +888,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthXpRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/worlds': {
+      id: '/_auth/worlds'
+      path: '/worlds'
+      fullPath: '/worlds'
+      preLoaderRoute: typeof AuthWorldsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/tell-queue': {
       id: '/_auth/tell-queue'
       path: '/tell-queue'
@@ -977,6 +1020,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/map/rooms/new'
       preLoaderRoute: typeof MapRoomsNewRouteImport
       parentRoute: typeof MapRoute
+    }
+    '/_auth/worlds/new': {
+      id: '/_auth/worlds/new'
+      path: '/new'
+      fullPath: '/worlds/new'
+      preLoaderRoute: typeof AuthWorldsNewRouteImport
+      parentRoute: typeof AuthWorldsRoute
+    }
+    '/_auth/worlds/$worldId': {
+      id: '/_auth/worlds/$worldId'
+      path: '/$worldId'
+      fullPath: '/worlds/$worldId'
+      preLoaderRoute: typeof AuthWorldsWorldIdRouteImport
+      parentRoute: typeof AuthWorldsRoute
     }
     '/_auth/socials/new': {
       id: '/_auth/socials/new'
@@ -1221,6 +1278,20 @@ const AuthSocialsRouteWithChildren = AuthSocialsRoute._addFileChildren(
   AuthSocialsRouteChildren,
 )
 
+interface AuthWorldsRouteChildren {
+  AuthWorldsWorldIdRoute: typeof AuthWorldsWorldIdRoute
+  AuthWorldsNewRoute: typeof AuthWorldsNewRoute
+}
+
+const AuthWorldsRouteChildren: AuthWorldsRouteChildren = {
+  AuthWorldsWorldIdRoute: AuthWorldsWorldIdRoute,
+  AuthWorldsNewRoute: AuthWorldsNewRoute,
+}
+
+const AuthWorldsRouteWithChildren = AuthWorldsRoute._addFileChildren(
+  AuthWorldsRouteChildren,
+)
+
 interface AuthRouteChildren {
   AuthAbilitiesRoute: typeof AuthAbilitiesRouteWithChildren
   AuthAchievementsRoute: typeof AuthAchievementsRoute
@@ -1239,6 +1310,7 @@ interface AuthRouteChildren {
   AuthSocialsRoute: typeof AuthSocialsRouteWithChildren
   AuthTagsRoute: typeof AuthTagsRoute
   AuthTellQueueRoute: typeof AuthTellQueueRoute
+  AuthWorldsRoute: typeof AuthWorldsRouteWithChildren
   AuthXpRoute: typeof AuthXpRoute
 }
 
@@ -1260,6 +1332,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthSocialsRoute: AuthSocialsRouteWithChildren,
   AuthTagsRoute: AuthTagsRoute,
   AuthTellQueueRoute: AuthTellQueueRoute,
+  AuthWorldsRoute: AuthWorldsRouteWithChildren,
   AuthXpRoute: AuthXpRoute,
 }
 

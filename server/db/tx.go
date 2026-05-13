@@ -84,6 +84,8 @@ type Tx struct {
 	TellQueue *TellQueueClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// World is the client for interacting with the World builders.
+	World *WorldClient
 
 	// lazily loaded.
 	client     *Client
@@ -251,6 +253,7 @@ func (tx *Tx) init() {
 	tx.Tag = NewTagClient(tx.config)
 	tx.TellQueue = NewTellQueueClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.World = NewWorldClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

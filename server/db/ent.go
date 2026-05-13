@@ -42,6 +42,7 @@ import (
 	"herbst-server/db/tag"
 	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
+	"herbst-server/db/world"
 	"reflect"
 	"sync"
 
@@ -144,6 +145,7 @@ func checkColumn(t, c string) error {
 			tag.Table:                      tag.ValidColumn,
 			tellqueue.Table:                tellqueue.ValidColumn,
 			user.Table:                     user.ValidColumn,
+			world.Table:                    world.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

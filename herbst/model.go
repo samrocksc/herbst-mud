@@ -26,6 +26,9 @@ type model struct {
 	// Screen state
 	screen string
 
+	// World state
+	currentWorld string
+
 	// Auth state
 	currentUserID   int
 	currentUserName string
@@ -239,4 +242,5 @@ const (
 	ScreenEditField  = "edit_field"
 	ScreenCombat     = "combat"
 	ScreenSkillSelect = "skill_select"
+	ScreenWorldSelect = "world_select"
 )

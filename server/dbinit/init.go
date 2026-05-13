@@ -18,6 +18,37 @@ const (
 	DefaultAdminPassword = "herb5t2026!"
 )
 
+// InitWorlds creates the default "Herbst MUD" world if none exists
+func InitWorlds(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if any worlds already exist
+	existingWorlds, err := client.World.Query().Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to count existing worlds: %w", err)
+	}
+
+	if existingWorlds > 0 {
+		log.Println("Worlds already exist, skipping seed...")
+		return nil
+	}
+
+	// Create default "Herbst MUD" world
+	_, err = client.World.
+		Create().
+		SetName("herbst-mud").
+		SetTitle("Herbst MUD").
+		SetDescription("The default Herbst MUD world").
+		SetActive(true).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create default world: %w", err)
+	}
+
+	log.Println("Default world 'Herbst MUD' created successfully")
+	return nil
+}
+
 // InitAdminUser creates a default admin user if none exists
 func InitAdminUser(client *db.Client) error {
 	ctx := context.Background()

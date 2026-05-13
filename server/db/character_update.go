@@ -261,6 +261,20 @@ func (_u *CharacterUpdate) ClearNpcSkillID() *CharacterUpdate {
 	return _u
 }
 
+// SetCurrentWorld sets the "currentWorld" field.
+func (_u *CharacterUpdate) SetCurrentWorld(v string) *CharacterUpdate {
+	_u.mutation.SetCurrentWorld(v)
+	return _u
+}
+
+// SetNillableCurrentWorld sets the "currentWorld" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableCurrentWorld(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetCurrentWorld(*v)
+	}
+	return _u
+}
+
 // SetNpcSkillCooldown sets the "npc_skill_cooldown" field.
 func (_u *CharacterUpdate) SetNpcSkillCooldown(v int) *CharacterUpdate {
 	_u.mutation.ResetNpcSkillCooldown()
@@ -1349,6 +1363,9 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.NpcSkillIDCleared() {
 		_spec.ClearField(character.FieldNpcSkillID, field.TypeString)
 	}
+	if value, ok := _u.mutation.CurrentWorld(); ok {
+		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.NpcSkillCooldown(); ok {
 		_spec.SetField(character.FieldNpcSkillCooldown, field.TypeInt, value)
 	}
@@ -2253,6 +2270,20 @@ func (_u *CharacterUpdateOne) SetNillableNpcSkillID(v *string) *CharacterUpdateO
 // ClearNpcSkillID clears the value of the "npc_skill_id" field.
 func (_u *CharacterUpdateOne) ClearNpcSkillID() *CharacterUpdateOne {
 	_u.mutation.ClearNpcSkillID()
+	return _u
+}
+
+// SetCurrentWorld sets the "currentWorld" field.
+func (_u *CharacterUpdateOne) SetCurrentWorld(v string) *CharacterUpdateOne {
+	_u.mutation.SetCurrentWorld(v)
+	return _u
+}
+
+// SetNillableCurrentWorld sets the "currentWorld" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableCurrentWorld(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetCurrentWorld(*v)
+	}
 	return _u
 }
 
@@ -3373,6 +3404,9 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if _u.mutation.NpcSkillIDCleared() {
 		_spec.ClearField(character.FieldNpcSkillID, field.TypeString)
+	}
+	if value, ok := _u.mutation.CurrentWorld(); ok {
+		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.NpcSkillCooldown(); ok {
 		_spec.SetField(character.FieldNpcSkillCooldown, field.TypeInt, value)

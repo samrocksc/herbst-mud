@@ -120,6 +120,11 @@ func main() {
 		log.Printf("Warning: failed to initialize admin user: %v", err)
 	}
 
+	// Initialize worlds (creates default "Herbst MUD" world if none exists)
+	if err := dbinit.InitWorlds(client); err != nil {
+		log.Printf("Warning: failed to initialize worlds: %v", err)
+	}
+
 	// Initialize characters (test characters + Gandalf)
 	if err := dbinit.InitCharacters(client); err != nil {
 		log.Printf("Warning: failed to initialize characters: %v", err)
@@ -367,8 +372,13 @@ func main() {
 	if contentManager != nil {
 		routes.RegisterContentRoutes(router, contentManager)
 	}
+
+	// Register DB-backed world CRUD routes (always, even without worldManager)
+	routes.RegisterWorldCRUDRoutes(router, repos)
+
+	// Register world-scoped content routes (requires worldManager)
 	if worldManager != nil {
-		routes.RegisterWorldRoutes(router, worldManager)
+		routes.RegisterWorldRoutes(router, worldManager, repos)
 	}
 
 	// Register admin wipe/reload routes

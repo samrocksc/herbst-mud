@@ -32,12 +32,16 @@ func (m *model) handleWelcomeInput(input string) {
 		m.loginPassword = ""
 		m.AppendMessage("Choose a username:", "info")
 		m.textInput.Focus()
-	case "3", "quit", "q":
+	case "3", "world", "w":
+		m.screen = ScreenWorldSelect
+		m.fetchWorlds()
+		m.AppendMessage(m.displayWorlds(), "info")
+	case "4", "quit", "q":
 		m.AppendMessage("Goodbye! Thanks for playing Herbst MUD.", "success")
 		m.inputBuffer = ""
 	default:
 		if input != "" {
-			m.AppendMessage("Invalid choice. Type 1, 2, or 3", "error")
+			m.AppendMessage("Invalid choice. Type 1, 2, 3, or 4", "error")
 		}
 	}
 }
@@ -258,4 +262,125 @@ func (m *model) attemptRegistration(email string) {
 	m.effectsService.FireEvent("on_login", m.currentCharacterID, "", map[string]interface{}{
 		"room_id": m.currentRoom,
 	})
+}
+
+// worlds holds the list of available worlds
+var availableWorlds []string
+
+// fetchWorlds retrieves the list of available worlds from the server
+func (m *model) fetchWorlds() {
+	m.isLoading = true
+	m.loadingMessage = "Fetching worlds..."
+
+	resp, err := http.Get(RESTAPIBase + "/admin/export/worlds")
+	m.isLoading = false
+
+	if err != nil {
+		m.AppendMessage(fmt.Sprintf("Cannot connect to server at %s. Is the server running?", RESTAPIBase), "error")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.AppendMessage("Failed to fetch worlds from server.", "error")
+		return
+	}
+
+	var result []string
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.AppendMessage(fmt.Sprintf("Error parsing worlds: %v", err), "error")
+		return
+	}
+
+	availableWorlds = result
+	if len(availableWorlds) > 0 {
+		// Set current world to first available world if not already set
+		if m.currentWorld == "" {
+			m.currentWorld = availableWorlds[0]
+		}
+	}
+}
+
+// handleWorldSelectInput handles input for the world selection screen
+func (m *model) handleWorldSelectInput(input string) {
+	input = strings.ToLower(input)
+
+	// Check if we have worlds loaded
+	if len(availableWorlds) == 0 {
+		m.fetchWorlds()
+		// Don't process this input yet, wait for worlds to load
+		m.AppendMessage("Loading available worlds...", "info")
+		return
+	}
+
+	switch input {
+	case "b", "back", "q", "quit":
+		m.screen = ScreenWelcome
+		m.textInput.SetValue("")
+		m.inputBuffer = ""
+	case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+		// Parse world index (1-based)
+		if idx := parseWorldIndex(input, len(availableWorlds)); idx >= 0 {
+			m.currentWorld = availableWorlds[idx]
+			m.AppendMessage(fmt.Sprintf("Selected world: %s", m.currentWorld), "success")
+			m.AppendMessage("Type 'login' to log in or 'register' to create an account.", "info")
+			m.screen = ScreenWelcome
+			m.textInput.SetValue("")
+			m.inputBuffer = ""
+			return
+		}
+	default:
+		// Check if input matches a world name exactly
+		for _, world := range availableWorlds {
+			if strings.ToLower(world) == input {
+				m.currentWorld = world
+				m.AppendMessage(fmt.Sprintf("Selected world: %s", m.currentWorld), "success")
+				m.AppendMessage("Type 'login' to log in or 'register' to create an account.", "info")
+				m.screen = ScreenWelcome
+				m.textInput.SetValue("")
+				m.inputBuffer = ""
+				return
+			}
+		}
+		if input != "" {
+			m.AppendMessage(fmt.Sprintf("Invalid choice. Type 1-%d to select a world, or 'b' to go back.", len(availableWorlds)), "error")
+		}
+		return
+	}
+}
+
+// parseWorldIndex parses a string input to a world index (0-based)
+func parseWorldIndex(input string, numWorlds int) int {
+	var idx int
+	fmt.Sscanf(input, "%d", &idx)
+	if idx > 0 && idx <= numWorlds {
+		return idx - 1
+	}
+	return -1
+}
+
+// displayWorlds returns the formatted world selection menu
+func (m *model) displayWorlds() string {
+	var buf bytes.Buffer
+
+	buf.WriteString("\n=== SELECT WORLD ===\n\n")
+
+	if len(availableWorlds) == 0 {
+		buf.WriteString("Fetching available worlds...\n\n")
+	} else {
+		buf.WriteString("Available worlds:\n")
+		for idx, world := range availableWorlds {
+			indicator := ""
+			if world == m.currentWorld {
+				indicator = " [SELECTED]"
+			}
+			buf.WriteString(fmt.Sprintf("%d. %s%s\n", idx+1, world, indicator))
+		}
+		buf.WriteString("\n")
+	}
+
+	buf.WriteString("Type the number or name of a world to select it.\n")
+	buf.WriteString("Type 'b' or 'q' to go back.\n\n")
+
+	return buf.String()
 }

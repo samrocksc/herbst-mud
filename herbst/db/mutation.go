@@ -2976,6 +2976,7 @@ type CharacterMutation struct {
 	addmax_mana           *int
 	race                  *string
 	class                 *string
+	currentWorld          *string
 	level                 *int
 	addlevel              *int
 	constitution          *int
@@ -3815,6 +3816,42 @@ func (m *CharacterMutation) OldClass(ctx context.Context) (v string, err error) 
 // ResetClass resets all changes to the "class" field.
 func (m *CharacterMutation) ResetClass() {
 	m.class = nil
+}
+
+// SetCurrentWorld sets the "currentWorld" field.
+func (m *CharacterMutation) SetCurrentWorld(s string) {
+	m.currentWorld = &s
+}
+
+// CurrentWorld returns the value of the "currentWorld" field in the mutation.
+func (m *CharacterMutation) CurrentWorld() (r string, exists bool) {
+	v := m.currentWorld
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrentWorld returns the old "currentWorld" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldCurrentWorld(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrentWorld is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrentWorld requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrentWorld: %w", err)
+	}
+	return oldValue.CurrentWorld, nil
+}
+
+// ResetCurrentWorld resets all changes to the "currentWorld" field.
+func (m *CharacterMutation) ResetCurrentWorld() {
+	m.currentWorld = nil
 }
 
 // SetLevel sets the "level" field.
@@ -5015,7 +5052,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 32)
+	fields := make([]string, 0, 33)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -5060,6 +5097,9 @@ func (m *CharacterMutation) Fields() []string {
 	}
 	if m.class != nil {
 		fields = append(fields, character.FieldClass)
+	}
+	if m.currentWorld != nil {
+		fields = append(fields, character.FieldCurrentWorld)
 	}
 	if m.level != nil {
 		fields = append(fields, character.FieldLevel)
@@ -5150,6 +5190,8 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.Race()
 	case character.FieldClass:
 		return m.Class()
+	case character.FieldCurrentWorld:
+		return m.CurrentWorld()
 	case character.FieldLevel:
 		return m.Level()
 	case character.FieldConstitution:
@@ -5223,6 +5265,8 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldRace(ctx)
 	case character.FieldClass:
 		return m.OldClass(ctx)
+	case character.FieldCurrentWorld:
+		return m.OldCurrentWorld(ctx)
 	case character.FieldLevel:
 		return m.OldLevel(ctx)
 	case character.FieldConstitution:
@@ -5370,6 +5414,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetClass(v)
+		return nil
+	case character.FieldCurrentWorld:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrentWorld(v)
 		return nil
 	case character.FieldLevel:
 		v, ok := value.(int)
@@ -5871,6 +5922,9 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldClass:
 		m.ResetClass()
+		return nil
+	case character.FieldCurrentWorld:
+		m.ResetCurrentWorld()
 		return nil
 	case character.FieldLevel:
 		m.ResetLevel()

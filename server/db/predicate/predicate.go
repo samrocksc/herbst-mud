@@ -113,3 +113,6 @@ type TellQueue func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// World is the predicate function for world builders.
+type World func(*sql.Selector)

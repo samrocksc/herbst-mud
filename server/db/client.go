@@ -47,6 +47,7 @@ import (
 	"herbst-server/db/tag"
 	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
+	"herbst-server/db/world"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -131,6 +132,8 @@ type Client struct {
 	TellQueue *TellQueueClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// World is the client for interacting with the World builders.
+	World *WorldClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -178,6 +181,7 @@ func (c *Client) init() {
 	c.Tag = NewTagClient(c.config)
 	c.TellQueue = NewTellQueueClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.World = NewWorldClient(c.config)
 }
 
 type (
@@ -306,6 +310,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Tag:                      NewTagClient(cfg),
 		TellQueue:                NewTellQueueClient(cfg),
 		User:                     NewUserClient(cfg),
+		World:                    NewWorldClient(cfg),
 	}, nil
 }
 
@@ -361,6 +366,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Tag:                      NewTagClient(cfg),
 		TellQueue:                NewTellQueueClient(cfg),
 		User:                     NewUserClient(cfg),
+		World:                    NewWorldClient(cfg),
 	}, nil
 }
 
@@ -397,7 +403,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate, c.Faction,
 		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility,
 		c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand,
-		c.Tag, c.TellQueue, c.User,
+		c.Tag, c.TellQueue, c.User, c.World,
 	} {
 		n.Use(hooks...)
 	}
@@ -414,7 +420,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate, c.Faction,
 		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility,
 		c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand,
-		c.Tag, c.TellQueue, c.User,
+		c.Tag, c.TellQueue, c.User, c.World,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -495,6 +501,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.TellQueue.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *WorldMutation:
+		return c.World.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("db: unknown mutation type %T", m)
 	}
@@ -6248,6 +6256,155 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// WorldClient is a client for the World schema.
+type WorldClient struct {
+	config
+}
+
+// NewWorldClient returns a client for the World from the given config.
+func NewWorldClient(c config) *WorldClient {
+	return &WorldClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `world.Hooks(f(g(h())))`.
+func (c *WorldClient) Use(hooks ...Hook) {
+	c.hooks.World = append(c.hooks.World, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `world.Intercept(f(g(h())))`.
+func (c *WorldClient) Intercept(interceptors ...Interceptor) {
+	c.inters.World = append(c.inters.World, interceptors...)
+}
+
+// Create returns a builder for creating a World entity.
+func (c *WorldClient) Create() *WorldCreate {
+	mutation := newWorldMutation(c.config, OpCreate)
+	return &WorldCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of World entities.
+func (c *WorldClient) CreateBulk(builders ...*WorldCreate) *WorldCreateBulk {
+	return &WorldCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorldClient) MapCreateBulk(slice any, setFunc func(*WorldCreate, int)) *WorldCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorldCreateBulk{err: fmt.Errorf("calling to WorldClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorldCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WorldCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for World.
+func (c *WorldClient) Update() *WorldUpdate {
+	mutation := newWorldMutation(c.config, OpUpdate)
+	return &WorldUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorldClient) UpdateOne(_m *World) *WorldUpdateOne {
+	mutation := newWorldMutation(c.config, OpUpdateOne, withWorld(_m))
+	return &WorldUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorldClient) UpdateOneID(id int) *WorldUpdateOne {
+	mutation := newWorldMutation(c.config, OpUpdateOne, withWorldID(id))
+	return &WorldUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for World.
+func (c *WorldClient) Delete() *WorldDelete {
+	mutation := newWorldMutation(c.config, OpDelete)
+	return &WorldDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorldClient) DeleteOne(_m *World) *WorldDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorldClient) DeleteOneID(id int) *WorldDeleteOne {
+	builder := c.Delete().Where(world.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorldDeleteOne{builder}
+}
+
+// Query returns a query builder for World.
+func (c *WorldClient) Query() *WorldQuery {
+	return &WorldQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorld},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a World entity by its id.
+func (c *WorldClient) Get(ctx context.Context, id int) (*World, error) {
+	return c.Query().Where(world.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorldClient) GetX(ctx context.Context, id int) *World {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacters queries the characters edge of a World.
+func (c *WorldClient) QueryCharacters(_m *World) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, world.CharactersTable, world.CharactersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *WorldClient) Hooks() []Hook {
+	return c.hooks.World
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorldClient) Interceptors() []Interceptor {
+	return c.inters.World
+}
+
+func (c *WorldClient) mutate(ctx context.Context, m *WorldMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorldCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorldUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorldUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorldDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown World mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
@@ -6257,7 +6414,7 @@ type (
 		CompetencyLevelThreshold, DamageLog, DialogNode, Effect, EffectHook, Equipment,
 		EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag, GameConfig,
 		Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room,
-		SocialCommand, Tag, TellQueue, User []ent.Hook
+		SocialCommand, Tag, TellQueue, User, World []ent.Hook
 	}
 	inters struct {
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, ChannelConfig,
@@ -6266,6 +6423,6 @@ type (
 		CompetencyLevelThreshold, DamageLog, DialogNode, Effect, EffectHook, Equipment,
 		EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag, GameConfig,
 		Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room,
-		SocialCommand, Tag, TellQueue, User []ent.Interceptor
+		SocialCommand, Tag, TellQueue, User, World []ent.Interceptor
 	}
 )

@@ -44,6 +44,7 @@ import (
 	"herbst-server/db/tag"
 	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
+	"herbst-server/db/world"
 	"sync"
 	"time"
 
@@ -96,6 +97,7 @@ const (
 	TypeTag                      = "Tag"
 	TypeTellQueue                = "TellQueue"
 	TypeUser                     = "User"
+	TypeWorld                    = "World"
 )
 
 // AbilityMutation represents an operation that mutates the Ability nodes in the graph.
@@ -5730,6 +5732,7 @@ type CharacterMutation struct {
 	instance_number            *int
 	addinstance_number         *int
 	npc_skill_id               *string
+	currentWorld               *string
 	npc_skill_cooldown         *int
 	addnpc_skill_cooldown      *int
 	hitpoints                  *int
@@ -6485,6 +6488,42 @@ func (m *CharacterMutation) NpcSkillIDCleared() bool {
 func (m *CharacterMutation) ResetNpcSkillID() {
 	m.npc_skill_id = nil
 	delete(m.clearedFields, character.FieldNpcSkillID)
+}
+
+// SetCurrentWorld sets the "currentWorld" field.
+func (m *CharacterMutation) SetCurrentWorld(s string) {
+	m.currentWorld = &s
+}
+
+// CurrentWorld returns the value of the "currentWorld" field in the mutation.
+func (m *CharacterMutation) CurrentWorld() (r string, exists bool) {
+	v := m.currentWorld
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrentWorld returns the old "currentWorld" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldCurrentWorld(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrentWorld is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrentWorld requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrentWorld: %w", err)
+	}
+	return oldValue.CurrentWorld, nil
+}
+
+// ResetCurrentWorld resets all changes to the "currentWorld" field.
+func (m *CharacterMutation) ResetCurrentWorld() {
+	m.currentWorld = nil
 }
 
 // SetNpcSkillCooldown sets the "npc_skill_cooldown" field.
@@ -8718,7 +8757,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 43)
+	fields := make([]string, 0, 44)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -8757,6 +8796,9 @@ func (m *CharacterMutation) Fields() []string {
 	}
 	if m.npc_skill_id != nil {
 		fields = append(fields, character.FieldNpcSkillID)
+	}
+	if m.currentWorld != nil {
+		fields = append(fields, character.FieldCurrentWorld)
 	}
 	if m.npc_skill_cooldown != nil {
 		fields = append(fields, character.FieldNpcSkillCooldown)
@@ -8882,6 +8924,8 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.NpcTemplateID()
 	case character.FieldNpcSkillID:
 		return m.NpcSkillID()
+	case character.FieldCurrentWorld:
+		return m.CurrentWorld()
 	case character.FieldNpcSkillCooldown:
 		return m.NpcSkillCooldown()
 	case character.FieldHitpoints:
@@ -8977,6 +9021,8 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldNpcTemplateID(ctx)
 	case character.FieldNpcSkillID:
 		return m.OldNpcSkillID(ctx)
+	case character.FieldCurrentWorld:
+		return m.OldCurrentWorld(ctx)
 	case character.FieldNpcSkillCooldown:
 		return m.OldNpcSkillCooldown(ctx)
 	case character.FieldHitpoints:
@@ -9136,6 +9182,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNpcSkillID(v)
+		return nil
+	case character.FieldCurrentWorld:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrentWorld(v)
 		return nil
 	case character.FieldNpcSkillCooldown:
 		v, ok := value.(int)
@@ -9800,6 +9853,9 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldNpcSkillID:
 		m.ResetNpcSkillID()
+		return nil
+	case character.FieldCurrentWorld:
+		m.ResetCurrentWorld()
 		return nil
 	case character.FieldNpcSkillCooldown:
 		m.ResetNpcSkillCooldown()
@@ -34641,4 +34697,607 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// WorldMutation represents an operation that mutates the World nodes in the graph.
+type WorldMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	name              *string
+	title             *string
+	description       *string
+	active            *bool
+	clearedFields     map[string]struct{}
+	characters        map[int]struct{}
+	removedcharacters map[int]struct{}
+	clearedcharacters bool
+	done              bool
+	oldValue          func(context.Context) (*World, error)
+	predicates        []predicate.World
+}
+
+var _ ent.Mutation = (*WorldMutation)(nil)
+
+// worldOption allows management of the mutation configuration using functional options.
+type worldOption func(*WorldMutation)
+
+// newWorldMutation creates new mutation for the World entity.
+func newWorldMutation(c config, op Op, opts ...worldOption) *WorldMutation {
+	m := &WorldMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeWorld,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withWorldID sets the ID field of the mutation.
+func withWorldID(id int) worldOption {
+	return func(m *WorldMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *World
+		)
+		m.oldValue = func(ctx context.Context) (*World, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().World.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withWorld sets the old World of the mutation.
+func withWorld(node *World) worldOption {
+	return func(m *WorldMutation) {
+		m.oldValue = func(context.Context) (*World, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m WorldMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m WorldMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *WorldMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *WorldMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().World.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *WorldMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *WorldMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the World entity.
+// If the World object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorldMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *WorldMutation) ResetName() {
+	m.name = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *WorldMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *WorldMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the World entity.
+// If the World object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorldMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *WorldMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *WorldMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *WorldMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the World entity.
+// If the World object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorldMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *WorldMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[world.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *WorldMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[world.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *WorldMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, world.FieldDescription)
+}
+
+// SetActive sets the "active" field.
+func (m *WorldMutation) SetActive(b bool) {
+	m.active = &b
+}
+
+// Active returns the value of the "active" field in the mutation.
+func (m *WorldMutation) Active() (r bool, exists bool) {
+	v := m.active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActive returns the old "active" field's value of the World entity.
+// If the World object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorldMutation) OldActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActive: %w", err)
+	}
+	return oldValue.Active, nil
+}
+
+// ResetActive resets all changes to the "active" field.
+func (m *WorldMutation) ResetActive() {
+	m.active = nil
+}
+
+// AddCharacterIDs adds the "characters" edge to the Character entity by ids.
+func (m *WorldMutation) AddCharacterIDs(ids ...int) {
+	if m.characters == nil {
+		m.characters = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.characters[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCharacters clears the "characters" edge to the Character entity.
+func (m *WorldMutation) ClearCharacters() {
+	m.clearedcharacters = true
+}
+
+// CharactersCleared reports if the "characters" edge to the Character entity was cleared.
+func (m *WorldMutation) CharactersCleared() bool {
+	return m.clearedcharacters
+}
+
+// RemoveCharacterIDs removes the "characters" edge to the Character entity by IDs.
+func (m *WorldMutation) RemoveCharacterIDs(ids ...int) {
+	if m.removedcharacters == nil {
+		m.removedcharacters = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.characters, ids[i])
+		m.removedcharacters[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCharacters returns the removed IDs of the "characters" edge to the Character entity.
+func (m *WorldMutation) RemovedCharactersIDs() (ids []int) {
+	for id := range m.removedcharacters {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CharactersIDs returns the "characters" edge IDs in the mutation.
+func (m *WorldMutation) CharactersIDs() (ids []int) {
+	for id := range m.characters {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCharacters resets all changes to the "characters" edge.
+func (m *WorldMutation) ResetCharacters() {
+	m.characters = nil
+	m.clearedcharacters = false
+	m.removedcharacters = nil
+}
+
+// Where appends a list predicates to the WorldMutation builder.
+func (m *WorldMutation) Where(ps ...predicate.World) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the WorldMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WorldMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.World, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *WorldMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WorldMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (World).
+func (m *WorldMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *WorldMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.name != nil {
+		fields = append(fields, world.FieldName)
+	}
+	if m.title != nil {
+		fields = append(fields, world.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, world.FieldDescription)
+	}
+	if m.active != nil {
+		fields = append(fields, world.FieldActive)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *WorldMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case world.FieldName:
+		return m.Name()
+	case world.FieldTitle:
+		return m.Title()
+	case world.FieldDescription:
+		return m.Description()
+	case world.FieldActive:
+		return m.Active()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *WorldMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case world.FieldName:
+		return m.OldName(ctx)
+	case world.FieldTitle:
+		return m.OldTitle(ctx)
+	case world.FieldDescription:
+		return m.OldDescription(ctx)
+	case world.FieldActive:
+		return m.OldActive(ctx)
+	}
+	return nil, fmt.Errorf("unknown World field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WorldMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case world.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case world.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case world.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case world.FieldActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActive(v)
+		return nil
+	}
+	return fmt.Errorf("unknown World field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *WorldMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *WorldMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WorldMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown World numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *WorldMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(world.FieldDescription) {
+		fields = append(fields, world.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *WorldMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *WorldMutation) ClearField(name string) error {
+	switch name {
+	case world.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown World nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *WorldMutation) ResetField(name string) error {
+	switch name {
+	case world.FieldName:
+		m.ResetName()
+		return nil
+	case world.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case world.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case world.FieldActive:
+		m.ResetActive()
+		return nil
+	}
+	return fmt.Errorf("unknown World field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *WorldMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.characters != nil {
+		edges = append(edges, world.EdgeCharacters)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *WorldMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case world.EdgeCharacters:
+		ids := make([]ent.Value, 0, len(m.characters))
+		for id := range m.characters {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *WorldMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedcharacters != nil {
+		edges = append(edges, world.EdgeCharacters)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *WorldMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case world.EdgeCharacters:
+		ids := make([]ent.Value, 0, len(m.removedcharacters))
+		for id := range m.removedcharacters {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *WorldMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedcharacters {
+		edges = append(edges, world.EdgeCharacters)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *WorldMutation) EdgeCleared(name string) bool {
+	switch name {
+	case world.EdgeCharacters:
+		return m.clearedcharacters
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *WorldMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown World unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *WorldMutation) ResetEdge(name string) error {
+	switch name {
+	case world.EdgeCharacters:
+		m.ResetCharacters()
+		return nil
+	}
+	return fmt.Errorf("unknown World edge %s", name)
 }

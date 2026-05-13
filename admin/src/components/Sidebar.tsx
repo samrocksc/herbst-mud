@@ -26,6 +26,7 @@ import { EffectsIcon } from './icons/EffectsIcon'
 import { QuestsIcon } from './icons/QuestsIcon'
 import { SocialsIcon } from './icons/SocialsIcon'
 import { ChannelsIcon } from './icons/ChannelsIcon'
+import { WorldIcon } from './icons/WorldIcon'
 
 const STORAGE_KEY = 'sidebar-collapsed'
 
@@ -40,6 +41,7 @@ const navItems = [
   { label: 'Socials', path: '/socials', Icon: SocialsIcon },
   { label: 'Channels', path: '/channels', Icon: ChannelsIcon },
   { label: 'Skills', path: '/skills', Icon: SkillsIcon },
+  { label: 'Worlds', path: '/worlds', Icon: WorldIcon },
   { label: 'Tags', path: '/tags', Icon: TagsIcon },
   { label: 'Players', path: '/players', Icon: PlayersIcon },
   { label: 'Characters', path: '/characters', Icon: PlayersIcon },
@@ -63,12 +65,10 @@ function useActiveWorld() {
   return useQuery({
     queryKey: ['activeWorld'],
     queryFn: async (): Promise<World | null> => {
-      try {
-        const data = await apiGet<{ world: World }>(`${API}/worlds/active`)
-        return data.world
-      } catch {
-        return null
-      }
+      const data = await apiGet<{ world?: World; error?: string }>(`${API}/worlds/active`)
+      if (!data) return null
+      if (data.error) return null
+      return data.world ?? null
     },
   })
 }
@@ -114,7 +114,7 @@ export function Sidebar() {
   })
 
   // Fetch active world for title display
-  const { data: activeWorld, isLoading: worldLoading, error } = useActiveWorld()
+  const { data: activeWorld, isLoading: worldLoading } = useActiveWorld()
 
   useEffect(() => {
     try {
@@ -125,14 +125,9 @@ export function Sidebar() {
   }, [collapsed])
 
   // World title to display — defaults to 'Herbst MUD' when no world selected
-  let worldTitle = 'Herbst MUD'
-  if (worldLoading) {
-    worldTitle = 'Loading...'
-  } else if (error) {
-    worldTitle = 'Error'
-  } else if (activeWorld?.title) {
-    worldTitle = activeWorld.title
-  }
+  const worldTitle = worldLoading
+    ? 'Loading...'
+    : activeWorld?.title ?? 'Herbst MUD'
 
   return (
     <nav

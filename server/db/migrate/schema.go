@@ -180,6 +180,7 @@ var (
 		{Name: "is_instance", Type: field.TypeBool, Default: false},
 		{Name: "instance_number", Type: field.TypeInt, Default: 0},
 		{Name: "npc_skill_id", Type: field.TypeString, Nullable: true},
+		{Name: "current_world", Type: field.TypeString, Default: "default"},
 		{Name: "npc_skill_cooldown", Type: field.TypeInt, Default: 0},
 		{Name: "hitpoints", Type: field.TypeInt, Default: 100},
 		{Name: "max_hitpoints", Type: field.TypeInt, Default: 100},
@@ -214,6 +215,7 @@ var (
 		{Name: "npc_template_id", Type: field.TypeString, Nullable: true},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
 		{Name: "user_characters", Type: field.TypeInt, Nullable: true},
+		{Name: "world_characters", Type: field.TypeInt, Nullable: true},
 	}
 	// CharactersTable holds the schema information for the "characters" table.
 	CharactersTable = &schema.Table{
@@ -223,26 +225,32 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[42]},
+				Columns:    []*schema.Column{CharactersColumns[43]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[43]},
+				Columns:    []*schema.Column{CharactersColumns[44]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[44]},
+				Columns:    []*schema.Column{CharactersColumns[45]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[45]},
+				Columns:    []*schema.Column{CharactersColumns[46]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "characters_worlds_characters",
+				Columns:    []*schema.Column{CharactersColumns[47]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -907,6 +915,20 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// WorldsColumns holds the columns for the "worlds" table.
+	WorldsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "active", Type: field.TypeBool, Default: false},
+	}
+	// WorldsTable holds the schema information for the "worlds" table.
+	WorldsTable = &schema.Table{
+		Name:       "worlds",
+		Columns:    WorldsColumns,
+		PrimaryKey: []*schema.Column{WorldsColumns[0]},
+	}
 	// AbilityNpcAbilitiesColumns holds the columns for the "ability_npc_abilities" table.
 	AbilityNpcAbilitiesColumns = []*schema.Column{
 		{Name: "ability_id", Type: field.TypeInt},
@@ -1020,6 +1042,7 @@ var (
 		TagsTable,
 		TellQueuesTable,
 		UsersTable,
+		WorldsTable,
 		AbilityNpcAbilitiesTable,
 		NpcTemplateNpcAbilitiesTable,
 		TagRacesTable,
@@ -1035,6 +1058,7 @@ func init() {
 	CharactersTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	CharactersTable.ForeignKeys[2].RefTable = RoomsTable
 	CharactersTable.ForeignKeys[3].RefTable = UsersTable
+	CharactersTable.ForeignKeys[4].RefTable = WorldsTable
 	CharacterAbilitiesTable.ForeignKeys[0].RefTable = AbilitiesTable
 	CharacterAbilitiesTable.ForeignKeys[1].RefTable = CharactersTable
 	CharacterChannelsTable.ForeignKeys[0].RefTable = CharactersTable

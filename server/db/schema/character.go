@@ -44,6 +44,9 @@ func (Character) Fields() []ent.Field {
 		field.String("npc_skill_id").
 			Optional().
 			Comment("NPC skill identifier (e.g., 'druid_heal')"),
+		field.String("currentWorld").
+			Default("default").
+			Comment("World this character belongs to (for multi-world support)"),
 		field.Int("npc_skill_cooldown").
 			Default(0).
 			Comment("Current cooldown ticks on NPC skill"),

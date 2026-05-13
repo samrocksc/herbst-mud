@@ -42,6 +42,8 @@ const (
 	FieldRace = "race"
 	// FieldClass holds the string denoting the class field in the database.
 	FieldClass = "class"
+	// FieldCurrentWorld holds the string denoting the currentworld field in the database.
+	FieldCurrentWorld = "current_world"
 	// FieldLevel holds the string denoting the level field in the database.
 	FieldLevel = "level"
 	// FieldConstitution holds the string denoting the constitution field in the database.
@@ -143,6 +145,7 @@ var Columns = []string{
 	FieldMaxMana,
 	FieldRace,
 	FieldClass,
+	FieldCurrentWorld,
 	FieldLevel,
 	FieldConstitution,
 	FieldGender,
@@ -209,6 +212,8 @@ var (
 	DefaultRace string
 	// DefaultClass holds the default value on creation for the "class" field.
 	DefaultClass string
+	// DefaultCurrentWorld holds the default value on creation for the "currentWorld" field.
+	DefaultCurrentWorld string
 	// DefaultLevel holds the default value on creation for the "level" field.
 	DefaultLevel int
 	// DefaultConstitution holds the default value on creation for the "constitution" field.
@@ -322,6 +327,11 @@ func ByRace(opts ...sql.OrderTermOption) OrderOption {
 // ByClass orders the results by the class field.
 func ByClass(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldClass, opts...).ToFunc()
+}
+
+// ByCurrentWorld orders the results by the currentWorld field.
+func ByCurrentWorld(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrentWorld, opts...).ToFunc()
 }
 
 // ByLevel orders the results by the level field.

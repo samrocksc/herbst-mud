@@ -46,6 +46,8 @@ type Character struct {
 	NpcTemplateID string `json:"npc_template_id,omitempty"`
 	// NPC skill identifier (e.g., 'druid_heal')
 	NpcSkillID string `json:"npc_skill_id,omitempty"`
+	// World this character belongs to (for multi-world support)
+	CurrentWorld string `json:"currentWorld,omitempty"`
 	// Current cooldown ticks on NPC skill
 	NpcSkillCooldown int `json:"npc_skill_cooldown,omitempty"`
 	// Hitpoints holds the value of the "hitpoints" field.
@@ -108,10 +110,11 @@ type Character struct {
 	SkillHeavyArmor int `json:"skill_heavy_armor,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
-	Edges           CharacterEdges `json:"edges"`
-	room_characters *int
-	user_characters *int
-	selectValues    sql.SelectValues
+	Edges            CharacterEdges `json:"edges"`
+	room_characters  *int
+	user_characters  *int
+	world_characters *int
+	selectValues     sql.SelectValues
 }
 
 // CharacterEdges holds the relations/edges for other nodes in the graph.
@@ -268,13 +271,15 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldInstanceNumber, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldXp, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
-		case character.FieldName, character.FieldPassword, character.FieldNpcTemplateID, character.FieldNpcSkillID, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
+		case character.FieldName, character.FieldPassword, character.FieldNpcTemplateID, character.FieldNpcSkillID, character.FieldCurrentWorld, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
 		case character.FieldDiedAt, character.FieldLastSeenAt:
 			values[i] = new(sql.NullTime)
 		case character.ForeignKeys[0]: // room_characters
 			values[i] = new(sql.NullInt64)
 		case character.ForeignKeys[1]: // user_characters
+			values[i] = new(sql.NullInt64)
+		case character.ForeignKeys[2]: // world_characters
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -374,6 +379,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field npc_skill_id", values[i])
 			} else if value.Valid {
 				_m.NpcSkillID = value.String
+			}
+		case character.FieldCurrentWorld:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field currentWorld", values[i])
+			} else if value.Valid {
+				_m.CurrentWorld = value.String
 			}
 		case character.FieldNpcSkillCooldown:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -571,6 +582,13 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				_m.user_characters = new(int)
 				*_m.user_characters = int(value.Int64)
 			}
+		case character.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field world_characters", value)
+			} else if value.Valid {
+				_m.world_characters = new(int)
+				*_m.world_characters = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -705,6 +723,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("npc_skill_id=")
 	builder.WriteString(_m.NpcSkillID)
+	builder.WriteString(", ")
+	builder.WriteString("currentWorld=")
+	builder.WriteString(_m.CurrentWorld)
 	builder.WriteString(", ")
 	builder.WriteString("npc_skill_cooldown=")
 	builder.WriteString(fmt.Sprintf("%v", _m.NpcSkillCooldown))

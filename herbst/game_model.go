@@ -278,6 +278,8 @@ func (m *model) processInput(input string) {
 		m.handleProfileInput(input)
 	case ScreenEditField:
 		m.handleEditFieldInput(input)
+	case ScreenWorldSelect:
+		m.handleWorldSelectInput(input)
 	case ScreenPlaying:
 		m.processCommand(input)
 	case ScreenCombat:
@@ -446,6 +448,9 @@ func (m *model) View() string {
 		sb.WriteString(m.textInput.View())
 
 		return sb.String()
+
+	case ScreenWorldSelect:
+		return m.displayWorlds()
 
 	case ScreenPlaying:
 		width := m.width

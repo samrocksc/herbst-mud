@@ -36,6 +36,7 @@ type Container struct {
 	ChannelSubscription   ChannelSubscriptionRepo
 	OfflineTell          OfflineTellRepo
 	Ignore               IgnoreRepo
+	World                WorldRepo
 }
 
 // NewContainer creates all ent-backed repositories.
@@ -71,5 +72,6 @@ func NewContainer(client *db.Client) *Container {
 		ChannelSubscription:  NewEntChannelSubscriptionRepo(client),
 		OfflineTell:           NewEntOfflineTellRepo(client),
 		Ignore:               NewEntIgnoreRepo(client),
+		World:                NewEntWorldRepo(client),
 	}
 }

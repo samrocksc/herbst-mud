@@ -41,6 +41,9 @@ func (Character) Fields() []ent.Field {
 			Default("human"),
 		field.String("class").
 			Default("adventurer"),
+		field.String("currentWorld").
+			Default("default").
+			Comment("World this character belongs to (for multi-world support)"),
 		field.Int("level").
 			Default(1),
 		field.Int("constitution").

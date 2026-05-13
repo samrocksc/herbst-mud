@@ -2,14 +2,13 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCharacter, useUpdateCharacter, type CharacterUpdate } from '../../hooks/useCharacters'
-import { useCreateItemInstance } from '../../hooks/useItemInstances'
+import { useWorlds } from '../../hooks/useWorlds'
 import { apiPost } from '../../utils/apiFetch'
 import { PageHeader } from '../../components/PageHeader'
 import { EquippedItemsView } from '../../components/EquippedItemsView'
 import { ActiveEffectsPanel } from '../../components/ActiveEffectsPanel'
 import { ResourceIdField } from '../../components/ResourceIdField'
 import { RESOURCE_ENDPOINTS } from '../../utils/resourceEndpoints'
-import { CharacterStats } from './-characters.$characterId.stats'
 import { AddItemModal } from './-characters.$characterId.addItemModal'
 
 export const Route = createFileRoute('/_auth/characters/$characterId')({
@@ -110,6 +109,7 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
         <Field label="Current Room" value={`#${character.currentRoomId}`} />
         <Field label="Starting Room" value={`#${character.startingRoomId}`} />
         <Field label="Respawn Room" value={`#${character.respawnRoomId}`} />
+        <Field label="World" value={character.currentWorld} />
         <Field label="Last Seen" value={lastSeen} />
         <Field label="Status" value={isOnline ? 'Online' : 'Offline'} />
       </Section>
@@ -143,6 +143,7 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
 }
 
 function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typeof useCharacter>['data']>, onSave: (update: CharacterUpdate) => void }) {
+  const { data: worlds = [] } = useWorlds()
   const [form, setForm] = useState<CharacterUpdate>({
     name: character.name,
     currentRoomId: character.currentRoomId,
@@ -161,6 +162,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
     isNPC: character.isNPC,
     isAdmin: character.is_admin,
     isTest: character.is_test,
+    currentWorld: character.currentWorld,
   })
 
   const numField = (key: keyof CharacterUpdate, label: string) => (
@@ -218,6 +220,23 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
             <input type="checkbox" checked={form.isTest ?? false} onChange={(e) => setForm({ ...form, isTest: e.target.checked })} className="accent-primary" />
             Test
           </label>
+        </div>
+      </Section>
+
+      <Section title="World">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-text-muted text-sm w-28 shrink-0">World</label>
+          <select
+            value={form.currentWorld ?? ''}
+            onChange={(e) => setForm({ ...form, currentWorld: e.target.value })}
+            className="w-48 p-1 bg-surface border border-border rounded text-text text-sm"
+          >
+            {worlds.map((world) => (
+              <option key={world.id} value={world.name}>
+                {world.title} ({world.name})
+              </option>
+            ))}
+          </select>
         </div>
       </Section>
 

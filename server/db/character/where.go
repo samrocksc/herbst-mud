@@ -120,6 +120,11 @@ func NpcSkillID(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldNpcSkillID, v))
 }
 
+// CurrentWorld applies equality check predicate on the "currentWorld" field. It's identical to CurrentWorldEQ.
+func CurrentWorld(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldCurrentWorld, v))
+}
+
 // NpcSkillCooldown applies equality check predicate on the "npc_skill_cooldown" field. It's identical to NpcSkillCooldownEQ.
 func NpcSkillCooldown(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldNpcSkillCooldown, v))
@@ -748,6 +753,71 @@ func NpcSkillIDEqualFold(v string) predicate.Character {
 // NpcSkillIDContainsFold applies the ContainsFold predicate on the "npc_skill_id" field.
 func NpcSkillIDContainsFold(v string) predicate.Character {
 	return predicate.Character(sql.FieldContainsFold(FieldNpcSkillID, v))
+}
+
+// CurrentWorldEQ applies the EQ predicate on the "currentWorld" field.
+func CurrentWorldEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldCurrentWorld, v))
+}
+
+// CurrentWorldNEQ applies the NEQ predicate on the "currentWorld" field.
+func CurrentWorldNEQ(v string) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldCurrentWorld, v))
+}
+
+// CurrentWorldIn applies the In predicate on the "currentWorld" field.
+func CurrentWorldIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldCurrentWorld, vs...))
+}
+
+// CurrentWorldNotIn applies the NotIn predicate on the "currentWorld" field.
+func CurrentWorldNotIn(vs ...string) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldCurrentWorld, vs...))
+}
+
+// CurrentWorldGT applies the GT predicate on the "currentWorld" field.
+func CurrentWorldGT(v string) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldCurrentWorld, v))
+}
+
+// CurrentWorldGTE applies the GTE predicate on the "currentWorld" field.
+func CurrentWorldGTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldCurrentWorld, v))
+}
+
+// CurrentWorldLT applies the LT predicate on the "currentWorld" field.
+func CurrentWorldLT(v string) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldCurrentWorld, v))
+}
+
+// CurrentWorldLTE applies the LTE predicate on the "currentWorld" field.
+func CurrentWorldLTE(v string) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldCurrentWorld, v))
+}
+
+// CurrentWorldContains applies the Contains predicate on the "currentWorld" field.
+func CurrentWorldContains(v string) predicate.Character {
+	return predicate.Character(sql.FieldContains(FieldCurrentWorld, v))
+}
+
+// CurrentWorldHasPrefix applies the HasPrefix predicate on the "currentWorld" field.
+func CurrentWorldHasPrefix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasPrefix(FieldCurrentWorld, v))
+}
+
+// CurrentWorldHasSuffix applies the HasSuffix predicate on the "currentWorld" field.
+func CurrentWorldHasSuffix(v string) predicate.Character {
+	return predicate.Character(sql.FieldHasSuffix(FieldCurrentWorld, v))
+}
+
+// CurrentWorldEqualFold applies the EqualFold predicate on the "currentWorld" field.
+func CurrentWorldEqualFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldEqualFold(FieldCurrentWorld, v))
+}
+
+// CurrentWorldContainsFold applies the ContainsFold predicate on the "currentWorld" field.
+func CurrentWorldContainsFold(v string) predicate.Character {
+	return predicate.Character(sql.FieldContainsFold(FieldCurrentWorld, v))
 }
 
 // NpcSkillCooldownEQ applies the EQ predicate on the "npc_skill_cooldown" field.

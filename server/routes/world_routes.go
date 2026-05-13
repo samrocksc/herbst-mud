@@ -3,14 +3,111 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/content"
+	"herbst-server/repository"
 )
 
+// RegisterWorldCRUDRoutes registers DB-backed world CRUD endpoints (independent of worldManager)
+func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
+	// POST /api/worlds - CreateWorldHandler
+	router.POST("/worlds", func(c *gin.Context) {
+		var input repository.CreateWorldInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		world, err := repos.World.Create(c.Request.Context(), input)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, world)
+	})
+
+	// GET /api/worlds/db - ListWorldsHandler (DB-backed)
+	router.GET("/worlds/db", func(c *gin.Context) {
+		worlds, err := repos.World.List(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"worlds": worlds, "count": len(worlds)})
+	})
+
+	// GET /api/worlds/:id - GetWorldHandler (DB-backed)
+	router.GET("/worlds/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid world ID"})
+			return
+		}
+		world, err := repos.World.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "World not found"})
+			return
+		}
+		c.JSON(http.StatusOK, world)
+	})
+
+	// PUT /api/worlds/:id - UpdateWorldHandler
+	router.PUT("/worlds/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid world ID"})
+			return
+		}
+		var updates repository.WorldUpdates
+		if err := c.ShouldBindJSON(&updates); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		world, err := repos.World.Update(c.Request.Context(), id, updates)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, world)
+	})
+
+	// DELETE /api/worlds/:id - DeleteWorldHandler
+	router.DELETE("/worlds/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid world ID"})
+			return
+		}
+		if err := repos.World.Delete(c.Request.Context(), id); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "World deleted"})
+	})
+
+	// GET /worlds/active - GetActiveWorldHandler
+	router.GET("/worlds/active", func(c *gin.Context) {
+		worlds, err := repos.World.GetActive(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if len(worlds) == 0 {
+			c.JSON(http.StatusOK, gin.H{"error": "No active worlds"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"world": worlds[0],
+			"count": len(worlds),
+		})
+	})
+
+	fmt.Println("World CRUD routes registered")
+}
+
 // RegisterWorldRoutes registers world-scoped content endpoints
-func RegisterWorldRoutes(router *gin.Engine, wm *content.WorldManager) {
-	// Get all worlds
+func RegisterWorldRoutes(router *gin.Engine, wm *content.WorldManager, repos *repository.Container) {
 	router.GET("/worlds", func(c *gin.Context) {
 		worlds := wm.GetAllWorlds()
 		c.JSON(http.StatusOK, gin.H{
@@ -19,12 +116,16 @@ func RegisterWorldRoutes(router *gin.Engine, wm *content.WorldManager) {
 		})
 	})
 
-	// Get active worlds
+	// Get active worlds (returns first active world for backward compatibility)
 	router.GET("/worlds/active", func(c *gin.Context) {
 		worlds := wm.GetActiveWorlds()
+		if len(worlds) == 0 {
+			c.JSON(http.StatusOK, gin.H{"error": "No active worlds"})
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"worlds": worlds,
-			"count":  len(worlds),
+			"world": worlds[0],
+			"count": len(worlds),
 		})
 	})
 

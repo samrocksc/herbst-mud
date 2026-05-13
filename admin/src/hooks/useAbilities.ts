@@ -68,7 +68,8 @@ export function useAbilities(filters?: { type?: string; abilityClass?: string })
       if (filters?.type) params.append('type', filters.type)
       if (filters?.abilityClass) params.append('ability_class', filters.abilityClass)
       const url = `${API}/api/abilities${params.toString() ? '?' + params.toString() : ''}`
-      return apiGet<Ability[]>(url)
+      const data = await apiGet<Ability[]>(url)
+      return Array.isArray(data) ? data : []
     },
   })
 }
@@ -78,7 +79,8 @@ export function useAbility(id: number | null) {
     queryKey: ['ability', id],
     queryFn: async (): Promise<Ability | null> => {
       if (!id) return null
-      return apiGet<Ability>(`${API}/api/abilities/${id}`)
+      const data = await apiGet<Ability>(`${API}/api/abilities/${id}`)
+      return data ?? null
     },
     enabled: !!id,
   })

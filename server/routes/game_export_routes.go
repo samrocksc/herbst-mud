@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -79,6 +80,65 @@ type ItemData struct {
 
 // RegisterGameExportRoutes registers export/import routes
 func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
+	// Get list of available worlds (distinct currentWorld values from characters)
+	router.GET("/admin/export/worlds", func(c *gin.Context) {
+		// Get all characters, then extract unique worlds
+		characters, err := client.Character.Query().
+			Where(character.IsNPCEQ(false)). // Only get player characters (isNPC=false)
+			Select(character.FieldCurrentWorld).
+			All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch worlds: " + err.Error()})
+			return
+		}
+
+		// Extract unique worlds from the selected field
+		worldSet := make(map[string]bool)
+		for _, char := range characters {
+			if char.CurrentWorld != "" {
+				worldSet[char.CurrentWorld] = true
+			}
+		}
+
+		var worlds []string
+		for world := range worldSet {
+			worlds = append(worlds, world)
+		}
+
+		// Always include "default" if no worlds exist
+		if len(worlds) == 0 {
+			worlds = []string{"default"}
+		}
+
+		// Convert to WorldInfo format expected by admin
+		var worldList []struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+			Description string `json:"description"`
+			Status string `json:"status"`
+		}
+		for _, w := range worlds {
+			desc := "Game world data"
+			if w == "default" {
+				desc = "Default production world"
+			} else {
+				desc = fmt.Sprintf("World: %s", w)
+			}
+			worldList = append(worldList, struct {
+				ID   string `json:"id"`
+				Name string `json:"name"`
+				Description string `json:"description"`
+				Status string `json:"status"`
+			}{ID: w, Name: w, Description: desc, Status: "active"})
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"worlds":   worldList,
+			"default":  "default",
+			"count":    len(worldList),
+		})
+	})
+
 	// Export the entire game world (NPCs, rooms, skills, items - NO users/player data)
 	router.GET("/admin/export", func(c *gin.Context) {
 		export := GameExport{
@@ -86,8 +146,32 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 			ExportedAt: time.Now().Format(time.RFC3339),
 		}
 
-		// Export rooms
-		rooms, err := client.Room.Query().All(c.Request.Context())
+		// Get world filter from query parameter
+		worldFilter := c.Query("world")
+		if worldFilter == "" {
+			worldFilter = "default"
+		}
+
+		// Export rooms - filter by world if specified
+		roomsQuery := client.Room.Query()
+		if worldFilter != "" && worldFilter != "all" {
+			// Get room IDs that have NPCs in this world
+			npcsInWorld, err := client.Character.Query().
+				Where(character.IsNPCEQ(true)).
+				Where(character.CurrentWorldEQ(worldFilter)).
+				Select(character.FieldCurrentRoomId).
+				All(c.Request.Context())
+			if err == nil && len(npcsInWorld) > 0 {
+				roomIDs := make([]int, 0, len(npcsInWorld))
+				for _, npc := range npcsInWorld {
+					roomIDs = append(roomIDs, npc.CurrentRoomId)
+				}
+				if len(roomIDs) > 0 {
+					roomsQuery = roomsQuery.Where(room.IDIn(roomIDs...))
+				}
+			}
+		}
+		rooms, err := roomsQuery.All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch rooms: " + err.Error()})
 			return
@@ -113,9 +197,11 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		// Export NPCs only (isNPC=true), exclude player characters
-		npcs, err := client.Character.Query().
-			Where(character.IsNPCEQ(true)).
-			All(c.Request.Context())
+		npcsQuery := client.Character.Query().Where(character.IsNPCEQ(true))
+		if worldFilter != "" && worldFilter != "all" {
+			npcsQuery = npcsQuery.Where(character.CurrentWorldEQ(worldFilter))
+		}
+		npcs, err := npcsQuery.All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch NPCs: " + err.Error()})
 			return
@@ -219,6 +305,12 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 			return
 		}
 
+		// Get world filter from query parameter
+		worldFilter := c.Query("world")
+		if worldFilter == "" {
+			worldFilter = "default"
+		}
+
 		imported := struct {
 			Rooms  int `json:"rooms"`
 			NPCs   int `json:"npcs"`
@@ -312,6 +404,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 					SetWisdom(npc.Wisdom).
 					SetNpcSkillID(npc.NPCSkillID).
 					SetIsImmortal(npc.IsImmortal).
+					SetCurrentWorld(worldFilter).
 					Save(c.Request.Context())
 				imported.NPCs++
 			}

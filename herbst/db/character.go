@@ -49,6 +49,8 @@ type Character struct {
 	Race string `json:"race,omitempty"`
 	// Class holds the value of the "class" field.
 	Class string `json:"class,omitempty"`
+	// World this character belongs to (for multi-world support)
+	CurrentWorld string `json:"currentWorld,omitempty"`
 	// Level holds the value of the "level" field.
 	Level int `json:"level,omitempty"`
 	// Constitution holds the value of the "constitution" field.
@@ -170,7 +172,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
-		case character.FieldName, character.FieldPassword, character.FieldRace, character.FieldClass, character.FieldGender, character.FieldDescription:
+		case character.FieldName, character.FieldPassword, character.FieldRace, character.FieldClass, character.FieldCurrentWorld, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
 		case character.ForeignKeys[0]: // ability_characters
 			values[i] = new(sql.NullInt64)
@@ -290,6 +292,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field class", values[i])
 			} else if value.Valid {
 				_m.Class = value.String
+			}
+		case character.FieldCurrentWorld:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field currentWorld", values[i])
+			} else if value.Valid {
+				_m.CurrentWorld = value.String
 			}
 		case character.FieldLevel:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -526,6 +534,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("class=")
 	builder.WriteString(_m.Class)
+	builder.WriteString(", ")
+	builder.WriteString("currentWorld=")
+	builder.WriteString(_m.CurrentWorld)
 	builder.WriteString(", ")
 	builder.WriteString("level=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Level))

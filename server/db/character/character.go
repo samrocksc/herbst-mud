@@ -38,6 +38,8 @@ const (
 	FieldNpcTemplateID = "npc_template_id"
 	// FieldNpcSkillID holds the string denoting the npc_skill_id field in the database.
 	FieldNpcSkillID = "npc_skill_id"
+	// FieldCurrentWorld holds the string denoting the currentworld field in the database.
+	FieldCurrentWorld = "current_world"
 	// FieldNpcSkillCooldown holds the string denoting the npc_skill_cooldown field in the database.
 	FieldNpcSkillCooldown = "npc_skill_cooldown"
 	// FieldHitpoints holds the string denoting the hitpoints field in the database.
@@ -226,6 +228,7 @@ var Columns = []string{
 	FieldInstanceNumber,
 	FieldNpcTemplateID,
 	FieldNpcSkillID,
+	FieldCurrentWorld,
 	FieldNpcSkillCooldown,
 	FieldHitpoints,
 	FieldMaxHitpoints,
@@ -263,6 +266,7 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"room_characters",
 	"user_characters",
+	"world_characters",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -295,6 +299,8 @@ var (
 	DefaultIsInstance bool
 	// DefaultInstanceNumber holds the default value on creation for the "instance_number" field.
 	DefaultInstanceNumber int
+	// DefaultCurrentWorld holds the default value on creation for the "currentWorld" field.
+	DefaultCurrentWorld string
 	// DefaultNpcSkillCooldown holds the default value on creation for the "npc_skill_cooldown" field.
 	DefaultNpcSkillCooldown int
 	// DefaultHitpoints holds the default value on creation for the "hitpoints" field.
@@ -418,6 +424,11 @@ func ByNpcTemplateID(opts ...sql.OrderTermOption) OrderOption {
 // ByNpcSkillID orders the results by the npc_skill_id field.
 func ByNpcSkillID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNpcSkillID, opts...).ToFunc()
+}
+
+// ByCurrentWorld orders the results by the currentWorld field.
+func ByCurrentWorld(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrentWorld, opts...).ToFunc()
 }
 
 // ByNpcSkillCooldown orders the results by the npc_skill_cooldown field.

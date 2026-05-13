@@ -29,7 +29,7 @@ async function apiFetch<T = unknown>(input: RequestInfo, init?: RequestInit): Pr
   }
 
   const text = await response.text()
-  if (!text) return undefined as T
+  if (!text) return null as unknown as T
   try {
     const parsed = JSON.parse(text)
     // Unwrap known { key: [...] } response shapes from the backend,

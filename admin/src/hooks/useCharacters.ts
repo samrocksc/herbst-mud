@@ -11,6 +11,7 @@ export type Character = Readonly<{
   is_admin: boolean
   is_immortal: boolean
   is_test: boolean
+  currentWorld: string
   hitpoints: number
   max_hitpoints: number
   stamina: number
@@ -49,6 +50,7 @@ export type CharacterUpdate = Partial<{
   maxStamina: number
   mana: number
   maxMana: number
+  currentWorld: string
 }>
 
 const API = `${window.location.origin}`
@@ -57,7 +59,7 @@ export function useCharacters() {
   return useQuery({
     queryKey: ['characters'],
     queryFn: async (): Promise<Character[]> => {
-      const data = await apiGet<unknown[]>(`${API}/characters`)
+      const data = await apiGet<Character[]>(`${API}/characters`)
       return Array.isArray(data) ? data : []
     },
   })
@@ -66,7 +68,10 @@ export function useCharacters() {
 export function useCharacter(id: number) {
   return useQuery({
     queryKey: ['character', id],
-    queryFn: () => apiGet<Character>(`${API}/characters/${id}`),
+    queryFn: async (): Promise<Character | null> => {
+      const data = await apiGet<Character>(`${API}/characters/${id}`)
+      return data ?? null
+    },
     enabled: !!id,
   })
 }

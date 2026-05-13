@@ -253,6 +253,17 @@ type GenderRepo interface {
 	List(ctx context.Context) ([]*db.Gender, error)
 }
 
+// WorldRepo defines data access for worlds.
+type WorldRepo interface {
+	Get(ctx context.Context, id int) (*db.World, error)
+	GetByName(ctx context.Context, name string) (*db.World, error)
+	List(ctx context.Context) ([]*db.World, error)
+	GetActive(ctx context.Context) ([]*db.World, error)
+	Create(ctx context.Context, input CreateWorldInput) (*db.World, error)
+	Update(ctx context.Context, id int, updates WorldUpdates) (*db.World, error)
+	Delete(ctx context.Context, id int) error
+}
+
 // EquipmentTemplateRepo defines data access for equipment templates.
 type EquipmentTemplateRepo interface {
 	Get(ctx context.Context, id string) (*db.EquipmentTemplate, error)
@@ -797,4 +808,18 @@ type LogFilter struct {
 	TemplateID  *string
 	Limit       int
 	Offset      int
+}
+
+type CreateWorldInput struct {
+	Name        string
+	Title       string
+	Description string
+	Active      bool
+}
+
+type WorldUpdates struct {
+	Name        *string
+	Title       *string
+	Description *string
+	Active      *bool
 }

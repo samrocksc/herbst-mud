@@ -210,6 +210,20 @@ func (_c *CharacterCreate) SetNillableClass(v *string) *CharacterCreate {
 	return _c
 }
 
+// SetCurrentWorld sets the "currentWorld" field.
+func (_c *CharacterCreate) SetCurrentWorld(v string) *CharacterCreate {
+	_c.mutation.SetCurrentWorld(v)
+	return _c
+}
+
+// SetNillableCurrentWorld sets the "currentWorld" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableCurrentWorld(v *string) *CharacterCreate {
+	if v != nil {
+		_c.SetCurrentWorld(*v)
+	}
+	return _c
+}
+
 // SetLevel sets the "level" field.
 func (_c *CharacterCreate) SetLevel(v int) *CharacterCreate {
 	_c.mutation.SetLevel(v)
@@ -606,6 +620,10 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultClass
 		_c.mutation.SetClass(v)
 	}
+	if _, ok := _c.mutation.CurrentWorld(); !ok {
+		v := character.DefaultCurrentWorld
+		_c.mutation.SetCurrentWorld(v)
+	}
 	if _, ok := _c.mutation.Level(); !ok {
 		v := character.DefaultLevel
 		_c.mutation.SetLevel(v)
@@ -711,6 +729,9 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.Class(); !ok {
 		return &ValidationError{Name: "class", err: errors.New(`db: missing required field "Character.class"`)}
+	}
+	if _, ok := _c.mutation.CurrentWorld(); !ok {
+		return &ValidationError{Name: "currentWorld", err: errors.New(`db: missing required field "Character.currentWorld"`)}
 	}
 	if _, ok := _c.mutation.Level(); !ok {
 		return &ValidationError{Name: "level", err: errors.New(`db: missing required field "Character.level"`)}
@@ -841,6 +862,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Class(); ok {
 		_spec.SetField(character.FieldClass, field.TypeString, value)
 		_node.Class = value
+	}
+	if value, ok := _c.mutation.CurrentWorld(); ok {
+		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
+		_node.CurrentWorld = value
 	}
 	if value, ok := _c.mutation.Level(); ok {
 		_spec.SetField(character.FieldLevel, field.TypeInt, value)

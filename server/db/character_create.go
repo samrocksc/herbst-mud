@@ -190,6 +190,20 @@ func (_c *CharacterCreate) SetNillableNpcSkillID(v *string) *CharacterCreate {
 	return _c
 }
 
+// SetCurrentWorld sets the "currentWorld" field.
+func (_c *CharacterCreate) SetCurrentWorld(v string) *CharacterCreate {
+	_c.mutation.SetCurrentWorld(v)
+	return _c
+}
+
+// SetNillableCurrentWorld sets the "currentWorld" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableCurrentWorld(v *string) *CharacterCreate {
+	if v != nil {
+		_c.SetCurrentWorld(*v)
+	}
+	return _c
+}
+
 // SetNpcSkillCooldown sets the "npc_skill_cooldown" field.
 func (_c *CharacterCreate) SetNpcSkillCooldown(v int) *CharacterCreate {
 	_c.mutation.SetNpcSkillCooldown(v)
@@ -843,6 +857,10 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultInstanceNumber
 		_c.mutation.SetInstanceNumber(v)
 	}
+	if _, ok := _c.mutation.CurrentWorld(); !ok {
+		v := character.DefaultCurrentWorld
+		_c.mutation.SetCurrentWorld(v)
+	}
 	if _, ok := _c.mutation.NpcSkillCooldown(); !ok {
 		v := character.DefaultNpcSkillCooldown
 		_c.mutation.SetNpcSkillCooldown(v)
@@ -976,6 +994,9 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.InstanceNumber(); !ok {
 		return &ValidationError{Name: "instance_number", err: errors.New(`db: missing required field "Character.instance_number"`)}
+	}
+	if _, ok := _c.mutation.CurrentWorld(); !ok {
+		return &ValidationError{Name: "currentWorld", err: errors.New(`db: missing required field "Character.currentWorld"`)}
 	}
 	if _, ok := _c.mutation.NpcSkillCooldown(); !ok {
 		return &ValidationError{Name: "npc_skill_cooldown", err: errors.New(`db: missing required field "Character.npc_skill_cooldown"`)}
@@ -1124,6 +1145,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.NpcSkillID(); ok {
 		_spec.SetField(character.FieldNpcSkillID, field.TypeString, value)
 		_node.NpcSkillID = value
+	}
+	if value, ok := _c.mutation.CurrentWorld(); ok {
+		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
+		_node.CurrentWorld = value
 	}
 	if value, ok := _c.mutation.NpcSkillCooldown(); ok {
 		_spec.SetField(character.FieldNpcSkillCooldown, field.TypeInt, value)

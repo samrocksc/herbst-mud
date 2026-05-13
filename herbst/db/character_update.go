@@ -297,6 +297,20 @@ func (_u *CharacterUpdate) SetNillableClass(v *string) *CharacterUpdate {
 	return _u
 }
 
+// SetCurrentWorld sets the "currentWorld" field.
+func (_u *CharacterUpdate) SetCurrentWorld(v string) *CharacterUpdate {
+	_u.mutation.SetCurrentWorld(v)
+	return _u
+}
+
+// SetNillableCurrentWorld sets the "currentWorld" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableCurrentWorld(v *string) *CharacterUpdate {
+	if v != nil {
+		_u.SetCurrentWorld(*v)
+	}
+	return _u
+}
+
 // SetLevel sets the "level" field.
 func (_u *CharacterUpdate) SetLevel(v int) *CharacterUpdate {
 	_u.mutation.ResetLevel()
@@ -909,6 +923,9 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Class(); ok {
 		_spec.SetField(character.FieldClass, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.CurrentWorld(); ok {
+		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Level(); ok {
 		_spec.SetField(character.FieldLevel, field.TypeInt, value)
 	}
@@ -1469,6 +1486,20 @@ func (_u *CharacterUpdateOne) SetClass(v string) *CharacterUpdateOne {
 func (_u *CharacterUpdateOne) SetNillableClass(v *string) *CharacterUpdateOne {
 	if v != nil {
 		_u.SetClass(*v)
+	}
+	return _u
+}
+
+// SetCurrentWorld sets the "currentWorld" field.
+func (_u *CharacterUpdateOne) SetCurrentWorld(v string) *CharacterUpdateOne {
+	_u.mutation.SetCurrentWorld(v)
+	return _u
+}
+
+// SetNillableCurrentWorld sets the "currentWorld" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableCurrentWorld(v *string) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetCurrentWorld(*v)
 	}
 	return _u
 }
@@ -2114,6 +2145,9 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.Class(); ok {
 		_spec.SetField(character.FieldClass, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CurrentWorld(); ok {
+		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Level(); ok {
 		_spec.SetField(character.FieldLevel, field.TypeInt, value)
