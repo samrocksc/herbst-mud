@@ -19,11 +19,12 @@ type questView struct {
 
 // questObjectiveInput mirrors schema.QuestObjective for JSON input/output.
 type questObjectiveInput struct {
-	Type     string `json:"type"`
-	TargetID string `json:"target_id"`
-	Count    int    `json:"count"`
-	Label    string `json:"label"`
-	Hint     string `json:"hint"`
+	Type      string   `json:"type"`
+	TargetID  string   `json:"target_id"`
+	TagFilter string   `json:"tag_filter"`
+	Count     int      `json:"count"`
+	Labels    []string `json:"labels"`
+	Hint      string   `json:"hint"`
 }
 
 // questRewardsInput mirrors schema.QuestRewards for JSON input/output.

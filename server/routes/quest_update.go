@@ -59,11 +59,12 @@ func objectivesToSchema(objs []questObjectiveInput) []schema.QuestObjective {
 	result := make([]schema.QuestObjective, len(objs))
 	for i, o := range objs {
 		result[i] = schema.QuestObjective{
-			Type:     o.Type,
-			TargetID: o.TargetID,
-			Count:    o.Count,
-			Label:    o.Label,
-			Hint:     o.Hint,
+			Type:       o.Type,
+			TargetID:   o.TargetID,
+			TagFilter:  o.TagFilter,
+			Count:      o.Count,
+			Labels:     o.Labels,
+			Hint:       o.Hint,
 		}
 	}
 	return result

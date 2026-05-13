@@ -11,6 +11,7 @@ import (
 	"herbst-server/db/achievement"
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/applog"
+	"herbst-server/db/channelconfig"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/characterchannel"
@@ -64,6 +65,7 @@ const (
 	TypeAchievement              = "Achievement"
 	TypeActiveEffect             = "ActiveEffect"
 	TypeAppLog                   = "AppLog"
+	TypeChannelConfig            = "ChannelConfig"
 	TypeCharacter                = "Character"
 	TypeCharacterAbility         = "CharacterAbility"
 	TypeCharacterChannel         = "CharacterChannel"
@@ -5074,6 +5076,638 @@ func (m *AppLogMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AppLogMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AppLog edge %s", name)
+}
+
+// ChannelConfigMutation represents an operation that mutates the ChannelConfig nodes in the graph.
+type ChannelConfigMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *int
+	name                *string
+	description         *string
+	color               *string
+	default_enabled     *bool
+	cooldown_seconds    *int
+	addcooldown_seconds *int
+	admin_only          *bool
+	clearedFields       map[string]struct{}
+	done                bool
+	oldValue            func(context.Context) (*ChannelConfig, error)
+	predicates          []predicate.ChannelConfig
+}
+
+var _ ent.Mutation = (*ChannelConfigMutation)(nil)
+
+// channelconfigOption allows management of the mutation configuration using functional options.
+type channelconfigOption func(*ChannelConfigMutation)
+
+// newChannelConfigMutation creates new mutation for the ChannelConfig entity.
+func newChannelConfigMutation(c config, op Op, opts ...channelconfigOption) *ChannelConfigMutation {
+	m := &ChannelConfigMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeChannelConfig,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withChannelConfigID sets the ID field of the mutation.
+func withChannelConfigID(id int) channelconfigOption {
+	return func(m *ChannelConfigMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ChannelConfig
+		)
+		m.oldValue = func(ctx context.Context) (*ChannelConfig, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ChannelConfig.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withChannelConfig sets the old ChannelConfig of the mutation.
+func withChannelConfig(node *ChannelConfig) channelconfigOption {
+	return func(m *ChannelConfigMutation) {
+		m.oldValue = func(context.Context) (*ChannelConfig, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ChannelConfigMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ChannelConfigMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ChannelConfigMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ChannelConfigMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ChannelConfig.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *ChannelConfigMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ChannelConfigMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ChannelConfig entity.
+// If the ChannelConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChannelConfigMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ChannelConfigMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *ChannelConfigMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ChannelConfigMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the ChannelConfig entity.
+// If the ChannelConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChannelConfigMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ChannelConfigMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetColor sets the "color" field.
+func (m *ChannelConfigMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *ChannelConfigMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "color" field's value of the ChannelConfig entity.
+// If the ChannelConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChannelConfigMutation) OldColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *ChannelConfigMutation) ResetColor() {
+	m.color = nil
+}
+
+// SetDefaultEnabled sets the "default_enabled" field.
+func (m *ChannelConfigMutation) SetDefaultEnabled(b bool) {
+	m.default_enabled = &b
+}
+
+// DefaultEnabled returns the value of the "default_enabled" field in the mutation.
+func (m *ChannelConfigMutation) DefaultEnabled() (r bool, exists bool) {
+	v := m.default_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultEnabled returns the old "default_enabled" field's value of the ChannelConfig entity.
+// If the ChannelConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChannelConfigMutation) OldDefaultEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultEnabled: %w", err)
+	}
+	return oldValue.DefaultEnabled, nil
+}
+
+// ResetDefaultEnabled resets all changes to the "default_enabled" field.
+func (m *ChannelConfigMutation) ResetDefaultEnabled() {
+	m.default_enabled = nil
+}
+
+// SetCooldownSeconds sets the "cooldown_seconds" field.
+func (m *ChannelConfigMutation) SetCooldownSeconds(i int) {
+	m.cooldown_seconds = &i
+	m.addcooldown_seconds = nil
+}
+
+// CooldownSeconds returns the value of the "cooldown_seconds" field in the mutation.
+func (m *ChannelConfigMutation) CooldownSeconds() (r int, exists bool) {
+	v := m.cooldown_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCooldownSeconds returns the old "cooldown_seconds" field's value of the ChannelConfig entity.
+// If the ChannelConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChannelConfigMutation) OldCooldownSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCooldownSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCooldownSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCooldownSeconds: %w", err)
+	}
+	return oldValue.CooldownSeconds, nil
+}
+
+// AddCooldownSeconds adds i to the "cooldown_seconds" field.
+func (m *ChannelConfigMutation) AddCooldownSeconds(i int) {
+	if m.addcooldown_seconds != nil {
+		*m.addcooldown_seconds += i
+	} else {
+		m.addcooldown_seconds = &i
+	}
+}
+
+// AddedCooldownSeconds returns the value that was added to the "cooldown_seconds" field in this mutation.
+func (m *ChannelConfigMutation) AddedCooldownSeconds() (r int, exists bool) {
+	v := m.addcooldown_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCooldownSeconds resets all changes to the "cooldown_seconds" field.
+func (m *ChannelConfigMutation) ResetCooldownSeconds() {
+	m.cooldown_seconds = nil
+	m.addcooldown_seconds = nil
+}
+
+// SetAdminOnly sets the "admin_only" field.
+func (m *ChannelConfigMutation) SetAdminOnly(b bool) {
+	m.admin_only = &b
+}
+
+// AdminOnly returns the value of the "admin_only" field in the mutation.
+func (m *ChannelConfigMutation) AdminOnly() (r bool, exists bool) {
+	v := m.admin_only
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAdminOnly returns the old "admin_only" field's value of the ChannelConfig entity.
+// If the ChannelConfig object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChannelConfigMutation) OldAdminOnly(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAdminOnly is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAdminOnly requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAdminOnly: %w", err)
+	}
+	return oldValue.AdminOnly, nil
+}
+
+// ResetAdminOnly resets all changes to the "admin_only" field.
+func (m *ChannelConfigMutation) ResetAdminOnly() {
+	m.admin_only = nil
+}
+
+// Where appends a list predicates to the ChannelConfigMutation builder.
+func (m *ChannelConfigMutation) Where(ps ...predicate.ChannelConfig) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ChannelConfigMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ChannelConfigMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ChannelConfig, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ChannelConfigMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ChannelConfigMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ChannelConfig).
+func (m *ChannelConfigMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ChannelConfigMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.name != nil {
+		fields = append(fields, channelconfig.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, channelconfig.FieldDescription)
+	}
+	if m.color != nil {
+		fields = append(fields, channelconfig.FieldColor)
+	}
+	if m.default_enabled != nil {
+		fields = append(fields, channelconfig.FieldDefaultEnabled)
+	}
+	if m.cooldown_seconds != nil {
+		fields = append(fields, channelconfig.FieldCooldownSeconds)
+	}
+	if m.admin_only != nil {
+		fields = append(fields, channelconfig.FieldAdminOnly)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ChannelConfigMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case channelconfig.FieldName:
+		return m.Name()
+	case channelconfig.FieldDescription:
+		return m.Description()
+	case channelconfig.FieldColor:
+		return m.Color()
+	case channelconfig.FieldDefaultEnabled:
+		return m.DefaultEnabled()
+	case channelconfig.FieldCooldownSeconds:
+		return m.CooldownSeconds()
+	case channelconfig.FieldAdminOnly:
+		return m.AdminOnly()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ChannelConfigMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case channelconfig.FieldName:
+		return m.OldName(ctx)
+	case channelconfig.FieldDescription:
+		return m.OldDescription(ctx)
+	case channelconfig.FieldColor:
+		return m.OldColor(ctx)
+	case channelconfig.FieldDefaultEnabled:
+		return m.OldDefaultEnabled(ctx)
+	case channelconfig.FieldCooldownSeconds:
+		return m.OldCooldownSeconds(ctx)
+	case channelconfig.FieldAdminOnly:
+		return m.OldAdminOnly(ctx)
+	}
+	return nil, fmt.Errorf("unknown ChannelConfig field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ChannelConfigMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case channelconfig.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case channelconfig.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case channelconfig.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
+	case channelconfig.FieldDefaultEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultEnabled(v)
+		return nil
+	case channelconfig.FieldCooldownSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCooldownSeconds(v)
+		return nil
+	case channelconfig.FieldAdminOnly:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAdminOnly(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ChannelConfig field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ChannelConfigMutation) AddedFields() []string {
+	var fields []string
+	if m.addcooldown_seconds != nil {
+		fields = append(fields, channelconfig.FieldCooldownSeconds)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ChannelConfigMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case channelconfig.FieldCooldownSeconds:
+		return m.AddedCooldownSeconds()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ChannelConfigMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case channelconfig.FieldCooldownSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCooldownSeconds(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ChannelConfig numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ChannelConfigMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ChannelConfigMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ChannelConfigMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ChannelConfig nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ChannelConfigMutation) ResetField(name string) error {
+	switch name {
+	case channelconfig.FieldName:
+		m.ResetName()
+		return nil
+	case channelconfig.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case channelconfig.FieldColor:
+		m.ResetColor()
+		return nil
+	case channelconfig.FieldDefaultEnabled:
+		m.ResetDefaultEnabled()
+		return nil
+	case channelconfig.FieldCooldownSeconds:
+		m.ResetCooldownSeconds()
+		return nil
+	case channelconfig.FieldAdminOnly:
+		m.ResetAdminOnly()
+		return nil
+	}
+	return fmt.Errorf("unknown ChannelConfig field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ChannelConfigMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ChannelConfigMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ChannelConfigMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ChannelConfigMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ChannelConfigMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ChannelConfigMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ChannelConfigMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ChannelConfig unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ChannelConfigMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ChannelConfig edge %s", name)
 }
 
 // CharacterMutation represents an operation that mutates the Character nodes in the graph.
@@ -27763,6 +28397,7 @@ type QuestMutation struct {
 	appendobjectives             []schema.QuestObjective
 	rewards                      *schema.QuestRewards
 	repeat_mode                  *quest.RepeatMode
+	main_type                    *quest.MainType
 	cooldown_hours               *int
 	addcooldown_hours            *int
 	is_active                    *bool
@@ -28133,6 +28768,42 @@ func (m *QuestMutation) ResetRepeatMode() {
 	m.repeat_mode = nil
 }
 
+// SetMainType sets the "main_type" field.
+func (m *QuestMutation) SetMainType(qt quest.MainType) {
+	m.main_type = &qt
+}
+
+// MainType returns the value of the "main_type" field in the mutation.
+func (m *QuestMutation) MainType() (r quest.MainType, exists bool) {
+	v := m.main_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMainType returns the old "main_type" field's value of the Quest entity.
+// If the Quest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuestMutation) OldMainType(ctx context.Context) (v quest.MainType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMainType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMainType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMainType: %w", err)
+	}
+	return oldValue.MainType, nil
+}
+
+// ResetMainType resets all changes to the "main_type" field.
+func (m *QuestMutation) ResetMainType() {
+	m.main_type = nil
+}
+
 // SetCooldownHours sets the "cooldown_hours" field.
 func (m *QuestMutation) SetCooldownHours(i int) {
 	m.cooldown_hours = &i
@@ -28313,7 +28984,7 @@ func (m *QuestMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *QuestMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, quest.FieldName)
 	}
@@ -28331,6 +29002,9 @@ func (m *QuestMutation) Fields() []string {
 	}
 	if m.repeat_mode != nil {
 		fields = append(fields, quest.FieldRepeatMode)
+	}
+	if m.main_type != nil {
+		fields = append(fields, quest.FieldMainType)
 	}
 	if m.cooldown_hours != nil {
 		fields = append(fields, quest.FieldCooldownHours)
@@ -28358,6 +29032,8 @@ func (m *QuestMutation) Field(name string) (ent.Value, bool) {
 		return m.Rewards()
 	case quest.FieldRepeatMode:
 		return m.RepeatMode()
+	case quest.FieldMainType:
+		return m.MainType()
 	case quest.FieldCooldownHours:
 		return m.CooldownHours()
 	case quest.FieldIsActive:
@@ -28383,6 +29059,8 @@ func (m *QuestMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldRewards(ctx)
 	case quest.FieldRepeatMode:
 		return m.OldRepeatMode(ctx)
+	case quest.FieldMainType:
+		return m.OldMainType(ctx)
 	case quest.FieldCooldownHours:
 		return m.OldCooldownHours(ctx)
 	case quest.FieldIsActive:
@@ -28437,6 +29115,13 @@ func (m *QuestMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRepeatMode(v)
+		return nil
+	case quest.FieldMainType:
+		v, ok := value.(quest.MainType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMainType(v)
 		return nil
 	case quest.FieldCooldownHours:
 		v, ok := value.(int)
@@ -28542,6 +29227,9 @@ func (m *QuestMutation) ResetField(name string) error {
 		return nil
 	case quest.FieldRepeatMode:
 		m.ResetRepeatMode()
+		return nil
+	case quest.FieldMainType:
+		m.ResetMainType()
 		return nil
 	case quest.FieldCooldownHours:
 		m.ResetCooldownHours()

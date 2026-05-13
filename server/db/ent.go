@@ -11,6 +11,7 @@ import (
 	"herbst-server/db/achievement"
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/applog"
+	"herbst-server/db/channelconfig"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/characterchannel"
@@ -112,6 +113,7 @@ func checkColumn(t, c string) error {
 			achievement.Table:              achievement.ValidColumn,
 			activeeffect.Table:             activeeffect.ValidColumn,
 			applog.Table:                   applog.ValidColumn,
+			channelconfig.Table:            channelconfig.ValidColumn,
 			character.Table:                character.ValidColumn,
 			characterability.Table:         characterability.ValidColumn,
 			characterchannel.Table:         characterchannel.ValidColumn,

@@ -68,6 +68,18 @@ func (f AppLogFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.AppLogMutation", m)
 }
 
+// The ChannelConfigFunc type is an adapter to allow the use of ordinary
+// function as ChannelConfig mutator.
+type ChannelConfigFunc func(context.Context, *db.ChannelConfigMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChannelConfigFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ChannelConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ChannelConfigMutation", m)
+}
+
 // The CharacterFunc type is an adapter to allow the use of ordinary
 // function as Character mutator.
 type CharacterFunc func(context.Context, *db.CharacterMutation) (db.Value, error)

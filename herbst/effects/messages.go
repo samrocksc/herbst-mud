@@ -6,6 +6,12 @@ func (s *Service) dispatchMessage(charID int, text string, msgType string) {
 	if text == "" {
 		return
 	}
+	// Game chat commands (say, yell, shout, whisper) should be passed through as-is
+	// since they represent game commands that will be sent to the server.
+	// Other valid message types for in-game display: info, success, error, damage, heal
+	if msgType == "" {
+		msgType = "info"
+	}
 	// Messages are dispatched through the game model's message system.
 	// The game model will pick up pending messages via the MessageBus.
 	s.messageBus.Send(charID, text, msgType)

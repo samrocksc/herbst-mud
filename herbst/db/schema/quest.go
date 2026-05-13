@@ -19,6 +19,7 @@ func (Quest) Fields() []ent.Field {
 		field.JSON("objectives", []QuestObjective{}),
 		field.JSON("rewards", QuestRewards{}),
 		field.Enum("repeat_mode").Values("none", "cooldown", "always").Default("none"),
+		field.Enum("main_type").Values("hunter", "collector", "explorer", "general").Default("general"),
 		field.Int("cooldown_hours").Default(0),
 		field.Bool("is_active").Default(true),
 	}

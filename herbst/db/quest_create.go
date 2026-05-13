@@ -65,6 +65,20 @@ func (_c *QuestCreate) SetNillableRepeatMode(v *quest.RepeatMode) *QuestCreate {
 	return _c
 }
 
+// SetMainType sets the "main_type" field.
+func (_c *QuestCreate) SetMainType(v quest.MainType) *QuestCreate {
+	_c.mutation.SetMainType(v)
+	return _c
+}
+
+// SetNillableMainType sets the "main_type" field if the given value is not nil.
+func (_c *QuestCreate) SetNillableMainType(v *quest.MainType) *QuestCreate {
+	if v != nil {
+		_c.SetMainType(*v)
+	}
+	return _c
+}
+
 // SetCooldownHours sets the "cooldown_hours" field.
 func (_c *QuestCreate) SetCooldownHours(v int) *QuestCreate {
 	_c.mutation.SetCooldownHours(v)
@@ -147,6 +161,10 @@ func (_c *QuestCreate) defaults() {
 		v := quest.DefaultRepeatMode
 		_c.mutation.SetRepeatMode(v)
 	}
+	if _, ok := _c.mutation.MainType(); !ok {
+		v := quest.DefaultMainType
+		_c.mutation.SetMainType(v)
+	}
 	if _, ok := _c.mutation.CooldownHours(); !ok {
 		v := quest.DefaultCooldownHours
 		_c.mutation.SetCooldownHours(v)
@@ -177,6 +195,14 @@ func (_c *QuestCreate) check() error {
 	if v, ok := _c.mutation.RepeatMode(); ok {
 		if err := quest.RepeatModeValidator(v); err != nil {
 			return &ValidationError{Name: "repeat_mode", err: fmt.Errorf(`db: validator failed for field "Quest.repeat_mode": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.MainType(); !ok {
+		return &ValidationError{Name: "main_type", err: errors.New(`db: missing required field "Quest.main_type"`)}
+	}
+	if v, ok := _c.mutation.MainType(); ok {
+		if err := quest.MainTypeValidator(v); err != nil {
+			return &ValidationError{Name: "main_type", err: fmt.Errorf(`db: validator failed for field "Quest.main_type": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.CooldownHours(); !ok {
@@ -234,6 +260,10 @@ func (_c *QuestCreate) createSpec() (*Quest, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.RepeatMode(); ok {
 		_spec.SetField(quest.FieldRepeatMode, field.TypeEnum, value)
 		_node.RepeatMode = value
+	}
+	if value, ok := _c.mutation.MainType(); ok {
+		_spec.SetField(quest.FieldMainType, field.TypeEnum, value)
+		_node.MainType = value
 	}
 	if value, ok := _c.mutation.CooldownHours(); ok {
 		_spec.SetField(quest.FieldCooldownHours, field.TypeInt, value)

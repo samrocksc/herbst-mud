@@ -357,6 +357,7 @@ var (
 		{Name: "objectives", Type: field.TypeJSON},
 		{Name: "rewards", Type: field.TypeJSON},
 		{Name: "repeat_mode", Type: field.TypeEnum, Enums: []string{"none", "cooldown", "always"}, Default: "none"},
+		{Name: "main_type", Type: field.TypeEnum, Enums: []string{"hunter", "collector", "explorer", "general"}, Default: "general"},
 		{Name: "cooldown_hours", Type: field.TypeInt, Default: 0},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 	}

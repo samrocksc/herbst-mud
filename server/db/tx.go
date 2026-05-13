@@ -22,6 +22,8 @@ type Tx struct {
 	ActiveEffect *ActiveEffectClient
 	// AppLog is the client for interacting with the AppLog builders.
 	AppLog *AppLogClient
+	// ChannelConfig is the client for interacting with the ChannelConfig builders.
+	ChannelConfig *ChannelConfigClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
 	// CharacterAbility is the client for interacting with the CharacterAbility builders.
@@ -218,6 +220,7 @@ func (tx *Tx) init() {
 	tx.Achievement = NewAchievementClient(tx.config)
 	tx.ActiveEffect = NewActiveEffectClient(tx.config)
 	tx.AppLog = NewAppLogClient(tx.config)
+	tx.ChannelConfig = NewChannelConfigClient(tx.config)
 	tx.Character = NewCharacterClient(tx.config)
 	tx.CharacterAbility = NewCharacterAbilityClient(tx.config)
 	tx.CharacterChannel = NewCharacterChannelClient(tx.config)

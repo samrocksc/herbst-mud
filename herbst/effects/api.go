@@ -138,27 +138,68 @@ func (mb *MessageBus) RegisterHandler(fn func(charID int, text string, msgType s
 	mb.handler = fn
 }
 
+// dispatchMessage sends a text message to a character via the game's
+// message system. This is called when a message effect fires.
+func dispatchMessage(s *Service, charID int, text string, msgType string) {
+	if text == "" {
+		return
+	}
+	// Game chat commands (say, yell, shout, whisper) should be passed through as-is
+	// since they represent game commands that will be sent to the server.
+	// Other valid message types for in-game display: info, success, error, damage, heal
+	if msgType == "" {
+		msgType = "info"
+	}
+	// Messages are dispatched through the game model's message system.
+	// The game model will pick up pending messages via the MessageBus.
+	s.messageBus.Send(charID, text, msgType)
+}
+
 // FireEvent looks up hooks for the given event and NPC template,
 // resolves targets, and applies the linked effects.
 func (s *Service) FireEvent(eventName string, sourceCharID int, npcTemplateID string, extras map[string]interface{}) {
+	s.logger.Debug("FireEvent", "event", eventName, "source_char_id", sourceCharID, "npc_template_id", npcTemplateID, "extras", extras)
 	hooks := s.GetHooksForEvent(eventName)
+	s.logger.Debug("FireEvent", "hooks_found", len(hooks))
 	for _, hook := range hooks {
 		if !hook.Enabled {
+			s.logger.Debug("FireEvent: skipping disabled hook", "hook_id", hook.ID)
 			continue
 		}
 		if hook.NPCTemplateID != "" && npcTemplateID != "" && hook.NPCTemplateID != npcTemplateID {
+			s.logger.Debug("FireEvent: NPC template mismatch", "hook_template", hook.NPCTemplateID, "event_template", npcTemplateID)
 			continue
 		}
 		targets := ResolveTarget(hook.Target, sourceCharID, extras)
+		s.logger.Debug("FireEvent: resolved targets", "hook_id", hook.ID, "target", hook.Target, "targets", targets)
 		eff, ok := s.GetEffect(hook.EffectID)
 		if !ok {
 			s.logger.Warn("hook references missing effect", "hook_id", hook.ID, "effect_id", hook.EffectID)
 			continue
 		}
+		s.logger.Debug("FireEvent: applying effect", "hook_id", hook.ID, "effect_id", hook.EffectID, "effect_type", eff.EffectType)
 		dispatchStartMessage(eff.Messages, s.messageBus, sourceCharID)
 		for _, targetID := range targets {
-			if err := s.ApplyEffect(hook.EffectID, targetID, sourceCharID, 0); err != nil {
-				s.logger.Error("apply effect failed", "effect_id", hook.EffectID, "target", targetID, "error", err)
+			// Check if this is a room target (special marker)
+			if roomID, isRoom := ParseRoomTarget(targetID); isRoom {
+				s.logger.Debug("FireEvent: room target, will dispatch to all room members", "room_id", roomID)
+				// For room target, the effect type determines how we handle it
+				if eff.EffectType == "message" {
+					// For message effects on room target, send to all characters in room
+					// The actual room member lookup should be done by the game server
+					// For now, we dispatch to sourceCharID as a fallback
+					s.logger.Debug("FireEvent: message effect on room, dispatching to source", "source_char_id", sourceCharID)
+					dispatchMessage(s, sourceCharID, strParam(eff.Parameters, "text"), strParam(eff.Parameters, "message_type"))
+				} else {
+					s.logger.Debug("FireEvent: non-message room target, applying to source", "target_id", sourceCharID)
+					if err := s.ApplyEffect(hook.EffectID, sourceCharID, sourceCharID, 0); err != nil {
+						s.logger.Error("apply effect failed", "effect_id", hook.EffectID, "target", sourceCharID, "error", err)
+					}
+				}
+			} else {
+				if err := s.ApplyEffect(hook.EffectID, targetID, sourceCharID, 0); err != nil {
+					s.logger.Error("apply effect failed", "effect_id", hook.EffectID, "target", targetID, "error", err)
+				}
 			}
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"herbst-server/db/achievement"
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/applog"
+	"herbst-server/db/channelconfig"
 	"herbst-server/db/character"
 	"herbst-server/db/characterchannel"
 	"herbst-server/db/charactercompetency"
@@ -133,6 +134,28 @@ func init() {
 	applogDescCreatedAt := applogFields[8].Descriptor()
 	// applog.DefaultCreatedAt holds the default value on creation for the created_at field.
 	applog.DefaultCreatedAt = applogDescCreatedAt.Default.(func() time.Time)
+	channelconfigFields := schema.ChannelConfig{}.Fields()
+	_ = channelconfigFields
+	// channelconfigDescDescription is the schema descriptor for description field.
+	channelconfigDescDescription := channelconfigFields[1].Descriptor()
+	// channelconfig.DefaultDescription holds the default value on creation for the description field.
+	channelconfig.DefaultDescription = channelconfigDescDescription.Default.(string)
+	// channelconfigDescColor is the schema descriptor for color field.
+	channelconfigDescColor := channelconfigFields[2].Descriptor()
+	// channelconfig.DefaultColor holds the default value on creation for the color field.
+	channelconfig.DefaultColor = channelconfigDescColor.Default.(string)
+	// channelconfigDescDefaultEnabled is the schema descriptor for default_enabled field.
+	channelconfigDescDefaultEnabled := channelconfigFields[3].Descriptor()
+	// channelconfig.DefaultDefaultEnabled holds the default value on creation for the default_enabled field.
+	channelconfig.DefaultDefaultEnabled = channelconfigDescDefaultEnabled.Default.(bool)
+	// channelconfigDescCooldownSeconds is the schema descriptor for cooldown_seconds field.
+	channelconfigDescCooldownSeconds := channelconfigFields[4].Descriptor()
+	// channelconfig.DefaultCooldownSeconds holds the default value on creation for the cooldown_seconds field.
+	channelconfig.DefaultCooldownSeconds = channelconfigDescCooldownSeconds.Default.(int)
+	// channelconfigDescAdminOnly is the schema descriptor for admin_only field.
+	channelconfigDescAdminOnly := channelconfigFields[5].Descriptor()
+	// channelconfig.DefaultAdminOnly holds the default value on creation for the admin_only field.
+	channelconfig.DefaultAdminOnly = channelconfigDescAdminOnly.Default.(bool)
 	characterFields := schema.Character{}.Fields()
 	_ = characterFields
 	// characterDescIsNPC is the schema descriptor for isNPC field.
@@ -672,11 +695,11 @@ func init() {
 	questFields := schema.Quest{}.Fields()
 	_ = questFields
 	// questDescCooldownHours is the schema descriptor for cooldown_hours field.
-	questDescCooldownHours := questFields[6].Descriptor()
+	questDescCooldownHours := questFields[7].Descriptor()
 	// quest.DefaultCooldownHours holds the default value on creation for the cooldown_hours field.
 	quest.DefaultCooldownHours = questDescCooldownHours.Default.(int)
 	// questDescIsActive is the schema descriptor for is_active field.
-	questDescIsActive := questFields[7].Descriptor()
+	questDescIsActive := questFields[8].Descriptor()
 	// quest.DefaultIsActive holds the default value on creation for the is_active field.
 	quest.DefaultIsActive = questDescIsActive.Default.(bool)
 	questprogressFields := schema.QuestProgress{}.Fields()

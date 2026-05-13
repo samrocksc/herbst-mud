@@ -30,6 +30,8 @@ type Quest struct {
 	Rewards schema.QuestRewards `json:"rewards,omitempty"`
 	// RepeatMode holds the value of the "repeat_mode" field.
 	RepeatMode quest.RepeatMode `json:"repeat_mode,omitempty"`
+	// MainType holds the value of the "main_type" field.
+	MainType quest.MainType `json:"main_type,omitempty"`
 	// CooldownHours holds the value of the "cooldown_hours" field.
 	CooldownHours int `json:"cooldown_hours,omitempty"`
 	// IsActive holds the value of the "is_active" field.
@@ -69,7 +71,7 @@ func (*Quest) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case quest.FieldID, quest.FieldCooldownHours:
 			values[i] = new(sql.NullInt64)
-		case quest.FieldName, quest.FieldDescription, quest.FieldRepeatMode:
+		case quest.FieldName, quest.FieldDescription, quest.FieldRepeatMode, quest.FieldMainType:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -133,6 +135,12 @@ func (_m *Quest) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field repeat_mode", values[i])
 			} else if value.Valid {
 				_m.RepeatMode = quest.RepeatMode(value.String)
+			}
+		case quest.FieldMainType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field main_type", values[i])
+			} else if value.Valid {
+				_m.MainType = quest.MainType(value.String)
 			}
 		case quest.FieldCooldownHours:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -204,6 +212,9 @@ func (_m *Quest) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("repeat_mode=")
 	builder.WriteString(fmt.Sprintf("%v", _m.RepeatMode))
+	builder.WriteString(", ")
+	builder.WriteString("main_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MainType))
 	builder.WriteString(", ")
 	builder.WriteString("cooldown_hours=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CooldownHours))

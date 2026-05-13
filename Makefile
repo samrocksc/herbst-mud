@@ -1,4 +1,4 @@
-.PHONY: help start stop run start-web stop-web dev start-admin stop-admin dev-all test test-bdd test-server-bdd logs-ssh logs-web build build-all reload build-admin-tui run-admin-tui
+.PHONY: help start stop run start-web stop-web dev start-admin stop-admin dev-all test test-bdd test-server-bdd logs-ssh logs-web build build-all reload build-admin-tui run-admin-tui token
 
 PATH := $(PATH):/usr/local/go/bin
 export PATH
@@ -126,3 +126,8 @@ logs-ssh: ## Tail SSH server logs
 
 logs-web: ## Tail web server logs
 	@tail -f /tmp/herbst-web.log
+
+token: ## Generate a Bearer token for API debugging
+	@echo "Usage: make token USER_ID=1 EMAIL=example@test.com IS_ADMIN=true"
+	@echo ""
+	@cd server && go run cmd/token/main.go "${USER_ID}" "${EMAIL}" "${IS_ADMIN}"

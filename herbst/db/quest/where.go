@@ -234,6 +234,26 @@ func RepeatModeNotIn(vs ...RepeatMode) predicate.Quest {
 	return predicate.Quest(sql.FieldNotIn(FieldRepeatMode, vs...))
 }
 
+// MainTypeEQ applies the EQ predicate on the "main_type" field.
+func MainTypeEQ(v MainType) predicate.Quest {
+	return predicate.Quest(sql.FieldEQ(FieldMainType, v))
+}
+
+// MainTypeNEQ applies the NEQ predicate on the "main_type" field.
+func MainTypeNEQ(v MainType) predicate.Quest {
+	return predicate.Quest(sql.FieldNEQ(FieldMainType, v))
+}
+
+// MainTypeIn applies the In predicate on the "main_type" field.
+func MainTypeIn(vs ...MainType) predicate.Quest {
+	return predicate.Quest(sql.FieldIn(FieldMainType, vs...))
+}
+
+// MainTypeNotIn applies the NotIn predicate on the "main_type" field.
+func MainTypeNotIn(vs ...MainType) predicate.Quest {
+	return predicate.Quest(sql.FieldNotIn(FieldMainType, vs...))
+}
+
 // CooldownHoursEQ applies the EQ predicate on the "cooldown_hours" field.
 func CooldownHoursEQ(v int) predicate.Quest {
 	return predicate.Quest(sql.FieldEQ(FieldCooldownHours, v))

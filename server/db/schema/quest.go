@@ -25,6 +25,8 @@ func (Quest) Fields() []ent.Field {
 			Comment("Rewards granted on quest completion"),
 		field.Enum("repeat_mode").Values("none", "cooldown", "always").Default("none").
 			Comment("Whether and how this quest can be repeated"),
+		field.Enum("main_type").Values("hunter", "collector", "explorer", "general").Default("general").
+			Comment("Primary quest type for categorization"),
 		field.Int("cooldown_hours").Default(0).
 			Comment("Hours before re-accept allowed (only if repeat_mode=cooldown)"),
 		field.Bool("is_active").Default(true).

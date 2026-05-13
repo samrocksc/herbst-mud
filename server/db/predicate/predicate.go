@@ -21,6 +21,9 @@ type ActiveEffect func(*sql.Selector)
 // AppLog is the predicate function for applog builders.
 type AppLog func(*sql.Selector)
 
+// ChannelConfig is the predicate function for channelconfig builders.
+type ChannelConfig func(*sql.Selector)
+
 // Character is the predicate function for character builders.
 type Character func(*sql.Selector)
 

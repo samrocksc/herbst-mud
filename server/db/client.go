@@ -16,6 +16,7 @@ import (
 	"herbst-server/db/achievement"
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/applog"
+	"herbst-server/db/channelconfig"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/characterchannel"
@@ -68,6 +69,8 @@ type Client struct {
 	ActiveEffect *ActiveEffectClient
 	// AppLog is the client for interacting with the AppLog builders.
 	AppLog *AppLogClient
+	// ChannelConfig is the client for interacting with the ChannelConfig builders.
+	ChannelConfig *ChannelConfigClient
 	// Character is the client for interacting with the Character builders.
 	Character *CharacterClient
 	// CharacterAbility is the client for interacting with the CharacterAbility builders.
@@ -144,6 +147,7 @@ func (c *Client) init() {
 	c.Achievement = NewAchievementClient(c.config)
 	c.ActiveEffect = NewActiveEffectClient(c.config)
 	c.AppLog = NewAppLogClient(c.config)
+	c.ChannelConfig = NewChannelConfigClient(c.config)
 	c.Character = NewCharacterClient(c.config)
 	c.CharacterAbility = NewCharacterAbilityClient(c.config)
 	c.CharacterChannel = NewCharacterChannelClient(c.config)
@@ -271,6 +275,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Achievement:              NewAchievementClient(cfg),
 		ActiveEffect:             NewActiveEffectClient(cfg),
 		AppLog:                   NewAppLogClient(cfg),
+		ChannelConfig:            NewChannelConfigClient(cfg),
 		Character:                NewCharacterClient(cfg),
 		CharacterAbility:         NewCharacterAbilityClient(cfg),
 		CharacterChannel:         NewCharacterChannelClient(cfg),
@@ -325,6 +330,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Achievement:              NewAchievementClient(cfg),
 		ActiveEffect:             NewActiveEffectClient(cfg),
 		AppLog:                   NewAppLogClient(cfg),
+		ChannelConfig:            NewChannelConfigClient(cfg),
 		Character:                NewCharacterClient(cfg),
 		CharacterAbility:         NewCharacterAbilityClient(cfg),
 		CharacterChannel:         NewCharacterChannelClient(cfg),
@@ -385,13 +391,13 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
-		c.Character, c.CharacterAbility, c.CharacterChannel, c.CharacterCompetency,
-		c.CharacterFaction, c.CharacterIgnore, c.CharacterTag, c.CompetencyCategory,
-		c.CompetencyLevelThreshold, c.DamageLog, c.DialogNode, c.Effect, c.EffectHook,
-		c.Equipment, c.EquipmentTemplate, c.Faction, c.FactionCategory,
-		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate,
-		c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue,
-		c.User,
+		c.ChannelConfig, c.Character, c.CharacterAbility, c.CharacterChannel,
+		c.CharacterCompetency, c.CharacterFaction, c.CharacterIgnore, c.CharacterTag,
+		c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog, c.DialogNode,
+		c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate, c.Faction,
+		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility,
+		c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand,
+		c.Tag, c.TellQueue, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -402,13 +408,13 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
-		c.Character, c.CharacterAbility, c.CharacterChannel, c.CharacterCompetency,
-		c.CharacterFaction, c.CharacterIgnore, c.CharacterTag, c.CompetencyCategory,
-		c.CompetencyLevelThreshold, c.DamageLog, c.DialogNode, c.Effect, c.EffectHook,
-		c.Equipment, c.EquipmentTemplate, c.Faction, c.FactionCategory,
-		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate,
-		c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue,
-		c.User,
+		c.ChannelConfig, c.Character, c.CharacterAbility, c.CharacterChannel,
+		c.CharacterCompetency, c.CharacterFaction, c.CharacterIgnore, c.CharacterTag,
+		c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog, c.DialogNode,
+		c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate, c.Faction,
+		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility,
+		c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand,
+		c.Tag, c.TellQueue, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -427,6 +433,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ActiveEffect.mutate(ctx, m)
 	case *AppLogMutation:
 		return c.AppLog.mutate(ctx, m)
+	case *ChannelConfigMutation:
+		return c.ChannelConfig.mutate(ctx, m)
 	case *CharacterMutation:
 		return c.Character.mutate(ctx, m)
 	case *CharacterAbilityMutation:
@@ -1266,6 +1274,139 @@ func (c *AppLogClient) mutate(ctx context.Context, m *AppLogMutation) (Value, er
 		return (&AppLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown AppLog mutation op: %q", m.Op())
+	}
+}
+
+// ChannelConfigClient is a client for the ChannelConfig schema.
+type ChannelConfigClient struct {
+	config
+}
+
+// NewChannelConfigClient returns a client for the ChannelConfig from the given config.
+func NewChannelConfigClient(c config) *ChannelConfigClient {
+	return &ChannelConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `channelconfig.Hooks(f(g(h())))`.
+func (c *ChannelConfigClient) Use(hooks ...Hook) {
+	c.hooks.ChannelConfig = append(c.hooks.ChannelConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `channelconfig.Intercept(f(g(h())))`.
+func (c *ChannelConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ChannelConfig = append(c.inters.ChannelConfig, interceptors...)
+}
+
+// Create returns a builder for creating a ChannelConfig entity.
+func (c *ChannelConfigClient) Create() *ChannelConfigCreate {
+	mutation := newChannelConfigMutation(c.config, OpCreate)
+	return &ChannelConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ChannelConfig entities.
+func (c *ChannelConfigClient) CreateBulk(builders ...*ChannelConfigCreate) *ChannelConfigCreateBulk {
+	return &ChannelConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ChannelConfigClient) MapCreateBulk(slice any, setFunc func(*ChannelConfigCreate, int)) *ChannelConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ChannelConfigCreateBulk{err: fmt.Errorf("calling to ChannelConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ChannelConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ChannelConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ChannelConfig.
+func (c *ChannelConfigClient) Update() *ChannelConfigUpdate {
+	mutation := newChannelConfigMutation(c.config, OpUpdate)
+	return &ChannelConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChannelConfigClient) UpdateOne(_m *ChannelConfig) *ChannelConfigUpdateOne {
+	mutation := newChannelConfigMutation(c.config, OpUpdateOne, withChannelConfig(_m))
+	return &ChannelConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChannelConfigClient) UpdateOneID(id int) *ChannelConfigUpdateOne {
+	mutation := newChannelConfigMutation(c.config, OpUpdateOne, withChannelConfigID(id))
+	return &ChannelConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ChannelConfig.
+func (c *ChannelConfigClient) Delete() *ChannelConfigDelete {
+	mutation := newChannelConfigMutation(c.config, OpDelete)
+	return &ChannelConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChannelConfigClient) DeleteOne(_m *ChannelConfig) *ChannelConfigDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ChannelConfigClient) DeleteOneID(id int) *ChannelConfigDeleteOne {
+	builder := c.Delete().Where(channelconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChannelConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for ChannelConfig.
+func (c *ChannelConfigClient) Query() *ChannelConfigQuery {
+	return &ChannelConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeChannelConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ChannelConfig entity by its id.
+func (c *ChannelConfigClient) Get(ctx context.Context, id int) (*ChannelConfig, error) {
+	return c.Query().Where(channelconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChannelConfigClient) GetX(ctx context.Context, id int) *ChannelConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ChannelConfigClient) Hooks() []Hook {
+	return c.hooks.ChannelConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *ChannelConfigClient) Interceptors() []Interceptor {
+	return c.inters.ChannelConfig
+}
+
+func (c *ChannelConfigClient) mutate(ctx context.Context, m *ChannelConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ChannelConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ChannelConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ChannelConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ChannelConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown ChannelConfig mutation op: %q", m.Op())
 	}
 }
 
@@ -6110,21 +6251,21 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, Character,
-		CharacterAbility, CharacterChannel, CharacterCompetency, CharacterFaction,
-		CharacterIgnore, CharacterTag, CompetencyCategory, CompetencyLevelThreshold,
-		DamageLog, DialogNode, Effect, EffectHook, Equipment, EquipmentTemplate,
-		Faction, FactionCategory, FactionRequiredTag, GameConfig, Gender, NPCAbility,
-		NPCTemplate, Quest, QuestProgress, Race, Room, SocialCommand, Tag, TellQueue,
-		User []ent.Hook
+		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, ChannelConfig,
+		Character, CharacterAbility, CharacterChannel, CharacterCompetency,
+		CharacterFaction, CharacterIgnore, CharacterTag, CompetencyCategory,
+		CompetencyLevelThreshold, DamageLog, DialogNode, Effect, EffectHook, Equipment,
+		EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag, GameConfig,
+		Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room,
+		SocialCommand, Tag, TellQueue, User []ent.Hook
 	}
 	inters struct {
-		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, Character,
-		CharacterAbility, CharacterChannel, CharacterCompetency, CharacterFaction,
-		CharacterIgnore, CharacterTag, CompetencyCategory, CompetencyLevelThreshold,
-		DamageLog, DialogNode, Effect, EffectHook, Equipment, EquipmentTemplate,
-		Faction, FactionCategory, FactionRequiredTag, GameConfig, Gender, NPCAbility,
-		NPCTemplate, Quest, QuestProgress, Race, Room, SocialCommand, Tag, TellQueue,
-		User []ent.Interceptor
+		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, ChannelConfig,
+		Character, CharacterAbility, CharacterChannel, CharacterCompetency,
+		CharacterFaction, CharacterIgnore, CharacterTag, CompetencyCategory,
+		CompetencyLevelThreshold, DamageLog, DialogNode, Effect, EffectHook, Equipment,
+		EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag, GameConfig,
+		Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room,
+		SocialCommand, Tag, TellQueue, User []ent.Interceptor
 	}
 )

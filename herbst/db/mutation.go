@@ -14078,6 +14078,7 @@ type QuestMutation struct {
 	appendobjectives             []schema.QuestObjective
 	rewards                      *schema.QuestRewards
 	repeat_mode                  *quest.RepeatMode
+	main_type                    *quest.MainType
 	cooldown_hours               *int
 	addcooldown_hours            *int
 	is_active                    *bool
@@ -14448,6 +14449,42 @@ func (m *QuestMutation) ResetRepeatMode() {
 	m.repeat_mode = nil
 }
 
+// SetMainType sets the "main_type" field.
+func (m *QuestMutation) SetMainType(qt quest.MainType) {
+	m.main_type = &qt
+}
+
+// MainType returns the value of the "main_type" field in the mutation.
+func (m *QuestMutation) MainType() (r quest.MainType, exists bool) {
+	v := m.main_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMainType returns the old "main_type" field's value of the Quest entity.
+// If the Quest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QuestMutation) OldMainType(ctx context.Context) (v quest.MainType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMainType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMainType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMainType: %w", err)
+	}
+	return oldValue.MainType, nil
+}
+
+// ResetMainType resets all changes to the "main_type" field.
+func (m *QuestMutation) ResetMainType() {
+	m.main_type = nil
+}
+
 // SetCooldownHours sets the "cooldown_hours" field.
 func (m *QuestMutation) SetCooldownHours(i int) {
 	m.cooldown_hours = &i
@@ -14628,7 +14665,7 @@ func (m *QuestMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *QuestMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, quest.FieldName)
 	}
@@ -14646,6 +14683,9 @@ func (m *QuestMutation) Fields() []string {
 	}
 	if m.repeat_mode != nil {
 		fields = append(fields, quest.FieldRepeatMode)
+	}
+	if m.main_type != nil {
+		fields = append(fields, quest.FieldMainType)
 	}
 	if m.cooldown_hours != nil {
 		fields = append(fields, quest.FieldCooldownHours)
@@ -14673,6 +14713,8 @@ func (m *QuestMutation) Field(name string) (ent.Value, bool) {
 		return m.Rewards()
 	case quest.FieldRepeatMode:
 		return m.RepeatMode()
+	case quest.FieldMainType:
+		return m.MainType()
 	case quest.FieldCooldownHours:
 		return m.CooldownHours()
 	case quest.FieldIsActive:
@@ -14698,6 +14740,8 @@ func (m *QuestMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldRewards(ctx)
 	case quest.FieldRepeatMode:
 		return m.OldRepeatMode(ctx)
+	case quest.FieldMainType:
+		return m.OldMainType(ctx)
 	case quest.FieldCooldownHours:
 		return m.OldCooldownHours(ctx)
 	case quest.FieldIsActive:
@@ -14752,6 +14796,13 @@ func (m *QuestMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRepeatMode(v)
+		return nil
+	case quest.FieldMainType:
+		v, ok := value.(quest.MainType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMainType(v)
 		return nil
 	case quest.FieldCooldownHours:
 		v, ok := value.(int)
@@ -14857,6 +14908,9 @@ func (m *QuestMutation) ResetField(name string) error {
 		return nil
 	case quest.FieldRepeatMode:
 		m.ResetRepeatMode()
+		return nil
+	case quest.FieldMainType:
+		m.ResetMainType()
 		return nil
 	case quest.FieldCooldownHours:
 		m.ResetCooldownHours()

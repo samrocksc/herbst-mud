@@ -26,6 +26,8 @@ const (
 	FieldRewards = "rewards"
 	// FieldRepeatMode holds the string denoting the repeat_mode field in the database.
 	FieldRepeatMode = "repeat_mode"
+	// FieldMainType holds the string denoting the main_type field in the database.
+	FieldMainType = "main_type"
 	// FieldCooldownHours holds the string denoting the cooldown_hours field in the database.
 	FieldCooldownHours = "cooldown_hours"
 	// FieldIsActive holds the string denoting the is_active field in the database.
@@ -52,6 +54,7 @@ var Columns = []string{
 	FieldObjectives,
 	FieldRewards,
 	FieldRepeatMode,
+	FieldMainType,
 	FieldCooldownHours,
 	FieldIsActive,
 }
@@ -100,6 +103,34 @@ func RepeatModeValidator(rm RepeatMode) error {
 	}
 }
 
+// MainType defines the type for the "main_type" enum field.
+type MainType string
+
+// MainTypeGeneral is the default value of the MainType enum.
+const DefaultMainType = MainTypeGeneral
+
+// MainType values.
+const (
+	MainTypeHunter    MainType = "hunter"
+	MainTypeCollector MainType = "collector"
+	MainTypeExplorer  MainType = "explorer"
+	MainTypeGeneral   MainType = "general"
+)
+
+func (mt MainType) String() string {
+	return string(mt)
+}
+
+// MainTypeValidator is a validator for the "main_type" field enum values. It is called by the builders before save.
+func MainTypeValidator(mt MainType) error {
+	switch mt {
+	case MainTypeHunter, MainTypeCollector, MainTypeExplorer, MainTypeGeneral:
+		return nil
+	default:
+		return fmt.Errorf("quest: invalid enum value for main_type field: %q", mt)
+	}
+}
+
 // OrderOption defines the ordering options for the Quest queries.
 type OrderOption func(*sql.Selector)
 
@@ -121,6 +152,11 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByRepeatMode orders the results by the repeat_mode field.
 func ByRepeatMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRepeatMode, opts...).ToFunc()
+}
+
+// ByMainType orders the results by the main_type field.
+func ByMainType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMainType, opts...).ToFunc()
 }
 
 // ByCooldownHours orders the results by the cooldown_hours field.

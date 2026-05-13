@@ -3,6 +3,43 @@ import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
 
 const API = `${window.location.origin}`
 
+export const EFFECT_TYPES = [
+  { value: 'hp_change', label: 'HP Change', group: 'Combat' },
+  { value: 'stamina_change', label: 'Stamina Change', group: 'Combat' },
+  { value: 'mana_change', label: 'Mana Change', group: 'Combat' },
+  { value: 'xp_drain', label: 'XP Drain', group: 'Progression' },
+  { value: 'xp_gain', label: 'XP Gain', group: 'Progression' },
+  { value: 'xp_set', label: 'XP Set', group: 'Progression' },
+  { value: 'bind_point_set', label: 'Bind Point Set', group: 'Location' },
+  { value: 'teleport', label: 'Teleport', group: 'Location' },
+  { value: 'message', label: 'Message', group: 'Messaging' },
+  { value: 'room_message', label: 'Room Message', group: 'Messaging' },
+  { value: 'whisper', label: 'Whisper', group: 'Messaging' },
+  { value: 'tag_add', label: 'Tag Add', group: 'Tagging' },
+  { value: 'tag_remove', label: 'Tag Remove', group: 'Tagging' },
+  { value: 'apply_effect', label: 'Apply Effect', group: 'Chaining' },
+] as const
+
+export const STACK_MODES = [
+  { value: 'replace', label: 'Replace (single stack)' },
+  { value: 'refresh', label: 'Refresh (extend duration)' },
+  { value: 'stack', label: 'Stack (multiple stacks)' },
+]
+
+export const MESSAGE_TYPES = [
+  { value: 'info', label: 'Info (neutral)' },
+  { value: 'success', label: 'Success (green)' },
+  { value: 'error', label: 'Error (red)' },
+  { value: 'warn', label: 'Warn (yellow)' },
+  { value: 'combat', label: 'Combat (orange)' },
+  { value: 'heal', label: 'Heal (green)' },
+  { value: 'system', label: 'System (bold)' },
+  { value: 'say', label: 'Say (room wide)' },
+  { value: 'yell', label: 'Yell (zone wide)' },
+  { value: 'shout', label: 'Shout (world wide)' },
+  { value: 'whisper', label: 'Whisper (private)' },
+]
+
 export type EffectDef = Readonly<{
   id: number
   name: string
@@ -29,19 +66,18 @@ export type EffectDefInput = {
   messages: Record<string, string>
 }
 
-const EMPTY_INPUT: EffectDefInput = {
+// Empty input with sensible defaults based on effect type
+export const createEmptyInput = (effectType: string): EffectDefInput => ({
   name: '',
   description: '',
-  effect_type: 'hp_change',
+  effect_type: effectType,
   parameters: {},
   stack_mode: 'replace',
   stack_limit: 1,
   is_permanent: false,
   duration_secs: 0,
   messages: {},
-}
-
-export { EMPTY_INPUT }
+})
 
 export function useEffectDefs(filters?: { type?: string }) {
   const params = new URLSearchParams()

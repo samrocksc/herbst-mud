@@ -6,8 +6,9 @@ const API = `${window.location.origin}`
 export type QuestObjective = Readonly<{
   type: string
   target_id: string
+  tag_filter: string
   count: number
-  label: string
+  labels: string[]
   hint: string
 }>
 
@@ -30,6 +31,7 @@ export type Quest = Readonly<{
   repeat_mode: string
   cooldown_hours: number
   is_active: boolean
+  main_type: string
 }>
 
 export type QuestInput = Readonly<{
@@ -41,6 +43,7 @@ export type QuestInput = Readonly<{
   repeat_mode?: string
   cooldown_hours?: number
   is_active?: boolean
+  main_type?: string
 }>
 
 const EMPTY_REWARDS: QuestRewards = {
@@ -56,6 +59,26 @@ export function useQuests() {
     queryFn: async (): Promise<Quest[]> => {
       const data = await apiGet<{ quests: Quest[] }>(`${API}/api/quests`)
       return data.quests ?? []
+    },
+  })
+}
+
+export type QuestLookups = Readonly<{
+  quest_types: { id: string; name: string }[]
+  npcs: { id: string; name: string }[]
+  rooms: { id: string; name: string }[]
+  items: { id: string; name: string }[]
+  effects: { id: string; name: string }[]
+  tags: { id: string; name: string }[]
+  achievements: { id: string; name: string }[]
+  prerequisite_quests: { id: string; name: string }[]
+}>
+
+export function useQuestLookups() {
+  return useQuery({
+    queryKey: ['quest-lookups'],
+    queryFn: async (): Promise<QuestLookups> => {
+      return apiGet<QuestLookups>(`${API}/api/quests/lookups`)
     },
   })
 }

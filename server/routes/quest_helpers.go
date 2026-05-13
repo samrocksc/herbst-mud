@@ -13,9 +13,13 @@ func questToView(q *db.Quest) questView {
 	}
 	objs := make([]questObjectiveInput, len(q.Objectives))
 	for i, o := range q.Objectives {
+		labels := []string{}
+		if o.Labels != nil && len(o.Labels) > 0 {
+			labels = o.Labels
+		}
 		objs[i] = questObjectiveInput{
-			Type: o.Type, TargetID: o.TargetID,
-			Count: o.Count, Label: o.Label, Hint: o.Hint,
+			Type:      o.Type, TargetID: o.TargetID,
+			TagFilter: o.TagFilter, Count: o.Count, Labels: labels, Hint: o.Hint,
 		}
 	}
 	r := q.Rewards

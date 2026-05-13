@@ -310,6 +310,11 @@ func main() {
 	// Register faction routes
 	routes.RegisterFactionRoutes(router, repos, client)
 
+	// Register social command routes
+	routes.RegisterSocialRoutes(router, client)
+	// Register channel config routes
+	routes.RegisterChannelRoutes(router, client)
+
 	// Register race routes (RACES-001)
 	routes.RegisterRaceRoutes(router, repos, client)
 

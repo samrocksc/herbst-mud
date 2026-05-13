@@ -116,6 +116,20 @@ func (_u *QuestUpdate) SetNillableRepeatMode(v *quest.RepeatMode) *QuestUpdate {
 	return _u
 }
 
+// SetMainType sets the "main_type" field.
+func (_u *QuestUpdate) SetMainType(v quest.MainType) *QuestUpdate {
+	_u.mutation.SetMainType(v)
+	return _u
+}
+
+// SetNillableMainType sets the "main_type" field if the given value is not nil.
+func (_u *QuestUpdate) SetNillableMainType(v *quest.MainType) *QuestUpdate {
+	if v != nil {
+		_u.SetMainType(*v)
+	}
+	return _u
+}
+
 // SetCooldownHours sets the "cooldown_hours" field.
 func (_u *QuestUpdate) SetCooldownHours(v int) *QuestUpdate {
 	_u.mutation.ResetCooldownHours()
@@ -226,6 +240,11 @@ func (_u *QuestUpdate) check() error {
 			return &ValidationError{Name: "repeat_mode", err: fmt.Errorf(`db: validator failed for field "Quest.repeat_mode": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.MainType(); ok {
+		if err := quest.MainTypeValidator(v); err != nil {
+			return &ValidationError{Name: "main_type", err: fmt.Errorf(`db: validator failed for field "Quest.main_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -271,6 +290,9 @@ func (_u *QuestUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.RepeatMode(); ok {
 		_spec.SetField(quest.FieldRepeatMode, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.MainType(); ok {
+		_spec.SetField(quest.FieldMainType, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.CooldownHours(); ok {
 		_spec.SetField(quest.FieldCooldownHours, field.TypeInt, value)
@@ -432,6 +454,20 @@ func (_u *QuestUpdateOne) SetNillableRepeatMode(v *quest.RepeatMode) *QuestUpdat
 	return _u
 }
 
+// SetMainType sets the "main_type" field.
+func (_u *QuestUpdateOne) SetMainType(v quest.MainType) *QuestUpdateOne {
+	_u.mutation.SetMainType(v)
+	return _u
+}
+
+// SetNillableMainType sets the "main_type" field if the given value is not nil.
+func (_u *QuestUpdateOne) SetNillableMainType(v *quest.MainType) *QuestUpdateOne {
+	if v != nil {
+		_u.SetMainType(*v)
+	}
+	return _u
+}
+
 // SetCooldownHours sets the "cooldown_hours" field.
 func (_u *QuestUpdateOne) SetCooldownHours(v int) *QuestUpdateOne {
 	_u.mutation.ResetCooldownHours()
@@ -555,6 +591,11 @@ func (_u *QuestUpdateOne) check() error {
 			return &ValidationError{Name: "repeat_mode", err: fmt.Errorf(`db: validator failed for field "Quest.repeat_mode": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.MainType(); ok {
+		if err := quest.MainTypeValidator(v); err != nil {
+			return &ValidationError{Name: "main_type", err: fmt.Errorf(`db: validator failed for field "Quest.main_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -617,6 +658,9 @@ func (_u *QuestUpdateOne) sqlSave(ctx context.Context) (_node *Quest, err error)
 	}
 	if value, ok := _u.mutation.RepeatMode(); ok {
 		_spec.SetField(quest.FieldRepeatMode, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.MainType(); ok {
+		_spec.SetField(quest.FieldMainType, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.CooldownHours(); ok {
 		_spec.SetField(quest.FieldCooldownHours, field.TypeInt, value)

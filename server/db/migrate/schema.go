@@ -150,6 +150,22 @@ var (
 			},
 		},
 	}
+	// ChannelConfigsColumns holds the columns for the "channel_configs" table.
+	ChannelConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "color", Type: field.TypeString, Default: "#FFFFFF"},
+		{Name: "default_enabled", Type: field.TypeBool, Default: true},
+		{Name: "cooldown_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "admin_only", Type: field.TypeBool, Default: false},
+	}
+	// ChannelConfigsTable holds the schema information for the "channel_configs" table.
+	ChannelConfigsTable = &schema.Table{
+		Name:       "channel_configs",
+		Columns:    ChannelConfigsColumns,
+		PrimaryKey: []*schema.Column{ChannelConfigsColumns[0]},
+	}
 	// CharactersColumns holds the columns for the "characters" table.
 	CharactersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -742,6 +758,7 @@ var (
 		{Name: "objectives", Type: field.TypeJSON},
 		{Name: "rewards", Type: field.TypeJSON},
 		{Name: "repeat_mode", Type: field.TypeEnum, Enums: []string{"none", "cooldown", "always"}, Default: "none"},
+		{Name: "main_type", Type: field.TypeEnum, Enums: []string{"hunter", "collector", "explorer", "general"}, Default: "general"},
 		{Name: "cooldown_hours", Type: field.TypeInt, Default: 0},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 	}
@@ -972,6 +989,7 @@ var (
 		AchievementsTable,
 		ActiveEffectsTable,
 		AppLogsTable,
+		ChannelConfigsTable,
 		CharactersTable,
 		CharacterAbilitiesTable,
 		CharacterChannelsTable,

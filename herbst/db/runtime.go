@@ -430,11 +430,11 @@ func init() {
 	questFields := schema.Quest{}.Fields()
 	_ = questFields
 	// questDescCooldownHours is the schema descriptor for cooldown_hours field.
-	questDescCooldownHours := questFields[6].Descriptor()
+	questDescCooldownHours := questFields[7].Descriptor()
 	// quest.DefaultCooldownHours holds the default value on creation for the cooldown_hours field.
 	quest.DefaultCooldownHours = questDescCooldownHours.Default.(int)
 	// questDescIsActive is the schema descriptor for is_active field.
-	questDescIsActive := questFields[7].Descriptor()
+	questDescIsActive := questFields[8].Descriptor()
 	// quest.DefaultIsActive holds the default value on creation for the is_active field.
 	quest.DefaultIsActive = questDescIsActive.Default.(bool)
 	questprogressFields := schema.QuestProgress{}.Fields()
