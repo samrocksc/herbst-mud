@@ -17,8 +17,9 @@ import (
 // Item instances are Equipment rows with equipment_template_id set.
 func RegisterItemInstanceRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	g := r.Group("/api")
-	g.Use(middleware.AuthMiddleware())
+	g.Use(middleware.AuthMiddleware(nil))
 	g.Use(middleware.AdminMiddleware())
+	g.Use(middleware.WorldAccessMiddleware())
 	{
 		g.GET("/item-instances", listItemInstances(repos, client))
 		g.POST("/item-instances", createItemInstance(repos, client))
@@ -33,6 +34,7 @@ func RegisterItemInstanceRoutes(r *gin.Engine, repos *repository.Container, clie
 // itemInstanceView is the JSON shape returned by the API.
 type itemInstanceView struct {
 	ID                  int    `json:"id"`
+	WorldID             string `json:"world_id"`
 	Name                string `json:"name"`
 	Description         string `json:"description"`
 	Slot                string `json:"slot"`
@@ -114,18 +116,27 @@ func toItemInstanceView(e *db.Equipment) itemInstanceView {
 	}
 	if r, err := e.QueryRoom().Only(context.TODO()); err == nil {
 		v.RoomID = r.ID
+		v.WorldID = r.WorldID
 	}
 	return v
 }
 
 // ─── Handlers ───────────────────────────────────────────────────────────────
 
-// GET /api/item-instances?ownerId=X&templateId=X&type=X
+// GET /api/item-instances?ownerId=X&templateId=X&type=X&world_id=X
 // TODO: Add filtered list method to EquipmentRepo for complex queries
 func listItemInstances(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Get world_id for filtering via room
+		worldID := c.Query("world_id")
+
 		query := client.Equipment.Query().
 			Where(equipment.Or(equipment.EquipmentTemplateIDNEQ(""), equipment.EquipmentTemplateIDIsNil()))
+
+		// Filter by world_id via room
+		if worldID != "" {
+			query = query.Where(equipment.HasRoomWith(room.WorldIDEQ(worldID)))
+		}
 
 		// Optional filters
 		if ownerIDStr := c.Query("ownerId"); ownerIDStr != "" {
@@ -167,6 +178,7 @@ func listItemInstances(repos *repository.Container, client *db.Client) gin.Handl
 func createItemInstance(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
+			WorldID            string `json:"world_id"`
 			EquipmentTemplateID string `json:"equipment_template_id"`
 			Name                string `json:"name"`
 			Description         string `json:"description"`
