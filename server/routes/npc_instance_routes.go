@@ -16,8 +16,9 @@ import (
 // NPC instances are Character rows with isNPC=true and is_instance=true.
 func RegisterNPCInstanceRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	g := r.Group("/api")
-	g.Use(middleware.AuthMiddleware())
+	g.Use(middleware.AuthMiddleware(nil))
 	g.Use(middleware.AdminMiddleware())
+	g.Use(middleware.WorldAccessMiddleware())
 	{
 		g.GET("/npc-instances", listNPCInstances(repos, client))
 		g.POST("/npc-instances", createNPCInstance(repos, client))
@@ -52,6 +53,7 @@ type npcInstanceView struct {
 	MaxMana        int    `json:"max_mana"`
 	IsNPC          bool   `json:"isNPC"`
 	IsInstance     bool   `json:"is_instance"`
+	WorldID        string `json:"world_id"`
 }
 
 func toView(c *db.Character) npcInstanceView {
@@ -72,17 +74,24 @@ func toView(c *db.Character) npcInstanceView {
 		MaxMana:        c.MaxMana,
 		IsNPC:          c.IsNPC,
 		IsInstance:     c.IsInstance,
+		WorldID:        c.CurrentWorld,
 	}
 }
 
 // ─── Handlers ───────────────────────────────────────────────────────────────
 
-// GET /api/npc-instances?roomId=X&templateId=X&active=true
+// GET /api/npc-instances?roomId=X&templateId=X&active=true&world_id=X
 func listNPCInstances(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Remove client dependency once repos support is_instance and roomId/templateId filters
 		query := client.Character.Query().
 			Where(character.IsNPCEQ(true), character.IsInstanceEQ(true))
+
+		// Filter by world_id
+		worldID := c.Query("world_id")
+		if worldID != "" {
+			query = query.Where(character.CurrentWorldEQ(worldID))
+		}
 
 		// Optional filters
 		if roomIDStr := c.Query("roomId"); roomIDStr != "" {
@@ -128,6 +137,7 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 			TemplateID     string `json:"template_id"`
 			RoomID         int    `json:"room_id"`
 			InstanceNumber int    `json:"instance_number"`
+			WorldID        string `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -142,6 +152,12 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 			return
 		}
 
+		// Use world_id from request or default to "default"
+		worldID := req.WorldID
+		if worldID == "" {
+			worldID = "default"
+		}
+
 		// Fetch the NPC template via repo
 		tmpl, err := repos.NPCTemplate.Get(c.Request.Context(), req.TemplateID)
 		if err != nil {
@@ -152,7 +168,7 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 		// Determine instance_number: if 0, auto-assign next available
 		instanceNum := req.InstanceNumber
 		if instanceNum == 0 {
-			instanceNum, err = nextInstanceNumber(client, c.Request.Context(), tmpl.ID)
+			instanceNum, err = nextInstanceNumber(client, c.Request.Context(), tmpl.ID, worldID)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
@@ -175,7 +191,8 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 			SetStamina(50).
 			SetMaxStamina(50).
 			SetMana(25).
-			SetMaxMana(25)
+			SetMaxMana(25).
+			SetCurrentWorld(worldID)
 
 		created, err := builder.Save(c.Request.Context())
 		if err != nil {
@@ -421,10 +438,13 @@ func removeNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 // nextInstanceNumber returns the next available instance_number for a given template.
-func nextInstanceNumber(client *db.Client, ctx context.Context, templateID string) (int, error) {
-	instances, err := client.Character.Query().
-		Where(character.IsNPCEQ(true), character.IsInstanceEQ(true), character.NpcTemplateIDEQ(templateID)).
-		All(ctx)
+func nextInstanceNumber(client *db.Client, ctx context.Context, templateID string, worldID string) (int, error) {
+	query := client.Character.Query().
+		Where(character.IsNPCEQ(true), character.IsInstanceEQ(true), character.NpcTemplateIDEQ(templateID))
+	if worldID != "" {
+		query = query.Where(character.CurrentWorldEQ(worldID))
+	}
+	instances, err := query.All(ctx)
 	if err != nil {
 		return 0, err
 	}
