@@ -28,8 +28,12 @@ func (r *entFactionRepo) GetWithEdges(ctx context.Context, id int) (*db.Faction,
 		Only(ctx)
 }
 
-func (r *entFactionRepo) List(ctx context.Context) ([]*db.Faction, error) {
-	return r.client.Faction.Query().All(ctx)
+func (r *entFactionRepo) List(ctx context.Context, worldID string) ([]*db.Faction, error) {
+	query := r.client.Faction.Query()
+	if worldID != "" {
+		query = query.Where(faction.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
 func (r *entFactionRepo) Create(ctx context.Context, input CreateFactionInput) (*db.Faction, error) {

@@ -14,8 +14,10 @@ type Faction struct {
 func (Faction) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
-			Unique().
-			Comment("e.g., ninja, foot_clan, surf_warden"),
+			Unique(),
+		field.String("world_id").
+			Default("default").
+			Comment("World this faction belongs to (for multi-world support)"),
 		field.String("display_name").
 			Comment("e.g., Ninja, Foot Clan, Surf Warden"),
 		field.String("description").

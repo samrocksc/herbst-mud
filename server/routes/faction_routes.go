@@ -16,8 +16,9 @@ import (
 func RegisterFactionRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	// Protected /api routes — all require JWT auth + admin check
 	factions := r.Group("/api")
-	factions.Use(middleware.AuthMiddleware())
+	factions.Use(middleware.AuthMiddleware(nil))
 	factions.Use(middleware.AdminMiddleware())
+	factions.Use(middleware.WorldAccessMiddleware())
 	{
 		factions.GET("/factions", listFactions(repos))
 		factions.GET("/factions/:id", getFaction(repos))
@@ -36,7 +37,8 @@ func RegisterFactionRoutes(r *gin.Engine, repos *repository.Container, client *d
 
 func listFactions(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		factions, err := repos.Faction.List(c.Request.Context())
+		worldID := c.Query("world_id")
+		factions, err := repos.Faction.List(c.Request.Context(), worldID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

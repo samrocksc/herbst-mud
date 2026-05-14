@@ -34,7 +34,7 @@ type CharacterRepo interface {
 // RoomRepo defines data access for rooms.
 type RoomRepo interface {
 	Get(ctx context.Context, id int) (*db.Room, error)
-	List(ctx context.Context) ([]*db.Room, error)
+	List(ctx context.Context, worldID string) ([]*db.Room, error)
 	GetRoot(ctx context.Context) ([]*db.Room, error)
 	Create(ctx context.Context, input CreateRoomInput) (*db.Room, error)
 	Update(ctx context.Context, id int, updates RoomUpdates) (*db.Room, error)
@@ -44,7 +44,7 @@ type RoomRepo interface {
 // QuestRepo defines data access for quest definitions.
 type QuestRepo interface {
 	Get(ctx context.Context, id int) (*db.Quest, error)
-	List(ctx context.Context) ([]*db.Quest, error)
+	List(ctx context.Context, worldID string) ([]*db.Quest, error)
 	Create(ctx context.Context, input CreateQuestInput) (*db.Quest, error)
 	Update(ctx context.Context, id int, updates QuestUpdates) (*db.Quest, error)
 	Delete(ctx context.Context, id int) error
@@ -75,7 +75,7 @@ type EquipmentRepo interface {
 // NPCTemplateRepo defines data access for NPC templates.
 type NPCTemplateRepo interface {
 	Get(ctx context.Context, id string) (*db.NPCTemplate, error)
-	List(ctx context.Context) ([]*db.NPCTemplate, error)
+	List(ctx context.Context, worldID string) ([]*db.NPCTemplate, error)
 	Create(ctx context.Context, input CreateNPCTemplateInput) (*db.NPCTemplate, error)
 	Update(ctx context.Context, id string, updates NPCTemplateUpdates) (*db.NPCTemplate, error)
 	Delete(ctx context.Context, id string) error
@@ -84,9 +84,9 @@ type NPCTemplateRepo interface {
 // AbilityRepo defines data access for abilities.
 type AbilityRepo interface {
 	Get(ctx context.Context, id int) (*db.Ability, error)
-	List(ctx context.Context) ([]*db.Ability, error)
-	ListClassless(ctx context.Context) ([]*db.Ability, error)
-	ListByClass(ctx context.Context, class string) ([]*db.Ability, error)
+	List(ctx context.Context, worldID string) ([]*db.Ability, error)
+	ListClassless(ctx context.Context, worldID string) ([]*db.Ability, error)
+	ListByClass(ctx context.Context, worldID string, class string) ([]*db.Ability, error)
 	Create(ctx context.Context, input CreateAbilityInput) (*db.Ability, error)
 	Update(ctx context.Context, id int, updates AbilityUpdates) (*db.Ability, error)
 	Delete(ctx context.Context, id int) error
@@ -145,7 +145,7 @@ type EffectHookRepo interface {
 // DialogNodeRepo defines data access for dialog nodes.
 type DialogNodeRepo interface {
 	Get(ctx context.Context, id string) (*db.DialogNode, error)
-	List(ctx context.Context) ([]*db.DialogNode, error)
+	List(ctx context.Context, worldID string) ([]*db.DialogNode, error)
 	ListByTemplate(ctx context.Context, templateID string) ([]*db.DialogNode, error)
 	Create(ctx context.Context, input CreateDialogNodeInput) (*db.DialogNode, error)
 	Update(ctx context.Context, id string, updates DialogNodeUpdates) (*db.DialogNode, error)
@@ -166,7 +166,7 @@ type UserRepo interface {
 type FactionRepo interface {
 	Get(ctx context.Context, id int) (*db.Faction, error)
 	GetWithEdges(ctx context.Context, id int) (*db.Faction, error)
-	List(ctx context.Context) ([]*db.Faction, error)
+	List(ctx context.Context, worldID string) ([]*db.Faction, error)
 	Create(ctx context.Context, input CreateFactionInput) (*db.Faction, error)
 	Update(ctx context.Context, id int, updates FactionUpdates) (*db.Faction, error)
 	Delete(ctx context.Context, id int) error
@@ -267,7 +267,7 @@ type WorldRepo interface {
 // EquipmentTemplateRepo defines data access for equipment templates.
 type EquipmentTemplateRepo interface {
 	Get(ctx context.Context, id string) (*db.EquipmentTemplate, error)
-	List(ctx context.Context) ([]*db.EquipmentTemplate, error)
+	List(ctx context.Context, worldID string) ([]*db.EquipmentTemplate, error)
 	Create(ctx context.Context, input CreateEquipmentTemplateInput) (*db.EquipmentTemplate, error)
 	Update(ctx context.Context, id string, updates EquipmentTemplateUpdates) (*db.EquipmentTemplate, error)
 	Delete(ctx context.Context, id string) error
@@ -381,6 +381,7 @@ type CreateRoomInput struct {
 	PosX           int
 	PosY           int
 	PosZ           int
+	WorldID        string
 }
 
 type RoomUpdates struct {
@@ -393,6 +394,7 @@ type RoomUpdates struct {
 	PosX           *int
 	PosY           *int
 	PosZ           *int
+	WorldID        *string
 }
 
 type CreateQuestInput struct {
@@ -404,6 +406,7 @@ type CreateQuestInput struct {
 	RepeatMode           quest.RepeatMode
 	CooldownHours        int
 	IsActive             bool
+	WorldID              string
 }
 
 type QuestUpdates struct {
@@ -415,6 +418,7 @@ type QuestUpdates struct {
 	RepeatMode          *quest.RepeatMode
 	CooldownHours       *int
 	IsActive            *bool
+	WorldID             *string
 }
 
 type CreateQuestProgressInput struct {
@@ -518,6 +522,7 @@ type CreateNPCTemplateInput struct {
 	Greeting         string
 	RespawnRooms     []string
 	RespawnCooldown  *int
+	WorldID          string
 }
 
 type NPCTemplateUpdates struct {
@@ -532,6 +537,7 @@ type NPCTemplateUpdates struct {
 	Greeting         *string
 	RespawnRooms     *[]string
 	RespawnCooldown  *int
+	WorldID          *string
 }
 
 type CreateAbilityInput struct {
@@ -551,6 +557,7 @@ type CreateAbilityInput struct {
 	CooldownSeconds  int
 	Slug             string
 	FactionID        *int
+	WorldID          string
 }
 
 type AbilityUpdates struct {
@@ -570,6 +577,7 @@ type AbilityUpdates struct {
 	CooldownSeconds *int
 	Slug            *string
 	FactionID       *int
+	WorldID         *string
 }
 
 type CreateEffectInput struct {
@@ -638,6 +646,7 @@ type CreateDialogNodeInput struct {
 	IsEntry        bool
 	EntryCondition string
 	OnEnterEffects []int
+	WorldID        string
 }
 
 type DialogNodeUpdates struct {
@@ -647,18 +656,21 @@ type DialogNodeUpdates struct {
 	EntryCondition *string
 	OnEnterEffects *[]int
 	NPCTemplateID  *string
+	WorldID        *string
 }
 
 type CreateUserInput struct {
-	Email    string
-	Password string
-	IsAdmin  bool
+	Email         string
+	Password      string
+	IsAdmin       bool
+	AllowedWorlds string
 }
 
 type UserUpdates struct {
-	Email    *string
-	Password *string
-	IsAdmin  *bool
+	Email         *string
+	Password      *string
+	IsAdmin       *bool
+	AllowedWorlds *string
 }
 
 type CreateFactionInput struct {
@@ -766,6 +778,7 @@ type CreateEquipmentTemplateInput struct {
 	DamageType            string
 	WeaponType             string
 	IsTwoHanded           bool
+	WorldID               string
 }
 
 type EquipmentTemplateUpdates struct {
@@ -798,6 +811,7 @@ type EquipmentTemplateUpdates struct {
 	DamageType              *string
 	WeaponType              *string
 	IsTwoHanded             *bool
+	WorldID                 *string
 }
 
 type LogFilter struct {
