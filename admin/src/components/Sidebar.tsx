@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { WorldTitle } from './WorldTitle';
-import { useWorldStore } from '../hooks/useWorldStore';
 
 import { DashboardIcon } from './icons/DashboardIcon';
 import { XpIcon } from './icons/XpIcon';
@@ -84,9 +83,6 @@ function SidebarCollapseToggle({
 const COLLAPSED_KEY = 'sidebar-collapsed';
 
 export function Sidebar() {
-  const { currentWorld } = useWorldStore();
-  const location = useLocation();
-
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem(COLLAPSED_KEY) === 'true';
@@ -99,14 +95,10 @@ export function Sidebar() {
   useEffect(() => {
     try {
       localStorage.setItem(COLLAPSED_KEY, String(collapsed));
-    } catch {}
+    } catch {
+      // Ignore errors
+    }
   }, [collapsed]);
-
-  // Force re-render when world changes (for future UI customizations)
-  useEffect(() => {
-    // This effect exists solely to make the component reactive to world changes
-    // Remove this if you want to optimize away the re-render
-  }, [currentWorld, location.pathname]);
 
   return (
     <nav

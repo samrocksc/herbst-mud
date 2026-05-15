@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WorldStoreProvider } from './hooks/useWorldStore';
+import { WorldStoreProvider } from './contexts/WorldStoreContext';
 import { router } from './router';
 import './index.css';
 

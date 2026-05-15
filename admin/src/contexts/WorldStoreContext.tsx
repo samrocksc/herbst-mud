@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
 
 const STORAGE_KEY = 'herbst_current_world';
 
-interface WorldStore {
-  currentWorld: string
-  setWorld: (world: string) => void
+interface WorldStoreContextType {
+  currentWorld: string;
+  setWorld: (world: string) => void;
 }
 
-const WorldStoreContext = createContext<WorldStore | undefined>(undefined);
+const WorldStoreContext = createContext<WorldStoreContextType | undefined>(undefined);
 
-export function WorldStoreProvider({ children }: { children: React.ReactNode }) {
+export function WorldStoreProvider({ children }: { children: ReactNode }) {
   const [currentWorld, setCurrentWorld] = useState<string>(() => {
     try {
       return localStorage.getItem(STORAGE_KEY) || 'default';
@@ -34,9 +35,10 @@ export function WorldStoreProvider({ children }: { children: React.ReactNode }) 
       setCurrentWorld(world);
       window.dispatchEvent(new StorageEvent('storage', {
         key: STORAGE_KEY,
-        newValue: world
+        newValue: world,
       }));
     } catch {
+      // Ignore errors
     }
   }, []);
 
@@ -49,16 +51,8 @@ export function WorldStoreProvider({ children }: { children: React.ReactNode }) 
 
 export function useWorldStore() {
   const context = useContext(WorldStoreContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useWorldStore must be used within WorldStoreProvider');
   }
   return context;
-}
-
-export function getCurrentWorld(): string {
-  try {
-    return localStorage.getItem(STORAGE_KEY) || 'default';
-  } catch {
-    return 'default';
-  }
 }
