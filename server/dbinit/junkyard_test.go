@@ -22,12 +22,9 @@ func TestInitJunkyard(t *testing.T) {
 		t.Fatalf("failed to create schema: %v", err)
 	}
 
-	// First initialize the cross-way and fountain (required for Junkyard to connect)
+	// First initialize the cross-way (required for Junkyard to connect)
 	if err := InitCrossWay(client); err != nil {
 		t.Fatalf("failed to init crossway: %v", err)
-	}
-	if err := InitFountain(client); err != nil {
-		t.Fatalf("failed to init fountain: %v", err)
 	}
 
 	// Run InitJunkyard
@@ -50,9 +47,9 @@ func TestInitJunkyard(t *testing.T) {
 		t.Fatal("Entrance room has no exits")
 	}
 
-	// Check that it connects to Fountain Plaza (west exit)
+	// Check that it connects to The Hole (west exit)
 	if entrance.Exits["west"] == 0 {
-		t.Error("Junkyard Entrance should have west exit to Fountain Plaza")
+		t.Error("Junkyard Entrance should have west exit to The Hole")
 	}
 
 	// Verify we have 25 rooms total (5x5 grid)
@@ -61,7 +58,7 @@ func TestInitJunkyard(t *testing.T) {
 		t.Fatalf("failed to query rooms: %v", err)
 	}
 
-	// We should have: 5 (crossway) + 2 (fountain + fountain plaza) + 25 (junkyard) = 32 rooms
+	// We should have: 5 (crossway) + 25 (junkyard) = 30 rooms
 	if len(allRooms) < 25 {
 		t.Errorf("Expected at least 25 junkyard rooms, got %d", len(allRooms))
 	}
@@ -90,12 +87,9 @@ func TestInitJunkyardIdempotent(t *testing.T) {
 		t.Fatalf("failed to create schema: %v", err)
 	}
 
-	// First initialize the cross-way and fountain
+	// First initialize the cross-way
 	if err := InitCrossWay(client); err != nil {
 		t.Fatalf("failed to init crossway: %v", err)
-	}
-	if err := InitFountain(client); err != nil {
-		t.Fatalf("failed to init fountain: %v", err)
 	}
 
 	// Run InitJunkyard twice
@@ -133,12 +127,9 @@ func TestInitJunkyardGolemSpawns(t *testing.T) {
 		t.Fatalf("failed to create schema: %v", err)
 	}
 
-	// Initialize required rooms first
+	// Initialize cross-way first
 	if err := InitCrossWay(client); err != nil {
 		t.Fatalf("failed to init crossway: %v", err)
-	}
-	if err := InitFountain(client); err != nil {
-		t.Fatalf("failed to init fountain: %v", err)
 	}
 
 	// Run InitJunkyard
@@ -156,15 +147,15 @@ func TestInitJunkyardGolemSpawns(t *testing.T) {
 	// There should be Golem Nest type rooms (might be 0-5 depending on randomization)
 	t.Logf("Found %d Golem Nest rooms", len(golemNests))
 
-	// Verify Junkyard Entrance connects to Fountain Plaza
+	// Verify Junkyard Entrance connects to The Hole
 	entrance, err := client.Room.Query().Where(room.NameEQ("Junkyard Entrance")).Only(ctx)
 	if err != nil {
 		t.Fatalf("failed to find Junkyard Entrance: %v", err)
 	}
 
-	// West exit should lead to Fountain Plaza
+	// West exit should lead to The Hole (center room)
 	if entrance.Exits["west"] == 0 {
-		t.Error("Junkyard Entrance should have west exit to Fountain Plaza")
+		t.Error("Junkyard Entrance should have west exit to The Hole")
 	} else {
 		t.Logf("Junkyard Entrance west exit leads to room %d", entrance.Exits["west"])
 	}

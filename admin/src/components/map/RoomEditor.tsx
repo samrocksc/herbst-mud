@@ -21,6 +21,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
     description: room.description,
     exits: { ...room.exits },
     isStartingRoom: room.isStartingRoom,
+    isRootRoom: room.isRootRoom,
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -60,6 +61,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
         name: form.name,
         description: form.description,
         isStartingRoom: form.isStartingRoom,
+        isRootRoom: form.isRootRoom,
         version: room.version,
       },
     })
@@ -80,6 +82,31 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
         </div>
         <div className="mb-3">
           <TextareaField label="Description" value={form.description} onChange={(v) => setForm({ ...form, description: v })} rows={4} />
+        </div>
+        <div className="mb-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isStartingRoom"
+              checked={form.isStartingRoom}
+              onChange={(e) => setForm(f => ({ ...f, isStartingRoom: e.target.checked }))}
+              className="w-4 h-4 rounded border-border bg-surface text-primary focus:ring-primary"
+            />
+            <label htmlFor="isStartingRoom" className="text-text text-sm">Starting Room</label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isRootRoom"
+              checked={form.isRootRoom}
+              onChange={(e) => setForm(f => ({ ...f, isRootRoom: e.target.checked }))}
+              className="w-4 h-4 rounded border-border bg-surface text-primary focus:ring-primary"
+            />
+            <label htmlFor="isRootRoom" className="text-text text-sm">
+              Root Room
+              <span className="text-text-muted text-xs ml-1">(new characters spawn here)</span>
+            </label>
+          </div>
         </div>
         <div className="mb-3">
           <label className="text-text-muted text-xs block mb-2">Exits</label>

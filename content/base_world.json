@@ -1,0 +1,139 @@
+{
+  "world": {
+    "name": "herbst-mud",
+    "title": "Herbst MUD",
+    "description": "The default Herbst MUD world with cross-shaped starting area and junkyard zone."
+  },
+  "rooms": [
+    {
+      "id": "the-hole",
+      "name": "The Hole",
+      "description": "The central hub of the cross-shaped paths. This is where everything connects.",
+      "isRootRoom": true,
+      "isStartingRoom": true,
+      "exits": {
+        "north": "north-path",
+        "south": "south-path",
+        "east": "east-path",
+        "west": "west-path"
+      },
+      "position": { "x": 0, "y": 0, "z": 0 }
+    },
+    {
+      "id": "north-path",
+      "name": "Northern Path",
+      "description": "A path leading north from the center.",
+      "exits": { "south": "the-hole" },
+      "position": { "x": 0, "y": 1, "z": 0 }
+    },
+    {
+      "id": "south-path",
+      "name": "Southern Path",
+      "description": "A path leading south from the center.",
+      "exits": { "north": "the-hole" },
+      "position": { "x": 0, "y": -1, "z": 0 }
+    },
+    {
+      "id": "east-path",
+      "name": "Eastern Path",
+      "description": "A path leading east from the center.",
+      "exits": { "west": "the-hole" },
+      "position": { "x": 1, "y": 0, "z": 0 }
+    },
+    {
+      "id": "west-path",
+      "name": "Western Path",
+      "description": "A path leading west from the center.",
+      "exits": { "east": "the-hole" },
+      "position": { "x": -1, "y": 0, "z": 0 }
+    }
+  ],
+  "npcs": [
+    {
+      "template_id": "gizmo",
+      "name": "Gizmo",
+      "description": "A friendly half-dog creature with soulful eyes and wagging tail. Looks eager to help.",
+      "race": "half-dog",
+      "level": 1,
+      "disposition": "friendly",
+      "greeting": "Welcome, new traveler! I'm Gizmo, here to help you get started.",
+      "spawn_room": "the-hole"
+    },
+    {
+      "name": "Gandalf",
+      "description": "A mysterious wizard.",
+      "is_admin": true,
+      "spawn_room": "the-hole"
+    },
+    {
+      "name": "Combat Dummy",
+      "description": "An immortal training dummy.",
+      "is_immortal": true,
+      "hitpoints": 100,
+      "max_hitpoints": 100,
+      "spawn_room": "the-hole"
+    }
+  ],
+  "abilities": [
+    { "name": "blades", "description": "Proficiency with swords, machetes, cleavers", "ability_type": "weapon" },
+    { "name": "staves", "description": "Proficiency with polearms, spears, bows", "ability_type": "weapon" },
+    { "name": "knives", "description": "Proficiency with daggers, sais, small blades", "ability_type": "weapon" },
+    { "name": "martial", "description": "Proficiency with nunchukus, shuriken, tonfas", "ability_type": "weapon" },
+    { "name": "brawling", "description": "Proficiency with fists, improvised weapons", "ability_type": "weapon" },
+    { "name": "tech", "description": "Proficiency with laser weapons, gadgets", "ability_type": "weapon" },
+    { "name": "fire_magic", "description": "Proficiency with fire spells", "ability_type": "magic" },
+    { "name": "water_magic", "description": "Proficiency with water spells", "ability_type": "magic" },
+    { "name": "wind_magic", "description": "Proficiency with wind spells", "ability_type": "magic" },
+    { "name": "light_armor", "description": "Proficiency with light armor", "ability_type": "armor" },
+    { "name": "cloth_armor", "description": "Proficiency with cloth armor", "ability_type": "armor" },
+    { "name": "heavy_armor", "description": "Proficiency with heavy armor", "ability_type": "armor" }
+  ],
+  "items": [
+    {
+      "name": "tiny green potion",
+      "description": "A tiny green glass vial containing a weak healing elixir. Restores 15 HP when consumed.",
+      "item_type": "potion",
+      "slot": "consumable",
+      "effect_type": "heal",
+      "effect_value": 15
+    },
+    {
+      "name": "small green potion",
+      "description": "A small green glass vial containing a healing elixir. Restores 25 HP when consumed.",
+      "item_type": "potion",
+      "slot": "consumable",
+      "effect_type": "heal",
+      "effect_value": 25
+    }
+  ],
+  "races": [
+    {
+      "name": "human",
+      "display_name": "Human",
+      "description": "A regular human survivor. Balanced and adaptable.",
+      "stat_modifiers": { "strength": 0, "dexterity": 0, "constitution": 0, "intelligence": 0, "wisdom": 0 },
+      "is_playable": true
+    },
+    {
+      "name": "turtle",
+      "display_name": "Turtle",
+      "description": "A mutant turtle with a hard shell and slow but sturdy nature. +2 CON.",
+      "stat_modifiers": { "strength": 0, "dexterity": -1, "constitution": 2, "intelligence": 0, "wisdom": 0 },
+      "skill_grants": ["shell_defense"],
+      "is_playable": true
+    },
+    {
+      "name": "mutant",
+      "display_name": "Mutant",
+      "description": "A strange mutant with unusual abilities. +2 INT, +1 STR.",
+      "stat_modifiers": { "strength": 1, "dexterity": 0, "constitution": 0, "intelligence": 2, "wisdom": 0 },
+      "skill_grants": ["mutant_armor"],
+      "is_playable": true
+    }
+  ],
+  "genders": [
+    { "name": "he_him", "display_name": "He/Him" },
+    { "name": "she_her", "display_name": "She/Her" },
+    { "name": "they_them", "display_name": "They/Them" }
+  ]
+}

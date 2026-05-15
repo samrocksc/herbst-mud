@@ -13,10 +13,13 @@ export const Route = createFileRoute('/map/rooms/new')({
 
 function CreateRoomPage() {
   const navigate = useNavigate()
-  const { createRoomAsync } = useRooms()
+  const { createRoomAsync, rooms } = useRooms()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [error, setError] = useState<string | null>(null)
+
+  // Check if any room currently has isRootRoom=true
+  const hasRootRoom = rooms.some(r => r.isRootRoom)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,7 +30,8 @@ function CreateRoomPage() {
         name: name.trim(),
         description: description.trim(),
         isStartingRoom: false,
-        isRootRoom: false,
+        // Auto-set root room if none exists
+        isRootRoom: !hasRootRoom,
         exits: {},
         posX: 0,
         posY: 0,
@@ -47,6 +51,11 @@ function CreateRoomPage() {
           {error && <FormError message={error} />}
           <FormField label="Room Name" value={name} onChange={setName} placeholder="Enter room name" required />
           <TextareaField label="Description" value={description} onChange={setDescription} rows={4} placeholder="Enter room description" />
+          {!hasRootRoom && (
+            <div className="text-text-muted text-sm bg-surface-muted p-2 rounded border border-border">
+              No root room exists yet. This room will be set as the root room (where new characters spawn).
+            </div>
+          )}
           <div className="flex gap-2 pt-2">
             <Button type="submit" variant="primary" disabled={!name.trim()}>
               Create Room

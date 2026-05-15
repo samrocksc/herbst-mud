@@ -9,7 +9,6 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/equipment"
-	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
 )
 
@@ -83,15 +82,15 @@ func InitAdminUser(client *db.Client) error {
 func InitCrossWay(client *db.Client) error {
 	ctx := context.Background()
 
-	// Check if rooms already exist
-	existingRooms, err := client.Room.Query().Count(ctx)
+	// Check if cross-way rooms already exist for this world (default world)
+	existingRooms, err := client.Room.Query().Where(room.WorldIDEQ("default")).Count(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to count existing rooms: %w", err)
 	}
 
 	// If rooms already exist, don't recreate them
 	if existingRooms > 0 {
-		log.Println("Rooms already initialized, skipping...")
+		log.Println("Cross-way rooms already initialized for default world, skipping...")
 		return nil
 	}
 
@@ -102,6 +101,7 @@ func InitCrossWay(client *db.Client) error {
 		SetName("Northern Path").
 		SetDescription("A path leading north from the center.").
 		SetExits(map[string]int{"south": 3}).
+		SetWorldID("default").
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create northern room: %w", err)
@@ -113,6 +113,7 @@ func InitCrossWay(client *db.Client) error {
 		SetName("Southern Path").
 		SetDescription("A path leading south from the center.").
 		SetExits(map[string]int{"north": 3}).
+		SetWorldID("default").
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create southern room: %w", err)
@@ -124,6 +125,7 @@ func InitCrossWay(client *db.Client) error {
 		SetName("Eastern Path").
 		SetDescription("A path leading east from the center.").
 		SetExits(map[string]int{"west": 3}).
+		SetWorldID("default").
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create eastern room: %w", err)
@@ -135,6 +137,7 @@ func InitCrossWay(client *db.Client) error {
 		SetName("Western Path").
 		SetDescription("A path leading west from the center.").
 		SetExits(map[string]int{"east": 3}).
+		SetWorldID("default").
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create western room: %w", err)
@@ -153,6 +156,7 @@ func InitCrossWay(client *db.Client) error {
 			"east":  eastRoom.ID,
 			"west":  westRoom.ID,
 		}).
+		SetWorldID("default").
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create center room: %w", err)
@@ -185,6 +189,23 @@ func InitCrossWay(client *db.Client) error {
 		Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to update western room exits: %w", err)
+	}
+
+	// Update world_id on directional rooms (SetWorldID not available on UpdateOne, use Update)
+	err = client.Room.Update().
+		Where(room.IDIn(northRoom.ID, southRoom.ID, eastRoom.ID, westRoom.ID)).
+		SetWorldID("default").
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to set world_id on directional rooms: %w", err)
+	}
+
+	err = client.Room.Update().
+		Where(room.IDEQ(centerRoom.ID)).
+		SetWorldID("default").
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to set world_id on center room: %w", err)
 	}
 
 	log.Println("Cross-shaped rooms initialized successfully")
@@ -289,162 +310,32 @@ func InitCharacters(client *db.Client) error {
 	return nil
 }
 
-// InitFountain creates the Fountain starting area for new character creation
-func InitFountain(client *db.Client) error {
-	ctx := context.Background()
 
-	// Check if fountain room already exists
-	existingRooms, err := client.Room.Query().Where(room.NameEQ("The Fountain")).Count(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to check for fountain room: %w", err)
-	}
-
-	if existingRooms > 0 {
-		log.Println("Fountain already initialized, skipping...")
-		return nil
-	}
-
-	// Create The Fountain room
-	fountainRoom, err := client.Room.
-		Create().
-		SetName("The Fountain").
-		SetDescription("You wake up at a murky fountain, covered in sticky mutant mud. The water glows faintly with an eerie green Ooze color. Your head throbs - you have no memory of how you got here. Something glints in the mud near your hand.").
-		SetIsStartingRoom(false).
-		SetExits(map[string]int{}).
-		Save(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to create fountain room: %w", err)
-	}
-
-	log.Printf("Fountain room created with ID: %d", fountainRoom.ID)
-
-	// Update the main crossway center to point to fountain
-	err = client.Room.Update().
-		Where(room.NameEQ("The Hole")).
-		SetExits(map[string]int{
-			"north": 1,
-			"south": 2,
-			"east":  4,
-			"west":  5,
-		}).Exec(ctx)
-	if err != nil {
-		log.Printf("Warning: failed to update center room exits: %v", err)
-	}
-
-	// Create the starting room (New Venice - Fountain Plaza)
-	// This is where players end up after washing at the fountain
-	startingRoom, err := client.Room.
-		Create().
-		SetName("Fountain Plaza").
-		SetDescription("You stand in a dusty plaza dominated by a large stone fountain at its center. The water glows with a faint green Ooze color - the result of the Great Mutagen Spill. Mutant weeds push through cracked cobblestones. The Canal District lies to the east. A path leads north toward the Crossroads.").
-		SetIsStartingRoom(true).
-		SetExits(map[string]int{
-			"east":  0, // Will be canal district
-			"north": 3, // Crossroads
-		}).
-		Save(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to create starting room: %w", err)
-	}
-
-	log.Printf("Starting room (Fountain Plaza) created with ID: %d", startingRoom.ID)
-
-	// Store fountain room ID in game_config
-	if err := SetFountainRoomID(ctx, client, fountainRoom.ID); err != nil {
-		log.Printf("Warning: failed to set fountain_room_id in game_config: %v", err)
-	} else {
-		log.Printf("Fountain room ID %d stored in game_config", fountainRoom.ID)
-	}
-
-	// Note: StartingRoomID constant in herbst/main.go will need updating
-	log.Println("Fountain and Fountain Plaza rooms initialized successfully")
-	return nil
-}
-
-// InitGizmoNPC creates the Gizmo NPC template and spawns Gizmo in the fountain room
-func InitGizmoNPC(client *db.Client) error {
-	ctx := context.Background()
-
-	// Check if gizmo NPC already exists
-	existingNPCs, err := client.Character.Query().Where(character.IsNPC(true)).All(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to query existing NPCs: %w", err)
-	}
-	for _, npc := range existingNPCs {
-		if npc.Name == "Gizmo" {
-			log.Println("Gizmo NPC already exists, skipping...")
-			return nil
-		}
-	}
-
-	// Get the fountain room
-	fountainRoom, err := client.Room.Query().Where(room.NameEQ("The Fountain")).Only(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to find fountain room: %w", err)
-	}
-
-	// Create NPC template for Gizmo
-	_, err = client.NPCTemplate.Create().
-		SetID("gizmo").
-		SetName("Gizmo").
-		SetDescription("A friendly half-dog creature with soulful eyes and wagging tail. Looks eager to help.").
-		SetRace("half-dog").
-		SetDisposition(npctemplate.DispositionFriendly).
-		SetLevel(1).
-		SetSkills(map[string]int{}).
-		SetTradesWith([]string{}).
-		SetGreeting("Welcome, new traveler! I'm Gizmo, here to help you get started.").
-		Save(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to create Gizmo NPC template: %w", err)
-	}
-	log.Println("Gizmo NPC template created")
-
-	// Get the NPC template
-	gizmoTemplate, err := client.NPCTemplate.Get(ctx, "gizmo")
-	if err != nil {
-		return fmt.Errorf("failed to get Gizmo template: %w", err)
-	}
-
-	// Create Gizmo character in the fountain room
-	_, err = client.Character.Create().
-		SetName("Gizmo").
-		SetIsNPC(true).
-		SetCurrentRoomId(fountainRoom.ID).
-		SetStartingRoomId(fountainRoom.ID).
-		SetLevel(1).
-		SetRace("half-dog").
-		SetClass("adventurer").
-		SetNpcTemplate(gizmoTemplate).
-		Save(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to create Gizmo character: %w", err)
-	}
-
-	log.Printf("Gizmo NPC spawned in fountain room (ID: %d)", fountainRoom.ID)
-	log.Println("Gizmo NPC initialization complete")
-	return nil
-}
-
-// InitJunkyard creates the Junkyard area - a newbie-friendly zone east of the Fountain
+// InitJunkyard creates the Junkyard area - a newbie-friendly zone east of the center
 func InitJunkyard(client *db.Client) error {
 	ctx := context.Background()
 
-	// Check if junkyard already exists (check for "Junkyard Entrance" room)
-	existingRooms, err := client.Room.Query().Where(room.NameEQ("Junkyard Entrance")).Count(ctx)
+	// Check if junkyard already exists (check for "Junkyard Entrance" room in default world)
+	existingRooms, err := client.Room.Query().Where(
+		room.NameEQ("Junkyard Entrance"),
+		room.WorldIDEQ("default"),
+	).Count(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to check for junkyard rooms: %w", err)
 	}
 
 	if existingRooms > 0 {
-		log.Println("Junkyard already initialized, skipping...")
+		log.Println("Junkyard already initialized for default world, skipping...")
 		return nil
 	}
 
-	// Get the Fountain Plaza room to connect the exit
-	fountainPlaza, err := client.Room.Query().Where(room.NameEQ("Fountain Plaza")).Only(ctx)
+	// Get The Hole room to connect the exit (center room in default world)
+	centerRoom, err := client.Room.Query().Where(
+		room.NameEQ("The Hole"),
+		room.WorldIDEQ("default"),
+	).Only(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to find Fountain Plaza: %w", err)
+		return fmt.Errorf("failed to find The Hole center room: %w", err)
 	}
 
 	// Room type descriptions for randomization
@@ -482,7 +373,7 @@ func InitJunkyard(client *db.Client) error {
 
 	// Create 5x5 = 25 rooms in a grid
 	// Layout: rows 0-4, columns 0-4
-	// Entrance is at (2, 0) - middle of west wall, connects to Fountain Plaza
+	// Entrance is at (2, 0) - middle of west wall, connects to The Hole
 	type gridRoom struct {
 		id       int
 		row      int
@@ -510,7 +401,7 @@ func InitJunkyard(client *db.Client) error {
 			// Make the entrance room distinct
 			if row == 2 && col == 0 {
 				name = "Junkyard Entrance"
-				desc = "The mouth of the Junkyard gapes before you. Twisted pipes and rusted metal form an archway. Old signs warning of 'DANGER' hang at odd angles. To the EAST, the Junkyard stretches on. The Fountain Plaza lies to the WEST."
+				desc = "The mouth of the Junkyard gapes before you. Twisted pipes and rusted metal form an archway. Old signs warning of 'DANGER' hang at odd angles. To the EAST, the Junkyard stretches on. The Hole lies to the WEST."
 				atmosphere = "The smell of rust and old oil fills your nostrils. Distant clanks and groans echo from deep within."
 			}
 
@@ -571,9 +462,9 @@ func InitJunkyard(client *db.Client) error {
 				}
 			}
 
-			// Entrance room (2,0) also connects to Fountain Plaza to the west
+			// Entrance room (2,0) also connects to The Hole to the west
 			if row == 2 && col == 0 {
-				exits["west"] = fountainPlaza.ID
+				exits["west"] = centerRoom.ID
 			}
 
 			// Exit room (2,4) has an up exit to surface

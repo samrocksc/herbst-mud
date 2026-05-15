@@ -130,16 +130,6 @@ func main() {
 		log.Printf("Warning: failed to initialize characters: %v", err)
 	}
 
-	// Initialize fountain for new character creation flow
-	if err := dbinit.InitFountain(client); err != nil {
-		log.Printf("Warning: failed to initialize fountain: %v", err)
-	}
-
-	// Initialize Gizmo NPC
-	if err := dbinit.InitGizmoNPC(client); err != nil {
-		log.Printf("Warning: failed to initialize Gizmo NPC: %v", err)
-	}
-
 	// Seed races and genders
 	if err := dbinit.InitRaces(client); err != nil {
 		log.Printf("Warning: failed to initialize races: %v", err)
@@ -294,7 +284,7 @@ func main() {
 
 	// Protected routes - require authentication
 	protected := router.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(middleware.AuthMiddleware(client))
 	{
 		// Add protected character routes here
 		// Example: protected.PUT("/characters/:id", ...)

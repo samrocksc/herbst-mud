@@ -81,12 +81,6 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 				result.Reinitialized = append(result.Reinitialized, "cross-way rooms")
 			}
 
-			if err := dbinit.InitFountain(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize fountain: "+err.Error())
-			} else {
-				result.Reinitialized = append(result.Reinitialized, "fountain")
-			}
-
 			if err := dbinit.InitJunkyard(client); err != nil {
 				result.Errors = append(result.Errors, "Failed to reinitialize junkyard: "+err.Error())
 			} else {
@@ -163,13 +157,10 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 			fn   func(*db.Client) error
 		}{
 			{"cross-way rooms", dbinit.InitCrossWay},
-			{"fountain", dbinit.InitFountain},
 			{"junkyard", dbinit.InitJunkyard},
 			{"characters", dbinit.InitCharacters},
 			{"consumables", dbinit.InitConsumables},
 			{"skills", dbinit.InitSkills},
-			{"fountain", dbinit.InitFountain},
-			{"gizmo", dbinit.InitGizmoNPC},
 		}
 
 		for _, init := range initializers {

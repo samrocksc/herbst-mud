@@ -3,13 +3,10 @@ package dbinit
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"herbst-server/db"
-	"herbst-server/db/gameconfig"
 	"herbst-server/db/race"
-	"herbst-server/db/room"
 )
 
 // InitRaces seeds the race table if empty.
@@ -134,39 +131,6 @@ func InitGenders(client *db.Client) error {
 
 	log.Println("Genders seeded successfully")
 	return nil
-}
-
-// GetFountainRoomID returns the configured fountain room ID from game_config,
-// falling back to a room named "The Fountain" if not set.
-func GetFountainRoomID(ctx context.Context, client *db.Client) (int, error) {
-	cfg, err := client.GameConfig.Query().Where(gameconfig.KeyEQ("fountain_room_id")).Only(ctx)
-	if err == nil && cfg != nil {
-		var id int
-		if _, scanErr := fmt.Sscanf(cfg.Value, "%d", &id); scanErr == nil {
-			return id, nil
-		}
-	}
-	// Fallback: look up by room name
-	fountain, err := client.Room.Query().Where(room.NameEQ("The Fountain")).Only(ctx)
-	if err != nil {
-		return 0, err
-	}
-	return fountain.ID, nil
-}
-
-// SetFountainRoomID stores the fountain room ID in game_config.
-func SetFountainRoomID(ctx context.Context, client *db.Client, roomID int) error {
-	ctx_ := context.Background()
-	key := "fountain_room_id"
-
-	existing, err := client.GameConfig.Query().Where(gameconfig.KeyEQ(key)).Only(ctx_)
-	if err == nil && existing != nil {
-		_, err = client.GameConfig.UpdateOne(existing).SetValue(fmt.Sprintf("%d", roomID)).Save(ctx_)
-		return err
-	}
-
-	_, err = client.GameConfig.Create().SetKey(key).SetValue(fmt.Sprintf("%d", roomID)).Save(ctx_)
-	return err
 }
 
 // GetPlayableRaces returns all races where is_playable = true.
