@@ -12,8 +12,9 @@ import (
 // RegisterEquipmentTemplateRoutes registers REST endpoints for equipment templates.
 func RegisterEquipmentTemplateRoutes(r *gin.Engine, repos *repository.Container) {
 	g := r.Group("/api")
-	g.Use(middleware.AuthMiddleware())
+	g.Use(middleware.AuthMiddleware(nil))
 	g.Use(middleware.AdminMiddleware())
+	g.Use(middleware.WorldAccessMiddleware())
 	{
 		g.GET("/equipment-templates", listEquipmentTemplates(repos))
 		g.GET("/equipment-templates/:id", getEquipmentTemplate(repos))
@@ -25,7 +26,8 @@ func RegisterEquipmentTemplateRoutes(r *gin.Engine, repos *repository.Container)
 
 func listEquipmentTemplates(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		templates, err := repos.EquipmentTemplate.List(c.Request.Context())
+		worldID := c.Query("world_id")
+		templates, err := repos.EquipmentTemplate.List(c.Request.Context(), worldID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
+import { useWorldStore } from './useWorldStore';
 
-const API = `${window.location.origin}/api/abilities`
+const API = `${window.location.origin}/api/abilities`;
 
 export type Skill = Readonly<{
   id: number
@@ -46,53 +47,65 @@ function parseSkillForApi(input: SkillInput): Omit<Skill, 'id'> {
     stamina_cost: input.stamina_cost,
     classless: input.classless,
     effects: input.effects ? JSON.parse(input.effects) : undefined,
-  }
+  };
 }
 
 export function useSkills(filters?: { type?: string; tag?: string }) {
-  const params = new URLSearchParams()
-  if (filters?.type) params.append('type', filters.type)
-  if (filters?.tag) params.append('tag', filters.tag)
-  const qs = params.toString() ? `?${params.toString()}` : ''
+  const { currentWorld } = useWorldStore();
+
+  const params = new URLSearchParams();
+  if (filters?.type) params.append('type', filters.type);
+  if (filters?.tag) params.append('tag', filters.tag);
+  if (currentWorld) params.append('world_id', currentWorld);
+  const qs = params.toString() ? `?${params.toString()}` : '';
 
   return useQuery({
-    queryKey: ['skills', filters],
-    queryFn: () => apiGet<Skill[]>(`${API}${qs}`),
-  })
+    queryKey: ['skills', filters, currentWorld],
+    queryFn: async () => {
+      const data = await apiGet<Skill[]>(`${API}${qs}`);
+      return Array.isArray(data) ? data : [];
+    },
+  });
 }
 
 export function useSkill(id: number | null) {
+  const { currentWorld } = useWorldStore();
+
+  const params = new URLSearchParams();
+  if (currentWorld) params.append('world_id', currentWorld);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+
   return useQuery({
-    queryKey: ['skill', id],
-    queryFn: () => apiGet<Skill>(`${API}/${id}`),
+    queryKey: ['skill', id, currentWorld],
+    queryFn: () => apiGet<Skill>(`${API}/${id}${qs}`),
     enabled: !!id,
-  })
+  });
 }
 
 export function useCreateSkill() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: SkillInput) => apiPost<Skill>(API, parseSkillForApi(input)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['skills'] }),
-  })
+  });
 }
 
 export function useUpdateSkill() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: SkillInput }) =>
       apiPut<Skill>(`${API}/${id}`, parseSkillForApi(input)),
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ['skills'] })
-      qc.invalidateQueries({ queryKey: ['skill', id] })
+      qc.invalidateQueries({ queryKey: ['skills'] });
+      qc.invalidateQueries({ queryKey: ['skill', id] });
     },
-  })
+  });
 }
 
 export function useDeleteSkill() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['skills'] }),
-  })
+  });
 }

@@ -18,8 +18,10 @@ type Faction struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// e.g., ninja, foot_clan, surf_warden
+	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// World this faction belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// e.g., Ninja, Foot Clan, Surf Warden
 	DisplayName string `json:"display_name,omitempty"`
 	// Description holds the value of the "description" field.
@@ -95,7 +97,7 @@ func (*Faction) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case faction.FieldID:
 			values[i] = new(sql.NullInt64)
-		case faction.FieldName, faction.FieldDisplayName, faction.FieldDescription:
+		case faction.FieldName, faction.FieldWorldID, faction.FieldDisplayName, faction.FieldDescription:
 			values[i] = new(sql.NullString)
 		case faction.ForeignKeys[0]: // faction_category_factions
 			values[i] = new(sql.NullInt64)
@@ -125,6 +127,12 @@ func (_m *Faction) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
+			}
+		case faction.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
 			}
 		case faction.FieldDisplayName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -211,6 +219,9 @@ func (_m *Faction) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
 	builder.WriteString(", ")
 	builder.WriteString("display_name=")
 	builder.WriteString(_m.DisplayName)

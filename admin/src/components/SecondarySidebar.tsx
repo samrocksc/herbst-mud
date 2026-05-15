@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/react-router'
-import { Button } from './Button'
-import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router';
+import { Button } from './Button';
+import type { ReactNode } from 'react';
 
 // ─── Nav link ───────────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ function NavLink({ to, icon, label, collapsed }: NavLinkProps) {
         {label}
       </span>
     </Link>
-  )
+  );
 }
 
 // ─── Props ─────────────────────────────────────────────────────────────────
@@ -112,5 +112,5 @@ export function SecondarySidebar({
         <div className="flex-1 overflow-y-auto">{children}</div>
       )}
     </div>
-  )
+  );
 }

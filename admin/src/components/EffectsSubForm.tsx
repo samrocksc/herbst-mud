@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   useEffects,
   useCreateEffect,
   useDeleteEffect,
   type AbilityEffect,
   type EffectInput,
-} from '../hooks/useEffects'
-import { NumberField, SelectField } from './FormFields'
-import { Button } from './Button'
+} from '../hooks/useEffects';
+import { NumberField, SelectField } from './FormFields';
+import { Button } from './Button';
 
 const EFFECT_TYPE_OPTS = [
   { value: 'damage', label: 'Damage' },
@@ -19,7 +19,7 @@ const EFFECT_TYPE_OPTS = [
   { value: 'stun', label: 'Stun' },
   { value: 'accuracy_boost', label: 'Accuracy Boost' },
   { value: 'dodge_all', label: 'Dodge All' },
-]
+];
 
 const DAMAGE_SUBTYPE_OPTS = [
   { value: '', label: '— None —' },
@@ -31,7 +31,7 @@ const DAMAGE_SUBTYPE_OPTS = [
   { value: 'lightning', label: 'Lightning' },
   { value: 'poison', label: 'Poison' },
   { value: 'psychic', label: 'Psychic' },
-]
+];
 
 const TARGET_OPTS = [
   { value: 'enemy', label: 'Enemy' },
@@ -39,7 +39,7 @@ const TARGET_OPTS = [
   { value: 'ally', label: 'Ally' },
   { value: 'area', label: 'Area' },
   { value: 'random_enemy', label: 'Random Enemy' },
-]
+];
 
 const SCALING_STAT_OPTS = [
   { value: '', label: '— None —' },
@@ -48,7 +48,7 @@ const SCALING_STAT_OPTS = [
   { value: 'constitution', label: 'Constitution' },
   { value: 'intelligence', label: 'Intelligence' },
   { value: 'wisdom', label: 'Wisdom' },
-]
+];
 
 const EMPTY_EFFECT: EffectInput = {
   effect_type: 'damage',
@@ -59,7 +59,7 @@ const EMPTY_EFFECT: EffectInput = {
   scaling_stat: '',
   scaling_ratio: 0,
   sort_order: 0,
-}
+};
 
 function EffectRow({
   effect,
@@ -70,11 +70,11 @@ function EffectRow({
   onDelete: () => void
   isDeleting: boolean
 }>) {
-  const typeLabel = EFFECT_TYPE_OPTS.find((o) => o.value === effect.effect_type)?.label ?? effect.effect_type
-  const targetLabel = TARGET_OPTS.find((o) => o.value === effect.target)?.label ?? effect.target
+  const typeLabel = EFFECT_TYPE_OPTS.find((o) => o.value === effect.effect_type)?.label ?? effect.effect_type;
+  const targetLabel = TARGET_OPTS.find((o) => o.value === effect.target)?.label ?? effect.target;
   const statLabel = effect.scaling_stat
     ? (SCALING_STAT_OPTS.find((o) => o.value === effect.scaling_stat)?.label ?? effect.scaling_stat)
-    : null
+    : null;
 
   return (
     <div className="flex items-center gap-2 p-2 bg-card-alt rounded text-sm">
@@ -92,7 +92,7 @@ function EffectRow({
         {isDeleting ? '...' : '×'}
       </Button>
     </div>
-  )
+  );
 }
 
 function NewEffectForm({
@@ -102,13 +102,13 @@ function NewEffectForm({
   abilityId: number
   sortOrder: number
 }>) {
-  const createEffect = useCreateEffect()
-  const [form, setForm] = useState<EffectInput>({ ...EMPTY_EFFECT, sort_order: sortOrder })
-  const set = (patch: Partial<EffectInput>) => setForm((prev) => ({ ...prev, ...patch }))
+  const createEffect = useCreateEffect();
+  const [form, setForm] = useState<EffectInput>({ ...EMPTY_EFFECT, sort_order: sortOrder });
+  const set = (patch: Partial<EffectInput>) => setForm((prev) => ({ ...prev, ...patch }));
 
   const handleAdd = () => {
-    createEffect.mutate({ abilityId, input: form }, { onSuccess: () => setForm({ ...EMPTY_EFFECT, sort_order: sortOrder + 1 }) })
-  }
+    createEffect.mutate({ abilityId, input: form }, { onSuccess: () => setForm({ ...EMPTY_EFFECT, sort_order: sortOrder + 1 }) });
+  };
 
   return (
     <div className="space-y-2 p-2 border border-dashed rounded">
@@ -130,16 +130,16 @@ function NewEffectForm({
         {createEffect.isPending ? 'Adding...' : '+ Add Effect'}
       </Button>
     </div>
-  )
+  );
 }
 
 export function EffectsSubForm({ abilityId }: Readonly<{ abilityId: number }>) {
-  const { data: effects, isLoading } = useEffects(abilityId)
-  const deleteEffect = useDeleteEffect()
-  const [showAdd, setShowAdd] = useState(false)
+  const { data: effects, isLoading } = useEffects(abilityId);
+  const deleteEffect = useDeleteEffect();
+  const [showAdd, setShowAdd] = useState(false);
 
-  const sorted = [...(effects ?? [])].sort((a, b) => a.sort_order - b.sort_order)
-  const nextOrder = sorted.length > 0 ? sorted[sorted.length - 1].sort_order + 1 : 0
+  const sorted = [...(effects ?? [])].sort((a, b) => a.sort_order - b.sort_order);
+  const nextOrder = sorted.length > 0 ? sorted[sorted.length - 1].sort_order + 1 : 0;
 
   return (
     <div className="space-y-2">
@@ -167,5 +167,5 @@ export function EffectsSubForm({ abilityId }: Readonly<{ abilityId: number }>) {
 
       {showAdd && <NewEffectForm abilityId={abilityId} sortOrder={nextOrder} />}
     </div>
-  )
+  );
 }

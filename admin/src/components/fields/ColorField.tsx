@@ -1,4 +1,4 @@
-import { FieldLabel } from './FieldLabel'
+import { FieldLabel } from './FieldLabel';
 
 type ColorFieldProps = Readonly<{
   label: string
@@ -8,10 +8,10 @@ type ColorFieldProps = Readonly<{
   placeholder?: string
 }>
 
-const DEFAULT_COLOR = 'var(--color-tag-default)'
+const DEFAULT_COLOR = 'var(--color-tag-default)';
 
 export function ColorField({ label, id, value, onChange, placeholder }: ColorFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-');
   return (
     <div>
       <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
@@ -37,5 +37,5 @@ export function ColorField({ label, id, value, onChange, placeholder }: ColorFie
         />
       </div>
     </div>
-  )
+  );
 }

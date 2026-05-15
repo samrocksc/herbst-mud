@@ -1,18 +1,18 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import {
   useCompetencyCategories,
   useDeleteCompetencyCategory,
   type CompetencyCategory,
-} from '../../hooks/useCompetencies'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Button } from '../../components/Button'
-import { SkillForm } from './SkillForm'
+} from '../../hooks/useCompetencies';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Button } from '../../components/Button';
+import { SkillForm } from './SkillForm';
 
 export const Route = createFileRoute('/_auth/skills')({
   component: SkillsManagement,
-})
+});
 
 const COLUMNS: Column<CompetencyCategory>[] = [
   { header: 'ID', accessor: 'id' },
@@ -27,7 +27,7 @@ const COLUMNS: Column<CompetencyCategory>[] = [
     accessor: 'thresholds',
     render: (val: unknown) => `${(val as unknown[]).length}`,
   },
-]
+];
 
 function DeleteConfirmation({
   category,
@@ -59,29 +59,29 @@ function DeleteConfirmation({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function SkillsManagement() {
-  const [showForm, setShowForm] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<CompetencyCategory | null>(null)
-  const [deletingCategory, setDeletingCategory] = useState<CompetencyCategory | null>(null)
-  const deleteMutation = useDeleteCompetencyCategory()
+  const [showForm, setShowForm] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CompetencyCategory | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<CompetencyCategory | null>(null);
+  const deleteMutation = useDeleteCompetencyCategory();
 
-  const { data: categories, isLoading, error } = useCompetencyCategories()
+  const { data: categories, isLoading, error } = useCompetencyCategories();
 
   const handleEdit = (cat: CompetencyCategory) => {
-    setEditingCategory(cat)
-    setShowForm(true)
-  }
+    setEditingCategory(cat);
+    setShowForm(true);
+  };
 
   const handleDelete = async () => {
-    if (!deletingCategory) return
+    if (!deletingCategory) return;
     try {
-      await deleteMutation.mutateAsync(deletingCategory.id)
-      setDeletingCategory(null)
+      await deleteMutation.mutateAsync(deletingCategory.id);
+      setDeletingCategory(null);
     } catch { /* error is in mutation state */ }
-  }
+  };
 
   const columns: Column<CompetencyCategory>[] = [
     ...COLUMNS,
@@ -95,10 +95,10 @@ function SkillsManagement() {
         </>
       ),
     },
-  ]
+  ];
 
-  if (isLoading) return <div className="loading">Loading skills...</div>
-  if (error) return <div className="error">Failed to load skills: {error.message}</div>
+  if (isLoading) return <div className="loading">Loading skills...</div>;
+  if (error) return <div className="error">Failed to load skills: {error.message}</div>;
 
   return (
     <div className="management-page">
@@ -106,7 +106,7 @@ function SkillsManagement() {
         title="Skills (Competencies)"
         backTo="/dashboard"
         actions={
-          <Button variant="primary" onClick={() => { setEditingCategory(null); setShowForm(true) }}>
+          <Button variant="primary" onClick={() => { setEditingCategory(null); setShowForm(true); }}>
             + Add Skill
           </Button>
         }
@@ -120,8 +120,8 @@ function SkillsManagement() {
       {showForm && (
         <SkillForm
           category={editingCategory}
-          onSubmit={() => { setShowForm(false); setEditingCategory(null) }}
-          onCancel={() => { setShowForm(false); setEditingCategory(null) }}
+          onSubmit={() => { setShowForm(false); setEditingCategory(null); }}
+          onCancel={() => { setShowForm(false); setEditingCategory(null); }}
         />
       )}
 
@@ -141,5 +141,5 @@ function SkillsManagement() {
         />
       )}
     </div>
-  )
+  );
 }

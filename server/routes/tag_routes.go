@@ -18,7 +18,7 @@ import (
 // RegisterTagRoutes registers REST endpoints for tags.
 func RegisterTagRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	tags := r.Group("/api/tags")
-	tags.Use(middleware.AuthMiddleware())
+	tags.Use(middleware.AuthMiddleware(nil))
 	tags.Use(middleware.AdminMiddleware())
 	{
 		tags.GET("", listTags(repos))

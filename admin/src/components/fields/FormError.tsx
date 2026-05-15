@@ -5,5 +5,5 @@ export function FormError({ message }: FormErrorProps) {
     <div className="p-2 bg-danger/10 border border-danger rounded text-danger text-xs">
       {message}
     </div>
-  )
+  );
 }

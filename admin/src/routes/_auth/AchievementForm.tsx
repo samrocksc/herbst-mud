@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import type { Achievement, AchievementInput } from '../../hooks/useAchievements'
-import { Button } from '../../components/Button'
-import { FormField } from '../../components/FormFields'
-import { NumberField } from '../../components/FormFields'
-import { TextareaField } from '../../components/FormFields'
-import { FormError } from '../../components/FormFields'
+import { useState } from 'react';
+import type { Achievement, AchievementInput } from '../../hooks/useAchievements';
+import { Button } from '../../components/Button';
+import { FormField } from '../../components/FormFields';
+import { NumberField } from '../../components/FormFields';
+import { TextareaField } from '../../components/FormFields';
+import { FormError } from '../../components/FormFields';
 
 const EMPTY_INPUT: AchievementInput = {
   name: '',
@@ -12,7 +12,7 @@ const EMPTY_INPUT: AchievementInput = {
   icon: '',
   xp_reward: 0,
   criteria: '',
-}
+};
 
 export function AchievementForm({
   achievement,
@@ -31,9 +31,9 @@ export function AchievementForm({
     achievement
       ? { name: achievement.name, description: achievement.description, icon: achievement.icon, xp_reward: achievement.xp_reward, criteria: achievement.criteria }
       : EMPTY_INPUT,
-  )
+  );
   const set = <K extends keyof AchievementInput>(key: K, value: AchievementInput[K]) =>
-    setFormData(prev => ({ ...prev, [key]: value }))
+    setFormData(prev => ({ ...prev, [key]: value }));
 
   return (
     <div className="form-card space-y-3">
@@ -41,7 +41,7 @@ export function AchievementForm({
         {achievement ? 'Edit Achievement' : 'Add New Achievement'}
       </h3>
       {error && <FormError message={error} />}
-      <form onSubmit={(e) => { e.preventDefault(); onSubmit(formData) }} className="space-y-3">
+      <form onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-3">
         <FormField label="Name" value={formData.name} onChange={(v) => set('name', v)} required />
         <TextareaField label="Description" value={formData.description} onChange={(v) => set('description', v)} rows={3} />
         <FormField label="Icon (emoji)" value={formData.icon} onChange={(v) => set('icon', v)} placeholder="e.g. 🏆" />
@@ -55,7 +55,7 @@ export function AchievementForm({
         </div>
       </form>
     </div>
-  )
+  );
 }
 
 export function DeleteConfirmation({
@@ -86,5 +86,5 @@ export function DeleteConfirmation({
         </div>
       </div>
     </div>
-  )
+  );
 }

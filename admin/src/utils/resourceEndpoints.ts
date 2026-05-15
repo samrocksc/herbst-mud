@@ -1,4 +1,4 @@
-const API = window.location.origin
+const API = window.location.origin;
 
 export type ResourceEndpoint = Readonly<{
   resourceType: string
@@ -52,4 +52,4 @@ export const RESOURCE_ENDPOINTS = {
     path: 'effect-defs',
     apiBase: `${API}/api`,
   },
-} as const
+} as const;

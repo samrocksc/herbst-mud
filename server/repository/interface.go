@@ -19,6 +19,7 @@ type CharacterRepo interface {
 	ListNPCsByRoom(ctx context.Context, roomID int) ([]*db.Character, error)
 	ListAllNPCs(ctx context.Context) ([]*db.Character, error)
 	ListAll(ctx context.Context) ([]*db.Character, error)
+	ListAllByWorld(ctx context.Context, worldID string) ([]*db.Character, error)
 	CountByUser(ctx context.Context, userID int) (int, error)
 	Create(ctx context.Context, input CreateCharacterInput) (*db.Character, error)
 	Update(ctx context.Context, id int, updates CharacterUpdates) (*db.Character, error)

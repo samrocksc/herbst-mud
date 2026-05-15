@@ -11,11 +11,12 @@ import (
 )
 
 // RegisterQuestRoutes registers CRUD endpoints for Quest definitions.
-// All quest routes require admin authentication.
+// All quest routes require admin authentication + world access.
 func RegisterQuestRoutes(r *gin.Engine, svc *service.Container) {
 	quests := r.Group("/api/quests")
-	quests.Use(middleware.AuthMiddleware())
+	quests.Use(middleware.AuthMiddleware(nil))
 	quests.Use(middleware.AdminMiddleware())
+	quests.Use(middleware.WorldAccessMiddleware())
 	{
 		quests.GET("", listQuests(svc))
 		quests.POST("", createQuest(svc))
@@ -56,7 +57,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		}
 
 		// NPCs for kill targets
-		npcs, err := svc.NPC.ListTemplates(ctx)
+		npcs, err := svc.NPC.ListTemplates(ctx, "")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load NPCs"})
 			return
@@ -68,7 +69,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		sort.Slice(npcItems, func(i, j int) bool { return npcItems[i].Name < npcItems[j].Name })
 
 		// Rooms for explore targets
-		rooms, err := svc.Room.ListRooms(ctx)
+		rooms, err := svc.Room.ListRooms(ctx, "")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load rooms"})
 			return
@@ -128,7 +129,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		sort.Slice(itemItems, func(i, j int) bool { return itemItems[i].Name < itemItems[j].Name })
 
 		// Prerequisite quests
-		allQuests, err := svc.Quest.ListQuests(ctx)
+		allQuests, err := svc.Quest.ListQuests(ctx, "")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load quests"})
 			return

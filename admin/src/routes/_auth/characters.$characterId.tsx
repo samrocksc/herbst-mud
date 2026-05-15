@@ -1,52 +1,52 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useCharacter, useUpdateCharacter, type CharacterUpdate } from '../../hooks/useCharacters'
-import { useWorlds } from '../../hooks/useWorlds'
-import { apiPost } from '../../utils/apiFetch'
-import { PageHeader } from '../../components/PageHeader'
-import { EquippedItemsView } from '../../components/EquippedItemsView'
-import { ActiveEffectsPanel } from '../../components/ActiveEffectsPanel'
-import { ResourceIdField } from '../../components/ResourceIdField'
-import { RESOURCE_ENDPOINTS } from '../../utils/resourceEndpoints'
-import { AddItemModal } from './-characters.$characterId.addItemModal'
+import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCharacter, useUpdateCharacter, type CharacterUpdate } from '../../hooks/useCharacters';
+import { useWorlds } from '../../hooks/useWorlds';
+import { apiPost } from '../../utils/apiFetch';
+import { PageHeader } from '../../components/PageHeader';
+import { EquippedItemsView } from '../../components/EquippedItemsView';
+import { ActiveEffectsPanel } from '../../components/ActiveEffectsPanel';
+import { ResourceIdField } from '../../components/ResourceIdField';
+import { RESOURCE_ENDPOINTS } from '../../utils/resourceEndpoints';
+import { AddItemModal } from './-characters.$characterId.addItemModal';
 
 export const Route = createFileRoute('/_auth/characters/$characterId')({
   component: CharacterDetail,
-})
+});
 
 function CharacterDetail() {
-  const { characterId } = Route.useParams()
-  const id = Number(characterId)
-  const queryClient = useQueryClient()
-  const { data: character, isLoading, isError, error } = useCharacter(id)
-  const updateMutation = useUpdateCharacter()
-  const [editing, setEditing] = useState(false)
-  const [showEquipped, setShowEquipped] = useState(true)
-  const [addItemOpen, setAddItemOpen] = useState(false)
-  const [spawnError, setSpawnError] = useState<string | null>(null)
-  const [spawning, setSpawning] = useState(false)
+  const { characterId } = Route.useParams();
+  const id = Number(characterId);
+  const queryClient = useQueryClient();
+  const { data: character, isLoading, isError, error } = useCharacter(id);
+  const updateMutation = useUpdateCharacter();
+  const [editing, setEditing] = useState(false);
+  const [showEquipped, setShowEquipped] = useState(true);
+  const [addItemOpen, setAddItemOpen] = useState(false);
+  const [spawnError, setSpawnError] = useState<string | null>(null);
+  const [spawning, setSpawning] = useState(false);
 
   const handleSpawnItem = async (templateId: string) => {
-    setSpawning(true)
-    setSpawnError(null)
+    setSpawning(true);
+    setSpawnError(null);
     try {
       await apiPost(`${window.location.origin}/api/item-instances`, {
         equipment_template_id: templateId,
         ownerId: id,
-      })
-      queryClient.invalidateQueries({ queryKey: ['item-instances'] })
-      queryClient.invalidateQueries({ queryKey: ['character', id] })
-      setAddItemOpen(false)
+      });
+      queryClient.invalidateQueries({ queryKey: ['item-instances'] });
+      queryClient.invalidateQueries({ queryKey: ['character', id] });
+      setAddItemOpen(false);
     } catch (err) {
-      setSpawnError(err instanceof Error ? err.message : 'Failed to spawn item')
+      setSpawnError(err instanceof Error ? err.message : 'Failed to spawn item');
     } finally {
-      setSpawning(false)
+      setSpawning(false);
     }
-  }
+  };
 
-  if (isLoading) return <div className="p-8 text-text-muted">Loading character...</div>
-  if (isError || !character) return <div className="p-8 text-danger">Error: {error?.message ?? 'Not found'}</div>
+  if (isLoading) return <div className="p-8 text-text-muted">Loading character...</div>;
+  if (isError || !character) return <div className="p-8 text-danger">Error: {error?.message ?? 'Not found'}</div>;
 
   return (
     <div className="p-6 max-w-[800px] mx-auto">
@@ -74,22 +74,22 @@ function CharacterDetail() {
       } />
       {editing ? (
         <EditForm character={character} onSave={(update) => {
-          updateMutation.mutate({ id, update }, { onSuccess: () => setEditing(false) })
+          updateMutation.mutate({ id, update }, { onSuccess: () => setEditing(false) });
         }} />
       ) : (
         <DetailView character={character} />
       )}
       {showEquipped && <EquippedItemsView characterId={character.id} characterRace={character.race} />}
       <ActiveEffectsPanel characterId={character.id} />
-      <AddItemModal open={addItemOpen} onClose={() => { setAddItemOpen(false); setSpawnError(null) }}
+      <AddItemModal open={addItemOpen} onClose={() => { setAddItemOpen(false); setSpawnError(null); }}
         onSpawn={handleSpawnItem} isLoading={spawning} error={spawnError} />
     </div>
-  )
+  );
 }
 
 function DetailView({ character }: { character: NonNullable<ReturnType<typeof useCharacter>['data']> }) {
-  const lastSeen = character.lastSeenAt ? new Date(character.lastSeenAt).toLocaleString() : 'Never'
-  const isOnline = character.lastSeenAt && new Date(character.lastSeenAt) > new Date(Date.now() - 15 * 60 * 1000)
+  const lastSeen = character.lastSeenAt ? new Date(character.lastSeenAt).toLocaleString() : 'Never';
+  const isOnline = character.lastSeenAt && new Date(character.lastSeenAt) > new Date(Date.now() - 15 * 60 * 1000);
 
   return (
     <div className="space-y-6">
@@ -139,11 +139,11 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
         </Section>
       )}
     </div>
-  )
+  );
 }
 
 function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typeof useCharacter>['data']>, onSave: (update: CharacterUpdate) => void }) {
-  const { data: worlds = [] } = useWorlds()
+  const { data: worlds = [] } = useWorlds();
   const [form, setForm] = useState<CharacterUpdate>({
     name: character.name,
     currentRoomId: character.currentRoomId,
@@ -163,7 +163,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
     isAdmin: character.is_admin,
     isTest: character.is_test,
     currentWorld: character.currentWorld,
-  })
+  });
 
   const numField = (key: keyof CharacterUpdate, label: string) => (
     <div className="flex items-center gap-2 mb-2">
@@ -175,7 +175,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
         className="w-24 p-1 bg-surface border border-border rounded text-text text-sm"
       />
     </div>
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -286,7 +286,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
         Save Changes
       </button>
     </div>
-  )
+  );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -295,7 +295,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h3 className="text-sm font-semibold text-text mb-2 pb-1 border-b border-border">{title}</h3>
       <div className="space-y-0.5">{children}</div>
     </div>
-  )
+  );
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -304,5 +304,5 @@ function Field({ label, value }: { label: string; value: string }) {
       <span className="text-text-muted w-28 shrink-0">{label}</span>
       <span className="text-text">{value}</span>
     </div>
-  )
+  );
 }

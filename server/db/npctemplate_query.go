@@ -407,12 +407,12 @@ func (_q *NPCTemplateQuery) WithCharacters(opts ...func(*CharacterQuery)) *NPCTe
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.NPCTemplate.Query().
-//		GroupBy(npctemplate.FieldName).
+//		GroupBy(npctemplate.FieldWorldID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *NPCTemplateQuery) GroupBy(field string, fields ...string) *NPCTemplateGroupBy {
@@ -430,11 +430,11 @@ func (_q *NPCTemplateQuery) GroupBy(field string, fields ...string) *NPCTemplate
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //	}
 //
 //	client.NPCTemplate.Query().
-//		Select(npctemplate.FieldName).
+//		Select(npctemplate.FieldWorldID).
 //		Scan(ctx, &v)
 func (_q *NPCTemplateQuery) Select(fields ...string) *NPCTemplateSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

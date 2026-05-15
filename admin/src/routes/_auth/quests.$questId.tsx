@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import {
   useQuest,
   useUpdateQuest,
@@ -8,41 +8,41 @@ import {
   type QuestInput,
   EMPTY_REWARDS,
   type QuestObjective,
-} from '../../hooks/useQuests'
-import { PageHeader } from '../../components/PageHeader'
-import { Button } from '../../components/Button'
-import { FormField, TextareaField, NumberField, SelectField } from '../../components/FormFields'
-import { showToast } from '../../components/Toast'
+} from '../../hooks/useQuests';
+import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/Button';
+import { FormField, TextareaField, NumberField, SelectField } from '../../components/FormFields';
+import { showToast } from '../../components/Toast';
 
 export const Route = createFileRoute('/_auth/quests/$questId')({
   component: QuestDetailPage,
-})
+});
 
 const REPEAT_MODE_OPTS = [
   { value: 'none', label: 'None (one-time)' },
   { value: 'cooldown', label: 'Cooldown' },
   { value: 'always', label: 'Always repeatable' },
-]
+];
 
 const EMPTY_OBJECTIVE: QuestObjective = {
   type: '', target_id: '', tag_filter: '', count: 1, labels: [], hint: '',
-}
+};
 
 function QuestDetailPage() {
-  const questId = Route.useParams().questId
-  const navigate = useNavigate()
-  const { data: quest, isLoading, error } = useQuest(Number(questId))
-  const { data: lookups, isLoading: lookupsLoading } = useQuestLookups()
-  const updateQuest = useUpdateQuest()
-  const deleteQuest = useDeleteQuest()
+  const questId = Route.useParams().questId;
+  const navigate = useNavigate();
+  const { data: quest, isLoading, error } = useQuest(Number(questId));
+  const { data: lookups, isLoading: lookupsLoading } = useQuestLookups();
+  const updateQuest = useUpdateQuest();
+  const deleteQuest = useDeleteQuest();
 
-  const [formData, setFormData] = useState<QuestInput | null>(null)
-  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [formData, setFormData] = useState<QuestInput | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  if (isLoading) return <div className="loading">Loading quest...</div>
-  if (lookupsLoading) return <div className="loading">Loading options...</div>
-  if (error) return <div className="error">Failed to load quest: {error.message}</div>
-  if (!quest) return <div className="error">Quest not found</div>
+  if (isLoading) return <div className="loading">Loading quest...</div>;
+  if (lookupsLoading) return <div className="loading">Loading options...</div>;
+  if (error) return <div className="error">Failed to load quest: {error.message}</div>;
+  if (!quest) return <div className="error">Quest not found</div>;
 
   const current = formData ?? {
     name: quest.name,
@@ -54,59 +54,59 @@ function QuestDetailPage() {
     cooldown_hours: quest.cooldown_hours,
     is_active: quest.is_active,
     main_type: quest.main_type ?? 'general',
-  }
+  };
 
-  const set = (patch: Partial<QuestInput>) => setFormData({ ...current, ...patch })
+  const set = (patch: Partial<QuestInput>) => setFormData({ ...current, ...patch });
 
   const addObjective = () => {
-    const objs = [...(current.objectives ?? []), { ...EMPTY_OBJECTIVE }]
-    set({ objectives: objs })
-  }
+    const objs = [...(current.objectives ?? []), { ...EMPTY_OBJECTIVE }];
+    set({ objectives: objs });
+  };
   const updateObjective = (i: number, patch: Partial<QuestObjective>) => {
-    const objs = current.objectives?.map((o, idx) => idx === i ? { ...o, ...patch } : o) ?? []
-    set({ objectives: objs })
-  }
+    const objs = current.objectives?.map((o, idx) => idx === i ? { ...o, ...patch } : o) ?? [];
+    set({ objectives: objs });
+  };
   const removeObjective = (i: number) => {
-    const objs = current.objectives?.filter((_, idx) => idx !== i) ?? []
-    set({ objectives: objs })
-  }
+    const objs = current.objectives?.filter((_, idx) => idx !== i) ?? [];
+    set({ objectives: objs });
+  };
 
   // Get targets filtered by objective type
   const getTargetsForType = (type: string) => {
-    if (!lookups) return []
+    if (!lookups) return [];
     switch (type) {
-      case 'kill': return lookups.npcs
-      case 'explore': return lookups.rooms
-      case 'collect': return lookups.items
-      default: return []
+      case 'kill': return lookups.npcs;
+      case 'explore': return lookups.rooms;
+      case 'collect': return lookups.items;
+      default: return [];
     }
-  }
+  };
 
   // Multi-select handlers for prerequisites
   const togglePrereqQuest = (questId: string) => {
-    const currentPrereqs = formData?.prerequisite_quest_ids ?? current.prerequisite_quest_ids ?? []
+    const currentPrereqs = formData?.prerequisite_quest_ids ?? current.prerequisite_quest_ids ?? [];
     const newPrereqs = currentPrereqs.includes(questId)
       ? currentPrereqs.filter(id => id !== questId)
-      : [...currentPrereqs, questId]
-    set({ prerequisite_quest_ids: newPrereqs })
-  }
+      : [...currentPrereqs, questId];
+    set({ prerequisite_quest_ids: newPrereqs });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await updateQuest.mutateAsync({ id: Number(questId), input: current })
-      showToast('Quest updated', 'success')
-      setFormData(null)
+      await updateQuest.mutateAsync({ id: Number(questId), input: current });
+      showToast('Quest updated', 'success');
+      setFormData(null);
     } catch { /* toasted globally */ }
-  }
+  };
 
   const handleDelete = async () => {
     try {
-      await deleteQuest.mutateAsync(Number(questId))
-      showToast('Quest deleted', 'success')
-      navigate({ to: '/quests' })
+      await deleteQuest.mutateAsync(Number(questId));
+      showToast('Quest deleted', 'success');
+      navigate({ to: '/quests' });
     } catch { /* toasted globally */ }
-  }
+  };
 
   return (
     <div className="management-page">
@@ -156,7 +156,7 @@ function QuestDetailPage() {
             <Button variant="ghost" size="sm" onClick={addObjective}>+ Objective</Button>
           </div>
           {(current.objectives ?? []).map((obj, i) => {
-            const targetOptions = getTargetsForType(obj.type)
+            const targetOptions = getTargetsForType(obj.type);
             return (
               <div key={i} className="grid grid-cols-7 gap-2 mb-2 items-end">
                 <SelectField
@@ -184,7 +184,7 @@ function QuestDetailPage() {
                 <FormField label="Hint" value={obj.hint} onChange={(v) => updateObjective(i, { hint: v })} placeholder="Optional hint" />
                 <Button variant="danger" size="sm" onClick={() => removeObjective(i)}>×</Button>
               </div>
-            )
+            );
           })}
         </div>
 
@@ -201,11 +201,11 @@ function QuestDetailPage() {
                   key={item.id}
                   type="button"
                   onClick={() => {
-                    const currentItems = current.rewards?.item_ids ?? []
+                    const currentItems = current.rewards?.item_ids ?? [];
                     const newItems = currentItems.includes(item.id)
                       ? currentItems.filter(id => id !== item.id)
-                      : [...currentItems, item.id]
-                    set({ rewards: { ...current.rewards ?? EMPTY_REWARDS, item_ids: newItems } })
+                      : [...currentItems, item.id];
+                    set({ rewards: { ...current.rewards ?? EMPTY_REWARDS, item_ids: newItems } });
                   }}
                   className={`px-2 py-1 text-xs rounded border ${
                     (current.rewards?.item_ids ?? []).includes(item.id)
@@ -228,11 +228,11 @@ function QuestDetailPage() {
                   key={tag.id}
                   type="button"
                   onClick={() => {
-                    const currentTags = current.rewards?.tag_adds ?? []
+                    const currentTags = current.rewards?.tag_adds ?? [];
                     const newTags = currentTags.includes(tag.id)
                       ? currentTags.filter(t => t !== tag.id)
-                      : [...currentTags, tag.id]
-                    set({ rewards: { ...current.rewards ?? EMPTY_REWARDS, tag_adds: newTags } })
+                      : [...currentTags, tag.id];
+                    set({ rewards: { ...current.rewards ?? EMPTY_REWARDS, tag_adds: newTags } });
                   }}
                   className={`px-2 py-1 text-xs rounded border ${
                     (current.rewards?.tag_adds ?? []).includes(tag.id)
@@ -276,5 +276,5 @@ function QuestDetailPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

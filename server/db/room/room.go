@@ -16,6 +16,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldIsStartingRoom holds the string denoting the isstartingroom field in the database.
@@ -60,6 +62,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldWorldID,
 	FieldDescription,
 	FieldIsStartingRoom,
 	FieldIsRootRoom,
@@ -82,6 +85,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
 	// DefaultIsStartingRoom holds the default value on creation for the "isStartingRoom" field.
 	DefaultIsStartingRoom bool
 	// DefaultIsRootRoom holds the default value on creation for the "isRootRoom" field.
@@ -134,6 +139,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.

@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
-import type { ReactNode } from 'react'
-import { Button } from './Button'
+import { useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { Button } from './Button';
 
 type ModalProps = Readonly<{
   isOpen: boolean
@@ -13,22 +13,22 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose()
+        onClose();
       }
-    }
+    };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = ''
-    }
-  }, [isOpen, onClose])
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -54,5 +54,5 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

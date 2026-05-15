@@ -1,9 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { PageHeader } from '../../components/PageHeader'
+import { createFileRoute } from '@tanstack/react-router';
+import { PageHeader } from '../../components/PageHeader';
 
 export const Route = createFileRoute('/docs/combat-guide')({
   component: CombatGuideDoc,
-})
+});
 
 function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
@@ -11,7 +11,7 @@ function Section({ title, children }: Readonly<{ title: string; children: React.
       <h2 className="text-lg font-semibold text-text mb-3 pb-2 border-b border-border">{title}</h2>
       {children}
     </section>
-  )
+  );
 }
 
 function InfoBox({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -19,7 +19,7 @@ function InfoBox({ children }: Readonly<{ children: React.ReactNode }>) {
     <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-4 text-sm">
       {children}
     </div>
-  )
+  );
 }
 
 function Table({
@@ -47,7 +47,7 @@ function Table({
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 
 function CombatGuideDoc() {
@@ -176,5 +176,5 @@ function CombatGuideDoc() {
         />
       </Section>
     </div>
-  )
+  );
 }

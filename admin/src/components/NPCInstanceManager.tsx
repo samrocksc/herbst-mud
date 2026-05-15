@@ -1,15 +1,15 @@
-import { useState, useCallback } from 'react'
-import { Button } from './Button'
-import { Modal } from './Modal'
+import { useState, useCallback } from 'react';
+import { Button } from './Button';
+import { Modal } from './Modal';
 import {
   useNPCInstances,
   useCreateNPCInstance,
   useUpdateNPCInstance,
   useDeleteNPCInstance,
-} from '../hooks/useNPCInstances'
-import type { NPCInstance, NPCInstanceInput, NPCInstanceUpdate } from '../hooks/useNPCInstances'
-import { SearchableSelect } from './SearchableSelect'
-import { logError } from '../utils/log'
+} from '../hooks/useNPCInstances';
+import type { NPCInstance, NPCInstanceInput, NPCInstanceUpdate } from '../hooks/useNPCInstances';
+import { SearchableSelect } from './SearchableSelect';
+import { logError } from '../utils/log';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -38,90 +38,90 @@ export function NPCInstanceManager({
   templates,
   onSelectRoom,
 }: NPCInstanceManagerProps) {
-  const { data: instances = [], isLoading, error } = useNPCInstances(roomId)
-  const createMutation = useCreateNPCInstance()
-  const updateMutation = useUpdateNPCInstance()
-  const deleteMutation = useDeleteNPCInstance()
+  const { data: instances = [], isLoading, error } = useNPCInstances(roomId);
+  const createMutation = useCreateNPCInstance();
+  const updateMutation = useUpdateNPCInstance();
+  const deleteMutation = useDeleteNPCInstance();
 
-  const [showCreate, setShowCreate] = useState(false)
-  const [editingId, setEditingId] = useState<number | null>(null)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [createForm, setCreateForm] = useState<NPCInstanceInput>({
     template_id: '',
     room_id: roomId ?? 0,
-  })
-  const [editForm, setEditForm] = useState<NPCInstanceUpdate>({})
+  });
+  const [editForm, setEditForm] = useState<NPCInstanceUpdate>({});
 
   const getRoomName = useCallback(
     (id: number) => {
-      const room = rooms.find((r) => r.id === id)
-      return room ? room.name : `Room ${id}`
+      const room = rooms.find((r) => r.id === id);
+      return room ? room.name : `Room ${id}`;
     },
     [rooms],
-  )
+  );
 
   const getTemplateName = useCallback(
     (templateId: string) => {
-      const tmpl = templates.find((t) => t.id === templateId)
-      return tmpl ? tmpl.name : templateId
+      const tmpl = templates.find((t) => t.id === templateId);
+      return tmpl ? tmpl.name : templateId;
     },
     [templates],
-  )
+  );
 
   const handleCreate = useCallback(async () => {
-    if (!createForm.template_id || !createForm.room_id) return
+    if (!createForm.template_id || !createForm.room_id) return;
     try {
-      await createMutation.mutateAsync(createForm)
-      setShowCreate(false)
-      setCreateForm({ template_id: '', room_id: roomId ?? 0 })
+      await createMutation.mutateAsync(createForm);
+      setShowCreate(false);
+      setCreateForm({ template_id: '', room_id: roomId ?? 0 });
     } catch (err) {
-      logError('Create NPC instance:', err)
+      logError('Create NPC instance:', err);
     }
-  }, [createForm, createMutation, roomId])
+  }, [createForm, createMutation, roomId]);
 
   const startEdit = useCallback((inst: NPCInstance) => {
-    setEditingId(inst.id)
-    setConfirmDeleteId(null)
+    setEditingId(inst.id);
+    setConfirmDeleteId(null);
     setEditForm({
       room_id: inst.room_id,
       starting_room_id: inst.starting_room_id,
       hitpoints: inst.hitpoints,
-    })
-  }, [])
+    });
+  }, []);
 
   const handleUpdate = useCallback(async () => {
-    if (editingId === null) return
+    if (editingId === null) return;
     try {
-      await updateMutation.mutateAsync({ id: editingId, update: editForm })
-      setEditingId(null)
-      setEditForm({})
+      await updateMutation.mutateAsync({ id: editingId, update: editForm });
+      setEditingId(null);
+      setEditForm({});
     } catch (err) {
-      logError('Update NPC instance:', err)
+      logError('Update NPC instance:', err);
     }
-  }, [editingId, editForm, updateMutation])
+  }, [editingId, editForm, updateMutation]);
 
   const handleDelete = useCallback(
     async (id: number) => {
       try {
-        await deleteMutation.mutateAsync(id)
-        setConfirmDeleteId(null)
+        await deleteMutation.mutateAsync(id);
+        setConfirmDeleteId(null);
         if (editingId === id) {
-          setEditingId(null)
-          setEditForm({})
+          setEditingId(null);
+          setEditForm({});
         }
       } catch (err) {
-        logError('Delete NPC instance:', err)
+        logError('Delete NPC instance:', err);
       }
     },
     [deleteMutation, editingId],
-  )
+  );
 
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center text-text-muted text-sm p-4">
         Loading NPC instances...
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -129,7 +129,7 @@ export function NPCInstanceManager({
       <div className="flex-1 flex items-center justify-center text-danger text-sm p-4">
         Error loading NPC instances
       </div>
-    )
+    );
   }
 
   return (
@@ -242,9 +242,9 @@ export function NPCInstanceManager({
                           className="!px-1 !py-0"
                           onClick={() => {
                             if (confirmDeleteId === inst.id) {
-                              handleDelete(inst.id)
+                              handleDelete(inst.id);
                             } else {
-                              setConfirmDeleteId(inst.id)
+                              setConfirmDeleteId(inst.id);
                             }
                           }}
                         >
@@ -356,5 +356,5 @@ export function NPCInstanceManager({
         </div>
       </Modal>
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useLogs, useLogServices } from '../../hooks/useLogs'
-import { PageHeader } from '../../components/PageHeader'
-import { Button } from '../../components/Button'
+import { createFileRoute } from '@tanstack/react-router';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLogs, useLogServices } from '../../hooks/useLogs';
+import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/Button';
 
 export const Route = createFileRoute('/_auth/logs')({
   component: LogsPage,
-})
+});
 
 const LEVEL_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
   DEBUG: { bg: 'bg-slate-700/50', text: 'text-slate-300', dot: 'bg-slate-400' },
   INFO:  { bg: 'bg-sky-900/40', text: 'text-sky-300', dot: 'bg-sky-400' },
   WARN:  { bg: 'bg-amber-900/40', text: 'text-amber-300', dot: 'bg-amber-400' },
   ERROR: { bg: 'bg-red-900/40', text: 'text-red-300', dot: 'bg-red-400' },
-}
+};
 
-const LEVELS = ['ALL', 'DEBUG', 'INFO', 'WARN', 'ERROR'] as const
+const LEVELS = ['ALL', 'DEBUG', 'INFO', 'WARN', 'ERROR'] as const;
 
 type LogLine = {
   id?: number
@@ -29,49 +29,49 @@ type LogLine = {
 }
 
 function LogsPage() {
-  const [level, setLevel] = useState<string>('')
-  const [service, setService] = useState<string>('')
-  const [search, setSearch] = useState<string>('')
-  const [live, setLive] = useState(false)
-  const [liveLines, setLiveLines] = useState<LogLine[]>([])
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const [level, setLevel] = useState<string>('');
+  const [service, setService] = useState<string>('');
+  const [search, setSearch] = useState<string>('');
+  const [live, setLive] = useState(false);
+  const [liveLines, setLiveLines] = useState<LogLine[]>([]);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const filters = { level: level || undefined, service: service || undefined, limit: 200 }
-  const { data, isLoading } = useLogs(live ? undefined : filters)
-  const { data: services } = useLogServices()
+  const filters = { level: level || undefined, service: service || undefined, limit: 200 };
+  const { data, isLoading } = useLogs(live ? undefined : filters);
+  const { data: services } = useLogServices();
 
-  const logs = live ? liveLines : (data?.logs ?? [])
+  const logs = live ? liveLines : (data?.logs ?? []);
   const filtered = search
     ? logs.filter((l) => l.message?.toLowerCase().includes(search.toLowerCase()))
-    : logs
+    : logs;
 
   useEffect(() => {
     if (live && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [filtered.length, live])
+  }, [filtered.length, live]);
 
   const toggleLive = useCallback(() => {
-    setLive((prev) => !prev)
-    setLiveLines([])
-  }, [])
+    setLive((prev) => !prev);
+    setLiveLines([]);
+  }, []);
 
   useEffect(() => {
-    if (!live) return
-    const token = localStorage.getItem('auth_token') || ''
-    const es = new EventSource(`${window.location.origin}/api/logs/stream?token=${encodeURIComponent(token)}`)
+    if (!live) return;
+    const token = localStorage.getItem('auth_token') || '';
+    const es = new EventSource(`${window.location.origin}/api/logs/stream?token=${encodeURIComponent(token)}`);
     es.onmessage = (e) => {
       try {
-        const entry = JSON.parse(e.data) as LogLine
-        setLiveLines((prev) => [entry, ...prev].slice(0, 500))
+        const entry = JSON.parse(e.data) as LogLine;
+        setLiveLines((prev) => [entry, ...prev].slice(0, 500));
       } catch { /* skip malformed */ }
-    }
-    es.onerror = () => es.close()
-    return () => es.close()
-  }, [live])
+    };
+    es.onerror = () => es.close();
+    return () => es.close();
+  }, [live]);
 
-  const activeLevel = level || 'ALL'
-  const total = data?.total ?? 0
+  const activeLevel = level || 'ALL';
+  const total = data?.total ?? 0;
 
   return (
     <div className="management-page">
@@ -92,8 +92,8 @@ function LogsPage() {
       <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-surface-muted rounded-lg border border-border">
         <div className="flex gap-1">
           {LEVELS.map((l) => {
-            const isActive = (l === 'ALL' && !level) || l === level
-            const style = LEVEL_BADGE[l]
+            const isActive = (l === 'ALL' && !level) || l === level;
+            const style = LEVEL_BADGE[l];
             return (
               <button
                 key={l}
@@ -106,7 +106,7 @@ function LogsPage() {
               >
                 {l}
               </button>
-            )
+            );
           })}
         </div>
 
@@ -148,7 +148,7 @@ function LogsPage() {
 
       <div className="space-y-0">
         {filtered.slice(0, 300).map((log, i) => {
-          const style = LEVEL_BADGE[log.level] ?? LEVEL_BADGE.DEBUG
+          const style = LEVEL_BADGE[log.level] ?? LEVEL_BADGE.DEBUG;
           return (
             <div
               key={log.id ?? i}
@@ -193,7 +193,7 @@ function LogsPage() {
                 )}
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -205,24 +205,24 @@ function LogsPage() {
 
       <div ref={bottomRef} />
     </div>
-  )
+  );
 }
 
 function formatTime(t: string): string {
-  if (!t) return '—'
+  if (!t) return '—';
   try {
-    const d = new Date(t)
-    const now = new Date()
-    const diffMs = now.getTime() - d.getTime()
-    const diffMin = Math.floor(diffMs / 60000)
-    if (diffMin < 1) return 'just now'
-    if (diffMin < 60) return `${diffMin}m ago`
-    const isToday = d.toDateString() === now.toDateString()
-    if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    const isThisYear = d.getFullYear() === now.getFullYear()
-    if (isThisYear) return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const d = new Date(t);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const isToday = d.toDateString() === now.toDateString();
+    if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const isThisYear = d.getFullYear() === now.getFullYear();
+    if (isThisYear) return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   } catch {
-    return t
+    return t;
   }
 }

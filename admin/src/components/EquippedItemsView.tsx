@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
-import { apiGet } from '../utils/apiFetch'
-import { DEFAULT_HUMANOID_SLOTS } from './equipConstants'
-import { EquippedSlotGrid, UnequippedSection } from './EquippedItemsSlots'
+import { useQuery } from '@tanstack/react-query';
+import { apiGet } from '../utils/apiFetch';
+import { DEFAULT_HUMANOID_SLOTS } from './equipConstants';
+import { EquippedSlotGrid, UnequippedSection } from './EquippedItemsSlots';
 
 type EquippedItem = Readonly<{
   id: number; name: string; slot: string; level: number; itemType: string
@@ -17,21 +17,21 @@ export function EquippedItemsView({ characterId, characterRace }: EquippedItemsV
   const { data: raceData, isLoading: raceLoading } = useQuery({
     queryKey: ['races'],
     queryFn: () => apiGet<Readonly<{ name: string; equipment_slots: string[] }[]>>(`${window.location.origin}/api/races`),
-  })
+  });
 
   const { data: items, isLoading: itemsLoading, error } = useQuery<EquippedItem[]>({
     queryKey: ['item-instances', 'owner', characterId],
     queryFn: () => apiGet<EquippedItem[]>(`${window.location.origin}/api/item-instances?ownerId=${characterId}`),
-  })
+  });
 
-  const races = Array.isArray(raceData) ? raceData : []
-  const raceObj = races.find((r) => r.name === characterRace)
-  const slots = raceObj?.equipment_slots ?? DEFAULT_HUMANOID_SLOTS
-  const equipped = (items ?? []).filter((i) => i.isEquipped)
-  const unequipped = (items ?? []).filter((i) => !i.isEquipped)
+  const races = Array.isArray(raceData) ? raceData : [];
+  const raceObj = races.find((r) => r.name === characterRace);
+  const slots = raceObj?.equipment_slots ?? DEFAULT_HUMANOID_SLOTS;
+  const equipped = (items ?? []).filter((i) => i.isEquipped);
+  const unequipped = (items ?? []).filter((i) => !i.isEquipped);
 
-  if (itemsLoading || raceLoading) return <div className="bg-surface-muted rounded-lg p-6 border border-border"><div className="text-text-muted text-sm">Loading equipment...</div></div>
-  if (error) return <div className="bg-surface-muted rounded-lg p-6 border border-border"><div className="text-danger text-sm">Failed to load equipment</div></div>
+  if (itemsLoading || raceLoading) return <div className="bg-surface-muted rounded-lg p-6 border border-border"><div className="text-text-muted text-sm">Loading equipment...</div></div>;
+  if (error) return <div className="bg-surface-muted rounded-lg p-6 border border-border"><div className="text-danger text-sm">Failed to load equipment</div></div>;
 
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border">
@@ -39,5 +39,5 @@ export function EquippedItemsView({ characterId, characterRace }: EquippedItemsV
       <EquippedSlotGrid slots={slots} items={equipped} />
       {unequipped.length > 0 && <UnequippedSection items={unequipped} />}
     </div>
-  )
+  );
 }

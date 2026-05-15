@@ -1,5 +1,5 @@
-import { Button } from '../../components/Button'
-import { EMPTY_FORM, type Faction, type FactionForm } from './factionTypes'
+import { Button } from '../../components/Button';
+import { EMPTY_FORM, type Faction, type FactionForm } from './factionTypes';
 
 export function FactionSidebar({
   factions,
@@ -35,7 +35,7 @@ export function FactionSidebar({
         <div className="flex flex-col gap-1">
           {filteredFactions.map((f) => (
             <div key={f.id}
-              onClick={() => { setSelectedFaction(f); setShowCreateForm(false) }}
+              onClick={() => { setSelectedFaction(f); setShowCreateForm(false); }}
               className={`p-2 cursor-pointer rounded text-xs ${
                 selectedFaction?.id === f.id ? 'text-primary bg-primary/20 font-medium' : 'text-text'
               }`}>
@@ -48,10 +48,10 @@ export function FactionSidebar({
       </div>
       <div className="p-3 border-t border-border">
         <Button variant="primary" size="md" fullWidth
-          onClick={() => { setShowCreateForm(true); setSelectedFaction(null); setForm(EMPTY_FORM) }}>
+          onClick={() => { setShowCreateForm(true); setSelectedFaction(null); setForm(EMPTY_FORM); }}>
           + Add Faction
         </Button>
       </div>
     </>
-  )
+  );
 }

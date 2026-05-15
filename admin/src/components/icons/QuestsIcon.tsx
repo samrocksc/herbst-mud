@@ -17,5 +17,5 @@ export function QuestsIcon({ className, stroke }: Readonly<{ className?: string;
       <path d="M9 12h4" />
       <path d="M16 16l2 2" />
     </svg>
-  )
+  );
 }

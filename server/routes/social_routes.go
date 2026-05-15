@@ -13,7 +13,7 @@ import (
 // RegisterSocialRoutes registers REST endpoints for social commands.
 func RegisterSocialRoutes(r *gin.Engine, client *db.Client) {
 	socials := r.Group("/api")
-	socials.Use(middleware.AuthMiddleware())
+	socials.Use(middleware.AuthMiddleware(nil))
 	socials.Use(middleware.AdminMiddleware())
 	{
 		socials.GET("/socials", listSocials(client))

@@ -19,20 +19,28 @@ func (r *entAbilityRepo) Get(ctx context.Context, id int) (*db.Ability, error) {
 	return r.client.Ability.Get(ctx, id)
 }
 
-func (r *entAbilityRepo) List(ctx context.Context) ([]*db.Ability, error) {
-	return r.client.Ability.Query().All(ctx)
+func (r *entAbilityRepo) List(ctx context.Context, worldID string) ([]*db.Ability, error) {
+	query := r.client.Ability.Query()
+	if worldID != "" {
+		query = query.Where(ability.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
-func (r *entAbilityRepo) ListClassless(ctx context.Context) ([]*db.Ability, error) {
-	return r.client.Ability.Query().
-		Where(ability.AbilityClassEQ("classless")).
-		All(ctx)
+func (r *entAbilityRepo) ListClassless(ctx context.Context, worldID string) ([]*db.Ability, error) {
+	query := r.client.Ability.Query().Where(ability.AbilityClassEQ("classless"))
+	if worldID != "" {
+		query = query.Where(ability.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
-func (r *entAbilityRepo) ListByClass(ctx context.Context, class string) ([]*db.Ability, error) {
-	return r.client.Ability.Query().
-		Where(ability.AbilityClassEQ(class)).
-		All(ctx)
+func (r *entAbilityRepo) ListByClass(ctx context.Context, worldID string, class string) ([]*db.Ability, error) {
+	query := r.client.Ability.Query().Where(ability.AbilityClassEQ(class))
+	if worldID != "" {
+		query = query.Where(ability.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
 func (r *entAbilityRepo) Create(ctx context.Context, input CreateAbilityInput) (*db.Ability, error) {
@@ -47,7 +55,8 @@ func (r *entAbilityRepo) Create(ctx context.Context, input CreateAbilityInput) (
 		SetHpCost(input.HPCost).
 		SetRequirements(input.Requirements).
 		SetSlug(input.Slug).
-		SetAbilityClass(input.AbilityClass)
+		SetAbilityClass(input.AbilityClass).
+		SetWorldID(input.WorldID)
 	if input.RequiredTag != "" {
 		builder = builder.SetRequiredTag(input.RequiredTag)
 	}
@@ -62,6 +71,62 @@ func (r *entAbilityRepo) Create(ctx context.Context, input CreateAbilityInput) (
 	}
 	if input.FactionID != nil {
 		builder = builder.SetFactionID(*input.FactionID)
+	}
+	return builder.Save(ctx)
+}
+
+func (r *entAbilityRepo) Update(ctx context.Context, id int, updates AbilityUpdates) (*db.Ability, error) {
+	builder := r.client.Ability.UpdateOneID(id)
+	if updates.Name != nil {
+		builder = builder.SetName(*updates.Name)
+	}
+	if updates.Description != nil {
+		builder = builder.SetDescription(*updates.Description)
+	}
+	if updates.AbilityType != nil {
+		builder = builder.SetAbilityType(*updates.AbilityType)
+	}
+	if updates.AbilityClass != nil {
+		builder = builder.SetAbilityClass(*updates.AbilityClass)
+	}
+	if updates.Cost != nil {
+		builder = builder.SetCost(*updates.Cost)
+	}
+	if updates.Cooldown != nil {
+		builder = builder.SetCooldown(*updates.Cooldown)
+	}
+	if updates.ManaCost != nil {
+		builder = builder.SetManaCost(*updates.ManaCost)
+	}
+	if updates.StaminaCost != nil {
+		builder = builder.SetStaminaCost(*updates.StaminaCost)
+	}
+	if updates.HPCost != nil {
+		builder = builder.SetHpCost(*updates.HPCost)
+	}
+	if updates.Requirements != nil {
+		builder = builder.SetRequirements(*updates.Requirements)
+	}
+	if updates.RequiredTag != nil {
+		builder = builder.SetRequiredTag(*updates.RequiredTag)
+	}
+	if updates.ProcChance != nil {
+		builder = builder.SetProcChance(*updates.ProcChance)
+	}
+	if updates.ProcEvent != nil {
+		builder = builder.SetProcEvent(*updates.ProcEvent)
+	}
+	if updates.CooldownSeconds != nil {
+		builder = builder.SetCooldownSeconds(*updates.CooldownSeconds)
+	}
+	if updates.Slug != nil {
+		builder = builder.SetSlug(*updates.Slug)
+	}
+	if updates.FactionID != nil {
+		builder = builder.SetFactionID(*updates.FactionID)
+	}
+	if updates.WorldID != nil {
+		builder = builder.SetWorldID(*updates.WorldID)
 	}
 	return builder.Save(ctx)
 }

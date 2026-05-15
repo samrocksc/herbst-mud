@@ -14,7 +14,7 @@ import (
 // RegisterRaceRoutes registers REST endpoints for races.
 func RegisterRaceRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	races := r.Group("/api/races")
-	races.Use(middleware.AuthMiddleware())
+	races.Use(middleware.AuthMiddleware(nil))
 	races.Use(middleware.AdminMiddleware())
 	{
 		races.GET("", listRaces(repos))

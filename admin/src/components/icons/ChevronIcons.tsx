@@ -14,7 +14,7 @@ export function ChevronLeftIcon({ className, stroke }: Readonly<{ className?: st
     >
       <polyline points="15 18 9 12 15 6"/>
     </svg>
-  )
+  );
 }
 
 export function ChevronRightIcon({ className, stroke }: Readonly<{ className?: string; stroke?: string }>) {
@@ -33,5 +33,5 @@ export function ChevronRightIcon({ className, stroke }: Readonly<{ className?: s
     >
       <polyline points="9 18 15 12 9 6"/>
     </svg>
-  )
+  );
 }

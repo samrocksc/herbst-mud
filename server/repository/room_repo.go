@@ -19,8 +19,12 @@ func (r *entRoomRepo) Get(ctx context.Context, id int) (*db.Room, error) {
 	return r.client.Room.Get(ctx, id)
 }
 
-func (r *entRoomRepo) List(ctx context.Context) ([]*db.Room, error) {
-	return r.client.Room.Query().All(ctx)
+func (r *entRoomRepo) List(ctx context.Context, worldID string) ([]*db.Room, error) {
+	query := r.client.Room.Query()
+	if worldID != "" {
+		query = query.Where(room.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
 func (r *entRoomRepo) GetRoot(ctx context.Context) ([]*db.Room, error) {
@@ -38,7 +42,8 @@ func (r *entRoomRepo) Create(ctx context.Context, input CreateRoomInput) (*db.Ro
 		SetExits(input.Exits).
 		SetPosX(input.PosX).
 		SetPosY(input.PosY).
-		SetPosZ(input.PosZ)
+		SetPosZ(input.PosZ).
+		SetWorldID(input.WorldID)
 	if input.Atmosphere != "" {
 		builder = builder.SetAtmosphere(room.Atmosphere(input.Atmosphere))
 	}
@@ -73,6 +78,9 @@ func (r *entRoomRepo) Update(ctx context.Context, id int, updates RoomUpdates) (
 	}
 	if updates.PosZ != nil {
 		builder = builder.SetPosZ(*updates.PosZ)
+	}
+	if updates.WorldID != nil {
+		builder = builder.SetWorldID(*updates.WorldID)
 	}
 	return builder.Save(ctx)
 }

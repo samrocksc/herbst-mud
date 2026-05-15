@@ -1,39 +1,39 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useCreateWorld, type WorldInput } from '../../hooks/useWorlds'
-import { PageHeader } from '../../components/PageHeader'
-import { Button } from '../../components/Button'
-import { FormField, TextareaField } from '../../components/FormFields'
-import { showToast } from '../../components/Toast'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useCreateWorld, type WorldInput } from '../../hooks/useWorlds';
+import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/Button';
+import { FormField, TextareaField } from '../../components/FormFields';
+import { showToast } from '../../components/Toast';
 
 export const Route = createFileRoute('/_auth/worlds/new')({
   component: CreateWorldPage,
-})
+});
 
 const EMPTY_WORLD: WorldInput = {
   name: '',
   title: '',
   description: '',
   active: false,
-}
+};
 
 function CreateWorldPage() {
-  const navigate = useNavigate()
-  const createWorld = useCreateWorld()
-  const [formData, setFormData] = useState<WorldInput>(EMPTY_WORLD)
+  const navigate = useNavigate();
+  const createWorld = useCreateWorld();
+  const [formData, setFormData] = useState<WorldInput>(EMPTY_WORLD);
 
-  const set = (patch: Partial<WorldInput>) => setFormData((prev) => ({ ...prev, ...patch }))
+  const set = (patch: Partial<WorldInput>) => setFormData((prev) => ({ ...prev, ...patch }));
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await createWorld.mutateAsync(formData)
-      showToast('World created', 'success')
-      navigate({ to: '/worlds' })
+      await createWorld.mutateAsync(formData);
+      showToast('World created', 'success');
+      navigate({ to: '/worlds' });
     } catch {
       // Error is toasted by global onError handler
     }
-  }
+  };
 
   return (
     <div className="p-6 max-w-[800px] mx-auto">
@@ -88,5 +88,5 @@ function CreateWorldPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

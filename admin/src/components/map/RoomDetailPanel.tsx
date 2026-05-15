@@ -1,9 +1,9 @@
-import { useState, memo } from 'react'
-import type { Room } from './types'
-import { ALL_DIRECTIONS } from './DirectionUtils'
-import { Button } from '../Button'
-import { NPCInstanceManager } from './NPCInstanceManager'
-import { ItemInstanceManager } from './ItemInstanceManager'
+import { useState, memo } from 'react';
+import type { Room } from './types';
+import { ALL_DIRECTIONS } from './DirectionUtils';
+import { Button } from '../Button';
+import { NPCInstanceManager } from './NPCInstanceManager';
+import { ItemInstanceManager } from './ItemInstanceManager';
 
 type RoomDetailPanelProps = {
   selectedRoom: Room
@@ -24,7 +24,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
   onDeleteRoom,
   onAddRoom,
 }: RoomDetailPanelProps) {
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
   return (
     <>
@@ -47,7 +47,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
 
       <div className="p-3 flex-1 overflow-y-auto">
         <div className="text-text-muted text-[10px] mb-2">
-          Room ID: <a href={`/map?room=${selectedRoom.id}`} className="text-primary hover:underline" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(`${window.location.origin}/map?room=${selectedRoom.id}`) }}>#{selectedRoom.id}</a>
+          Room ID: <a href={`/map?room=${selectedRoom.id}`} className="text-primary hover:underline" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(`${window.location.origin}/map?room=${selectedRoom.id}`); }}>#{selectedRoom.id}</a>
           {selectedRoom.atmosphere && ` • ${selectedRoom.atmosphere}`}
         </div>
         <div className="text-text mb-3 text-sm">{selectedRoom.description}</div>
@@ -59,9 +59,9 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
           <strong className="text-accent text-xs">Exits:</strong>
           <div className="mt-1">
             {ALL_DIRECTIONS.map((dir) => {
-              const targetId = selectedRoom.exits?.[dir]
-              const targetRoom = rooms.find((r) => r.id === targetId)
-              const isZExit = dir === 'up' || dir === 'down'
+              const targetId = selectedRoom.exits?.[dir];
+              const targetRoom = rooms.find((r) => r.id === targetId);
+              const isZExit = dir === 'up' || dir === 'down';
 
               if (targetId && targetRoom) {
                 return (
@@ -84,7 +84,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
                       </span>
                     )}
                   </div>
-                )
+                );
               } else if (targetId) {
                 return (
                   <div
@@ -94,7 +94,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
                     <strong>{dir}</strong> →{' '}
                     <span className="text-text-muted">Room #{targetId}</span>
                   </div>
-                )
+                );
               } else {
                 return (
                   <div key={dir} className="flex items-center gap-1 my-1">
@@ -113,7 +113,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
                       </Button>
                     )}
                   </div>
-                )
+                );
               }
             })}
           </div>
@@ -130,10 +130,10 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
           fullWidth
           onClick={() => {
             if (confirmDelete === selectedRoom.id) {
-              onDeleteRoom(selectedRoom.id)
-              setConfirmDelete(null)
+              onDeleteRoom(selectedRoom.id);
+              setConfirmDelete(null);
             } else {
-              setConfirmDelete(selectedRoom.id)
+              setConfirmDelete(selectedRoom.id);
             }
           }}
         >
@@ -141,5 +141,5 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
         </Button>
       </div>
     </>
-  )
-})
+  );
+});

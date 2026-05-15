@@ -1,16 +1,16 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useSocials, useDeleteSocial } from '../../hooks/useSocials'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Button } from '../../components/Button'
-import { DeleteConfirmation } from '../../components/DeleteConfirmation'
-import { showToast } from '../../components/Toast'
-import type { SocialCommand } from '../../hooks/useSocials'
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useSocials, useDeleteSocial } from '../../hooks/useSocials';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Button } from '../../components/Button';
+import { DeleteConfirmation } from '../../components/DeleteConfirmation';
+import { showToast } from '../../components/Toast';
+import type { SocialCommand } from '../../hooks/useSocials';
 
 export const Route = createFileRoute('/_auth/socials')({
   component: SocialsManagement,
-})
+});
 
 const COLUMNS: Column<SocialCommand>[] = [
   {
@@ -28,35 +28,35 @@ const COLUMNS: Column<SocialCommand>[] = [
   },
   { header: 'Self Text', accessor: 'self_text' },
   { header: 'Room Text', accessor: 'room_text' },
-]
+];
 
 function SocialsManagement() {
-  const [search, setSearch] = useState('')
-  const [deleteId, setDeleteId] = useState<number | null>(null)
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { data: socials, isLoading, error } = useSocials()
-  const deleteMutation = useDeleteSocial()
+  const [search, setSearch] = useState('');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { data: socials, isLoading, error } = useSocials();
+  const deleteMutation = useDeleteSocial();
 
   const filtered = (socials ?? []).filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.self_text.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   const handleDelete = () => {
-    if (deleteId == null) return
+    if (deleteId == null) return;
     deleteMutation.mutate(deleteId, {
       onSuccess: () => {
-        setDeleteId(null)
-        showToast('Social deleted', 'success')
+        setDeleteId(null);
+        showToast('Social deleted', 'success');
       },
-    })
-  }
+    });
+  };
 
-  if (location.pathname !== '/socials') return <Outlet />
+  if (location.pathname !== '/socials') return <Outlet />;
 
-  if (isLoading) return <div className="loading">Loading socials...</div>
-  if (error) return <div className="error">Failed to load socials: {error.message}</div>
+  if (isLoading) return <div className="loading">Loading socials...</div>;
+  if (error) return <div className="error">Failed to load socials: {error.message}</div>;
 
   return (
     <div className="management-page">
@@ -89,7 +89,7 @@ function SocialsManagement() {
             align: 'right',
             render: (_, row) => (
               <div className="flex gap-2 justify-end">
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(row.id) }}>
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(row.id); }}>
                   Delete
                 </Button>
               </div>
@@ -113,5 +113,5 @@ function SocialsManagement() {
         isLoading={deleteMutation.isPending}
       />
     </div>
-  )
+  );
 }

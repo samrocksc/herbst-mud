@@ -27,6 +27,20 @@ func (_c *QuestCreate) SetName(v string) *QuestCreate {
 	return _c
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *QuestCreate) SetWorldID(v string) *QuestCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *QuestCreate) SetNillableWorldID(v *string) *QuestCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // SetDescription sets the "description" field.
 func (_c *QuestCreate) SetDescription(v string) *QuestCreate {
 	_c.mutation.SetDescription(v)
@@ -157,6 +171,10 @@ func (_c *QuestCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *QuestCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := quest.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.RepeatMode(); !ok {
 		v := quest.DefaultRepeatMode
 		_c.mutation.SetRepeatMode(v)
@@ -179,6 +197,9 @@ func (_c *QuestCreate) defaults() {
 func (_c *QuestCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "Quest.name"`)}
+	}
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "Quest.world_id"`)}
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Quest.description"`)}
@@ -240,6 +261,10 @@ func (_c *QuestCreate) createSpec() (*Quest, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(quest.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(quest.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
 	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(quest.FieldDescription, field.TypeString, value)

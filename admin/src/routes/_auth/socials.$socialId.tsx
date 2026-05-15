@@ -1,28 +1,28 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useSocial, useUpdateSocial, useDeleteSocial, type SocialInput } from '../../hooks/useSocials'
-import { PageHeader } from '../../components/PageHeader'
-import { Button } from '../../components/Button'
-import { FormField, TextareaField } from '../../components/FormFields'
-import { DeleteConfirmation } from '../../components/DeleteConfirmation'
-import { showToast } from '../../components/Toast'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useSocial, useUpdateSocial, useDeleteSocial, type SocialInput } from '../../hooks/useSocials';
+import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/Button';
+import { FormField, TextareaField } from '../../components/FormFields';
+import { DeleteConfirmation } from '../../components/DeleteConfirmation';
+import { showToast } from '../../components/Toast';
 
 export const Route = createFileRoute('/_auth/socials/$socialId')({
   component: SocialDetailPage,
-})
+});
 
 function SocialDetailPage() {
-  const socialId = Route.useParams().socialId
-  const navigate = useNavigate()
-  const { data: social, isLoading, error } = useSocial(Number(socialId))
-  const updateMutation = useUpdateSocial()
-  const deleteMutation = useDeleteSocial()
-  const [showDelete, setShowDelete] = useState(false)
-  const [formData, setFormData] = useState<SocialInput | null>(null)
+  const socialId = Route.useParams().socialId;
+  const navigate = useNavigate();
+  const { data: social, isLoading, error } = useSocial(Number(socialId));
+  const updateMutation = useUpdateSocial();
+  const deleteMutation = useDeleteSocial();
+  const [showDelete, setShowDelete] = useState(false);
+  const [formData, setFormData] = useState<SocialInput | null>(null);
 
-  if (isLoading) return <div className="loading">Loading social...</div>
-  if (error) return <div className="error">Failed to load social: {error.message}</div>
-  if (!social) return <div className="error">Social not found</div>
+  if (isLoading) return <div className="loading">Loading social...</div>;
+  if (error) return <div className="error">Failed to load social: {error.message}</div>;
+  if (!social) return <div className="error">Social not found</div>;
 
   const current = formData ?? {
     name: social.name,
@@ -31,26 +31,26 @@ function SocialDetailPage() {
     target_self_text: social.target_self_text,
     target_text: social.target_text,
     target_room_text: social.target_room_text,
-  }
+  };
 
-  const set = (patch: Partial<SocialInput>) => setFormData({ ...current, ...patch })
+  const set = (patch: Partial<SocialInput>) => setFormData({ ...current, ...patch });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await updateMutation.mutateAsync({ id: Number(socialId), input: current })
-      showToast('Social updated', 'success')
-      setFormData(null)
+      await updateMutation.mutateAsync({ id: Number(socialId), input: current });
+      showToast('Social updated', 'success');
+      setFormData(null);
     } catch { /* toasted globally */ }
-  }
+  };
 
   const handleDelete = async () => {
     try {
-      await deleteMutation.mutateAsync(Number(socialId))
-      showToast('Social deleted', 'success')
-      navigate({ to: '/socials' })
+      await deleteMutation.mutateAsync(Number(socialId));
+      showToast('Social deleted', 'success');
+      navigate({ to: '/socials' });
     } catch { /* toasted globally */ }
-  }
+  };
 
   return (
     <div className="p-6 max-w-[900px] mx-auto">
@@ -94,5 +94,5 @@ function SocialDetailPage() {
         isLoading={deleteMutation.isPending}
       />
     </div>
-  )
+  );
 }

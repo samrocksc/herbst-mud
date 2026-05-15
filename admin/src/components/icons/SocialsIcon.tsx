@@ -17,5 +17,5 @@ export function SocialsIcon({ className, stroke }: Readonly<{ className?: string
       <line x1="9" y1="9" x2="9.01" y2="9"/>
       <line x1="15" y1="9" x2="15.01" y2="9"/>
     </svg>
-  )
+  );
 }

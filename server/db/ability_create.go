@@ -29,6 +29,20 @@ func (_c *AbilityCreate) SetName(v string) *AbilityCreate {
 	return _c
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *AbilityCreate) SetWorldID(v string) *AbilityCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *AbilityCreate) SetNillableWorldID(v *string) *AbilityCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // SetDescription sets the "description" field.
 func (_c *AbilityCreate) SetDescription(v string) *AbilityCreate {
 	_c.mutation.SetDescription(v)
@@ -308,6 +322,10 @@ func (_c *AbilityCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *AbilityCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := ability.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.Cost(); !ok {
 		v := ability.DefaultCost
 		_c.mutation.SetCost(v)
@@ -346,6 +364,9 @@ func (_c *AbilityCreate) defaults() {
 func (_c *AbilityCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "Ability.name"`)}
+	}
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "Ability.world_id"`)}
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Ability.description"`)}
@@ -406,6 +427,10 @@ func (_c *AbilityCreate) createSpec() (*Ability, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(ability.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(ability.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
 	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(ability.FieldDescription, field.TypeString, value)

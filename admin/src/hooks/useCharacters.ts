@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPut } from '../utils/apiFetch'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPut } from '../utils/apiFetch';
 
 export type Character = Readonly<{
   id: number
@@ -53,37 +53,37 @@ export type CharacterUpdate = Partial<{
   currentWorld: string
 }>
 
-const API = `${window.location.origin}`
+const API = `${window.location.origin}`;
 
 export function useCharacters() {
   return useQuery({
     queryKey: ['characters'],
     queryFn: async (): Promise<Character[]> => {
-      const data = await apiGet<Character[]>(`${API}/characters`)
-      return Array.isArray(data) ? data : []
+      const data = await apiGet<Character[]>(`${API}/characters`);
+      return Array.isArray(data) ? data : [];
     },
-  })
+  });
 }
 
 export function useCharacter(id: number) {
   return useQuery({
     queryKey: ['character', id],
     queryFn: async (): Promise<Character | null> => {
-      const data = await apiGet<Character>(`${API}/characters/${id}`)
-      return data ?? null
+      const data = await apiGet<Character>(`${API}/characters/${id}`);
+      return data ?? null;
     },
     enabled: !!id,
-  })
+  });
 }
 
 export function useUpdateCharacter() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, update }: { id: number; update: CharacterUpdate }) =>
       apiPut(`${API}/characters/${id}`, update),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['characters'] })
-      queryClient.invalidateQueries({ queryKey: ['character'] })
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.invalidateQueries({ queryKey: ['character'] });
     },
-  })
+  });
 }

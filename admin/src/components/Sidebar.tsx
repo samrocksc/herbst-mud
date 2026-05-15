@@ -1,34 +1,30 @@
-import { useState, useEffect } from 'react'
-import { Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { apiGet } from '../utils/apiFetch'
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from '@tanstack/react-router';
+import { WorldTitle } from './WorldTitle';
+import { useWorldStore } from '../hooks/useWorldStore';
 
-const API = `${window.location.origin}`
+import { DashboardIcon } from './icons/DashboardIcon';
+import { XpIcon } from './icons/XpIcon';
+import { ConfigIcon } from './icons/ConfigIcon';
+import { FactionsIcon } from './icons/FactionsIcon';
+import { ItemsIcon } from './icons/ItemsIcon';
+import { AbilitiesIcon } from './icons/AbilitiesIcon';
+import { SkillsIcon } from './icons/SkillsIcon';
+import { PlayersIcon } from './icons/PlayersIcon';
+import { MapIcon } from './icons/MapIcon';
+import { NPCsIcon } from './icons/NPCsIcon';
+import { ChevronLeftIcon } from './icons/ChevronIcons';
+import { ChevronRightIcon } from './icons/ChevronIcons';
 
-import { DashboardIcon } from './icons/DashboardIcon'
-import { XpIcon } from './icons/XpIcon'
-import { ConfigIcon } from './icons/ConfigIcon'
-import { FactionsIcon } from './icons/FactionsIcon'
-import { ItemsIcon } from './icons/ItemsIcon'
-import { AbilitiesIcon } from './icons/AbilitiesIcon'
-import { SkillsIcon } from './icons/SkillsIcon'
-import { PlayersIcon } from './icons/PlayersIcon'
-import { MapIcon } from './icons/MapIcon'
-import { NPCsIcon } from './icons/NPCsIcon'
-import { ChevronLeftIcon } from './icons/ChevronIcons'
-import { ChevronRightIcon } from './icons/ChevronIcons'
-
-import { DocsIcon } from './icons/DocsIcon'
-import { TagsIcon } from './icons/TagsIcon'
-import { RacesIcon } from './icons/RacesIcon'
-import { LogsIcon } from './icons/LogsIcon'
-import { EffectsIcon } from './icons/EffectsIcon'
-import { QuestsIcon } from './icons/QuestsIcon'
-import { SocialsIcon } from './icons/SocialsIcon'
-import { ChannelsIcon } from './icons/ChannelsIcon'
-import { WorldIcon } from './icons/WorldIcon'
-
-const STORAGE_KEY = 'sidebar-collapsed'
+import { DocsIcon } from './icons/DocsIcon';
+import { TagsIcon } from './icons/TagsIcon';
+import { RacesIcon } from './icons/RacesIcon';
+import { LogsIcon } from './icons/LogsIcon';
+import { EffectsIcon } from './icons/EffectsIcon';
+import { QuestsIcon } from './icons/QuestsIcon';
+import { SocialsIcon } from './icons/SocialsIcon';
+import { ChannelsIcon } from './icons/ChannelsIcon';
+import { WorldIcon } from './icons/WorldIcon';
 
 const navItems = [
   { label: 'Dashboard', path: '/dashboard', Icon: DashboardIcon },
@@ -51,27 +47,7 @@ const navItems = [
   { label: 'Quests', path: '/quests', Icon: QuestsIcon },
   { label: 'Logs', path: '/logs', Icon: LogsIcon },
   { label: 'Docs', path: '/docs', Icon: DocsIcon },
-]
-
-type World = {
-  id: number
-  name: string
-  title: string
-  description: string
-  active: boolean
-}
-
-function useActiveWorld() {
-  return useQuery({
-    queryKey: ['activeWorld'],
-    queryFn: async (): Promise<World | null> => {
-      const data = await apiGet<{ world?: World; error?: string }>(`${API}/worlds/active`)
-      if (!data) return null
-      if (data.error) return null
-      return data.world ?? null
-    },
-  })
-}
+];
 
 /** Toggle button for collapsing/expanding the sidebar. Named component for DevTools clarity. */
 function SidebarCollapseToggle({
@@ -101,33 +77,36 @@ function SidebarCollapseToggle({
         <ChevronLeftIcon stroke="var(--color-primary)" />
       )}
     </button>
-  )
+  );
 }
 
+// Collapsed state key
+const COLLAPSED_KEY = 'sidebar-collapsed';
+
 export function Sidebar() {
+  const { currentWorld } = useWorldStore();
+  const location = useLocation();
+
   const [collapsed, setCollapsed] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) === 'true'
+      return localStorage.getItem(COLLAPSED_KEY) === 'true';
     } catch {
-      return false
+      return false;
     }
-  })
+  });
 
-  // Fetch active world for title display
-  const { data: activeWorld, isLoading: worldLoading } = useActiveWorld()
-
+  // Update localStorage when collapsed changes
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, String(collapsed))
-    } catch {
-      // localStorage unavailable
-    }
-  }, [collapsed])
+      localStorage.setItem(COLLAPSED_KEY, String(collapsed));
+    } catch {}
+  }, [collapsed]);
 
-  // World title to display — defaults to 'Herbst MUD' when no world selected
-  const worldTitle = worldLoading
-    ? 'Loading...'
-    : activeWorld?.title ?? 'Herbst MUD'
+  // Force re-render when world changes (for future UI customizations)
+  useEffect(() => {
+    // This effect exists solely to make the component reactive to world changes
+    // Remove this if you want to optimize away the re-render
+  }, [currentWorld, location.pathname]);
 
   return (
     <nav
@@ -154,9 +133,7 @@ export function Sidebar() {
             collapsed ? 'opacity-0 select-none' : 'opacity-100',
           ].join(' ')}
         >
-          <span className="text-primary font-bold text-lg whitespace-nowrap block overflow-hidden text-ellipsis">
-            {worldTitle}
-          </span>
+          <WorldTitle />
         </div>
         <SidebarCollapseToggle
           collapsed={collapsed}
@@ -170,6 +147,7 @@ export function Sidebar() {
           <Link
             key={item.path}
             to={item.path}
+            search={(prev: Record<string, string>) => prev}
             activeProps={{
               className:
                 'bg-primary !text-white font-semibold border-l-4 border-primary',
@@ -200,5 +178,5 @@ export function Sidebar() {
         ))}
       </div>
     </nav>
-  )
+  );
 }

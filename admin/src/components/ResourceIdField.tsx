@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { FieldLabel, INPUT_CLASS } from './fields/FieldLabel'
-import { ResourceSearchModal } from './ResourceSearchModal'
-import { useResourceExists } from './useResourceExists'
+import { useState } from 'react';
+import { FieldLabel, INPUT_CLASS } from './fields/FieldLabel';
+import { ResourceSearchModal } from './ResourceSearchModal';
+import { useResourceExists } from './useResourceExists';
 
 type Props = Readonly<{
   label: string
@@ -16,10 +16,10 @@ type Props = Readonly<{
 export function ResourceIdField({
   label, value, onChange, resourceType, apiBase, tooltip, disabled,
 }: Props) {
-  const [modalOpen, setModalOpen] = useState(false)
-  const { exists, name, isValidating } = useResourceExists(resourceType, apiBase, value)
-  const fieldId = label.toLowerCase().replace(/\s+/g, '-')
-  const displayValue = value != null && value !== '' ? String(value) : ''
+  const [modalOpen, setModalOpen] = useState(false);
+  const { exists, name, isValidating } = useResourceExists(resourceType, apiBase, value);
+  const fieldId = label.toLowerCase().replace(/\s+/g, '-');
+  const displayValue = value != null && value !== '' ? String(value) : '';
 
   const statusIndicator = isValidating ? (
     <span className="text-text-muted text-xs">...</span>
@@ -27,9 +27,9 @@ export function ResourceIdField({
     <span className="text-success text-xs truncate max-w-40" title={name}>&quot;{name}&quot; ✓</span>
   ) : exists === false ? (
     <span className="text-danger text-xs">Not found</span>
-  ) : null
+  ) : null;
 
-  const borderColor = exists === false ? 'border-danger' : 'border-border'
+  const borderColor = exists === false ? 'border-danger' : 'border-border';
 
   return (
     <div>
@@ -41,10 +41,10 @@ export function ResourceIdField({
           inputMode="numeric"
           value={displayValue}
           onChange={(e) => {
-            const raw = e.target.value
-            if (raw === '') { onChange(null); return }
-            const parsed = parseInt(raw, 10)
-            if (!isNaN(parsed)) onChange(parsed)
+            const raw = e.target.value;
+            if (raw === '') { onChange(null); return; }
+            const parsed = parseInt(raw, 10);
+            if (!isNaN(parsed)) onChange(parsed);
           }}
           placeholder={`Enter ${resourceType} ID`}
           disabled={disabled}
@@ -71,5 +71,5 @@ export function ResourceIdField({
         onSelect={(id, _name) => onChange(id)}
       />
     </div>
-  )
+  );
 }

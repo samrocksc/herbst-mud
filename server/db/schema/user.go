@@ -22,6 +22,9 @@ func (User) Fields() []ent.Field {
 		field.Bool("god_mode").
 			Default(false).
 			Comment("Unkillable mode for the user"),
+		field.String("allowed_worlds").
+			Optional().
+			Comment("Comma-separated list of world IDs this user can access (empty = all worlds for admins)"),
 	}
 }
 

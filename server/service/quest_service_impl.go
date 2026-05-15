@@ -51,6 +51,7 @@ func (s *questService) CreateQuest(ctx context.Context, input CreateQuestInput) 
 		RepeatMode:           rm,
 		CooldownHours:        input.CooldownHours,
 		IsActive:             input.IsActive,
+		WorldID:              input.WorldID,
 	}
 	return s.repo.Create(ctx, repoInput)
 }
@@ -59,8 +60,8 @@ func (s *questService) GetQuest(ctx context.Context, id int) (*db.Quest, error) 
 	return s.repo.Get(ctx, id)
 }
 
-func (s *questService) ListQuests(ctx context.Context) ([]*db.Quest, error) {
-	return s.repo.List(ctx)
+func (s *questService) ListQuests(ctx context.Context, worldID string) ([]*db.Quest, error) {
+	return s.repo.List(ctx, worldID)
 }
 
 func (s *questService) UpdateQuest(ctx context.Context, id int, input UpdateQuestInput) (*db.Quest, error) {
@@ -89,6 +90,9 @@ func (s *questService) UpdateQuest(ctx context.Context, id int, input UpdateQues
 	if input.RepeatMode != nil {
 		rm := quest.RepeatMode(*input.RepeatMode)
 		updates.RepeatMode = &rm
+	}
+	if input.WorldID != nil {
+		updates.WorldID = input.WorldID
 	}
 	_ = existing // fetched for validation; repo does the update
 	return s.repo.Update(ctx, id, updates)

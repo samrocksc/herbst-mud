@@ -12,7 +12,7 @@ import (
 // RegisterActiveEffectRoutes registers endpoints for managing active effects on characters.
 func RegisterActiveEffectRoutes(r *gin.Engine, repos *repository.Container) {
 	effects := r.Group("/api")
-	effects.Use(middleware.AuthMiddleware())
+	effects.Use(middleware.AuthMiddleware(nil))
 	effects.Use(middleware.AdminMiddleware())
 	{
 		effects.GET("/characters/:id/effects", listActiveEffects(repos))

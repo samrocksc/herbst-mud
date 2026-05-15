@@ -38,25 +38,25 @@ type ExitData struct {
 
 // NPCData represents an NPC character
 type NPCData struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	CurrentRoomID int   `json:"current_room_id"`
-	Race         string `json:"race"`
-	Class        string `json:"class"`
-	Level        int    `json:"level"`
-	Hitpoints    int    `json:"hitpoints"`
-	MaxHitpoints int    `json:"max_hitpoints"`
-	Stamina      int    `json:"stamina"`
-	MaxStamina   int    `json:"max_stamina"`
-	Mana         int    `json:"mana"`
-	MaxMana      int    `json:"max_mana"`
-	Strength     int    `json:"strength"`
-	Dexterity    int    `json:"dexterity"`
-	Constitution int    `json:"constitution"`
-	Intelligence int    `json:"intelligence"`
-	Wisdom       int    `json:"wisdom"`
-	NPCSkillID   string `json:"npc_skill_id,omitempty"`
-	IsImmortal   bool   `json:"is_immortal"`
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	CurrentRoomID int    `json:"current_room_id"`
+	Race          string `json:"race"`
+	Class         string `json:"class"`
+	Level         int    `json:"level"`
+	Hitpoints     int    `json:"hitpoints"`
+	MaxHitpoints  int    `json:"max_hitpoints"`
+	Stamina       int    `json:"stamina"`
+	MaxStamina    int    `json:"max_stamina"`
+	Mana          int    `json:"mana"`
+	MaxMana       int    `json:"max_mana"`
+	Strength      int    `json:"strength"`
+	Dexterity     int    `json:"dexterity"`
+	Constitution  int    `json:"constitution"`
+	Intelligence  int    `json:"intelligence"`
+	Wisdom        int    `json:"wisdom"`
+	NPCSkillID    string `json:"npc_skill_id,omitempty"`
+	IsImmortal    bool   `json:"is_immortal"`
 }
 
 // SkillData represents a skill/spell
@@ -68,7 +68,7 @@ type SkillData struct {
 	EffectType  string `json:"effect_type,omitempty"`
 }
 
-// ItemData represents an item in the game world (rooms/NPCs, not players)
+// ItemData represents an item in the game world (NPCs, not players)
 type ItemData struct {
 	ID           int    `json:"id"`
 	Name         string `json:"name"`
@@ -80,62 +80,50 @@ type ItemData struct {
 
 // RegisterGameExportRoutes registers export/import routes
 func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
-	// Get list of available worlds (distinct currentWorld values from characters)
+	// Get list of available worlds from the worlds table (DB-backed)
 	router.GET("/admin/export/worlds", func(c *gin.Context) {
-		// Get all characters, then extract unique worlds
-		characters, err := client.Character.Query().
-			Where(character.IsNPCEQ(false)). // Only get player characters (isNPC=false)
-			Select(character.FieldCurrentWorld).
-			All(c.Request.Context())
+		// Query all worlds from the database
+		worlds, err := client.World.Query().All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch worlds: " + err.Error()})
 			return
 		}
 
-		// Extract unique worlds from the selected field
-		worldSet := make(map[string]bool)
-		for _, char := range characters {
-			if char.CurrentWorld != "" {
-				worldSet[char.CurrentWorld] = true
-			}
+		// Convert to WorldInfo format expected by admin
+		var worldList []struct {
+			ID          string `json:"id"`
+			Name        string `json:"name"`
+			Description string `json:"description"`
+			Status      string `json:"status"`
 		}
-
-		var worlds []string
-		for world := range worldSet {
-			worlds = append(worlds, world)
+		for _, w := range worlds {
+			worldList = append(worldList, struct {
+				ID          string `json:"id"`
+				Name        string `json:"name"`
+				Description string `json:"description"`
+				Status      string `json:"status"`
+			}{
+				ID:          w.Name,
+				Name:        w.Name,
+				Description: w.Title,
+				Status:      "active",
+			})
 		}
 
 		// Always include "default" if no worlds exist
-		if len(worlds) == 0 {
-			worlds = []string{"default"}
-		}
-
-		// Convert to WorldInfo format expected by admin
-		var worldList []struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-			Description string `json:"description"`
-			Status string `json:"status"`
-		}
-		for _, w := range worlds {
-			desc := "Game world data"
-			if w == "default" {
-				desc = "Default production world"
-			} else {
-				desc = fmt.Sprintf("World: %s", w)
-			}
+		if len(worldList) == 0 {
 			worldList = append(worldList, struct {
-				ID   string `json:"id"`
-				Name string `json:"name"`
+				ID          string `json:"id"`
+				Name        string `json:"name"`
 				Description string `json:"description"`
-				Status string `json:"status"`
-			}{ID: w, Name: w, Description: desc, Status: "active"})
+				Status      string `json:"status"`
+			}{ID: "default", Name: "default", Description: "Default production world", Status: "active"})
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"worlds":   worldList,
-			"default":  "default",
-			"count":    len(worldList),
+			"worlds": worldList,
+			"default": "default",
+			"count":  len(worldList),
 		})
 	})
 
@@ -155,21 +143,17 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		// Export rooms - filter by world if specified
 		roomsQuery := client.Room.Query()
 		if worldFilter != "" && worldFilter != "all" {
-			// Get room IDs that have NPCs in this world
-			npcsInWorld, err := client.Character.Query().
-				Where(character.IsNPCEQ(true)).
-				Where(character.CurrentWorldEQ(worldFilter)).
-				Select(character.FieldCurrentRoomId).
-				All(c.Request.Context())
-			if err == nil && len(npcsInWorld) > 0 {
-				roomIDs := make([]int, 0, len(npcsInWorld))
-				for _, npc := range npcsInWorld {
-					roomIDs = append(roomIDs, npc.CurrentRoomId)
-				}
-				if len(roomIDs) > 0 {
-					roomsQuery = roomsQuery.Where(room.IDIn(roomIDs...))
-				}
-			}
+			// Filter rooms by world_id
+			roomsQuery = roomsQuery.Where(room.WorldIDEQ(worldFilter))
+
+			// If we need to include rooms with NPCs from this world but without world_id set,
+			// we can also add NPCs filter (for backwards compatibility)
+			// npcsInWorld, err := client.Character.Query().
+			// 	Where(character.IsNPCEQ(true)).
+			// 	Where(character.CurrentWorldEQ(worldFilter)).
+			// 	Select(character.FieldCurrentRoomId).
+			// 	All(c.Request.Context())
+			// ... additional filtering logic
 		}
 		rooms, err := roomsQuery.All(c.Request.Context())
 		if err != nil {
@@ -206,6 +190,8 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch NPCs: " + err.Error()})
 			return
 		}
+		// Initialize NPCs slice to avoid null in JSON output
+		export.NPCs = make([]NPCData, 0)
 
 		for _, npc := range npcs {
 			// Skip player characters (double-check)
@@ -320,10 +306,11 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 
 		// Import rooms
 		for _, r := range importData.Rooms {
-			// Check if room exists
-			exists, _ := client.Room.Query().
-				Where(room.IDEQ(r.ID)).
-				Exist(c.Request.Context())
+			// Check if room exists by name within the same world
+			existing, err := client.Room.Query().
+				Where(room.NameEQ(r.Name)).
+				Where(room.WorldIDEQ(worldFilter)).
+				First(c.Request.Context())
 
 			// Build exits map from array
 			exitsMap := make(map[string]int)
@@ -331,22 +318,45 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 				exitsMap[exit.Direction] = exit.TargetRoomID
 			}
 
-			if exists {
+			if err == nil && existing != nil {
 				// Update existing room
-				client.Room.UpdateOneID(r.ID).
+				client.Room.UpdateOneID(existing.ID).
 					SetName(r.Name).
 					SetDescription(r.Description).
 					SetIsStartingRoom(r.IsStarting).
 					SetExits(exitsMap).
 					Save(c.Request.Context())
 			} else {
-				// Create new room
-				client.Room.Create().
-					SetName(r.Name).
-					SetDescription(r.Description).
-					SetIsStartingRoom(r.IsStarting).
-					SetExits(exitsMap).
-					Save(c.Request.Context())
+				// Validate room exists before creating NPC
+				roomExists, _ := client.Room.Query().
+					Where(room.IDEQ(r.ID)).
+					Exist(c.Request.Context())
+				if !roomExists {
+					// Use first available room as fallback
+					firstRoom, err := client.Room.Query().
+						First(c.Request.Context())
+					if err != nil {
+						c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Room %d does not exist", r.ID)})
+						return
+					}
+					// Create room with first available room's ID
+					client.Room.Create().
+						SetName(r.Name).
+						SetWorldID(firstRoom.WorldID).
+						SetDescription(r.Description).
+						SetIsStartingRoom(r.IsStarting).
+						SetExits(exitsMap).
+						Save(c.Request.Context())
+				} else {
+					// Create new room
+					client.Room.Create().
+						SetName(r.Name).
+						SetWorldID(worldFilter).
+						SetDescription(r.Description).
+						SetIsStartingRoom(r.IsStarting).
+						SetExits(exitsMap).
+						Save(c.Request.Context())
+				}
 			}
 			imported.Rooms++
 		}
@@ -380,8 +390,24 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 					SetWisdom(npc.Wisdom).
 					SetNpcSkillID(npc.NPCSkillID).
 					SetIsImmortal(npc.IsImmortal).
+					SetCurrentWorld(worldFilter).
 					Save(c.Request.Context())
 			} else {
+				// Validate room exists before creating NPC
+				roomExists, _ := client.Room.Query().
+					Where(room.IDEQ(npc.CurrentRoomID)).
+					Exist(c.Request.Context())
+				if !roomExists {
+					// Use first available room as fallback
+					firstRoom, err := client.Room.Query().
+						First(c.Request.Context())
+					if err != nil {
+						c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Room %d does not exist", npc.CurrentRoomID)})
+						return
+					}
+					npc.CurrentRoomID = firstRoom.ID
+				}
+
 				// Create new NPC
 				client.Character.Create().
 					SetName(npc.Name).

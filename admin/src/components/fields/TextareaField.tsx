@@ -1,5 +1,5 @@
-import type { TextareaHTMLAttributes } from 'react'
-import { FieldLabel, INPUT_CLASS } from './FieldLabel'
+import type { TextareaHTMLAttributes } from 'react';
+import { FieldLabel, INPUT_CLASS } from './FieldLabel';
 
 type TextareaFieldProps = Readonly<{
   label: string
@@ -13,7 +13,7 @@ type TextareaFieldProps = Readonly<{
 }> & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value' | 'className' | 'id'>
 
 export function TextareaField({ label, id, placeholder, value, onChange, rows = 3, disabled, tooltip, ...rest }: TextareaFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-');
   return (
     <div>
       <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
@@ -28,5 +28,5 @@ export function TextareaField({ label, id, placeholder, value, onChange, rows = 
         {...rest}
       />
     </div>
-  )
+  );
 }

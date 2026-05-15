@@ -16,5 +16,5 @@ export function TabBar({ tab, setTab }: Readonly<{ tab: string; setTab: (t: 'fac
         ))}
       </div>
     </>
-  )
+  );
 }

@@ -16,5 +16,5 @@ export function TagsIcon({ className = '' }: Readonly<{ className?: string }>) {
       <path d="M6 9.01V9" />
       <path d="m15 5 6.3 6.29a2.4 2.4 0 0 1 0 3.42l-3.58 3.58a2.4 2.4 0 0 1-3.42 0L8 12" />
     </svg>
-  )
+  );
 }

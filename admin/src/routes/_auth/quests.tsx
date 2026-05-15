@@ -1,5 +1,5 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import {
   useQuests,
   useCreateQuest,
@@ -7,27 +7,27 @@ import {
   type QuestInput,
   EMPTY_REWARDS,
   type QuestObjective,
-} from '../../hooks/useQuests'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Button } from '../../components/Button'
-import { FormField, TextareaField, NumberField, SelectField } from '../../components/FormFields'
-import { showToast } from '../../components/Toast'
-import type { Quest } from '../../hooks/useQuests'
+} from '../../hooks/useQuests';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Button } from '../../components/Button';
+import { FormField, TextareaField, NumberField, SelectField } from '../../components/FormFields';
+import { showToast } from '../../components/Toast';
+import type { Quest } from '../../hooks/useQuests';
 
 export const Route = createFileRoute('/_auth/quests')({
   component: QuestsManagement,
-})
+});
 
 const REPEAT_MODE_OPTS = [
   { value: 'none', label: 'None (one-time)' },
   { value: 'cooldown', label: 'Cooldown' },
   { value: 'always', label: 'Always repeatable' },
-]
+];
 
 const EMPTY_OBJECTIVE: QuestObjective = {
   type: '', target_id: '', tag_filter: '', count: 1, labels: [], hint: '',
-}
+};
 
 const EMPTY_QUEST: QuestInput = {
   name: '',
@@ -39,64 +39,64 @@ const EMPTY_QUEST: QuestInput = {
   cooldown_hours: 0,
   is_active: true,
   main_type: 'general',
-}
+};
 
 function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
-  const createQuest = useCreateQuest()
-  const { data: lookups, isLoading: lookupsLoading } = useQuestLookups()
-  const [formData, setFormData] = useState<QuestInput>(EMPTY_QUEST)
-  const set = (patch: Partial<QuestInput>) => setFormData((prev) => ({ ...prev, ...patch }))
+  const createQuest = useCreateQuest();
+  const { data: lookups, isLoading: lookupsLoading } = useQuestLookups();
+  const [formData, setFormData] = useState<QuestInput>(EMPTY_QUEST);
+  const set = (patch: Partial<QuestInput>) => setFormData((prev) => ({ ...prev, ...patch }));
 
-  if (lookupsLoading) return <div className="loading">Loading options...</div>
+  if (lookupsLoading) return <div className="loading">Loading options...</div>;
 
   const addObjective = () => {
-    const objs = [...(formData.objectives ?? []), { ...EMPTY_OBJECTIVE }]
-    set({ objectives: objs })
-  }
+    const objs = [...(formData.objectives ?? []), { ...EMPTY_OBJECTIVE }];
+    set({ objectives: objs });
+  };
   const updateObjective = (i: number, patch: Partial<QuestObjective>) => {
-    const objs = formData.objectives?.map((o, idx) => idx === i ? { ...o, ...patch } : o) ?? []
-    set({ objectives: objs })
-  }
+    const objs = formData.objectives?.map((o, idx) => idx === i ? { ...o, ...patch } : o) ?? [];
+    set({ objectives: objs });
+  };
   const removeObjective = (i: number) => {
-    const objs = formData.objectives?.filter((_, idx) => idx !== i) ?? []
-    set({ objectives: objs })
-  }
+    const objs = formData.objectives?.filter((_, idx) => idx !== i) ?? [];
+    set({ objectives: objs });
+  };
 
   // Get targets filtered by objective type
   const getTargetsForType = (type: string) => {
-    if (!lookups) return []
+    if (!lookups) return [];
     switch (type) {
-      case 'kill': return lookups.npcs
-      case 'explore': return lookups.rooms
-      case 'collect': return lookups.items
-      default: return []
+      case 'kill': return lookups.npcs;
+      case 'explore': return lookups.rooms;
+      case 'collect': return lookups.items;
+      default: return [];
     }
-  }
+  };
 
   // Get current target options based on selected type
-  const currentObjective = formData.objectives?.[0]
-  const targetOptions = getTargetsForType(currentObjective?.type ?? '')
+  const currentObjective = formData.objectives?.[0];
+  const targetOptions = getTargetsForType(currentObjective?.type ?? '');
 
   // Convert prerequisite_quest_ids from strings to numbers for API
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await createQuest.mutateAsync(formData)
-      showToast('Quest created', 'success')
-      setFormData(EMPTY_QUEST)
-      onSuccess()
+      await createQuest.mutateAsync(formData);
+      showToast('Quest created', 'success');
+      setFormData(EMPTY_QUEST);
+      onSuccess();
     } catch { /* toasted globally */ }
-  }
+  };
 
   // Multi-select handlers for rewards
   const togglePrereqQuest = (questId: string) => {
-    const current = formData.prerequisite_quest_ids ?? []
+    const current = formData.prerequisite_quest_ids ?? [];
     if (current.includes(questId)) {
-      set({ prerequisite_quest_ids: current.filter(id => id !== questId) })
+      set({ prerequisite_quest_ids: current.filter(id => id !== questId) });
     } else {
-      set({ prerequisite_quest_ids: [...current, questId] })
+      set({ prerequisite_quest_ids: [...current, questId] });
     }
-  }
+  };
 
   return (
     <div className="form-card space-y-3">
@@ -188,11 +188,11 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
                   key={item.id}
                   type="button"
                   onClick={() => {
-                    const current = formData.rewards?.item_ids ?? []
+                    const current = formData.rewards?.item_ids ?? [];
                     const newIds = current.includes(item.id)
                       ? current.filter(id => id !== item.id)
-                      : [...current, item.id]
-                    set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, item_ids: newIds } })
+                      : [...current, item.id];
+                    set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, item_ids: newIds } });
                   }}
                   className={`px-2 py-1 text-xs rounded border ${
                     (formData.rewards?.item_ids ?? []).includes(item.id)
@@ -215,11 +215,11 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
                   key={tag.id}
                   type="button"
                   onClick={() => {
-                    const current = formData.rewards?.tag_adds ?? []
+                    const current = formData.rewards?.tag_adds ?? [];
                     const newTags = current.includes(tag.id)
                       ? current.filter(t => t !== tag.id)
-                      : [...current, tag.id]
-                    set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, tag_adds: newTags } })
+                      : [...current, tag.id];
+                    set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, tag_adds: newTags } });
                   }}
                   className={`px-2 py-1 text-xs rounded border ${
                     (formData.rewards?.tag_adds ?? []).includes(tag.id)
@@ -241,7 +241,7 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </form>
     </div>
-  )
+  );
 }
 
 const COLUMNS: Column<Quest>[] = [
@@ -258,18 +258,18 @@ const COLUMNS: Column<Quest>[] = [
   { header: 'Repeat', accessor: 'repeat_mode' },
   { header: 'Objectives', accessor: 'objectives', render: (val) => (val as unknown as unknown[])?.length ?? 0 },
   { header: 'XP', accessor: 'rewards', render: (val) => (val as { xp?: number })?.xp ?? 0 },
-]
+];
 
 function QuestsManagement() {
-  const [showCreate, setShowCreate] = useState(false)
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { data: quests, isLoading, error } = useQuests()
+  const [showCreate, setShowCreate] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { data: quests, isLoading, error } = useQuests();
 
-  if (location.pathname !== '/quests') return <Outlet />
+  if (location.pathname !== '/quests') return <Outlet />;
 
-  if (isLoading) return <div className="loading">Loading quests...</div>
-  if (error) return <div className="error">Failed to load quests: {error.message}</div>
+  if (isLoading) return <div className="loading">Loading quests...</div>;
+  if (error) return <div className="error">Failed to load quests: {error.message}</div>;
 
   return (
     <div className="management-page">
@@ -291,5 +291,5 @@ function QuestsManagement() {
         emptyMessage="No quests found. Create your first quest!"
       />
     </div>
-  )
+  );
 }

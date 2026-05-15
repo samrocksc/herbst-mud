@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   useCreateCompetencyCategory,
   useUpdateCompetencyCategory,
   type CompetencyCategory,
   type CompetencyThresholdInput,
-} from '../../hooks/useCompetencies'
-import { Button } from '../../components/Button'
-import { FormField, NumberField } from '../../components/FormFields'
-import { FormError } from '../../components/fields/FormError'
+} from '../../hooks/useCompetencies';
+import { Button } from '../../components/Button';
+import { FormField, NumberField } from '../../components/FormFields';
+import { FormError } from '../../components/fields/FormError';
 
 const DEFAULT_THRESHOLDS: CompetencyThresholdInput[] = [
   { level: 1, xp_required: 0, damage_multiplier: 1.0, defense_multiplier: 1.0 },
@@ -20,7 +20,7 @@ const DEFAULT_THRESHOLDS: CompetencyThresholdInput[] = [
   { level: 8, xp_required: 3000, damage_multiplier: 1.5, defense_multiplier: 1.35 },
   { level: 9, xp_required: 4000, damage_multiplier: 1.65, defense_multiplier: 1.4 },
   { level: 10, xp_required: 5500, damage_multiplier: 1.8, defense_multiplier: 1.5 },
-]
+];
 
 type Props = Readonly<{
   category?: CompetencyCategory | null
@@ -29,34 +29,34 @@ type Props = Readonly<{
 }>
 
 export function SkillForm({ category, onSubmit, onCancel }: Props) {
-  const createMutation = useCreateCompetencyCategory()
-  const updateMutation = useUpdateCompetencyCategory()
-  const isEditing = !!category
-  const isLoading = createMutation.isPending || updateMutation.isPending
-  const error = createMutation.error || updateMutation.error
+  const createMutation = useCreateCompetencyCategory();
+  const updateMutation = useUpdateCompetencyCategory();
+  const isEditing = !!category;
+  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const error = createMutation.error || updateMutation.error;
 
-  const [id, setId] = useState(category?.id ?? '')
-  const [name, setName] = useState(category?.name ?? '')
-  const [xpMult, setXpMult] = useState(category?.xp_multiplier ?? 0.2)
+  const [id, setId] = useState(category?.id ?? '');
+  const [name, setName] = useState(category?.name ?? '');
+  const [xpMult, setXpMult] = useState(category?.xp_multiplier ?? 0.2);
   const [thresholds, setThresholds] = useState<CompetencyThresholdInput[]>(
     category?.thresholds?.length ? category.thresholds : DEFAULT_THRESHOLDS,
-  )
+  );
 
   const updateThreshold = (level: number, field: keyof CompetencyThresholdInput, value: number) => {
-    setThresholds(prev => prev.map(t => t.level === level ? { ...t, [field]: value } : t))
-  }
+    setThresholds(prev => prev.map(t => t.level === level ? { ...t, [field]: value } : t));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       if (isEditing) {
-        await updateMutation.mutateAsync({ id: category!.id, input: { name, xp_multiplier: xpMult, thresholds } })
+        await updateMutation.mutateAsync({ id: category!.id, input: { name, xp_multiplier: xpMult, thresholds } });
       } else {
-        await createMutation.mutateAsync({ id, name, xp_multiplier: xpMult, thresholds })
+        await createMutation.mutateAsync({ id, name, xp_multiplier: xpMult, thresholds });
       }
-      onSubmit()
+      onSubmit();
     } catch { /* error is in mutation state */ }
-  }
+  };
 
   return (
     <div className="form-card space-y-3">
@@ -114,5 +114,5 @@ export function SkillForm({ category, onSubmit, onCancel }: Props) {
         </div>
       </form>
     </div>
-  )
+  );
 }

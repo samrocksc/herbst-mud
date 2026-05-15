@@ -12,6 +12,7 @@ var (
 	AbilitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "description", Type: field.TypeString},
 		{Name: "ability_type", Type: field.TypeString},
 		{Name: "cost", Type: field.TypeInt, Default: 0},
@@ -36,7 +37,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "abilities_factions_abilities",
-				Columns:    []*schema.Column{AbilitiesColumns[16]},
+				Columns:    []*schema.Column{AbilitiesColumns[17]},
 				RefColumns: []*schema.Column{FactionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -465,6 +466,7 @@ var (
 	// DialogNodesColumns holds the columns for the "dialog_nodes" table.
 	DialogNodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "npc_text", Type: field.TypeString},
 		{Name: "responses", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_entry", Type: field.TypeBool, Default: false},
@@ -480,7 +482,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "dialog_nodes_npc_templates_dialog_nodes",
-				Columns:    []*schema.Column{DialogNodesColumns[6]},
+				Columns:    []*schema.Column{DialogNodesColumns[7]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -603,6 +605,7 @@ var (
 	// EquipmentTemplatesColumns holds the columns for the "equipment_templates" table.
 	EquipmentTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "slot", Type: field.TypeString},
@@ -644,6 +647,7 @@ var (
 	FactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "display_name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "member_tags", Type: field.TypeJSON, Nullable: true},
@@ -657,7 +661,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "factions_faction_categories_factions",
-				Columns:    []*schema.Column{FactionsColumns[5]},
+				Columns:    []*schema.Column{FactionsColumns[6]},
 				RefColumns: []*schema.Column{FactionCategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -739,6 +743,7 @@ var (
 	// NpcTemplatesColumns holds the columns for the "npc_templates" table.
 	NpcTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "race", Type: field.TypeString},
@@ -761,6 +766,7 @@ var (
 	QuestsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "description", Type: field.TypeString},
 		{Name: "prerequisite_quest_ids", Type: field.TypeJSON, Nullable: true},
 		{Name: "objectives", Type: field.TypeJSON},
@@ -829,6 +835,7 @@ var (
 	RoomsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
+		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "description", Type: field.TypeString},
 		{Name: "is_starting_room", Type: field.TypeBool, Default: false},
 		{Name: "is_root_room", Type: field.TypeBool, Default: false},
@@ -908,6 +915,7 @@ var (
 		{Name: "password", Type: field.TypeString},
 		{Name: "is_admin", Type: field.TypeBool, Default: false},
 		{Name: "god_mode", Type: field.TypeBool, Default: false},
+		{Name: "allowed_worlds", Type: field.TypeString, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

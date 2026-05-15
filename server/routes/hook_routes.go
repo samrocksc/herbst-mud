@@ -10,7 +10,7 @@ import (
 // RegisterHookRoutes registers CRUD endpoints for EffectHook definitions.
 func RegisterHookRoutes(r *gin.Engine, repos *repository.Container) {
 	hooks := r.Group("/api/hooks")
-	hooks.Use(middleware.AuthMiddleware())
+	hooks.Use(middleware.AuthMiddleware(nil))
 	hooks.Use(middleware.AdminMiddleware())
 	{
 		hooks.GET("", listHooks(repos))
@@ -19,8 +19,8 @@ func RegisterHookRoutes(r *gin.Engine, repos *repository.Container) {
 		hooks.DELETE("/:id", deleteHook(repos))
 	}
 	// Template-scoped routes
-	r.GET("/api/npc-templates/:id/hooks", middleware.AuthMiddleware(), middleware.AdminMiddleware(), listTemplateHooks(repos))
-	r.POST("/api/npc-templates/:id/hooks", middleware.AuthMiddleware(), middleware.AdminMiddleware(), createTemplateHook(repos))
+	r.GET("/api/npc-templates/:id/hooks", middleware.AuthMiddleware(nil), middleware.AdminMiddleware(), listTemplateHooks(repos))
+	r.POST("/api/npc-templates/:id/hooks", middleware.AuthMiddleware(nil), middleware.AdminMiddleware(), createTemplateHook(repos))
 }
 
 type hookView struct {

@@ -7,6 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"herbst-server/db"
+	"herbst-server/db/user"
 )
 
 // Claims represents JWT claims structure
@@ -28,7 +30,8 @@ func getJWTSecret() []byte {
 
 // AuthMiddleware creates authentication middleware
 // It validates JWT tokens and extracts user information
-func AuthMiddleware() gin.HandlerFunc {
+// The dbClient parameter is used for querying user allowed_worlds
+func AuthMiddleware(dbClient *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -59,9 +62,59 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("user_id", claims.UserID)
 		c.Set("email", claims.Email)
 		c.Set("is_admin", claims.IsAdmin)
+		c.Set("db_client", dbClient)
+
+		// Store allowed worlds from user's whitelist
+		allowedWorlds, err := getAllowedWorlds(c, claims.UserID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load user permissions"})
+			c.Abort()
+			return
+		}
+		c.Set("allowed_worlds", allowedWorlds)
 
 		c.Next()
 	}
+}
+
+// getAllowedWorlds retrieves the whitelist of world IDs for a user
+func getAllowedWorlds(c *gin.Context, userID uint) ([]string, error) {
+	// db_client should be in context from AuthMiddleware
+	client, ok := c.Get("db_client")
+	if !ok {
+		// db_client not in context - return empty list (admin with no restrictions)
+		return nil, nil
+	}
+
+	// Check if client is nil - note that an interface containing a typed nil pointer
+	// is not equal to nil, so we need to check after type assertion
+	dbClient, ok := client.(*db.Client)
+	if !ok || dbClient == nil {
+		// No db client available - return empty list (admin with no restrictions)
+		return nil, nil
+	}
+
+	u, err := dbClient.User.Query().Where(user.ID(int(userID))).Only(c.Request.Context())
+	if err != nil {
+		return nil, err
+	}
+
+	allowedWorldsStr := u.AllowedWorlds
+	if allowedWorldsStr == "" {
+		// Empty string means admin can access all worlds
+		return nil, nil
+	}
+
+	// Split comma-separated list and trim whitespace
+	worlds := strings.Split(allowedWorldsStr, ",")
+	result := make([]string, 0, len(worlds))
+	for _, w := range worlds {
+		trimmed := strings.TrimSpace(w)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result, nil
 }
 
 // AdminMiddleware creates admin-only middleware
@@ -78,9 +131,60 @@ func AdminMiddleware() gin.HandlerFunc {
 	}
 }
 
+// WorldAccessMiddleware checks if the user has access to a specific world
+// Must be used after AuthMiddleware
+func WorldAccessMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		allowedWorlds, exists := c.Get("allowed_worlds")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Authentication middleware not run"})
+			c.Abort()
+			return
+		}
+
+		// Get world_id from query parameter, form, or JSON body
+		worldID := c.Query("world_id")
+		if worldID == "" {
+			// Try to get from JSON body for POST/PUT requests
+			var body struct {
+				WorldID string `json:"world_id"`
+			}
+			if err := c.ShouldBindJSON(&body); err == nil {
+				worldID = body.WorldID
+			}
+		}
+
+		// If no world_id specified, allow access (for list operations)
+		if worldID == "" {
+			c.Next()
+			return
+		}
+
+		// Check if user has access to this world
+		wl := allowedWorlds.([]string)
+		if wl == nil {
+			// Nil means admin can access all worlds
+			c.Next()
+			return
+		}
+
+		// Check if world_id is in whitelist
+		for _, w := range wl {
+			if w == worldID {
+				c.Next()
+				return
+			}
+		}
+
+		// World not in whitelist
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied to this world"})
+		c.Abort()
+	}
+}
+
 // OptionalAuthMiddleware creates optional authentication middleware
 // It attaches user info if a valid token is provided, but doesn't require it
-func OptionalAuthMiddleware() gin.HandlerFunc {
+func OptionalAuthMiddleware(dbClient *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -108,6 +212,13 @@ func OptionalAuthMiddleware() gin.HandlerFunc {
 		c.Set("user_id", claims.UserID)
 		c.Set("email", claims.Email)
 		c.Set("is_admin", claims.IsAdmin)
+		c.Set("db_client", dbClient)
+
+		// Store allowed worlds from user's whitelist
+		allowedWorlds, err := getAllowedWorlds(c, claims.UserID)
+		if err == nil {
+			c.Set("allowed_worlds", allowedWorlds)
+		}
 
 		c.Next()
 	}

@@ -1,13 +1,13 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
-import { useWorlds, useSetActiveWorld } from '../../hooks/useWorlds'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Button } from '../../components/Button'
-import type { World } from '../../hooks/useWorlds'
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useWorlds, useSetActiveWorld } from '../../hooks/useWorlds';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Button } from '../../components/Button';
+import type { World } from '../../hooks/useWorlds';
 
 export const Route = createFileRoute('/_auth/worlds')({
   component: WorldsManagement,
-})
+});
 
 const COLUMNS: Column<World>[] = [
   {
@@ -35,15 +35,15 @@ const COLUMNS: Column<World>[] = [
     accessor: 'active',
     render: (_: unknown, row: World) => <ActiveToggle world={row} />,
   },
-]
+];
 
 function ActiveToggle({ world }: { world: World }) {
-  const setActive = useSetActiveWorld()
-  const isChecked = world.active ?? false
+  const setActive = useSetActiveWorld();
+  const isChecked = world.active ?? false;
 
   const handleToggle = () => {
-    setActive.mutate({ id: world.id, active: !isChecked })
-  }
+    setActive.mutate({ id: world.id, active: !isChecked });
+  };
 
   return (
     <label className="flex items-center cursor-pointer gap-2">
@@ -56,18 +56,18 @@ function ActiveToggle({ world }: { world: World }) {
       />
       <span className="text-sm">{isChecked ? 'Active' : 'Inactive'}</span>
     </label>
-  )
+  );
 }
 
 function WorldsManagement() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { data: worlds, isLoading, error } = useWorlds()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { data: worlds, isLoading, error } = useWorlds();
 
-  if (location.pathname !== '/worlds') return <Outlet />
+  if (location.pathname !== '/worlds') return <Outlet />;
 
-  if (isLoading) return <div className="loading">Loading worlds...</div>
-  if (error) return <div className="error">Failed to load worlds: {error.message}</div>
+  if (isLoading) return <div className="loading">Loading worlds...</div>;
+  if (error) return <div className="error">Failed to load worlds: {error.message}</div>;
 
   return (
     <div className="management-page">
@@ -89,5 +89,5 @@ function WorldsManagement() {
         emptyMessage="No worlds found. Create your first world!"
       />
     </div>
-  )
+  );
 }

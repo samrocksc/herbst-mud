@@ -25,6 +25,10 @@
 *   **[Testing Protocol](./guides/TESTING.md)**: TDD approach and Gherkin feature testing.
 *   **[Contribution Workflow](./docs/GITHUB_ETIQUETTE.md)**: PR standards and commit etiquette.
 
+### 🌍 Worlds & Multi-Tenancy
+*   **[World System Overview](./specs/WORLD-SYSTEM.md)**: Multi-world architecture, `world_id` filtering, and whitelist-based access control.
+*   **[Effects System](./effects-system.md)**: Ability effects, hooks, and active effects system.
+
 ### 📖 User & Admin Manuals
 *   **[Admin Panel Guide](./guides/ADMINISTRATION.md)**: How to manage the world via the web UI.
 *   **[Player's Guide](./guides/PLAYER_GUIDE.md)**: Game mechanics and user interface instructions.

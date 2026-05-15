@@ -20,8 +20,12 @@ func (r *entDialogNodeRepo) Get(ctx context.Context, id string) (*db.DialogNode,
 	return r.client.DialogNode.Get(ctx, id)
 }
 
-func (r *entDialogNodeRepo) List(ctx context.Context) ([]*db.DialogNode, error) {
-	return r.client.DialogNode.Query().All(ctx)
+func (r *entDialogNodeRepo) List(ctx context.Context, worldID string) ([]*db.DialogNode, error) {
+	query := r.client.DialogNode.Query()
+	if worldID != "" {
+		query = query.Where(dialognode.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
 func (r *entDialogNodeRepo) ListByTemplate(ctx context.Context, templateID string) ([]*db.DialogNode, error) {
@@ -36,7 +40,8 @@ func (r *entDialogNodeRepo) Create(ctx context.Context, input CreateDialogNodeIn
 		SetNpcTemplateID(input.NPCTemplateID).
 		SetNpcText(input.NPCText).
 		SetResponses(input.Responses).
-		SetOnEnterEffects(input.OnEnterEffects)
+		SetOnEnterEffects(input.OnEnterEffects).
+		SetWorldID(input.WorldID)
 	if input.IsEntry {
 		builder = builder.SetIsEntry(input.IsEntry)
 	}
@@ -65,6 +70,9 @@ func (r *entDialogNodeRepo) Update(ctx context.Context, id string, updates Dialo
 	}
 	if updates.NPCTemplateID != nil {
 		builder = builder.SetNpcTemplateID(*updates.NPCTemplateID)
+	}
+	if updates.WorldID != nil {
+		builder = builder.SetWorldID(*updates.WorldID)
 	}
 	return builder.Save(ctx)
 }

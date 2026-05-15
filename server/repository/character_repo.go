@@ -55,6 +55,14 @@ func (r *entCharacterRepo) ListAll(ctx context.Context) ([]*db.Character, error)
 	return r.client.Character.Query().All(ctx)
 }
 
+func (r *entCharacterRepo) ListAllByWorld(ctx context.Context, worldID string) ([]*db.Character, error) {
+	query := r.client.Character.Query()
+	if worldID != "" {
+		query = query.Where(character.CurrentWorldEQ(worldID))
+	}
+	return query.All(ctx)
+}
+
 func (r *entCharacterRepo) CountByUser(ctx context.Context, userID int) (int, error) {
 	return r.client.Character.Query().
 		Where(character.HasUserWith(user.ID(userID))).

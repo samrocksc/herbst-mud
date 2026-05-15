@@ -1,62 +1,71 @@
-Feature: Character Creation (Issue #10)
-  As a new player
-  I want to create a character when I first log in
+Feature: Character Creation
+  As a new user
+  I want to be able to create a character
   So that I can start playing the game
 
   Background:
-    Given I am a new user who has logged into the game
-    And I have no existing characters
+    Given the character creation API is available
+    And I am logged in as a valid user
 
-  Scenario: See character creation screen
-    Given I have logged in successfully
-    When I have no characters
-    Then I should see a character creation form
-    And the form should allow me to enter a character name
+  Scenario: New user with no characters can create a character
+    Given a user "newplayer@example.com" exists with password "password123"
+    And the user has no characters
+    When I create a character "NewHero" with password "heroPass123" for user
+    Then character creation should be successful
+    And the character should belong to the user
 
-  Scenario: Create character with valid name
-    Given I see the character creation screen
-    When I enter a valid character name
-    And I select a race
-    And I select a class
-    And I select a gender
-    And I submit the form
-    Then a new character should be created
-    And I should see my character in the game
+  Scenario: User can view their characters
+    Given a user "player@example.com" exists
+    And the user has a character "ExistingHero"
+    When I request characters for the user
+    Then I should see character "ExistingHero"
 
-  Scenario: Character name validation
-    Given I see the character creation screen
-    When I enter a character name that is too short
-    And I submit the form
-    Then I should see an error message about the name length
-    And the character should not be created
+  Scenario: User needs to create character after login
+    Given an authenticated user
+    When I check if I need to create a character
+    And I have no characters
+    Then I should be prompted to create a character
 
-  Scenario: Create multiple characters
-    Given I already have one character
-    When I choose to create another character
-    And I have fewer than 3 characters
-    Then I should be able to create a new character
-    And both characters should be associated with my account
+  Scenario: Create character with duplicate name fails
+    Given a character "DupName" already exists
+    When I try to create a character named "DupName"
+    Then I should receive a "name taken" error
 
-  Scenario: Maximum character limit
-    Given I already have 3 characters
-    When I try to create another character
-    Then I should see an error about the character limit
-    And I should not be able to create more characters
+  Scenario: Create character with invalid class fails
+    Given I am logged in
+    When I try to create a character with class "InvalidClass"
+    Then I should receive a "invalid class" error
 
-  Scenario: Select race during creation
-    Given I am on the character creation screen
-    When I select race "Mutant"
-    Then the character should have the Mutant race
-    And stats should be adjusted for Mutant race
+  Scenario: Create character with invalid race fails
+    Given I am logged in
+    When I try to create a character with race "InvalidRace"
+    Then I should receive a "invalid race" error
 
-  Scenario: Select class during creation
-    Given I am on the character creation screen
-    When I select class "Warrior"
-    Then the character should have the Warrior class
-    And starting equipment should match the class
+  Scenario: Create character with name too short
+    Given I am logged in
+    When I try to create a character with name "A"
+    Then I should receive a "name too short" error
 
-  Scenario: Select gender during creation
-    Given I am on the character creation screen
-    When I select gender "they/them"
-    Then the character should have the they/them gender
-    And pronouns should be used correctly in game text
+  Scenario: Create character with name too long
+    Given I am logged in
+    When I try to create a character with name "ThisNameIsWayTooLongForTheGame"
+    Then I should receive a "name too long" error
+
+  Scenario: Each class has correct base stat distribution
+    When I create a character "WarriorChar" class "Warrior"
+    Then the character stats should have high strength
+    And the character stats should have high health
+    And the character stats should have low mana
+
+    When I create a character "MageChar" class "Mage"
+    Then the character stats should have high intelligence
+    And the character stats should have high mana
+    And the character stats should have low health
+
+    When I create a character "RogueChar" class "Rogue"
+    Then the character stats should have high agility
+    And the character stats should have medium health and mana
+
+    When I create a character "PriestChar" class "Priest"
+    Then the character stats should have high wisdom
+    And the character stats should have high mana

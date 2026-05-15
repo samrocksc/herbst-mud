@@ -1,15 +1,16 @@
-import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
-import { useState, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost } from '../../utils/apiFetch'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Modal } from '../../components/Modal'
-import { Button } from '../../components/Button'
+import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router';
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost } from '../../utils/apiFetch';
+import { useWorldStore } from '../../hooks/useWorldStore';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Modal } from '../../components/Modal';
+import { Button } from '../../components/Button';
 
 export const Route = createFileRoute('/_auth/npcs')({
   component: NPCTemplatesIndex,
-})
+});
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -33,7 +34,7 @@ type NPCTemplateForm = Readonly<{
   respawn_rooms: string
 }>
 
-const API = `${window.location.origin}`
+const API = `${window.location.origin}`;
 
 // ─── Empty form ─────────────────────────────────────────────────────────────
 
@@ -46,37 +47,46 @@ const EMPTY_FORM: NPCTemplateForm = {
   xp_value: 0,
   respawn_cooldown: 60,
   respawn_rooms: '',
-}
+};
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 function NPCTemplatesIndex() {
-  const queryClient = useQueryClient()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [form, setForm] = useState<NPCTemplateForm>(EMPTY_FORM)
+  const { currentWorld } = useWorldStore();
+  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [form, setForm] = useState<NPCTemplateForm>(EMPTY_FORM);
+
+  // Build query string with world_id
+  const params = useMemo(() => {
+    const p = new URLSearchParams();
+    if (currentWorld) p.append('world_id', currentWorld);
+    return p.toString();
+  }, [currentWorld]);
+  const qs = params ? `?${params}` : '';
 
   // ── Query ────────────────────────────────────────────────────────────────
 
   const templatesQuery = useQuery({
-    queryKey: ['npc-templates'],
-    queryFn: () => apiGet<NPCTemplate[]>(`${API}/api/npc-templates`),
-  })
+    queryKey: ['npc-templates', currentWorld],
+    queryFn: () => apiGet<NPCTemplate[]>(`${API}/api/npc-templates${qs}`),
+  });
 
   // Fetch instances once to count by template
   const instancesQuery = useQuery({
-    queryKey: ['npc-instances-count'],
-    queryFn: () => apiGet<Array<{ npc_template_id: string }>>(`${API}/api/npc-instances`),
-  })
+    queryKey: ['npc-instances-count', currentWorld],
+    queryFn: () => apiGet<Array<{ npc_template_id: string }>>(`${API}/api/npc-instances${qs}`),
+  });
 
   const instanceCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
+    const counts: Record<string, number> = {};
     for (const inst of instancesQuery.data ?? []) {
-      const tid = inst.npc_template_id
-      if (tid) counts[tid] = (counts[tid] ?? 0) + 1
+      const tid = inst.npc_template_id;
+      if (tid) counts[tid] = (counts[tid] ?? 0) + 1;
     }
-    return counts
-  }, [instancesQuery.data])
+    return counts;
+  }, [instancesQuery.data]);
 
   // ── Create mutation ──────────────────────────────────────────────────────
 
@@ -85,8 +95,8 @@ function NPCTemplatesIndex() {
       const rooms = input.respawn_rooms
         .split(',')
         .map((s) => s.trim())
-        .filter((s) => s !== '')
-      return apiPost<NPCTemplate>(`${API}/api/npc-templates`, {
+        .filter((s) => s !== '');
+      return apiPost<NPCTemplate>(`${API}/api/npc-templates${qs}`, {
         id: input.id,
         name: input.name,
         description: input.description,
@@ -97,37 +107,37 @@ function NPCTemplatesIndex() {
         respawn_rooms: rooms,
         skills: {},
         trades_with: [],
-      })
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-templates'] })
-      setShowCreateModal(false)
-      setForm(EMPTY_FORM)
+      queryClient.invalidateQueries({ queryKey: ['npc-templates'] });
+      setShowCreateModal(false);
+      setForm(EMPTY_FORM);
     },
-  })
+  });
 
   // ── Search filter ────────────────────────────────────────────────────────
 
   const filteredTemplates = (templatesQuery.data ?? []).filter((template) =>
     template.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleCreate = () => {
-    if (!form.name.trim() || !form.id.trim()) return
-    createMutation.mutate(form)
-  }
+    if (!form.name.trim() || !form.id.trim()) return;
+    createMutation.mutate(form);
+  };
 
   const handleModalClose = () => {
-    setShowCreateModal(false)
-    setForm(EMPTY_FORM)
-  }
+    setShowCreateModal(false);
+    setForm(EMPTY_FORM);
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const location = useLocation()
-  const isList = location.pathname === '/npcs'
+  const location = useLocation();
+  const isList = location.pathname === '/npcs';
 
   const columns = useMemo<Column<NPCTemplate>[]>(
     () => [
@@ -160,10 +170,10 @@ function NPCTemplatesIndex() {
       },
     ],
     [instanceCounts],
-  )
+  );
 
   if (!isList) {
-    return <Outlet />
+    return <Outlet />;
   }
 
   return (
@@ -341,5 +351,5 @@ function NPCTemplatesIndex() {
         </div>
       </Modal>
     </div>
-  )
+  );
 }

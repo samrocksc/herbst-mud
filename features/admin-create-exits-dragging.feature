@@ -53,4 +53,4 @@ Feature: Admin - Create Exits by Dragging (admin-06)
   Scenario: Exit shows required level for locked doors
     Given I create a locked exit
     Then the edge should show required level
-    Or the exit properties should list the requirement
+    And the exit properties should list the requirement

@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import { ALL_DIRECTIONS } from './DirectionUtils'
-import { Button } from '../Button'
-import { SearchableSelect } from '../SearchableSelect'
-import { FormField } from '../fields/FormField'
-import { TextareaField } from '../fields/TextareaField'
-import { FormError } from '../fields/FormError'
-import { showToast } from '../Toast'
-import { useRooms } from '../../hooks/useRooms'
-import type { Room } from './types'
+import { useState } from 'react';
+import { ALL_DIRECTIONS } from './DirectionUtils';
+import { Button } from '../Button';
+import { SearchableSelect } from '../SearchableSelect';
+import { FormField } from '../fields/FormField';
+import { TextareaField } from '../fields/TextareaField';
+import { FormError } from '../fields/FormError';
+import { showToast } from '../Toast';
+import { useRooms } from '../../hooks/useRooms';
+import type { Room } from './types';
 
 type RoomEditorProps = {
   room: Room
@@ -15,46 +15,46 @@ type RoomEditorProps = {
 }
 
 export function RoomEditor({ room, onCancel }: RoomEditorProps) {
-  const { rooms, updateRoom, isUpdating, createBidirectionalExit, removeBidirectionalExit } = useRooms()
+  const { rooms, updateRoom, isUpdating, createBidirectionalExit, removeBidirectionalExit } = useRooms();
   const [form, setForm] = useState({
     name: room.name,
     description: room.description,
     exits: { ...room.exits },
     isStartingRoom: room.isStartingRoom,
     isRootRoom: room.isRootRoom,
-  })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const handleExitChange = async (dir: string, val: string) => {
     if (val) {
-      const targetId = parseInt(val)
-      const oldTargetId = form.exits[dir]
+      const targetId = parseInt(val);
+      const oldTargetId = form.exits[dir];
 
       if (oldTargetId && oldTargetId !== targetId) {
-        removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {})
+        removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {});
       }
 
-      setForm(f => ({ ...f, exits: { ...f.exits, [dir]: targetId } }))
+      setForm(f => ({ ...f, exits: { ...f.exits, [dir]: targetId } }));
       try {
-        await createBidirectionalExit({ roomId: room.id, direction: dir, targetRoomId: targetId })
+        await createBidirectionalExit({ roomId: room.id, direction: dir, targetRoomId: targetId });
       } catch {
-        setForm(f => ({ ...f, exits: { ...f.exits, [dir]: oldTargetId } }))
-        showToast('Failed to create exit', 'error')
+        setForm(f => ({ ...f, exits: { ...f.exits, [dir]: oldTargetId } }));
+        showToast('Failed to create exit', 'error');
       }
     } else {
-      const oldTargetId = form.exits[dir]
-      const { [dir]: _, ...rest } = form.exits
-      setForm(f => ({ ...f, exits: rest }))
+      const oldTargetId = form.exits[dir];
+      const { [dir]: _, ...rest } = form.exits;
+      setForm(f => ({ ...f, exits: rest }));
       if (oldTargetId) {
-        removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {})
+        removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {});
       }
     }
-  }
+  };
 
   const handleSave = () => {
-    setError('')
-    setSaving(true)
+    setError('');
+    setSaving(true);
     updateRoom({
       id: room.id,
       update: {
@@ -64,9 +64,9 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
         isRootRoom: form.isRootRoom,
         version: room.version,
       },
-    })
-    onCancel()
-  }
+    });
+    onCancel();
+  };
 
   return (
     <>
@@ -135,5 +135,5 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
         <Button variant="secondary" size="md" fullWidth onClick={onCancel}>Cancel</Button>
       </div>
     </>
-  )
+  );
 }

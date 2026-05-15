@@ -1,4 +1,4 @@
-import type { Ability } from '../../hooks/useAbilities'
+import type { Ability } from '../../hooks/useAbilities';
 
 export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
   return (
@@ -31,7 +31,7 @@ export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
         <p className="text-text text-sm mt-4">{ability.description}</p>
       )}
     </div>
-  )
+  );
 }
 
 function DetailField({ label, value }: Readonly<{ label: string; value: string }>) {
@@ -40,5 +40,5 @@ function DetailField({ label, value }: Readonly<{ label: string; value: string }
       <span className="text-text-muted text-xs block mb-0.5">{label}</span>
       <span className="text-text text-sm font-medium">{value}</span>
     </div>
-  )
+  );
 }

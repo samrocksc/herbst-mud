@@ -30,6 +30,20 @@ func (_u *DialogNodeUpdate) Where(ps ...predicate.DialogNode) *DialogNodeUpdate 
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *DialogNodeUpdate) SetWorldID(v string) *DialogNodeUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *DialogNodeUpdate) SetNillableWorldID(v *string) *DialogNodeUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetNpcText sets the "npc_text" field.
 func (_u *DialogNodeUpdate) SetNpcText(v string) *DialogNodeUpdate {
 	_u.mutation.SetNpcText(v)
@@ -183,6 +197,9 @@ func (_u *DialogNodeUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(dialognode.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.NpcText(); ok {
 		_spec.SetField(dialognode.FieldNpcText, field.TypeString, value)
 	}
@@ -264,6 +281,20 @@ type DialogNodeUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *DialogNodeMutation
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *DialogNodeUpdateOne) SetWorldID(v string) *DialogNodeUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *DialogNodeUpdateOne) SetNillableWorldID(v *string) *DialogNodeUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
 }
 
 // SetNpcText sets the "npc_text" field.
@@ -448,6 +479,9 @@ func (_u *DialogNodeUpdateOne) sqlSave(ctx context.Context) (_node *DialogNode, 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(dialognode.FieldWorldID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.NpcText(); ok {
 		_spec.SetField(dialognode.FieldNpcText, field.TypeString, value)

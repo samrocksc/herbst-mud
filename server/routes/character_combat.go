@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/db"
 	"herbst-server/repository"
 	"herbst-server/service"
 )
@@ -224,7 +225,15 @@ func getNPCsByRoom(repos *repository.Container) gin.HandlerFunc {
 
 func listAllNPCs(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		npcs, err := repos.Character.ListAllNPCs(c.Request.Context())
+		// Filter by world_id if provided
+		worldID := c.Query("world_id")
+		var npcs []*db.Character
+		var err error
+		if worldID != "" {
+			npcs, err = repos.Character.ListAllByWorld(c.Request.Context(), worldID)
+		} else {
+			npcs, err = repos.Character.ListAllNPCs(c.Request.Context())
+		}
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"herbst-server/db"
+	"herbst-server/db/quest"
 )
 
 type entQuestRepo struct {
@@ -18,8 +19,12 @@ func (r *entQuestRepo) Get(ctx context.Context, id int) (*db.Quest, error) {
 	return r.client.Quest.Get(ctx, id)
 }
 
-func (r *entQuestRepo) List(ctx context.Context) ([]*db.Quest, error) {
-	return r.client.Quest.Query().All(ctx)
+func (r *entQuestRepo) List(ctx context.Context, worldID string) ([]*db.Quest, error) {
+	query := r.client.Quest.Query()
+	if worldID != "" {
+		query = query.Where(quest.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
 func (r *entQuestRepo) Create(ctx context.Context, input CreateQuestInput) (*db.Quest, error) {
@@ -31,7 +36,8 @@ func (r *entQuestRepo) Create(ctx context.Context, input CreateQuestInput) (*db.
 		SetRewards(input.Rewards).
 		SetRepeatMode(input.RepeatMode).
 		SetCooldownHours(input.CooldownHours).
-		SetIsActive(input.IsActive)
+		SetIsActive(input.IsActive).
+		SetWorldID(input.WorldID)
 	return builder.Save(ctx)
 }
 
@@ -60,6 +66,9 @@ func (r *entQuestRepo) Update(ctx context.Context, id int, updates QuestUpdates)
 	}
 	if updates.IsActive != nil {
 		builder = builder.SetIsActive(*updates.IsActive)
+	}
+	if updates.WorldID != nil {
+		builder = builder.SetWorldID(*updates.WorldID)
 	}
 	return builder.Save(ctx)
 }

@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { PageHeader } from '../../components/PageHeader'
-import { DocsIcon } from '../../components/icons/DocsIcon'
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { PageHeader } from '../../components/PageHeader';
+import { DocsIcon } from '../../components/icons/DocsIcon';
 
 export const Route = createFileRoute('/docs/')({
   component: DocsIndex,
-})
+});
 
 const DOC_PAGES = [
   {
@@ -57,7 +57,12 @@ const DOC_PAGES = [
     path: '/docs/bind-points',
     desc: 'Root room, bind points, respawn mechanics, and reconnect positioning.',
   },
-]
+  {
+    title: 'Worlds',
+    path: '/docs/worlds',
+    desc: 'Multi-world architecture, settings, content structure, and game time.',
+  },
+];
 
 function DocsIndex() {
   return (
@@ -86,5 +91,5 @@ function DocsIndex() {
         ))}
       </div>
     </div>
-  )
+  );
 }

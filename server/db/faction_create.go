@@ -29,6 +29,20 @@ func (_c *FactionCreate) SetName(v string) *FactionCreate {
 	return _c
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *FactionCreate) SetWorldID(v string) *FactionCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *FactionCreate) SetNillableWorldID(v *string) *FactionCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // SetDisplayName sets the "display_name" field.
 func (_c *FactionCreate) SetDisplayName(v string) *FactionCreate {
 	_c.mutation.SetDisplayName(v)
@@ -126,6 +140,7 @@ func (_c *FactionCreate) Mutation() *FactionMutation {
 
 // Save creates the Faction in the database.
 func (_c *FactionCreate) Save(ctx context.Context) (*Faction, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -151,10 +166,21 @@ func (_c *FactionCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *FactionCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := faction.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *FactionCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "Faction.name"`)}
+	}
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "Faction.world_id"`)}
 	}
 	if _, ok := _c.mutation.DisplayName(); !ok {
 		return &ValidationError{Name: "display_name", err: errors.New(`db: missing required field "Faction.display_name"`)}
@@ -188,6 +214,10 @@ func (_c *FactionCreate) createSpec() (*Faction, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(faction.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(faction.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
 	}
 	if value, ok := _c.mutation.DisplayName(); ok {
 		_spec.SetField(faction.FieldDisplayName, field.TypeString, value)
@@ -287,6 +317,7 @@ func (_c *FactionCreateBulk) Save(ctx context.Context) ([]*Faction, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*FactionMutation)
 				if !ok {

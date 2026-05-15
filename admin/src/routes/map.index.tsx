@@ -1,29 +1,29 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useCallback } from 'react'
-import { useMapState } from '../hooks/useMapState'
-import { MapSidebar } from '../components/map/MapSidebar'
-import { MapToolbar } from '../components/map/MapToolbar'
-import { MapCanvas } from '../components/map/MapCanvas'
-import { RoomDetailPanel } from '../components/map/RoomDetailPanel'
-import { RoomEditor } from '../components/map/RoomEditor'
-import { MenuIcon } from '../components/icons/MenuIcon'
-import { Button } from '../components/Button'
+import { createFileRoute } from '@tanstack/react-router';
+import { useEffect, useCallback } from 'react';
+import { useMapState } from '../hooks/useMapState';
+import { MapSidebar } from '../components/map/MapSidebar';
+import { MapToolbar } from '../components/map/MapToolbar';
+import { MapCanvas } from '../components/map/MapCanvas';
+import { RoomDetailPanel } from '../components/map/RoomDetailPanel';
+import { RoomEditor } from '../components/map/RoomEditor';
+import { MenuIcon } from '../components/icons/MenuIcon';
+import { Button } from '../components/Button';
 
 export const Route = createFileRoute('/map/')({
   component: MapBuilder,
-})
+});
 
 function MapBuilder() {
-  const state = useMapState()
+  const state = useMapState();
 
   useEffect(() => {
-    if (!localStorage.getItem('token')) state.navigate({ to: '/login' })
-  }, [state.navigate])
+    if (!localStorage.getItem('token')) state.navigate({ to: '/login' });
+  }, [state.navigate]);
 
-  const getNPCsInRoom = useCallback((roomId: number) => state.npcs.filter(n => n.currentRoomId === roomId), [state.npcs])
-  const getEquipmentInRoom = useCallback((_roomId: number) => state.roomEquipment, [state.roomEquipment])
+  const getNPCsInRoom = useCallback((roomId: number) => state.npcs.filter(n => n.currentRoomId === roomId), [state.npcs]);
+  const getEquipmentInRoom = useCallback((_roomId: number) => state.roomEquipment, [state.roomEquipment]);
 
-  if (state.roomsLoading) return <div className="p-8 text-text">Loading map...</div>
+  if (state.roomsLoading) return <div className="p-8 text-text">Loading map...</div>;
 
   return (
     <div className="flex h-screen bg-surface">
@@ -110,5 +110,5 @@ function MapBuilder() {
         </div>
       )}
     </div>
-  )
+  );
 }

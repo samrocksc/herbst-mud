@@ -44,6 +44,20 @@ func (_u *QuestUpdate) SetNillableName(v *string) *QuestUpdate {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *QuestUpdate) SetWorldID(v string) *QuestUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *QuestUpdate) SetNillableWorldID(v *string) *QuestUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetDescription sets the "description" field.
 func (_u *QuestUpdate) SetDescription(v string) *QuestUpdate {
 	_u.mutation.SetDescription(v)
@@ -263,6 +277,9 @@ func (_u *QuestUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(quest.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(quest.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(quest.FieldDescription, field.TypeString, value)
 	}
@@ -378,6 +395,20 @@ func (_u *QuestUpdateOne) SetName(v string) *QuestUpdateOne {
 func (_u *QuestUpdateOne) SetNillableName(v *string) *QuestUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *QuestUpdateOne) SetWorldID(v string) *QuestUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *QuestUpdateOne) SetNillableWorldID(v *string) *QuestUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
 	}
 	return _u
 }
@@ -630,6 +661,9 @@ func (_u *QuestUpdateOne) sqlSave(ctx context.Context) (_node *Quest, err error)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(quest.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(quest.FieldWorldID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(quest.FieldDescription, field.TypeString, value)

@@ -1,49 +1,49 @@
-import { useState } from 'react'
-import { useActiveEffects, useRemoveActiveEffect, useApplyEffect, type ActiveEffect } from '../hooks/useActiveEffects'
-import { useEffectDefs } from '../hooks/useEffectDefs'
-import { Button } from './Button'
-import { DeleteConfirmation } from './DeleteConfirmation'
-import { showToast } from './Toast'
-import { SelectField } from './fields'
+import { useState } from 'react';
+import { useActiveEffects, useRemoveActiveEffect, useApplyEffect, type ActiveEffect } from '../hooks/useActiveEffects';
+import { useEffectDefs } from '../hooks/useEffectDefs';
+import { Button } from './Button';
+import { DeleteConfirmation } from './DeleteConfirmation';
+import { showToast } from './Toast';
+import { SelectField } from './fields';
 
 function formatDuration(startedAt: string, expiresAt: string | null): string {
-  if (!expiresAt) return 'Permanent'
-  const now = Date.now()
-  const end = new Date(expiresAt).getTime()
-  const remaining = Math.max(0, end - now)
-  if (remaining === 0) return 'Expired'
-  const mins = Math.floor(remaining / 60000)
-  const secs = Math.floor((remaining % 60000) / 1000)
-  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
+  if (!expiresAt) return 'Permanent';
+  const now = Date.now();
+  const end = new Date(expiresAt).getTime();
+  const remaining = Math.max(0, end - now);
+  if (remaining === 0) return 'Expired';
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 }
 
 function formatParams(params: Record<string, unknown>): string {
-  const entries = Object.entries(params)
-  if (entries.length === 0) return '—'
-  return entries.map(([k, v]) => `${k}=${v}`).join(', ')
+  const entries = Object.entries(params);
+  if (entries.length === 0) return '—';
+  return entries.map(([k, v]) => `${k}=${v}`).join(', ');
 }
 
 export function ActiveEffectsPanel({ characterId }: { characterId: number }) {
-  const { data: effects = [], isLoading, error } = useActiveEffects(characterId)
-  const { data: effectDefs = [] } = useEffectDefs()
-  const remove = useRemoveActiveEffect()
-  const apply = useApplyEffect()
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
-  const [selectedEffectId, setSelectedEffectId] = useState<number>(effectDefs[0]?.id ?? 0)
-  const [showApply, setShowApply] = useState(false)
+  const { data: effects = [], isLoading, error } = useActiveEffects(characterId);
+  const { data: effectDefs = [] } = useEffectDefs();
+  const remove = useRemoveActiveEffect();
+  const apply = useApplyEffect();
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [selectedEffectId, setSelectedEffectId] = useState<number>(effectDefs[0]?.id ?? 0);
+  const [showApply, setShowApply] = useState(false);
 
   const handleApply = () => {
-    if (!selectedEffectId) return
+    if (!selectedEffectId) return;
     apply.mutate({ characterId, effectId: selectedEffectId }, {
-      onSuccess: () => { setShowApply(false); showToast('Effect applied', 'success') },
-    })
-  }
+      onSuccess: () => { setShowApply(false); showToast('Effect applied', 'success'); },
+    });
+  };
 
   const handleRemove = (effectId: number) => {
     remove.mutate({ characterId, effectId }, {
-      onSuccess: () => { setConfirmDelete(null); showToast('Effect removed', 'success') },
-    })
-  }
+      onSuccess: () => { setConfirmDelete(null); showToast('Effect removed', 'success'); },
+    });
+  };
 
   return (
     <div className="mt-6">
@@ -106,5 +106,5 @@ export function ActiveEffectsPanel({ characterId }: { characterId: number }) {
         />
       )}
     </div>
-  )
+  );
 }

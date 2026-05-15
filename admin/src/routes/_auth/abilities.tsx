@@ -1,14 +1,14 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useAbilities } from '../../hooks/useAbilities'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Button } from '../../components/Button'
-import type { Ability } from '../../hooks/useAbilities'
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useAbilities } from '../../hooks/useAbilities';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Button } from '../../components/Button';
+import type { Ability } from '../../hooks/useAbilities';
 
 export const Route = createFileRoute('/_auth/abilities')({
   component: AbilitiesManagement,
-})
+});
 
 const COLUMNS: Column<Ability>[] = [
   {
@@ -43,30 +43,30 @@ const COLUMNS: Column<Ability>[] = [
     header: 'Costs',
     accessor: 'mana_cost',
     render: (_, row: Ability) => {
-      const parts: React.ReactNode[] = []
-      if (row.mana_cost > 0) parts.push(<span key="mp" className="cost-badge" title="Mana Cost">MP: {row.mana_cost}</span>)
-      if (row.stamina_cost > 0) parts.push(<span key="sp" className="cost-badge" title="Stamina Cost">SP: {row.stamina_cost}</span>)
-      if (row.hp_cost > 0) parts.push(<span key="hp" className="cost-badge" title="HP Cost">HP: {row.hp_cost}</span>)
-      if (row.cooldown_seconds > 0) parts.push(<span key="cd" className="cost-badge" title="Cooldown">CD: {row.cooldown_seconds}s</span>)
-      return parts.length > 0 ? parts : <span className="text-muted">—</span>
+      const parts: React.ReactNode[] = [];
+      if (row.mana_cost > 0) parts.push(<span key="mp" className="cost-badge" title="Mana Cost">MP: {row.mana_cost}</span>);
+      if (row.stamina_cost > 0) parts.push(<span key="sp" className="cost-badge" title="Stamina Cost">SP: {row.stamina_cost}</span>);
+      if (row.hp_cost > 0) parts.push(<span key="hp" className="cost-badge" title="HP Cost">HP: {row.hp_cost}</span>);
+      if (row.cooldown_seconds > 0) parts.push(<span key="cd" className="cost-badge" title="Cooldown">CD: {row.cooldown_seconds}s</span>);
+      return parts.length > 0 ? parts : <span className="text-muted">—</span>;
     },
   },
-]
+];
 
 function AbilitiesManagement() {
-  const [filterType, setFilterType] = useState<string>('')
-  const [filterClass, setFilterClass] = useState<string>('')
-  const navigate = useNavigate()
-  const location = useLocation()
+  const [filterType, setFilterType] = useState<string>('');
+  const [filterClass, setFilterClass] = useState<string>('');
+  const navigate = useNavigate();
+  const location = useLocation();
   const { data: abilities, isLoading, error } = useAbilities({
     type: filterType || undefined,
     abilityClass: filterClass || undefined,
-  })
+  });
 
-  if (location.pathname !== '/abilities') return <Outlet />
+  if (location.pathname !== '/abilities') return <Outlet />;
 
-  if (isLoading) return <div className="loading">Loading abilities...</div>
-  if (error) return <div className="error">Failed to load abilities: {error.message}</div>
+  if (isLoading) return <div className="loading">Loading abilities...</div>;
+  if (error) return <div className="error">Failed to load abilities: {error.message}</div>;
 
   return (
     <div className="management-page">
@@ -103,7 +103,7 @@ function AbilitiesManagement() {
           </select>
         </div>
         {(filterType || filterClass) && (
-          <Button variant="ghost" size="sm" onClick={() => { setFilterType(''); setFilterClass('') }}>
+          <Button variant="ghost" size="sm" onClick={() => { setFilterType(''); setFilterClass(''); }}>
             Clear Filters
           </Button>
         )}
@@ -120,5 +120,5 @@ function AbilitiesManagement() {
         }
       />
     </div>
-  )
+  );
 }

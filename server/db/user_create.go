@@ -60,6 +60,20 @@ func (_c *UserCreate) SetNillableGodMode(v *bool) *UserCreate {
 	return _c
 }
 
+// SetAllowedWorlds sets the "allowed_worlds" field.
+func (_c *UserCreate) SetAllowedWorlds(v string) *UserCreate {
+	_c.mutation.SetAllowedWorlds(v)
+	return _c
+}
+
+// SetNillableAllowedWorlds sets the "allowed_worlds" field if the given value is not nil.
+func (_c *UserCreate) SetNillableAllowedWorlds(v *string) *UserCreate {
+	if v != nil {
+		_c.SetAllowedWorlds(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_c *UserCreate) AddCharacterIDs(ids ...int) *UserCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -175,6 +189,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.GodMode(); ok {
 		_spec.SetField(user.FieldGodMode, field.TypeBool, value)
 		_node.GodMode = value
+	}
+	if value, ok := _c.mutation.AllowedWorlds(); ok {
+		_spec.SetField(user.FieldAllowedWorlds, field.TypeString, value)
+		_node.AllowedWorlds = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

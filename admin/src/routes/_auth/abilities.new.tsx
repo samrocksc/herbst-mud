@@ -1,24 +1,24 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import {
   useCreateAbility,
   type AbilityInput,
-} from '../../hooks/useAbilities'
-import { useTags } from '../../hooks/useTags'
-import { PageHeader } from '../../components/PageHeader'
-import { Button } from '../../components/Button'
-import { TagInput } from '../../components/TagInput'
+} from '../../hooks/useAbilities';
+import { useTags } from '../../hooks/useTags';
+import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/Button';
+import { TagInput } from '../../components/TagInput';
 import {
   FormField,
   NumberField,
   TextareaField,
   SelectField,
-} from '../../components/FormFields'
-import { showToast } from '../../components/Toast'
+} from '../../components/FormFields';
+import { showToast } from '../../components/Toast';
 
 export const Route = createFileRoute('/_auth/abilities/new')({
   component: CreateAbilityPage,
-})
+});
 
 const ABILITY_TYPE_OPTS = [
   { value: 'combat', label: 'Combat' },
@@ -27,13 +27,13 @@ const ABILITY_TYPE_OPTS = [
   { value: 'healing', label: 'Healing' },
   { value: 'support', label: 'Support' },
   { value: 'defensive', label: 'Defensive' },
-]
+];
 
 const ABILITY_CLASS_OPTS = [
   { value: 'active', label: 'Active' },
   { value: 'passive', label: 'Passive' },
   { value: 'toggle', label: 'Toggle' },
-]
+];
 
 const EMPTY_ABILITY: AbilityInput = {
   name: '',
@@ -50,30 +50,30 @@ const EMPTY_ABILITY: AbilityInput = {
   proc_event: '',
   ability_class: 'active',
   required_tag: '',
-}
+};
 
 function CreateAbilityPage() {
-  const navigate = useNavigate()
-  const createAbility = useCreateAbility()
-  const { data: availableTags } = useTags()
-  const [formData, setFormData] = useState<AbilityInput>(EMPTY_ABILITY)
+  const navigate = useNavigate();
+  const createAbility = useCreateAbility();
+  const { data: availableTags } = useTags();
+  const [formData, setFormData] = useState<AbilityInput>(EMPTY_ABILITY);
 
   const selectedTags = formData.required_tag
     ? formData.required_tag.split(',').map((t) => t.trim()).filter(Boolean)
-    : []
+    : [];
 
-  const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }))
+  const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }));
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await createAbility.mutateAsync(formData)
-      showToast('Ability created', 'success')
-      navigate({ to: '/abilities' })
+      await createAbility.mutateAsync(formData);
+      showToast('Ability created', 'success');
+      navigate({ to: '/abilities' });
     } catch {
       // Error is toasted by global onError handler
     }
-  }
+  };
 
   return (
     <div className="p-6 max-w-[1200px] mx-auto">
@@ -122,5 +122,5 @@ function CreateAbilityPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

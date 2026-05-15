@@ -89,12 +89,6 @@ func main() {
 		if err := dbinit.InitAdminUser(client); err != nil {
 			log.Printf("Warning: failed to initialize admin user: %v", err)
 		}
-		if err := dbinit.InitGizmo(client); err != nil {
-			log.Printf("Warning: failed to initialize Gizmo: %v", err)
-		}
-		if err := dbinit.InitWeapons(client); err != nil {
-			log.Printf("Warning: failed to initialize weapons: %v", err)
-		}
 	}
 
 	// Initialize the effects service (caches hooks and effect definitions)

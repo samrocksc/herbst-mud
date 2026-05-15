@@ -11,8 +11,11 @@ func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: steps.InitializeScenario,
 		Options: &godog.Options{
-			Format:   "pretty",
-			Paths:    []string{"."},
+			Format: "pretty",
+			Paths: []string{
+				"../features/",  // Main features directory
+				"./",            // Server root for server-specific features
+			},
 			TestingT: t, // Testing instance that will run subtests.
 		},
 	}

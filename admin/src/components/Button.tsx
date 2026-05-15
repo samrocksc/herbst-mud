@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes } from 'react';
 
 // ─── Variant map ─────────────────────────────────────────────────────────────
 
@@ -17,7 +17,7 @@ const variantClasses = {
     'bg-accent text-white hover:bg-accent-hover border-accent hover:border-accent-hover',
   success:
     'bg-success text-white hover:opacity-90 border-success',
-} as const
+} as const;
 
 // ─── Size map ────────────────────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ const sizeClasses = {
   sm: 'px-2.5 py-1 text-xs',
   md: 'px-4 py-2 text-sm',
   lg: 'px-6 py-3 text-base',
-} as const
+} as const;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -62,7 +62,7 @@ export function Button({
     className,
   ]
     .filter(Boolean)
-    .join(' ')
+    .join(' ');
 
-  return <button className={classes} disabled={disabled} {...rest} />
+  return <button className={classes} disabled={disabled} {...rest} />;
 }

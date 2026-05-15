@@ -1,34 +1,34 @@
-import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
-import { useState, useMemo } from 'react'
-import { useCharacters, type Character } from '../../hooks/useCharacters'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { fuzzyMatch } from '../../components/fuzzyMatch'
+import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router';
+import { useState, useMemo } from 'react';
+import { useCharacters, type Character } from '../../hooks/useCharacters';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { fuzzyMatch } from '../../components/fuzzyMatch';
 
 export const Route = createFileRoute('/_auth/characters')({
   component: CharactersIndex,
-})
+});
 
 function CharactersIndex() {
-  const { data: characters, isLoading, isError, error } = useCharacters()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showNPCs, setShowNPCs] = useState(false)
-  const [showOnlineOnly, setShowOnlineOnly] = useState(false)
+  const { data: characters, isLoading, isError, error } = useCharacters();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showNPCs, setShowNPCs] = useState(false);
+  const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   const filteredCharacters = useMemo(() => {
-    let list = (characters ?? []).filter((c) => {
-      if (!showNPCs && c.isNPC) return false
-      if (searchQuery && !fuzzyMatch(c.name, searchQuery) && !fuzzyMatch(String(c.id), searchQuery)) return false
+    const list = (characters ?? []).filter((c) => {
+      if (!showNPCs && c.isNPC) return false;
+      if (searchQuery && !fuzzyMatch(c.name, searchQuery) && !fuzzyMatch(String(c.id), searchQuery)) return false;
       if (showOnlineOnly) {
-        if (!c.lastSeenAt) return false
-        const lastSeen = new Date(c.lastSeenAt)
-        const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000)
-        if (lastSeen < fifteenMinAgo) return false
+        if (!c.lastSeenAt) return false;
+        const lastSeen = new Date(c.lastSeenAt);
+        const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
+        if (lastSeen < fifteenMinAgo) return false;
       }
-      return true
-    })
-    return list
-  }, [characters, searchQuery, showNPCs, showOnlineOnly])
+      return true;
+    });
+    return list;
+  }, [characters, searchQuery, showNPCs, showOnlineOnly]);
 
   const columns: Column<Character>[] = [
     {
@@ -63,23 +63,23 @@ function CharactersIndex() {
       header: 'Status',
       accessor: 'lastSeenAt',
       render: (_, row) => {
-        if (row.isNPC) return <span className="badge badge-neutral">NPC</span>
-        if (!row.lastSeenAt) return <span className="badge badge-warning">Offline</span>
-        const lastSeen = new Date(row.lastSeenAt)
-        const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000)
+        if (row.isNPC) return <span className="badge badge-neutral">NPC</span>;
+        if (!row.lastSeenAt) return <span className="badge badge-warning">Offline</span>;
+        const lastSeen = new Date(row.lastSeenAt);
+        const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
         if (lastSeen >= fifteenMinAgo) {
-          return <span className="badge badge-success">Online</span>
+          return <span className="badge badge-success">Online</span>;
         }
-        return <span className="badge badge-warning">Offline</span>
+        return <span className="badge badge-warning">Offline</span>;
       },
     },
-  ]
+  ];
 
-  const location = useLocation()
-  const isList = location.pathname === '/characters'
+  const location = useLocation();
+  const isList = location.pathname === '/characters';
 
   if (!isList) {
-    return <Outlet />
+    return <Outlet />;
   }
 
   return (
@@ -130,5 +130,5 @@ function CharactersIndex() {
         />
       )}
     </div>
-  )
+  );
 }

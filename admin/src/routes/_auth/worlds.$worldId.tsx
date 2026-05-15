@@ -1,51 +1,51 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useWorld, useUpdateWorld, useDeleteWorld, type WorldInput } from '../../hooks/useWorlds'
-import { PageHeader } from '../../components/PageHeader'
-import { Button } from '../../components/Button'
-import { FormField, TextareaField } from '../../components/FormFields'
-import { showToast } from '../../components/Toast'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useWorld, useUpdateWorld, useDeleteWorld, type WorldInput } from '../../hooks/useWorlds';
+import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/Button';
+import { FormField, TextareaField } from '../../components/FormFields';
+import { showToast } from '../../components/Toast';
 
 export const Route = createFileRoute('/_auth/worlds/$worldId')({
   component: EditWorldPage,
-})
+});
 
 function EditWorldPage() {
-  const { worldId } = Route.useParams()
-  const id = Number(worldId)
-  const navigate = useNavigate()
-  const { data: world, isLoading, error } = useWorld(id)
-  const updateWorld = useUpdateWorld()
-  const deleteWorld = useDeleteWorld()
-  const [formData, setFormData] = useState<WorldInput | null>(null)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const { worldId } = Route.useParams();
+  const id = Number(worldId);
+  const navigate = useNavigate();
+  const { data: world, isLoading, error } = useWorld(id);
+  const updateWorld = useUpdateWorld();
+  const deleteWorld = useDeleteWorld();
+  const [formData, setFormData] = useState<WorldInput | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const set = (patch: Partial<WorldInput>) => setFormData((prev) => prev ? { ...prev, ...patch } : prev)
+  const set = (patch: Partial<WorldInput>) => setFormData((prev) => prev ? { ...prev, ...patch } : prev);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData) return
+    e.preventDefault();
+    if (!formData) return;
     try {
-      await updateWorld.mutateAsync({ id, input: formData })
-      showToast('World updated', 'success')
-      navigate({ to: '/worlds' })
+      await updateWorld.mutateAsync({ id, input: formData });
+      showToast('World updated', 'success');
+      navigate({ to: '/worlds' });
     } catch {
       // Error is toasted by global onError handler
     }
-  }
+  };
 
   const handleDelete = async () => {
     try {
-      await deleteWorld.mutateAsync(id)
-      showToast('World deleted', 'success')
-      navigate({ to: '/worlds' })
+      await deleteWorld.mutateAsync(id);
+      showToast('World deleted', 'success');
+      navigate({ to: '/worlds' });
     } catch {
       // Error is toasted by global onError handler
     }
-  }
+  };
 
-  if (isLoading) return <div className="p-8 text-text-muted">Loading world...</div>
-  if (error || !world) return <div className="p-8 text-danger">Error: {error?.message ?? 'World not found'}</div>
+  if (isLoading) return <div className="p-8 text-text-muted">Loading world...</div>;
+  if (error || !world) return <div className="p-8 text-danger">Error: {error?.message ?? 'World not found'}</div>;
 
   const currentData = formData ?? {
     id: world.id,
@@ -53,7 +53,7 @@ function EditWorldPage() {
     title: world.title,
     description: world.description,
     active: world.active,
-  }
+  };
 
   return (
     <div className="p-6 max-w-[800px] mx-auto">
@@ -137,5 +137,5 @@ function EditWorldPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

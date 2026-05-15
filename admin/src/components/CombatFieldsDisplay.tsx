@@ -1,4 +1,4 @@
-import { isWeaponSlot, isArmorSlot } from './equipConstants'
+import { isWeaponSlot, isArmorSlot } from './equipConstants';
 
 /** Read-only display of weapon/armor combat fields. */
 export function CombatFieldsDisplay(props: Readonly<{
@@ -16,8 +16,8 @@ export function CombatFieldsDisplay(props: Readonly<{
   skill_requirement_level: number
   stats: Record<string, unknown> | null
 }>) {
-  const showWeapon = isWeaponSlot(props.slot)
-  const showArmor = isArmorSlot(props.slot)
+  const showWeapon = isWeaponSlot(props.slot);
+  const showArmor = isArmorSlot(props.slot);
 
   return (
     <div className="space-y-3">
@@ -45,11 +45,11 @@ export function CombatFieldsDisplay(props: Readonly<{
       </div>
       {props.stats && Object.keys(props.stats).length > 0 && <StatsDisplay stats={props.stats as Record<string, number>} />}
     </div>
-  )
+  );
 }
 
 function DetailField({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className="text-text text-sm font-medium">{value}</span></div>)
+  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className="text-text text-sm font-medium">{value}</span></div>);
 }
 
 function StatsDisplay({ stats }: Readonly<{ stats: Record<string, number> }>) {
@@ -65,5 +65,5 @@ function StatsDisplay({ stats }: Readonly<{ stats: Record<string, number> }>) {
         ))}
       </div>
     </div>
-  )
+  );
 }

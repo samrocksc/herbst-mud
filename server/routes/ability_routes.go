@@ -13,12 +13,17 @@ import (
 	"herbst-server/repository"
 )
 
+func RegisterWorldAccessMiddleware(r *gin.RouterGroup, dbClient *db.Client) {
+	r.Use(middleware.AuthMiddleware(dbClient))
+	r.Use(middleware.AdminMiddleware())
+	r.Use(middleware.WorldAccessMiddleware())
+}
+
 func RegisterAbilityRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	r.GET("/abilities/classless", listClasslessAbilities(repos))
 
 	abilities := r.Group("/api")
-	abilities.Use(middleware.AuthMiddleware())
-	abilities.Use(middleware.AdminMiddleware())
+	RegisterWorldAccessMiddleware(abilities, client)
 	{
 		abilities.GET("/abilities", listAbilities(client))
 		abilities.POST("/abilities", createAbility(repos, client))
@@ -68,6 +73,7 @@ type abilityInput struct {
 	CooldownSeconds *int      `json:"cooldown_seconds"`
 	Tags            []string  `json:"tags"`
 	FactionID       *int      `json:"faction_id"`
+	WorldID         string    `json:"world_id"`
 }
 
 func parseTagsFromRequirements(req string) []string {
@@ -132,6 +138,10 @@ func listAbilities(client *db.Client) gin.HandlerFunc {
 		if s := c.Query("search"); s != "" {
 			query = query.Where(ability.NameContains(s))
 		}
+		// Filter by world_id if specified
+		if w := c.Query("world_id"); w != "" {
+			query = query.Where(ability.WorldID(w))
+		}
 		abilities, err := query.Order(ability.ByName()).All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -190,6 +200,7 @@ func createAbility(repos *repository.Container, client *db.Client) gin.HandlerFu
 			Slug:            input.Slug,
 			AbilityClass:    input.AbilityClass,
 			FactionID:       input.FactionID,
+			WorldID:         input.WorldID,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -199,20 +210,6 @@ func createAbility(repos *repository.Container, client *db.Client) gin.HandlerFu
 		s, _ = client.Ability.Query().WithFaction().Where(ability.ID(s.ID)).Only(c.Request.Context())
 		c.JSON(http.StatusCreated, abilityToView(s))
 	}
-}
-
-func derefInt(p *int) int {
-	if p == nil {
-		return 0
-	}
-	return *p
-}
-
-func derefFloat64(p *float64) float64 {
-	if p == nil {
-		return 0
-	}
-	return *p
 }
 
 func updateAbility(repos *repository.Container, client *db.Client) gin.HandlerFunc {
@@ -249,6 +246,7 @@ func updateAbility(repos *repository.Container, client *db.Client) gin.HandlerFu
 			CooldownSeconds: input.CooldownSeconds,
 			Slug:            &input.Slug,
 			FactionID:       input.FactionID,
+			WorldID:         &input.WorldID,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -278,7 +276,7 @@ func deleteAbility(repos *repository.Container) gin.HandlerFunc {
 
 func listClasslessAbilities(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		abilities, err := repos.Ability.ListByClass(c.Request.Context(), "active")
+		abilities, err := repos.Ability.ListByClass(c.Request.Context(), "", "active")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

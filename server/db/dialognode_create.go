@@ -21,6 +21,20 @@ type DialogNodeCreate struct {
 	hooks    []Hook
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *DialogNodeCreate) SetWorldID(v string) *DialogNodeCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *DialogNodeCreate) SetNillableWorldID(v *string) *DialogNodeCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // SetNpcText sets the "npc_text" field.
 func (_c *DialogNodeCreate) SetNpcText(v string) *DialogNodeCreate {
 	_c.mutation.SetNpcText(v)
@@ -119,6 +133,10 @@ func (_c *DialogNodeCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *DialogNodeCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := dialognode.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.IsEntry(); !ok {
 		v := dialognode.DefaultIsEntry
 		_c.mutation.SetIsEntry(v)
@@ -127,6 +145,9 @@ func (_c *DialogNodeCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *DialogNodeCreate) check() error {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "DialogNode.world_id"`)}
+	}
 	if _, ok := _c.mutation.NpcText(); !ok {
 		return &ValidationError{Name: "npc_text", err: errors.New(`db: missing required field "DialogNode.npc_text"`)}
 	}
@@ -170,6 +191,10 @@ func (_c *DialogNodeCreate) createSpec() (*DialogNode, *sqlgraph.CreateSpec) {
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(dialognode.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
 	}
 	if value, ok := _c.mutation.NpcText(); ok {
 		_spec.SetField(dialognode.FieldNpcText, field.TypeString, value)

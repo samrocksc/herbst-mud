@@ -21,6 +21,20 @@ type EquipmentTemplateCreate struct {
 	hooks    []Hook
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *EquipmentTemplateCreate) SetWorldID(v string) *EquipmentTemplateCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *EquipmentTemplateCreate) SetNillableWorldID(v *string) *EquipmentTemplateCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // SetName sets the "name" field.
 func (_c *EquipmentTemplateCreate) SetName(v string) *EquipmentTemplateCreate {
 	_c.mutation.SetName(v)
@@ -465,6 +479,10 @@ func (_c *EquipmentTemplateCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *EquipmentTemplateCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := equipmenttemplate.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.Level(); !ok {
 		v := equipmenttemplate.DefaultLevel
 		_c.mutation.SetLevel(v)
@@ -565,6 +583,9 @@ func (_c *EquipmentTemplateCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *EquipmentTemplateCreate) check() error {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "EquipmentTemplate.world_id"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "EquipmentTemplate.name"`)}
 	}
@@ -680,6 +701,10 @@ func (_c *EquipmentTemplateCreate) createSpec() (*EquipmentTemplate, *sqlgraph.C
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(equipmenttemplate.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
 	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(equipmenttemplate.FieldName, field.TypeString, value)

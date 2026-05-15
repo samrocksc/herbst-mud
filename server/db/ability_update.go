@@ -45,6 +45,20 @@ func (_u *AbilityUpdate) SetNillableName(v *string) *AbilityUpdate {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *AbilityUpdate) SetWorldID(v string) *AbilityUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *AbilityUpdate) SetNillableWorldID(v *string) *AbilityUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetDescription sets the "description" field.
 func (_u *AbilityUpdate) SetDescription(v string) *AbilityUpdate {
 	_u.mutation.SetDescription(v)
@@ -491,6 +505,9 @@ func (_u *AbilityUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(ability.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(ability.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(ability.FieldDescription, field.TypeString, value)
 	}
@@ -760,6 +777,20 @@ func (_u *AbilityUpdateOne) SetName(v string) *AbilityUpdateOne {
 func (_u *AbilityUpdateOne) SetNillableName(v *string) *AbilityUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *AbilityUpdateOne) SetWorldID(v string) *AbilityUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *AbilityUpdateOne) SetNillableWorldID(v *string) *AbilityUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
 	}
 	return _u
 }
@@ -1239,6 +1270,9 @@ func (_u *AbilityUpdateOne) sqlSave(ctx context.Context) (_node *Ability, err er
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(ability.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(ability.FieldWorldID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(ability.FieldDescription, field.TypeString, value)

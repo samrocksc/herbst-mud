@@ -16,5 +16,5 @@ export function MapIcon({ className, stroke }: Readonly<{ className?: string; st
       <line x1="9" x2="9" y1="3" y2="18"/>
       <line x1="15" x2="15" y1="6" y2="21"/>
     </svg>
-  )
+  );
 }

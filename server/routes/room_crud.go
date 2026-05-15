@@ -47,10 +47,12 @@ func createRoom(svc *service.Container) gin.HandlerFunc {
 	}
 }
 
-// listRooms returns all rooms, optionally filtered by name.
+// listRooms returns all rooms, optionally filtered by name and world_id.
 func listRooms(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		rooms, err := svc.Room.ListRooms(c.Request.Context())
+		// Get world_id from query params for world-scoped listing
+		worldID := c.Query("world_id")
+		rooms, err := svc.Room.ListRooms(c.Request.Context(), worldID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

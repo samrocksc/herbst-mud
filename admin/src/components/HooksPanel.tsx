@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { useTemplateHooks, useCreateHook, useUpdateHook, useDeleteHook, type EffectHook, type HookInput } from '../hooks/useHooks'
-import { useEffectDefs } from '../hooks/useEffectDefs'
-import { Button } from './Button'
-import { showToast } from './Toast'
-import { FormField, SelectField, CheckboxField } from './fields'
+import { useState } from 'react';
+import { useTemplateHooks, useCreateHook, useUpdateHook, useDeleteHook, type EffectHook, type HookInput } from '../hooks/useHooks';
+import { useEffectDefs } from '../hooks/useEffectDefs';
+import { Button } from './Button';
+import { showToast } from './Toast';
+import { FormField, SelectField, CheckboxField } from './fields';
 
 const HOOK_EVENTS = [
   { value: 'on_death', label: 'On Death', group: 'Combat' },
@@ -17,7 +17,7 @@ const HOOK_EVENTS = [
   { value: 'on_login', label: 'On Login', group: 'Session' },
   { value: 'on_effect_start', label: 'On Effect Start', group: 'Effects' },
   { value: 'on_effect_end', label: 'On Effect End', group: 'Effects' },
-]
+];
 
 const HOOK_TARGETS = [
   { value: 'self', label: 'Self (the character)' },
@@ -25,7 +25,7 @@ const HOOK_TARGETS = [
   { value: 'killer', label: 'Killer (death dealer)' },
   { value: 'room', label: 'Room (all in room)' },
   { value: 'owner', label: 'Owner (item/NPC owner)' },
-]
+];
 
 // Group events by category
 const EVENT_GROUPS = Array.from(
@@ -33,7 +33,7 @@ const EVENT_GROUPS = Array.from(
 ).map((group) => ({
   label: group,
   events: HOOK_EVENTS.filter((e) => e.group === group),
-}))
+}));
 
 type HookFormProps = {
   hook: EffectHook | null
@@ -44,25 +44,25 @@ type HookFormProps = {
 }
 
 function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps) {
-  const { data: effects = [] } = useEffectDefs()
-  const isEdit = hook !== null
+  const { data: effects = [] } = useEffectDefs();
+  const isEdit = hook !== null;
   const [form, setForm] = useState<HookInput>(() =>
     hook
       ? { name: hook.name, event: hook.event, target: hook.target, condition: hook.condition, enabled: hook.enabled, effect_id: hook.effect_id }
       : { name: '', event: 'on_death', target: 'self', condition: '', enabled: true, effect_id: effects[0]?.id ?? 0 },
-  )
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  );
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const set = (patch: Partial<HookInput>) => setForm((prev) => ({ ...prev, ...patch }))
+  const set = (patch: Partial<HookInput>) => setForm((prev) => ({ ...prev, ...patch }));
 
   // Find effect details for display
-  const selectedEffect = effects.find((e) => e.id === form.effect_id)
+  const selectedEffect = effects.find((e) => e.id === form.effect_id);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.name.trim() || !form.effect_id) return
-    onSubmit(form)
-  }
+    e.preventDefault();
+    if (!form.name.trim() || !form.effect_id) return;
+    onSubmit(form);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="bg-surface rounded-lg border border-border p-6 space-y-6">
@@ -148,37 +148,37 @@ function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps)
         </Button>
       </div>
     </form>
-  )
+  );
 }
 
 export function HooksPanel({ npcTemplateId }: { npcTemplateId: string }) {
-  const { data: hooks = [] } = useTemplateHooks(npcTemplateId)
-  const create = useCreateHook()
-  const update = useUpdateHook()
-  const del = useDeleteHook()
-  const [showForm, setShowForm] = useState(false)
-  const [editingHook, setEditingHook] = useState<EffectHook | null>(null)
+  const { data: hooks = [] } = useTemplateHooks(npcTemplateId);
+  const create = useCreateHook();
+  const update = useUpdateHook();
+  const del = useDeleteHook();
+  const [showForm, setShowForm] = useState(false);
+  const [editingHook, setEditingHook] = useState<EffectHook | null>(null);
 
   const handleCreate = (input: HookInput) => {
     create.mutate({ templateId: npcTemplateId, input }, {
-      onSuccess: () => { setShowForm(false); showToast('Hook created', 'success') },
-    })
-  }
+      onSuccess: () => { setShowForm(false); showToast('Hook created', 'success'); },
+    });
+  };
   const handleUpdate = (input: HookInput) => {
-    if (!editingHook) return
+    if (!editingHook) return;
     update.mutate({ id: editingHook.id, input }, {
-      onSuccess: () => { setEditingHook(null); showToast('Hook updated', 'success') },
-    })
-  }
+      onSuccess: () => { setEditingHook(null); showToast('Hook updated', 'success'); },
+    });
+  };
 
   // Group hooks by event type for display
   const hooksByEvent = EVENT_GROUPS.map((group) => ({
     group: group.label,
     hooks: hooks.filter((h) => {
-      const event = HOOK_EVENTS.find((e) => e.value === h.event)
-      return event?.group === group.label
+      const event = HOOK_EVENTS.find((e) => e.value === h.event);
+      return event?.group === group.label;
     }),
-  }))
+  }));
 
   return (
     <div className="mt-8">
@@ -189,7 +189,7 @@ export function HooksPanel({ npcTemplateId }: { npcTemplateId: string }) {
             Define what happens when game events trigger on this NPC
           </p>
         </div>
-        <Button variant="primary" size="sm" onClick={() => { setShowForm(true); setEditingHook(null) }}>
+        <Button variant="primary" size="sm" onClick={() => { setShowForm(true); setEditingHook(null); }}>
           + Add Hook
         </Button>
       </div>
@@ -255,7 +255,7 @@ export function HooksPanel({ npcTemplateId }: { npcTemplateId: string }) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => { setEditingHook(hook); setShowForm(false) }}
+                          onClick={() => { setEditingHook(hook); setShowForm(false); }}
                         >
                           Edit
                         </Button>
@@ -286,5 +286,5 @@ export function HooksPanel({ npcTemplateId }: { npcTemplateId: string }) {
         </div>
       )}
     </div>
-  )
+  );
 }

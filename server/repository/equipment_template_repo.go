@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"herbst-server/db"
+	"herbst-server/db/equipmenttemplate"
 )
 
 type entEquipmentTemplateRepo struct {
@@ -18,8 +19,12 @@ func (r *entEquipmentTemplateRepo) Get(ctx context.Context, id string) (*db.Equi
 	return r.client.EquipmentTemplate.Get(ctx, id)
 }
 
-func (r *entEquipmentTemplateRepo) List(ctx context.Context) ([]*db.EquipmentTemplate, error) {
-	return r.client.EquipmentTemplate.Query().All(ctx)
+func (r *entEquipmentTemplateRepo) List(ctx context.Context, worldID string) ([]*db.EquipmentTemplate, error) {
+	query := r.client.EquipmentTemplate.Query()
+	if worldID != "" {
+		query = query.Where(equipmenttemplate.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
 func (r *entEquipmentTemplateRepo) Create(ctx context.Context, input CreateEquipmentTemplateInput) (*db.EquipmentTemplate, error) {
@@ -51,7 +56,8 @@ func (r *entEquipmentTemplateRepo) Create(ctx context.Context, input CreateEquip
 		SetDamageBonus(input.DamageBonus).
 		SetDamageType(input.DamageType).
 		SetWeaponType(input.WeaponType).
-		SetIsTwoHanded(input.IsTwoHanded)
+		SetIsTwoHanded(input.IsTwoHanded).
+		SetWorldID(input.WorldID)
 	if input.Color != "" {
 		builder = builder.SetColor(input.Color)
 	}
@@ -149,6 +155,9 @@ func (r *entEquipmentTemplateRepo) Update(ctx context.Context, id string, update
 	}
 	if updates.IsTwoHanded != nil {
 		builder = builder.SetIsTwoHanded(*updates.IsTwoHanded)
+	}
+	if updates.WorldID != nil {
+		builder = builder.SetWorldID(*updates.WorldID)
 	}
 	return builder.Save(ctx)
 }

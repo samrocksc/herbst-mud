@@ -5,4 +5,4 @@ export {
   SelectField,
   CheckboxField,
   FormError,
-} from './fields'
+} from './fields';

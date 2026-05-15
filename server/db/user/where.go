@@ -74,6 +74,11 @@ func GodMode(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldGodMode, v))
 }
 
+// AllowedWorlds applies equality check predicate on the "allowed_worlds" field. It's identical to AllowedWorldsEQ.
+func AllowedWorlds(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAllowedWorlds, v))
+}
+
 // EmailEQ applies the EQ predicate on the "email" field.
 func EmailEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmail, v))
@@ -222,6 +227,81 @@ func GodModeEQ(v bool) predicate.User {
 // GodModeNEQ applies the NEQ predicate on the "god_mode" field.
 func GodModeNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldGodMode, v))
+}
+
+// AllowedWorldsEQ applies the EQ predicate on the "allowed_worlds" field.
+func AllowedWorldsEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsNEQ applies the NEQ predicate on the "allowed_worlds" field.
+func AllowedWorldsNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsIn applies the In predicate on the "allowed_worlds" field.
+func AllowedWorldsIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldAllowedWorlds, vs...))
+}
+
+// AllowedWorldsNotIn applies the NotIn predicate on the "allowed_worlds" field.
+func AllowedWorldsNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldAllowedWorlds, vs...))
+}
+
+// AllowedWorldsGT applies the GT predicate on the "allowed_worlds" field.
+func AllowedWorldsGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsGTE applies the GTE predicate on the "allowed_worlds" field.
+func AllowedWorldsGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsLT applies the LT predicate on the "allowed_worlds" field.
+func AllowedWorldsLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsLTE applies the LTE predicate on the "allowed_worlds" field.
+func AllowedWorldsLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsContains applies the Contains predicate on the "allowed_worlds" field.
+func AllowedWorldsContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsHasPrefix applies the HasPrefix predicate on the "allowed_worlds" field.
+func AllowedWorldsHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsHasSuffix applies the HasSuffix predicate on the "allowed_worlds" field.
+func AllowedWorldsHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsIsNil applies the IsNil predicate on the "allowed_worlds" field.
+func AllowedWorldsIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldAllowedWorlds))
+}
+
+// AllowedWorldsNotNil applies the NotNil predicate on the "allowed_worlds" field.
+func AllowedWorldsNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldAllowedWorlds))
+}
+
+// AllowedWorldsEqualFold applies the EqualFold predicate on the "allowed_worlds" field.
+func AllowedWorldsEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldAllowedWorlds, v))
+}
+
+// AllowedWorldsContainsFold applies the ContainsFold predicate on the "allowed_worlds" field.
+func AllowedWorldsContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldAllowedWorlds, v))
 }
 
 // HasCharacters applies the HasEdge predicate on the "characters" edge.

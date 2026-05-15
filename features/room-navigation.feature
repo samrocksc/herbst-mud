@@ -1,53 +1,62 @@
-Feature: Room Navigation (Issue #13)
+Feature: Room Navigation
   As a player
-  I want to navigate between rooms
-  So that I can explore the game world
+  I want to navigate between rooms using directional commands
+  So that I can explore the MUD world
 
   Background:
-    Given I am logged into the game
-    And I am in a room with exits
+    Given the game is running
+    And I am logged in as a character
 
-  Scenario: Move through exit
-    Given I am in room "entrance" with north exit
+  Scenario: Move north from starting room
+    Given I am in "The Hole" starting room
     When I type "north"
-    Then I should move to the connected room
-    And I should see the new room description
+    Then I should be in the "North Room"
+    And I should see the room description
 
-  Scenario: See available exits
-    Given I am in room "courtyard"
-    When I type "look"
-    Then I should see available exits listed
-    And exits should show direction names (N, S, E, W, U, D)
+  Scenario: Move south to return to previous room
+    Given I am in "The North Room"
+    When I type "south"
+    Then I should be in "The Hole" starting room
+    And I should see the room description
 
-  Scenario: Invalid direction
-    Given I am in room "closet" with only south exit
-    When I type "north"
-    Then I should see "You cannot go that way"
+  Scenario: Attempt to move in invalid direction
+    Given I am in a room with no exit to the east
+    When I type "east"
+    Then I should see "You can't go that way"
     And I should remain in the current room
 
-  Scenario: Move between connected rooms
-    Given room A connects north to room B
-    And I am in room A
-    When I move north
-    Then I should be in room B
-    And room B should have a south exit back to room A
-
-  Scenario: Multi-direction room
-    Given I am in room "hub" with exits N, S, E, W
-    When I look at the room
-    Then I should see all four exits
-    And I can move in any valid direction
-
-  Scenario: Up and down navigation
-    Given I am on ground floor with stairs up
+  Scenario: Move up to upper floor
+    Given I am in "Ground Floor Room"
     When I type "up"
-    Then I should move to the upper floor
-    And I can type "down" to return
+    Then I should be in "Second Floor Room"
+    And the z-coordinate should increase by 1
 
-  Scenario: Room description on entry
-    Given I move to a new room
-    When I enter the room
-    Then I should see the room name
-    And I should see the room description
-    And I should see items and characters in the room
-    And I should see visible exits
+  Scenario: Move down to lower floor
+    Given I am in "Second Floor Room"
+    When I type "down"
+    Then I should be in "Ground Floor Room"
+    And the z-coordinate should decrease by 1
+
+  Scenario: View available exits
+    Given I am in a room with multiple exits
+    When I type "exits" or "look"
+    Then I should see a list of available directions
+    And each exit should show the destination room name
+
+  Scenario: Movement blocked by locked door
+    Given there is a locked door to the north
+    When I type "north"
+    Then I should see "The door is locked"
+    And I should remain in the current room
+
+  Scenario: Successful navigation after unlock
+    Given there is a locked door to the north
+    And I have unlocked it with the key
+    When I type "north"
+    Then I should be in the next room
+
+  Scenario: Movement saves position on logout
+    Given I am in "Town Square" room
+    When I type "logout"
+    And I log back in
+    Then I should be in "Town Square" room

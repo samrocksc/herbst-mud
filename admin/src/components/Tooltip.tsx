@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useId, type ReactNode } from 'react';
 
 // ─── Tooltip — CSS-only hover tooltip (no JS positioning library) ──────────
 
@@ -9,7 +9,7 @@ type TooltipProps = Readonly<{
 }>
 
 export function Tooltip({ children, content, placement = 'top' }: TooltipProps) {
-  const id = useId()
+  const id = useId();
 
   return (
     <span className="tooltip-wrapper" aria-describedby={id}>
@@ -22,7 +22,7 @@ export function Tooltip({ children, content, placement = 'top' }: TooltipProps) 
         {content}
       </span>
     </span>
-  )
+  );
 }
 
 // ─── TooltipIcon — compact ⓘ trigger for form labels ─────────────────────
@@ -38,5 +38,5 @@ export function TooltipIcon({ content }: Readonly<{ content: string }>) {
         ⓘ
       </span>
     </Tooltip>
-  )
+  );
 }

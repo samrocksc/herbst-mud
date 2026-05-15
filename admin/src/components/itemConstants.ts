@@ -17,7 +17,7 @@ export const SLOT_OPTIONS = [
   { value: 'tail', label: 'Tail' },
   { value: 'horn', label: 'Horn' },
   { value: 'wings', label: 'Wings' },
-] as const
+] as const;
 
 /** Item type options for select dropdowns. */
 export const ITEM_TYPE_OPTIONS = [
@@ -28,4 +28,4 @@ export const ITEM_TYPE_OPTIONS = [
   { value: 'quest', label: 'Quest' },
   { value: 'container', label: 'Container' },
   { value: 'potion', label: 'Potion' },
-] as const
+] as const;

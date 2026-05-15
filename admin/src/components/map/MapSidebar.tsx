@@ -1,9 +1,9 @@
-import { Link } from '@tanstack/react-router'
-import { Button } from '../Button'
-import { DashboardIcon } from '../icons/DashboardIcon'
-import { NPCsIcon } from '../icons/NPCsIcon'
-import { ItemsIcon } from '../icons/ItemsIcon'
-import type { Room, NPC } from './types'
+import { Link } from '@tanstack/react-router';
+import { Button } from '../Button';
+import { DashboardIcon } from '../icons/DashboardIcon';
+import { NPCsIcon } from '../icons/NPCsIcon';
+import { ItemsIcon } from '../icons/ItemsIcon';
+import type { Room, NPC } from './types';
 
 type MapSidebarProps = {
   rooms: Room[]
@@ -24,8 +24,8 @@ export function MapSidebar({
   setCurrentZLevel,
   setSelectedRoom,
 }: MapSidebarProps) {
-  const zLevelRange = Array.from(new Set(Array.from(zLevels.values()))).sort((a, b) => a - b)
-  const roomsOnFloor = Array.from(zLevels.values()).filter((z) => z === currentZLevel).length
+  const zLevelRange = Array.from(new Set(Array.from(zLevels.values()))).sort((a, b) => a - b);
+  const roomsOnFloor = Array.from(zLevels.values()).filter((z) => z === currentZLevel).length;
 
   return (
     <div className="w-[220px] bg-surface-muted border-r border-border flex flex-col flex-shrink-0">
@@ -144,5 +144,5 @@ export function MapSidebar({
         </div>
       </div>
     </div>
-  )
+  );
 }

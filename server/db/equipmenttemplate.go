@@ -18,6 +18,8 @@ type EquipmentTemplate struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// World this item template belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
@@ -113,7 +115,7 @@ func (*EquipmentTemplate) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case equipmenttemplate.FieldLevel, equipmenttemplate.FieldWeight, equipmenttemplate.FieldEffectValue, equipmenttemplate.FieldEffectDuration, equipmenttemplate.FieldContainerCapacity, equipmenttemplate.FieldArmorRating, equipmenttemplate.FieldSkillRequirementLevel, equipmenttemplate.FieldDamageDiceCount, equipmenttemplate.FieldDamageDiceSides, equipmenttemplate.FieldDamageBonus:
 			values[i] = new(sql.NullInt64)
-		case equipmenttemplate.FieldID, equipmenttemplate.FieldName, equipmenttemplate.FieldDescription, equipmenttemplate.FieldSlot, equipmenttemplate.FieldItemType, equipmenttemplate.FieldColor, equipmenttemplate.FieldEffectType, equipmenttemplate.FieldKeyItemID, equipmenttemplate.FieldRevealCondition, equipmenttemplate.FieldArmorType, equipmenttemplate.FieldRarity, equipmenttemplate.FieldSkillRequirement, equipmenttemplate.FieldDamageType, equipmenttemplate.FieldWeaponType:
+		case equipmenttemplate.FieldID, equipmenttemplate.FieldWorldID, equipmenttemplate.FieldName, equipmenttemplate.FieldDescription, equipmenttemplate.FieldSlot, equipmenttemplate.FieldItemType, equipmenttemplate.FieldColor, equipmenttemplate.FieldEffectType, equipmenttemplate.FieldKeyItemID, equipmenttemplate.FieldRevealCondition, equipmenttemplate.FieldArmorType, equipmenttemplate.FieldRarity, equipmenttemplate.FieldSkillRequirement, equipmenttemplate.FieldDamageType, equipmenttemplate.FieldWeaponType:
 			values[i] = new(sql.NullString)
 		case equipmenttemplate.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -137,6 +139,12 @@ func (_m *EquipmentTemplate) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
+			}
+		case equipmenttemplate.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
 			}
 		case equipmenttemplate.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -362,6 +370,9 @@ func (_m *EquipmentTemplate) String() string {
 	var builder strings.Builder
 	builder.WriteString("EquipmentTemplate(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

@@ -23,6 +23,20 @@ type NPCTemplateCreate struct {
 	hooks    []Hook
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *NPCTemplateCreate) SetWorldID(v string) *NPCTemplateCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableWorldID(v *string) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // SetName sets the "name" field.
 func (_c *NPCTemplateCreate) SetName(v string) *NPCTemplateCreate {
 	_c.mutation.SetName(v)
@@ -222,6 +236,10 @@ func (_c *NPCTemplateCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *NPCTemplateCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := npctemplate.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.Disposition(); !ok {
 		v := npctemplate.DefaultDisposition
 		_c.mutation.SetDisposition(v)
@@ -242,6 +260,9 @@ func (_c *NPCTemplateCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *NPCTemplateCreate) check() error {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "NPCTemplate.world_id"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "NPCTemplate.name"`)}
 	}
@@ -308,6 +329,10 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(npctemplate.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
 	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(npctemplate.FieldName, field.TypeString, value)

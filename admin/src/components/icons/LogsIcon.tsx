@@ -4,5 +4,5 @@ export function LogsIcon() {
       <path d="M3 4h10M3 8h14M3 12h8M3 16h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="17" cy="16" r="2.5" stroke="currentColor" strokeWidth="1.5" />
     </svg>
-  )
+  );
 }

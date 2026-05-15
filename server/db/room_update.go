@@ -43,6 +43,20 @@ func (_u *RoomUpdate) SetNillableName(v *string) *RoomUpdate {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *RoomUpdate) SetWorldID(v string) *RoomUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *RoomUpdate) SetNillableWorldID(v *string) *RoomUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetDescription sets the "description" field.
 func (_u *RoomUpdate) SetDescription(v string) *RoomUpdate {
 	_u.mutation.SetDescription(v)
@@ -336,6 +350,9 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(room.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(room.FieldDescription, field.TypeString, value)
 	}
@@ -504,6 +521,20 @@ func (_u *RoomUpdateOne) SetName(v string) *RoomUpdateOne {
 func (_u *RoomUpdateOne) SetNillableName(v *string) *RoomUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *RoomUpdateOne) SetWorldID(v string) *RoomUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *RoomUpdateOne) SetNillableWorldID(v *string) *RoomUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
 	}
 	return _u
 }
@@ -830,6 +861,9 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(room.FieldWorldID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(room.FieldDescription, field.TypeString, value)

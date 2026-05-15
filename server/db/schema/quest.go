@@ -16,6 +16,9 @@ type Quest struct {
 func (Quest) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").Unique(),
+		field.String("world_id").
+			Default("default").
+			Comment("World this quest belongs to (for multi-world support)"),
 		field.String("description"),
 		field.Strings("prerequisite_quest_ids").Optional().
 			Comment("Quest IDs that must be completed before this quest can be accepted"),

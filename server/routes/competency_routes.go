@@ -16,7 +16,7 @@ import (
 
 func RegisterCompetencyRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	competencies := r.Group("/api")
-	competencies.Use(middleware.AuthMiddleware())
+	competencies.Use(middleware.AuthMiddleware(nil))
 	competencies.Use(middleware.AdminMiddleware())
 	{
 		competencies.GET("/competency-categories", listCompetencyCategories(repos))

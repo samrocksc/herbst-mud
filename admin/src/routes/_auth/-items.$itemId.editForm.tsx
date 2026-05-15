@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
-import { apiPut, apiDelete } from '../../utils/apiFetch'
-import { Button } from '../../components/Button'
-import { DeleteConfirmation } from '../../components/DeleteConfirmation'
-import { CombatFieldsEditor, type CombatFields } from '../../components/CombatFieldsEditor'
-import { NumberField, SelectField, CheckboxField, TextareaField, FormField, FormError } from '../../components/FormFields'
-import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from '../../components/itemConstants'
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
+import { apiPut, apiDelete } from '../../utils/apiFetch';
+import { Button } from '../../components/Button';
+import { DeleteConfirmation } from '../../components/DeleteConfirmation';
+import { CombatFieldsEditor, type CombatFields } from '../../components/CombatFieldsEditor';
+import { NumberField, SelectField, CheckboxField, TextareaField, FormField, FormError } from '../../components/FormFields';
+import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from '../../components/itemConstants';
 
 const EFFECT_TYPE_OPTS = [
   { value: '', label: '— None —' },
@@ -20,7 +20,7 @@ const EFFECT_TYPE_OPTS = [
   { value: 'buff_armor', label: 'Buff Armor' },
   { value: 'buff_dodge', label: 'Buff Dodge' },
   { value: 'buff_crit', label: 'Buff Crit' },
-]
+];
 
 export type TemplateEditForm = Readonly<{
   name: string; description: string; slot: string; level: number; weight: number
@@ -33,30 +33,30 @@ export type TemplateEditForm = Readonly<{
 export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
   template: TemplateEditForm; itemId: string; onDone: () => void
 }>) {
-  const queryClient = useQueryClient()
-  const navigate = useNavigate()
-  const [form, setForm] = useState<TemplateEditForm>(() => ({ ...template }))
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const API = `${window.location.origin}`
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [form, setForm] = useState<TemplateEditForm>(() => ({ ...template }));
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const API = `${window.location.origin}`;
 
   const updateMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) => apiPut(`${API}/api/equipment-templates/${itemId}`, body),
-    onSuccess: (data) => { queryClient.setQueryData(['item-template', itemId], data); onDone() },
-  })
+    onSuccess: (data) => { queryClient.setQueryData(['item-template', itemId], data); onDone(); },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: () => apiDelete(`${API}/api/equipment-templates/${itemId}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['item-templates'] }); navigate({ to: '/items' }) },
-  })
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['item-templates'] }); navigate({ to: '/items' }); },
+  });
 
   const set = <K extends keyof TemplateEditForm>(key: K, value: TemplateEditForm[K]) =>
-    setForm(prev => ({ ...prev, [key]: value }))
+    setForm(prev => ({ ...prev, [key]: value }));
 
   const handleSave = () => {
-    const body: Record<string, unknown> = { ...form }
-    try { body.stats = JSON.parse(form.stats) } catch { body.stats = {} }
-    updateMutation.mutate(body)
-  }
+    const body: Record<string, unknown> = { ...form };
+    try { body.stats = JSON.parse(form.stats); } catch { body.stats = {}; }
+    updateMutation.mutate(body);
+  };
 
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border mb-6">
@@ -113,5 +113,5 @@ export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
         isLoading={deleteMutation.isPending}
       />
     </div>
-  )
+  );
 }

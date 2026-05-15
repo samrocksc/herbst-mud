@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useState } from 'react';
 
 type ToastVariant = 'success' | 'error' | 'info'
 
@@ -12,17 +12,17 @@ interface ToastContextValue {
   addToast: (message: string, variant?: ToastVariant) => void
 }
 
-const ToastContext = createContext<ToastContextValue>({ addToast: () => {} })
+const ToastContext = createContext<ToastContextValue>({ addToast: () => {} });
 
-let nextId = 0
+let nextId = 0;
 
-let globalAddToast: ((message: string, variant?: ToastVariant) => void) | null = null
+let globalAddToast: ((message: string, variant?: ToastVariant) => void) | null = null;
 
 export function showToast(message: string, variant: ToastVariant = 'error') {
   if (globalAddToast) {
-    globalAddToast(message, variant)
+    globalAddToast(message, variant);
   } else {
-    console.error('[Toast]', message)
+    console.error('[Toast]', message);
   }
 }
 
@@ -30,24 +30,24 @@ const VARIANT_CLASSES: Record<ToastVariant, string> = {
   success: 'bg-success/10 border-success text-success',
   error: 'bg-danger/10 border-danger text-danger',
   info: 'bg-primary/10 border-primary text-primary',
-}
+};
 
 export function useToast() {
-  return useContext(ToastContext)
+  return useContext(ToastContext);
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([])
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback((message: string, variant: ToastVariant = 'info') => {
-    const id = nextId++
-    setToasts((prev) => [...prev, { id, message, variant }])
+    const id = nextId++;
+    setToasts((prev) => [...prev, { id, message, variant }]);
     setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id))
-    }, 4000)
-  }, [])
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  }, []);
 
-  globalAddToast = addToast
+  globalAddToast = addToast;
 
   return (
     <ToastContext.Provider value={{ addToast }}>
@@ -62,5 +62,5 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         </div>
       )}
     </ToastContext.Provider>
-  )
+  );
 }

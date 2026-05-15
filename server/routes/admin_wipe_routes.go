@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/character"
-	"herbst-server/dbinit"
 )
 
 // WipeRequest configures what to wipe and reload
@@ -57,35 +56,14 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 				}
 			}
 
-			// Re-initialize characters
-			if err := dbinit.InitCharacters(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize characters: "+err.Error())
-			} else {
-				result.Reinitialized = append(result.Reinitialized, "characters")
-			}
 		}
 
 		// Wipe rooms
 		if req.WipeRooms {
 			// Get count before deletion
 			count, _ := client.Room.Query().Count(ctx)
-			
-			// Delete all rooms
 			client.Room.Delete().Exec(ctx)
 			result.RoomsWiped = count
-
-			// Re-initialize rooms
-			if err := dbinit.InitCrossWay(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize cross-way rooms: "+err.Error())
-			} else {
-				result.Reinitialized = append(result.Reinitialized, "cross-way rooms")
-			}
-
-			if err := dbinit.InitJunkyard(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize junkyard: "+err.Error())
-			} else {
-				result.Reinitialized = append(result.Reinitialized, "junkyard")
-			}
 		}
 
 		// Wipe items/equipment
@@ -93,13 +71,6 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 			count, _ := client.Equipment.Query().Count(ctx)
 			client.Equipment.Delete().Exec(ctx)
 			result.ItemsWiped = count
-
-			// Re-initialize items
-			if err := dbinit.InitConsumables(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize consumables: "+err.Error())
-			} else {
-				result.Reinitialized = append(result.Reinitialized, "consumables")
-			}
 		}
 
 		// Wipe abilities (formerly skills)
@@ -107,12 +78,6 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 			count, _ := client.Ability.Query().Count(ctx)
 			client.Ability.Delete().Exec(ctx)
 			result.SkillsWiped = count
-
-			if err := dbinit.InitSkills(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize abilities: "+err.Error())
-			} else {
-				result.Reinitialized = append(result.Reinitialized, "abilities")
-			}
 		}
 
 		c.JSON(http.StatusOK, result)
@@ -150,26 +115,6 @@ func RegisterAdminWipeRoutes(router *gin.Engine, client *db.Client) {
 		skillCount, _ := client.Ability.Query().Count(ctx)
 		client.Ability.Delete().Exec(ctx)
 		result.SkillsWiped = skillCount
-
-		// Re-initialize everything
-		initializers := []struct {
-			name string
-			fn   func(*db.Client) error
-		}{
-			{"cross-way rooms", dbinit.InitCrossWay},
-			{"junkyard", dbinit.InitJunkyard},
-			{"characters", dbinit.InitCharacters},
-			{"consumables", dbinit.InitConsumables},
-			{"skills", dbinit.InitSkills},
-		}
-
-		for _, init := range initializers {
-			if err := init.fn(client); err != nil {
-				result.Errors = append(result.Errors, "Failed to reinitialize "+init.name+": "+err.Error())
-			} else {
-				result.Reinitialized = append(result.Reinitialized, init.name)
-			}
-		}
 
 		c.JSON(http.StatusOK, result)
 	})

@@ -38,7 +38,7 @@ type AbilityEligibilityService interface {
 type RoomService interface {
 	CreateRoom(ctx context.Context, input CreateRoomInput) (*db.Room, error)
 	GetRoom(ctx context.Context, id int) (*db.Room, error)
-	ListRooms(ctx context.Context) ([]*db.Room, error)
+	ListRooms(ctx context.Context, worldID string) ([]*db.Room, error)
 	UpdateRoom(ctx context.Context, id int, input UpdateRoomInput) (*db.Room, error)
 	DeleteRoom(ctx context.Context, id int) error
 	CleanupOrphanExits(ctx context.Context) (int, error)
@@ -50,7 +50,7 @@ type RoomService interface {
 type QuestService interface {
 	CreateQuest(ctx context.Context, input CreateQuestInput) (*db.Quest, error)
 	GetQuest(ctx context.Context, id int) (*db.Quest, error)
-	ListQuests(ctx context.Context) ([]*db.Quest, error)
+	ListQuests(ctx context.Context, worldID string) ([]*db.Quest, error)
 	UpdateQuest(ctx context.Context, id int, input UpdateQuestInput) (*db.Quest, error)
 	DeleteQuest(ctx context.Context, id int) error
 }
@@ -89,7 +89,7 @@ type EquipmentService interface {
 // NPCService handles NPC template and instance CRUD.
 type NPCService interface {
 	GetTemplate(ctx context.Context, id string) (*db.NPCTemplate, error)
-	ListTemplates(ctx context.Context) ([]*db.NPCTemplate, error)
+	ListTemplates(ctx context.Context, worldID string) ([]*db.NPCTemplate, error)
 	CreateTemplate(ctx context.Context, input CreateNPCTemplateInput) (*db.NPCTemplate, error)
 	UpdateTemplate(ctx context.Context, id string, input UpdateNPCTemplateInput) (*db.NPCTemplate, error)
 	DeleteTemplate(ctx context.Context, id string) error
@@ -98,9 +98,9 @@ type NPCService interface {
 // AbilityService handles ability CRUD and slot management.
 type AbilityService interface {
 	GetAbility(ctx context.Context, id int) (*db.Ability, error)
-	ListAbilities(ctx context.Context) ([]*db.Ability, error)
-	ListClasslessAbilities(ctx context.Context) ([]*db.Ability, error)
-	ListPassiveAbilities(ctx context.Context) ([]*db.Ability, error)
+	ListAbilities(ctx context.Context, worldID string) ([]*db.Ability, error)
+	ListClasslessAbilities(ctx context.Context, worldID string) ([]*db.Ability, error)
+	ListPassiveAbilities(ctx context.Context, worldID string) ([]*db.Ability, error)
 	CreateAbility(ctx context.Context, input CreateAbilityInput) (*db.Ability, error)
 	UpdateAbility(ctx context.Context, id int, input UpdateAbilityInput) (*db.Ability, error)
 	DeleteAbility(ctx context.Context, id int) error
@@ -128,8 +128,8 @@ type EffectService interface {
 // DialogService handles dialog node CRUD.
 type DialogService interface {
 	GetNode(ctx context.Context, id string) (*db.DialogNode, error)
-	ListNodes(ctx context.Context) ([]*db.DialogNode, error)
-	ListNodesByTemplate(ctx context.Context, templateID string) ([]*db.DialogNode, error)
+	ListNodes(ctx context.Context, worldID string) ([]*db.DialogNode, error)
+	ListNodesByTemplate(ctx context.Context, templateID string, worldID string) ([]*db.DialogNode, error)
 	CreateNode(ctx context.Context, input CreateDialogNodeInput) (*db.DialogNode, error)
 	UpdateNode(ctx context.Context, id string, input UpdateDialogNodeInput) (*db.DialogNode, error)
 	DeleteNode(ctx context.Context, id string) error
@@ -243,6 +243,7 @@ type CreateRoomInput struct {
 	PosX           int
 	PosY           int
 	PosZ           int
+	WorldID        string
 }
 
 // UpdateRoomInput for RoomService.
@@ -257,6 +258,7 @@ type UpdateRoomInput struct {
 	PosY           *int
 	PosZ           *int
 	Version        *int
+	WorldID        *string
 }
 
 // CreateQuestInput for QuestService.
@@ -269,6 +271,7 @@ type CreateQuestInput struct {
 	RepeatMode           string
 	CooldownHours        int
 	IsActive             bool
+	WorldID              string
 }
 
 // UpdateQuestInput for QuestService.
@@ -281,6 +284,7 @@ type UpdateQuestInput struct {
 	RepeatMode          *string
 	CooldownHours       *int
 	IsActive            *bool
+	WorldID             *string
 }
 
 // CreateNPCTemplateInput for NPCService.
@@ -331,6 +335,7 @@ type CreateAbilityInput struct {
 	CooldownSeconds  int
 	Slug             string
 	FactionID        *int
+	WorldID          string
 }
 
 // UpdateAbilityInput for AbilityService.
@@ -351,6 +356,7 @@ type UpdateAbilityInput struct {
 	CooldownSeconds  *int
 	Slug             *string
 	FactionID        *int
+	WorldID          *string
 }
 
 // CreateEffectInput for EffectService.

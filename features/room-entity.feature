@@ -1,4 +1,4 @@
-Feature: Room Entity Data Structure (Issue #18)
+Feature: Room Entity Data Structure
   As a game architect
   I want the Room entity properly implemented
   So that the game world spaces are stored correctly
@@ -19,33 +19,45 @@ Feature: Room Entity Data Structure (Issue #18)
     And items on the floor are visible to players
     And items can be picked up by characters
 
-  Scenario: Room description
+  Scenario: Room has exits structure
     Given a Room entity
-    Then it should have a description field
-    And the description is shown when entering or looking
-    And descriptions can be rich text
+    Then it has an exits field (JSON object)
+    And each exit maps direction to target room UUID
 
-  Scenario: Room exits
+  Scenario: Room coordinates are stored
     Given a Room entity
-    Then it should have exits
-    And exits connect to other rooms
-    And exits have directions: N, S, E, W, U, D
-    And exits can be one-way or bidirectional
+    Then it has x, y, z coordinates
+    And coordinates can be negative (world map)
 
-  Scenario: Room atmosphere
-    Given a Room entity
-    Then it should have atmosphere field
-    And valid atmospheres: air, water, wind
-    And atmosphere affects gameplay (underwater rooms, etc.)
+  Scenario: Room z-coordinate represents floor
+    Given a room at z = 0 (ground floor)
+    When I move up
+    Then z should increase to 1
 
-  Scenario: Room unique ID
-    Given a Room entity
-    Then it should have a unique identifier
-    And rooms can be referenced by ID
-    And IDs should be human-readable where possible
+  Scenario: Room name is required
+    When I attempt to create a room with name ""
+    Then the validation should fail
+    And the error should indicate name is required
 
-  Scenario: Room coordinates optional
-    Given a Room entity
-    Then it may have x, y, z coordinates
-    And coordinates help with map visualization
-    And coordinates are for admin tools
+  Scenario: Room description is required
+    When I attempt to create a room with description ""
+    Then the validation should fail
+    And the error should indicate description is required
+
+  Scenario: Room has unique constraint on name
+    When I create two rooms with the same name
+    Then the second creation should fail
+
+  Scenario: Room coordinates can be zero
+    When I create a room at (0, 0, 0)
+    Then the room should be created successfully
+
+  Scenario: Room can have empty exits
+    When I create a room with no exits
+    Then the room should be created successfully
+    And attempting to move in any direction should fail
+
+  Scenario: Room has createdAt and updatedAt timestamps
+    When I create and update a room
+    Then createdAt is set on creation
+    And updatedAt is updated on changes

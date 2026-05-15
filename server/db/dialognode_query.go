@@ -299,12 +299,12 @@ func (_q *DialogNodeQuery) WithNpcTemplate(opts ...func(*NPCTemplateQuery)) *Dia
 // Example:
 //
 //	var v []struct {
-//		NpcText string `json:"npc_text,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.DialogNode.Query().
-//		GroupBy(dialognode.FieldNpcText).
+//		GroupBy(dialognode.FieldWorldID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *DialogNodeQuery) GroupBy(field string, fields ...string) *DialogNodeGroupBy {
@@ -322,11 +322,11 @@ func (_q *DialogNodeQuery) GroupBy(field string, fields ...string) *DialogNodeGr
 // Example:
 //
 //	var v []struct {
-//		NpcText string `json:"npc_text,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //	}
 //
 //	client.DialogNode.Query().
-//		Select(dialognode.FieldNpcText).
+//		Select(dialognode.FieldWorldID).
 //		Scan(ctx, &v)
 func (_q *DialogNodeQuery) Select(fields ...string) *DialogNodeSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

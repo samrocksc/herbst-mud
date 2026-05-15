@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
 
-const API = `${window.location.origin}`
+const API = `${window.location.origin}`;
 
 export type CompetencyThreshold = Readonly<{
   level: number
@@ -51,45 +51,45 @@ export function useCompetencyCategories() {
   return useQuery({
     queryKey: ['competency-categories'],
     queryFn: async (): Promise<CompetencyCategory[]> => {
-      const data = await apiGet<CompetencyCategory[]>(`${API}/api/competency-categories`)
-      return Array.isArray(data) ? data : []
+      const data = await apiGet<CompetencyCategory[]>(`${API}/api/competency-categories`);
+      return Array.isArray(data) ? data : [];
     },
-  })
+  });
 }
 
 export function useCreateCompetencyCategory() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: CompetencyCategoryInput) =>
       apiPost<CompetencyCategory>(`${API}/api/competency-categories`, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['competency-categories'] }),
-  })
+  });
 }
 
 export function useUpdateCompetencyCategory() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: CompetencyCategoryUpdate }) =>
       apiPut<CompetencyCategory>(`${API}/api/competency-categories/${id}`, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['competency-categories'] }),
-  })
+  });
 }
 
 export function useDeleteCompetencyCategory() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiDelete(`${API}/api/competency-categories/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['competency-categories'] }),
-  })
+  });
 }
 
 export function useCharacterCompetencies(characterId: number | null) {
   return useQuery({
     queryKey: ['character-competencies', characterId],
     queryFn: async (): Promise<CharacterCompetency[]> => {
-      if (!characterId) return []
-      return apiGet<CharacterCompetency[]>(`${API}/api/characters/${characterId}/competencies`)
+      if (!characterId) return [];
+      return apiGet<CharacterCompetency[]>(`${API}/api/characters/${characterId}/competencies`);
     },
     enabled: !!characterId,
-  })
+  });
 }

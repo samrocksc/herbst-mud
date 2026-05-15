@@ -19,6 +19,8 @@ type Room struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// World this room belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// IsStartingRoom holds the value of the "isStartingRoom" field.
@@ -83,7 +85,7 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case room.FieldID, room.FieldPosX, room.FieldPosY, room.FieldPosZ, room.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case room.FieldName, room.FieldDescription, room.FieldAtmosphere:
+		case room.FieldName, room.FieldWorldID, room.FieldDescription, room.FieldAtmosphere:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -111,6 +113,12 @@ func (_m *Room) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
+			}
+		case room.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
 			}
 		case room.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -216,6 +224,9 @@ func (_m *Room) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)

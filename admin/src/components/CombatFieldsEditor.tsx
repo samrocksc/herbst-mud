@@ -1,5 +1,5 @@
-import { NumberField, SelectField, CheckboxField, TextareaField } from './FormFields'
-import { WEAPON_TYPES, DAMAGE_TYPES, ARMOR_TYPES, RARITY_OPTIONS, isWeaponSlot, isArmorSlot } from './equipConstants'
+import { NumberField, SelectField, CheckboxField, TextareaField } from './FormFields';
+import { WEAPON_TYPES, DAMAGE_TYPES, ARMOR_TYPES, RARITY_OPTIONS, isWeaponSlot, isArmorSlot } from './equipConstants';
 
 /** Combat form state shared by Equipment and EquipmentTemplate. */
 export type CombatFields = Readonly<{
@@ -25,8 +25,8 @@ type CombatFieldsEditorProps = Readonly<{
 
 /** Renders weapon/armor combat fields conditionally based on slot. */
 export function CombatFieldsEditor({ form, onChange, slot }: CombatFieldsEditorProps) {
-  const showWeapon = isWeaponSlot(slot)
-  const showArmor = isArmorSlot(slot)
+  const showWeapon = isWeaponSlot(slot);
+  const showArmor = isArmorSlot(slot);
 
   return (
     <div className="space-y-4">
@@ -42,7 +42,7 @@ export function CombatFieldsEditor({ form, onChange, slot }: CombatFieldsEditorP
 
       <SharedFields form={form} onChange={onChange} />
     </div>
-  )
+  );
 }
 
 function WeaponFields({ form, onChange }: Readonly<{ form: CombatFields; onChange: (u: Partial<CombatFields>) => void }>) {
@@ -59,7 +59,7 @@ function WeaponFields({ form, onChange }: Readonly<{ form: CombatFields; onChang
       </div>
       <CheckboxField label="Two-Handed" checked={form.is_two_handed} onChange={(v) => onChange({ is_two_handed: v })} />
     </>
-  )
+  );
 }
 
 function ArmorFields({ form, onChange }: Readonly<{ form: CombatFields; onChange: (u: Partial<CombatFields>) => void }>) {
@@ -68,7 +68,7 @@ function ArmorFields({ form, onChange }: Readonly<{ form: CombatFields; onChange
       <NumberField label="Armor Rating" value={form.armor_rating} onChange={(v) => onChange({ armor_rating: v })} min={0} />
       <SelectField label="Armor Type" value={form.armor_type} onChange={(v) => onChange({ armor_type: v })} options={[...ARMOR_TYPES]} />
     </div>
-  )
+  );
 }
 
 function SharedFields({ form, onChange }: Readonly<{ form: CombatFields; onChange: (u: Partial<CombatFields>) => void }>) {
@@ -85,5 +85,5 @@ function SharedFields({ form, onChange }: Readonly<{ form: CombatFields; onChang
       <TextareaField label="Stats (JSON)" value={form.stats} onChange={(v) => onChange({ stats: v })} rows={3}
         placeholder='e.g. {"strength": 2, "dexterity": 1}' />
     </>
-  )
+  );
 }

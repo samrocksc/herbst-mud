@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
+import { useWorldStore } from './useWorldStore';
 
-const API = `${window.location.origin}`
+const API = `${window.location.origin}`;
 
 export type QuestObjective = Readonly<{
   type: string
@@ -49,18 +50,23 @@ export type QuestInput = Readonly<{
 const EMPTY_REWARDS: QuestRewards = {
   xp: 0, item_ids: [], effect_ids: [],
   tag_adds: [], tag_removes: [], achievement_ids: [],
-}
+};
 
-export { EMPTY_REWARDS }
+export { EMPTY_REWARDS };
 
 export function useQuests() {
+  const { currentWorld } = useWorldStore();
+  const params = new URLSearchParams();
+  if (currentWorld) params.append('world_id', currentWorld);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+
   return useQuery({
-    queryKey: ['quests'],
+    queryKey: ['quests', currentWorld],
     queryFn: async (): Promise<Quest[]> => {
-      const data = await apiGet<{ quests: Quest[] }>(`${API}/api/quests`)
-      return data.quests ?? []
+      const data = await apiGet<{ quests: Quest[] }>(`${API}/api/quests${qs}`);
+      return data.quests ?? [];
     },
-  })
+  });
 }
 
 export type QuestLookups = Readonly<{
@@ -75,50 +81,60 @@ export type QuestLookups = Readonly<{
 }>
 
 export function useQuestLookups() {
+  const { currentWorld } = useWorldStore();
+  const params = new URLSearchParams();
+  if (currentWorld) params.append('world_id', currentWorld);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+
   return useQuery({
-    queryKey: ['quest-lookups'],
+    queryKey: ['quest-lookups', currentWorld],
     queryFn: async (): Promise<QuestLookups> => {
-      return apiGet<QuestLookups>(`${API}/api/quests/lookups`)
+      return apiGet<QuestLookups>(`${API}/api/quests/lookups${qs}`);
     },
-  })
+  });
 }
 
 export function useQuest(id: number | null) {
+  const { currentWorld } = useWorldStore();
+  const params = new URLSearchParams();
+  if (currentWorld) params.append('world_id', currentWorld);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+
   return useQuery({
-    queryKey: ['quest', id],
+    queryKey: ['quest', id, currentWorld],
     queryFn: async (): Promise<Quest | null> => {
-      if (!id) return null
-      return apiGet<Quest>(`${API}/api/quests/${id}`)
+      if (!id) return null;
+      return apiGet<Quest>(`${API}/api/quests/${id}${qs}`);
     },
     enabled: !!id,
-  })
+  });
 }
 
 export function useCreateQuest() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: QuestInput) =>
       apiPost<Quest>(`${API}/api/quests`, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['quests'] }),
-  })
+  });
 }
 
 export function useUpdateQuest() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: QuestInput }) =>
       apiPut<Quest>(`${API}/api/quests/${id}`, input),
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ['quests'] })
-      qc.invalidateQueries({ queryKey: ['quest', id] })
+      qc.invalidateQueries({ queryKey: ['quests'] });
+      qc.invalidateQueries({ queryKey: ['quest', id] });
     },
-  })
+  });
 }
 
 export function useDeleteQuest() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/api/quests/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['quests'] }),
-  })
+  });
 }

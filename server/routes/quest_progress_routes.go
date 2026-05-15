@@ -25,7 +25,7 @@ func RegisterQuestProgressRoutes(r *gin.Engine, repos *repository.Container, svc
 
 	// Admin-only bulk check endpoint (requires auth)
 	admin := r.Group("/api/characters/:id/quests")
-	admin.Use(middleware.AuthMiddleware())
+	admin.Use(middleware.AuthMiddleware(nil))
 	admin.Use(middleware.AdminMiddleware())
 	{
 		admin.POST("/check-all", checkAllQuests(repos, client))

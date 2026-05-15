@@ -1,17 +1,17 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost } from '../utils/apiFetch'
-import { PageHeader } from '../components/PageHeader'
-import { Button } from '../components/Button'
-import { NumberField } from '../components/fields/NumberField'
-import { FormField } from '../components/fields/FormField'
-import { FormError } from '../components/fields/FormError'
-import { ResourceSearchSelect } from '../components/ResourceSearchSelect'
-import { SearchableSelect } from '../components/SearchableSelect'
-import { RESOURCE_ENDPOINTS } from '../utils/resourceEndpoints'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost } from '../utils/apiFetch';
+import { PageHeader } from '../components/PageHeader';
+import { Button } from '../components/Button';
+import { NumberField } from '../components/fields/NumberField';
+import { FormField } from '../components/fields/FormField';
+import { FormError } from '../components/fields/FormError';
+import { ResourceSearchSelect } from '../components/ResourceSearchSelect';
+import { SearchableSelect } from '../components/SearchableSelect';
+import { RESOURCE_ENDPOINTS } from '../utils/resourceEndpoints';
 
-const API = `${window.location.origin}/api`
+const API = `${window.location.origin}/api`;
 
 type NPCTemplate = Readonly<{
   id: string
@@ -23,54 +23,54 @@ type NPCTemplate = Readonly<{
 }>
 
 function parseRoomIds(raw: string): string[] {
-  return raw.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
+  return raw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
 }
 
 export const Route = createFileRoute('/map/rooms/$roomId/npcs/spawn')({
   component: NPCSpawnPage,
-})
+});
 
 function NPCSpawnPage() {
-  const { roomId } = Route.useParams()
-  const roomIdNum = Number(roomId)
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const { roomId } = Route.useParams();
+  const roomIdNum = Number(roomId);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ['npc-templates'],
     queryFn: () => apiGet<NPCTemplate[]>(`${API}/npc-templates`),
-  })
+  });
 
   const createMutation = useMutation({
     mutationFn: (input: Record<string, unknown>) => apiPost(`${API}/npc-instances`, input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-instances'] })
-      navigate({ to: '/map', search: { room: roomIdNum } })
+      queryClient.invalidateQueries({ queryKey: ['npc-instances'] });
+      navigate({ to: '/map', search: { room: roomIdNum } });
     },
-  })
+  });
 
-  const [templateId, setTemplateId] = useState('')
-  const [level, setLevel] = useState(0)
-  const [hitpoints, setHitpoints] = useState(0)
-  const [spawnRoomId, setSpawnRoomId] = useState<number | string | null>(roomIdNum)
-  const [respawnCooldown, setRespawnCooldown] = useState(0)
-  const [respawnRooms, setRespawnRooms] = useState('')
+  const [templateId, setTemplateId] = useState('');
+  const [level, setLevel] = useState(0);
+  const [hitpoints, setHitpoints] = useState(0);
+  const [spawnRoomId, setSpawnRoomId] = useState<number | string | null>(roomIdNum);
+  const [respawnCooldown, setRespawnCooldown] = useState(0);
+  const [respawnRooms, setRespawnRooms] = useState('');
 
-  const selectedTemplate = templateId ? templates.find((t) => t.id === templateId) ?? null : null
+  const selectedTemplate = templateId ? templates.find((t) => t.id === templateId) ?? null : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!templateId) return
-    const payload: Record<string, unknown> = { template_id: templateId, room_id: Number(spawnRoomId) || roomIdNum }
-    if (level > 0) payload.level = level
-    if (hitpoints > 0) payload.hitpoints = hitpoints
-    if (respawnCooldown > 0) payload.respawn_cooldown = respawnCooldown
-    const parsedRooms = parseRoomIds(respawnRooms)
-    if (parsedRooms.length > 0) payload.respawn_rooms = parsedRooms
-    createMutation.mutate(payload)
-  }
+    e.preventDefault();
+    if (!templateId) return;
+    const payload: Record<string, unknown> = { template_id: templateId, room_id: Number(spawnRoomId) || roomIdNum };
+    if (level > 0) payload.level = level;
+    if (hitpoints > 0) payload.hitpoints = hitpoints;
+    if (respawnCooldown > 0) payload.respawn_cooldown = respawnCooldown;
+    const parsedRooms = parseRoomIds(respawnRooms);
+    if (parsedRooms.length > 0) payload.respawn_rooms = parsedRooms;
+    createMutation.mutate(payload);
+  };
 
-  const npcTemplateOptions = templates.map((t) => ({ id: t.id, name: `${t.name} (${t.race}, lv.${t.level})` }))
+  const npcTemplateOptions = templates.map((t) => ({ id: t.id, name: `${t.name} (${t.race}, lv.${t.level})` }));
 
   return (
     <div className="p-6">
@@ -121,5 +121,5 @@ function NPCSpawnPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

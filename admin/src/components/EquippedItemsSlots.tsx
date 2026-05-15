@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/react-router'
-import { isWeaponSlot, isArmorSlot } from './equipConstants'
-import { formatSlotName, RarityBadge } from './equipViewHelpers'
+import { Link } from '@tanstack/react-router';
+import { isWeaponSlot, isArmorSlot } from './equipConstants';
+import { formatSlotName, RarityBadge } from './equipViewHelpers';
 
 type EquippedItem = Readonly<{
   id: number; name: string; slot: string; level: number; itemType: string
@@ -17,7 +17,7 @@ export function EquippedSlotGrid({ slots, items }: Readonly<{ slots: string[]; i
         <SlotCard key={slot} slot={slot} item={items.find((i) => i.slot === slot)} />
       ))}
     </div>
-  )
+  );
 }
 
 /** List of unequipped items in inventory. */
@@ -36,7 +36,7 @@ export function UnequippedSection({ items }: Readonly<{ items: EquippedItem[] }>
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function SlotCard({ slot, item }: Readonly<{ slot: string; item: EquippedItem | undefined }>) {
@@ -48,7 +48,7 @@ function SlotCard({ slot, item }: Readonly<{ slot: string; item: EquippedItem | 
       </div>
       {item ? <ItemInfo item={item} slot={slot} /> : <span className="text-text-muted text-xs italic">Empty</span>}
     </div>
-  )
+  );
 }
 
 function ItemInfo({ item, slot }: Readonly<{ item: EquippedItem; slot: string }>) {
@@ -67,5 +67,5 @@ function ItemInfo({ item, slot }: Readonly<{ item: EquippedItem; slot: string }>
         )}
       </div>
     </div>
-  )
+  );
 }

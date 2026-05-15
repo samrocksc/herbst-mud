@@ -7,7 +7,7 @@ type CheckboxFieldProps = Readonly<{
 }>
 
 export function CheckboxField({ label, id, checked, onChange, disabled }: CheckboxFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-');
   return (
     <div>
       <label className="flex items-center gap-2 text-text-muted text-xs cursor-pointer">
@@ -21,5 +21,5 @@ export function CheckboxField({ label, id, checked, onChange, disabled }: Checkb
         {label}
       </label>
     </div>
-  )
+  );
 }

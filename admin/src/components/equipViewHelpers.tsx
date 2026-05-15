@@ -2,7 +2,7 @@
 
 /** Format a slot name like "main_hand" into "Main Hand". */
 export function formatSlotName(slot: string): string {
-  return slot.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  return slot.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /** Rarity badge with color coding. */
@@ -13,11 +13,11 @@ export function RarityBadge({ rarity }: Readonly<{ rarity: string }>) {
     rare: 'bg-blue-900/30 text-blue-400 border-blue-700/40',
     epic: 'bg-purple-900/30 text-purple-400 border-purple-700/40',
     legendary: 'bg-orange-900/30 text-orange-400 border-orange-700/40',
-  }
-  const colorClass = colors[rarity] || colors.common
+  };
+  const colorClass = colors[rarity] || colors.common;
   return (
     <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium border ${colorClass}`}>
       {rarity}
     </span>
-  )
+  );
 }

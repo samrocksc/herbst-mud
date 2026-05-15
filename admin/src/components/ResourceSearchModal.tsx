@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
-import { Modal } from './Modal'
-import { Button } from './Button'
-import { useResourceSearch } from './useResourceSearch'
-import { fuzzyMatch, highlightMatch } from './fuzzyMatch'
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Modal } from './Modal';
+import { Button } from './Button';
+import { useResourceSearch } from './useResourceSearch';
+import { fuzzyMatch, highlightMatch } from './fuzzyMatch';
 
 type Props = Readonly<{
   isOpen: boolean
@@ -20,43 +20,43 @@ export function ResourceSearchModal({
   isOpen, onClose, title, resourceType, apiBase,
   value, onSelect, multi = false, selectedIds = [],
 }: Props) {
-  const [query, setQuery] = useState('')
-  const [highlightIdx, setHighlightIdx] = useState(-1)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const { data: results = [], isLoading } = useResourceSearch(resourceType, apiBase, query)
+  const [query, setQuery] = useState('');
+  const [highlightIdx, setHighlightIdx] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { data: results = [], isLoading } = useResourceSearch(resourceType, apiBase, query);
   const filtered = useMemo(() => {
-    if (!query.trim()) return results.slice(0, 50)
+    if (!query.trim()) return results.slice(0, 50);
     return results.filter(
       (r: { id: number | string; name: string }) => fuzzyMatch(r.name, query) || fuzzyMatch(String(r.id), query),
-    )
-  }, [results, query])
+    );
+  }, [results, query]);
 
-  useEffect(() => { setHighlightIdx(-1) }, [filtered.length])
-  useEffect(() => { if (isOpen) { setQuery(''); inputRef.current?.focus() } }, [isOpen])
+  useEffect(() => { setHighlightIdx(-1); }, [filtered.length]);
+  useEffect(() => { if (isOpen) { setQuery(''); inputRef.current?.focus(); } }, [isOpen]);
 
   const handleSelect = (id: number | string, name: string) => {
-    onSelect(id, name)
-    if (!multi) onClose()
-  }
+    onSelect(id, name);
+    if (!multi) onClose();
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setHighlightIdx((i) => Math.min(i + 1, filtered.length - 1))
+      e.preventDefault();
+      setHighlightIdx((i) => Math.min(i + 1, filtered.length - 1));
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHighlightIdx((i) => Math.max(i - 1, 0))
+      e.preventDefault();
+      setHighlightIdx((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Enter' && highlightIdx >= 0 && highlightIdx < filtered.length) {
-      e.preventDefault()
-      const r = filtered[highlightIdx]
-      handleSelect(r.id, r.name)
+      e.preventDefault();
+      const r = filtered[highlightIdx];
+      handleSelect(r.id, r.name);
     } else if (e.key === 'Escape') {
-      e.preventDefault()
-      onClose()
+      e.preventDefault();
+      onClose();
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
@@ -79,8 +79,8 @@ export function ResourceSearchModal({
       ) : (
         <div className="max-h-64 overflow-y-auto">
           {filtered.map((r: { id: number | string; name: string }, idx: number) => {
-            const isSelected = r.id === value || selectedIds.includes(r.id)
-            const isHighlighted = idx === highlightIdx
+            const isSelected = r.id === value || selectedIds.includes(r.id);
+            const isHighlighted = idx === highlightIdx;
             return (
               <div
                 key={r.id}
@@ -100,7 +100,7 @@ export function ResourceSearchModal({
                   }}
                 />
               </div>
-            )
+            );
           })}
         </div>
       )}
@@ -110,5 +110,5 @@ export function ResourceSearchModal({
         </div>
       )}
     </Modal>
-  )
+  );
 }

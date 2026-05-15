@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiPut } from '../../utils/apiFetch'
-import { Button } from '../../components/Button'
-import { CombatFieldsEditor, type CombatFields } from '../../components/CombatFieldsEditor'
-import { NumberField, SelectField, CheckboxField, TextareaField, FormField } from '../../components/FormFields'
-import { ResourceIdField } from '../../components/ResourceIdField'
-import { RESOURCE_ENDPOINTS } from '../../utils/resourceEndpoints'
-import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from '../../components/itemConstants'
-import type { ItemInstance } from '../../hooks/useItemInstances'
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiPut } from '../../utils/apiFetch';
+import { Button } from '../../components/Button';
+import { CombatFieldsEditor, type CombatFields } from '../../components/CombatFieldsEditor';
+import { NumberField, SelectField, CheckboxField, TextareaField, FormField } from '../../components/FormFields';
+import { ResourceIdField } from '../../components/ResourceIdField';
+import { RESOURCE_ENDPOINTS } from '../../utils/resourceEndpoints';
+import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from '../../components/itemConstants';
+import type { ItemInstance } from '../../hooks/useItemInstances';
 
 const EFFECT_TYPE_OPTS = [
   { value: '', label: '— None —' },
@@ -21,7 +21,7 @@ const EFFECT_TYPE_OPTS = [
   { value: 'buff_armor', label: 'Buff Armor' },
   { value: 'buff_dodge', label: 'Buff Dodge' },
   { value: 'buff_crit', label: 'Buff Crit' },
-]
+];
 
 type InstanceEditFormState = Readonly<{
   name: string; description: string; slot: string; itemType: string
@@ -35,7 +35,7 @@ type InstanceEditFormState = Readonly<{
 export function InstanceEditForm({ instance, instanceId, onDone }: Readonly<{
   instance: ItemInstance; instanceId: string; onDone: () => void
 }>) {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<InstanceEditFormState>(() => ({
     name: instance.name, description: instance.description, slot: instance.slot,
     itemType: instance.itemType, level: instance.level, weight: instance.weight,
@@ -55,21 +55,21 @@ export function InstanceEditForm({ instance, instanceId, onDone }: Readonly<{
     damage_bonus: instance.damage_bonus, damage_type: instance.damage_type,
     weapon_type: instance.weapon_type, is_two_handed: instance.is_two_handed,
     stats: instance.stats ? JSON.stringify(instance.stats) : '{}',
-  }))
+  }));
 
   const updateMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) => apiPut(`${window.location.origin}/api/item-instances/${instanceId}`, body),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['item-instances', instanceId] }); queryClient.invalidateQueries({ queryKey: ['item-instances'] }); onDone() },
-  })
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['item-instances', instanceId] }); queryClient.invalidateQueries({ queryKey: ['item-instances'] }); onDone(); },
+  });
 
   const set = <K extends keyof InstanceEditFormState>(key: K, value: InstanceEditFormState[K]) =>
-    setForm(prev => ({ ...prev, [key]: value }))
+    setForm(prev => ({ ...prev, [key]: value }));
 
   const handleSave = () => {
-    const body: Record<string, unknown> = { ...form }
-    try { body.stats = JSON.parse(form.stats) } catch { body.stats = {} }
-    updateMutation.mutate(body)
-  }
+    const body: Record<string, unknown> = { ...form };
+    try { body.stats = JSON.parse(form.stats); } catch { body.stats = {}; }
+    updateMutation.mutate(body);
+  };
 
   return (
     <div className="max-w-2xl">
@@ -117,5 +117,5 @@ export function InstanceEditForm({ instance, instanceId, onDone }: Readonly<{
         {updateMutation.isError && <div className="mt-3 text-danger text-sm">Failed to save: {(updateMutation.error as Error)?.message}</div>}
       </div>
     </div>
-  )
+  );
 }

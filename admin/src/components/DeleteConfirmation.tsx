@@ -1,5 +1,5 @@
-import { Modal } from './Modal'
-import { Button } from './Button'
+import { Modal } from './Modal';
+import { Button } from './Button';
 
 type DeleteConfirmationProps = Readonly<{
   open: boolean
@@ -21,5 +21,5 @@ export function DeleteConfirmation({ open, title = 'Confirm Delete', message, on
         </Button>
       </div>
     </Modal>
-  )
+  );
 }

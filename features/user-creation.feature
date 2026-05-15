@@ -1,4 +1,4 @@
-Feature: User Creation (Issue #15)
+Feature: User Creation
   As a new player
   I want to create a user account when first connecting
   So that I can save my progress and play the game
@@ -51,3 +51,13 @@ Feature: User Creation (Issue #15)
     When I send POST to /api/users with email and password
     Then the response should be 201 Created
     And REST API should follow proper HTTP conventions
+
+  Scenario: Account creation with short email fails
+    Given I am at the email prompt
+    When I enter "a@b"
+    Then I should see an error about email format
+
+  Scenario: Account creation with short password fails
+    Given I am at the password prompt
+    When I enter "short"
+    Then I should see an error about password length

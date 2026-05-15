@@ -299,12 +299,12 @@ func (_q *EquipmentTemplateQuery) WithEquipment(opts ...func(*EquipmentQuery)) *
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.EquipmentTemplate.Query().
-//		GroupBy(equipmenttemplate.FieldName).
+//		GroupBy(equipmenttemplate.FieldWorldID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *EquipmentTemplateQuery) GroupBy(field string, fields ...string) *EquipmentTemplateGroupBy {
@@ -322,11 +322,11 @@ func (_q *EquipmentTemplateQuery) GroupBy(field string, fields ...string) *Equip
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //	}
 //
 //	client.EquipmentTemplate.Query().
-//		Select(equipmenttemplate.FieldName).
+//		Select(equipmenttemplate.FieldWorldID).
 //		Scan(ctx, &v)
 func (_q *EquipmentTemplateQuery) Select(fields ...string) *EquipmentTemplateSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

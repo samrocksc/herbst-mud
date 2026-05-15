@@ -1,15 +1,15 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { useUsers, useResetPassword, type User } from '../../hooks/useUsers'
-import { apiGet } from '../../utils/apiFetch'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Button } from '../../components/Button'
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useUsers, useResetPassword, type User } from '../../hooks/useUsers';
+import { apiGet } from '../../utils/apiFetch';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Button } from '../../components/Button';
 
 export const Route = createFileRoute('/_auth/players')({
   component: PlayersManagement,
-})
+});
 
 type Character = Readonly<{
   id: number
@@ -24,28 +24,28 @@ type Character = Readonly<{
 }>
 
 function PlayersManagement() {
-  const { data: users, isLoading, error } = useUsers()
-  const resetPassword = useResetPassword()
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [showDetail, setShowDetail] = useState(false)
-  const [showCharacters, setShowCharacters] = useState(false)
-  const [resetSuccess, setResetSuccess] = useState<string | null>(null)
-  const [resetError, setResetError] = useState<string | null>(null)
+  const { data: users, isLoading, error } = useUsers();
+  const resetPassword = useResetPassword();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [showCharacters, setShowCharacters] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   const charactersQuery = useQuery<Character[]>({
     queryKey: ['characters'],
     queryFn: () => apiGet<Character[]>(`${window.location.origin}/characters`),
     enabled: showCharacters,
-  })
+  });
 
   const handleReset = async (user: User) => {
-    setResetSuccess(null); setResetError(null)
-    try { await resetPassword.mutateAsync(user.id); setResetSuccess(`Password reset for ${user.email}`) }
-    catch { setResetError(`Failed to reset password for ${user.email}`) }
-  }
+    setResetSuccess(null); setResetError(null);
+    try { await resetPassword.mutateAsync(user.id); setResetSuccess(`Password reset for ${user.email}`); }
+    catch { setResetError(`Failed to reset password for ${user.email}`); }
+  };
 
   const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const userColumns: Column<User>[] = [
     { header: 'ID', accessor: 'id' },
@@ -54,9 +54,9 @@ function PlayersManagement() {
       val ? <span className="badge badge-admin">Admin</span> : <span className="badge badge-player">Player</span> },
     { header: 'Created', accessor: 'created_at', render: (val: unknown) => formatDate(String(val ?? '')) },
     { header: 'Actions', accessor: '_actions', render: (_: unknown, row: User) => (
-      <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); handleReset(row) }} disabled={resetPassword.isPending}>Reset Password</Button>
+      <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); handleReset(row); }} disabled={resetPassword.isPending}>Reset Password</Button>
     )},
-  ]
+  ];
 
   const charColumns: Column<Character>[] = [
     { header: 'ID', accessor: 'id' },
@@ -68,10 +68,10 @@ function PlayersManagement() {
     { header: 'Level', accessor: 'level' },
     { header: 'HP', accessor: 'hitpoints', render: (_: unknown, row: Character) => `${row.hitpoints}/${row.max_hitpoints}` },
     { header: 'Room', accessor: 'currentRoomId' },
-  ]
+  ];
 
-  if (isLoading) return <div className="loading">Loading players...</div>
-  if (error) return <div className="error">Failed to load players: {error.message}</div>
+  if (isLoading) return <div className="loading">Loading players...</div>;
+  if (error) return <div className="error">Failed to load players: {error.message}</div>;
 
   return (
     <div className="management-page">
@@ -79,7 +79,7 @@ function PlayersManagement() {
       {resetSuccess && <div className="success-message">{resetSuccess}</div>}
       {resetError && <div className="error-message">{resetError}</div>}
       <DataTable columns={userColumns} data={users ?? []} getKey={(row: User) => row.id}
-        onRowClick={(row: User) => { setSelectedUser(row); setShowDetail(true) }} emptyMessage="No players found." />
+        onRowClick={(row: User) => { setSelectedUser(row); setShowDetail(true); }} emptyMessage="No players found." />
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-3">
@@ -117,5 +117,5 @@ function PlayersManagement() {
         </div>
       )}
     </div>
-  )
+  );
 }

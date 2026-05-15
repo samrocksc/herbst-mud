@@ -11,8 +11,9 @@ import (
 // RegisterDialogNodeRoutes registers CRUD endpoints for DialogNode definitions.
 func RegisterDialogNodeRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	nodes := r.Group("/api/dialog-nodes")
-	nodes.Use(middleware.AuthMiddleware())
+	nodes.Use(middleware.AuthMiddleware(nil))
 	nodes.Use(middleware.AdminMiddleware())
+	nodes.Use(middleware.WorldAccessMiddleware())
 	{
 		nodes.GET("", listDialogNodes(repos, client))
 		nodes.POST("", createDialogNode(repos, client))
@@ -21,7 +22,7 @@ func RegisterDialogNodeRoutes(r *gin.Engine, repos *repository.Container, client
 		nodes.DELETE("/:id", deleteDialogNode(repos))
 	}
 	// Public: game client fetches dialog tree for a specific NPC template.
-	r.GET("/api/npc-templates/:id/dialog-nodes", middleware.AuthMiddleware(), middleware.AdminMiddleware(), getDialogNodesForTemplate(repos))
+	r.GET("/api/npc-templates/:id/dialog-nodes", middleware.AuthMiddleware(nil), middleware.AdminMiddleware(), middleware.WorldAccessMiddleware(), getDialogNodesForTemplate(repos))
 }
 
 // TODO: Use repos.DialogNode.Get once repo supports WithNpcTemplate edge loading

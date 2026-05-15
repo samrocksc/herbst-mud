@@ -12,7 +12,7 @@ import (
 // RegisterChannelRoutes registers REST endpoints for global channel configurations.
 func RegisterChannelRoutes(r *gin.Engine, client *db.Client) {
 	group := r.Group("/api")
-	group.Use(middleware.AuthMiddleware())
+	group.Use(middleware.AuthMiddleware(client))
 	group.Use(middleware.AdminMiddleware())
 	{
 		group.GET("/channels", listChannels(client))

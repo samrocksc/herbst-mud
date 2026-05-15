@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useRef } from 'react'
-import { Button } from '../components/Button'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '../components/Button';
 
 export const Route = createFileRoute('/export')({
   component: ExportPage,
-})
+});
 
 type ExportData = Readonly<{
   version: string
@@ -24,183 +24,187 @@ type WorldInfo = Readonly<{
 }>
 
 function ExportPage() {
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [messageType, setMessageType] = useState<'success' | 'error'>('success')
-  const [exportPreview, setExportPreview] = useState<ExportData | null>(null)
-  const [showImportConfirm, setShowImportConfirm] = useState(false)
-  const [showWipeConfirm, setShowWipeConfirm] = useState(false)
-  const [importData, setImportData] = useState<ExportData | null>(null)
-  const [availableWorlds, setAvailableWorlds] = useState<WorldInfo[]>([])
-  const [selectedWorldId, setSelectedWorldId] = useState<string>('default')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [exportPreview, setExportPreview] = useState<ExportData | null>(null);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [showWipeConfirm, setShowWipeConfirm] = useState(false);
+  const [importData, setImportData] = useState<ExportData | null>(null);
+  const [availableWorlds, setAvailableWorlds] = useState<WorldInfo[]>([]);
+  const [selectedWorldId, setSelectedWorldId] = useState<string>('default');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch available worlds on mount
   const fetchWorlds = async () => {
     try {
-      const response = await fetch(`${window.location.origin}/admin/export/worlds`)
+      const response = await fetch(`${window.location.origin}/admin/export/worlds`);
       if (response.ok) {
-        const data = await response.json()
-        setAvailableWorlds(data.worlds || [])
+        const data = await response.json();
+        setAvailableWorlds(data.worlds || []);
         if (data.default) {
-          setSelectedWorldId(data.default)
+          setSelectedWorldId(data.default);
         }
       }
     } catch (err) {
-      console.error('Failed to fetch worlds:', err)
+      console.error('Failed to fetch worlds:', err);
     }
-  }
+  };
+
+  useEffect(() => {
+    fetchWorlds();
+  }, []);
 
   const handleExport = async () => {
-    setLoading(true)
-    setMessage('')
+    setLoading(true);
+    setMessage('');
 
     try {
-      const response = await fetch(`${window.location.origin}/admin/export/worlds`)
+      const response = await fetch(`${window.location.origin}/admin/export/worlds`);
       if (!response.ok) {
-        throw new Error('Failed to fetch world list: ' + response.statusText)
+        throw new Error('Failed to fetch world list: ' + response.statusText);
       }
 
-      const worldsData = await response.json()
-      const selectedWorld = worldsData.worlds?.find((w: WorldInfo) => w.id === selectedWorldId)
+      const worldsData = await response.json();
+      const selectedWorld = worldsData.worlds?.find((w: WorldInfo) => w.id === selectedWorldId);
 
       if (!selectedWorld) {
-        throw new Error(`World not found: ${selectedWorldId}`)
+        throw new Error(`World not found: ${selectedWorldId}`);
       }
 
       // Export the selected world
-      const exportResponse = await fetch(`${window.location.origin}/admin/export`)
+      const exportResponse = await fetch(`${window.location.origin}/admin/export`);
       if (!exportResponse.ok) {
-        throw new Error('Export failed: ' + exportResponse.statusText)
+        throw new Error('Export failed: ' + exportResponse.statusText);
       }
 
-      const data: ExportData = await exportResponse.json()
-      setExportPreview(data)
+      const data: ExportData = await exportResponse.json();
+      setExportPreview(data);
 
       // Create and download JSON file
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `herbst-mud-export-${selectedWorld.id}-${new Date().toISOString().split('T')[0]}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `herbst-mud-export-${selectedWorld.id}-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-      setMessage(`Exported ${data.rooms.length} rooms, ${data.npcs.length} NPCs, ${data.skills.length} skills from world: ${selectedWorld.name}`)
-      setMessageType('success')
+      setMessage(`Exported ${data.rooms.length} rooms, ${data.npcs.length} NPCs, ${data.skills.length} skills from world: ${selectedWorld.name}`);
+      setMessageType('success');
     } catch (err) {
-      setMessage('Export failed: ' + (err instanceof Error ? err.message : 'Unknown error'))
-      setMessageType('error')
+      setMessage('Export failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      setMessageType('error');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setLoading(true)
-    setMessage('')
+    setLoading(true);
+    setMessage('');
 
     try {
-      const text = await file.text()
-      const data: ExportData = JSON.parse(text)
+      const text = await file.text();
+      const data: ExportData = JSON.parse(text);
 
       // Validate the file
       const response = await fetch(`${window.location.origin}/admin/import/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: text
-      })
+      });
 
-      const validation = await response.json()
+      const validation = await response.json();
 
       if (!validation.is_valid) {
-        setMessage('Validation failed: ' + validation.errors.join(', '))
-        setMessageType('error')
-        return
+        setMessage('Validation failed: ' + validation.errors.join(', '));
+        setMessageType('error');
+        return;
       }
 
-      setImportData(data)
-      setShowImportConfirm(true)
-      setMessage(`File validated: ${validation.rooms} rooms, ${validation.npcs} NPCs, ${validation.skills} skills`)
-      setMessageType('success')
+      setImportData(data);
+      setShowImportConfirm(true);
+      setMessage(`File validated: ${validation.rooms} rooms, ${validation.npcs} NPCs, ${validation.skills} skills`);
+      setMessageType('success');
     } catch (err) {
-      setMessage('Failed to parse file: ' + (err instanceof Error ? err.message : 'Invalid JSON'))
-      setMessageType('error')
+      setMessage('Failed to parse file: ' + (err instanceof Error ? err.message : 'Invalid JSON'));
+      setMessageType('error');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleImport = async () => {
-    if (!importData) return
+    if (!importData) return;
 
-    setLoading(true)
-    setMessage('')
+    setLoading(true);
+    setMessage('');
 
     try {
       const response = await fetch(`${window.location.origin}/admin/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(importData)
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Import failed: ' + response.statusText)
+        throw new Error('Import failed: ' + response.statusText);
       }
 
-      const result = await response.json()
-      setMessage(`Import successful! imported ${result.imported.rooms} rooms, ${result.imported.npcs} NPCs`)
-      setMessageType('success')
-      setShowImportConfirm(false)
-      setImportData(null)
+      const result = await response.json();
+      setMessage(`Import successful! imported ${result.imported.rooms} rooms, ${result.imported.npcs} NPCs`);
+      setMessageType('success');
+      setShowImportConfirm(false);
+      setImportData(null);
     } catch (err) {
-      setMessage('Import failed: ' + (err instanceof Error ? err.message : 'Unknown error'))
-      setMessageType('error')
+      setMessage('Import failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      setMessageType('error');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleWipe = async () => {
-    setLoading(true)
-    setMessage('')
+    setLoading(true);
+    setMessage('');
 
     try {
       const response = await fetch(`${window.location.origin}/admin/wipe/full`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}) // Full wipe uses POST body
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Wipe failed: ' + response.statusText)
+        throw new Error('Wipe failed: ' + response.statusText);
       }
 
-      const result = await response.json()
-      setMessage(`Wiped ${result.npcs_wiped} NPCs, ${result.rooms_wiped} rooms. Reinitialized: ${result.reinitialized.join(', ')}`)
-      setMessageType('success')
-      setShowWipeConfirm(false)
+      const result = await response.json();
+      setMessage(`Wiped ${result.npcs_wiped} NPCs, ${result.rooms_wiped} rooms. Reinitialized: ${result.reinitialized.join(', ')}`);
+      setMessageType('success');
+      setShowWipeConfirm(false);
     } catch (err) {
-      setMessage('Wipe failed: ' + (err instanceof Error ? err.message : 'Unknown error'))
-      setMessageType('error')
+      setMessage('Wipe failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      setMessageType('error');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userId')
-    localStorage.removeItem('email')
-    localStorage.removeItem('isAdmin')
-    navigate({ to: '/login' })
-  }
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('email');
+    localStorage.removeItem('isAdmin');
+    navigate({ to: '/login' });
+  };
 
   return (
     <div className="min-h-screen bg-surface text-text p-8">
@@ -353,9 +357,9 @@ function ExportPage() {
                   </Button>
                   <Button
                     onClick={() => {
-                      setShowImportConfirm(false)
-                      setImportData(null)
-                      if (fileInputRef.current) fileInputRef.current.value = ''
+                      setShowImportConfirm(false);
+                      setImportData(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
                     }}
                     variant="secondary"
                     fullWidth
@@ -494,5 +498,5 @@ function ExportPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

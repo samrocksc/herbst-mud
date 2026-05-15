@@ -1,5 +1,5 @@
-import { CombatFieldsDisplay } from '../../components/CombatFieldsDisplay'
-import type { ItemTemplate } from './items.$itemId'
+import { CombatFieldsDisplay } from '../../components/CombatFieldsDisplay';
+import type { ItemTemplate } from './items.$itemId';
 
 /** Read-only detail view for an item template. */
 export function ItemDetailView({ template }: Readonly<{ template: ItemTemplate }>) {
@@ -41,9 +41,9 @@ export function ItemDetailView({ template }: Readonly<{ template: ItemTemplate }
         />
       </div>
     </div>
-  )
+  );
 }
 
 function DetailField({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className="text-text text-sm font-medium">{value}</span></div>)
+  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className="text-text text-sm font-medium">{value}</span></div>);
 }

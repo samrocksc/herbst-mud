@@ -1,44 +1,26 @@
-Feature: Character Authentication (Issue #9)
+Feature: Character Authentication
   As a player
-  I want to authenticate via SSH
+  I want to authenticate my character
   So that I can securely access the game
 
   Background:
-    Given the SSH server is running on port 4444
-    And I have a registered user account
+    Given the game server is running
+    And the authentication service is available
 
-  Scenario: SSH connection prompts for credentials
-    When I connect to the SSH server
-    Then I should see a username prompt
-    And after entering username, I should see a password prompt
-
-  Scenario: Successful authentication
-    Given I have valid credentials
-    When I enter correct username and password
-    Then I should be authenticated
-    And I should see the game welcome screen
+  Scenario: Successful character authentication
+    Given a character "Warrior1" exists with password "securePass123"
+    When I authenticate with character name "Warrior1" and password "securePass123"
+    Then authentication should be successful
+    And I should receive an access token
 
   Scenario: Failed authentication with wrong password
-    Given I have a registered username "testuser"
-    When I enter correct username but wrong password
+    Given a character "Mage1" exists with password "magicWord"
+    When I authenticate with character name "Mage1" and password "wrongPassword"
     Then authentication should fail
-    And I should see an error message
-    And I should be prompted to try again
+    And I should receive an error message
 
-  Scenario: Failed authentication with unknown user
-    Given I have no registered account
-    When I enter unknown username "nobody"
+  Scenario: Failed authentication for non-existent character
+    Given no character "UnknownHero" exists
+    When I authenticate with character name "UnknownHero" and password "anyPassword"
     Then authentication should fail
-    And I should see an error message
-
-  Scenario: Password is obfuscated during entry
-    Given I am at the password prompt
-    When I type my password
-    Then each character should appear as *
-    And the actual password should not be visible
-
-  Scenario: Admin user authentication
-    Given I have an admin account with is_admin true
-    When I authenticate successfully
-    Then I should have admin privileges
-    And I can access admin commands
+    And I should receive an error message

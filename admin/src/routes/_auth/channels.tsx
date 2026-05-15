@@ -1,17 +1,17 @@
-import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useChannelConfigs, useUpdateChannel } from '../../hooks/useChannels'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Button } from '../../components/Button'
-import { ColorField } from '../../components/fields/ColorField'
-import { FormField, NumberField, CheckboxField } from '../../components/FormFields'
-import { showToast } from '../../components/Toast'
-import type { ChannelConfig, ChannelInput } from '../../hooks/useChannels'
+import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useChannelConfigs, useUpdateChannel } from '../../hooks/useChannels';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Button } from '../../components/Button';
+import { ColorField } from '../../components/fields/ColorField';
+import { FormField, NumberField, CheckboxField } from '../../components/FormFields';
+import { showToast } from '../../components/Toast';
+import type { ChannelConfig, ChannelInput } from '../../hooks/useChannels';
 
 export const Route = createFileRoute('/_auth/channels')({
   component: ChannelsManagement,
-})
+});
 
 const COLUMNS: Column<ChannelConfig>[] = [
   { header: 'Name', accessor: 'name', render: (v) => <span className="font-semibold text-primary">[{String(v)}]</span> },
@@ -25,10 +25,10 @@ const COLUMNS: Column<ChannelConfig>[] = [
   { header: 'Default', accessor: 'default_enabled', render: (v) => v ? 'Enabled' : 'Disabled' },
   { header: 'Cooldown', accessor: 'cooldown_seconds', render: (v) => `${v}s` },
   { header: 'Admin Only', accessor: 'admin_only', render: (v) => v ? 'Yes' : 'No' },
-]
+];
 
 function ChannelEditForm({ channel, onDone }: { channel: ChannelConfig; onDone: () => void }) {
-  const updateChannel = useUpdateChannel()
+  const updateChannel = useUpdateChannel();
   const [formData, setFormData] = useState<ChannelInput>({
     name: channel.name,
     description: channel.description,
@@ -36,18 +36,18 @@ function ChannelEditForm({ channel, onDone }: { channel: ChannelConfig; onDone: 
     default_enabled: channel.default_enabled,
     cooldown_seconds: channel.cooldown_seconds,
     admin_only: channel.admin_only,
-  })
+  });
 
-  const set = (patch: Partial<ChannelInput>) => setFormData((prev) => ({ ...prev, ...patch }))
+  const set = (patch: Partial<ChannelInput>) => setFormData((prev) => ({ ...prev, ...patch }));
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await updateChannel.mutateAsync({ name: channel.name, input: formData })
-      showToast('Channel updated', 'success')
-      onDone()
+      await updateChannel.mutateAsync({ name: channel.name, input: formData });
+      showToast('Channel updated', 'success');
+      onDone();
     } catch { /* toasted globally */ }
-  }
+  };
 
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border mb-6">
@@ -70,20 +70,20 @@ function ChannelEditForm({ channel, onDone }: { channel: ChannelConfig; onDone: 
         </div>
       </form>
     </div>
-  )
+  );
 }
 
 function ChannelsManagement() {
-  const [editing, setEditing] = useState<string | null>(null)
-  const location = useLocation()
-  const { data: channels, isLoading, error } = useChannelConfigs()
+  const [editing, setEditing] = useState<string | null>(null);
+  const location = useLocation();
+  const { data: channels, isLoading, error } = useChannelConfigs();
 
-  if (location.pathname !== '/channels') return <Outlet />
+  if (location.pathname !== '/channels') return <Outlet />;
 
-  if (isLoading) return <div className="loading">Loading channels...</div>
-  if (error) return <div className="error">Failed to load channels: {error.message}</div>
+  if (isLoading) return <div className="loading">Loading channels...</div>;
+  if (error) return <div className="error">Failed to load channels: {error.message}</div>;
 
-  const editingChannel = channels?.find((c) => c.name === editing)
+  const editingChannel = channels?.find((c) => c.name === editing);
 
   return (
     <div className="management-page">
@@ -112,5 +112,5 @@ function ChannelsManagement() {
         emptyMessage="No channels configured."
       />
     </div>
-  )
+  );
 }

@@ -4,10 +4,10 @@ import {
   TextareaField,
   SelectField,
   CheckboxField,
-} from '../../components/FormFields'
-import { TagInput } from '../../components/TagInput'
-import { useTags } from '../../hooks/useTags'
-import type { FactionCategory, FactionForm } from './factionTypes'
+} from '../../components/FormFields';
+import { TagInput } from '../../components/TagInput';
+import { useTags } from '../../hooks/useTags';
+import type { FactionCategory, FactionForm } from './factionTypes';
 
 export function FactionFormFields({
   form,
@@ -18,13 +18,13 @@ export function FactionFormFields({
   setForm: (f: FactionForm) => void
   categories: FactionCategory[]
 }>) {
-  const set = (patch: Partial<FactionForm>) => setForm({ ...form, ...patch })
-  const { data: tags } = useTags()
-  const availableTags = (tags ?? []).map((t) => t.name)
+  const set = (patch: Partial<FactionForm>) => setForm({ ...form, ...patch });
+  const { data: tags } = useTags();
+  const availableTags = (tags ?? []).map((t) => t.name);
   const catOptions = [
     { value: '', label: 'None' },
     ...categories.map((c) => ({ value: String(c.id), label: c.display_name || c.name })),
-  ]
+  ];
 
   return (
     <div className="space-y-3">
@@ -72,5 +72,5 @@ export function FactionFormFields({
         placeholder="Tags auto-applied when characters join"
       />
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useEquipmentTemplates } from '../../hooks/useEquipmentTemplates'
-import { Button } from '../../components/Button'
+import { useState } from 'react';
+import { useEquipmentTemplates } from '../../hooks/useEquipmentTemplates';
+import { Button } from '../../components/Button';
 
 /** Modal for selecting an item template and spawning it into a character's inventory. */
 export function AddItemModal({ open, onClose, onSpawn, isLoading, error }: Readonly<{
@@ -10,14 +10,14 @@ export function AddItemModal({ open, onClose, onSpawn, isLoading, error }: Reado
   isLoading: boolean
   error: string | null
 }>) {
-  const [search, setSearch] = useState('')
-  const { data: templates, isLoading: loadingTemplates } = useEquipmentTemplates()
+  const [search, setSearch] = useState('');
+  const { data: templates, isLoading: loadingTemplates } = useEquipmentTemplates();
 
-  if (!open) return null
+  if (!open) return null;
 
   const filtered = (templates ?? []).filter((t) =>
     t.name.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -59,5 +59,5 @@ export function AddItemModal({ open, onClose, onSpawn, isLoading, error }: Reado
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -44,7 +44,7 @@ export const EMPTY_FORM: FactionForm = {
   standing: 0,
   is_universal: false,
   member_tags: [],
-}
+};
 
 export function factionToForm(f: Faction): FactionForm {
   return {
@@ -55,5 +55,5 @@ export function factionToForm(f: Faction): FactionForm {
     standing: f.standing ?? 0,
     is_universal: f.is_universal ?? false,
     member_tags: f.member_tags ?? [],
-  }
+  };
 }

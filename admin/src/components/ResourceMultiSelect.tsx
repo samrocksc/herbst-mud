@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { FieldLabel } from './fields/FieldLabel'
-import { ResourceSearchModal } from './ResourceSearchModal'
-import { useResourceExists } from './useResourceExists'
-import { Button } from './Button'
+import { useState } from 'react';
+import { FieldLabel } from './fields/FieldLabel';
+import { ResourceSearchModal } from './ResourceSearchModal';
+import { useResourceExists } from './useResourceExists';
+import { Button } from './Button';
 
 type ChipProps = Readonly<{
   id: number | string
@@ -13,7 +13,7 @@ type ChipProps = Readonly<{
 }>
 
 function ResourceChip({ id, resourceType, apiBase, onRemove, disabled }: ChipProps) {
-  const { name } = useResourceExists(resourceType, apiBase, id)
+  const { name } = useResourceExists(resourceType, apiBase, id);
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 border border-primary/30 rounded text-sm text-text">
       {name ?? `#${id}`}
@@ -28,7 +28,7 @@ function ResourceChip({ id, resourceType, apiBase, onRemove, disabled }: ChipPro
         ✕
       </Button>
     </span>
-  )
+  );
 }
 
 type Props = Readonly<{
@@ -44,17 +44,17 @@ type Props = Readonly<{
 export function ResourceMultiSelect({
   label, value, onChange, resourceType, apiBase, tooltip, disabled,
 }: Props) {
-  const [modalOpen, setModalOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false);
 
   const handleSelect = (id: number | string, _name: string) => {
     if (!value.includes(id)) {
-      onChange([...value, id])
+      onChange([...value, id]);
     }
-  }
+  };
 
   const handleRemove = (id: number | string) => {
-    onChange(value.filter((v) => v !== id))
-  }
+    onChange(value.filter((v) => v !== id));
+  };
 
   return (
     <div>
@@ -92,5 +92,5 @@ export function ResourceMultiSelect({
         onSelect={handleSelect}
       />
     </div>
-  )
+  );
 }

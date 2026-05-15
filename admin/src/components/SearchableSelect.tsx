@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { fuzzyMatch, highlightMatch } from './fuzzyMatch'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { fuzzyMatch, highlightMatch } from './fuzzyMatch';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -23,9 +23,9 @@ function getDisplayLabel(
   value: string,
   options: SearchableSelectOption[],
 ): string {
-  if (!value) return ''
-  const found = options.find((o) => o.id === value)
-  return found ? `${found.name} (${found.id})` : value
+  if (!value) return '';
+  const found = options.find((o) => o.id === value);
+  return found ? `${found.name} (${found.id})` : value;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -38,21 +38,21 @@ export function SearchableSelect({
   disabled = false,
   label,
 }: SearchableSelectProps) {
-  const [query, setQuery] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const [highlightIdx, setHighlightIdx] = useState(-1)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // ── Filtered options ────────────────────────────────────────────────────
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return options
-    const q = query.trim()
+    if (!query.trim()) return options;
+    const q = query.trim();
     return options.filter(
       (o) => fuzzyMatch(o.name, q) || fuzzyMatch(o.id, q),
-    )
-  }, [options, query])
+    );
+  }, [options, query]);
 
   // ── Click outside closes dropdown ───────────────────────────────────────
 
@@ -62,93 +62,93 @@ export function SearchableSelect({
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        setIsOpen(false)
-        setQuery('')
+        setIsOpen(false);
+        setQuery('');
       }
     }
-    document.addEventListener('mousedown', handleDocumentClick)
-    return () => document.removeEventListener('mousedown', handleDocumentClick)
-  }, [])
+    document.addEventListener('mousedown', handleDocumentClick);
+    return () => document.removeEventListener('mousedown', handleDocumentClick);
+  }, []);
 
   // ── Reset highlight when filtered list changes ─────────────────────────
 
   useEffect(() => {
-    setHighlightIdx(-1)
-  }, [filtered.length])
+    setHighlightIdx(-1);
+  }, [filtered.length]);
 
   // ── Handlers ────────────────────────────────────────────────────────────
 
   const handleFocus = useCallback(() => {
-    setIsOpen(true)
-    setQuery('')
-  }, [])
+    setIsOpen(true);
+    setQuery('');
+  }, []);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setQuery(e.target.value)
-      setIsOpen(true)
+      setQuery(e.target.value);
+      setIsOpen(true);
     },
     [],
-  )
+  );
 
   const selectOption = useCallback(
     (id: string) => {
-      onChange(id)
-      setIsOpen(false)
-      setQuery('')
+      onChange(id);
+      setIsOpen(false);
+      setQuery('');
     },
     [onChange],
-  )
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen) {
         if (e.key === 'ArrowDown' || e.key === 'Enter') {
-          setIsOpen(true)
-          return
+          setIsOpen(true);
+          return;
         }
-        return
+        return;
       }
 
       switch (e.key) {
         case 'ArrowDown': {
-          e.preventDefault()
+          e.preventDefault();
           setHighlightIdx((prev) =>
             prev < filtered.length - 1 ? prev + 1 : 0,
-          )
-          break
+          );
+          break;
         }
         case 'ArrowUp': {
-          e.preventDefault()
+          e.preventDefault();
           setHighlightIdx((prev) =>
             prev > 0 ? prev - 1 : filtered.length - 1,
-          )
-          break
+          );
+          break;
         }
         case 'Enter': {
-          e.preventDefault()
+          e.preventDefault();
           if (highlightIdx >= 0 && highlightIdx < filtered.length) {
-            selectOption(filtered[highlightIdx].id)
+            selectOption(filtered[highlightIdx].id);
           } else if (filtered.length === 1) {
-            selectOption(filtered[0].id)
+            selectOption(filtered[0].id);
           }
-          break
+          break;
         }
         case 'Escape': {
-          e.preventDefault()
-          setIsOpen(false)
-          setQuery('')
-          inputRef.current?.blur()
-          break
+          e.preventDefault();
+          setIsOpen(false);
+          setQuery('');
+          inputRef.current?.blur();
+          break;
         }
       }
     },
     [isOpen, filtered, highlightIdx, selectOption],
-  )
+  );
 
   // ── Render ──────────────────────────────────────────────────────────────
 
-  const displayValue = isOpen ? query : getDisplayLabel(value, options)
+  const displayValue = isOpen ? query : getDisplayLabel(value, options);
 
   return (
     <div ref={containerRef} className="relative">
@@ -175,14 +175,14 @@ export function SearchableSelect({
             </div>
           ) : (
             filtered.map((opt, idx) => {
-              const isHighlighted = idx === highlightIdx
-              const isMatch = fuzzyMatch(opt.name, query.trim()) || fuzzyMatch(opt.id, query.trim())
+              const isHighlighted = idx === highlightIdx;
+              const isMatch = fuzzyMatch(opt.name, query.trim()) || fuzzyMatch(opt.id, query.trim());
               const displayName = isMatch
                 ? `${opt.name} (${opt.id})`
-                : `${opt.name} (${opt.id})`
+                : `${opt.name} (${opt.id})`;
 
               function handleClick() {
-                selectOption(opt.id)
+                selectOption(opt.id);
               }
 
               return (
@@ -200,11 +200,11 @@ export function SearchableSelect({
                       : displayName,
                   }}
                 />
-              )
+              );
             })
           )}
         </div>
       )}
     </div>
-  )
+  );
 }

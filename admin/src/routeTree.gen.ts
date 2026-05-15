@@ -19,6 +19,7 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MapIndexRouteImport } from './routes/map.index'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
+import { Route as DocsWorldsRouteImport } from './routes/docs/worlds'
 import { Route as DocsTrainableSkillsRouteImport } from './routes/docs/trainable-skills'
 import { Route as DocsQuestSystemRouteImport } from './routes/docs/quest-system'
 import { Route as DocsNpcSystemRouteImport } from './routes/docs/npc-system'
@@ -116,6 +117,11 @@ const MapIndexRoute = MapIndexRouteImport.update({
 const DocsIndexRoute = DocsIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsWorldsRoute = DocsWorldsRouteImport.update({
+  id: '/worlds',
+  path: '/worlds',
   getParentRoute: () => DocsRoute,
 } as any)
 const DocsTrainableSkillsRoute = DocsTrainableSkillsRouteImport.update({
@@ -405,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs/worlds': typeof DocsWorldsRoute
   '/docs/': typeof DocsIndexRoute
   '/map/': typeof MapIndexRoute
   '/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
@@ -463,6 +470,7 @@ export interface FileRoutesByTo {
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs/worlds': typeof DocsWorldsRoute
   '/docs': typeof DocsIndexRoute
   '/map': typeof MapIndexRoute
   '/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
@@ -524,6 +532,7 @@ export interface FileRoutesById {
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs/worlds': typeof DocsWorldsRoute
   '/docs/': typeof DocsIndexRoute
   '/map/': typeof MapIndexRoute
   '/_auth/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
@@ -586,6 +595,7 @@ export interface FileRouteTypes {
     | '/docs/npc-system'
     | '/docs/quest-system'
     | '/docs/trainable-skills'
+    | '/docs/worlds'
     | '/docs/'
     | '/map/'
     | '/abilities/$abilityId'
@@ -644,6 +654,7 @@ export interface FileRouteTypes {
     | '/docs/npc-system'
     | '/docs/quest-system'
     | '/docs/trainable-skills'
+    | '/docs/worlds'
     | '/docs'
     | '/map'
     | '/abilities/$abilityId'
@@ -704,6 +715,7 @@ export interface FileRouteTypes {
     | '/docs/npc-system'
     | '/docs/quest-system'
     | '/docs/trainable-skills'
+    | '/docs/worlds'
     | '/docs/'
     | '/map/'
     | '/_auth/abilities/$abilityId'
@@ -809,6 +821,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/docs/'
       preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/worlds': {
+      id: '/docs/worlds'
+      path: '/worlds'
+      fullPath: '/docs/worlds'
+      preLoaderRoute: typeof DocsWorldsRouteImport
       parentRoute: typeof DocsRoute
     }
     '/docs/trainable-skills': {
@@ -1349,6 +1368,7 @@ interface DocsRouteChildren {
   DocsNpcSystemRoute: typeof DocsNpcSystemRoute
   DocsQuestSystemRoute: typeof DocsQuestSystemRoute
   DocsTrainableSkillsRoute: typeof DocsTrainableSkillsRoute
+  DocsWorldsRoute: typeof DocsWorldsRoute
   DocsIndexRoute: typeof DocsIndexRoute
 }
 
@@ -1363,6 +1383,7 @@ const DocsRouteChildren: DocsRouteChildren = {
   DocsNpcSystemRoute: DocsNpcSystemRoute,
   DocsQuestSystemRoute: DocsQuestSystemRoute,
   DocsTrainableSkillsRoute: DocsTrainableSkillsRoute,
+  DocsWorldsRoute: DocsWorldsRoute,
   DocsIndexRoute: DocsIndexRoute,
 }
 

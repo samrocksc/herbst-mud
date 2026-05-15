@@ -1,4 +1,4 @@
-import { Button } from '../Button'
+import { Button } from '../Button';
 
 type MapToolbarProps = {
   currentZLevel: number
@@ -28,5 +28,5 @@ export function MapToolbar({ currentZLevel, zoom, onZoom, onResetView, onRelayou
         )}
       </div>
     </div>
-  )
+  );
 }

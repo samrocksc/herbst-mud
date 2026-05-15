@@ -1,8 +1,8 @@
-import { FormField } from '../fields/FormField'
-import { NumberField } from '../fields/NumberField'
-import { FormError } from '../fields/FormError'
-import { Button } from '../Button'
-import type { ItemInstanceView, EditFormData } from './types'
+import { FormField } from '../fields/FormField';
+import { NumberField } from '../fields/NumberField';
+import { FormError } from '../fields/FormError';
+import { Button } from '../Button';
+import type { ItemInstanceView, EditFormData } from './types';
 
 type ItemEditRowProps = Readonly<{
   inst: ItemInstanceView
@@ -62,5 +62,5 @@ export function ItemEditRow({
         </Button>
       </div>
     </div>
-  )
+  );
 }

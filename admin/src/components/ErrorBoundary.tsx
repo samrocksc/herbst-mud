@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from 'react'
+import { Component, type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode
@@ -10,14 +10,14 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null }
+  state: State = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   render() {
-    if (!this.state.hasError) return this.props.children
+    if (!this.state.hasError) return this.props.children;
 
     return (
       <div className="flex items-center justify-center h-full p-8">
@@ -32,6 +32,6 @@ export class ErrorBoundary extends Component<Props, State> {
           </button>
         </div>
       </div>
-    )
+    );
   }
 }

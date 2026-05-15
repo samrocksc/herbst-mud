@@ -17,5 +17,5 @@ export function RacesIcon({ className, stroke }: Readonly<{ className?: string; 
       <path d="M17 4l2 2" />
       <path d="M19 4l-2 2" />
     </svg>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useCreateSocial, type SocialInput } from '../../hooks/useSocials'
-import { PageHeader } from '../../components/PageHeader'
-import { Button } from '../../components/Button'
-import { FormField, TextareaField } from '../../components/FormFields'
-import { showToast } from '../../components/Toast'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useCreateSocial, type SocialInput } from '../../hooks/useSocials';
+import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/Button';
+import { FormField, TextareaField } from '../../components/FormFields';
+import { showToast } from '../../components/Toast';
 
 export const Route = createFileRoute('/_auth/socials/new')({
   component: SocialCreatePage,
-})
+});
 
 const EMPTY_FORM: SocialInput = {
   name: '',
@@ -17,23 +17,23 @@ const EMPTY_FORM: SocialInput = {
   target_self_text: '',
   target_text: '',
   target_room_text: '',
-}
+};
 
 function SocialCreatePage() {
-  const navigate = useNavigate()
-  const createMutation = useCreateSocial()
-  const [formData, setFormData] = useState<SocialInput>(EMPTY_FORM)
+  const navigate = useNavigate();
+  const createMutation = useCreateSocial();
+  const [formData, setFormData] = useState<SocialInput>(EMPTY_FORM);
 
-  const set = (patch: Partial<SocialInput>) => setFormData((prev) => ({ ...prev, ...patch }))
+  const set = (patch: Partial<SocialInput>) => setFormData((prev) => ({ ...prev, ...patch }));
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await createMutation.mutateAsync(formData)
-      showToast('Social created', 'success')
-      navigate({ to: '/socials' })
+      await createMutation.mutateAsync(formData);
+      showToast('Social created', 'success');
+      navigate({ to: '/socials' });
     } catch { /* toasted globally */ }
-  }
+  };
 
   return (
     <div className="p-6 max-w-[900px] mx-auto">
@@ -65,5 +65,5 @@ function SocialCreatePage() {
         </Button>
       </form>
     </div>
-  )
+  );
 }

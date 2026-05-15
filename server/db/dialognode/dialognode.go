@@ -12,6 +12,8 @@ const (
 	Label = "dialog_node"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldNpcText holds the string denoting the npc_text field in the database.
 	FieldNpcText = "npc_text"
 	// FieldResponses holds the string denoting the responses field in the database.
@@ -38,6 +40,7 @@ const (
 // Columns holds all SQL columns for dialognode fields.
 var Columns = []string{
 	FieldID,
+	FieldWorldID,
 	FieldNpcText,
 	FieldResponses,
 	FieldIsEntry,
@@ -67,6 +70,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
 	// DefaultIsEntry holds the default value on creation for the "is_entry" field.
 	DefaultIsEntry bool
 )
@@ -77,6 +82,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByNpcText orders the results by the npc_text field.

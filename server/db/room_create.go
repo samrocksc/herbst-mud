@@ -27,6 +27,20 @@ func (_c *RoomCreate) SetName(v string) *RoomCreate {
 	return _c
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *RoomCreate) SetWorldID(v string) *RoomCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *RoomCreate) SetNillableWorldID(v *string) *RoomCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // SetDescription sets the "description" field.
 func (_c *RoomCreate) SetDescription(v string) *RoomCreate {
 	_c.mutation.SetDescription(v)
@@ -202,6 +216,10 @@ func (_c *RoomCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *RoomCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := room.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.IsStartingRoom(); !ok {
 		v := room.DefaultIsStartingRoom
 		_c.mutation.SetIsStartingRoom(v)
@@ -236,6 +254,9 @@ func (_c *RoomCreate) defaults() {
 func (_c *RoomCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "Room.name"`)}
+	}
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "Room.world_id"`)}
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Room.description"`)}
@@ -289,6 +310,10 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(room.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
 	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(room.FieldDescription, field.TypeString, value)

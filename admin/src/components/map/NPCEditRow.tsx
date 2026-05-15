@@ -1,7 +1,7 @@
-import { Button } from '../Button'
-import { NumberField } from '../fields/NumberField'
-import { FormError } from '../fields/FormError'
-import type { NPCInstanceView, EditFormData } from './NPCInstanceManager'
+import { Button } from '../Button';
+import { NumberField } from '../fields/NumberField';
+import { FormError } from '../fields/FormError';
+import type { NPCInstanceView, EditFormData } from './NPCInstanceManager';
 
 type NPCEditRowProps = Readonly<{
   inst: NPCInstanceView
@@ -31,7 +31,7 @@ export function NPCEditRow({ inst, editForm, setEditForm, onSave, onCancel, isPe
         <Button variant="ghost" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={onCancel}>Cancel</Button>
       </div>
     </div>
-  )
+  );
 }
 
 type NPCInstanceRowProps = Readonly<{
@@ -51,8 +51,8 @@ type NPCInstanceRowProps = Readonly<{
 
 export function NPCInstanceRow({ inst, editingId, confirmDeleteId, editForm, setEditForm,
   startEdit, handleUpdate, handleDelete, setEditingId, setConfirmDeleteId, isUpdatePending, updateError }: NPCInstanceRowProps) {
-  const isEditing = editingId === inst.id
-  const isConfirmDelete = confirmDeleteId === inst.id && !isEditing
+  const isEditing = editingId === inst.id;
+  const isConfirmDelete = confirmDeleteId === inst.id && !isEditing;
   return (
     <div className="p-1 bg-surface-muted rounded text-xs text-text">
       {isEditing ? (
@@ -79,5 +79,5 @@ export function NPCInstanceRow({ inst, editingId, confirmDeleteId, editForm, set
         </div>
       )}
     </div>
-  )
+  );
 }

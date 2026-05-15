@@ -1,5 +1,5 @@
-import { Button } from '../../components/Button'
-import type { FactionCategory } from './factionTypes'
+import { Button } from '../../components/Button';
+import type { FactionCategory } from './factionTypes';
 
 export function CategorySidebar({
   categories,
@@ -31,5 +31,5 @@ export function CategorySidebar({
         </Button>
       </div>
     </>
-  )
+  );
 }

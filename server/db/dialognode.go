@@ -20,6 +20,8 @@ type DialogNode struct {
 	// ID of the ent.
 	// Unique node identifier, e.g. node_001_greeting
 	ID string `json:"id,omitempty"`
+	// World this dialog node belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// What the NPC says at this node
 	NpcText string `json:"npc_text,omitempty"`
 	// Player response options
@@ -66,7 +68,7 @@ func (*DialogNode) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case dialognode.FieldIsEntry:
 			values[i] = new(sql.NullBool)
-		case dialognode.FieldID, dialognode.FieldNpcText, dialognode.FieldEntryCondition:
+		case dialognode.FieldID, dialognode.FieldWorldID, dialognode.FieldNpcText, dialognode.FieldEntryCondition:
 			values[i] = new(sql.NullString)
 		case dialognode.ForeignKeys[0]: // npc_template_dialog_nodes
 			values[i] = new(sql.NullString)
@@ -90,6 +92,12 @@ func (_m *DialogNode) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
+			}
+		case dialognode.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
 			}
 		case dialognode.FieldNpcText:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -173,6 +181,9 @@ func (_m *DialogNode) String() string {
 	var builder strings.Builder
 	builder.WriteString("DialogNode(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
+	builder.WriteString(", ")
 	builder.WriteString("npc_text=")
 	builder.WriteString(_m.NpcText)
 	builder.WriteString(", ")

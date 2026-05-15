@@ -19,8 +19,12 @@ func (r *entNPCTemplateRepo) Get(ctx context.Context, id string) (*db.NPCTemplat
 	return r.client.NPCTemplate.Get(ctx, id)
 }
 
-func (r *entNPCTemplateRepo) List(ctx context.Context) ([]*db.NPCTemplate, error) {
-	return r.client.NPCTemplate.Query().All(ctx)
+func (r *entNPCTemplateRepo) List(ctx context.Context, worldID string) ([]*db.NPCTemplate, error) {
+	query := r.client.NPCTemplate.Query()
+	if worldID != "" {
+		query = query.Where(npctemplate.WorldID(worldID))
+	}
+	return query.All(ctx)
 }
 
 func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplateInput) (*db.NPCTemplate, error) {
@@ -35,7 +39,8 @@ func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplate
 		SetRespawnRooms(input.RespawnRooms).
 		SetLevel(input.Level).
 		SetXpValue(input.XPValue).
-		SetDisposition(npctemplate.Disposition(input.Disposition))
+		SetDisposition(npctemplate.Disposition(input.Disposition)).
+		SetWorldID(input.WorldID)
 	if input.RespawnCooldown != nil {
 		builder = builder.SetNillableRespawnCooldown(input.RespawnCooldown)
 	}
@@ -76,6 +81,9 @@ func (r *entNPCTemplateRepo) Update(ctx context.Context, id string, updates NPCT
 	}
 	if updates.RespawnCooldown != nil {
 		builder = builder.SetNillableRespawnCooldown(updates.RespawnCooldown)
+	}
+	if updates.WorldID != nil {
+		builder = builder.SetWorldID(*updates.WorldID)
 	}
 	return builder.Save(ctx)
 }

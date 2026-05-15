@@ -66,8 +66,8 @@ func (s *roomService) GetRoom(ctx context.Context, id int) (*db.Room, error) {
 	return s.roomRepo.Get(ctx, id)
 }
 
-func (s *roomService) ListRooms(ctx context.Context) ([]*db.Room, error) {
-	return s.roomRepo.List(ctx)
+func (s *roomService) ListRooms(ctx context.Context, worldID string) ([]*db.Room, error) {
+	return s.roomRepo.List(ctx, worldID)
 }
 
 func (s *roomService) UpdateRoom(ctx context.Context, id int, input UpdateRoomInput) (*db.Room, error) {
@@ -169,7 +169,7 @@ func (s *roomService) DeleteRoom(ctx context.Context, id int) error {
 }
 
 func (s *roomService) CleanupOrphanExits(ctx context.Context) (int, error) {
-	rooms, err := s.roomRepo.List(ctx)
+	rooms, err := s.roomRepo.List(ctx, "")
 	if err != nil {
 		return 0, err
 	}

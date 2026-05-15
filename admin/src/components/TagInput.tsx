@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
-import type { KeyboardEvent } from 'react'
-import { Button } from './Button'
-import { TooltipIcon } from './Tooltip'
+import { useState, useRef, useEffect } from 'react';
+import type { KeyboardEvent } from 'react';
+import { Button } from './Button';
+import { TooltipIcon } from './Tooltip';
 
 export type TagInputProps = Readonly<{
   /** Current selected tags */
@@ -37,79 +37,79 @@ export function TagInput({
   label,
   tooltip,
 }: TagInputProps) {
-  const [inputValue, setInputValue] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const [highlightedIndex, setHighlightedIndex] = useState(0)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [inputValue, setInputValue] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
+        setIsOpen(false);
       }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-  const normalised = inputValue.toLowerCase().trim()
+  const normalised = inputValue.toLowerCase().trim();
 
   /** Tags that match the current input (excludes already-selected) */
   const suggestions = availableTags.filter(
     (t) =>
       t.toLowerCase().includes(normalised) &&
       !value.includes(t)
-  )
+  );
 
   /** Whether the exact input text is a new tag (not in availableTags) */
   const inputIsNewTag =
     normalised.length > 0 &&
-    !availableTags.map((t) => t.toLowerCase()).includes(normalised)
+    !availableTags.map((t) => t.toLowerCase()).includes(normalised);
 
   const addTag = (tag: string) => {
-    const trimmed = tag.trim()
-    if (!trimmed || value.includes(trimmed)) return
-    onChange([...value, trimmed])
-    setInputValue('')
-    setIsOpen(false)
-    inputRef.current?.focus()
-  }
+    const trimmed = tag.trim();
+    if (!trimmed || value.includes(trimmed)) return;
+    onChange([...value, trimmed]);
+    setInputValue('');
+    setIsOpen(false);
+    inputRef.current?.focus();
+  };
 
   const removeTag = (tag: string) => {
-    onChange(value.filter((t) => t !== tag))
-  }
+    onChange(value.filter((t) => t !== tag));
+  };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault()
+      e.preventDefault();
       if (suggestions.length > 0) {
-        addTag(suggestions[highlightedIndex])
+        addTag(suggestions[highlightedIndex]);
       } else if (inputIsNewTag) {
-        addTag(inputValue)
+        addTag(inputValue);
       } else if (normalised.length > 0) {
         // Existing but not selected — add it anyway
-        addTag(inputValue)
+        addTag(inputValue);
       }
     } else if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setIsOpen(true)
-      setHighlightedIndex((i) => Math.min(i + 1, suggestions.length - (inputIsNewTag ? 0 : 1)))
+      e.preventDefault();
+      setIsOpen(true);
+      setHighlightedIndex((i) => Math.min(i + 1, suggestions.length - (inputIsNewTag ? 0 : 1)));
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHighlightedIndex((i) => Math.max(i - 1, 0))
+      e.preventDefault();
+      setHighlightedIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Escape') {
-      setIsOpen(false)
-      setInputValue('')
+      setIsOpen(false);
+      setInputValue('');
     } else if (e.key === 'Backspace' && inputValue === '' && value.length > 0) {
-      removeTag(value[value.length - 1])
+      removeTag(value[value.length - 1]);
     }
-  }
+  };
 
   const showDropdown = isOpen && !disabled && (
     suggestions.length > 0 || inputIsNewTag
-  )
+  );
 
   return (
     <div ref={containerRef} className="tag-input-container">
@@ -149,9 +149,9 @@ export function TagInput({
           type="text"
           value={inputValue}
           onChange={(e) => {
-            setInputValue(e.target.value)
-            setIsOpen(true)
-            setHighlightedIndex(0)
+            setInputValue(e.target.value);
+            setIsOpen(true);
+            setHighlightedIndex(0);
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
@@ -169,7 +169,7 @@ export function TagInput({
                 role="option"
                 aria-selected={i === highlightedIndex}
                 className={`tag-dropdown-item${i === highlightedIndex ? ' highlighted' : ''}`}
-                onMouseDown={(e) => { e.preventDefault(); addTag(tag) }}
+                onMouseDown={(e) => { e.preventDefault(); addTag(tag); }}
                 onMouseEnter={() => setHighlightedIndex(i)}
               >
                 {tag}
@@ -182,7 +182,7 @@ export function TagInput({
                 className={`tag-dropdown-item tag-dropdown-item-create${
                   highlightedIndex === suggestions.length ? ' highlighted' : ''
                 }`}
-                onMouseDown={(e) => { e.preventDefault(); addTag(inputValue) }}
+                onMouseDown={(e) => { e.preventDefault(); addTag(inputValue); }}
                 onMouseEnter={() => setHighlightedIndex(suggestions.length)}
               >
                 + Create &ldquo;{inputValue}&rdquo;
@@ -192,5 +192,5 @@ export function TagInput({
         )}
       </div>
     </div>
-  )
+  );
 }

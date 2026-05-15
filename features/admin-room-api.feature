@@ -6,6 +6,7 @@ Feature: Admin - Integrate Room API (admin-04)
   Background:
     Given I am logged into the admin interface
     And I have API access credentials
+    And I have at least one room
 
   @donnie @raph @mikey
   Scenario: Fetch room by ID
@@ -50,7 +51,7 @@ Feature: Admin - Integrate Room API (admin-04)
   Scenario: API requires authentication
     When I call the API without credentials
     Then I should receive a 401 Unauthorized
-    Or access should be denied
+    And access should be denied
 
   @donnie @raph @mikey
   Scenario: React Query hooks for rooms

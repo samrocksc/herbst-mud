@@ -1,22 +1,22 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
-import { Button } from '../../components/Button'
-import { TextareaField, FormError } from '../../components/FormFields'
-import { PageHeader } from '../../components/PageHeader'
-import { apiGet, apiPut, apiDelete } from '../../utils/apiFetch'
-import { showToast } from '../../components/Toast'
-import { humanizeKey, tryParseJSON } from './-configUtils'
-import type { GameConfig } from './-configUtils'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState, useEffect } from 'react';
+import { Button } from '../../components/Button';
+import { TextareaField, FormError } from '../../components/FormFields';
+import { PageHeader } from '../../components/PageHeader';
+import { apiGet, apiPut, apiDelete } from '../../utils/apiFetch';
+import { showToast } from '../../components/Toast';
+import { humanizeKey, tryParseJSON } from './-configUtils';
+import type { GameConfig } from './-configUtils';
 
 export const Route = createFileRoute('/_auth/config/$key')({
   component: ConfigDetailPage,
-})
+});
 
 function CollapsibleJSONPreview({ value }: { value: string }) {
-  const parsed = tryParseJSON(value)
-  const [expanded, setExpanded] = useState(false)
-  if (parsed === null) return null
-  const formatted = JSON.stringify(parsed, null, 2)
+  const parsed = tryParseJSON(value);
+  const [expanded, setExpanded] = useState(false);
+  if (parsed === null) return null;
+  const formatted = JSON.stringify(parsed, null, 2);
   return (
     <div className="mb-3">
       <button type="button" className="text-xs text-primary hover:underline cursor-pointer flex items-center gap-1 mb-1"
@@ -26,67 +26,67 @@ function CollapsibleJSONPreview({ value }: { value: string }) {
       </button>
       {expanded && <pre className="bg-surface-muted border-2 border-border rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-auto max-h-64">{formatted}</pre>}
     </div>
-  )
+  );
 }
 
 function ConfigDetailPage() {
-  const { key } = Route.useParams()
-  const navigate = useNavigate()
-  const [config, setConfig] = useState<GameConfig | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [editing, setEditing] = useState(false)
-  const [value, setValue] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
+  const { key } = Route.useParams();
+  const navigate = useNavigate();
+  const [config, setConfig] = useState<GameConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true)
+    setLoading(true);
     apiGet<GameConfig[]>(`/api/game-configs`)
       .then((configs) => {
-        const found = configs.find((c) => c.key === key)
+        const found = configs.find((c) => c.key === key);
         if (found) {
-          setConfig(found)
-          setValue(found.value)
+          setConfig(found);
+          setValue(found.value);
         } else {
-          setError(`Config "${key}" not found`)
+          setError(`Config "${key}" not found`);
         }
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load config'))
-      .finally(() => setLoading(false))
-  }, [key])
+      .finally(() => setLoading(false));
+  }, [key]);
 
   const handleSave = async () => {
-    if (!config) return
-    setSaving(true)
-    setFormError(null)
+    if (!config) return;
+    setSaving(true);
+    setFormError(null);
     try {
-      const updated = await apiPut<GameConfig>(`/api/game-configs/${config.key}`, { value })
-      showToast('Config updated.', 'success')
-      setConfig(updated)
-      setEditing(false)
+      const updated = await apiPut<GameConfig>(`/api/game-configs/${config.key}`, { value });
+      showToast('Config updated.', 'success');
+      setConfig(updated);
+      setEditing(false);
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : 'Unknown error')
+      setFormError(e instanceof Error ? e.message : 'Unknown error');
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!config) return
+    if (!config) return;
     try {
-      await apiDelete(`/api/game-configs/${config.key}`)
-      showToast('Config deleted.', 'success')
-      navigate({ to: '/config' })
+      await apiDelete(`/api/game-configs/${config.key}`);
+      showToast('Config deleted.', 'success');
+      navigate({ to: '/config' });
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : 'Unknown error')
+      setFormError(e instanceof Error ? e.message : 'Unknown error');
     }
-  }
+  };
 
-  if (loading) return <div className="p-8"><PageHeader title="Loading..." backTo="/config" /><div className="text-text-muted">Loading config...</div></div>
-  if (error || !config) return <div className="p-8"><PageHeader title="Error" backTo="/config" /><div className="text-danger">{error ?? 'Config not found'}</div></div>
+  if (loading) return <div className="p-8"><PageHeader title="Loading..." backTo="/config" /><div className="text-text-muted">Loading config...</div></div>;
+  if (error || !config) return <div className="p-8"><PageHeader title="Error" backTo="/config" /><div className="text-danger">{error ?? 'Config not found'}</div></div>;
 
-  const parsed = tryParseJSON(config.value)
+  const parsed = tryParseJSON(config.value);
 
   return (
     <div className="p-6 max-w-[600px] mx-auto">
@@ -114,7 +114,7 @@ function ConfigDetailPage() {
                 <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
                   {saving ? 'Saving...' : 'Save'}
                 </Button>
-                <Button variant="secondary" size="sm" onClick={() => { setEditing(false); setValue(config.value) }}>
+                <Button variant="secondary" size="sm" onClick={() => { setEditing(false); setValue(config.value); }}>
                   Cancel
                 </Button>
               </div>
@@ -132,5 +132,5 @@ function ConfigDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

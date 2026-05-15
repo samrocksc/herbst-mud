@@ -1,5 +1,5 @@
-import type { Column } from '../../components/DataTable'
-import type { Achievement } from '../../hooks/useAchievements'
+import type { Column } from '../../components/DataTable';
+import type { Achievement } from '../../hooks/useAchievements';
 
 export const COLUMNS: Column<Achievement>[] = [
   {
@@ -30,4 +30,4 @@ export const COLUMNS: Column<Achievement>[] = [
     accessor: '_actions',
     render: () => null,
   },
-]
+];

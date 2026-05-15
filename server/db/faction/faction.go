@@ -14,6 +14,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldDisplayName holds the string denoting the display_name field in the database.
 	FieldDisplayName = "display_name"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -64,6 +66,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldWorldID,
 	FieldDisplayName,
 	FieldDescription,
 	FieldMemberTags,
@@ -90,6 +93,11 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
+)
+
 // OrderOption defines the ordering options for the Faction queries.
 type OrderOption func(*sql.Selector)
 
@@ -101,6 +109,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByDisplayName orders the results by the display_name field.

@@ -27,9 +27,10 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 	// Create a new user
 	router.POST("/users", func(c *gin.Context) {
 		var req struct {
-			Email    string `json:"email" binding:"required"`
-			Password string `json:"password" binding:"required"`
-			IsAdmin  bool   `json:"isAdmin"`
+			Email         string `json:"email" binding:"required"`
+			Password      string `json:"password" binding:"required"`
+			IsAdmin       bool   `json:"isAdmin"`
+			AllowedWorlds string `json:"allowed_worlds"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -45,9 +46,10 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		user, err := repos.User.Create(c.Request.Context(), repository.CreateUserInput{
-			Email:    req.Email,
-			Password: string(hashedPassword),
-			IsAdmin:  req.IsAdmin,
+			Email:         req.Email,
+			Password:      string(hashedPassword),
+			IsAdmin:       req.IsAdmin,
+			AllowedWorlds: req.AllowedWorlds,
 		})
 
 		if err != nil {
@@ -57,9 +59,10 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 
 		// Return user without password
 		c.JSON(http.StatusCreated, gin.H{
-			"id":       user.ID,
-			"email":    user.Email,
-			"is_admin": user.IsAdmin,
+			"id":            user.ID,
+			"email":         user.Email,
+			"is_admin":      user.IsAdmin,
+			"allowed_worlds": user.AllowedWorlds,
 		})
 	})
 
@@ -148,9 +151,10 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"id":       user.ID,
-			"email":    user.Email,
-			"is_admin": user.IsAdmin,
+			"id":             user.ID,
+			"email":          user.Email,
+			"is_admin":       user.IsAdmin,
+			"allowed_worlds": user.AllowedWorlds,
 		})
 	})
 
@@ -163,9 +167,10 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		var req struct {
-			Email    string `json:"email"`
-			Password string `json:"password"`
-			IsAdmin  *bool  `json:"isAdmin"`
+			Email         string `json:"email"`
+			Password      string `json:"password"`
+			IsAdmin       *bool  `json:"isAdmin"`
+			AllowedWorlds string `json:"allowed_worlds"`
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -174,8 +179,9 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		updates := repository.UserUpdates{
-			Email:   &req.Email,
-			IsAdmin: req.IsAdmin,
+			Email:         &req.Email,
+			IsAdmin:       req.IsAdmin,
+			AllowedWorlds: &req.AllowedWorlds,
 		}
 
 		// Only update password if provided
@@ -195,6 +201,11 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			updates.Email = nil
 		}
 
+		// Only set allowed_worlds if provided
+		if req.AllowedWorlds == "" {
+			updates.AllowedWorlds = nil
+		}
+
 		user, err := repos.User.Update(c.Request.Context(), id, updates)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -202,9 +213,10 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"id":       user.ID,
-			"email":    user.Email,
-			"is_admin": user.IsAdmin,
+			"id":             user.ID,
+			"email":          user.Email,
+			"is_admin":       user.IsAdmin,
+			"allowed_worlds": user.AllowedWorlds,
 		})
 	})
 
@@ -232,9 +244,10 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"id":       user.ID,
-			"email":    user.Email,
-			"is_admin": user.IsAdmin,
+			"id":             user.ID,
+			"email":          user.Email,
+			"is_admin":       user.IsAdmin,
+			"allowed_worlds": user.AllowedWorlds,
 		})
 	})
 

@@ -10,6 +10,9 @@ func equipmentTemplateBaseFields() []ent.Field {
 	return []ent.Field{
 		field.String("id").
 			Unique(),
+		field.String("world_id").
+			Default("default").
+			Comment("World this item template belongs to (for multi-world support)"),
 		field.String("name"),
 		field.String("description"),
 		field.String("slot"),

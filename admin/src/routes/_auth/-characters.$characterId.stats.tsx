@@ -58,16 +58,16 @@ export function CharacterStats({ character }: Readonly<{
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function DetailField({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className="text-text text-sm font-medium">{value}</span></div>)
+  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className="text-text text-sm font-medium">{value}</span></div>);
 }
 
 function BoolBadge({ value, label }: Readonly<{ value: boolean; label: string }>) {
   const cls = value
     ? 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/40'
-    : 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-900/30 text-red-400 border border-red-700/40'
-  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className={cls}>{value ? 'Yes' : 'No'}</span></div>)
+    : 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-900/30 text-red-400 border border-red-700/40';
+  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className={cls}>{value ? 'Yes' : 'No'}</span></div>);
 }

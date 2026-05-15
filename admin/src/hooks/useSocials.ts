@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
 
-const API = `${window.location.origin}/api`
+const API = `${window.location.origin}/api`;
 
 export type SocialCommand = Readonly<{
   id: number
@@ -27,7 +27,7 @@ export function useSocials() {
   return useQuery({
     queryKey: ['socials'],
     queryFn: () => apiGet<SocialCommand[]>(`${API}/socials`),
-  })
+  });
 }
 
 export function useSocial(id: number | null) {
@@ -35,33 +35,33 @@ export function useSocial(id: number | null) {
     queryKey: ['social', id],
     queryFn: () => apiGet<SocialCommand>(`${API}/socials/${id}`),
     enabled: !!id,
-  })
+  });
 }
 
 export function useCreateSocial() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: SocialInput) => apiPost<SocialCommand>(`${API}/socials`, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['socials'] }),
-  })
+  });
 }
 
 export function useUpdateSocial() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: SocialInput }) =>
       apiPut<SocialCommand>(`${API}/socials/${id}`, input),
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ['socials'] })
-      qc.invalidateQueries({ queryKey: ['social', id] })
+      qc.invalidateQueries({ queryKey: ['socials'] });
+      qc.invalidateQueries({ queryKey: ['social', id] });
     },
-  })
+  });
 }
 
 export function useDeleteSocial() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/socials/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['socials'] }),
-  })
+  });
 }

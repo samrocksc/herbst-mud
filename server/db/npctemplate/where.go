@@ -64,6 +64,11 @@ func IDContainsFold(id string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldContainsFold(FieldID, id))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldWorldID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldName, v))
@@ -97,6 +102,71 @@ func Greeting(v string) predicate.NPCTemplate {
 // RespawnCooldown applies equality check predicate on the "respawn_cooldown" field. It's identical to RespawnCooldownEQ.
 func RespawnCooldown(v int) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldRespawnCooldown, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.

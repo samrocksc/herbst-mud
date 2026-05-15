@@ -12,7 +12,7 @@ const accentMap = {
   secondary: 'text-secondary',
   success: 'text-success',
   danger: 'text-danger',
-} as const
+} as const;
 
 export function StatCard({ label, value, accent = 'primary', loading = false }: StatCardProps) {
   return (
@@ -22,5 +22,5 @@ export function StatCard({ label, value, accent = 'primary', loading = false }: 
       </div>
       <div className="text-text-muted text-sm mt-1">{label}</div>
     </div>
-  )
+  );
 }

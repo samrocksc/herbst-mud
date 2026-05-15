@@ -24,6 +24,8 @@ type User struct {
 	IsAdmin bool `json:"is_admin,omitempty"`
 	// Unkillable mode for the user
 	GodMode bool `json:"god_mode,omitempty"`
+	// Comma-separated list of world IDs this user can access (empty = all worlds for admins)
+	AllowedWorlds string `json:"allowed_worlds,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -57,7 +59,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldEmail, user.FieldPassword:
+		case user.FieldEmail, user.FieldPassword, user.FieldAllowedWorlds:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -103,6 +105,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field god_mode", values[i])
 			} else if value.Valid {
 				_m.GodMode = value.Bool
+			}
+		case user.FieldAllowedWorlds:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field allowed_worlds", values[i])
+			} else if value.Valid {
+				_m.AllowedWorlds = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -156,6 +164,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("god_mode=")
 	builder.WriteString(fmt.Sprintf("%v", _m.GodMode))
+	builder.WriteString(", ")
+	builder.WriteString("allowed_worlds=")
+	builder.WriteString(_m.AllowedWorlds)
 	builder.WriteByte(')')
 	return builder.String()
 }

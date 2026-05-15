@@ -1,7 +1,7 @@
-import { Link } from '@tanstack/react-router'
-import { Button } from '../Button'
-import { NPCInstanceRow } from './NPCEditRow'
-import { useNPCInstances } from './useNPCInstances'
+import { Link } from '@tanstack/react-router';
+import { Button } from '../Button';
+import { NPCInstanceRow } from './NPCEditRow';
+import { useNPCInstances } from './useNPCInstances';
 
 export type NPCInstanceView = Readonly<{
   id: number
@@ -37,16 +37,16 @@ export function NPCInstanceManager({ roomId }: Props) {
     editingId, setEditingId, confirmDeleteId, setConfirmDeleteId,
     editForm, setEditForm,
     handleUpdate, handleDelete, startEdit,
-  } = useNPCInstances(roomId)
+  } = useNPCInstances(roomId);
 
   if (instancesQuery.isLoading) {
-    return <div className="mb-3"><strong className="text-warning text-xs">NPCs:</strong><div className="text-text-muted text-[10px] mt-1">Loading...</div></div>
+    return <div className="mb-3"><strong className="text-warning text-xs">NPCs:</strong><div className="text-text-muted text-[10px] mt-1">Loading...</div></div>;
   }
   if (instancesQuery.error) {
-    return <div className="mb-3"><strong className="text-warning text-xs">NPCs:</strong><div className="text-danger text-[10px] mt-1">Error loading NPCs</div></div>
+    return <div className="mb-3"><strong className="text-warning text-xs">NPCs:</strong><div className="text-danger text-[10px] mt-1">Error loading NPCs</div></div>;
   }
 
-  const instances = instancesQuery.data ?? []
+  const instances = instancesQuery.data ?? [];
 
   return (
     <div className="mb-3">
@@ -70,5 +70,5 @@ export function NPCInstanceManager({ roomId }: Props) {
         </div>
       )}
     </div>
-  )
+  );
 }

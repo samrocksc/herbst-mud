@@ -16,7 +16,7 @@ import (
 // Protected /api routes — all require JWT auth + admin check
 func RegisterEffectRoutes(r *gin.Engine, repos *repository.Container, client *db.Client) {
 	effects := r.Group("/api")
-	effects.Use(middleware.AuthMiddleware())
+	effects.Use(middleware.AuthMiddleware(nil))
 	effects.Use(middleware.AdminMiddleware())
 	{
 		effects.GET("/abilities/:id/effects", listEffects(repos, client))

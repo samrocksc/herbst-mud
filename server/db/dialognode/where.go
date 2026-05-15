@@ -64,6 +64,11 @@ func IDContainsFold(id string) predicate.DialogNode {
 	return predicate.DialogNode(sql.FieldContainsFold(FieldID, id))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldEQ(FieldWorldID, v))
+}
+
 // NpcText applies equality check predicate on the "npc_text" field. It's identical to NpcTextEQ.
 func NpcText(v string) predicate.DialogNode {
 	return predicate.DialogNode(sql.FieldEQ(FieldNpcText, v))
@@ -77,6 +82,71 @@ func IsEntry(v bool) predicate.DialogNode {
 // EntryCondition applies equality check predicate on the "entry_condition" field. It's identical to EntryConditionEQ.
 func EntryCondition(v string) predicate.DialogNode {
 	return predicate.DialogNode(sql.FieldEQ(FieldEntryCondition, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.DialogNode {
+	return predicate.DialogNode(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // NpcTextEQ applies the EQ predicate on the "npc_text" field.

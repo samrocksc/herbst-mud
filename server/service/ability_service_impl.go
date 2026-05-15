@@ -41,16 +41,16 @@ func (s *abilityService) GetAbility(ctx context.Context, id int) (*db.Ability, e
 	return s.abilityRepo.Get(ctx, id)
 }
 
-func (s *abilityService) ListAbilities(ctx context.Context) ([]*db.Ability, error) {
-	return s.abilityRepo.List(ctx)
+func (s *abilityService) ListAbilities(ctx context.Context, worldID string) ([]*db.Ability, error) {
+	return s.abilityRepo.List(ctx, worldID)
 }
 
-func (s *abilityService) ListClasslessAbilities(ctx context.Context) ([]*db.Ability, error) {
-	return s.abilityRepo.ListClassless(ctx)
+func (s *abilityService) ListClasslessAbilities(ctx context.Context, worldID string) ([]*db.Ability, error) {
+	return s.abilityRepo.ListClassless(ctx, worldID)
 }
 
-func (s *abilityService) ListPassiveAbilities(ctx context.Context) ([]*db.Ability, error) {
-	return s.abilityRepo.ListByClass(ctx, "passive")
+func (s *abilityService) ListPassiveAbilities(ctx context.Context, worldID string) ([]*db.Ability, error) {
+	return s.abilityRepo.ListByClass(ctx, worldID, "passive")
 }
 
 func (s *abilityService) CreateAbility(ctx context.Context, input CreateAbilityInput) (*db.Ability, error) {
@@ -71,6 +71,7 @@ func (s *abilityService) CreateAbility(ctx context.Context, input CreateAbilityI
 		CooldownSeconds: input.CooldownSeconds,
 		Slug:           input.Slug,
 		FactionID:      input.FactionID,
+		WorldID:        input.WorldID,
 	})
 }
 
@@ -92,6 +93,7 @@ func (s *abilityService) UpdateAbility(ctx context.Context, id int, input Update
 		CooldownSeconds: input.CooldownSeconds,
 		Slug:           input.Slug,
 		FactionID:      input.FactionID,
+		WorldID:        input.WorldID,
 	})
 }
 

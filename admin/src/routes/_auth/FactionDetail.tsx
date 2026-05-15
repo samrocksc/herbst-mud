@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import { Button } from '../../components/Button'
-import { DeleteConfirmation } from '../../components/DeleteConfirmation'
-import { FormError } from '../../components/fields/FormError'
-import { showToast } from '../../components/Toast'
-import { apiPut, apiDelete } from '../../utils/apiFetch'
-import { FactionFormFields } from './FactionFormFields'
-import { factionToForm, type Faction, type FactionForm, type FactionCategory } from './factionTypes'
+import { useState } from 'react';
+import { Button } from '../../components/Button';
+import { DeleteConfirmation } from '../../components/DeleteConfirmation';
+import { FormError } from '../../components/fields/FormError';
+import { showToast } from '../../components/Toast';
+import { apiPut, apiDelete } from '../../utils/apiFetch';
+import { FactionFormFields } from './FactionFormFields';
+import { factionToForm, type Faction, type FactionForm, type FactionCategory } from './factionTypes';
 
 export function FactionDetail({
   faction,
@@ -16,35 +16,35 @@ export function FactionDetail({
   categories: FactionCategory[]
   onRefresh: () => void
 }>) {
-  const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState<FactionForm>(factionToForm(faction))
-  const [saving, setSaving] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const [error, setError] = useState('')
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<FactionForm>(factionToForm(faction));
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [error, setError] = useState('');
 
   const handleUpdate = async () => {
-    setSaving(true)
-    setError('')
+    setSaving(true);
+    setError('');
     try {
       await apiPut(`/api/factions/${faction.id}`, {
         ...form,
         category_id: form.category_id || null,
-      })
-      showToast('Faction updated', 'success')
-      setEditing(false)
-      onRefresh()
+      });
+      showToast('Faction updated', 'success');
+      setEditing(false);
+      onRefresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed')
+      setError(err instanceof Error ? err.message : 'Update failed');
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    await apiDelete(`/api/factions/${faction.id}`)
-    showToast('Faction deleted', 'success')
-    onRefresh()
-  }
+    await apiDelete(`/api/factions/${faction.id}`);
+    showToast('Faction deleted', 'success');
+    onRefresh();
+  };
 
   if (editing) {
     return (
@@ -61,10 +61,10 @@ export function FactionDetail({
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
-  const memberTags = faction.member_tags ?? []
+  const memberTags = faction.member_tags ?? [];
 
   return (
     <div>
@@ -100,7 +100,7 @@ export function FactionDetail({
         onCancel={() => setConfirmDelete(false)}
       />
     </div>
-  )
+  );
 }
 
 function DetailRow({ label, value }: Readonly<{ label: string; value: string }>) {
@@ -109,5 +109,5 @@ function DetailRow({ label, value }: Readonly<{ label: string; value: string }>)
       <label>{label}</label>
       <span>{value}</span>
     </div>
-  )
+  );
 }

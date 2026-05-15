@@ -1,54 +1,54 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useCallback, useEffect } from 'react'
-import type { ReactNode } from 'react'
-import { Button } from '../../components/Button'
-import { DataTable } from '../../components/DataTable'
-import { showToast } from '../../components/Toast'
-import { apiGet, apiDelete } from '../../utils/apiFetch'
-import { humanizeKey, tryParseJSON } from './-configUtils'
-import type { GameConfig } from './-configUtils'
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState, useCallback, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { Button } from '../../components/Button';
+import { DataTable } from '../../components/DataTable';
+import { showToast } from '../../components/Toast';
+import { apiGet, apiDelete } from '../../utils/apiFetch';
+import { humanizeKey, tryParseJSON } from './-configUtils';
+import type { GameConfig } from './-configUtils';
 
-export const Route = createFileRoute('/_auth/config')({ component: ConfigManagement })
+export const Route = createFileRoute('/_auth/config')({ component: ConfigManagement });
 
 function ConfigValueCell({ value }: { value: string }) {
-  const parsed = tryParseJSON(value)
-  const [expanded, setExpanded] = useState(false)
+  const parsed = tryParseJSON(value);
+  const [expanded, setExpanded] = useState(false);
   if (parsed !== null) {
-    const formatted = JSON.stringify(parsed, null, 2)
-    const isLong = formatted.split('\n').length > 4
+    const formatted = JSON.stringify(parsed, null, 2);
+    const isLong = formatted.split('\n').length > 4;
     return (
       <div className="text-xs">
         <pre className={`font-mono text-text-secondary whitespace-pre-wrap m-0 ${!expanded ? 'max-h-16 overflow-hidden' : ''}`}>{formatted}</pre>
         {isLong && <button type="button" className="text-primary text-xs mt-1 hover:underline cursor-pointer" onClick={() => setExpanded(e => !e)}>{expanded ? 'Show less' : 'Show more'}</button>}
       </div>
-    )
+    );
   }
-  return <span className="inline-block max-w-md overflow-hidden text-ellipsis whitespace-nowrap text-text-secondary text-xs">{value.length > 60 ? value.slice(0, 60) + '…' : value}</span>
+  return <span className="inline-block max-w-md overflow-hidden text-ellipsis whitespace-nowrap text-text-secondary text-xs">{value.length > 60 ? value.slice(0, 60) + '…' : value}</span>;
 }
 
 function ConfigManagement() {
-  const [configs, setConfigs] = useState<GameConfig[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [search, setSearch] = useState('')
-  const [deleteTarget, setDeleteTarget] = useState<GameConfig | null>(null)
+  const [configs, setConfigs] = useState<GameConfig[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<GameConfig | null>(null);
 
   const fetchConfigs = useCallback(async () => {
-    setLoading(true); setError(null)
-    try { setConfigs(await apiGet<GameConfig[]>('/api/game-configs')) }
-    catch (e: unknown) { setError(e instanceof Error ? e.message : 'Unknown error') }
-    finally { setLoading(false) }
-  }, [])
+    setLoading(true); setError(null);
+    try { setConfigs(await apiGet<GameConfig[]>('/api/game-configs')); }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : 'Unknown error'); }
+    finally { setLoading(false); }
+  }, []);
 
-  useEffect(() => { fetchConfigs() }, [fetchConfigs])
+  useEffect(() => { fetchConfigs(); }, [fetchConfigs]);
 
   const handleDelete = async () => {
-    if (!deleteTarget) return
-    try { await apiDelete(`/api/game-configs/${deleteTarget.key}`); showToast('Config deleted.', 'success'); setDeleteTarget(null); fetchConfigs() }
-    catch (e: unknown) { showToast(`Failed to delete: ${e instanceof Error ? e.message : 'Unknown error'}`) }
-  }
+    if (!deleteTarget) return;
+    try { await apiDelete(`/api/game-configs/${deleteTarget.key}`); showToast('Config deleted.', 'success'); setDeleteTarget(null); fetchConfigs(); }
+    catch (e: unknown) { showToast(`Failed to delete: ${e instanceof Error ? e.message : 'Unknown error'}`); }
+  };
 
-  const filtered = configs.filter(c => c.key.toLowerCase().includes(search.toLowerCase()) || c.value.toLowerCase().includes(search.toLowerCase()))
+  const filtered = configs.filter(c => c.key.toLowerCase().includes(search.toLowerCase()) || c.value.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="management-page">
@@ -96,5 +96,5 @@ function ConfigManagement() {
         </div>
       )}
     </div>
-  )
+  );
 }

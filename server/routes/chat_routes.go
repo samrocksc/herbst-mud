@@ -9,7 +9,7 @@ import (
 // RegisterChatRoutes registers chat and messaging endpoints.
 func RegisterChatRoutes(r *gin.Engine, svc *service.Container) {
 	chat := r.Group("/api/chat")
-	chat.Use(middleware.AuthMiddleware())
+	chat.Use(middleware.AuthMiddleware(nil))
 	{
 		// messaging
 		chat.POST("/say", sendSay(svc))

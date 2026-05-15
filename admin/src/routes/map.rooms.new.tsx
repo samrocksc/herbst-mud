@@ -1,30 +1,30 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { PageHeader } from '../components/PageHeader'
-import { Button } from '../components/Button'
-import { FormField } from '../components/fields/FormField'
-import { TextareaField } from '../components/fields/TextareaField'
-import { FormError } from '../components/fields/FormError'
-import { useRooms } from '../hooks/useRooms'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { PageHeader } from '../components/PageHeader';
+import { Button } from '../components/Button';
+import { FormField } from '../components/fields/FormField';
+import { TextareaField } from '../components/fields/TextareaField';
+import { FormError } from '../components/fields/FormError';
+import { useRooms } from '../hooks/useRooms';
 
 export const Route = createFileRoute('/map/rooms/new')({
   component: CreateRoomPage,
-})
+});
 
 function CreateRoomPage() {
-  const navigate = useNavigate()
-  const { createRoomAsync, rooms } = useRooms()
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const { createRoomAsync, rooms } = useRooms();
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   // Check if any room currently has isRootRoom=true
-  const hasRootRoom = rooms.some(r => r.isRootRoom)
+  const hasRootRoom = rooms.some(r => r.isRootRoom);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim()) return
-    setError(null)
+    e.preventDefault();
+    if (!name.trim()) return;
+    setError(null);
     try {
       const room = await createRoomAsync({
         name: name.trim(),
@@ -36,12 +36,12 @@ function CreateRoomPage() {
         posX: 0,
         posY: 0,
         posZ: 0,
-      })
-      navigate({ to: '/map', search: { room: room.id } })
+      });
+      navigate({ to: '/map', search: { room: room.id } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create room')
+      setError(err instanceof Error ? err.message : 'Failed to create room');
     }
-  }
+  };
 
   return (
     <div className="p-6 max-w-[600px] mx-auto">
@@ -67,5 +67,5 @@ function CreateRoomPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

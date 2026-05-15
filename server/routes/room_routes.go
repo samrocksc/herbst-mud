@@ -3,24 +3,28 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/middleware"
 	"herbst-server/service"
 )
 
 // RegisterRoomRoutes registers all room-related routes.
 func RegisterRoomRoutes(router *gin.Engine, client *db.Client, svc *service.Container) {
-	rooms := router.Group("/rooms")
+	rooms := router.Group("/api")
+	rooms.Use(middleware.AuthMiddleware(nil))
+	rooms.Use(middleware.AdminMiddleware())
+	rooms.Use(middleware.WorldAccessMiddleware())
 	{
-		rooms.POST("", createRoom(svc))
-		rooms.GET("", listRooms(svc))
-		rooms.GET("/:id", getRoom(svc))
-		rooms.PUT("/:id", updateRoom(svc))
-		rooms.DELETE("/:id", deleteRoom(svc))
-		rooms.POST("/cleanup-orphan-exits", cleanupOrphanExits(svc))
-		rooms.POST("/:id/exits/bidirectional", createBidirectionalExit(svc))
-		rooms.DELETE("/:id/exits/bidirectional", deleteBidirectionalExit(svc))
+		rooms.GET("/rooms", listRooms(svc))
+		rooms.POST("/rooms", createRoom(svc))
+		rooms.GET("/rooms/:id", getRoom(svc))
+		rooms.PUT("/rooms/:id", updateRoom(svc))
+		rooms.DELETE("/rooms/:id", deleteRoom(svc))
+		rooms.POST("/rooms/cleanup-orphan-exits", cleanupOrphanExits(svc))
+		rooms.POST("/rooms/:id/exits/bidirectional", createBidirectionalExit(svc))
+		rooms.DELETE("/rooms/:id/exits/bidirectional", deleteBidirectionalExit(svc))
 	}
 	// Look/characters endpoints still need direct DB access until CharacterService is migrated
 	rc := &roomClient{svc: svc, db: client}
-	rooms.GET("/:id/characters", rc.getCharacters)
-	rooms.GET("/:id/look", rc.getLook)
+	rooms.GET("/rooms/:id/characters", rc.getCharacters)
+	rooms.GET("/rooms/:id/look", rc.getLook)
 }

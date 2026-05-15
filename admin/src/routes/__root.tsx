@@ -1,29 +1,29 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Sidebar } from '../components/Sidebar'
-import { MenuIcon } from '../components/icons/MenuIcon'
-import { Button } from '../components/Button'
-import { ToastProvider } from '../components/Toast'
-import { ErrorBoundary } from '../components/ErrorBoundary'
-import { showToast } from '../components/Toast'
+import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useState } from 'react';
+import { Sidebar } from '../components/Sidebar';
+import { MenuIcon } from '../components/icons/MenuIcon';
+import { Button } from '../components/Button';
+import { ToastProvider } from '../components/Toast';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { showToast } from '../components/Toast';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     mutations: {
       onError: (err) => {
-        showToast(err instanceof Error ? err.message : 'Operation failed', 'error')
+        showToast(err instanceof Error ? err.message : 'Operation failed', 'error');
       },
     },
   },
-})
+});
 
 export const Route = createRootRoute({
   component: RootComponent,
-})
+});
 
 function RootComponent() {
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -63,5 +63,5 @@ function RootComponent() {
         </ErrorBoundary>
       </ToastProvider>
     </QueryClientProvider>
-  )
+  );
 }

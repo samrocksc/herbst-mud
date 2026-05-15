@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import type { Race, RaceInput } from '../hooks/useRaces'
-import { TagInput } from './TagInput'
-import { Button } from './Button'
-import { SLOT_CATALOG, DEFAULT_HUMANOID_SLOTS } from './equipConstants'
-import { FormField, TextareaField, CheckboxField, ColorField, FormError } from './fields'
+import { useState } from 'react';
+import type { Race, RaceInput } from '../hooks/useRaces';
+import { TagInput } from './TagInput';
+import { Button } from './Button';
+import { SLOT_CATALOG, DEFAULT_HUMANOID_SLOTS } from './equipConstants';
+import { FormField, TextareaField, CheckboxField, ColorField, FormError } from './fields';
 
 type RaceFormProps = Readonly<{
   race: Race | null
@@ -23,7 +23,7 @@ const EMPTY_FORM: RaceInput = {
   is_playable: true,
   color: '',
   tags: [],
-}
+};
 
 function raceToForm(r: Race): RaceInput {
   return {
@@ -35,21 +35,21 @@ function raceToForm(r: Race): RaceInput {
     is_playable: r.is_playable,
     color: r.color ?? '',
     tags: r.tags ? [...r.tags] : [],
-  }
+  };
 }
 
-export { EMPTY_FORM, raceToForm }
+export { EMPTY_FORM, raceToForm };
 
 export function RaceForm({ race, onSubmit, onCancel, isLoading, error, availableTags }: RaceFormProps) {
-  const [form, setForm] = useState<RaceInput>(() => race ? raceToForm(race) : { ...EMPTY_FORM })
+  const [form, setForm] = useState<RaceInput>(() => race ? raceToForm(race) : { ...EMPTY_FORM });
   const set = <K extends keyof RaceInput>(key: K, value: RaceInput[K]) =>
-    setForm(prev => ({ ...prev, [key]: value }))
+    setForm(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.name.trim()) return
-    onSubmit(form)
-  }
+    e.preventDefault();
+    if (!form.name.trim()) return;
+    onSubmit(form);
+  };
 
   return (
     <div className="form-card space-y-3">
@@ -76,5 +76,5 @@ export function RaceForm({ race, onSubmit, onCancel, isLoading, error, available
         </div>
       </form>
     </div>
-  )
+  );
 }

@@ -13,7 +13,7 @@ import (
 // listQuests returns all quests, optionally filtered by name.
 func listQuests(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		quests, err := svc.Quest.ListQuests(c.Request.Context())
+		quests, err := svc.Quest.ListQuests(c.Request.Context(), "")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

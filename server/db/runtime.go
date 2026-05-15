@@ -23,6 +23,7 @@ import (
 	"herbst-server/db/effecthook"
 	"herbst-server/db/equipment"
 	"herbst-server/db/equipmenttemplate"
+	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/quest"
@@ -43,36 +44,40 @@ import (
 func init() {
 	abilityFields := schema.Ability{}.Fields()
 	_ = abilityFields
+	// abilityDescWorldID is the schema descriptor for world_id field.
+	abilityDescWorldID := abilityFields[1].Descriptor()
+	// ability.DefaultWorldID holds the default value on creation for the world_id field.
+	ability.DefaultWorldID = abilityDescWorldID.Default.(string)
 	// abilityDescCost is the schema descriptor for cost field.
-	abilityDescCost := abilityFields[3].Descriptor()
+	abilityDescCost := abilityFields[4].Descriptor()
 	// ability.DefaultCost holds the default value on creation for the cost field.
 	ability.DefaultCost = abilityDescCost.Default.(int)
 	// abilityDescCooldown is the schema descriptor for cooldown field.
-	abilityDescCooldown := abilityFields[4].Descriptor()
+	abilityDescCooldown := abilityFields[5].Descriptor()
 	// ability.DefaultCooldown holds the default value on creation for the cooldown field.
 	ability.DefaultCooldown = abilityDescCooldown.Default.(int)
 	// abilityDescManaCost is the schema descriptor for mana_cost field.
-	abilityDescManaCost := abilityFields[6].Descriptor()
+	abilityDescManaCost := abilityFields[7].Descriptor()
 	// ability.DefaultManaCost holds the default value on creation for the mana_cost field.
 	ability.DefaultManaCost = abilityDescManaCost.Default.(int)
 	// abilityDescStaminaCost is the schema descriptor for stamina_cost field.
-	abilityDescStaminaCost := abilityFields[7].Descriptor()
+	abilityDescStaminaCost := abilityFields[8].Descriptor()
 	// ability.DefaultStaminaCost holds the default value on creation for the stamina_cost field.
 	ability.DefaultStaminaCost = abilityDescStaminaCost.Default.(int)
 	// abilityDescHpCost is the schema descriptor for hp_cost field.
-	abilityDescHpCost := abilityFields[8].Descriptor()
+	abilityDescHpCost := abilityFields[9].Descriptor()
 	// ability.DefaultHpCost holds the default value on creation for the hp_cost field.
 	ability.DefaultHpCost = abilityDescHpCost.Default.(int)
 	// abilityDescAbilityClass is the schema descriptor for ability_class field.
-	abilityDescAbilityClass := abilityFields[11].Descriptor()
+	abilityDescAbilityClass := abilityFields[12].Descriptor()
 	// ability.DefaultAbilityClass holds the default value on creation for the ability_class field.
 	ability.DefaultAbilityClass = abilityDescAbilityClass.Default.(string)
 	// abilityDescProcChance is the schema descriptor for proc_chance field.
-	abilityDescProcChance := abilityFields[12].Descriptor()
+	abilityDescProcChance := abilityFields[13].Descriptor()
 	// ability.DefaultProcChance holds the default value on creation for the proc_chance field.
 	ability.DefaultProcChance = abilityDescProcChance.Default.(float64)
 	// abilityDescCooldownSeconds is the schema descriptor for cooldown_seconds field.
-	abilityDescCooldownSeconds := abilityFields[14].Descriptor()
+	abilityDescCooldownSeconds := abilityFields[15].Descriptor()
 	// ability.DefaultCooldownSeconds holds the default value on creation for the cooldown_seconds field.
 	ability.DefaultCooldownSeconds = abilityDescCooldownSeconds.Default.(int)
 	abilityeffectFields := schema.AbilityEffect{}.Fields()
@@ -401,8 +406,12 @@ func init() {
 	damagelog.DefaultCreatedAt = damagelogDescCreatedAt.Default.(func() time.Time)
 	dialognodeFields := schema.DialogNode{}.Fields()
 	_ = dialognodeFields
+	// dialognodeDescWorldID is the schema descriptor for world_id field.
+	dialognodeDescWorldID := dialognodeFields[1].Descriptor()
+	// dialognode.DefaultWorldID holds the default value on creation for the world_id field.
+	dialognode.DefaultWorldID = dialognodeDescWorldID.Default.(string)
 	// dialognodeDescIsEntry is the schema descriptor for is_entry field.
-	dialognodeDescIsEntry := dialognodeFields[3].Descriptor()
+	dialognodeDescIsEntry := dialognodeFields[4].Descriptor()
 	// dialognode.DefaultIsEntry holds the default value on creation for the is_entry field.
 	dialognode.DefaultIsEntry = dialognodeDescIsEntry.Default.(bool)
 	effectFields := schema.Effect{}.Fields()
@@ -577,102 +586,112 @@ func init() {
 	equipment.DefaultIsTwoHanded = equipmentDescIsTwoHanded.Default.(bool)
 	equipmenttemplateFields := schema.EquipmentTemplate{}.Fields()
 	_ = equipmenttemplateFields
+	// equipmenttemplateDescWorldID is the schema descriptor for world_id field.
+	equipmenttemplateDescWorldID := equipmenttemplateFields[1].Descriptor()
+	// equipmenttemplate.DefaultWorldID holds the default value on creation for the world_id field.
+	equipmenttemplate.DefaultWorldID = equipmenttemplateDescWorldID.Default.(string)
 	// equipmenttemplateDescLevel is the schema descriptor for level field.
-	equipmenttemplateDescLevel := equipmenttemplateFields[4].Descriptor()
+	equipmenttemplateDescLevel := equipmenttemplateFields[5].Descriptor()
 	// equipmenttemplate.DefaultLevel holds the default value on creation for the level field.
 	equipmenttemplate.DefaultLevel = equipmenttemplateDescLevel.Default.(int)
 	// equipmenttemplateDescWeight is the schema descriptor for weight field.
-	equipmenttemplateDescWeight := equipmenttemplateFields[5].Descriptor()
+	equipmenttemplateDescWeight := equipmenttemplateFields[6].Descriptor()
 	// equipmenttemplate.DefaultWeight holds the default value on creation for the weight field.
 	equipmenttemplate.DefaultWeight = equipmenttemplateDescWeight.Default.(int)
 	// equipmenttemplateDescItemType is the schema descriptor for item_type field.
-	equipmenttemplateDescItemType := equipmenttemplateFields[6].Descriptor()
+	equipmenttemplateDescItemType := equipmenttemplateFields[7].Descriptor()
 	// equipmenttemplate.DefaultItemType holds the default value on creation for the item_type field.
 	equipmenttemplate.DefaultItemType = equipmenttemplateDescItemType.Default.(string)
 	// equipmenttemplateDescColor is the schema descriptor for color field.
-	equipmenttemplateDescColor := equipmenttemplateFields[8].Descriptor()
+	equipmenttemplateDescColor := equipmenttemplateFields[9].Descriptor()
 	// equipmenttemplate.DefaultColor holds the default value on creation for the color field.
 	equipmenttemplate.DefaultColor = equipmenttemplateDescColor.Default.(string)
 	// equipmenttemplateDescIsVisible is the schema descriptor for is_visible field.
-	equipmenttemplateDescIsVisible := equipmenttemplateFields[9].Descriptor()
+	equipmenttemplateDescIsVisible := equipmenttemplateFields[10].Descriptor()
 	// equipmenttemplate.DefaultIsVisible holds the default value on creation for the is_visible field.
 	equipmenttemplate.DefaultIsVisible = equipmenttemplateDescIsVisible.Default.(bool)
 	// equipmenttemplateDescIsImmovable is the schema descriptor for is_immovable field.
-	equipmenttemplateDescIsImmovable := equipmenttemplateFields[10].Descriptor()
+	equipmenttemplateDescIsImmovable := equipmenttemplateFields[11].Descriptor()
 	// equipmenttemplate.DefaultIsImmovable holds the default value on creation for the is_immovable field.
 	equipmenttemplate.DefaultIsImmovable = equipmenttemplateDescIsImmovable.Default.(bool)
 	// equipmenttemplateDescEffectType is the schema descriptor for effect_type field.
-	equipmenttemplateDescEffectType := equipmenttemplateFields[11].Descriptor()
+	equipmenttemplateDescEffectType := equipmenttemplateFields[12].Descriptor()
 	// equipmenttemplate.DefaultEffectType holds the default value on creation for the effect_type field.
 	equipmenttemplate.DefaultEffectType = equipmenttemplateDescEffectType.Default.(string)
 	// equipmenttemplateDescEffectValue is the schema descriptor for effect_value field.
-	equipmenttemplateDescEffectValue := equipmenttemplateFields[12].Descriptor()
+	equipmenttemplateDescEffectValue := equipmenttemplateFields[13].Descriptor()
 	// equipmenttemplate.DefaultEffectValue holds the default value on creation for the effect_value field.
 	equipmenttemplate.DefaultEffectValue = equipmenttemplateDescEffectValue.Default.(int)
 	// equipmenttemplateDescEffectDuration is the schema descriptor for effect_duration field.
-	equipmenttemplateDescEffectDuration := equipmenttemplateFields[13].Descriptor()
+	equipmenttemplateDescEffectDuration := equipmenttemplateFields[14].Descriptor()
 	// equipmenttemplate.DefaultEffectDuration holds the default value on creation for the effect_duration field.
 	equipmenttemplate.DefaultEffectDuration = equipmenttemplateDescEffectDuration.Default.(int)
 	// equipmenttemplateDescIsContainer is the schema descriptor for is_container field.
-	equipmenttemplateDescIsContainer := equipmenttemplateFields[14].Descriptor()
+	equipmenttemplateDescIsContainer := equipmenttemplateFields[15].Descriptor()
 	// equipmenttemplate.DefaultIsContainer holds the default value on creation for the is_container field.
 	equipmenttemplate.DefaultIsContainer = equipmenttemplateDescIsContainer.Default.(bool)
 	// equipmenttemplateDescContainerCapacity is the schema descriptor for container_capacity field.
-	equipmenttemplateDescContainerCapacity := equipmenttemplateFields[15].Descriptor()
+	equipmenttemplateDescContainerCapacity := equipmenttemplateFields[16].Descriptor()
 	// equipmenttemplate.DefaultContainerCapacity holds the default value on creation for the container_capacity field.
 	equipmenttemplate.DefaultContainerCapacity = equipmenttemplateDescContainerCapacity.Default.(int)
 	// equipmenttemplateDescIsLocked is the schema descriptor for is_locked field.
-	equipmenttemplateDescIsLocked := equipmenttemplateFields[16].Descriptor()
+	equipmenttemplateDescIsLocked := equipmenttemplateFields[17].Descriptor()
 	// equipmenttemplate.DefaultIsLocked holds the default value on creation for the is_locked field.
 	equipmenttemplate.DefaultIsLocked = equipmenttemplateDescIsLocked.Default.(bool)
 	// equipmenttemplateDescRevealCondition is the schema descriptor for reveal_condition field.
-	equipmenttemplateDescRevealCondition := equipmenttemplateFields[18].Descriptor()
+	equipmenttemplateDescRevealCondition := equipmenttemplateFields[19].Descriptor()
 	// equipmenttemplate.DefaultRevealCondition holds the default value on creation for the reveal_condition field.
 	equipmenttemplate.DefaultRevealCondition = equipmenttemplateDescRevealCondition.Default.(string)
 	// equipmenttemplateDescArmorRating is the schema descriptor for armor_rating field.
-	equipmenttemplateDescArmorRating := equipmenttemplateFields[20].Descriptor()
+	equipmenttemplateDescArmorRating := equipmenttemplateFields[21].Descriptor()
 	// equipmenttemplate.DefaultArmorRating holds the default value on creation for the armor_rating field.
 	equipmenttemplate.DefaultArmorRating = equipmenttemplateDescArmorRating.Default.(int)
 	// equipmenttemplateDescArmorType is the schema descriptor for armor_type field.
-	equipmenttemplateDescArmorType := equipmenttemplateFields[21].Descriptor()
+	equipmenttemplateDescArmorType := equipmenttemplateFields[22].Descriptor()
 	// equipmenttemplate.DefaultArmorType holds the default value on creation for the armor_type field.
 	equipmenttemplate.DefaultArmorType = equipmenttemplateDescArmorType.Default.(string)
 	// equipmenttemplateDescRarity is the schema descriptor for rarity field.
-	equipmenttemplateDescRarity := equipmenttemplateFields[22].Descriptor()
+	equipmenttemplateDescRarity := equipmenttemplateFields[23].Descriptor()
 	// equipmenttemplate.DefaultRarity holds the default value on creation for the rarity field.
 	equipmenttemplate.DefaultRarity = equipmenttemplateDescRarity.Default.(string)
 	// equipmenttemplateDescSkillRequirement is the schema descriptor for skill_requirement field.
-	equipmenttemplateDescSkillRequirement := equipmenttemplateFields[23].Descriptor()
+	equipmenttemplateDescSkillRequirement := equipmenttemplateFields[24].Descriptor()
 	// equipmenttemplate.DefaultSkillRequirement holds the default value on creation for the skill_requirement field.
 	equipmenttemplate.DefaultSkillRequirement = equipmenttemplateDescSkillRequirement.Default.(string)
 	// equipmenttemplateDescSkillRequirementLevel is the schema descriptor for skill_requirement_level field.
-	equipmenttemplateDescSkillRequirementLevel := equipmenttemplateFields[24].Descriptor()
+	equipmenttemplateDescSkillRequirementLevel := equipmenttemplateFields[25].Descriptor()
 	// equipmenttemplate.DefaultSkillRequirementLevel holds the default value on creation for the skill_requirement_level field.
 	equipmenttemplate.DefaultSkillRequirementLevel = equipmenttemplateDescSkillRequirementLevel.Default.(int)
 	// equipmenttemplateDescDamageDiceCount is the schema descriptor for damage_dice_count field.
-	equipmenttemplateDescDamageDiceCount := equipmenttemplateFields[25].Descriptor()
+	equipmenttemplateDescDamageDiceCount := equipmenttemplateFields[26].Descriptor()
 	// equipmenttemplate.DefaultDamageDiceCount holds the default value on creation for the damage_dice_count field.
 	equipmenttemplate.DefaultDamageDiceCount = equipmenttemplateDescDamageDiceCount.Default.(int)
 	// equipmenttemplateDescDamageDiceSides is the schema descriptor for damage_dice_sides field.
-	equipmenttemplateDescDamageDiceSides := equipmenttemplateFields[26].Descriptor()
+	equipmenttemplateDescDamageDiceSides := equipmenttemplateFields[27].Descriptor()
 	// equipmenttemplate.DefaultDamageDiceSides holds the default value on creation for the damage_dice_sides field.
 	equipmenttemplate.DefaultDamageDiceSides = equipmenttemplateDescDamageDiceSides.Default.(int)
 	// equipmenttemplateDescDamageBonus is the schema descriptor for damage_bonus field.
-	equipmenttemplateDescDamageBonus := equipmenttemplateFields[27].Descriptor()
+	equipmenttemplateDescDamageBonus := equipmenttemplateFields[28].Descriptor()
 	// equipmenttemplate.DefaultDamageBonus holds the default value on creation for the damage_bonus field.
 	equipmenttemplate.DefaultDamageBonus = equipmenttemplateDescDamageBonus.Default.(int)
 	// equipmenttemplateDescDamageType is the schema descriptor for damage_type field.
-	equipmenttemplateDescDamageType := equipmenttemplateFields[28].Descriptor()
+	equipmenttemplateDescDamageType := equipmenttemplateFields[29].Descriptor()
 	// equipmenttemplate.DefaultDamageType holds the default value on creation for the damage_type field.
 	equipmenttemplate.DefaultDamageType = equipmenttemplateDescDamageType.Default.(string)
 	// equipmenttemplateDescWeaponType is the schema descriptor for weapon_type field.
-	equipmenttemplateDescWeaponType := equipmenttemplateFields[29].Descriptor()
+	equipmenttemplateDescWeaponType := equipmenttemplateFields[30].Descriptor()
 	// equipmenttemplate.DefaultWeaponType holds the default value on creation for the weapon_type field.
 	equipmenttemplate.DefaultWeaponType = equipmenttemplateDescWeaponType.Default.(string)
 	// equipmenttemplateDescIsTwoHanded is the schema descriptor for is_two_handed field.
-	equipmenttemplateDescIsTwoHanded := equipmenttemplateFields[30].Descriptor()
+	equipmenttemplateDescIsTwoHanded := equipmenttemplateFields[31].Descriptor()
 	// equipmenttemplate.DefaultIsTwoHanded holds the default value on creation for the is_two_handed field.
 	equipmenttemplate.DefaultIsTwoHanded = equipmenttemplateDescIsTwoHanded.Default.(bool)
+	factionFields := schema.Faction{}.Fields()
+	_ = factionFields
+	// factionDescWorldID is the schema descriptor for world_id field.
+	factionDescWorldID := factionFields[1].Descriptor()
+	// faction.DefaultWorldID holds the default value on creation for the world_id field.
+	faction.DefaultWorldID = factionDescWorldID.Default.(string)
 	factioncategoryFields := schema.FactionCategory{}.Fields()
 	_ = factioncategoryFields
 	// factioncategoryDescMaxMemberships is the schema descriptor for max_memberships field.
@@ -685,26 +704,34 @@ func init() {
 	factioncategory.DefaultAutoJoin = factioncategoryDescAutoJoin.Default.(bool)
 	npctemplateFields := schema.NPCTemplate{}.Fields()
 	_ = npctemplateFields
+	// npctemplateDescWorldID is the schema descriptor for world_id field.
+	npctemplateDescWorldID := npctemplateFields[1].Descriptor()
+	// npctemplate.DefaultWorldID holds the default value on creation for the world_id field.
+	npctemplate.DefaultWorldID = npctemplateDescWorldID.Default.(string)
 	// npctemplateDescLevel is the schema descriptor for level field.
-	npctemplateDescLevel := npctemplateFields[5].Descriptor()
+	npctemplateDescLevel := npctemplateFields[6].Descriptor()
 	// npctemplate.DefaultLevel holds the default value on creation for the level field.
 	npctemplate.DefaultLevel = npctemplateDescLevel.Default.(int)
 	// npctemplateDescXpValue is the schema descriptor for xp_value field.
-	npctemplateDescXpValue := npctemplateFields[6].Descriptor()
+	npctemplateDescXpValue := npctemplateFields[7].Descriptor()
 	// npctemplate.DefaultXpValue holds the default value on creation for the xp_value field.
 	npctemplate.DefaultXpValue = npctemplateDescXpValue.Default.(int)
 	// npctemplateDescRespawnCooldown is the schema descriptor for respawn_cooldown field.
-	npctemplateDescRespawnCooldown := npctemplateFields[11].Descriptor()
+	npctemplateDescRespawnCooldown := npctemplateFields[12].Descriptor()
 	// npctemplate.DefaultRespawnCooldown holds the default value on creation for the respawn_cooldown field.
 	npctemplate.DefaultRespawnCooldown = npctemplateDescRespawnCooldown.Default.(int)
 	questFields := schema.Quest{}.Fields()
 	_ = questFields
+	// questDescWorldID is the schema descriptor for world_id field.
+	questDescWorldID := questFields[1].Descriptor()
+	// quest.DefaultWorldID holds the default value on creation for the world_id field.
+	quest.DefaultWorldID = questDescWorldID.Default.(string)
 	// questDescCooldownHours is the schema descriptor for cooldown_hours field.
-	questDescCooldownHours := questFields[7].Descriptor()
+	questDescCooldownHours := questFields[8].Descriptor()
 	// quest.DefaultCooldownHours holds the default value on creation for the cooldown_hours field.
 	quest.DefaultCooldownHours = questDescCooldownHours.Default.(int)
 	// questDescIsActive is the schema descriptor for is_active field.
-	questDescIsActive := questFields[8].Descriptor()
+	questDescIsActive := questFields[9].Descriptor()
 	// quest.DefaultIsActive holds the default value on creation for the is_active field.
 	quest.DefaultIsActive = questDescIsActive.Default.(bool)
 	questprogressFields := schema.QuestProgress{}.Fields()
@@ -725,28 +752,32 @@ func init() {
 	race.DefaultIsPlayable = raceDescIsPlayable.Default.(bool)
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
+	// roomDescWorldID is the schema descriptor for world_id field.
+	roomDescWorldID := roomFields[1].Descriptor()
+	// room.DefaultWorldID holds the default value on creation for the world_id field.
+	room.DefaultWorldID = roomDescWorldID.Default.(string)
 	// roomDescIsStartingRoom is the schema descriptor for isStartingRoom field.
-	roomDescIsStartingRoom := roomFields[2].Descriptor()
+	roomDescIsStartingRoom := roomFields[3].Descriptor()
 	// room.DefaultIsStartingRoom holds the default value on creation for the isStartingRoom field.
 	room.DefaultIsStartingRoom = roomDescIsStartingRoom.Default.(bool)
 	// roomDescIsRootRoom is the schema descriptor for isRootRoom field.
-	roomDescIsRootRoom := roomFields[3].Descriptor()
+	roomDescIsRootRoom := roomFields[4].Descriptor()
 	// room.DefaultIsRootRoom holds the default value on creation for the isRootRoom field.
 	room.DefaultIsRootRoom = roomDescIsRootRoom.Default.(bool)
 	// roomDescPosX is the schema descriptor for posX field.
-	roomDescPosX := roomFields[6].Descriptor()
+	roomDescPosX := roomFields[7].Descriptor()
 	// room.DefaultPosX holds the default value on creation for the posX field.
 	room.DefaultPosX = roomDescPosX.Default.(int)
 	// roomDescPosY is the schema descriptor for posY field.
-	roomDescPosY := roomFields[7].Descriptor()
+	roomDescPosY := roomFields[8].Descriptor()
 	// room.DefaultPosY holds the default value on creation for the posY field.
 	room.DefaultPosY = roomDescPosY.Default.(int)
 	// roomDescPosZ is the schema descriptor for posZ field.
-	roomDescPosZ := roomFields[8].Descriptor()
+	roomDescPosZ := roomFields[9].Descriptor()
 	// room.DefaultPosZ holds the default value on creation for the posZ field.
 	room.DefaultPosZ = roomDescPosZ.Default.(int)
 	// roomDescVersion is the schema descriptor for version field.
-	roomDescVersion := roomFields[9].Descriptor()
+	roomDescVersion := roomFields[10].Descriptor()
 	// room.DefaultVersion holds the default value on creation for the version field.
 	room.DefaultVersion = roomDescVersion.Default.(int)
 	socialcommandFields := schema.SocialCommand{}.Fields()

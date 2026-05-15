@@ -32,6 +32,20 @@ func (_u *NPCTemplateUpdate) Where(ps ...predicate.NPCTemplate) *NPCTemplateUpda
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *NPCTemplateUpdate) SetWorldID(v string) *NPCTemplateUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableWorldID(v *string) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *NPCTemplateUpdate) SetName(v string) *NPCTemplateUpdate {
 	_u.mutation.SetName(v)
@@ -405,6 +419,9 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(npctemplate.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(npctemplate.FieldName, field.TypeString, value)
 	}
@@ -661,6 +678,20 @@ type NPCTemplateUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *NPCTemplateMutation
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *NPCTemplateUpdateOne) SetWorldID(v string) *NPCTemplateUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableWorldID(v *string) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
 }
 
 // SetName sets the "name" field.
@@ -1065,6 +1096,9 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(npctemplate.FieldWorldID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(npctemplate.FieldName, field.TypeString, value)

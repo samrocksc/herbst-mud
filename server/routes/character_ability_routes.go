@@ -129,7 +129,7 @@ func listPassiveAbilities(svc *service.Container) gin.HandlerFunc {
 			return
 		}
 		// Verify character exists via repos (service doesn't have simple Get)
-		passives, err := svc.Ability.ListPassiveAbilities(c.Request.Context())
+		passives, err := svc.Ability.ListPassiveAbilities(c.Request.Context(), "")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

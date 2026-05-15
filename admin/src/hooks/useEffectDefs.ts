@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
 
-const API = `${window.location.origin}`
+const API = `${window.location.origin}`;
 
 export const EFFECT_TYPES = [
   { value: 'hp_change', label: 'HP Change', group: 'Combat' },
@@ -18,13 +18,13 @@ export const EFFECT_TYPES = [
   { value: 'tag_add', label: 'Tag Add', group: 'Tagging' },
   { value: 'tag_remove', label: 'Tag Remove', group: 'Tagging' },
   { value: 'apply_effect', label: 'Apply Effect', group: 'Chaining' },
-] as const
+] as const;
 
 export const STACK_MODES = [
   { value: 'replace', label: 'Replace (single stack)' },
   { value: 'refresh', label: 'Refresh (extend duration)' },
   { value: 'stack', label: 'Stack (multiple stacks)' },
-]
+];
 
 export const MESSAGE_TYPES = [
   { value: 'info', label: 'Info (neutral)' },
@@ -38,7 +38,7 @@ export const MESSAGE_TYPES = [
   { value: 'yell', label: 'Yell (zone wide)' },
   { value: 'shout', label: 'Shout (world wide)' },
   { value: 'whisper', label: 'Whisper (private)' },
-]
+];
 
 export type EffectDef = Readonly<{
   id: number
@@ -77,16 +77,16 @@ export const createEmptyInput = (effectType: string): EffectDefInput => ({
   is_permanent: false,
   duration_secs: 0,
   messages: {},
-})
+});
 
 export function useEffectDefs(filters?: { type?: string }) {
-  const params = new URLSearchParams()
-  if (filters?.type) params.set('type', filters.type)
-  const qs = params.toString() ? `?${params.toString()}` : ''
+  const params = new URLSearchParams();
+  if (filters?.type) params.set('type', filters.type);
+  const qs = params.toString() ? `?${params.toString()}` : '';
   return useQuery({
     queryKey: ['effectDefs', filters],
     queryFn: () => apiGet<EffectDef[]>(`${API}/api/effects${qs}`),
-  })
+  });
 }
 
 export function useEffectDef(id: number | null) {
@@ -94,33 +94,33 @@ export function useEffectDef(id: number | null) {
     queryKey: ['effectDef', id],
     queryFn: () => apiGet<EffectDef>(`${API}/api/effects/${id}`),
     enabled: !!id,
-  })
+  });
 }
 
 export function useCreateEffectDef() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: EffectDefInput) => apiPost<EffectDef>(`${API}/api/effects`, input),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['effectDefs'] }) },
-  })
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['effectDefs'] }); },
+  });
 }
 
 export function useUpdateEffectDef() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: Partial<EffectDefInput> }) =>
       apiPut<EffectDef>(`${API}/api/effects/${id}`, input),
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ['effectDefs'] })
-      qc.invalidateQueries({ queryKey: ['effectDef', id] })
+      qc.invalidateQueries({ queryKey: ['effectDefs'] });
+      qc.invalidateQueries({ queryKey: ['effectDef', id] });
     },
-  })
+  });
 }
 
 export function useDeleteEffectDef() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/api/effects/${id}`),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['effectDefs'] }) },
-  })
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['effectDefs'] }); },
+  });
 }

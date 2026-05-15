@@ -1,18 +1,18 @@
-import type { Tag, TagUsageReport } from '../../hooks/useTags'
-import { Button } from '../../components/Button'
+import type { Tag, TagUsageReport } from '../../hooks/useTags';
+import { Button } from '../../components/Button';
 
 function ColorDot({ color }: { color: string }) {
-  const DEFAULT_COLOR = 'var(--color-tag-default)'
-  const dotStyle = { '--dot-color': color || DEFAULT_COLOR } as React.CSSProperties
+  const DEFAULT_COLOR = 'var(--color-tag-default)';
+  const dotStyle = { '--dot-color': color || DEFAULT_COLOR } as React.CSSProperties;
   return (
     <span
       className="inline-block w-3 h-3 rounded-full shrink-0 bg-(--dot-color)"
       style={dotStyle}
     />
-  )
+  );
 }
 
-const safe = <T,>(arr: T[] | undefined): T[] => arr ?? []
+const safe = <T,>(arr: T[] | undefined): T[] => arr ?? [];
 
 function UsageSection({
   label,
@@ -25,8 +25,8 @@ function UsageSection({
   badgeClass: string
   hrefPrefix: string
 }) {
-  const list = safe(items)
-  if (list.length === 0) return null
+  const list = safe(items);
+  if (list.length === 0) return null;
   return (
     <div className="mb-4">
       <h4 className="m-0 mb-2">{label} ({list.length})</h4>
@@ -41,7 +41,7 @@ function UsageSection({
         ))}
       </ul>
     </div>
-  )
+  );
 }
 
 export function TagUsagesPanel({
@@ -54,7 +54,7 @@ export function TagUsagesPanel({
   onClose: () => void
 }) {
   const hasUsages =
-    safe(report.abilities).length > 0 || safe(report.factions).length > 0 || safe(report.characters).length > 0
+    safe(report.abilities).length > 0 || safe(report.factions).length > 0 || safe(report.characters).length > 0;
 
   return (
     <div className="form-card mt-4">
@@ -78,7 +78,7 @@ export function TagUsagesPanel({
       <UsageSection label="Factions" items={report.factions} badgeClass="badge-primary" hrefPrefix="factions" />
       <UsageSection label="Characters" items={report.characters} badgeClass="badge-success" hrefPrefix="characters" />
     </div>
-  )
+  );
 }
 
 export function TagUsagesPanelInline({
@@ -89,7 +89,7 @@ export function TagUsagesPanelInline({
   report: TagUsageReport
 }) {
   const hasUsages =
-    safe(report.abilities).length > 0 || safe(report.factions).length > 0 || safe(report.characters).length > 0
+    safe(report.abilities).length > 0 || safe(report.factions).length > 0 || safe(report.characters).length > 0;
 
   return (
     <div className="p-3 bg-surface-muted/50 rounded">
@@ -98,7 +98,7 @@ export function TagUsagesPanelInline({
       <UsageSection label="Factions" items={report.factions} badgeClass="badge-primary" hrefPrefix="factions" />
       <UsageSection label="Characters" items={report.characters} badgeClass="badge-success" hrefPrefix="characters" />
     </div>
-  )
+  );
 }
 
-export { ColorDot }
+export { ColorDot };

@@ -1,5 +1,5 @@
-import type { InputHTMLAttributes } from 'react'
-import { FieldLabel, INPUT_CLASS } from './FieldLabel'
+import type { InputHTMLAttributes } from 'react';
+import { FieldLabel, INPUT_CLASS } from './FieldLabel';
 
 type NumberFieldProps = Readonly<{
   label: string
@@ -14,7 +14,7 @@ type NumberFieldProps = Readonly<{
 }> & Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'className' | 'id' | 'type'>
 
 export function NumberField({ label, id, placeholder, value, onChange, min, max, disabled, tooltip, ...rest }: NumberFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-');
   return (
     <div>
       <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
@@ -24,10 +24,10 @@ export function NumberField({ label, id, placeholder, value, onChange, min, max,
         inputMode="numeric"
         value={Number.isFinite(value) ? String(value) : ''}
         onChange={(e) => {
-          const raw = e.target.value
-          if (raw === '' || raw === '-') { onChange(0); return }
-          const parsed = parseInt(raw, 10)
-          if (!isNaN(parsed)) onChange(parsed)
+          const raw = e.target.value;
+          if (raw === '' || raw === '-') { onChange(0); return; }
+          const parsed = parseInt(raw, 10);
+          if (!isNaN(parsed)) onChange(parsed);
         }}
         placeholder={placeholder}
         min={min}
@@ -37,5 +37,5 @@ export function NumberField({ label, id, placeholder, value, onChange, min, max,
         {...rest}
       />
     </div>
-  )
+  );
 }

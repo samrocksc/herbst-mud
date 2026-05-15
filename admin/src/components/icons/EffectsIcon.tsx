@@ -5,5 +5,5 @@ export function EffectsIcon({ className = '' }: Readonly<{ className?: string }>
       <path d="M2 17l10 5 10-5" />
       <path d="M2 12l10 5 10-5" />
     </svg>
-  )
+  );
 }

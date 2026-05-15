@@ -1,8 +1,0 @@
-id: invent
-name: "Invent"
-description: "Create mechanical devices"
-type: utility
-tags: [steampunk, craft]
-cooldown: 1
-mana_cost: 0
-stamina_cost: 5

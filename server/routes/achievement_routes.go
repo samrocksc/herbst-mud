@@ -43,7 +43,7 @@ func achievementToView(a *db.Achievement) achievementView {
 // RegisterAchievementRoutes registers REST endpoints for achievements.
 func RegisterAchievementRoutes(r *gin.Engine, repos *repository.Container) {
 	achievements := r.Group("/api")
-	achievements.Use(middleware.AuthMiddleware())
+	achievements.Use(middleware.AuthMiddleware(nil))
 	achievements.Use(middleware.AdminMiddleware())
 	{
 		achievements.GET("/achievements", listAchievements(repos))

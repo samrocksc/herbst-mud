@@ -1,5 +1,5 @@
-import type { InputHTMLAttributes } from 'react'
-import { FieldLabel, INPUT_CLASS } from './FieldLabel'
+import type { InputHTMLAttributes } from 'react';
+import { FieldLabel, INPUT_CLASS } from './FieldLabel';
 
 type FormFieldProps = Readonly<{
   label: string
@@ -12,7 +12,7 @@ type FormFieldProps = Readonly<{
 }> & Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'className' | 'id'>
 
 export function FormField({ label, id, placeholder, value, onChange, disabled, tooltip, ...rest }: FormFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-')
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-');
   return (
     <div>
       <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
@@ -27,5 +27,5 @@ export function FormField({ label, id, placeholder, value, onChange, disabled, t
         {...rest}
       />
     </div>
-  )
+  );
 }

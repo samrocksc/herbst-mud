@@ -1,16 +1,16 @@
-import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useTellQueue, useDeleteTell } from '../../hooks/useTellQueue'
-import { PageHeader } from '../../components/PageHeader'
-import { DataTable, type Column } from '../../components/DataTable'
-import { Button } from '../../components/Button'
-import { DeleteConfirmation } from '../../components/DeleteConfirmation'
-import { showToast } from '../../components/Toast'
-import type { TellQueueEntry } from '../../hooks/useTellQueue'
+import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useTellQueue, useDeleteTell } from '../../hooks/useTellQueue';
+import { PageHeader } from '../../components/PageHeader';
+import { DataTable, type Column } from '../../components/DataTable';
+import { Button } from '../../components/Button';
+import { DeleteConfirmation } from '../../components/DeleteConfirmation';
+import { showToast } from '../../components/Toast';
+import type { TellQueueEntry } from '../../hooks/useTellQueue';
 
 export const Route = createFileRoute('/_auth/tell-queue')({
   component: TellQueuePage,
-})
+});
 
 const COLUMNS: Column<TellQueueEntry>[] = [
   { header: 'ID', accessor: 'id', align: 'center' },
@@ -26,41 +26,41 @@ const COLUMNS: Column<TellQueueEntry>[] = [
       ? <span className="badge badge-success">Delivered</span>
       : <span className="badge badge-warning">Pending</span>,
   },
-]
+];
 
 function formatDate(t: string): string {
-  if (!t) return '—'
+  if (!t) return '—';
   try {
-    const d = new Date(t)
-    return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    const d = new Date(t);
+    return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   } catch {
-    return t
+    return t;
   }
 }
 
 function TellQueuePage() {
-  const [showUndelivered, setShowUndelivered] = useState(false)
-  const [deleteId, setDeleteId] = useState<number | null>(null)
-  const location = useLocation()
+  const [showUndelivered, setShowUndelivered] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const location = useLocation();
   const { data: entries, isLoading, error } = useTellQueue({
     undelivered: showUndelivered || undefined,
     limit: 200,
-  })
-  const deleteMutation = useDeleteTell()
+  });
+  const deleteMutation = useDeleteTell();
 
-  const filtered = (entries ?? []).filter((e) => showUndelivered ? !e.delivered_at : true)
+  const filtered = (entries ?? []).filter((e) => showUndelivered ? !e.delivered_at : true);
 
   const handleDelete = () => {
-    if (deleteId == null) return
+    if (deleteId == null) return;
     deleteMutation.mutate(deleteId, {
-      onSuccess: () => { setDeleteId(null); showToast('Tell deleted', 'success') },
-    })
-  }
+      onSuccess: () => { setDeleteId(null); showToast('Tell deleted', 'success'); },
+    });
+  };
 
-  if (location.pathname !== '/tell-queue') return <Outlet />
+  if (location.pathname !== '/tell-queue') return <Outlet />;
 
-  if (isLoading) return <div className="loading">Loading tell queue...</div>
-  if (error) return <div className="error">Failed to load tell queue: {error.message}</div>
+  if (isLoading) return <div className="loading">Loading tell queue...</div>;
+  if (error) return <div className="error">Failed to load tell queue: {error.message}</div>;
 
   return (
     <div className="management-page">
@@ -90,7 +90,7 @@ function TellQueuePage() {
             render: (_, row) => (
               <div className="flex gap-2 justify-end">
                 {!row.delivered_at && (
-                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(row.id) }}>
+                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(row.id); }}>
                     Delete
                   </Button>
                 )}
@@ -112,5 +112,5 @@ function TellQueuePage() {
         isLoading={deleteMutation.isPending}
       />
     </div>
-  )
+  );
 }

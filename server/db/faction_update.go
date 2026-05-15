@@ -46,6 +46,20 @@ func (_u *FactionUpdate) SetNillableName(v *string) *FactionUpdate {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *FactionUpdate) SetWorldID(v string) *FactionUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *FactionUpdate) SetNillableWorldID(v *string) *FactionUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetDisplayName sets the "display_name" field.
 func (_u *FactionUpdate) SetDisplayName(v string) *FactionUpdate {
 	_u.mutation.SetDisplayName(v)
@@ -275,6 +289,9 @@ func (_u *FactionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(faction.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(faction.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.DisplayName(); ok {
 		_spec.SetField(faction.FieldDisplayName, field.TypeString, value)
 	}
@@ -489,6 +506,20 @@ func (_u *FactionUpdateOne) SetName(v string) *FactionUpdateOne {
 func (_u *FactionUpdateOne) SetNillableName(v *string) *FactionUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *FactionUpdateOne) SetWorldID(v string) *FactionUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *FactionUpdateOne) SetNillableWorldID(v *string) *FactionUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
 	}
 	return _u
 }
@@ -751,6 +782,9 @@ func (_u *FactionUpdateOne) sqlSave(ctx context.Context) (_node *Faction, err er
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(faction.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(faction.FieldWorldID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.DisplayName(); ok {
 		_spec.SetField(faction.FieldDisplayName, field.TypeString, value)

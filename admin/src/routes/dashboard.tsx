@@ -1,82 +1,86 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
-import { StatCard } from '../components/StatCard'
-import { StatGrid } from '../components/StatGrid'
-import { PageHeader } from '../components/PageHeader'
-import { Button } from '../components/Button'
-import { showToast } from '../components/Toast'
-import { apiGet } from '../utils/apiFetch'
-import { ToolGrid } from './ToolGrid'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { StatCard } from '../components/StatCard';
+import { StatGrid } from '../components/StatGrid';
+import { PageHeader } from '../components/PageHeader';
+import { Button } from '../components/Button';
+import { useWorlds } from '../hooks/useWorlds';
+import { useNPCs } from '../hooks/useNPCs';
+import { useRooms } from '../hooks/useRooms';
+import { ToolGrid } from './ToolGrid';
+import { useWorldStore } from '../hooks/useWorldStore';
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
-})
-
-type Stats = { rooms: number; npcs: number; items: number; instances: number; players: number; skills: number }
+});
 
 function Dashboard() {
-  const navigate = useNavigate()
-  const [stats, setStats] = useState<Stats>({ rooms: 0, npcs: 0, items: 0, instances: 0, players: 0, skills: 0 })
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate();
+  const { currentWorld, setWorld } = useWorldStore();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) { navigate({ to: '/login' }); return }
+  // Get all worlds to populate the dropdown
+  const { data: worlds } = useWorlds();
 
-    const fetchStats = async () => {
-      try {
-        const [rooms, npcs, abilities, templates, instances, characters] = await Promise.all([
-          apiGet<unknown[]>(`${window.location.origin}/rooms`),
-          apiGet<unknown[]>(`${window.location.origin}/npcs`),
-          apiGet<unknown[]>(`${window.location.origin}/api/abilities`),
-          apiGet<unknown[]>(`${window.location.origin}/api/equipment-templates`),
-          apiGet<unknown[]>(`${window.location.origin}/api/item-instances`),
-          apiGet<unknown[]>(`${window.location.origin}/characters`),
-        ])
-        setStats({
-          rooms: Array.isArray(rooms) ? rooms.length : 0,
-          npcs: Array.isArray(npcs) ? npcs.length : 0,
-          items: Array.isArray(templates) ? templates.length : 0,
-          instances: Array.isArray(instances) ? instances.length : 0,
-          players: Array.isArray(characters) ? characters.length : 0,
-          skills: Array.isArray(abilities) ? abilities.length : 0,
-        })
-      } catch (err) {
-        showToast(err instanceof Error ? err.message : 'Failed to load stats', 'error')
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchStats()
-  }, [navigate])
+  // Use world-scoped hooks for counts
+  const { rooms } = useRooms();
+  const { data: npcsData } = useNPCs();
+
+  // Derived counts
+  const roomCount = rooms.length;
+  const npcCount = npcsData ? npcsData.length : 0;
+
+  // Handle world switching
+  const handleWorldChange = (worldId: string) => {
+    setWorld(worldId);
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userId')
-    localStorage.removeItem('email')
-    localStorage.removeItem('isAdmin')
-    navigate({ to: '/login' })
-  }
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('email');
+    localStorage.removeItem('isAdmin');
+    navigate({ to: '/login' });
+  };
+
+  // Get world name for display
+  const currentWorldName = worlds?.find(w => String(w.id) === currentWorld)?.name || currentWorld;
 
   return (
     <div className="min-h-screen bg-surface text-text p-8">
       <div className="max-w-[1200px] mx-auto">
-        <PageHeader title="Herbst MUD Admin" actions={<Button onClick={handleLogout} variant="danger">Logout</Button>} />
+        <PageHeader
+          title="Herbst MUD Admin"
+          actions={
+            <div className="flex items-center gap-3">
+              <select
+                value={currentWorld}
+                onChange={(e) => handleWorldChange(e.target.value)}
+                className="px-3 py-2 bg-surface-muted border border-border rounded text-sm focus:outline-none focus:border-primary"
+              >
+                {worlds?.map(world => (
+                  <option key={world.id} value={world.id}>
+                    {world.name}
+                  </option>
+                ))}
+              </select>
+              <Button onClick={handleLogout} variant="danger">Logout</Button>
+            </div>
+          }
+        />
         <div className="bg-surface-muted rounded-lg p-6 mb-8">
-          <h2 className="m-0 mb-2 text-text">Welcome back!</h2>
-          <p className="m-0 text-text-muted">Manage your MUD world from this admin panel.</p>
+          <h2 className="m-0 mb-2 text-text">Managing: {currentWorldName}</h2>
+          <p className="m-0 text-text-muted">Welcome back! Select a world above to switch contexts.</p>
         </div>
         <StatGrid>
-          <StatCard label="Total Rooms" value={stats.rooms} accent="primary" loading={loading} />
-          <StatCard label="Active NPCs" value={stats.npcs} accent="warning" loading={loading} />
-          <StatCard label="Items" value={stats.items} accent="accent" loading={loading} />
-          <StatCard label="Instances" value={stats.instances} accent="primary" loading={loading} />
-          <StatCard label="Players" value={stats.players} accent="secondary" loading={loading} />
-          <StatCard label="Skills" value={stats.skills} accent="success" loading={loading} />
+          <StatCard label="Total Rooms" value={roomCount} accent="primary" loading={false} />
+          <StatCard label="Active NPCs" value={npcCount} accent="warning" loading={false} />
+          <StatCard label="Items" value={0} accent="accent" loading={false} />
+          <StatCard label="Instances" value={0} accent="primary" loading={false} />
+          <StatCard label="Players" value={0} accent="secondary" loading={false} />
+          <StatCard label="Skills" value={0} accent="success" loading={false} />
         </StatGrid>
         <h3 className="mb-4 text-text">Admin Tools</h3>
         <ToolGrid />
       </div>
     </div>
-  )
+  );
 }

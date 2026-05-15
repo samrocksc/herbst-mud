@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   useDialogNodes,
   useCreateDialogNode,
@@ -6,35 +6,35 @@ import {
   useDeleteDialogNode,
   type DialogNode,
   type DialogResponse,
-} from '../hooks/useDialogNodes'
-import { Button } from './Button'
-import { FormField, TextareaField } from './FormFields'
-import { DeleteConfirmation } from './DeleteConfirmation'
+} from '../hooks/useDialogNodes';
+import { Button } from './Button';
+import { FormField, TextareaField } from './FormFields';
+import { DeleteConfirmation } from './DeleteConfirmation';
 
 type Props = { npcTemplateId: string }
 
 const EMPTY_RESPONSE: DialogResponse = {
   label: '', next_node_id: '', condition: '', quest_offer_id: '', decline_node_id: '', effects: [],
-}
+};
 
 export function DialogNodesPanel({ npcTemplateId }: Props) {
-  const { data: nodes, isLoading } = useDialogNodes(npcTemplateId)
-  const createNode = useCreateDialogNode()
-  const updateNode = useUpdateDialogNode()
-  const deleteNode = useDeleteDialogNode()
-  const [editing, setEditing] = useState<string | null>(null)
-  const [adding, setAdding] = useState(false)
-  const [deleting, setDeleting] = useState<string | null>(null)
+  const { data: nodes, isLoading } = useDialogNodes(npcTemplateId);
+  const createNode = useCreateDialogNode();
+  const updateNode = useUpdateDialogNode();
+  const deleteNode = useDeleteDialogNode();
+  const [editing, setEditing] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
-  const [newText, setNewText] = useState('')
-  const [newId, setNewId] = useState('')
-  const [newEntry, setNewEntry] = useState(false)
-  const [editForm, setEditForm] = useState<Partial<DialogNode> | null>(null)
+  const [newText, setNewText] = useState('');
+  const [newId, setNewId] = useState('');
+  const [newEntry, setNewEntry] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<DialogNode> | null>(null);
 
-  const entryNode = (nodes ?? []).find((n) => n.is_entry)
+  const entryNode = (nodes ?? []).find((n) => n.is_entry);
 
   const handleAdd = async () => {
-    const id = newId || `node_${Date.now()}`
+    const id = newId || `node_${Date.now()}`;
     await createNode.mutateAsync({
       id,
       npc_text: newText || '...',
@@ -42,38 +42,38 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
       is_entry: newEntry && !entryNode,
       responses: [],
       on_enter_effects: [],
-    })
-    setAdding(false)
-    setNewText('')
-    setNewId('')
-    setNewEntry(false)
-  }
+    });
+    setAdding(false);
+    setNewText('');
+    setNewId('');
+    setNewEntry(false);
+  };
 
   const startEdit = (node: DialogNode) => {
-    setEditing(node.id)
-    setEditForm({ ...node })
-  }
+    setEditing(node.id);
+    setEditForm({ ...node });
+  };
 
   const handleSave = async () => {
-    if (!editing || !editForm) return
-    await updateNode.mutateAsync({ id: editing, input: editForm })
-    setEditing(null)
-    setEditForm(null)
-  }
+    if (!editing || !editForm) return;
+    await updateNode.mutateAsync({ id: editing, input: editForm });
+    setEditing(null);
+    setEditForm(null);
+  };
 
   const handleDelete = async () => {
-    if (!deleting) return
-    await deleteNode.mutateAsync(deleting)
-    setDeleting(null)
-  }
+    if (!deleting) return;
+    await deleteNode.mutateAsync(deleting);
+    setDeleting(null);
+  };
 
-  if (isLoading) return <div className="text-text-muted text-sm">Loading dialog nodes...</div>
+  if (isLoading) return <div className="text-text-muted text-sm">Loading dialog nodes...</div>;
 
   const sorted = [...(nodes ?? [])].sort((a, b) => {
-    if (a.is_entry) return -1
-    if (b.is_entry) return 1
-    return a.id.localeCompare(b.id)
-  })
+    if (a.is_entry) return -1;
+    if (b.is_entry) return 1;
+    return a.id.localeCompare(b.id);
+  });
 
   return (
     <div className="mt-6">
@@ -124,7 +124,7 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
                 <Button variant="primary" size="sm" onClick={handleSave} disabled={updateNode.isPending}>
                   {updateNode.isPending ? 'Saving...' : 'Save'}
                 </Button>
-                <Button variant="secondary" size="sm" onClick={() => { setEditing(null); setEditForm(null) }}>Cancel</Button>
+                <Button variant="secondary" size="sm" onClick={() => { setEditing(null); setEditForm(null); }}>Cancel</Button>
               </div>
             </div>
           ) : (
@@ -171,13 +171,13 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
         isLoading={deleteNode.isPending}
       />
     </div>
-  )
+  );
 }
 
 function ResponsesEditor({ responses, onChange }: { responses: DialogResponse[]; onChange: (r: DialogResponse[]) => void }) {
-  const add = () => onChange([...responses, { ...EMPTY_RESPONSE }])
-  const remove = (i: number) => onChange(responses.filter((_, idx) => idx !== i))
-  const update = (i: number, patch: Partial<DialogResponse>) => onChange(responses.map((r, idx) => idx === i ? { ...r, ...patch } : r))
+  const add = () => onChange([...responses, { ...EMPTY_RESPONSE }]);
+  const remove = (i: number) => onChange(responses.filter((_, idx) => idx !== i));
+  const update = (i: number, patch: Partial<DialogResponse>) => onChange(responses.map((r, idx) => idx === i ? { ...r, ...patch } : r));
 
   return (
     <div>
@@ -195,5 +195,5 @@ function ResponsesEditor({ responses, onChange }: { responses: DialogResponse[];
       ))}
       {responses.length === 0 && <div className="text-text-muted text-xs">No responses. Player will see [Leave] only.</div>}
     </div>
-  )
+  );
 }

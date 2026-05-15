@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
-import { ExitLines } from './ExitLines'
-import { RoomNode } from './RoomNode'
-import { CANVAS_W, CANVAS_H } from './constants'
-import type { Room, NPC, Equipment } from './types'
+import { useEffect } from 'react';
+import { ExitLines } from './ExitLines';
+import { RoomNode } from './RoomNode';
+import { CANVAS_W, CANVAS_H } from './constants';
+import type { Room, NPC, Equipment } from './types';
 
 type MapCanvasProps = {
   rooms: Room[]
@@ -26,11 +26,11 @@ export function MapCanvas({
   getNPCsInRoom, getEquipmentInRoom, viewportRef,
 }: MapCanvasProps) {
   useEffect(() => {
-    const el = viewportRef.current
-    if (!el) return
-    el.addEventListener('wheel', onWheel, { passive: false })
-    return () => el.removeEventListener('wheel', onWheel)
-  }, [onWheel, viewportRef])
+    const el = viewportRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [onWheel, viewportRef]);
 
   return (
     <div ref={viewportRef} className="mt-[50px] h-[calc(100%-50px)] overflow-hidden p-6">
@@ -44,8 +44,8 @@ export function MapCanvas({
       >
         <ExitLines rooms={rooms} nodePositions={nodePositions} />
         {rooms.map(room => {
-          const pos = nodePositions.get(room.id)
-          if (!pos) return null
+          const pos = nodePositions.get(room.id);
+          if (!pos) return null;
           return (
             <RoomNode
               key={room.id}
@@ -61,9 +61,9 @@ export function MapCanvas({
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
             />
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

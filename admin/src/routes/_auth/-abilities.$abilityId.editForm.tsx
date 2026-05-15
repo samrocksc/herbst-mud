@@ -1,23 +1,23 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   useUpdateAbility,
   useDeleteAbility,
   type Ability,
   type AbilityInput,
-} from '../../hooks/useAbilities'
-import { useTags } from '../../hooks/useTags'
-import { useNavigate } from '@tanstack/react-router'
-import { Button } from '../../components/Button'
-import { TagInput } from '../../components/TagInput'
-import { EffectsSubForm } from '../../components/EffectsSubForm'
-import { DeleteConfirmation } from '../../components/DeleteConfirmation'
+} from '../../hooks/useAbilities';
+import { useTags } from '../../hooks/useTags';
+import { useNavigate } from '@tanstack/react-router';
+import { Button } from '../../components/Button';
+import { TagInput } from '../../components/TagInput';
+import { EffectsSubForm } from '../../components/EffectsSubForm';
+import { DeleteConfirmation } from '../../components/DeleteConfirmation';
 import {
   FormField,
   NumberField,
   TextareaField,
   SelectField,
-} from '../../components/FormFields'
-import { showToast } from '../../components/Toast'
+} from '../../components/FormFields';
+import { showToast } from '../../components/Toast';
 
 const ABILITY_TYPE_OPTS = [
   { value: 'combat', label: 'Combat' },
@@ -26,13 +26,13 @@ const ABILITY_TYPE_OPTS = [
   { value: 'healing', label: 'Healing' },
   { value: 'support', label: 'Support' },
   { value: 'defensive', label: 'Defensive' },
-]
+];
 
 const ABILITY_CLASS_OPTS = [
   { value: 'active', label: 'Active' },
   { value: 'passive', label: 'Passive' },
   { value: 'toggle', label: 'Toggle' },
-]
+];
 
 export function AbilityEditForm({
   ability,
@@ -43,11 +43,11 @@ export function AbilityEditForm({
   abilityId: number
   onDone: () => void
 }>) {
-  const navigate = useNavigate()
-  const updateAbility = useUpdateAbility()
-  const deleteAbility = useDeleteAbility()
-  const { data: availableTags } = useTags()
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const navigate = useNavigate();
+  const updateAbility = useUpdateAbility();
+  const deleteAbility = useDeleteAbility();
+  const { data: availableTags } = useTags();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [formData, setFormData] = useState<AbilityInput>({
     name: ability.name,
@@ -64,34 +64,34 @@ export function AbilityEditForm({
     proc_event: ability.proc_event ?? '',
     ability_class: ability.ability_class,
     required_tag: ability.required_tag ?? '',
-  })
+  });
 
   const selectedTags = formData.required_tag
     ? formData.required_tag.split(',').map((t) => t.trim()).filter(Boolean)
-    : []
+    : [];
 
-  const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }))
+  const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }));
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await updateAbility.mutateAsync({ id: abilityId, input: formData })
-      showToast('Ability updated', 'success')
-      onDone()
+      await updateAbility.mutateAsync({ id: abilityId, input: formData });
+      showToast('Ability updated', 'success');
+      onDone();
     } catch {
       // Error is toasted by global onError handler
     }
-  }
+  };
 
   const handleDelete = async () => {
     try {
-      await deleteAbility.mutateAsync(abilityId)
-      showToast('Ability deleted', 'success')
-      navigate({ to: '/abilities' })
+      await deleteAbility.mutateAsync(abilityId);
+      showToast('Ability deleted', 'success');
+      navigate({ to: '/abilities' });
     } catch {
       // Error is toasted by global onError handler
     }
-  }
+  };
 
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border mb-6">
@@ -146,5 +146,5 @@ export function AbilityEditForm({
         isLoading={deleteAbility.isPending}
       />
     </div>
-  )
+  );
 }

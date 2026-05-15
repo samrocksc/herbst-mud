@@ -9,7 +9,7 @@ export const OPPOSITE_DIR: Record<string, string> = {
   southeast: 'northwest',
   up: 'down',
   down: 'up',
-}
+};
 
 export const DIRECTION_OFFSETS: Record<string, { dx: number; dy: number }> = {
   north: { dx: 0, dy: -120 },
@@ -20,7 +20,7 @@ export const DIRECTION_OFFSETS: Record<string, { dx: number; dy: number }> = {
   northwest: { dx: -106, dy: -106 },
   southeast: { dx: 106, dy: 106 },
   southwest: { dx: -106, dy: 106 },
-}
+};
 
 export const DirectionShortLabels: Record<string, string> = {
   north: 'N',
@@ -33,7 +33,7 @@ export const DirectionShortLabels: Record<string, string> = {
   northwest: 'NW',
   up: '▲',
   down: '▼',
-}
+};
 
 export const ALL_DIRECTIONS = [
   'north',
@@ -46,4 +46,4 @@ export const ALL_DIRECTIONS = [
   'northwest',
   'up',
   'down',
-]
+];

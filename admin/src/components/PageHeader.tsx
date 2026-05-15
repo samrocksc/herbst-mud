@@ -1,5 +1,5 @@
-import { Link } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router';
+import type { ReactNode } from 'react';
 
 type PageHeaderProps = Readonly<{
   title: string
@@ -25,5 +25,5 @@ export function PageHeader({ title, showBack, backTo, backLabel = '← Dashboard
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
-  )
+  );
 }

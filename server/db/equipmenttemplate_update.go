@@ -29,6 +29,20 @@ func (_u *EquipmentTemplateUpdate) Where(ps ...predicate.EquipmentTemplate) *Equ
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *EquipmentTemplateUpdate) SetWorldID(v string) *EquipmentTemplateUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableWorldID(v *string) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *EquipmentTemplateUpdate) SetName(v string) *EquipmentTemplateUpdate {
 	_u.mutation.SetName(v)
@@ -606,6 +620,9 @@ func (_u *EquipmentTemplateUpdate) sqlSave(ctx context.Context) (_node int, err 
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(equipmenttemplate.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(equipmenttemplate.FieldName, field.TypeString, value)
 	}
@@ -798,6 +815,20 @@ type EquipmentTemplateUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *EquipmentTemplateMutation
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *EquipmentTemplateUpdateOne) SetWorldID(v string) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableWorldID(v *string) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
 }
 
 // SetName sets the "name" field.
@@ -1406,6 +1437,9 @@ func (_u *EquipmentTemplateUpdateOne) sqlSave(ctx context.Context) (_node *Equip
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(equipmenttemplate.FieldWorldID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(equipmenttemplate.FieldName, field.TypeString, value)

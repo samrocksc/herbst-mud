@@ -20,6 +20,8 @@ const (
 	FieldIsAdmin = "is_admin"
 	// FieldGodMode holds the string denoting the god_mode field in the database.
 	FieldGodMode = "god_mode"
+	// FieldAllowedWorlds holds the string denoting the allowed_worlds field in the database.
+	FieldAllowedWorlds = "allowed_worlds"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// Table holds the table name of the user in the database.
@@ -40,6 +42,7 @@ var Columns = []string{
 	FieldPassword,
 	FieldIsAdmin,
 	FieldGodMode,
+	FieldAllowedWorlds,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -85,6 +88,11 @@ func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
 // ByGodMode orders the results by the god_mode field.
 func ByGodMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGodMode, opts...).ToFunc()
+}
+
+// ByAllowedWorlds orders the results by the allowed_worlds field.
+func ByAllowedWorlds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAllowedWorlds, opts...).ToFunc()
 }
 
 // ByCharactersCount orders the results by characters count.

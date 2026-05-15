@@ -19,6 +19,8 @@ type Ability struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// World this ability belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// e.g., combat, magic, utility, defensive
@@ -116,7 +118,7 @@ func (*Ability) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case ability.FieldID, ability.FieldCost, ability.FieldCooldown, ability.FieldManaCost, ability.FieldStaminaCost, ability.FieldHpCost, ability.FieldCooldownSeconds:
 			values[i] = new(sql.NullInt64)
-		case ability.FieldName, ability.FieldDescription, ability.FieldAbilityType, ability.FieldRequirements, ability.FieldSlug, ability.FieldRequiredTag, ability.FieldAbilityClass, ability.FieldProcEvent:
+		case ability.FieldName, ability.FieldWorldID, ability.FieldDescription, ability.FieldAbilityType, ability.FieldRequirements, ability.FieldSlug, ability.FieldRequiredTag, ability.FieldAbilityClass, ability.FieldProcEvent:
 			values[i] = new(sql.NullString)
 		case ability.ForeignKeys[0]: // faction_abilities
 			values[i] = new(sql.NullInt64)
@@ -146,6 +148,12 @@ func (_m *Ability) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
+			}
+		case ability.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
 			}
 		case ability.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -296,6 +304,9 @@ func (_m *Ability) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)

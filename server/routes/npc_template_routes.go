@@ -13,10 +13,11 @@ import (
 
 // RegisterNPCTemplateRoutes registers REST endpoints for NPC templates.
 func RegisterNPCTemplateRoutes(r *gin.Engine, repos *repository.Container) {
-	// Protected /api routes — all require JWT auth + admin check
+	// Protected /api routes — all require JWT auth + admin check + world access
 	templates := r.Group("/api")
-	templates.Use(middleware.AuthMiddleware())
+	templates.Use(middleware.AuthMiddleware(nil))
 	templates.Use(middleware.AdminMiddleware())
+	templates.Use(middleware.WorldAccessMiddleware())
 	{
 		templates.GET("/npc-templates", listNPCTemplates(repos))
 		templates.GET("/npc-templates/:id", getNPCTemplate(repos))
@@ -42,11 +43,14 @@ type npcTemplateView struct {
 	Greeting        string         `json:"greeting"`
 	RespawnRooms    []string       `json:"respawn_rooms"`
 	RespawnCooldown int            `json:"respawn_cooldown"`
+	WorldID         string         `json:"world_id"`
 }
 
 func listNPCTemplates(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		templates, err := repos.NPCTemplate.List(c.Request.Context())
+		// Get world_id from query parameter
+		worldID := c.Query("world_id")
+		templates, err := repos.NPCTemplate.List(c.Request.Context(), worldID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -79,6 +83,7 @@ func listNPCTemplates(repos *repository.Container) gin.HandlerFunc {
 				Greeting:        t.Greeting,
 				RespawnRooms:    t.RespawnRooms,
 				RespawnCooldown: t.RespawnCooldown,
+				WorldID:         t.WorldID,
 			}
 		}
 		c.JSON(http.StatusOK, result)
@@ -112,6 +117,7 @@ func getNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting:        tmpl.Greeting,
 			RespawnRooms:    tmpl.RespawnRooms,
 			RespawnCooldown: tmpl.RespawnCooldown,
+			WorldID:         tmpl.WorldID,
 		})
 	}
 }
@@ -203,6 +209,7 @@ type updateNPCTemplateRequest struct {
 	Greeting        *string         `json:"greeting"`
 	RespawnRooms    *[]string       `json:"respawn_rooms"`
 	RespawnCooldown *int            `json:"respawn_cooldown"`
+	WorldID         *string         `json:"world_id"`
 }
 
 func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {

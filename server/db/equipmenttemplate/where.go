@@ -65,6 +65,11 @@ func IDContainsFold(id string) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldContainsFold(FieldID, id))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldEQ(FieldWorldID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldEQ(FieldName, v))
@@ -208,6 +213,71 @@ func WeaponType(v string) predicate.EquipmentTemplate {
 // IsTwoHanded applies equality check predicate on the "is_two_handed" field. It's identical to IsTwoHandedEQ.
 func IsTwoHanded(v bool) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldEQ(FieldIsTwoHanded, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.

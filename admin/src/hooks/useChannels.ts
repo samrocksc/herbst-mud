@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiGet, apiPut } from '../utils/apiFetch'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPut } from '../utils/apiFetch';
 
-const API = `${window.location.origin}/api`
+const API = `${window.location.origin}/api`;
 
 export type ChannelConfig = Readonly<{
   name: string
@@ -25,14 +25,14 @@ export function useChannelConfigs() {
   return useQuery({
     queryKey: ['channels'],
     queryFn: () => apiGet<ChannelConfig[]>(`${API}/channels`),
-  })
+  });
 }
 
 export function useUpdateChannel() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ name, input }: { name: string; input: ChannelInput }) =>
       apiPut<ChannelConfig>(`${API}/channels/${name}`, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['channels'] }),
-  })
+  });
 }

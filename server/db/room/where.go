@@ -59,6 +59,11 @@ func Name(v string) predicate.Room {
 	return predicate.Room(sql.FieldEQ(FieldName, v))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldWorldID, v))
+}
+
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.Room {
 	return predicate.Room(sql.FieldEQ(FieldDescription, v))
@@ -157,6 +162,71 @@ func NameEqualFold(v string) predicate.Room {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Room {
 	return predicate.Room(sql.FieldContainsFold(FieldName, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.Room {
+	return predicate.Room(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.Room {
+	return predicate.Room(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.Room {
+	return predicate.Room(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.Room {
+	return predicate.Room(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.Room {
+	return predicate.Room(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.Room {
+	return predicate.Room(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.Room {
+	return predicate.Room(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.Room {
+	return predicate.Room(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.Room {
+	return predicate.Room(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.Room {
+	return predicate.Room(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.Room {
+	return predicate.Room(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.Room {
+	return predicate.Room(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.Room {
+	return predicate.Room(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.

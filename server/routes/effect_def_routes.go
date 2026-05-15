@@ -12,7 +12,7 @@ import (
 // separate from AbilityEffect (combat-only effects tied to abilities).
 func RegisterEffectDefRoutes(r *gin.Engine, repos *repository.Container) {
 	effects := r.Group("/api/effects")
-	effects.Use(middleware.AuthMiddleware())
+	effects.Use(middleware.AuthMiddleware(nil))
 	effects.Use(middleware.AdminMiddleware())
 	{
 		effects.GET("", listEffectDefs(repos))

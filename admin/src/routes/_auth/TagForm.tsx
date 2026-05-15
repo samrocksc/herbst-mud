@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import type { Tag, TagInput } from '../../hooks/useTags'
-import { FormField } from '../../components/fields/FormField'
-import { ColorField } from '../../components/fields/ColorField'
-import { FormError } from '../../components/fields/FormError'
-import { Button } from '../../components/Button'
+import { useState } from 'react';
+import type { Tag, TagInput } from '../../hooks/useTags';
+import { FormField } from '../../components/fields/FormField';
+import { ColorField } from '../../components/fields/ColorField';
+import { FormError } from '../../components/fields/FormError';
+import { Button } from '../../components/Button';
 
-const DEFAULT_COLOR = 'var(--color-tag-default)'
+const DEFAULT_COLOR = 'var(--color-tag-default)';
 
 export function TagForm({
   tag,
@@ -23,13 +23,13 @@ export function TagForm({
   const [form, setForm] = useState<TagInput>(() => ({
     name: tag?.name ?? '',
     color: tag?.color ?? DEFAULT_COLOR,
-  }))
+  }));
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.name.trim()) return
-    onSubmit({ name: form.name.trim(), color: form.color })
-  }
+    e.preventDefault();
+    if (!form.name.trim()) return;
+    onSubmit({ name: form.name.trim(), color: form.color });
+  };
 
   return (
     <div className="form-card">
@@ -65,5 +65,5 @@ export function TagForm({
         </div>
       </form>
     </div>
-  )
+  );
 }

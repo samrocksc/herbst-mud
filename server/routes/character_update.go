@@ -68,10 +68,3 @@ func updateCharacter(repos *repository.Container) gin.HandlerFunc {
 		c.JSON(http.StatusOK, char)
 	}
 }
-
-func strPtr(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
-}

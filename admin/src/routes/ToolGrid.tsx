@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router';
 
 const TOOLS = [
   { to: '/map', emoji: '🗺️', title: 'Map Builder', desc: 'View and edit room layout, connections, and z-levels' },
@@ -12,7 +12,7 @@ const TOOLS = [
   { to: '/logs', emoji: '📋', title: 'Log Viewer', desc: 'View and filter application logs with live tail' },
   { to: '/skills', emoji: '🎯', title: 'Skills Manager', desc: 'Manage trainable skill specializations' },
   { to: '/factions', emoji: '⚔️', title: 'Factions Manager', desc: 'Manage factions, categories, and member standing' },
-] as const
+] as const;
 
 export function ToolGrid() {
   return (
@@ -29,5 +29,5 @@ export function ToolGrid() {
         </Link>
       ))}
     </div>
-  )
+  );
 }

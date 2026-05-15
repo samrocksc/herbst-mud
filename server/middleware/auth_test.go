@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
+	"herbst-server/db"
 )
 
 func init() {
@@ -48,7 +49,7 @@ func TestAuthMiddleware_NoHeader(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = httptest.NewRequest("GET", "/", nil)
 
-	AuthMiddleware()(c)
+	AuthMiddleware(nil)(c)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	assert.Contains(t, w.Body.String(), "Authorization header required")
@@ -71,7 +72,7 @@ func TestAuthMiddleware_InvalidFormat(t *testing.T) {
 			c.Request = httptest.NewRequest("GET", "/", nil)
 			c.Request.Header.Set("Authorization", tt.header)
 
-			AuthMiddleware()(c)
+			AuthMiddleware(nil)(c)
 
 			assert.Equal(t, http.StatusUnauthorized, w.Code)
 		})
@@ -84,20 +85,23 @@ func TestAuthMiddleware_ValidToken(t *testing.T) {
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Bearer "+generateTestToken(1, "test@example.com", true))
 
-	AuthMiddleware()(c)
+	// Set up a nil db client in context (simulating routes without database access)
+	c.Set("db_client", (*db.Client)(nil))
+
+	AuthMiddleware(nil)(c)
 
 	// Should pass through (Gin test context returns 200 when no handler writes a response)
 	assert.Equal(t, http.StatusOK, w.Code)
-	
+
 	// Check context values
 	userID, exists := c.Get("user_id")
 	assert.True(t, exists)
 	assert.Equal(t, uint(1), userID)
-	
+
 	email, exists := c.Get("email")
 	assert.True(t, exists)
 	assert.Equal(t, "test@example.com", email)
-	
+
 	isAdmin, exists := c.Get("is_admin")
 	assert.True(t, exists)
 	assert.Equal(t, true, isAdmin)
@@ -109,7 +113,7 @@ func TestAuthMiddleware_ExpiredToken(t *testing.T) {
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Bearer "+generateExpiredToken())
 
-	AuthMiddleware()(c)
+	AuthMiddleware(nil)(c)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
@@ -120,7 +124,7 @@ func TestAuthMiddleware_InvalidToken(t *testing.T) {
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Bearer invalid.token.here")
 
-	AuthMiddleware()(c)
+	AuthMiddleware(nil)(c)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
@@ -163,8 +167,9 @@ func TestOptionalAuthMiddleware_NoHeader(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Set("db_client", (*db.Client)(nil))
 
-	OptionalAuthMiddleware()(c)
+	OptionalAuthMiddleware(nil)(c)
 
 	// Should pass through without setting user info
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -175,8 +180,9 @@ func TestOptionalAuthMiddleware_InvalidToken(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Bearer invalid")
+	c.Set("db_client", (*db.Client)(nil))
 
-	OptionalAuthMiddleware()(c)
+	OptionalAuthMiddleware(nil)(c)
 
 	// Should pass through (optional auth doesn't fail on invalid token)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -187,8 +193,9 @@ func TestOptionalAuthMiddleware_ValidToken(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Bearer "+generateTestToken(1, "test@example.com", true))
+	c.Set("db_client", (*db.Client)(nil))
 
-	OptionalAuthMiddleware()(c)
+	OptionalAuthMiddleware(nil)(c)
 
 	// Should pass through and set user info
 	userID, exists := c.Get("user_id")

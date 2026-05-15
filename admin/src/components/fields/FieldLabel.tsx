@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { TooltipIcon } from '../Tooltip'
+import type { ReactNode } from 'react';
+import { TooltipIcon } from '../Tooltip';
 
 type FieldLabelProps = Readonly<{
   htmlFor?: string
@@ -7,7 +7,7 @@ type FieldLabelProps = Readonly<{
   tooltip?: string
 }>
 
-export const INPUT_CLASS = 'w-full p-2 bg-surface border border-border rounded text-text text-sm'
+export const INPUT_CLASS = 'w-full p-2 bg-surface border border-border rounded text-text text-sm';
 
 export function FieldLabel({ htmlFor, children, tooltip }: FieldLabelProps) {
   return (
@@ -15,5 +15,5 @@ export function FieldLabel({ htmlFor, children, tooltip }: FieldLabelProps) {
       {children}
       {tooltip && <TooltipIcon content={tooltip} />}
     </label>
-  )
+  );
 }

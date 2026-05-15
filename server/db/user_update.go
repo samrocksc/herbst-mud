@@ -84,6 +84,26 @@ func (_u *UserUpdate) SetNillableGodMode(v *bool) *UserUpdate {
 	return _u
 }
 
+// SetAllowedWorlds sets the "allowed_worlds" field.
+func (_u *UserUpdate) SetAllowedWorlds(v string) *UserUpdate {
+	_u.mutation.SetAllowedWorlds(v)
+	return _u
+}
+
+// SetNillableAllowedWorlds sets the "allowed_worlds" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableAllowedWorlds(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetAllowedWorlds(*v)
+	}
+	return _u
+}
+
+// ClearAllowedWorlds clears the value of the "allowed_worlds" field.
+func (_u *UserUpdate) ClearAllowedWorlds() *UserUpdate {
+	_u.mutation.ClearAllowedWorlds()
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *UserUpdate) AddCharacterIDs(ids ...int) *UserUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -172,6 +192,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.GodMode(); ok {
 		_spec.SetField(user.FieldGodMode, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AllowedWorlds(); ok {
+		_spec.SetField(user.FieldAllowedWorlds, field.TypeString, value)
+	}
+	if _u.mutation.AllowedWorldsCleared() {
+		_spec.ClearField(user.FieldAllowedWorlds, field.TypeString)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -294,6 +320,26 @@ func (_u *UserUpdateOne) SetNillableGodMode(v *bool) *UserUpdateOne {
 	return _u
 }
 
+// SetAllowedWorlds sets the "allowed_worlds" field.
+func (_u *UserUpdateOne) SetAllowedWorlds(v string) *UserUpdateOne {
+	_u.mutation.SetAllowedWorlds(v)
+	return _u
+}
+
+// SetNillableAllowedWorlds sets the "allowed_worlds" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableAllowedWorlds(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetAllowedWorlds(*v)
+	}
+	return _u
+}
+
+// ClearAllowedWorlds clears the value of the "allowed_worlds" field.
+func (_u *UserUpdateOne) ClearAllowedWorlds() *UserUpdateOne {
+	_u.mutation.ClearAllowedWorlds()
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *UserUpdateOne) AddCharacterIDs(ids ...int) *UserUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -412,6 +458,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.GodMode(); ok {
 		_spec.SetField(user.FieldGodMode, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AllowedWorlds(); ok {
+		_spec.SetField(user.FieldAllowedWorlds, field.TypeString, value)
+	}
+	if _u.mutation.AllowedWorldsCleared() {
+		_spec.ClearField(user.FieldAllowedWorlds, field.TypeString)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{

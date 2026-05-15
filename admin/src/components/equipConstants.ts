@@ -6,13 +6,13 @@ export const SLOT_CATALOG = [
   'finger_left', 'finger_right',
   'main_hand', 'off_hand',
   'tail', 'horn', 'wings', 'shell',
-] as const
+] as const;
 
 /** Default 11 humanoid slots. */
 export const DEFAULT_HUMANOID_SLOTS: string[] = [
   'head', 'neck', 'chest', 'back', 'hands', 'legs', 'feet',
   'finger_left', 'finger_right', 'main_hand', 'off_hand',
-]
+];
 
 /** Weapon type options. */
 export const WEAPON_TYPES = [
@@ -24,7 +24,7 @@ export const WEAPON_TYPES = [
   { value: 'martial', label: 'Martial' },
   { value: 'staff', label: 'Staff' },
   { value: 'pipe', label: 'Pipe' },
-] as const
+] as const;
 
 /** Damage type options. */
 export const DAMAGE_TYPES = [
@@ -33,7 +33,7 @@ export const DAMAGE_TYPES = [
   { value: 'piercing', label: 'Piercing' },
   { value: 'bludgeoning', label: 'Bludgeoning' },
   { value: 'fire', label: 'Fire' },
-] as const
+] as const;
 
 /** Armor type options. */
 export const ARMOR_TYPES = [
@@ -41,7 +41,7 @@ export const ARMOR_TYPES = [
   { value: 'light', label: 'Light' },
   { value: 'cloth', label: 'Cloth' },
   { value: 'heavy', label: 'Heavy' },
-] as const
+] as const;
 
 /** Rarity options. */
 export const RARITY_OPTIONS = [
@@ -50,18 +50,18 @@ export const RARITY_OPTIONS = [
   { value: 'rare', label: 'Rare' },
   { value: 'epic', label: 'Epic' },
   { value: 'legendary', label: 'Legendary' },
-] as const
+] as const;
 
 /** Slot names that are weapon-related. */
-export const WEAPON_SLOTS = ['main_hand', 'off_hand', 'hands']
+export const WEAPON_SLOTS = ['main_hand', 'off_hand', 'hands'];
 
 /** Slot names that are armor-related. */
-export const ARMOR_SLOTS = ['head', 'neck', 'chest', 'back', 'legs', 'feet']
+export const ARMOR_SLOTS = ['head', 'neck', 'chest', 'back', 'legs', 'feet'];
 
 /** Returns true if the slot is weapon-related. */
 export const isWeaponSlot = (slot: string): boolean =>
-  WEAPON_SLOTS.some((s) => slot.includes(s))
+  WEAPON_SLOTS.some((s) => slot.includes(s));
 
 /** Returns true if the slot is armor-related. */
 export const isArmorSlot = (slot: string): boolean =>
-  ARMOR_SLOTS.some((s) => slot === s)
+  ARMOR_SLOTS.some((s) => slot === s);

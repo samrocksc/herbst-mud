@@ -1,5 +1,5 @@
-import { Button } from '../Button'
-import type { ItemInstanceView } from './types'
+import { Button } from '../Button';
+import type { ItemInstanceView } from './types';
 
 type ItemInstanceRowProps = Readonly<{
   inst: ItemInstanceView
@@ -29,5 +29,5 @@ export function ItemInstanceRow({ inst, confirmDeleteId, onEdit, onDelete }: Ite
         </Button>
       </div>
     </div>
-  )
+  );
 }

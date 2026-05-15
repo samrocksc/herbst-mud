@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react';
 
 // ─── Column definition ──────────────────────────────────────────────────────
 
@@ -41,20 +41,20 @@ type DataTableProps<T> = Readonly<{
 /** Read any leaf value from an object via a dot-notation path. */
 function getValue<T>(row: T, accessor: string): unknown {
   return accessor.split('.').reduce<unknown>((acc, key) => {
-    if (acc == null || typeof acc !== 'object') return undefined
-    return (acc as Record<string, unknown>)[key]
-  }, row)
+    if (acc == null || typeof acc !== 'object') return undefined;
+    return (acc as Record<string, unknown>)[key];
+  }, row);
 }
 
 // Default cell renderer: '-' for nullish, green/red badge for booleans
 function DefaultCell({ value }: { value: unknown }): ReactNode {
-  if (value === null || value === undefined || value === '') return <span className="text-muted">—</span>
+  if (value === null || value === undefined || value === '') return <span className="text-muted">—</span>;
   if (typeof value === 'boolean') {
     return value
       ? <span className="badge badge-success">Yes</span>
-      : <span className="badge badge-neutral">No</span>
+      : <span className="badge badge-neutral">No</span>;
   }
-  return <>{String(value)}</>
+  return <>{String(value)}</>;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -69,10 +69,10 @@ export function DataTable<T>({
   emptyMessage = 'No records found.',
   variant = 'default',
 }: DataTableProps<T>) {
-  const tableClass = variant === 'dark' ? 'table table-dark' : 'table'
+  const tableClass = variant === 'dark' ? 'table table-dark' : 'table';
 
   const alignClass = (align?: 'left' | 'center' | 'right') =>
-    align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'
+    align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
 
   return (
     <div className={`table-container ${className}`}>
@@ -100,14 +100,14 @@ export function DataTable<T>({
             </tr>
           ) : (
             data.map((row: T) => {
-              const key = getKey(row)
-              const expanded = expandedRow?.(row)
+              const key = getKey(row);
+              const expanded = expandedRow?.(row);
               return (
                 <Fragment key={key}>
                   <tr onClick={onRowClick ? () => onRowClick(row) : undefined}
                       className={onRowClick ? 'clickable-row' : undefined}>
                     {columns.map((col: Column<T>) => {
-                      const raw = getValue(row, col.accessor)
+                      const raw = getValue(row, col.accessor);
                       return (
                         <td
                           key={col.accessor}
@@ -115,7 +115,7 @@ export function DataTable<T>({
                         >
                           {col.render ? col.render(raw, row) : <DefaultCell value={raw} />}
                         </td>
-                      )
+                      );
                     })}
                   </tr>
                   {expanded && (
@@ -124,13 +124,13 @@ export function DataTable<T>({
                     </tr>
                   )}
                 </Fragment>
-              )
+              );
             })
           )}
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 
-export type { Column }
+export type { Column };

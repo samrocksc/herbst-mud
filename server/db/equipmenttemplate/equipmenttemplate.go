@@ -12,6 +12,8 @@ const (
 	Label = "equipment_template"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -88,6 +90,7 @@ const (
 // Columns holds all SQL columns for equipmenttemplate fields.
 var Columns = []string{
 	FieldID,
+	FieldWorldID,
 	FieldName,
 	FieldDescription,
 	FieldSlot,
@@ -131,6 +134,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
 	// DefaultLevel holds the default value on creation for the "level" field.
 	DefaultLevel int
 	// DefaultWeight holds the default value on creation for the "weight" field.
@@ -187,6 +192,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
