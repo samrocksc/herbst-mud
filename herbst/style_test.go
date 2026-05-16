@@ -13,10 +13,9 @@ import (
 
 func TestColorPalette(t *testing.T) {
 	// Verify all colors are valid
-	assert.NotEqual(t, lipgloss.Color(""), PrimaryTeal)
-	assert.NotEqual(t, lipgloss.Color(""), PrimaryOrange)
-	assert.NotEqual(t, lipgloss.Color(""), AccentPink)
-	assert.NotEqual(t, lipgloss.Color(""), AccentPurple)
+	assert.NotEqual(t, lipgloss.Color(""), PrimaryPurple)
+	assert.NotEqual(t, lipgloss.Color(""), PrimaryGold)
+	assert.NotEqual(t, lipgloss.Color(""), AccentBlue)
 	assert.NotEqual(t, lipgloss.Color(""), StatusRed)
 	assert.NotEqual(t, lipgloss.Color(""), StatusGreen)
 	assert.NotEqual(t, lipgloss.Color(""), StatusYellow)

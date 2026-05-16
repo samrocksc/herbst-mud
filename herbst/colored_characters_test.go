@@ -9,7 +9,7 @@ func TestColorCodedCharacters(t *testing.T) {
 	// Test the color coding logic
 	tests := []struct {
 		name     string
-		char     roomCharacter
+		char     RoomCharacter
 		isNPC    bool   // expected isNPC
 		expected string // substring expected in output
 	}{

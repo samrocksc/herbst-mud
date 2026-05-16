@@ -1,28 +1,26 @@
 package main
 
 // ============================================================
-// COMPREHENSIVE STYLING SYSTEM - Post-Apocalyptic MUD Theme
+// COMPREHENSIVE STYLING SYSTEM - Fantasy MUD Theme
 // ============================================================
-// Following the style guide from charm-ui-tickets.md:
-// - Dark theme with neon accents
-// - Color scheme: teal (#00AAAA), orange (#FF6600), white text
+// - Dark theme with fantasy colors
+// - Color scheme: purple (#AF00FF), gold (#FFD700), blue (#5F87FF)
 // - Use borders to separate panels
 // - Progress bars for HP/Stamina/Mana
 
 import "github.com/charmbracelet/lipgloss"
 
 // ============================================================
-// COLOR PALETTE - Post-apocalyptic neon theme
+// COLOR PALETTE - Fantasy theme
 // ============================================================
 
 var (
-	// Primary colors (neon accents for dark background)
-	PrimaryTeal    = lipgloss.Color("51")   // #00CCCC - Teal/Cyan
-	PrimaryOrange  = lipgloss.Color("202")  // #FF6600 - Orange
-	AccentPink     = lipgloss.Color("219")  // #FF99CC - Neon pink
-	AccentPurple   = lipgloss.Color("141")  // #CC99FF - Purple
+	// Fantasy primary colors
+	PrimaryPurple = lipgloss.Color("129") // #AF00FF - Deep purple
+	PrimaryGold   = lipgloss.Color("220") // #FFD700 - Rich gold
+	AccentBlue    = lipgloss.Color("75")  // #5F87FF - Bright blue
 
-	// Status colors
+	// Status colors (keep same semantics, adjust shades)
 	StatusRed     = lipgloss.Color("196") // Red - danger/low HP
 	StatusGreen   = lipgloss.Color("46")  // Green - healthy/good
 	StatusYellow  = lipgloss.Color("226") // Yellow - warning
@@ -31,13 +29,20 @@ var (
 	// Neutral colors
 	TextWhite    = lipgloss.Color("15")  // Primary text
 	TextGray     = lipgloss.Color("8")   // Secondary text
-	TextDarkGray = lipgloss.Color("236") // Backgrounds
+	TextDarkGray = lipgloss.Color("236") // Dark backgrounds
 	BorderColor  = lipgloss.Color("240") // Borders
 
 	// Exit colors (for navigation)
-	ExitVisited = lipgloss.Color("46") // Green - visited
-	ExitKnown   = lipgloss.Color("226") // Yellow - known
-	ExitNew     = lipgloss.Color("15") // White - new
+	ExitVisited = lipgloss.Color("46")  // Green - visited
+	ExitKnown   = lipgloss.Color("220") // Gold - known
+	ExitNew     = lipgloss.Color("15")  // White - new
+)
+
+// Header bar colors
+var (
+	HeaderBg    = lipgloss.Color("54")  // Dark purple background
+	HeaderFg    = lipgloss.Color("220") // Gold text
+	StatusBarBg = lipgloss.Color("236") // Dark bg for status
 )
 
 // ============================================================
@@ -45,25 +50,23 @@ var (
 // ============================================================
 
 var (
-	// Title style - bold, teal on dark
+	// Title style - bold, gold on dark
 	TitleStyle = lipgloss.NewStyle().
-			Foreground(PrimaryTeal).
+			Foreground(PrimaryGold).
 			Background(TextDarkGray).
 			Bold(true).
 			Padding(0, 1).
-			Width(60).
 			Align(lipgloss.Center)
 
-	// Subtitle style - orange
+	// Subtitle style - purple
 	SubtitleStyle = lipgloss.NewStyle().
-			Foreground(PrimaryOrange).
+			Foreground(PrimaryPurple).
 			Padding(0, 1).
-			Width(60).
 			Align(lipgloss.Center)
 
 	// Header style - bold blue
 	HeaderStyle = lipgloss.NewStyle().
-			Foreground(StatusBlue).
+			Foreground(AccentBlue).
 			Bold(true).
 			Padding(0, 1)
 
@@ -89,6 +92,26 @@ var (
 )
 
 // ============================================================
+// HEADER BAR STYLES
+// ============================================================
+
+var (
+	HeaderBarStyle = lipgloss.NewStyle().
+			Background(HeaderBg).
+			Foreground(HeaderFg).
+			Bold(true).
+			Padding(0, 1).
+			Align(lipgloss.Center)
+
+	HeaderBarRoomStyle = lipgloss.NewStyle().
+			Foreground(HeaderFg).
+			Bold(true)
+
+	HeaderBarInfoStyle = lipgloss.NewStyle().
+			Foreground(AccentBlue)
+)
+
+// ============================================================
 // BORDER STYLES
 // ============================================================
 
@@ -96,29 +119,26 @@ var (
 	// Rounded border box - for main panels
 	BoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(BorderColor).
+			BorderForeground(PrimaryPurple).
 			Padding(1, 2).
-			Width(58).
 			Align(lipgloss.Left)
 
 	// Double border - for important sections
 	DoubleBoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.DoubleBorder()).
-			BorderForeground(PrimaryTeal).
-			Padding(1, 2).
-			Width(58)
+			BorderForeground(PrimaryGold).
+			Padding(1, 2)
 
 	// Thick border - for headers
 	ThickBoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.ThickBorder()).
-			BorderForeground(PrimaryOrange).
-			Padding(1, 2).
-			Width(58)
+			BorderForeground(PrimaryGold).
+			Padding(1, 2)
 
 	// Left border highlight - for highlighted items
 	HighlightBoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(PrimaryTeal).
+			BorderForeground(PrimaryPurple).
 			Padding(0, 0, 0, 1)
 
 	// Error/warning box
@@ -178,9 +198,9 @@ var (
 // ============================================================
 
 var (
-	// Selected menu item - teal background
+	// Selected menu item - purple
 	MenuSelectedStyle = lipgloss.NewStyle().
-				Foreground(PrimaryTeal).
+				Foreground(PrimaryPurple).
 				Bold(true).
 				Padding(0, 0, 0, 2)
 
@@ -217,7 +237,7 @@ var (
 
 	// Experience bar - purple filled
 	XPBarStyle = lipgloss.NewStyle().
-			Foreground(AccentPurple).
+			Foreground(PrimaryPurple).
 			Background(lipgloss.Color("56"))
 )
 
@@ -226,9 +246,9 @@ var (
 // ============================================================
 
 var (
-	// Prompt style - teal
+	// Prompt style - gold
 	PromptStyle = lipgloss.NewStyle().
-			Foreground(PrimaryTeal).
+			Foreground(PrimaryGold).
 			Bold(true)
 
 	// Input field
@@ -241,15 +261,15 @@ var (
 
 	// Input field focused
 	InputFocusedStyle = lipgloss.NewStyle().
-				Foreground(PrimaryTeal).
+				Foreground(PrimaryPurple).
 				Background(TextDarkGray).
 				Border(lipgloss.NormalBorder()).
-				BorderForeground(PrimaryTeal).
+				BorderForeground(PrimaryPurple).
 				Padding(0, 1)
 
 	// Password input (masked)
 	PasswordStyle = lipgloss.NewStyle().
-			Foreground(PrimaryOrange).
+			Foreground(PrimaryGold).
 			Background(TextDarkGray).
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(BorderColor).
@@ -263,7 +283,7 @@ var (
 // StyleRoomName applies the appropriate style to a room name
 func StyleRoomName(name string, visited bool) string {
 	if visited {
-		return lipgloss.NewStyle().Foreground(PrimaryTeal).Bold(true).Render(name)
+		return lipgloss.NewStyle().Foreground(PrimaryPurple).Bold(true).Render(name)
 	}
 	return lipgloss.NewStyle().Foreground(TextWhite).Bold(true).Render(name)
 }
@@ -293,9 +313,9 @@ func StyleItemQuality(name string, quality string) string {
 	case "rare":
 		color = StatusBlue
 	case "epic":
-		color = AccentPurple
+		color = PrimaryPurple
 	case "legendary":
-		color = PrimaryOrange
+		color = PrimaryGold
 	default:
 		color = TextGray
 	}
@@ -308,7 +328,7 @@ func StyleQuestStatus(status string) lipgloss.Style {
 	case "completed":
 		return lipgloss.NewStyle().Foreground(StatusGreen).Bold(true)
 	case "in_progress":
-		return lipgloss.NewStyle().Foreground(PrimaryOrange).Bold(true)
+		return lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true)
 	case "available":
 		return lipgloss.NewStyle().Foreground(StatusBlue)
 	default:
@@ -318,15 +338,15 @@ func StyleQuestStatus(status string) lipgloss.Style {
 
 // Backward-compatibility aliases for code that uses lowercase names
 var (
-	pink                = AccentPink
-	cyan                = PrimaryTeal
+	pink                = PrimaryPurple // was AccentPink, now purple
+	cyan                = AccentBlue    // was PrimaryTeal, now blue
 	gray                = TextGray
 	green               = StatusGreen
 	yellow              = StatusYellow
 	blue                = StatusBlue
 	red                 = StatusRed
 	white               = TextWhite
-	purple              = AccentPurple
+	purple              = PrimaryPurple
 	exitVisitedColor    = ExitVisited
 	exitKnownColor      = ExitKnown
 	exitNewColor        = ExitNew
@@ -346,7 +366,7 @@ var (
 	promptStyle         = PromptStyle
 	combatDamageStyle   = DamageStyle
 	combatHealStyle     = HealStyle
-	itemColorGold       = PrimaryOrange
+	itemColorGold       = PrimaryGold
 	itemColorWeapon     = StatusRed
 	itemColorArmor      = StatusBlue
 	itemColorMisc       = TextGray
