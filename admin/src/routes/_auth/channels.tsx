@@ -1,30 +1,31 @@
-import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useChannelConfigs, useUpdateChannel } from '../../hooks/useChannels';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
-import { ColorField } from '../../components/fields/ColorField';
-import { FormField, NumberField, CheckboxField } from '../../components/FormFields';
-import { showToast } from '../../components/Toast';
-import type { ChannelConfig, ChannelInput } from '../../hooks/useChannels';
+/* eslint-disable functional/prefer-immutable-types */
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
+import { useState } from "react";
+import { useChannelConfigs, useUpdateChannel } from "../../hooks/useChannels";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
+import { ColorField } from "../../components/fields/ColorField";
+import { FormField, NumberField, CheckboxField } from "../../components/FormFields";
+import { showToast } from "../../components/Toast";
+import type { ChannelConfig, ChannelInput } from "../../hooks/useChannels";
 
-export const Route = createFileRoute('/_auth/channels')({
+export const Route = createFileRoute("/_auth/channels")({
   component: ChannelsManagement,
 });
 
 const COLUMNS: Column<ChannelConfig>[] = [
-  { header: 'Name', accessor: 'name', render: (v) => <span className="font-semibold text-primary">[{String(v)}]</span> },
-  { header: 'Description', accessor: 'description' },
-  { header: 'Color', accessor: 'color', render: (v) => (
+  { header: "Name", accessor: "name", render: (v) => <span className="font-semibold text-primary">[{String(v)}]</span> },
+  { header: "Description", accessor: "description" },
+  { header: "Color", accessor: "color", render: (v) => (
     <span className="inline-flex items-center gap-2">
       <span className="w-4 h-4 rounded border border-border" style={{ backgroundColor: String(v) }} />
       {String(v)}
     </span>
   ) },
-  { header: 'Default', accessor: 'default_enabled', render: (v) => v ? 'Enabled' : 'Disabled' },
-  { header: 'Cooldown', accessor: 'cooldown_seconds', render: (v) => `${v}s` },
-  { header: 'Admin Only', accessor: 'admin_only', render: (v) => v ? 'Yes' : 'No' },
+  { header: "Default", accessor: "default_enabled", render: (v) => v ? "Enabled" : "Disabled" },
+  { header: "Cooldown", accessor: "cooldown_seconds", render: (v) => `${v}s` },
+  { header: "Admin Only", accessor: "admin_only", render: (v) => v ? "Yes" : "No" },
 ];
 
 function ChannelEditForm({ channel, onDone }: { channel: ChannelConfig; onDone: () => void }) {
@@ -44,7 +45,7 @@ function ChannelEditForm({ channel, onDone }: { channel: ChannelConfig; onDone: 
     e.preventDefault();
     try {
       await updateChannel.mutateAsync({ name: channel.name, input: formData });
-      showToast('Channel updated', 'success');
+      showToast("Channel updated", "success");
       onDone();
     } catch { /* toasted globally */ }
   };
@@ -64,7 +65,7 @@ function ChannelEditForm({ channel, onDone }: { channel: ChannelConfig; onDone: 
         </div>
         <div className="flex gap-2">
           <Button type="submit" variant="primary" disabled={updateChannel.isPending}>
-            {updateChannel.isPending ? 'Saving...' : 'Save Changes'}
+            {updateChannel.isPending ? "Saving..." : "Save Changes"}
           </Button>
           <Button variant="secondary" onClick={onDone} type="button">Cancel</Button>
         </div>
@@ -78,7 +79,7 @@ function ChannelsManagement() {
   const location = useLocation();
   const { data: channels, isLoading, error } = useChannelConfigs();
 
-  if (location.pathname !== '/channels') return <Outlet />;
+  if (location.pathname !== "/channels") return <Outlet />;
 
   if (isLoading) return <div className="loading">Loading channels...</div>;
   if (error) return <div className="error">Failed to load channels: {error.message}</div>;
@@ -97,9 +98,9 @@ function ChannelsManagement() {
         columns={[
           ...COLUMNS,
           {
-            header: '',
-            accessor: '_actions',
-            align: 'right',
+            header: "",
+            accessor: "_actions",
+            align: "right",
             render: (_, row) => (
               <Button variant="ghost" size="sm" onClick={() => setEditing(row.name)}>
                 Edit

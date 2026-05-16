@@ -1,11 +1,12 @@
-import { Link } from '@tanstack/react-router';
-import { Button } from '../Button';
-import { DashboardIcon } from '../icons/DashboardIcon';
-import { NPCsIcon } from '../icons/NPCsIcon';
-import { ItemsIcon } from '../icons/ItemsIcon';
-import type { Room, NPC } from './types';
+/* eslint-disable functional/no-mixed-types */
+import { Link } from "@tanstack/react-router";
+import { Button } from "../Button";
+import { DashboardIcon } from "../icons/DashboardIcon";
+import { NPCsIcon } from "../icons/NPCsIcon";
+import { ItemsIcon } from "../icons/ItemsIcon";
+import type { Room, NPC } from "./types";
 
-type MapSidebarProps = {
+type MapSidebarProps = Readonly<{
   rooms: Room[]
   npcs: NPC[]
   zLevels: Map<number, number>
@@ -13,7 +14,7 @@ type MapSidebarProps = {
   selectedRoom: Room | null
   setCurrentZLevel: (z: number) => void
   setSelectedRoom: (room: Room | null) => void
-}
+}>
 
 export function MapSidebar({
   rooms,
@@ -34,10 +35,10 @@ export function MapSidebar({
         <Link
           to="/dashboard"
           activeProps={{
-            className: 'bg-primary/10 text-primary border-l-4 border-primary font-semibold',
+            className: "bg-primary/10 text-primary border-l-4 border-primary font-semibold",
           }}
           inactiveProps={{
-            className: 'text-text-muted hover:bg-surface-muted hover:text-text',
+            className: "text-text-muted hover:bg-surface-muted hover:text-text",
           }}
           className="flex items-center gap-3 px-3 py-2 rounded text-sm no-underline transition-colors"
         >
@@ -49,10 +50,10 @@ export function MapSidebar({
         <Link
           to="/npcs"
           activeProps={{
-            className: 'bg-primary/10 text-primary border-l-4 border-primary font-semibold',
+            className: "bg-primary/10 text-primary border-l-4 border-primary font-semibold",
           }}
           inactiveProps={{
-            className: 'text-text-muted hover:bg-surface-muted hover:text-text',
+            className: "text-text-muted hover:bg-surface-muted hover:text-text",
           }}
           className="flex items-center gap-3 px-3 py-2 rounded text-sm no-underline transition-colors"
         >
@@ -64,10 +65,10 @@ export function MapSidebar({
         <Link
           to="/items"
           activeProps={{
-            className: 'bg-primary/10 text-primary border-l-4 border-primary font-semibold',
+            className: "bg-primary/10 text-primary border-l-4 border-primary font-semibold",
           }}
           inactiveProps={{
-            className: 'text-text-muted hover:bg-surface-muted hover:text-text',
+            className: "text-text-muted hover:bg-surface-muted hover:text-text",
           }}
           className="flex items-center gap-3 px-3 py-2 rounded text-sm no-underline transition-colors"
         >
@@ -96,11 +97,11 @@ export function MapSidebar({
           {zLevelRange.map((z) => (
             <Button
               key={z}
-              variant={currentZLevel === z ? 'primary' : 'secondary'}
+              variant={currentZLevel === z ? "primary" : "secondary"}
               size="sm"
               onClick={() => setCurrentZLevel(z)}
             >
-              {z === 0 ? 'G' : z > 0 ? `+${z}` : `${z}`}
+              {z === 0 ? "G" : z > 0 ? `+${z}` : `${z}`}
             </Button>
           ))}
         </div>
@@ -126,11 +127,11 @@ export function MapSidebar({
                 key={room.id}
                 onClick={() => setSelectedRoom(room)}
                 className={[
-                  'p-2 rounded text-xs cursor-pointer transition-colors',
+                  "p-2 rounded text-xs cursor-pointer transition-colors",
                   selectedRoom?.id === room.id
-                    ? 'bg-primary/10 text-text border border-primary/30'
-                    : 'text-text-muted hover:bg-surface hover:text-text',
-                ].join(' ')}
+                    ? "bg-primary/10 text-text border border-primary/30"
+                    : "text-text-muted hover:bg-surface hover:text-text",
+                ].join(" ")}
               >
                 <span className="truncate block">{room.name}</span>
                 {room.isRootRoom && (

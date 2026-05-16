@@ -1,14 +1,15 @@
-import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router';
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost } from '../../utils/apiFetch';
-import { useWorldStore } from '../../hooks/useWorldStore';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Modal } from '../../components/Modal';
-import { Button } from '../../components/Button';
+/* eslint-disable functional/immutable-data, functional/no-loop-statements */
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost } from "../../utils/apiFetch";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Modal } from "../../components/Modal";
+import { Button } from "../../components/Button";
 
-export const Route = createFileRoute('/_auth/npcs')({
+export const Route = createFileRoute("/_auth/npcs")({
   component: NPCTemplatesIndex,
 });
 
@@ -39,14 +40,14 @@ const API = `${window.location.origin}`;
 // ─── Empty form ─────────────────────────────────────────────────────────────
 
 const EMPTY_FORM: NPCTemplateForm = {
-  id: '',
-  name: '',
-  description: '',
-  race: '',
+  id: "",
+  name: "",
+  description: "",
+  race: "",
   level: 1,
   xp_value: 0,
   respawn_cooldown: 60,
-  respawn_rooms: '',
+  respawn_rooms: "",
 };
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -54,28 +55,28 @@ const EMPTY_FORM: NPCTemplateForm = {
 function NPCTemplatesIndex() {
   const { currentWorld } = useWorldStore();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [form, setForm] = useState<NPCTemplateForm>(EMPTY_FORM);
 
   // Build query string with world_id
   const params = useMemo(() => {
     const p = new URLSearchParams();
-    if (currentWorld) p.append('world_id', currentWorld);
+    if (currentWorld) p.append("world_id", currentWorld);
     return p.toString();
   }, [currentWorld]);
-  const qs = params ? `?${params}` : '';
+  const qs = params ? `?${params}` : "";
 
   // ── Query ────────────────────────────────────────────────────────────────
 
   const templatesQuery = useQuery({
-    queryKey: ['npc-templates', currentWorld],
+    queryKey: ["npc-templates", currentWorld],
     queryFn: () => apiGet<NPCTemplate[]>(`${API}/api/npc-templates${qs}`),
   });
 
   // Fetch instances once to count by template
   const instancesQuery = useQuery({
-    queryKey: ['npc-instances-count', currentWorld],
+    queryKey: ["npc-instances-count", currentWorld],
     queryFn: () => apiGet<Array<{ npc_template_id: string }>>(`${API}/api/npc-instances${qs}`),
   });
 
@@ -93,9 +94,9 @@ function NPCTemplatesIndex() {
   const createMutation = useMutation({
     mutationFn: (input: NPCTemplateForm) => {
       const rooms = input.respawn_rooms
-        .split(',')
+        .split(",")
         .map((s) => s.trim())
-        .filter((s) => s !== '');
+        .filter((s) => s !== "");
       return apiPost<NPCTemplate>(`${API}/api/npc-templates${qs}`, {
         id: input.id,
         name: input.name,
@@ -110,7 +111,7 @@ function NPCTemplatesIndex() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-templates'] });
+      queryClient.invalidateQueries({ queryKey: ["npc-templates"] });
       setShowCreateModal(false);
       setForm(EMPTY_FORM);
     },
@@ -137,14 +138,14 @@ function NPCTemplatesIndex() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   const location = useLocation();
-  const isList = location.pathname === '/npcs';
+  const isList = location.pathname === "/npcs";
 
   const columns = useMemo<Column<NPCTemplate>[]>(
     () => [
-      { header: 'ID', accessor: 'id' },
+      { header: "ID", accessor: "id" },
       {
-        header: 'Name',
-        accessor: 'name',
+        header: "Name",
+        accessor: "name",
         render: (_: unknown, row: NPCTemplate) => (
           <Link
             to="/npcs/$npcId"
@@ -155,13 +156,13 @@ function NPCTemplatesIndex() {
           </Link>
         ),
       },
-      { header: 'Level', accessor: 'level', align: 'center' },
-      { header: 'XP Value', accessor: 'xp_value', align: 'right' },
-      { header: 'Respawn Cooldown', accessor: 'respawn_cooldown', align: 'center' },
+      { header: "Level", accessor: "level", align: "center" },
+      { header: "XP Value", accessor: "xp_value", align: "right" },
+      { header: "Respawn Cooldown", accessor: "respawn_cooldown", align: "center" },
       {
-        header: 'Instances',
-        accessor: 'instances',
-        align: 'center',
+        header: "Instances",
+        accessor: "instances",
+        align: "center",
         render: (_: unknown, row: NPCTemplate) => (
           <span className="badge badge-neutral">
             {instanceCounts[row.id] ?? 0}
@@ -208,7 +209,7 @@ function NPCTemplatesIndex() {
       {/* Error */}
       {templatesQuery.isError && (
         <div className="p-4 bg-danger/10 border border-danger rounded text-danger text-xs">
-          Failed to load NPC templates: {templatesQuery.error?.message ?? 'Unknown error'}
+          Failed to load NPC templates: {templatesQuery.error?.message ?? "Unknown error"}
         </div>
       )}
 
@@ -329,7 +330,7 @@ function NPCTemplatesIndex() {
           {/* Error display */}
           {createMutation.isError && (
             <div className="p-2 bg-danger/10 border border-danger rounded text-danger text-xs">
-              Failed to create template: {createMutation.error?.message ?? 'Unknown error'}
+              Failed to create template: {createMutation.error?.message ?? "Unknown error"}
             </div>
           )}
 
@@ -342,7 +343,7 @@ function NPCTemplatesIndex() {
               onClick={handleCreate}
               disabled={!form.name.trim() || !form.id.trim() || createMutation.isPending}
             >
-              {createMutation.isPending ? 'Creating...' : 'Create Template'}
+              {createMutation.isPending ? "Creating..." : "Create Template"}
             </Button>
             <Button variant="secondary" size="md" fullWidth onClick={handleModalClose}>
               Cancel

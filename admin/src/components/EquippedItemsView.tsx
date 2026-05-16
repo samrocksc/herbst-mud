@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiGet } from '../utils/apiFetch';
-import { DEFAULT_HUMANOID_SLOTS } from './equipConstants';
-import { EquippedSlotGrid, UnequippedSection } from './EquippedItemsSlots';
+ 
+import { useQuery } from "@tanstack/react-query";
+import { apiGet } from "../utils/apiFetch";
+import { DEFAULT_HUMANOID_SLOTS } from "./equipConstants";
+import { EquippedSlotGrid, UnequippedSection } from "./EquippedItemsSlots";
 
 type EquippedItem = Readonly<{
   id: number; name: string; slot: string; level: number; itemType: string
@@ -15,12 +16,12 @@ type EquippedItemsViewProps = Readonly<{ characterId: number; characterRace: str
 /** Display equipped items organized by slot. */
 export function EquippedItemsView({ characterId, characterRace }: EquippedItemsViewProps) {
   const { data: raceData, isLoading: raceLoading } = useQuery({
-    queryKey: ['races'],
+    queryKey: ["races"],
     queryFn: () => apiGet<Readonly<{ name: string; equipment_slots: string[] }[]>>(`${window.location.origin}/api/races`),
   });
 
   const { data: items, isLoading: itemsLoading, error } = useQuery<EquippedItem[]>({
-    queryKey: ['item-instances', 'owner', characterId],
+    queryKey: ["item-instances", "owner", characterId],
     queryFn: () => apiGet<EquippedItem[]>(`${window.location.origin}/api/item-instances?ownerId=${characterId}`),
   });
 

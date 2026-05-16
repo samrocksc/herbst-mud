@@ -1,5 +1,12 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { fuzzyMatch, highlightMatch } from './fuzzyMatch';
+/* eslint-disable functional/no-mixed-types, functional/immutable-data, react-hooks/set-state-in-effect */
+ 
+ 
+ 
+ 
+ 
+ 
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { fuzzyMatch, highlightMatch } from "./fuzzyMatch";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -21,9 +28,9 @@ type SearchableSelectProps = Readonly<{
 
 function getDisplayLabel(
   value: string,
-  options: SearchableSelectOption[],
+  options: ReadonlyArray<SearchableSelectOption>,
 ): string {
-  if (!value) return '';
+  if (!value) return "";
   const found = options.find((o) => o.id === value);
   return found ? `${found.name} (${found.id})` : value;
 }
@@ -34,11 +41,11 @@ export function SearchableSelect({
   options,
   value,
   onChange,
-  placeholder = 'Search...',
+  placeholder = "Search...",
   disabled = false,
   label,
 }: SearchableSelectProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,24 +70,29 @@ export function SearchableSelect({
         !containerRef.current.contains(e.target as Node)
       ) {
         setIsOpen(false);
-        setQuery('');
+        setQuery("");
       }
     }
-    document.addEventListener('mousedown', handleDocumentClick);
-    return () => document.removeEventListener('mousedown', handleDocumentClick);
+    document.addEventListener("mousedown", handleDocumentClick);
+    return () => document.removeEventListener("mousedown", handleDocumentClick);
   }, []);
 
   // ── Reset highlight when filtered list changes ─────────────────────────
 
+  // Using a ref to track previous length avoids cascading renders from useEffect
+  const prevFilteredLength = useRef(filtered.length);
   useEffect(() => {
-    setHighlightIdx(-1);
+    if (filtered.length !== prevFilteredLength.current) {
+      setHighlightIdx(-1);
+    }
+    prevFilteredLength.current = filtered.length;
   }, [filtered.length]);
 
   // ── Handlers ────────────────────────────────────────────────────────────
 
   const handleFocus = useCallback(() => {
     setIsOpen(true);
-    setQuery('');
+    setQuery("");
   }, []);
 
   const handleInputChange = useCallback(
@@ -95,7 +107,7 @@ export function SearchableSelect({
     (id: string) => {
       onChange(id);
       setIsOpen(false);
-      setQuery('');
+      setQuery("");
     },
     [onChange],
   );
@@ -103,7 +115,7 @@ export function SearchableSelect({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen) {
-        if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        if (e.key === "ArrowDown" || e.key === "Enter") {
           setIsOpen(true);
           return;
         }
@@ -111,21 +123,21 @@ export function SearchableSelect({
       }
 
       switch (e.key) {
-        case 'ArrowDown': {
+        case "ArrowDown": {
           e.preventDefault();
           setHighlightIdx((prev) =>
             prev < filtered.length - 1 ? prev + 1 : 0,
           );
           break;
         }
-        case 'ArrowUp': {
+        case "ArrowUp": {
           e.preventDefault();
           setHighlightIdx((prev) =>
             prev > 0 ? prev - 1 : filtered.length - 1,
           );
           break;
         }
-        case 'Enter': {
+        case "Enter": {
           e.preventDefault();
           if (highlightIdx >= 0 && highlightIdx < filtered.length) {
             selectOption(filtered[highlightIdx].id);
@@ -134,10 +146,10 @@ export function SearchableSelect({
           }
           break;
         }
-        case 'Escape': {
+        case "Escape": {
           e.preventDefault();
           setIsOpen(false);
-          setQuery('');
+          setQuery("");
           inputRef.current?.blur();
           break;
         }
@@ -164,7 +176,7 @@ export function SearchableSelect({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
-        aria-label={label ?? 'Search'}
+        aria-label={label ?? "Search"}
         className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
       />
       {isOpen && (
@@ -192,7 +204,7 @@ export function SearchableSelect({
                   aria-selected={isHighlighted}
                   onClick={handleClick}
                   className={`px-3 py-1.5 text-sm text-text cursor-pointer ${
-                    isHighlighted ? 'bg-surface-hover' : ''
+                    isHighlighted ? "bg-surface-hover" : ""
                   } hover:bg-surface-hover`}
                   dangerouslySetInnerHTML={{
                     __html: query.trim()

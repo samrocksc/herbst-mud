@@ -1,23 +1,24 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
-import { useWorlds, useSetActiveWorld } from '../../hooks/useWorlds';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
-import type { World } from '../../hooks/useWorlds';
+/* eslint-disable functional/prefer-immutable-types */
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useWorlds, useSetActiveWorld } from "../../hooks/useWorlds";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
+import type { World } from "../../hooks/useWorlds";
 
-export const Route = createFileRoute('/_auth/worlds')({
+export const Route = createFileRoute("/_auth/worlds")({
   component: WorldsManagement,
 });
 
 const COLUMNS: Column<World>[] = [
   {
-    header: 'ID',
-    accessor: 'id',
+    header: "ID",
+    accessor: "id",
     render: (_, row) => <span className="font-mono text-xs">{row.id}</span>,
   },
   {
-    header: 'Name',
-    accessor: 'name',
+    header: "Name",
+    accessor: "name",
     render: (_, row) => (
       <Link
         to="/worlds/$worldId"
@@ -28,11 +29,11 @@ const COLUMNS: Column<World>[] = [
       </Link>
     ),
   },
-  { header: 'Title', accessor: 'title' },
-  { header: 'Description', accessor: 'description' },
+  { header: "Title", accessor: "title" },
+  { header: "Description", accessor: "description" },
   {
-    header: 'Active',
-    accessor: 'active',
+    header: "Active",
+    accessor: "active",
     render: (_: unknown, row: World) => <ActiveToggle world={row} />,
   },
 ];
@@ -54,7 +55,7 @@ function ActiveToggle({ world }: { world: World }) {
         disabled={setActive.isPending}
         className="accent-primary"
       />
-      <span className="text-sm">{isChecked ? 'Active' : 'Inactive'}</span>
+      <span className="text-sm">{isChecked ? "Active" : "Inactive"}</span>
     </label>
   );
 }
@@ -64,7 +65,7 @@ function WorldsManagement() {
   const location = useLocation();
   const { data: worlds, isLoading, error } = useWorlds();
 
-  if (location.pathname !== '/worlds') return <Outlet />;
+  if (location.pathname !== "/worlds") return <Outlet />;
 
   if (isLoading) return <div className="loading">Loading worlds...</div>;
   if (error) return <div className="error">Failed to load worlds: {error.message}</div>;
@@ -76,7 +77,7 @@ function WorldsManagement() {
         showBack
         backTo="/dashboard"
         actions={
-          <Button variant="primary" onClick={() => navigate({ to: '/worlds/new' })}>
+          <Button variant="primary" onClick={() => navigate({ to: "/worlds/new" })}>
             + Add World
           </Button>
         }

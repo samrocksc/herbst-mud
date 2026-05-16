@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPut } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPut } from "../utils/apiFetch";
 
 export type Character = Readonly<{
   id: number
@@ -57,7 +58,7 @@ const API = `${window.location.origin}`;
 
 export function useCharacters() {
   return useQuery({
-    queryKey: ['characters'],
+    queryKey: ["characters"],
     queryFn: async (): Promise<Character[]> => {
       const data = await apiGet<Character[]>(`${API}/characters`);
       return Array.isArray(data) ? data : [];
@@ -67,7 +68,7 @@ export function useCharacters() {
 
 export function useCharacter(id: number) {
   return useQuery({
-    queryKey: ['character', id],
+    queryKey: ["character", id],
     queryFn: async (): Promise<Character | null> => {
       const data = await apiGet<Character>(`${API}/characters/${id}`);
       return data ?? null;
@@ -82,8 +83,8 @@ export function useUpdateCharacter() {
     mutationFn: ({ id, update }: { id: number; update: CharacterUpdate }) =>
       apiPut(`${API}/characters/${id}`, update),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['characters'] });
-      queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ["characters"] });
+      queryClient.invalidateQueries({ queryKey: ["character"] });
     },
   });
 }

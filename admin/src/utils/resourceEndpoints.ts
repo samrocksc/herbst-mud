@@ -8,48 +8,48 @@ export type ResourceEndpoint = Readonly<{
 
 export const RESOURCE_ENDPOINTS = {
   characters: {
-    resourceType: 'characters',
-    path: 'characters',
+    resourceType: "characters",
+    path: "characters",
     apiBase: `${API}/api`,
   },
   rooms: {
-    resourceType: 'rooms',
-    path: 'rooms',
+    resourceType: "rooms",
+    path: "rooms",
     apiBase: API,
   },
   races: {
-    resourceType: 'races',
-    path: 'races',
+    resourceType: "races",
+    path: "races",
     apiBase: `${API}/api`,
   },
   abilities: {
-    resourceType: 'abilities',
-    path: 'abilities',
+    resourceType: "abilities",
+    path: "abilities",
     apiBase: `${API}/api`,
   },
   factions: {
-    resourceType: 'factions',
-    path: 'factions',
+    resourceType: "factions",
+    path: "factions",
     apiBase: `${API}/api`,
   },
   factionCategories: {
-    resourceType: 'faction-categories',
-    path: 'faction-categories',
+    resourceType: "faction-categories",
+    path: "faction-categories",
     apiBase: `${API}/api`,
   },
   npcTemplates: {
-    resourceType: 'npc-templates',
-    path: 'npc-templates',
+    resourceType: "npc-templates",
+    path: "npc-templates",
     apiBase: `${API}/api`,
   },
   quests: {
-    resourceType: 'quests',
-    path: 'quests',
+    resourceType: "quests",
+    path: "quests",
     apiBase: `${API}/api`,
   },
   effectDefs: {
-    resourceType: 'effect-defs',
-    path: 'effect-defs',
+    resourceType: "effect-defs",
+    path: "effect-defs",
     apiBase: `${API}/api`,
   },
 } as const;

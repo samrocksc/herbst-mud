@@ -1,17 +1,18 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useCharacter, useUpdateCharacter, type CharacterUpdate } from '../../hooks/useCharacters';
-import { useWorlds } from '../../hooks/useWorlds';
-import { apiPost } from '../../utils/apiFetch';
-import { PageHeader } from '../../components/PageHeader';
-import { EquippedItemsView } from '../../components/EquippedItemsView';
-import { ActiveEffectsPanel } from '../../components/ActiveEffectsPanel';
-import { ResourceIdField } from '../../components/ResourceIdField';
-import { RESOURCE_ENDPOINTS } from '../../utils/resourceEndpoints';
-import { AddItemModal } from './-characters.$characterId.addItemModal';
+/* eslint-disable functional/prefer-immutable-types, react-hooks/purity */
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCharacter, useUpdateCharacter, type CharacterUpdate } from "../../hooks/useCharacters";
+import { useWorlds } from "../../hooks/useWorlds";
+import { apiPost } from "../../utils/apiFetch";
+import { PageHeader } from "../../components/PageHeader";
+import { EquippedItemsView } from "../../components/EquippedItemsView";
+import { ActiveEffectsPanel } from "../../components/ActiveEffectsPanel";
+import { ResourceIdField } from "../../components/ResourceIdField";
+import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
+import { AddItemModal } from "./-characters.$characterId.addItemModal";
 
-export const Route = createFileRoute('/_auth/characters/$characterId')({
+export const Route = createFileRoute("/_auth/characters/$characterId")({
   component: CharacterDetail,
 });
 
@@ -35,18 +36,18 @@ function CharacterDetail() {
         equipment_template_id: templateId,
         ownerId: id,
       });
-      queryClient.invalidateQueries({ queryKey: ['item-instances'] });
-      queryClient.invalidateQueries({ queryKey: ['character', id] });
+      queryClient.invalidateQueries({ queryKey: ["item-instances"] });
+      queryClient.invalidateQueries({ queryKey: ["character", id] });
       setAddItemOpen(false);
     } catch (err) {
-      setSpawnError(err instanceof Error ? err.message : 'Failed to spawn item');
+      setSpawnError(err instanceof Error ? err.message : "Failed to spawn item");
     } finally {
       setSpawning(false);
     }
   };
 
   if (isLoading) return <div className="p-8 text-text-muted">Loading character...</div>;
-  if (isError || !character) return <div className="p-8 text-danger">Error: {error?.message ?? 'Not found'}</div>;
+  if (isError || !character) return <div className="p-8 text-danger">Error: {error?.message ?? "Not found"}</div>;
 
   return (
     <div className="p-6 max-w-[800px] mx-auto">
@@ -62,13 +63,13 @@ function CharacterDetail() {
             onClick={() => setShowEquipped(!showEquipped)}
             className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-text hover:bg-surface-muted"
           >
-            {showEquipped ? 'Hide Equipment' : 'Show Equipment'}
+            {showEquipped ? "Hide Equipment" : "Show Equipment"}
           </button>
           <button
             onClick={() => setEditing(!editing)}
             className="px-3 py-1.5 bg-primary text-white rounded text-sm hover:bg-primary-hover"
           >
-            {editing ? 'Cancel' : 'Edit'}
+            {editing ? "Cancel" : "Edit"}
           </button>
         </div>
       } />
@@ -87,8 +88,10 @@ function CharacterDetail() {
   );
 }
 
-function DetailView({ character }: { character: NonNullable<ReturnType<typeof useCharacter>['data']> }) {
-  const lastSeen = character.lastSeenAt ? new Date(character.lastSeenAt).toLocaleString() : 'Never';
+ 
+function DetailView({ character }: { character: NonNullable<ReturnType<typeof useCharacter>["data"]> }) {
+  const lastSeen = character.lastSeenAt ? new Date(character.lastSeenAt).toLocaleString() : "Never";
+   
   const isOnline = character.lastSeenAt && new Date(character.lastSeenAt) > new Date(Date.now() - 15 * 60 * 1000);
 
   return (
@@ -98,11 +101,11 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
         <Field label="Name" value={character.name} />
         <Field label="Race" value={character.race} />
         <Field label="Class" value={character.class} />
-        <Field label="Gender" value={character.gender || '—'} />
-        <Field label="NPC" value={character.isNPC ? 'Yes' : 'No'} />
-        <Field label="Admin" value={character.is_admin ? 'Yes' : 'No'} />
-        <Field label="Test" value={character.is_test ? 'Yes' : 'No'} />
-        <Field label="Immortal" value={character.is_immortal ? 'Yes' : 'No'} />
+        <Field label="Gender" value={character.gender || "—"} />
+        <Field label="NPC" value={character.isNPC ? "Yes" : "No"} />
+        <Field label="Admin" value={character.is_admin ? "Yes" : "No"} />
+        <Field label="Test" value={character.is_test ? "Yes" : "No"} />
+        <Field label="Immortal" value={character.is_immortal ? "Yes" : "No"} />
       </Section>
 
       <Section title="Location">
@@ -111,7 +114,7 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
         <Field label="Respawn Room" value={`#${character.respawnRoomId}`} />
         <Field label="World" value={character.currentWorld} />
         <Field label="Last Seen" value={lastSeen} />
-        <Field label="Status" value={isOnline ? 'Online' : 'Offline'} />
+        <Field label="Status" value={isOnline ? "Online" : "Offline"} />
       </Section>
 
       <Section title="Vitals">
@@ -142,7 +145,7 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
   );
 }
 
-function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typeof useCharacter>['data']>, onSave: (update: CharacterUpdate) => void }) {
+function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typeof useCharacter>["data"]>, onSave: (update: CharacterUpdate) => void }) {
   const { data: worlds = [] } = useWorlds();
   const [form, setForm] = useState<CharacterUpdate>({
     name: character.name,
@@ -184,7 +187,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
           <label className="text-text-muted text-sm w-28 shrink-0">Name</label>
           <input
             type="text"
-            value={form.name ?? ''}
+            value={form.name ?? ""}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="w-48 p-1 bg-surface border border-border rounded text-text text-sm"
           />
@@ -193,7 +196,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
           <label className="text-text-muted text-sm w-28 shrink-0">Gender</label>
           <input
             type="text"
-            value={form.gender ?? ''}
+            value={form.gender ?? ""}
             onChange={(e) => setForm({ ...form, gender: e.target.value })}
             className="w-32 p-1 bg-surface border border-border rounded text-text text-sm"
           />
@@ -202,7 +205,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
           <label className="text-text-muted text-sm w-28 shrink-0">Description</label>
           <input
             type="text"
-            value={form.description ?? ''}
+            value={form.description ?? ""}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="w-full p-1 bg-surface border border-border rounded text-text text-sm"
           />
@@ -227,7 +230,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
         <div className="flex items-center gap-2 mb-2">
           <label className="text-text-muted text-sm w-28 shrink-0">World</label>
           <select
-            value={form.currentWorld ?? ''}
+            value={form.currentWorld ?? ""}
             onChange={(e) => setForm({ ...form, currentWorld: e.target.value })}
             className="w-48 p-1 bg-surface border border-border rounded text-text text-sm"
           >
@@ -266,17 +269,17 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
       </Section>
 
       <Section title="Vitals">
-        {numField('hitpoints', 'HP')}
-        {numField('maxHitpoints', 'Max HP')}
-        {numField('stamina', 'Stamina')}
-        {numField('maxStamina', 'Max Stamina')}
-        {numField('mana', 'Mana')}
-        {numField('maxMana', 'Max Mana')}
+        {numField("hitpoints", "HP")}
+        {numField("maxHitpoints", "Max HP")}
+        {numField("stamina", "Stamina")}
+        {numField("maxStamina", "Max Stamina")}
+        {numField("mana", "Mana")}
+        {numField("maxMana", "Max Mana")}
       </Section>
 
       <Section title="Progression">
-        {numField('level', 'Level')}
-        {numField('xp', 'XP')}
+        {numField("level", "Level")}
+        {numField("xp", "XP")}
       </Section>
 
       <button

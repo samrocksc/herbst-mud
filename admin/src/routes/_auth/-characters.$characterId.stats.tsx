@@ -46,7 +46,7 @@ export function CharacterStats({ character }: Readonly<{
         <DetailField label="INT" value={String(character.intelligence)} />
         <DetailField label="WIS" value={String(character.wisdom)} />
         <DetailField label="CON" value={String(character.constitution)} />
-        <DetailField label="Gender" value={character.gender || '—'} />
+        <DetailField label="Gender" value={character.gender || "—"} />
         <BoolBadge value={character.isNPC} label="NPC" />
         <BoolBadge value={character.is_admin} label="Admin" />
         <BoolBadge value={character.is_immortal} label="Immortal" />
@@ -67,7 +67,7 @@ function DetailField({ label, value }: Readonly<{ label: string; value: string }
 
 function BoolBadge({ value, label }: Readonly<{ value: boolean; label: string }>) {
   const cls = value
-    ? 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/40'
-    : 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-900/30 text-red-400 border border-red-700/40';
-  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className={cls}>{value ? 'Yes' : 'No'}</span></div>);
+    ? "inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/40"
+    : "inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-900/30 text-red-400 border border-red-700/40";
+  return (<div><span className="text-text-muted text-xs block mb-0.5">{label}</span><span className={cls}>{value ? "Yes" : "No"}</span></div>);
 }

@@ -38,6 +38,7 @@ func createRoom(svc *service.Container) gin.HandlerFunc {
 			PosX:           input.PosX,
 			PosY:           input.PosY,
 			PosZ:           input.PosZ,
+			WorldID:        c.Query("world_id"),
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

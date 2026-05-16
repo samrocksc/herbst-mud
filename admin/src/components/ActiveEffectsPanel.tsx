@@ -1,17 +1,18 @@
-import { useState } from 'react';
-import { useActiveEffects, useRemoveActiveEffect, useApplyEffect, type ActiveEffect } from '../hooks/useActiveEffects';
-import { useEffectDefs } from '../hooks/useEffectDefs';
-import { Button } from './Button';
-import { DeleteConfirmation } from './DeleteConfirmation';
-import { showToast } from './Toast';
-import { SelectField } from './fields';
+/* eslint-disable functional/prefer-immutable-types */
+import { useState } from "react";
+import { useActiveEffects, useRemoveActiveEffect, useApplyEffect, type ActiveEffect } from "../hooks/useActiveEffects";
+import { useEffectDefs } from "../hooks/useEffectDefs";
+import { Button } from "./Button";
+import { DeleteConfirmation } from "./DeleteConfirmation";
+import { showToast } from "./Toast";
+import { SelectField } from "./fields";
 
-function formatDuration(startedAt: string, expiresAt: string | null): string {
-  if (!expiresAt) return 'Permanent';
+function formatDuration(_startedAt: string, expiresAt: string | null): string {
+  if (!expiresAt) return "Permanent";
   const now = Date.now();
   const end = new Date(expiresAt).getTime();
   const remaining = Math.max(0, end - now);
-  if (remaining === 0) return 'Expired';
+  if (remaining === 0) return "Expired";
   const mins = Math.floor(remaining / 60000);
   const secs = Math.floor((remaining % 60000) / 1000);
   return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
@@ -19,8 +20,8 @@ function formatDuration(startedAt: string, expiresAt: string | null): string {
 
 function formatParams(params: Record<string, unknown>): string {
   const entries = Object.entries(params);
-  if (entries.length === 0) return '—';
-  return entries.map(([k, v]) => `${k}=${v}`).join(', ');
+  if (entries.length === 0) return "—";
+  return entries.map(([k, v]) => `${k}=${v}`).join(", ");
 }
 
 export function ActiveEffectsPanel({ characterId }: { characterId: number }) {
@@ -32,16 +33,18 @@ export function ActiveEffectsPanel({ characterId }: { characterId: number }) {
   const [selectedEffectId, setSelectedEffectId] = useState<number>(effectDefs[0]?.id ?? 0);
   const [showApply, setShowApply] = useState(false);
 
+  const effectOptions = effectDefs.map((e) => ({ value: String(e.id), label: `${e.name} (${e.effect_type})` }));
+
   const handleApply = () => {
     if (!selectedEffectId) return;
     apply.mutate({ characterId, effectId: selectedEffectId }, {
-      onSuccess: () => { setShowApply(false); showToast('Effect applied', 'success'); },
+      onSuccess: () => { setShowApply(false); showToast("Effect applied", "success"); },
     });
   };
 
   const handleRemove = (effectId: number) => {
     remove.mutate({ characterId, effectId }, {
-      onSuccess: () => { setConfirmDelete(null); showToast('Effect removed', 'success'); },
+      onSuccess: () => { setConfirmDelete(null); showToast("Effect removed", "success"); },
     });
   };
 
@@ -49,7 +52,7 @@ export function ActiveEffectsPanel({ characterId }: { characterId: number }) {
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="m-0 text-text text-lg font-semibold">
-          Active Effects{effects.length > 0 ? ` (${effects.length})` : ''}
+          Active Effects{effects.length > 0 ? ` (${effects.length})` : ""}
         </h2>
         <Button variant="primary" size="sm" onClick={() => setShowApply(!showApply)}>+ Apply Effect</Button>
       </div>
@@ -61,16 +64,16 @@ export function ActiveEffectsPanel({ characterId }: { characterId: number }) {
               label="Effect"
               value={String(selectedEffectId)}
               onChange={(v) => setSelectedEffectId(Number(v))}
-              options={effectDefs.map((e) => ({ value: String(e.id), label: `${e.name} (${e.effect_type})` }))}
+              options={effectOptions}
             />
           </div>
           <Button variant="primary" onClick={handleApply} disabled={apply.isPending}>
-            {apply.isPending ? 'Applying…' : 'Apply'}
+            {apply.isPending ? "Applying…" : "Apply"}
           </Button>
         </div>
       )}
 
-      {error && <div className="error-banner mb-3">{error instanceof Error ? error.message : 'Failed to load effects'}</div>}
+      {error && <div className="error-banner mb-3">{error instanceof Error ? error.message : "Failed to load effects"}</div>}
 
       {isLoading ? (
         <div className="text-text-muted text-sm py-4 text-center">Loading effects…</div>

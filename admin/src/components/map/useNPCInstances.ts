@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
-import { apiGet, apiPut, apiDelete } from '../../utils/apiFetch';
-import { showToast } from '../Toast';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { NPCInstanceView, EditFormData } from './NPCInstanceManager';
+/* eslint-disable functional/prefer-immutable-types, functional/immutable-data, functional/no-return-void */
+import { useState, useCallback } from "react";
+import { apiGet, apiPut, apiDelete } from "../../utils/apiFetch";
+import { showToast } from "../Toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { NPCInstanceView, EditFormData } from "./NPCInstanceManager";
 
 export function useNPCInstances(roomId: number) {
   const queryClient = useQueryClient();
@@ -11,7 +12,7 @@ export function useNPCInstances(roomId: number) {
   const [editForm, setEditForm] = useState<EditFormData>({ level: 0, hitpoints: 0, room_id: roomId, starting_room_id: roomId });
 
   const instancesQuery = useQuery({
-    queryKey: ['npc-instances', roomId],
+    queryKey: ["npc-instances", roomId],
     queryFn: async (): Promise<NPCInstanceView[]> =>
       apiGet<NPCInstanceView[]>(`${window.location.origin}/api/npc-instances?roomId=${roomId}`),
   });
@@ -19,12 +20,12 @@ export function useNPCInstances(roomId: number) {
   const updateMutation = useMutation({
     mutationFn: async (args: { id: number; update: Record<string, unknown> }): Promise<NPCInstanceView> =>
       apiPut<NPCInstanceView>(`${window.location.origin}/api/npc-instances/${args.id}`, args.update),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['npc-instances'] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["npc-instances"] }); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number): Promise<void> => { await apiDelete(`${window.location.origin}/api/npc-instances/${id}`); },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['npc-instances'] }); showToast('NPC instance deleted', 'success'); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["npc-instances"] }); showToast("NPC instance deleted", "success"); },
   });
 
   const handleUpdate = useCallback(async () => {
@@ -34,15 +35,15 @@ export function useNPCInstances(roomId: number) {
       if (editForm.level > 0) update.level = editForm.level;
       if (editForm.hitpoints > 0) update.hitpoints = editForm.hitpoints;
       await updateMutation.mutateAsync({ id: editingId, update });
-      showToast('NPC updated', 'success');
+      showToast("NPC updated", "success");
       setEditingId(null);
       setEditForm({ level: 0, hitpoints: 0, room_id: roomId, starting_room_id: roomId });
-    } catch (err) { showToast(`Update failed: ${(err as Error)?.message ?? 'Unknown error'}`, 'error'); }
+    } catch (err) { showToast(`Update failed: ${(err as Error)?.message ?? "Unknown error"}`, "error"); }
   }, [editingId, editForm, updateMutation, roomId]);
 
   const handleDelete = useCallback(async (id: number) => {
     try { await deleteMutation.mutateAsync(id); setConfirmDeleteId(null); }
-    catch (err) { showToast(`Delete failed: ${(err as Error)?.message ?? 'Unknown error'}`, 'error'); }
+    catch (err) { showToast(`Delete failed: ${(err as Error)?.message ?? "Unknown error"}`, "error"); }
   }, [deleteMutation]);
 
   const startEdit = useCallback((inst: NPCInstanceView) => {

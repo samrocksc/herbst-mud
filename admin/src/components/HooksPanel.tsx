@@ -1,30 +1,31 @@
-import { useState } from 'react';
-import { useTemplateHooks, useCreateHook, useUpdateHook, useDeleteHook, type EffectHook, type HookInput } from '../hooks/useHooks';
-import { useEffectDefs } from '../hooks/useEffectDefs';
-import { Button } from './Button';
-import { showToast } from './Toast';
-import { FormField, SelectField, CheckboxField } from './fields';
+/* eslint-disable functional/no-mixed-types, functional/prefer-immutable-types */
+import { useState } from "react";
+import { useTemplateHooks, useCreateHook, useUpdateHook, useDeleteHook, type EffectHook, type HookInput } from "../hooks/useHooks";
+import { useEffectDefs } from "../hooks/useEffectDefs";
+import { Button } from "./Button";
+import { showToast } from "./Toast";
+import { FormField, SelectField, CheckboxField } from "./fields";
 
 const HOOK_EVENTS = [
-  { value: 'on_death', label: 'On Death', group: 'Combat' },
-  { value: 'on_hit_received', label: 'On Hit Received', group: 'Combat' },
-  { value: 'on_hit_dealt', label: 'On Hit Dealt', group: 'Combat' },
-  { value: 'on_kill', label: 'On Kill', group: 'Combat' },
-  { value: 'on_enter_room', label: 'On Enter Room', group: 'Location' },
-  { value: 'on_leave_room', label: 'On Leave Room', group: 'Location' },
-  { value: 'on_equip', label: 'On Equip', group: 'Inventory' },
-  { value: 'on_unequip', label: 'On Unequip', group: 'Inventory' },
-  { value: 'on_login', label: 'On Login', group: 'Session' },
-  { value: 'on_effect_start', label: 'On Effect Start', group: 'Effects' },
-  { value: 'on_effect_end', label: 'On Effect End', group: 'Effects' },
+  { value: "on_death", label: "On Death", group: "Combat" },
+  { value: "on_hit_received", label: "On Hit Received", group: "Combat" },
+  { value: "on_hit_dealt", label: "On Hit Dealt", group: "Combat" },
+  { value: "on_kill", label: "On Kill", group: "Combat" },
+  { value: "on_enter_room", label: "On Enter Room", group: "Location" },
+  { value: "on_leave_room", label: "On Leave Room", group: "Location" },
+  { value: "on_equip", label: "On Equip", group: "Inventory" },
+  { value: "on_unequip", label: "On Unequip", group: "Inventory" },
+  { value: "on_login", label: "On Login", group: "Session" },
+  { value: "on_effect_start", label: "On Effect Start", group: "Effects" },
+  { value: "on_effect_end", label: "On Effect End", group: "Effects" },
 ];
 
 const HOOK_TARGETS = [
-  { value: 'self', label: 'Self (the character)' },
-  { value: 'attacker', label: 'Attacker (hit dealer)' },
-  { value: 'killer', label: 'Killer (death dealer)' },
-  { value: 'room', label: 'Room (all in room)' },
-  { value: 'owner', label: 'Owner (item/NPC owner)' },
+  { value: "self", label: "Self (the character)" },
+  { value: "attacker", label: "Attacker (hit dealer)" },
+  { value: "killer", label: "Killer (death dealer)" },
+  { value: "room", label: "Room (all in room)" },
+  { value: "owner", label: "Owner (item/NPC owner)" },
 ];
 
 // Group events by category
@@ -35,13 +36,13 @@ const EVENT_GROUPS = Array.from(
   events: HOOK_EVENTS.filter((e) => e.group === group),
 }));
 
-type HookFormProps = {
+type HookFormProps = Readonly<{
   hook: EffectHook | null
   onSubmit: (input: HookInput) => void
   onCancel: () => void
   isLoading: boolean
   error: string | null
-}
+}>
 
 function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps) {
   const { data: effects = [] } = useEffectDefs();
@@ -49,7 +50,7 @@ function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps)
   const [form, setForm] = useState<HookInput>(() =>
     hook
       ? { name: hook.name, event: hook.event, target: hook.target, condition: hook.condition, enabled: hook.enabled, effect_id: hook.effect_id }
-      : { name: '', event: 'on_death', target: 'self', condition: '', enabled: true, effect_id: effects[0]?.id ?? 0 },
+      : { name: "", event: "on_death", target: "self", condition: "", enabled: true, effect_id: effects[0]?.id ?? 0 },
   );
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -67,13 +68,13 @@ function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps)
   return (
     <form onSubmit={handleSubmit} className="bg-surface rounded-lg border border-border p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h4 className="m-0 text-lg font-semibold text-text">{isEdit ? 'Edit Hook' : 'Add Hook'}</h4>
+        <h4 className="m-0 text-lg font-semibold text-text">{isEdit ? "Edit Hook" : "Add Hook"}</h4>
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
           className="text-sm text-primary hover:underline"
         >
-          {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
+          {showAdvanced ? "Hide Advanced" : "Show Advanced"}
         </button>
       </div>
 
@@ -113,7 +114,7 @@ function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps)
           />
           {selectedEffect && (
             <p className="mt-1 text-xs text-text-muted">
-              Type: {selectedEffect.effect_type} • {selectedEffect.description || 'No description'}
+              Type: {selectedEffect.effect_type} • {selectedEffect.description || "No description"}
             </p>
           )}
         </div>
@@ -123,7 +124,7 @@ function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps)
             <div className="md:col-span-2">
               <FormField
                 label="Condition (optional)"
-                value={form.condition ?? ''}
+                value={form.condition ?? ""}
                 onChange={(v) => set({ condition: v })}
                 placeholder="character.hp < character.max_hp * 0.3"
               />
@@ -141,7 +142,7 @@ function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps)
 
       <div className="flex gap-3 pt-4 border-t border-border">
         <Button variant="primary" type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving…' : isEdit ? 'Update Hook' : 'Create Hook'}
+          {isLoading ? "Saving…" : isEdit ? "Update Hook" : "Create Hook"}
         </Button>
         <Button variant="secondary" type="button" onClick={onCancel}>
           Cancel
@@ -151,7 +152,7 @@ function HookForm({ hook, onSubmit, onCancel, isLoading, error }: HookFormProps)
   );
 }
 
-export function HooksPanel({ npcTemplateId }: { npcTemplateId: string }) {
+export function HooksPanel({ npcTemplateId }: Readonly<{ npcTemplateId: string }>) {
   const { data: hooks = [] } = useTemplateHooks(npcTemplateId);
   const create = useCreateHook();
   const update = useUpdateHook();
@@ -161,13 +162,13 @@ export function HooksPanel({ npcTemplateId }: { npcTemplateId: string }) {
 
   const handleCreate = (input: HookInput) => {
     create.mutate({ templateId: npcTemplateId, input }, {
-      onSuccess: () => { setShowForm(false); showToast('Hook created', 'success'); },
+      onSuccess: () => { setShowForm(false); showToast("Hook created", "success"); },
     });
   };
   const handleUpdate = (input: HookInput) => {
     if (!editingHook) return;
     update.mutate({ id: editingHook.id, input }, {
-      onSuccess: () => { setEditingHook(null); showToast('Hook updated', 'success'); },
+      onSuccess: () => { setEditingHook(null); showToast("Hook updated", "success"); },
     });
   };
 
@@ -241,10 +242,10 @@ export function HooksPanel({ npcTemplateId }: { npcTemplateId: string }) {
                           </code>
                           <span className={`text-xs px-2 py-0.5 rounded font-medium ${
                             hook.enabled
-                              ? 'bg-success/10 text-success'
-                              : 'bg-danger/10 text-danger'
+                              ? "bg-success/10 text-success"
+                              : "bg-danger/10 text-danger"
                           }`}>
-                            {hook.enabled ? 'enabled' : 'disabled'}
+                            {hook.enabled ? "enabled" : "disabled"}
                           </span>
                         </div>
                         <p className="text-xs text-text-muted truncate">

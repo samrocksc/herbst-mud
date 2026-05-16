@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Button } from '../../components/Button';
-import { DataTable, type Column } from '../../components/DataTable';
-import { FormField, TextareaField } from '../../components/FormFields';
-import { FormError } from '../../components/fields/FormError';
-import { showToast } from '../../components/Toast';
-import { apiPost } from '../../utils/apiFetch';
-import type { FactionCategory } from './factionTypes';
+import { useState } from "react";
+import { Button } from "../../components/Button";
+import { DataTable, type Column } from "../../components/DataTable";
+import { FormField, TextareaField } from "../../components/FormFields";
+import { FormError } from "../../components/fields/FormError";
+import { showToast } from "../../components/Toast";
+import { apiPost } from "../../utils/apiFetch";
+import type { FactionCategory } from "./factionTypes";
 
 export function CategoryManager({ categories }: Readonly<{ categories: FactionCategory[] }>) {
   return (
@@ -17,29 +17,29 @@ export function CategoryManager({ categories }: Readonly<{ categories: FactionCa
 }
 
 const categoryColumns: Column<FactionCategory>[] = [
-  { header: 'ID', accessor: 'id' },
-  { header: 'Name', accessor: 'name', className: 'font-bold' },
-  { header: 'Display Name', accessor: 'display_name' },
-  { header: 'Description', accessor: 'description' },
+  { header: "ID", accessor: "id" },
+  { header: "Name", accessor: "name", className: "font-bold" },
+  { header: "Display Name", accessor: "display_name" },
+  { header: "Description", accessor: "description" },
 ];
 
 export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>) {
-  const [name, setName] = useState('');
-  const [desc, setDesc] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleCreate = async () => {
-    if (!name) { setError('Category name is required'); return; }
+    if (!name) { setError("Category name is required"); return; }
     setSaving(true);
-    setError('');
+    setError("");
     try {
-      await apiPost('/api/faction-categories', { name, display_name: name, description: desc });
-      showToast('Category created', 'success');
+      await apiPost("/api/faction-categories", { name, display_name: name, description: desc });
+      showToast("Category created", "success");
       onDone();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create category');
-      showToast('Failed to create category', 'error');
+      setError(err instanceof Error ? err.message : "Failed to create category");
+      showToast("Failed to create category", "error");
     } finally {
       setSaving(false);
     }
@@ -54,7 +54,7 @@ export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>)
         <TextareaField label="Description" value={desc} onChange={setDesc} rows={2} />
         <div className="flex gap-2">
           <Button variant="primary" size="md" fullWidth onClick={handleCreate} disabled={saving}>
-            {saving ? 'Creating...' : 'Create Category'}
+            {saving ? "Creating..." : "Create Category"}
           </Button>
           <Button variant="secondary" size="md" fullWidth onClick={onDone}>Cancel</Button>
         </div>

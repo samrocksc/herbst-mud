@@ -32,13 +32,13 @@ func (m *model) handleWelcomeInput(input string) {
 		m.loginPassword = ""
 		m.AppendMessage("Choose a username:", "info")
 		m.textInput.Focus()
-	case "3", "world", "w":
+	case "3", "quit", "q":
+		m.AppendMessage("Goodbye! Thanks for playing Herbst MUD.", "success")
+		m.inputBuffer = ""
+	case "4", "world", "w":
 		m.screen = ScreenWorldSelect
 		m.fetchWorlds()
 		m.AppendMessage(m.displayWorlds(), "info")
-	case "4", "quit", "q":
-		m.AppendMessage("Goodbye! Thanks for playing Herbst MUD.", "success")
-		m.inputBuffer = ""
 	default:
 		if input != "" {
 			m.AppendMessage("Invalid choice. Type 1, 2, 3, or 4", "error")
@@ -134,30 +134,13 @@ func (m *model) attemptLogin() {
 	if token, ok := result["token"].(string); ok {
 		m.characterToken = token
 	}
-	m.screen = ScreenPlaying
+	// Go to world select instead of auto-loading character
+	m.screen = ScreenWorldSelect
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
 	m.AppendMessage(fmt.Sprintf("Welcome back, %s!", m.currentUserName), "success")
-
-	m.loadOrCreateCharacter()
-	m.visitedRooms[m.currentRoom] = true
-
-	// Determine reconnect room: use last position, bind point, or root room
-	targetRoomID := m.determineReconnectRoom()
-	m.loadRoom(targetRoomID)
-
-	// Update last seen timestamp
-	m.updateLastSeenAt()
-
-	m.effectsService.FireEvent("on_login", m.currentCharacterID, "", map[string]interface{}{
-		"room_id": m.currentRoom,
-	})
-
-	// Auto-enable debug for test characters
-	if m.isTest {
-		m.debugMode = true
-		m.AppendMessage("Debug mode: ON (test character)", "info")
-	}
+	m.fetchWorlds()
+	m.AppendMessage(m.displayWorlds(), "info")
 }
 
 func (m *model) handleRegisterInput(input string) {
@@ -247,21 +230,13 @@ func (m *model) attemptRegistration(email string) {
 	if email, ok := result["email"].(string); ok {
 		m.currentUserName = email
 	}
-	m.screen = ScreenPlaying
+	// Go to world select instead of auto-loading character
+	m.screen = ScreenWorldSelect
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
 	m.AppendMessage(fmt.Sprintf("Account created! Welcome to Herbst MUD, %s!", m.currentUserName), "success")
-
-	m.loadOrCreateCharacter()
-	m.visitedRooms[m.currentRoom] = true
-
-	// New characters always start at root room
-	rootRoomID := m.getRootRoomID()
-	m.loadRoom(rootRoomID)
-
-	m.effectsService.FireEvent("on_login", m.currentCharacterID, "", map[string]interface{}{
-		"room_id": m.currentRoom,
-	})
+	m.fetchWorlds()
+	m.AppendMessage(m.displayWorlds(), "info")
 }
 
 // worlds holds the list of available worlds
@@ -286,17 +261,20 @@ func (m *model) fetchWorlds() {
 		return
 	}
 
-	var result []string
+	var result struct {
+		Count   int      `json:"count"`
+		Default string   `json:"default"`
+		Worlds  []string `json:"worlds"`
+	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		m.AppendMessage(fmt.Sprintf("Error parsing worlds: %v", err), "error")
 		return
 	}
-
-	availableWorlds = result
+	availableWorlds = result.Worlds
 	if len(availableWorlds) > 0 {
 		// Set current world to first available world if not already set
 		if m.currentWorld == "" {
-			m.currentWorld = availableWorlds[0]
+			m.currentWorld = result.Worlds[0]
 		}
 	}
 }
@@ -323,8 +301,8 @@ func (m *model) handleWorldSelectInput(input string) {
 		if idx := parseWorldIndex(input, len(availableWorlds)); idx >= 0 {
 			m.currentWorld = availableWorlds[idx]
 			m.AppendMessage(fmt.Sprintf("Selected world: %s", m.currentWorld), "success")
-			m.AppendMessage("Type 'login' to log in or 'register' to create an account.", "info")
-			m.screen = ScreenWelcome
+			m.fetchCharactersByWorld()
+			m.screen = ScreenCharacterSelect
 			m.textInput.SetValue("")
 			m.inputBuffer = ""
 			return
@@ -335,8 +313,8 @@ func (m *model) handleWorldSelectInput(input string) {
 			if strings.ToLower(world) == input {
 				m.currentWorld = world
 				m.AppendMessage(fmt.Sprintf("Selected world: %s", m.currentWorld), "success")
-				m.AppendMessage("Type 'login' to log in or 'register' to create an account.", "info")
-				m.screen = ScreenWelcome
+				m.fetchCharactersByWorld()
+				m.screen = ScreenCharacterSelect
 				m.textInput.SetValue("")
 				m.inputBuffer = ""
 				return
@@ -383,4 +361,474 @@ func (m *model) displayWorlds() string {
 	buf.WriteString("Type 'b' or 'q' to go back.\n\n")
 
 	return buf.String()
+}
+
+// ============================================================
+// CHARACTER SELECTION
+// ============================================================
+
+// handleCharacterSelectInput handles input for the character selection screen
+func (m *model) handleCharacterSelectInput(input string) {
+	// Handle character creation flow
+	if m.isCreatingCharacter {
+		m.handleCharacterCreationInput(input)
+		return
+	}
+
+	input = strings.ToLower(input)
+
+	switch input {
+	case "b", "back", "q", "quit":
+		m.screen = ScreenWorldSelect
+		m.textInput.SetValue("")
+		m.inputBuffer = ""
+		m.AppendMessage("Select a world:", "info")
+	case "r", "refresh":
+		m.fetchCharactersByWorld()
+		m.AppendMessage("Characters refreshed.", "info")
+	case "n", "new", "create":
+		m.startCharacterCreation()
+	default:
+		// Try to parse as character number (1-9)
+		if idx := parseWorldIndex(input, len(m.selectedWorldCharacters)); idx >= 0 {
+			m.selectCharacter(idx)
+			return
+		}
+		// Try exact name match
+		for _, char := range m.selectedWorldCharacters {
+			if strings.ToLower(char.Name) == input {
+				m.selectCharacterByName(char.Name)
+				return
+			}
+		}
+		if input != "" {
+			numChars := len(m.selectedWorldCharacters)
+			if numChars > 0 {
+				m.AppendMessage(fmt.Sprintf("Invalid choice. Type 1-%d to select, 'n' for new, or 'b' to go back.", numChars), "error")
+			} else {
+				m.AppendMessage("Type 'n' to create your first character, or 'b' to go back.", "info")
+			}
+		}
+	}
+}
+
+// fetchCharactersByWorld fetches characters for the current world from the API
+func (m *model) fetchCharactersByWorld() {
+	if m.currentWorld == "" || m.currentUserID == 0 {
+		return
+	}
+
+	m.isLoading = true
+	m.loadingMessage = "Fetching characters..."
+
+	// Use /user-characters/:id and filter by world
+	resp, err := http.Get(fmt.Sprintf("%s/user-characters/%d", RESTAPIBase, m.currentUserID))
+	m.isLoading = false
+
+	if err != nil {
+		m.AppendMessage(fmt.Sprintf("Cannot connect to server at %s.", RESTAPIBase), "error")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.AppendMessage("Failed to fetch characters.", "error")
+		return
+	}
+
+	var characters []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&characters); err != nil {
+		m.AppendMessage(fmt.Sprintf("Error parsing characters: %v", err), "error")
+		return
+	}
+
+	// Filter characters by current world
+	m.selectedWorldCharacters = []CharacterInfo{}
+	for _, char := range characters {
+		// Get full character details to check world
+		charName, _ := char["name"].(string)
+		charID, _ := char["id"].(float64)
+		if charName == "" {
+			continue
+		}
+
+		// Fetch full character to get world
+		charResp, err := http.Get(fmt.Sprintf("%s/characters/%d", RESTAPIBase, int(charID)))
+		if err != nil {
+			continue
+		}
+		defer charResp.Body.Close()
+
+		if charResp.StatusCode != http.StatusOK {
+			continue
+		}
+
+		var fullChar map[string]interface{}
+		if err := json.NewDecoder(charResp.Body).Decode(&fullChar); err != nil {
+			continue
+		}
+
+		// Check if character belongs to current world
+		charWorld, _ := fullChar["currentWorld"].(string)
+		if charWorld != m.currentWorld {
+			continue
+		}
+
+		ci := CharacterInfo{
+			ID: int(charID),
+		}
+		if name, ok := char["name"].(string); ok {
+			ci.Name = name
+		}
+		if race, ok := fullChar["race"].(string); ok {
+			ci.Race = race
+		}
+		if class, ok := fullChar["class"].(string); ok {
+			ci.Class = class
+		}
+		if level, ok := fullChar["level"].(float64); ok {
+			ci.Level = int(level)
+		}
+		if gender, ok := fullChar["gender"].(string); ok {
+			ci.Gender = gender
+		}
+		if hp, ok := fullChar["hitpoints"].(float64); ok {
+			ci.Hitpoints = int(hp)
+		}
+		if maxHP, ok := fullChar["max_hitpoints"].(float64); ok {
+			ci.MaxHitpoints = int(maxHP)
+		}
+
+		m.selectedWorldCharacters = append(m.selectedWorldCharacters, ci)
+	}
+}
+
+// displayCharacters returns the formatted character selection menu
+func (m *model) displayCharacters() string {
+	var buf bytes.Buffer
+
+	buf.WriteString("\n=== SELECT CHARACTER ===\n")
+	buf.WriteString(fmt.Sprintf("World: %s\n\n", m.currentWorld))
+
+	if len(m.selectedWorldCharacters) == 0 {
+		buf.WriteString("No characters in this world.\n")
+		buf.WriteString("Select 'n' to create a new character.\n\n")
+	} else {
+		buf.WriteString("Your characters:\n")
+		for idx, char := range m.selectedWorldCharacters {
+			genderStr := ""
+			if char.Gender != "" {
+				genderStr = fmt.Sprintf(" (%s)", char.Gender)
+			}
+			buf.WriteString(fmt.Sprintf("%d. %s — Level %d %s%s\n",
+				idx+1, char.Name, char.Level, char.Race, genderStr))
+			buf.WriteString(fmt.Sprintf("   Class: %s | HP: %d/%d\n", char.Class, char.Hitpoints, char.MaxHitpoints))
+		}
+		buf.WriteString("\n")
+	}
+
+	buf.WriteString("Type the number or name to select a character.\n")
+	buf.WriteString("Type 'n' to create a new character.\n")
+	buf.WriteString("Type 'b' to go back to world selection.\n\n")
+
+	return buf.String()
+}
+
+// selectCharacter selects a character by index
+func (m *model) selectCharacter(idx int) {
+	if idx < 0 || idx >= len(m.selectedWorldCharacters) {
+		return
+	}
+
+	char := m.selectedWorldCharacters[idx]
+	m.loadCharacter(char.ID)
+	m.AppendMessage(fmt.Sprintf("Selected character: %s", char.Name), "success")
+}
+
+// selectCharacterByName selects a character by name
+func (m *model) selectCharacterByName(name string) {
+	for _, char := range m.selectedWorldCharacters {
+		if char.Name == name {
+			m.loadCharacter(char.ID)
+			m.AppendMessage(fmt.Sprintf("Selected character: %s", char.Name), "success")
+			return
+		}
+	}
+}
+
+// loadCharacter loads character data and transitions to playing screen
+func (m *model) loadCharacter(charID int) {
+	resp, err := http.Get(fmt.Sprintf("%s/characters/%d", RESTAPIBase, charID))
+	if err != nil {
+		m.AppendMessage("Failed to load character.", "error")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.AppendMessage("Character not found.", "error")
+		return
+	}
+
+	var char map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&char); err != nil {
+		m.AppendMessage("Error loading character data.", "error")
+		return
+	}
+
+	// Populate model fields
+	if id, ok := char["id"].(float64); ok {
+		m.currentCharacterID = int(id)
+	}
+	if name, ok := char["name"].(string); ok {
+		m.currentCharacterName = name
+	}
+	if race, ok := char["race"].(string); ok {
+		m.characterRace = race
+	}
+	if class, ok := char["class"].(string); ok {
+		m.characterClass = class
+	}
+	if gender, ok := char["gender"].(string); ok {
+		m.characterGender = gender
+	}
+	if desc, ok := char["description"].(string); ok {
+		m.characterDescription = desc
+	}
+	if hp, ok := char["hitpoints"].(float64); ok {
+		m.characterHP = int(hp)
+	}
+	if maxHP, ok := char["max_hitpoints"].(float64); ok {
+		m.characterMaxHP = int(maxHP)
+	}
+	if stamina, ok := char["stamina"].(float64); ok {
+		m.characterStamina = int(stamina)
+	}
+	if maxStamina, ok := char["max_stamina"].(float64); ok {
+		m.characterMaxStamina = int(maxStamina)
+	}
+	if mana, ok := char["mana"].(float64); ok {
+		m.characterMana = int(mana)
+	}
+	if maxMana, ok := char["max_mana"].(float64); ok {
+		m.characterMaxMana = int(maxMana)
+	}
+	if level, ok := char["level"].(float64); ok {
+		m.characterLevel = int(level)
+	}
+
+	// Transition to playing screen
+	m.screen = ScreenPlaying
+	m.textInput.SetValue("")
+	m.inputBuffer = ""
+	m.selectedWorldCharacters = []CharacterInfo{}
+	m.isCreatingCharacter = false
+	m.visitedRooms[m.currentRoom] = true
+
+	// Determine reconnect room
+	targetRoomID := m.determineReconnectRoom()
+	m.loadRoom(targetRoomID)
+
+	// Update last seen
+	m.updateLastSeenAt()
+
+	m.effectsService.FireEvent("on_login", m.currentCharacterID, "", map[string]interface{}{
+		"room_id": m.currentRoom,
+	})
+}
+
+// ============================================================
+// CHARACTER CREATION
+// ============================================================
+
+// Character creation input state
+var createCharName string
+var createCharPassword string
+var createCharRace string
+
+func (m *model) startCharacterCreation() {
+	m.isCreatingCharacter = true
+	m.inputField = "char_name"
+	m.textInput.SetValue("")
+	m.inputBuffer = ""
+	m.AppendMessage("Creating new character in: "+m.currentWorld, "info")
+	m.AppendMessage("Enter character name (letters only, 1-23 chars):", "info")
+	m.textInput.Focus()
+}
+
+func (m *model) handleCharacterCreationInput(input string) {
+	// Handle cancel
+	if strings.ToLower(input) == "cancel" || strings.ToLower(input) == "c" {
+		m.cancelCharacterCreation()
+		return
+	}
+
+	switch m.inputField {
+	case "char_name":
+		if input == "" {
+			m.AppendMessage("Name cannot be empty. Enter character name:", "error")
+			return
+		}
+		if len(input) > 23 {
+			m.AppendMessage("Name too long (max 23 characters). Try again:", "error")
+			return
+		}
+		// Validate letters only
+		for _, ch := range input {
+			if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
+				m.AppendMessage("Name can only contain letters (a-z, A-Z). Try again:", "error")
+				return
+			}
+		}
+		createCharName = input
+		m.inputField = "char_password"
+		m.AppendMessage("Enter character password:", "info")
+		m.textInput.EchoMode = textinput.EchoPassword
+		m.textInput.SetValue("")
+		m.textInput.Focus()
+	case "char_password":
+		if input == "" {
+			m.AppendMessage("Password cannot be empty. Enter password:", "error")
+			return
+		}
+		createCharPassword = input
+		m.inputField = "char_confirm_password"
+		m.AppendMessage("Confirm password:", "info")
+		m.textInput.SetValue("")
+		m.textInput.Focus()
+	case "char_confirm_password":
+		if input != createCharPassword {
+			m.AppendMessage("Passwords do not match. Try again:", "error")
+			m.inputField = "char_password"
+			createCharPassword = ""
+			m.textInput.EchoMode = textinput.EchoPassword
+			m.textInput.SetValue("")
+			m.textInput.Focus()
+			return
+		}
+		m.inputField = "char_race"
+		m.textInput.EchoMode = textinput.EchoNormal
+		m.AppendMessage("Select race (or press Enter for human):", "info")
+		m.AppendMessage("Available: human, elf, dwarf, halfling, orc", "info")
+		m.textInput.SetValue("")
+		m.textInput.Focus()
+	case "char_race":
+		race := strings.ToLower(input)
+		if race == "" {
+			race = "human"
+		}
+		validRaces := map[string]bool{"human": true, "elf": true, "dwarf": true, "halfling": true, "orc": true}
+		if !validRaces[race] {
+			m.AppendMessage("Invalid race. Choose: human, elf, dwarf, halfling, orc", "error")
+			return
+		}
+		createCharRace = race
+		m.inputField = "char_class"
+		m.AppendMessage(fmt.Sprintf("Race selected: %s", race), "success")
+		m.AppendMessage("Select class (or press Enter for adventurer):", "info")
+		m.AppendMessage("Available: adventurer, warrior, mage, rogue, cleric", "info")
+		m.textInput.SetValue("")
+		m.textInput.Focus()
+	case "char_class":
+		class := strings.ToLower(input)
+		if class == "" {
+			class = "adventurer"
+		}
+		validClasses := map[string]bool{"adventurer": true, "warrior": true, "mage": true, "rogue": true, "cleric": true}
+		if !validClasses[class] {
+			m.AppendMessage("Invalid class. Choose: adventurer, warrior, mage, rogue, cleric", "error")
+			return
+		}
+		// Create the character
+		m.createCharacter(createCharName, createCharPassword, createCharRace, class)
+	default:
+		// Unknown state, reset
+		m.cancelCharacterCreation()
+	}
+}
+
+func (m *model) createCharacter(name, password, race, class string) {
+	m.isLoading = true
+	m.loadingMessage = "Creating character..."
+
+	jsonData, _ := json.Marshal(map[string]interface{}{
+		"name":     name,
+		"password": password,
+		"race":     race,
+		"class":    class,
+		"world":    m.currentWorld,
+	})
+
+	resp, err := http.Post(fmt.Sprintf("%s/user-characters/%d", RESTAPIBase, m.currentUserID),
+		"application/json", bytes.NewBuffer(jsonData))
+	m.isLoading = false
+
+	if err != nil {
+		m.AppendMessage(fmt.Sprintf("Connection error: %v", err), "error")
+		m.cancelCharacterCreation()
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusConflict {
+		m.AppendMessage("Character name already taken. Try a different name.", "error")
+		m.inputField = "char_name"
+		createCharName = ""
+		createCharPassword = ""
+		m.textInput.EchoMode = textinput.EchoNormal
+		m.textInput.SetValue("")
+		m.textInput.Focus()
+		return
+	}
+
+	if resp.StatusCode == http.StatusBadRequest {
+		var errResp map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&errResp)
+		if errMsg, ok := errResp["error"].(string); ok {
+			m.AppendMessage(errMsg, "error")
+		} else {
+			m.AppendMessage("Failed to create character.", "error")
+		}
+		m.cancelCharacterCreation()
+		return
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		m.AppendMessage(fmt.Sprintf("Server error (status %d). Try again.", resp.StatusCode), "error")
+		m.cancelCharacterCreation()
+		return
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.AppendMessage("Error processing response.", "error")
+		m.cancelCharacterCreation()
+		return
+	}
+
+	// Reset creation state
+	createCharName = ""
+	createCharPassword = ""
+	createCharRace = ""
+	m.isCreatingCharacter = false
+	m.inputField = ""
+	m.textInput.EchoMode = textinput.EchoNormal
+
+	// Load the new character
+	if id, ok := result["id"].(float64); ok {
+		m.AppendMessage(fmt.Sprintf("Character '%s' created successfully!", name), "success")
+		m.loadCharacter(int(id))
+	}
+}
+
+func (m *model) cancelCharacterCreation() {
+	createCharName = ""
+	createCharPassword = ""
+	createCharRace = ""
+	m.isCreatingCharacter = false
+	m.inputField = ""
+	m.textInput.EchoMode = textinput.EchoNormal
+	m.screen = ScreenCharacterSelect
+	m.textInput.SetValue("")
+	m.inputBuffer = ""
 }

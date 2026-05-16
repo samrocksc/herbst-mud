@@ -1,21 +1,22 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useLogs, useLogServices } from '../../hooks/useLogs';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/Button';
+/* eslint-disable functional/immutable-data */
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useLogs, useLogServices } from "../../hooks/useLogs";
+import { PageHeader } from "../../components/PageHeader";
+import { Button } from "../../components/Button";
 
-export const Route = createFileRoute('/_auth/logs')({
+export const Route = createFileRoute("/_auth/logs")({
   component: LogsPage,
 });
 
 const LEVEL_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
-  DEBUG: { bg: 'bg-slate-700/50', text: 'text-slate-300', dot: 'bg-slate-400' },
-  INFO:  { bg: 'bg-sky-900/40', text: 'text-sky-300', dot: 'bg-sky-400' },
-  WARN:  { bg: 'bg-amber-900/40', text: 'text-amber-300', dot: 'bg-amber-400' },
-  ERROR: { bg: 'bg-red-900/40', text: 'text-red-300', dot: 'bg-red-400' },
+  DEBUG: { bg: "bg-slate-700/50", text: "text-slate-300", dot: "bg-slate-400" },
+  INFO:  { bg: "bg-sky-900/40", text: "text-sky-300", dot: "bg-sky-400" },
+  WARN:  { bg: "bg-amber-900/40", text: "text-amber-300", dot: "bg-amber-400" },
+  ERROR: { bg: "bg-red-900/40", text: "text-red-300", dot: "bg-red-400" },
 };
 
-const LEVELS = ['ALL', 'DEBUG', 'INFO', 'WARN', 'ERROR'] as const;
+const LEVELS = ["ALL", "DEBUG", "INFO", "WARN", "ERROR"] as const;
 
 type LogLine = {
   id?: number
@@ -29,9 +30,9 @@ type LogLine = {
 }
 
 function LogsPage() {
-  const [level, setLevel] = useState<string>('');
-  const [service, setService] = useState<string>('');
-  const [search, setSearch] = useState<string>('');
+  const [level, setLevel] = useState<string>("");
+  const [service, setService] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
   const [live, setLive] = useState(false);
   const [liveLines, setLiveLines] = useState<LogLine[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -47,7 +48,7 @@ function LogsPage() {
 
   useEffect(() => {
     if (live && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [filtered.length, live]);
 
@@ -58,7 +59,7 @@ function LogsPage() {
 
   useEffect(() => {
     if (!live) return;
-    const token = localStorage.getItem('auth_token') || '';
+    const token = localStorage.getItem("auth_token") || "";
     const es = new EventSource(`${window.location.origin}/api/logs/stream?token=${encodeURIComponent(token)}`);
     es.onmessage = (e) => {
       try {
@@ -70,7 +71,6 @@ function LogsPage() {
     return () => es.close();
   }, [live]);
 
-  const activeLevel = level || 'ALL';
   const total = data?.total ?? 0;
 
   return (
@@ -79,11 +79,11 @@ function LogsPage() {
         <div className="flex items-center gap-2">
           <span className="text-xs text-text-muted">{live ? `${liveLines.length} live` : `${total} total`}</span>
           <Button
-            variant={live ? 'primary' : 'secondary'}
+            variant={live ? "primary" : "secondary"}
             size="sm"
             onClick={toggleLive}
           >
-            {live ? '● Live' : '○ Paused'}
+            {live ? "● Live" : "○ Paused"}
           </Button>
         </div>
       } />
@@ -92,16 +92,16 @@ function LogsPage() {
       <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-surface-muted rounded-lg border border-border">
         <div className="flex gap-1">
           {LEVELS.map((l) => {
-            const isActive = (l === 'ALL' && !level) || l === level;
+            const isActive = (l === "ALL" && !level) || l === level;
             const style = LEVEL_BADGE[l];
             return (
               <button
                 key={l}
-                onClick={() => setLevel(l === 'ALL' ? '' : l)}
+                onClick={() => setLevel(l === "ALL" ? "" : l)}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   isActive
-                    ? `${style ? style.bg : 'bg-primary/30'} ${style ? style.text : 'text-white'} ring-1 ring-current`
-                    : 'bg-surface text-text-muted hover:text-text hover:bg-surface/80'
+                    ? `${style ? style.bg : "bg-primary/30"} ${style ? style.text : "text-white"} ring-1 ring-current`
+                    : "bg-surface text-text-muted hover:text-text hover:bg-surface/80"
                 }`}
               >
                 {l}
@@ -141,7 +141,7 @@ function LogsPage() {
         <div className="text-center py-12">
           <div className="text-text-muted text-lg mb-1">No logs found</div>
           <div className="text-text-muted/60 text-sm">
-            {live ? 'Waiting for new log entries...' : 'Try adjusting your filters.'}
+            {live ? "Waiting for new log entries..." : "Try adjusting your filters."}
           </div>
         </div>
       )}
@@ -152,7 +152,7 @@ function LogsPage() {
           return (
             <div
               key={log.id ?? i}
-              className={`flex items-start gap-3 px-3 py-2 border-b border-border/20 hover:bg-surface-muted/30 transition-colors`}
+              className={"flex items-start gap-3 px-3 py-2 border-b border-border/20 hover:bg-surface-muted/30 transition-colors"}
             >
               {/* Level dot + badge */}
               <div className="flex-shrink-0 w-16">
@@ -209,19 +209,19 @@ function LogsPage() {
 }
 
 function formatTime(t: string): string {
-  if (!t) return '—';
+  if (!t) return "—";
   try {
     const d = new Date(t);
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return 'just now';
+    if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
     const isToday = d.toDateString() === now.toDateString();
-    if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const isThisYear = d.getFullYear() === now.getFullYear();
-    if (isThisYear) return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isThisYear) return d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" }) + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   } catch {
     return t;
   }

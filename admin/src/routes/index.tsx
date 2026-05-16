@@ -1,8 +1,8 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: Home,
 });
 
@@ -10,9 +10,9 @@ function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
-      navigate({ to: '/dashboard' });
+      navigate({ to: "/dashboard" });
     }
   }, [navigate]);
 

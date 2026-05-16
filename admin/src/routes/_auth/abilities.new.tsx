@@ -1,45 +1,45 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   useCreateAbility,
   type AbilityInput,
-} from '../../hooks/useAbilities';
-import { useTags } from '../../hooks/useTags';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/Button';
-import { TagInput } from '../../components/TagInput';
+} from "../../hooks/useAbilities";
+import { useTags } from "../../hooks/useTags";
+import { PageHeader } from "../../components/PageHeader";
+import { Button } from "../../components/Button";
+import { TagInput } from "../../components/TagInput";
 import {
   FormField,
   NumberField,
   TextareaField,
   SelectField,
-} from '../../components/FormFields';
-import { showToast } from '../../components/Toast';
+} from "../../components/FormFields";
+import { showToast } from "../../components/Toast";
 
-export const Route = createFileRoute('/_auth/abilities/new')({
+export const Route = createFileRoute("/_auth/abilities/new")({
   component: CreateAbilityPage,
 });
 
 const ABILITY_TYPE_OPTS = [
-  { value: 'combat', label: 'Combat' },
-  { value: 'magic', label: 'Magic' },
-  { value: 'utility', label: 'Utility' },
-  { value: 'healing', label: 'Healing' },
-  { value: 'support', label: 'Support' },
-  { value: 'defensive', label: 'Defensive' },
+  { value: "combat", label: "Combat" },
+  { value: "magic", label: "Magic" },
+  { value: "utility", label: "Utility" },
+  { value: "healing", label: "Healing" },
+  { value: "support", label: "Support" },
+  { value: "defensive", label: "Defensive" },
 ];
 
 const ABILITY_CLASS_OPTS = [
-  { value: 'active', label: 'Active' },
-  { value: 'passive', label: 'Passive' },
-  { value: 'toggle', label: 'Toggle' },
+  { value: "active", label: "Active" },
+  { value: "passive", label: "Passive" },
+  { value: "toggle", label: "Toggle" },
 ];
 
 const EMPTY_ABILITY: AbilityInput = {
-  name: '',
-  description: '',
-  ability_type: 'combat',
-  requirements: '1',
+  name: "",
+  description: "",
+  ability_type: "combat",
+  requirements: "1",
   cost: 0,
   cooldown: 0,
   cooldown_seconds: 0,
@@ -47,9 +47,9 @@ const EMPTY_ABILITY: AbilityInput = {
   stamina_cost: 0,
   hp_cost: 0,
   proc_chance: 0,
-  proc_event: '',
-  ability_class: 'active',
-  required_tag: '',
+  proc_event: "",
+  ability_class: "active",
+  required_tag: "",
 };
 
 function CreateAbilityPage() {
@@ -59,7 +59,7 @@ function CreateAbilityPage() {
   const [formData, setFormData] = useState<AbilityInput>(EMPTY_ABILITY);
 
   const selectedTags = formData.required_tag
-    ? formData.required_tag.split(',').map((t) => t.trim()).filter(Boolean)
+    ? formData.required_tag.split(",").map((t) => t.trim()).filter(Boolean)
     : [];
 
   const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }));
@@ -68,8 +68,8 @@ function CreateAbilityPage() {
     e.preventDefault();
     try {
       await createAbility.mutateAsync(formData);
-      showToast('Ability created', 'success');
-      navigate({ to: '/abilities' });
+      showToast("Ability created", "success");
+      navigate({ to: "/abilities" });
     } catch {
       // Error is toasted by global onError handler
     }
@@ -87,7 +87,7 @@ function CreateAbilityPage() {
             <TagInput
               label="Required Tag (optional)"
               value={selectedTags}
-              onChange={(tags) => set({ required_tag: tags.join(', ') })}
+              onChange={(tags) => set({ required_tag: tags.join(", ") })}
               availableTags={(availableTags ?? []).map((t) => t.name)}
               placeholder="e.g., sword, fire, healing"
             />
@@ -114,9 +114,9 @@ function CreateAbilityPage() {
           </div>
 
           <div className="flex gap-2 justify-end mt-6">
-            <Button variant="secondary" onClick={() => navigate({ to: '/abilities' })}>Cancel</Button>
+            <Button variant="secondary" onClick={() => navigate({ to: "/abilities" })}>Cancel</Button>
             <Button variant="primary" type="submit" disabled={createAbility.isPending}>
-              {createAbility.isPending ? 'Creating...' : 'Create Ability'}
+              {createAbility.isPending ? "Creating..." : "Create Ability"}
             </Button>
           </div>
         </form>

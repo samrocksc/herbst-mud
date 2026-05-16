@@ -1,7 +1,8 @@
-import { Link } from '@tanstack/react-router';
-import { Button } from '../Button';
-import { NPCInstanceRow } from './NPCEditRow';
-import { useNPCInstances } from './useNPCInstances';
+ 
+import { Link } from "@tanstack/react-router";
+import { Button } from "../Button";
+import { NPCInstanceRow } from "./NPCEditRow";
+import { useNPCInstances } from "./useNPCInstances";
 
 export type NPCInstanceView = Readonly<{
   id: number

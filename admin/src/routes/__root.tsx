@@ -1,18 +1,18 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Sidebar } from '../components/Sidebar';
-import { MenuIcon } from '../components/icons/MenuIcon';
-import { Button } from '../components/Button';
-import { ToastProvider } from '../components/Toast';
-import { ErrorBoundary } from '../components/ErrorBoundary';
-import { showToast } from '../components/Toast';
+import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
+import { Sidebar } from "../components/Sidebar";
+import { MenuIcon } from "../components/icons/MenuIcon";
+import { Button } from "../components/Button";
+import { ToastProvider } from "../components/Toast";
+import { ErrorBoundary } from "../components/ErrorBoundary";
+import { showToast } from "../components/Toast";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     mutations: {
       onError: (err) => {
-        showToast(err instanceof Error ? err.message : 'Operation failed', 'error');
+        showToast(err instanceof Error ? err.message : "Operation failed", "error");
       },
     },
   },
@@ -42,9 +42,9 @@ function RootComponent() {
 
             <div
               className={[
-                'lg:block',
-                mobileSidebarOpen ? 'block' : 'hidden',
-              ].join(' ')}
+                "lg:block",
+                mobileSidebarOpen ? "block" : "hidden",
+              ].join(" ")}
             >
               <Sidebar />
             </div>

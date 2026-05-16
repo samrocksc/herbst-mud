@@ -1,19 +1,19 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useCreateWorld, type WorldInput } from '../../hooks/useWorlds';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/Button';
-import { FormField, TextareaField } from '../../components/FormFields';
-import { showToast } from '../../components/Toast';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useCreateWorld, type WorldInput } from "../../hooks/useWorlds";
+import { PageHeader } from "../../components/PageHeader";
+import { Button } from "../../components/Button";
+import { FormField, TextareaField } from "../../components/FormFields";
+import { showToast } from "../../components/Toast";
 
-export const Route = createFileRoute('/_auth/worlds/new')({
+export const Route = createFileRoute("/_auth/worlds/new")({
   component: CreateWorldPage,
 });
 
 const EMPTY_WORLD: WorldInput = {
-  name: '',
-  title: '',
-  description: '',
+  name: "",
+  title: "",
+  description: "",
   active: false,
 };
 
@@ -28,8 +28,8 @@ function CreateWorldPage() {
     e.preventDefault();
     try {
       await createWorld.mutateAsync(formData);
-      showToast('World created', 'success');
-      navigate({ to: '/worlds' });
+      showToast("World created", "success");
+      navigate({ to: "/worlds" });
     } catch {
       // Error is toasted by global onError handler
     }
@@ -78,11 +78,11 @@ function CreateWorldPage() {
           </div>
 
           <div className="flex gap-2 justify-end mt-6">
-            <Button variant="secondary" onClick={() => navigate({ to: '/worlds' })}>
+            <Button variant="secondary" onClick={() => navigate({ to: "/worlds" })}>
               Cancel
             </Button>
             <Button variant="primary" type="submit" disabled={createWorld.isPending}>
-              {createWorld.isPending ? 'Creating...' : 'Create World'}
+              {createWorld.isPending ? "Creating..." : "Create World"}
             </Button>
           </div>
         </form>

@@ -1,13 +1,13 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useUsers, useResetPassword, type User } from '../../hooks/useUsers';
-import { apiGet } from '../../utils/apiFetch';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useUsers, useResetPassword, type User } from "../../hooks/useUsers";
+import { apiGet } from "../../utils/apiFetch";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
 
-export const Route = createFileRoute('/_auth/players')({
+export const Route = createFileRoute("/_auth/players")({
   component: PlayersManagement,
 });
 
@@ -33,7 +33,7 @@ function PlayersManagement() {
   const [resetError, setResetError] = useState<string | null>(null);
 
   const charactersQuery = useQuery<Character[]>({
-    queryKey: ['characters'],
+    queryKey: ["characters"],
     queryFn: () => apiGet<Character[]>(`${window.location.origin}/characters`),
     enabled: showCharacters,
   });
@@ -45,29 +45,29 @@ function PlayersManagement() {
   };
 
   const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
   const userColumns: Column<User>[] = [
-    { header: 'ID', accessor: 'id' },
-    { header: 'Email', accessor: 'email' },
-    { header: 'Role', accessor: 'is_admin', render: (val: unknown) =>
+    { header: "ID", accessor: "id" },
+    { header: "Email", accessor: "email" },
+    { header: "Role", accessor: "is_admin", render: (val: unknown) =>
       val ? <span className="badge badge-admin">Admin</span> : <span className="badge badge-player">Player</span> },
-    { header: 'Created', accessor: 'created_at', render: (val: unknown) => formatDate(String(val ?? '')) },
-    { header: 'Actions', accessor: '_actions', render: (_: unknown, row: User) => (
+    { header: "Created", accessor: "created_at", render: (val: unknown) => formatDate(String(val ?? "")) },
+    { header: "Actions", accessor: "_actions", render: (_: unknown, row: User) => (
       <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); handleReset(row); }} disabled={resetPassword.isPending}>Reset Password</Button>
     )},
   ];
 
   const charColumns: Column<Character>[] = [
-    { header: 'ID', accessor: 'id' },
-    { header: 'Name', accessor: 'name', render: (_: unknown, row: Character) => (
+    { header: "ID", accessor: "id" },
+    { header: "Name", accessor: "name", render: (_: unknown, row: Character) => (
       <Link to="/characters/$characterId" params={{ characterId: String(row.id) }} className="text-primary no-underline hover:underline font-bold">{row.name}</Link>
     )},
-    { header: 'Race', accessor: 'race' },
-    { header: 'Class', accessor: 'class' },
-    { header: 'Level', accessor: 'level' },
-    { header: 'HP', accessor: 'hitpoints', render: (_: unknown, row: Character) => `${row.hitpoints}/${row.max_hitpoints}` },
-    { header: 'Room', accessor: 'currentRoomId' },
+    { header: "Race", accessor: "race" },
+    { header: "Class", accessor: "class" },
+    { header: "Level", accessor: "level" },
+    { header: "HP", accessor: "hitpoints", render: (_: unknown, row: Character) => `${row.hitpoints}/${row.max_hitpoints}` },
+    { header: "Room", accessor: "currentRoomId" },
   ];
 
   if (isLoading) return <div className="loading">Loading players...</div>;
@@ -85,7 +85,7 @@ function PlayersManagement() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="m-0 text-text text-lg font-semibold">Characters</h2>
           <Button variant="secondary" size="sm" onClick={() => setShowCharacters(!showCharacters)}>
-            {showCharacters ? 'Hide Characters' : 'Show Characters'}
+            {showCharacters ? "Hide Characters" : "Show Characters"}
           </Button>
         </div>
         {showCharacters && (
@@ -105,8 +105,8 @@ function PlayersManagement() {
             <div className="modal-body">
               <div className="detail-row"><label>ID:</label><span>{selectedUser.id}</span></div>
               <div className="detail-row"><label>Email:</label><span>{selectedUser.email}</span></div>
-              <div className="detail-row"><label>Admin:</label><span>{selectedUser.is_admin ? 'Yes' : 'No'}</span></div>
-              <div className="detail-row"><label>Character:</label><span>{selectedUser.character_name || 'No character'}</span></div>
+              <div className="detail-row"><label>Admin:</label><span>{selectedUser.is_admin ? "Yes" : "No"}</span></div>
+              <div className="detail-row"><label>Character:</label><span>{selectedUser.character_name || "No character"}</span></div>
               <div className="detail-row"><label>Created:</label><span>{formatDate(selectedUser.created_at)}</span></div>
             </div>
             <div className="modal-footer">

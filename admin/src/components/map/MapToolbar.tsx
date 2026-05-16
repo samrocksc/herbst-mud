@@ -1,13 +1,14 @@
-import { Button } from '../Button';
+/* eslint-disable functional/no-mixed-types */
+import { Button } from "../Button";
 
-type MapToolbarProps = {
+type MapToolbarProps = Readonly<{
   currentZLevel: number
   zoom: number
   onZoom: (delta: number) => void
   onResetView?: () => void
   onRelayout?: () => void
   onCleanupOrphanExits?: () => void
-}
+}>
 
 export function MapToolbar({ currentZLevel, zoom, onZoom, onResetView, onRelayout, onCleanupOrphanExits }: MapToolbarProps) {
   return (

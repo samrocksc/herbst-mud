@@ -1,66 +1,66 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
-import { DocsIcon } from '../../components/icons/DocsIcon';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
+import { DocsIcon } from "../../components/icons/DocsIcon";
 
-export const Route = createFileRoute('/docs/')({
+export const Route = createFileRoute("/docs/")({
   component: DocsIndex,
 });
 
 const DOC_PAGES = [
   {
-    title: 'Ability System',
-    path: '/docs/ability-system',
-    desc: 'Combat abilities, effect types, scaling, costs, and the classless skill system.',
+    title: "Ability System",
+    path: "/docs/ability-system",
+    desc: "Combat abilities, effect types, scaling, costs, and the classless skill system.",
   },
   {
-    title: 'Combat Guide',
-    path: '/docs/combat-guide',
-    desc: 'Tick-based combat flow, damage formula, dodge/parry, and skill combos.',
+    title: "Combat Guide",
+    path: "/docs/combat-guide",
+    desc: "Tick-based combat flow, damage formula, dodge/parry, and skill combos.",
   },
   {
-    title: 'Trainable Skills',
-    path: '/docs/trainable-skills',
-    desc: 'How weapon/magic proficiencies relate to abilities and training mechanics.',
+    title: "Trainable Skills",
+    path: "/docs/trainable-skills",
+    desc: "How weapon/magic proficiencies relate to abilities and training mechanics.",
   },
   {
-    title: 'NPC System',
-    path: '/docs/npc-system',
-    desc: 'NPC lifecycle, templates, instances, respawn, level scaling, and race effects.',
+    title: "NPC System",
+    path: "/docs/npc-system",
+    desc: "NPC lifecycle, templates, instances, respawn, level scaling, and race effects.",
   },
   {
-    title: 'Item System',
-    path: '/docs/item-system',
-    desc: 'Equipment slots, damage/armor calculation, tags, and item categories.',
+    title: "Item System",
+    path: "/docs/item-system",
+    desc: "Equipment slots, damage/armor calculation, tags, and item categories.",
   },
   {
-    title: 'Faction System',
-    path: '/docs/faction-system',
-    desc: 'Standing mechanics, categories, and how factions affect gameplay.',
+    title: "Faction System",
+    path: "/docs/faction-system",
+    desc: "Standing mechanics, categories, and how factions affect gameplay.",
   },
   {
-    title: 'Quest System',
-    path: '/docs/quest-system',
-    desc: 'Quest objectives, progress tracking, repeat modes, rewards, and player commands.',
+    title: "Quest System",
+    path: "/docs/quest-system",
+    desc: "Quest objectives, progress tracking, repeat modes, rewards, and player commands.",
   },
   {
-    title: 'Examine Skill',
-    path: '/docs/examine-skill',
-    desc: 'The examine command, hidden details, skill levels, and DC checks.',
+    title: "Examine Skill",
+    path: "/docs/examine-skill",
+    desc: "The examine command, hidden details, skill levels, and DC checks.",
   },
   {
-    title: 'Config Reference',
-    path: '/docs/config-reference',
-    desc: 'What each config key does and how it affects the game world.',
+    title: "Config Reference",
+    path: "/docs/config-reference",
+    desc: "What each config key does and how it affects the game world.",
   },
   {
-    title: 'Bind Points & Root Room',
-    path: '/docs/bind-points',
-    desc: 'Root room, bind points, respawn mechanics, and reconnect positioning.',
+    title: "Bind Points & Root Room",
+    path: "/docs/bind-points",
+    desc: "Root room, bind points, respawn mechanics, and reconnect positioning.",
   },
   {
-    title: 'Worlds',
-    path: '/docs/worlds',
-    desc: 'Multi-world architecture, settings, content structure, and game time.',
+    title: "Worlds",
+    path: "/docs/worlds",
+    desc: "Multi-world architecture, settings, content structure, and game time.",
   },
 ];
 

@@ -1,13 +1,14 @@
-import { Component, type ReactNode } from 'react';
+/* eslint-disable functional/no-class-inheritance, no-restricted-syntax */
+import { Component, type ReactNode } from "react";
 
-interface Props {
+type Props = Readonly<{
   children: ReactNode
-}
+}>
 
-interface State {
+type State = Readonly<{
   hasError: boolean
   error: Error | null
-}
+}>
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null };

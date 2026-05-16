@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/examine-skill')({
+export const Route = createFileRoute("/docs/examine-skill")({
   component: ExamineSkillDoc,
 });
 
@@ -80,13 +80,13 @@ function ExamineSkillDoc() {
 
       <Section title="Skill Levels & Bonuses">
         <Table
-          headers={['Examine Level', 'Bonus', 'What It Means']}
+          headers={["Examine Level", "Bonus", "What It Means"]}
           rows={[
-            ['0–25', '0%', 'Basic description only.'],
-            ['26–50', '10%', 'Reveals hidden items in rooms.'],
-            ['51–75', '25%', 'Reveals NPC weaknesses and item stats.'],
-            ['76–90', '50%', 'Reveals secret exits and quest hints.'],
-            ['91–100', '75%', 'Reveals everything including lore and backstory.'],
+            ["0–25", "0%", "Basic description only."],
+            ["26–50", "10%", "Reveals hidden items in rooms."],
+            ["51–75", "25%", "Reveals NPC weaknesses and item stats."],
+            ["76–90", "50%", "Reveals secret exits and quest hints."],
+            ["91–100", "75%", "Reveals everything including lore and backstory."],
           ]}
         />
         <p className="text-text-muted mt-3">
@@ -96,12 +96,12 @@ function ExamineSkillDoc() {
 
       <Section title="XP Rewards">
         <Table
-          headers={['Action', 'XP Gain']}
+          headers={["Action", "XP Gain"]}
           rows={[
-            ['First-time examine of a room', '+1 XP'],
-            ['Discover a hidden detail', '+2 XP'],
-            ['Reveal a hidden exit', '+5 XP'],
-            ['Decrypt a secret message', '+10 XP'],
+            ["First-time examine of a room", "+1 XP"],
+            ["Discover a hidden detail", "+2 XP"],
+            ["Reveal a hidden exit", "+5 XP"],
+            ["Decrypt a secret message", "+10 XP"],
           ]}
         />
         <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mt-3 mb-3">
@@ -120,13 +120,13 @@ function ExamineSkillDoc() {
           that only high-examine characters discover:
         </p>
         <Table
-          headers={['Property', 'Meaning']}
+          headers={["Property", "Meaning"]}
           rows={[
-            ['Text', 'What the player sees when revealed.'],
-            ['Min Examine Level', 'Minimum skill level to see this detail (automatic mode).'],
-            ['Mode', '"automatic" = skill threshold, "check" = roll against DC.'],
-            ['DC', 'Difficulty Class for check mode. Higher = harder to reveal.'],
-            ['Stat', '"INT" or "WIS" — which stat adds to the roll in check mode.'],
+            ["Text", "What the player sees when revealed."],
+            ["Min Examine Level", "Minimum skill level to see this detail (automatic mode)."],
+            ["Mode", "\"automatic\" = skill threshold, \"check\" = roll against DC."],
+            ["DC", "Difficulty Class for check mode. Higher = harder to reveal."],
+            ["Stat", "\"INT\" or \"WIS\" — which stat adds to the roll in check mode."],
           ]}
         />
       </Section>

@@ -1,5 +1,6 @@
-import type { SelectHTMLAttributes } from 'react';
-import { FieldLabel, INPUT_CLASS } from './FieldLabel';
+ 
+import type { SelectHTMLAttributes } from "react";
+import { FieldLabel, INPUT_CLASS } from "./FieldLabel";
 
 type SelectOption = Readonly<{ value: string; label: string }>
 
@@ -12,10 +13,10 @@ type SelectFieldProps = Readonly<{
   placeholder?: string
   disabled?: boolean
   tooltip?: string
-}> & Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'value' | 'className' | 'id'>
+}> & Omit<SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "value" | "className" | "id">
 
 export function SelectField({ label, id, value, onChange, options, placeholder, disabled, tooltip, ...rest }: SelectFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-');
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, "-");
   return (
     <div>
       <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
@@ -24,7 +25,7 @@ export function SelectField({ label, id, value, onChange, options, placeholder, 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className={`${INPUT_CLASS} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`${INPUT_CLASS} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
         {...rest}
       >
         {placeholder && <option value="">{placeholder}</option>}

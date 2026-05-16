@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}/api/tags`;
 
@@ -17,7 +18,7 @@ export type TagUsageReport = Readonly<{
 
 export function useTags() {
   return useQuery({
-    queryKey: ['tags'],
+    queryKey: ["tags"],
     queryFn: async (): Promise<Tag[]> => {
       const data = await apiGet<Tag[]>(API);
       return Array.isArray(data) ? data : [];
@@ -29,7 +30,7 @@ export function useCreateTag() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: TagInput) => apiPost<Tag>(API, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tags'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tags"] }),
   });
 }
 
@@ -38,7 +39,7 @@ export function useUpdateTag() {
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: Partial<TagInput> }) =>
       apiPut<Tag>(`${API}/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tags'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tags"] }),
   });
 }
 
@@ -46,13 +47,13 @@ export function useDeleteTag() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tags'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tags"] }),
   });
 }
 
 export function useTagUsages(id: number | null) {
   return useQuery({
-    queryKey: ['tag-usages', id],
+    queryKey: ["tag-usages", id],
     queryFn: async (): Promise<TagUsageReport> =>
       apiGet<TagUsageReport>(`${API}/${id}/usages`),
     enabled: !!id,

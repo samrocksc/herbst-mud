@@ -1,62 +1,63 @@
-import { useState } from 'react';
+ 
+import { useState } from "react";
 import {
   useEffects,
   useCreateEffect,
   useDeleteEffect,
   type AbilityEffect,
   type EffectInput,
-} from '../hooks/useEffects';
-import { NumberField, SelectField } from './FormFields';
-import { Button } from './Button';
+} from "../hooks/useEffects";
+import { NumberField, SelectField } from "./FormFields";
+import { Button } from "./Button";
 
 const EFFECT_TYPE_OPTS = [
-  { value: 'damage', label: 'Damage' },
-  { value: 'heal', label: 'Heal' },
-  { value: 'buff', label: 'Buff' },
-  { value: 'debuff', label: 'Debuff' },
-  { value: 'dot', label: 'DoT' },
-  { value: 'hot', label: 'HoT' },
-  { value: 'stun', label: 'Stun' },
-  { value: 'accuracy_boost', label: 'Accuracy Boost' },
-  { value: 'dodge_all', label: 'Dodge All' },
+  { value: "damage", label: "Damage" },
+  { value: "heal", label: "Heal" },
+  { value: "buff", label: "Buff" },
+  { value: "debuff", label: "Debuff" },
+  { value: "dot", label: "DoT" },
+  { value: "hot", label: "HoT" },
+  { value: "stun", label: "Stun" },
+  { value: "accuracy_boost", label: "Accuracy Boost" },
+  { value: "dodge_all", label: "Dodge All" },
 ];
 
 const DAMAGE_SUBTYPE_OPTS = [
-  { value: '', label: '— None —' },
-  { value: 'slashing', label: 'Slashing' },
-  { value: 'piercing', label: 'Piercing' },
-  { value: 'bludgeoning', label: 'Bludgeoning' },
-  { value: 'fire', label: 'Fire' },
-  { value: 'cold', label: 'Cold' },
-  { value: 'lightning', label: 'Lightning' },
-  { value: 'poison', label: 'Poison' },
-  { value: 'psychic', label: 'Psychic' },
+  { value: "", label: "— None —" },
+  { value: "slashing", label: "Slashing" },
+  { value: "piercing", label: "Piercing" },
+  { value: "bludgeoning", label: "Bludgeoning" },
+  { value: "fire", label: "Fire" },
+  { value: "cold", label: "Cold" },
+  { value: "lightning", label: "Lightning" },
+  { value: "poison", label: "Poison" },
+  { value: "psychic", label: "Psychic" },
 ];
 
 const TARGET_OPTS = [
-  { value: 'enemy', label: 'Enemy' },
-  { value: 'self', label: 'Self' },
-  { value: 'ally', label: 'Ally' },
-  { value: 'area', label: 'Area' },
-  { value: 'random_enemy', label: 'Random Enemy' },
+  { value: "enemy", label: "Enemy" },
+  { value: "self", label: "Self" },
+  { value: "ally", label: "Ally" },
+  { value: "area", label: "Area" },
+  { value: "random_enemy", label: "Random Enemy" },
 ];
 
 const SCALING_STAT_OPTS = [
-  { value: '', label: '— None —' },
-  { value: 'strength', label: 'Strength' },
-  { value: 'dexterity', label: 'Dexterity' },
-  { value: 'constitution', label: 'Constitution' },
-  { value: 'intelligence', label: 'Intelligence' },
-  { value: 'wisdom', label: 'Wisdom' },
+  { value: "", label: "— None —" },
+  { value: "strength", label: "Strength" },
+  { value: "dexterity", label: "Dexterity" },
+  { value: "constitution", label: "Constitution" },
+  { value: "intelligence", label: "Intelligence" },
+  { value: "wisdom", label: "Wisdom" },
 ];
 
 const EMPTY_EFFECT: EffectInput = {
-  effect_type: 'damage',
-  damage_subtype: '',
-  target: 'enemy',
+  effect_type: "damage",
+  damage_subtype: "",
+  target: "enemy",
   value: 0,
   duration: 0,
-  scaling_stat: '',
+  scaling_stat: "",
   scaling_ratio: 0,
   sort_order: 0,
 };
@@ -89,7 +90,7 @@ function EffectRow({
       {effect.scaling_ratio > 0 && <span className="text-muted">×{effect.scaling_ratio}</span>}
       <span className="text-muted ml-auto">#{effect.sort_order}</span>
       <Button variant="danger" size="sm" onClick={onDelete} disabled={isDeleting} type="button">
-        {isDeleting ? '...' : '×'}
+        {isDeleting ? "..." : "×"}
       </Button>
     </div>
   );
@@ -114,8 +115,8 @@ function NewEffectForm({
     <div className="space-y-2 p-2 border border-dashed rounded">
       <div className="grid grid-cols-3 gap-2">
         <SelectField label="Type" value={form.effect_type} onChange={(v) => set({ effect_type: v })} options={EFFECT_TYPE_OPTS} />
-        <SelectField label="Target" value={form.target ?? 'enemy'} onChange={(v) => set({ target: v })} options={TARGET_OPTS} />
-        <SelectField label="Dmg Subtype" value={form.damage_subtype ?? ''} onChange={(v) => set({ damage_subtype: v })} options={DAMAGE_SUBTYPE_OPTS} />
+        <SelectField label="Target" value={form.target ?? "enemy"} onChange={(v) => set({ target: v })} options={TARGET_OPTS} />
+        <SelectField label="Dmg Subtype" value={form.damage_subtype ?? ""} onChange={(v) => set({ damage_subtype: v })} options={DAMAGE_SUBTYPE_OPTS} />
       </div>
       <div className="grid grid-cols-3 gap-2">
         <NumberField label="Value" value={form.value ?? 0} onChange={(v) => set({ value: v })} />
@@ -123,11 +124,11 @@ function NewEffectForm({
         <NumberField label="Sort Order" value={form.sort_order ?? 0} onChange={(v) => set({ sort_order: v })} />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <SelectField label="Scaling Stat" value={form.scaling_stat ?? ''} onChange={(v) => set({ scaling_stat: v })} options={SCALING_STAT_OPTS} />
+        <SelectField label="Scaling Stat" value={form.scaling_stat ?? ""} onChange={(v) => set({ scaling_stat: v })} options={SCALING_STAT_OPTS} />
         <NumberField label="Scaling Ratio" value={form.scaling_ratio ?? 0} onChange={(v) => set({ scaling_ratio: v })} step={0.1} />
       </div>
       <Button variant="primary" size="sm" fullWidth disabled={createEffect.isPending} onClick={handleAdd} type="button">
-        {createEffect.isPending ? 'Adding...' : '+ Add Effect'}
+        {createEffect.isPending ? "Adding..." : "+ Add Effect"}
       </Button>
     </div>
   );
@@ -146,7 +147,7 @@ export function EffectsSubForm({ abilityId }: Readonly<{ abilityId: number }>) {
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-text m-0">Effects</h4>
         <Button variant="ghost" size="sm" onClick={() => setShowAdd(!showAdd)} type="button">
-          {showAdd ? 'Cancel' : '+ Add'}
+          {showAdd ? "Cancel" : "+ Add"}
         </Button>
       </div>
 

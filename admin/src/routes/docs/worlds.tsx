@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/worlds')({
+export const Route = createFileRoute("/docs/worlds")({
   component: WorldsDoc,
 });
 
@@ -79,11 +79,11 @@ function WorldsDoc() {
 
       <Section title="World Lifecycle">
         <Table
-          headers={['Status', 'Meaning', 'Accessibility']}
+          headers={["Status", "Meaning", "Accessibility"]}
           rows={[
-            ['active', 'Ready for players', 'Players can connect, create characters'],
-            ['development', 'Work in progress', 'Admins can test, players blocked'],
-            ['maintenance', 'Temporarily offline', 'No access, updates in progress'],
+            ["active", "Ready for players", "Players can connect, create characters"],
+            ["development", "Work in progress", "Admins can test, players blocked"],
+            ["maintenance", "Temporarily offline", "No access, updates in progress"],
           ]}
         />
         <p className="text-text-muted mt-3">
@@ -115,13 +115,13 @@ function WorldsDoc() {
           Each world has its own settings overrides in <code className="bg-surface-dark text-text-inverse px-1 rounded">content/worlds.yaml</code>:
         </p>
         <Table
-          headers={['Setting', 'Description', 'Example']}
+          headers={["Setting", "Description", "Example"]}
           rows={[
-            ['pvp_enabled', 'Allow player-vs-player combat in this world', 'true / false'],
-            ['permadeath', 'Characters cannot respawn after death', 'false (classic)'],
-            ['xp_multiplier', 'Scale XP gains (1.5 = 50% more XP)', '1.0 / 1.5 / 2.0'],
-            ['gold_multiplier', 'Scale gold drops and rewards', '0.8 / 1.0 / 1.2'],
-            ['features', 'List of enabled game systems', '["magic_system", "loot"]'],
+            ["pvp_enabled", "Allow player-vs-player combat in this world", "true / false"],
+            ["permadeath", "Characters cannot respawn after death", "false (classic)"],
+            ["xp_multiplier", "Scale XP gains (1.5 = 50% more XP)", "1.0 / 1.5 / 2.0"],
+            ["gold_multiplier", "Scale gold drops and rewards", "0.8 / 1.0 / 1.2"],
+            ["features", "List of enabled game systems", "[\"magic_system\", \"loot\"]"],
           ]}
         />
       </Section>
@@ -131,12 +131,12 @@ function WorldsDoc() {
           World time runs independently of real time, controlled by <code className="bg-surface-dark text-text-inverse px-1 rounded">world_time_scale</code>:
         </p>
         <Table
-          headers={['Scale', '1 Real Second =', 'Use Case']}
+          headers={["Scale", "1 Real Second =", "Use Case"]}
           rows={[
-            ['1', '1 game minute', 'Slow, atmospheric exploration'],
-            ['4', '4 game minutes', 'Default. Moderate pacing'],
-            ['10', '10 game minutes', 'Fast-paced combat, events'],
-            ['60', '1 game hour', 'Server stress testing'],
+            ["1", "1 game minute", "Slow, atmospheric exploration"],
+            ["4", "4 game minutes", "Default. Moderate pacing"],
+            ["10", "10 game minutes", "Fast-paced combat, events"],
+            ["60", "1 game hour", "Server stress testing"],
           ]}
         />
         <p className="text-text-muted mt-3">

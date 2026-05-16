@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { FieldLabel } from './fields/FieldLabel';
-import { ResourceSearchModal } from './ResourceSearchModal';
-import { useResourceExists } from './useResourceExists';
-import { Button } from './Button';
+/* eslint-disable functional/no-mixed-types */
+import { useState } from "react";
+import { FieldLabel } from "./fields/FieldLabel";
+import { ResourceSearchModal } from "./ResourceSearchModal";
+import { useResourceExists } from "./useResourceExists";
+import { Button } from "./Button";
 
 type ChipProps = Readonly<{
   id: number | string
@@ -46,7 +47,7 @@ export function ResourceMultiSelect({
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
-  const handleSelect = (id: number | string, _name: string) => {
+  const handleSelect = (id: number | string) => {
     if (!value.includes(id)) {
       onChange([...value, id]);
     }

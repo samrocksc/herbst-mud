@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import type { Achievement, AchievementInput } from '../../hooks/useAchievements';
-import { Button } from '../../components/Button';
-import { FormField } from '../../components/FormFields';
-import { NumberField } from '../../components/FormFields';
-import { TextareaField } from '../../components/FormFields';
-import { FormError } from '../../components/FormFields';
+import { useState } from "react";
+import type { Achievement, AchievementInput } from "../../hooks/useAchievements";
+import { Button } from "../../components/Button";
+import { FormField } from "../../components/FormFields";
+import { NumberField } from "../../components/FormFields";
+import { TextareaField } from "../../components/FormFields";
+import { FormError } from "../../components/FormFields";
 
 const EMPTY_INPUT: AchievementInput = {
-  name: '',
-  description: '',
-  icon: '',
+  name: "",
+  description: "",
+  icon: "",
   xp_reward: 0,
-  criteria: '',
+  criteria: "",
 };
 
 export function AchievementForm({
@@ -38,18 +38,18 @@ export function AchievementForm({
   return (
     <div className="form-card space-y-3">
       <h3 className="mt-0 mb-0 text-text text-base font-semibold">
-        {achievement ? 'Edit Achievement' : 'Add New Achievement'}
+        {achievement ? "Edit Achievement" : "Add New Achievement"}
       </h3>
       {error && <FormError message={error} />}
       <form onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-3">
-        <FormField label="Name" value={formData.name} onChange={(v) => set('name', v)} required />
-        <TextareaField label="Description" value={formData.description} onChange={(v) => set('description', v)} rows={3} />
-        <FormField label="Icon (emoji)" value={formData.icon} onChange={(v) => set('icon', v)} placeholder="e.g. 🏆" />
-        <NumberField label="XP Reward" value={formData.xp_reward} onChange={(v) => set('xp_reward', v)} min={0} />
-        <TextareaField label="Criteria (JSON)" value={formData.criteria} onChange={(v) => set('criteria', v)} rows={3} placeholder='e.g. {"type":"kill_count","target":10}' />
+        <FormField label="Name" value={formData.name} onChange={(v) => set("name", v)} required />
+        <TextareaField label="Description" value={formData.description} onChange={(v) => set("description", v)} rows={3} />
+        <FormField label="Icon (emoji)" value={formData.icon} onChange={(v) => set("icon", v)} placeholder="e.g. 🏆" />
+        <NumberField label="XP Reward" value={formData.xp_reward} onChange={(v) => set("xp_reward", v)} min={0} />
+        <TextareaField label="Criteria (JSON)" value={formData.criteria} onChange={(v) => set("criteria", v)} rows={3} placeholder='e.g. {"type":"kill_count","target":10}' />
         <div className="flex gap-2 pt-1">
           <Button type="submit" variant="primary" disabled={isLoading} fullWidth>
-            {isLoading ? 'Saving...' : achievement ? 'Update Achievement' : 'Create Achievement'}
+            {isLoading ? "Saving..." : achievement ? "Update Achievement" : "Create Achievement"}
           </Button>
           <Button variant="secondary" onClick={onCancel} fullWidth>Cancel</Button>
         </div>
@@ -81,7 +81,7 @@ export function DeleteConfirmation({
           <p className="text-muted">This action cannot be undone.</p>
         </div>
         <div className="modal-footer">
-          <Button variant="danger" onClick={onConfirm} disabled={isLoading}>{isLoading ? 'Deleting...' : 'Delete'}</Button>
+          <Button variant="danger" onClick={onConfirm} disabled={isLoading}>{isLoading ? "Deleting..." : "Delete"}</Button>
           <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         </div>
       </div>

@@ -1,20 +1,19 @@
-import { createFileRoute, useNavigate, Outlet } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useAbility } from '../../hooks/useAbilities';
-import { useLocation } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/Button';
-import { AbilityDetailView } from './-abilities.$abilityId.detailView';
-import { AbilityEditForm } from './-abilities.$abilityId.editForm';
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { useState } from "react";
+import { useAbility } from "../../hooks/useAbilities";
+import { useLocation } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
+import { Button } from "../../components/Button";
+import { AbilityDetailView } from "./-abilities.$abilityId.detailView";
+import { AbilityEditForm } from "./-abilities.$abilityId.editForm";
 
-export const Route = createFileRoute('/_auth/abilities/$abilityId')({
+export const Route = createFileRoute("/_auth/abilities/$abilityId")({
   component: AbilityDetailPage,
 });
 
 function AbilityDetailPage() {
   const abilityId = Route.useParams().abilityId;
   const location = useLocation();
-  const navigate = useNavigate();
   const { data: ability, isLoading, error } = useAbility(Number(abilityId));
   const [editing, setEditing] = useState(false);
 
@@ -33,8 +32,8 @@ function AbilityDetailPage() {
         title={ability.name}
         backTo="/abilities"
         actions={
-          <Button variant={editing ? 'secondary' : 'primary'} size="sm" onClick={() => setEditing(!editing)}>
-            {editing ? 'Cancel' : 'Edit'}
+          <Button variant={editing ? "secondary" : "primary"} size="sm" onClick={() => setEditing(!editing)}>
+            {editing ? "Cancel" : "Edit"}
           </Button>
         }
       />

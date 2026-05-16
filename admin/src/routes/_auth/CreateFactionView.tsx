@@ -1,6 +1,6 @@
-import { FormError } from '../../components/fields/FormError';
-import { FactionFormFields } from './FactionFormFields';
-import type { FactionCategory, FactionForm } from './factionTypes';
+import { FormError } from "../../components/fields/FormError";
+import { FactionFormFields } from "./FactionFormFields";
+import type { FactionCategory, FactionForm } from "./factionTypes";
 
 export function CreateFactionView({ form, setForm, categories, createError, saving, onCreate, onCancel }: Readonly<{
   form: FactionForm; setForm: (f: FactionForm) => void; categories: FactionCategory[]
@@ -14,7 +14,7 @@ export function CreateFactionView({ form, setForm, categories, createError, savi
       <div className="flex gap-2 mt-3">
         <button onClick={onCreate} disabled={saving}
           className="flex-1 py-2 px-4 rounded bg-primary text-white font-medium disabled:opacity-50">
-          {saving ? 'Creating...' : 'Create Faction'}
+          {saving ? "Creating..." : "Create Faction"}
         </button>
         <button onClick={onCancel}
           className="flex-1 py-2 px-4 rounded bg-surface-muted text-text border border-border font-medium">

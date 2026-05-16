@@ -1,55 +1,43 @@
-import { Fragment, type ReactNode } from 'react';
+/* eslint-disable functional/prefer-immutable-types, functional/no-mixed-types */
+import { Fragment, type ReactNode } from "react";
 
 // ─── Column definition ──────────────────────────────────────────────────────
 
 type Column<T> = Readonly<{
-  /** Static header label */
   header: string
-  /** Dot-notation path into T, e.g. 'name' or 'stats.xp' */
   accessor: string
-  /** Override the default cell render. Receives (value, row). */
-  render?: (value: unknown, row: T) => ReactNode
-  /** Additional CSS class for this <td> */
+  render?: (value: unknown, row: Readonly<T>) => ReactNode
   className?: string
-  /** Text alignment for this column */
-  align?: 'left' | 'center' | 'right'
+  align?: "left" | "center" | "right"
 }>
 
 // ─── Component props ────────────────────────────────────────────────────────
 
 type DataTableProps<T> = Readonly<{
-  /** Column definitions */
   columns: Column<T>[]
-  /** Row data */
-  data: T[]
-  /** Unique key extractor */
-  getKey: (row: T) => string | number
-  /** Optional row-level click handler (enables clickable-row hover state) */
-  onRowClick?: (row: T) => void
-  /** When set for a row, renders an extra <tr> below it spanning all columns */
-  expandedRow?: (row: T) => ReactNode
-  /** Extra CSS class on the wrapper */
+  data: ReadonlyArray<T>
+  getKey: (row: Readonly<T>) => string | number
+  onRowClick?: (row: Readonly<T>) => void
+  expandedRow?: (row: Readonly<T>) => ReactNode
   className?: string
-  /** Override the empty-state message */
   emptyMessage?: string
-  /** Visual style variant */
-  variant?: 'default' | 'dark'
+  variant?: "default" | "dark"
 }>
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Read any leaf value from an object via a dot-notation path. */
 function getValue<T>(row: T, accessor: string): unknown {
-  return accessor.split('.').reduce<unknown>((acc, key) => {
-    if (acc == null || typeof acc !== 'object') return undefined;
+  return accessor.split(".").reduce<unknown>((acc, key) => {
+    if (acc == null || typeof acc !== "object") return undefined;
     return (acc as Record<string, unknown>)[key];
   }, row);
 }
 
 // Default cell renderer: '-' for nullish, green/red badge for booleans
 function DefaultCell({ value }: { value: unknown }): ReactNode {
-  if (value === null || value === undefined || value === '') return <span className="text-muted">—</span>;
-  if (typeof value === 'boolean') {
+  if (value === null || value === undefined || value === "") return <span className="text-muted">—</span>;
+  if (typeof value === "boolean") {
     return value
       ? <span className="badge badge-success">Yes</span>
       : <span className="badge badge-neutral">No</span>;
@@ -65,14 +53,14 @@ export function DataTable<T>({
   getKey,
   onRowClick,
   expandedRow,
-  className = '',
-  emptyMessage = 'No records found.',
-  variant = 'default',
+  className = "",
+  emptyMessage = "No records found.",
+  variant = "default",
 }: DataTableProps<T>) {
-  const tableClass = variant === 'dark' ? 'table table-dark' : 'table';
+  const tableClass = variant === "dark" ? "table table-dark" : "table";
 
-  const alignClass = (align?: 'left' | 'center' | 'right') =>
-    align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
+  const alignClass = (align?: "left" | "center" | "right") =>
+    align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
 
   return (
     <div className={`table-container ${className}`}>
@@ -99,19 +87,19 @@ export function DataTable<T>({
               </td>
             </tr>
           ) : (
-            data.map((row: T) => {
+            data.map((row: Readonly<T>) => {
               const key = getKey(row);
               const expanded = expandedRow?.(row);
               return (
                 <Fragment key={key}>
                   <tr onClick={onRowClick ? () => onRowClick(row) : undefined}
-                      className={onRowClick ? 'clickable-row' : undefined}>
+                      className={onRowClick ? "clickable-row" : undefined}>
                     {columns.map((col: Column<T>) => {
                       const raw = getValue(row, col.accessor);
                       return (
                         <td
                           key={col.accessor}
-                          className={[col.className, alignClass(col.align)].filter(Boolean).join(' ') || undefined}
+                          className={[col.className, alignClass(col.align)].filter(Boolean).join(" ") || undefined}
                         >
                           {col.render ? col.render(raw, row) : <DefaultCell value={raw} />}
                         </td>

@@ -1,15 +1,17 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useCallback } from 'react';
-import { useMapState } from '../hooks/useMapState';
-import { MapSidebar } from '../components/map/MapSidebar';
-import { MapToolbar } from '../components/map/MapToolbar';
-import { MapCanvas } from '../components/map/MapCanvas';
-import { RoomDetailPanel } from '../components/map/RoomDetailPanel';
-import { RoomEditor } from '../components/map/RoomEditor';
-import { MenuIcon } from '../components/icons/MenuIcon';
-import { Button } from '../components/Button';
+/* eslint-disable react-hooks/exhaustive-deps */
 
-export const Route = createFileRoute('/map/')({
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useCallback } from "react";
+import { useMapState } from "../hooks/useMapState";
+import { MapSidebar } from "../components/map/MapSidebar";
+import { MapToolbar } from "../components/map/MapToolbar";
+import { MapCanvas } from "../components/map/MapCanvas";
+import { RoomDetailPanel } from "../components/map/RoomDetailPanel";
+import { RoomEditor } from "../components/map/RoomEditor";
+import { MenuIcon } from "../components/icons/MenuIcon";
+import { Button } from "../components/Button";
+
+export const Route = createFileRoute("/map/")({
   component: MapBuilder,
 });
 
@@ -17,7 +19,7 @@ function MapBuilder() {
   const state = useMapState();
 
   useEffect(() => {
-    if (!localStorage.getItem('token')) state.navigate({ to: '/login' });
+    if (!localStorage.getItem("token")) state.navigate({ to: "/login" });
   }, [state.navigate]);
 
   const getNPCsInRoom = useCallback((roomId: number) => state.npcs.filter(n => n.currentRoomId === roomId), [state.npcs]);
@@ -36,7 +38,7 @@ function MapBuilder() {
         <MenuIcon stroke="currentColor" />
       </Button>
 
-      <div className={['lg:block lg:relative lg:inset-auto lg:z-auto', state.sidebarOpen ? 'block' : 'hidden'].join(' ')}>
+      <div className={["lg:block lg:relative lg:inset-auto lg:z-auto", state.sidebarOpen ? "block" : "hidden"].join(" ")}>
         <div className="fixed inset-y-0 left-0 z-40 lg:static">
           <MapSidebar
             rooms={state.rooms}

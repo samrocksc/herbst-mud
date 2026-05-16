@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
-import { ExitLines } from './ExitLines';
-import { RoomNode } from './RoomNode';
-import { CANVAS_W, CANVAS_H } from './constants';
-import type { Room, NPC, Equipment } from './types';
+/* eslint-disable functional/no-mixed-types */
+import { useEffect } from "react";
+import { ExitLines } from "./ExitLineRenderer";
+import { RoomNode } from "./RoomNode";
+import { CANVAS_W, CANVAS_H } from "./constants";
+import type { Room, NPC, Equipment } from "./types";
 
-type MapCanvasProps = {
+type MapCanvasProps = Readonly<{
   rooms: Room[]
   nodePositions: Map<number, { x: number; y: number }>
   selectedRoom: Room | null
@@ -18,7 +19,7 @@ type MapCanvasProps = {
   getNPCsInRoom: (roomId: number) => NPC[]
   getEquipmentInRoom: (roomId: number) => Equipment[]
   viewportRef: React.RefObject<HTMLDivElement | null>
-}
+}>
 
 export function MapCanvas({
   rooms, nodePositions, selectedRoom, zoom, panOffset, isDragging,
@@ -28,8 +29,8 @@ export function MapCanvas({
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, [onWheel, viewportRef]);
 
   return (
@@ -39,7 +40,7 @@ export function MapCanvas({
         style={{
           width: CANVAS_W, height: CANVAS_H,
           transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
-          transformOrigin: 'top left',
+          transformOrigin: "top left",
         }}
       >
         <ExitLines rooms={rooms} nodePositions={nodePositions} />

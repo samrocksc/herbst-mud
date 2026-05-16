@@ -1,21 +1,21 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { PageHeader } from '../components/PageHeader';
-import { Button } from '../components/Button';
-import { FormField } from '../components/fields/FormField';
-import { TextareaField } from '../components/fields/TextareaField';
-import { FormError } from '../components/fields/FormError';
-import { useRooms } from '../hooks/useRooms';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { PageHeader } from "../components/PageHeader";
+import { Button } from "../components/Button";
+import { FormField } from "../components/fields/FormField";
+import { TextareaField } from "../components/fields/TextareaField";
+import { FormError } from "../components/fields/FormError";
+import { useRooms } from "../hooks/useRooms";
 
-export const Route = createFileRoute('/map/rooms/new')({
+export const Route = createFileRoute("/map/rooms/new")({
   component: CreateRoomPage,
 });
 
 function CreateRoomPage() {
   const navigate = useNavigate();
   const { createRoomAsync, rooms } = useRooms();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   // Check if any room currently has isRootRoom=true
@@ -37,9 +37,9 @@ function CreateRoomPage() {
         posY: 0,
         posZ: 0,
       });
-      navigate({ to: '/map', search: { room: room.id } });
+      navigate({ to: "/map", search: { room: room.id } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create room');
+      setError(err instanceof Error ? err.message : "Failed to create room");
     }
   };
 
@@ -60,7 +60,7 @@ function CreateRoomPage() {
             <Button type="submit" variant="primary" disabled={!name.trim()}>
               Create Room
             </Button>
-            <Button type="button" variant="secondary" onClick={() => navigate({ to: '/map' })}>
+            <Button type="button" variant="secondary" onClick={() => navigate({ to: "/map" })}>
               Cancel
             </Button>
           </div>

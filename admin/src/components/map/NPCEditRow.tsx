@@ -1,7 +1,8 @@
-import { Button } from '../Button';
-import { NumberField } from '../fields/NumberField';
-import { FormError } from '../fields/FormError';
-import type { NPCInstanceView, EditFormData } from './NPCInstanceManager';
+/* eslint-disable functional/no-mixed-types */
+import { Button } from "../Button";
+import { NumberField } from "../fields/NumberField";
+import { FormError } from "../fields/FormError";
+import type { NPCInstanceView, EditFormData } from "./NPCInstanceManager";
 
 type NPCEditRowProps = Readonly<{
   inst: NPCInstanceView
@@ -17,7 +18,7 @@ export function NPCEditRow({ inst, editForm, setEditForm, onSave, onCancel, isPe
   return (
     <div className="space-y-1">
       <div className="font-medium">{inst.name}</div>
-      {error && <FormError message={(error as Error)?.message || 'Update failed'} />}
+      {error && <FormError message={(error as Error)?.message || "Update failed"} />}
       <div className="flex gap-1">
         <NumberField label="Level" value={editForm.level} onChange={(v) => setEditForm((f) => ({ ...f, level: v }))} disabled={isPending} />
         <NumberField label="HP" value={editForm.hitpoints} onChange={(v) => setEditForm((f) => ({ ...f, hitpoints: v }))} disabled={isPending} />
@@ -26,7 +27,7 @@ export function NPCEditRow({ inst, editForm, setEditForm, onSave, onCancel, isPe
       <NumberField label="Starting Room" value={editForm.starting_room_id} onChange={(v) => setEditForm((f) => ({ ...f, starting_room_id: v }))} disabled={isPending} />
       <div className="flex gap-1">
         <Button variant="primary" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={onSave} disabled={isPending}>
-          {isPending ? 'Saving...' : 'Save'}
+          {isPending ? "Saving..." : "Save"}
         </Button>
         <Button variant="ghost" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={onCancel}>Cancel</Button>
       </div>
@@ -61,20 +62,20 @@ export function NPCInstanceRow({ inst, editingId, confirmDeleteId, editForm, set
           isPending={isUpdatePending} error={updateError} />
       ) : (
         <div className="flex justify-between items-center">
-          <div><span className="font-medium">{inst.name}</span>{' '}<span className="text-text-muted">{inst.race} lv.{inst.level} HP:{inst.hitpoints}/{inst.max_hitpoints}</span></div>
+          <div><span className="font-medium">{inst.name}</span>{" "}<span className="text-text-muted">{inst.race} lv.{inst.level} HP:{inst.hitpoints}/{inst.max_hitpoints}</span></div>
           <div className="flex gap-0.5">
             <Button variant="ghost" size="sm" className="!px-0.5 !py-0" onClick={() => startEdit(inst)} aria-label={`Edit ${inst.name}`}>✏️</Button>
-            <Button variant={isConfirmDelete ? 'secondary' : 'ghost'} size="sm" className="!px-0.5 !py-0"
+            <Button variant={isConfirmDelete ? "secondary" : "ghost"} size="sm" className="!px-0.5 !py-0"
               onClick={() => isConfirmDelete ? handleDelete(inst.id) : setConfirmDeleteId(inst.id)}
               aria-label={isConfirmDelete ? `Confirm delete ${inst.name}` : `Delete ${inst.name}`}>
-              {isConfirmDelete ? '❓' : '🗑'}
+              {isConfirmDelete ? "❓" : "🗑"}
             </Button>
           </div>
         </div>
       )}
       {isConfirmDelete && (
-        <div className="mt-1 text-[10px] text-text">Confirm delete?{' '}
-          <Button variant="danger" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={() => handleDelete(inst.id)}>Yes</Button>{' '}
+        <div className="mt-1 text-[10px] text-text">Confirm delete?{" "}
+          <Button variant="danger" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={() => handleDelete(inst.id)}>Yes</Button>{" "}
           <Button variant="ghost" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={() => setConfirmDeleteId(null)}>No</Button>
         </div>
       )}

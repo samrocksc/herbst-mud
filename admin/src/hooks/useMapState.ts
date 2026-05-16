@@ -1,12 +1,13 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import { useRooms } from './useRooms';
-import { useNPCs } from './useNPCs';
-import { useRoomEquipment } from './useRoomEquipment';
-import { useNodeLayout } from './useNodeLayout';
-import { GRID, MIN_ZOOM, MAX_ZOOM, ZOOM_FINE_STEP } from '../components/map/constants';
-import { DIRECTION_OFFSETS } from '../components/map/DirectionUtils';
-import type { Room } from '../components/map/types';
+/* eslint-disable functional/prefer-immutable-types, functional/immutable-data, functional/no-loop-statements */
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useRooms } from "./useRooms";
+import { useNPCs } from "./useNPCs";
+import { useRoomEquipment } from "./useRoomEquipment";
+import { useNodeLayout } from "./useNodeLayout";
+import { GRID, MIN_ZOOM, MAX_ZOOM, ZOOM_FINE_STEP } from "../components/map/constants";
+import { DIRECTION_OFFSETS } from "../components/map/DirectionUtils";
+import type { Room } from "../components/map/types";
 
 type MapSearch = {
   room?: number
@@ -22,12 +23,12 @@ function parseSearch(raw: Record<string, unknown>): MapSearch {
 
 export function useMapState() {
   const navigate = useNavigate();
-  const rawSearch = useSearch({ from: '/map' }) as Record<string, unknown>;
+  const rawSearch = useSearch({ from: "/map" }) as Record<string, unknown>;
   const search = parseSearch(rawSearch);
   const { rooms, isLoading: roomsLoading, updateRoom, createRoom, createRoomAsync, deleteRoom, isCreating, cleanupOrphanExits, createBidirectionalExit } = useRooms();
   const npcsQuery = useNPCs();
 
-  const [selectedRoom, setSelectedRoomState] = useState<Room | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [zoom, setZoom] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,6 +38,7 @@ export function useMapState() {
 
   const currentZLevel = search.floor ?? 0;
   const initialSyncDone = useRef(false);
+  const syncRunning = useRef(false);
 
   const viewportRef = useRef<HTMLDivElement>(null);
 
@@ -46,17 +48,22 @@ export function useMapState() {
 
   // Sync selected room from URL search param on mount and when rooms load
   useEffect(() => {
-    if (roomsLoading || !rooms.length) return;
+    if (roomsLoading || !rooms.length || syncRunning.current) return;
+    syncRunning.current = true;
     const roomId = search.room;
-    if (roomId != null && (selectedRoom == null || selectedRoom.id !== roomId)) {
+    if (roomId != null) {
       const room = rooms.find(r => r.id === roomId);
-      if (room) setSelectedRoomState(room);
+      if (room && (selectedRoom == null || selectedRoom.id !== roomId)) {
+        setSelectedRoom(room);
+      }
     }
     if (roomId == null && selectedRoom != null && initialSyncDone.current) {
-      setSelectedRoomState(null);
+      setSelectedRoom(null);
     }
     initialSyncDone.current = true;
-  }, [rooms, roomsLoading, search.room]);
+    syncRunning.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rooms, search.room]);
 
   const updateSearchParams = useCallback((updates: { room?: number | null; floor?: number }) => {
     const params: Record<string, number> = {};
@@ -67,7 +74,7 @@ export function useMapState() {
     if (updates.floor != null) params.floor = updates.floor;
     else if (currentZLevel !== 0) params.floor = currentZLevel;
 
-    navigate({ to: '/map', search: Object.keys(params).length > 0 ? params : undefined, replace: true });
+    navigate({ to: "/map", search: Object.keys(params).length > 0 ? params : undefined, replace: true });
   }, [navigate, search.room, currentZLevel]);
 
   const handleSetZLevel = useCallback((z: number) => {
@@ -138,7 +145,7 @@ export function useMapState() {
   }, []);
 
   const handleSelectRoom = useCallback((room: Room | null) => {
-    setSelectedRoomState(room);
+    setSelectedRoom(room);
     setSidebarOpen(false);
     if (room) setEditingRoom(null);
     updateSearchParams({ room: room?.id ?? null });
@@ -158,11 +165,11 @@ export function useMapState() {
     const posX = offset ? fromRoom.posX! + offset.dx : (fromRoom.posX ?? 0);
     const posY = offset ? fromRoom.posY! + offset.dy : (fromRoom.posY ?? 0);
     const parentZ = zLevels.get(fromRoom.id) ?? 0;
-    const posZ = dir === 'up' ? parentZ + 1 : dir === 'down' ? parentZ - 1 : parentZ;
+    const posZ = dir === "up" ? parentZ + 1 : dir === "down" ? parentZ - 1 : parentZ;
     try {
       const newRoom = await createRoomAsync({
-        name: 'New Room',
-        description: 'A newly created room.',
+        name: "New Room",
+        description: "A newly created room.",
         isStartingRoom: false,
         isRootRoom: false,
         exits: {},
@@ -175,8 +182,8 @@ export function useMapState() {
         direction: dir,
         targetRoomId: newRoom.id,
       });
-    } catch (err) {
-      showToast('Failed to create room');
+    } catch {
+      showToast("Failed to create room");
     }
   }, [createRoomAsync, createBidirectionalExit, showToast, zLevels]);
 

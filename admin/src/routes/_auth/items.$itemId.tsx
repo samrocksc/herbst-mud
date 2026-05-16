@@ -1,27 +1,27 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useLocation } from '@tanstack/react-router';
-import { apiGet } from '../../utils/apiFetch';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
-import { TemplateEditForm } from './-items.$itemId.editForm';
-import { ItemDetailView } from './-items.$itemId.detailView';
-import type { ItemInstance } from '../../hooks/useItemInstances';
-import type { EquipmentTemplate as ItemTemplate } from '../../hooks/useEquipmentTemplates';
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "@tanstack/react-router";
+import { apiGet } from "../../utils/apiFetch";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
+import { TemplateEditForm } from "./-items.$itemId.editForm";
+import { ItemDetailView } from "./-items.$itemId.detailView";
+import type { ItemInstance } from "../../hooks/useItemInstances";
+import type { EquipmentTemplate as ItemTemplate } from "../../hooks/useEquipmentTemplates";
 
-export const Route = createFileRoute('/_auth/items/$itemId')({
+export const Route = createFileRoute("/_auth/items/$itemId")({
   component: ItemDetail,
 });
 
 const instanceColumns: Column<ItemInstance>[] = [
-  { header: 'ID', accessor: 'id', render: (_, row) => (
+  { header: "ID", accessor: "id", render: (_, row) => (
     <Link to="/items/$itemId/instances/$instanceId" params={{ itemId: row.equipment_template_id, instanceId: String(row.id) }}
       className="text-primary no-underline hover:underline font-mono text-xs">{row.id}</Link>
   )},
-  { header: 'Name', accessor: 'name' },
-  { header: 'Location', accessor: 'ownerId', render: (_, row) => {
+  { header: "Name", accessor: "name" },
+  { header: "Location", accessor: "ownerId", render: (_, row) => {
     if (row.ownerId != null) return <Link to="/characters/$characterId" params={{ characterId: String(row.ownerId) }} className="text-primary text-xs no-underline hover:underline">Character #{row.ownerId}</Link>;
     if (row.roomId > 0) return <Link to="/map" className="text-primary text-xs no-underline hover:underline">In Room #{row.roomId}</Link>;
     return <span className="text-text-muted text-xs">Nowhere</span>;
@@ -36,12 +36,12 @@ function ItemDetail() {
   const [editing, setEditing] = useState(false);
 
   const templateQuery = useQuery({
-    queryKey: ['item-template', itemId],
+    queryKey: ["item-template", itemId],
     queryFn: () => apiGet<ItemTemplate>(`${API}/api/equipment-templates/${itemId}`),
   });
 
   const instancesQuery = useQuery({
-    queryKey: ['item-instances', 'template', itemId],
+    queryKey: ["item-instances", "template", itemId],
     queryFn: () => apiGet<ItemInstance[]>(`${API}/api/item-instances?templateId=${itemId}`),
   });
 
@@ -59,7 +59,7 @@ function ItemDetail() {
   return (
     <div className="p-6 max-w-[1200px] mx-auto">
       <PageHeader title={template.name} backTo="/items" actions={
-        <Button variant={editing ? 'secondary' : 'primary'} size="sm" onClick={() => setEditing(!editing)}>{editing ? 'Cancel' : 'Edit'}</Button>
+        <Button variant={editing ? "secondary" : "primary"} size="sm" onClick={() => setEditing(!editing)}>{editing ? "Cancel" : "Edit"}</Button>
       } />
       {editing ? <TemplateEditForm template={template} itemId={itemId} onDone={() => setEditing(false)} /> : <ItemDetailView template={template} />}
       <div className="bg-surface-muted rounded-lg p-6 border border-border mt-6">

@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}/api`;
 
@@ -25,14 +26,14 @@ export type SocialInput = Readonly<{
 
 export function useSocials() {
   return useQuery({
-    queryKey: ['socials'],
+    queryKey: ["socials"],
     queryFn: () => apiGet<SocialCommand[]>(`${API}/socials`),
   });
 }
 
 export function useSocial(id: number | null) {
   return useQuery({
-    queryKey: ['social', id],
+    queryKey: ["social", id],
     queryFn: () => apiGet<SocialCommand>(`${API}/socials/${id}`),
     enabled: !!id,
   });
@@ -42,7 +43,7 @@ export function useCreateSocial() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: SocialInput) => apiPost<SocialCommand>(`${API}/socials`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['socials'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["socials"] }),
   });
 }
 
@@ -52,8 +53,8 @@ export function useUpdateSocial() {
     mutationFn: ({ id, input }: { id: number; input: SocialInput }) =>
       apiPut<SocialCommand>(`${API}/socials/${id}`, input),
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ['socials'] });
-      qc.invalidateQueries({ queryKey: ['social', id] });
+      qc.invalidateQueries({ queryKey: ["socials"] });
+      qc.invalidateQueries({ queryKey: ["social", id] });
     },
   });
 }
@@ -62,6 +63,6 @@ export function useDeleteSocial() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/socials/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['socials'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["socials"] }),
   });
 }

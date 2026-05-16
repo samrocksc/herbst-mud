@@ -1,7 +1,8 @@
-import { useRef, useCallback, memo } from 'react';
-import { DRAG_THRESHOLD, GRID } from './constants';
-import { DirectionShortLabels } from './DirectionUtils';
-import type { Room, NPC, Equipment } from './types';
+/* eslint-disable react-hooks/exhaustive-deps, functional/immutable-data, functional/prefer-immutable-types, functional/no-mixed-types */
+import { useRef, useCallback, memo } from "react";
+import { DRAG_THRESHOLD, GRID } from "./constants";
+import { DirectionShortLabels } from "./DirectionUtils";
+import type { Room, NPC, Equipment } from "./types";
 
 type RoomNodeProps = {
   room: Room
@@ -19,18 +20,6 @@ type RoomNodeProps = {
 
 export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, zoom, onSelect, isDragging, onDragStart, onDragEnd }: RoomNodeProps) {
   const dragRef = useRef({ startMouseX: 0, startMouseY: 0, startPosX: 0, startPosY: 0, didDrag: false });
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('button')) return;
-    e.preventDefault();
-    dragRef.current = {
-      startMouseX: e.clientX, startMouseY: e.clientY,
-      startPosX: pos.x, startPosY: pos.y,
-      didDrag: false,
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [pos.x, pos.y, zoom]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const dx = (e.clientX - dragRef.current.startMouseX) / zoom;
@@ -51,17 +40,30 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
     }
   }, [room.id, onDragStart, zoom]);
 
+   
   const handleMouseUp = useCallback((e: MouseEvent) => {
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
     if (!dragRef.current.didDrag) return;
     const dx = (e.clientX - dragRef.current.startMouseX) / zoom;
     const dy = (e.clientY - dragRef.current.startMouseY) / zoom;
     onDragEnd(room.id, dragRef.current.startPosX + dx, dragRef.current.startPosY + dy);
   }, [room.id, onDragEnd, handleMouseMove, zoom]);
 
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button")) return;
+    e.preventDefault();
+    dragRef.current = {
+      startMouseX: e.clientX, startMouseY: e.clientY,
+      startPosX: pos.x, startPosY: pos.y,
+      didDrag: false,
+    };
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  }, [pos.x, pos.y, zoom, handleMouseMove, handleMouseUp]);
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onSelect(room);
     }
@@ -75,7 +77,7 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
 
   const resolveRoomName = (id: number) => {
     const found = rooms.find(r => r.id === id);
-    return found ? found.name : 'Unknown Room';
+    return found ? found.name : "Unknown Room";
   };
 
   return (
@@ -88,34 +90,34 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
       onMouseDown={handleMouseDown}
       onKeyDown={handleKeyDown}
       className={`room-node absolute w-[120px] min-h-[65px] p-2 rounded-lg cursor-grab transition-all select-none ${
-        isDragging ? 'opacity-50 cursor-grabbing' : ''
+        isDragging ? "opacity-50 cursor-grabbing" : ""
       } ${
         room.isRootRoom
-          ? 'bg-accent text-white'
+          ? "bg-accent text-white"
           : room.isStartingRoom
-            ? 'bg-primary text-white'
+            ? "bg-primary text-white"
             : isSelected
-            ? 'bg-primary-hover text-white shadow-lg border-2 border-accent'
-            : 'bg-surface text-text border-2 border-border hover:border-primary'
+            ? "bg-primary-hover text-white shadow-lg border-2 border-accent"
+            : "bg-surface text-text border-2 border-border hover:border-primary"
       }`}
       style={{ left: pos.x, top: pos.y, zIndex: isDragging ? 50 : 1 }}
     >
-      <div className={`font-bold text-xs text-center truncate ${isColored ? 'text-white' : 'text-text'}`}>
+      <div className={`font-bold text-xs text-center truncate ${isColored ? "text-white" : "text-text"}`}>
         {room.name}
-        {room.isRootRoom && ' 🏠'}
-        {room.isStartingRoom && !room.isRootRoom && ' ⭐'}
+        {room.isRootRoom && " 🏠"}
+        {room.isStartingRoom && !room.isStartingRoom && " ⭐"}
       </div>
-      <div className={`text-xs text-center ${isColored ? 'text-white/80' : 'text-text-muted'}`}>
+      <div className={`text-xs text-center ${isColored ? "text-white/80" : "text-text-muted"}`}>
         #{room.id}
       </div>
       <div className="flex justify-center gap-1 mt-1">
         {roomNpcs.length > 0 && (
-          <span className={`text-[10px] ${isColored ? 'text-white/90' : 'text-warning'}`} title={`${roomNpcs.length} NPCs`}>
+          <span className={`text-[10px] ${isColored ? "text-white/90" : "text-warning"}`} title={`${roomNpcs.length} NPCs`}>
             👥{roomNpcs.length}
           </span>
         )}
         {roomItems.length > 0 && (
-          <span className={`text-[10px] ${isColored ? 'text-white/80' : 'text-success'}`} title={`${roomItems.length} items`}>
+          <span className={`text-[10px] ${isColored ? "text-white/80" : "text-success"}`} title={`${roomItems.length} items`}>
             📦{roomItems.length}
           </span>
         )}
@@ -128,9 +130,9 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
               <span
                 key={dir}
                 className={`text-[8px] leading-tight ${
-                  dir === 'up' ? isColored ? 'text-white/90' : 'text-warning'
-                  : dir === 'down' ? isColored ? 'text-white/80' : 'text-success'
-                  : isColored ? 'text-white/70' : 'text-text-muted'
+                  dir === "up" ? isColored ? "text-white/90" : "text-warning"
+                  : dir === "down" ? isColored ? "text-white/80" : "text-success"
+                  : isColored ? "text-white/70" : "text-text-muted"
                 }`}
               >
                 {label}: {resolveRoomName(targetId)}

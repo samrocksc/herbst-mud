@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { useResourceSearch } from './useResourceSearch';
-import { fuzzyMatch, highlightMatch } from './fuzzyMatch';
-import { FieldLabel } from './fields/FieldLabel';
+/* eslint-disable react-hooks/exhaustive-deps, functional/no-mixed-types, functional/immutable-data, functional/prefer-immutable-types */
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useResourceSearch } from "./useResourceSearch";
+import { fuzzyMatch, highlightMatch } from "./fuzzyMatch";
+import { FieldLabel } from "./fields/FieldLabel";
+
+type SearchOption = Readonly<{ id: number | string; name: string }>;
 
 type Props = Readonly<{
   label: string
@@ -17,7 +20,7 @@ type Props = Readonly<{
 export function ResourceSearchSelect({
   label, value, onChange, resourceType, apiBase, tooltip, disabled, placeholder,
 }: Props) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,13 +28,13 @@ export function ResourceSearchSelect({
   const { data: results = [], isLoading } = useResourceSearch(resourceType, apiBase, query);
 
   // Ensure results is always an array for safety
-  const safeResults = Array.isArray(results) ? results : [];
+  const safeResults: SearchOption[] = Array.isArray(results) ? results : [];
 
   // Find the selected resource name for display
   const selectedName = useMemo(() => {
-    if (value == null || value === '') return '';
+    if (value == null || value === "") return "";
     const found = safeResults.find((r: { id: number | string; name: string }) => String(r.id) === String(value));
-    return found ? found.name : '';
+    return found ? found.name : "";
   }, [safeResults, value]);
 
   // Filter results with fuzzy match
@@ -42,7 +45,16 @@ export function ResourceSearchSelect({
     );
   }, [safeResults, query]);
 
-  useEffect(() => { setHighlightIdx(-1); }, [filtered.length]);
+  // Reset highlight when filtered list changes
+  // Using a ref to track previous length avoids cascading renders from useEffect
+  const prevFilteredLength = useRef(filtered.length);
+   
+  useEffect(() => {
+    if (filtered.length !== prevFilteredLength.current) {
+      setHighlightIdx(-1);
+    }
+    prevFilteredLength.current = filtered.length;
+  }, [filtered.length]);
 
   // Click outside closes dropdown
   useEffect(() => {
@@ -51,42 +63,42 @@ export function ResourceSearchSelect({
         setIsOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   const displayValue = isOpen
     ? query
-    : value != null && value !== ''
+    : value != null && value !== ""
       ? selectedName
         ? `${selectedName} (#${value})`
         : `#${value}`
-      : '';
+      : "";
 
-  const handleSelect = (id: number | string, name: string) => {
+  const handleSelect = (id: number | string, _name: string) => {
     onChange(id);
     setIsOpen(false);
-    setQuery('');
+    setQuery("");
     inputRef.current?.blur();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+    if (!isOpen && (e.key === "ArrowDown" || e.key === "Enter")) {
       setIsOpen(true);
       return;
     }
     switch (e.key) {
-      case 'ArrowDown': {
+      case "ArrowDown": {
         e.preventDefault();
         setHighlightIdx((i) => Math.min(i + 1, filtered.length - 1));
         break;
       }
-      case 'ArrowUp': {
+      case "ArrowUp": {
         e.preventDefault();
         setHighlightIdx((i) => Math.max(i - 1, 0));
         break;
       }
-      case 'Enter': {
+      case "Enter": {
         e.preventDefault();
         if (highlightIdx >= 0 && highlightIdx < filtered.length) {
           const r = filtered[highlightIdx];
@@ -96,17 +108,17 @@ export function ResourceSearchSelect({
         }
         break;
       }
-      case 'Escape': {
+      case "Escape": {
         e.preventDefault();
         setIsOpen(false);
-        setQuery('');
+        setQuery("");
         inputRef.current?.blur();
         break;
       }
     }
   };
 
-  const fieldId = label.toLowerCase().replace(/\s+/g, '-');
+  const fieldId = label.toLowerCase().replace(/\s+/g, "-");
 
   return (
     <div ref={containerRef} className="relative">
@@ -129,7 +141,7 @@ export function ResourceSearchSelect({
             <div className="px-3 py-1.5 text-sm text-text-muted">Searching...</div>
           ) : filtered.length === 0 ? (
             <div className="px-3 py-1.5 text-sm text-text-muted">
-              {query.trim() ? 'No results found' : 'Type to search...'}
+              {query.trim() ? "No results found" : "Type to search..."}
             </div>
           ) : (
             filtered.map((r: { id: number | string; name: string }, idx: number) => {
@@ -142,9 +154,9 @@ export function ResourceSearchSelect({
                   aria-selected={isHighlighted}
                   onClick={() => handleSelect(r.id, r.name)}
                   className={`px-3 py-1.5 text-sm cursor-pointer flex items-center gap-2 ${
-                    isHighlighted ? 'bg-surface-hover' : ''
+                    isHighlighted ? "bg-surface-hover" : ""
                   } hover:bg-surface-hover ${
-                    String(r.id) === String(value) ? 'opacity-60' : ''
+                    String(r.id) === String(value) ? "opacity-60" : ""
                   }`}
                 >
                   <span

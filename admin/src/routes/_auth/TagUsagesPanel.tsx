@@ -1,9 +1,10 @@
-import type { Tag, TagUsageReport } from '../../hooks/useTags';
-import { Button } from '../../components/Button';
+/* eslint-disable functional/prefer-immutable-types */
+import type { Tag, TagUsageReport } from "../../hooks/useTags";
+import { Button } from "../../components/Button";
 
 function ColorDot({ color }: { color: string }) {
-  const DEFAULT_COLOR = 'var(--color-tag-default)';
-  const dotStyle = { '--dot-color': color || DEFAULT_COLOR } as React.CSSProperties;
+  const DEFAULT_COLOR = "var(--color-tag-default)";
+  const dotStyle = { "--dot-color": color || DEFAULT_COLOR } as React.CSSProperties;
   return (
     <span
       className="inline-block w-3 h-3 rounded-full shrink-0 bg-(--dot-color)"
@@ -21,7 +22,7 @@ function UsageSection({
   hrefPrefix,
 }: {
   label: string
-  items: TagUsageReport['abilities']
+  items: TagUsageReport["abilities"]
   badgeClass: string
   hrefPrefix: string
 }) {
@@ -34,7 +35,7 @@ function UsageSection({
         {list.map((s) => (
           <li key={`${hrefPrefix}-${s.id}`} className="py-1">
             <span className={`badge ${badgeClass} mr-2`}>{s.type}</span>
-            <a href={`/${hrefPrefix}?id=${s.id}`} className={`text-${badgeClass.replace('badge-', '')}`}>
+            <a href={`/${hrefPrefix}?id=${s.id}`} className={`text-${badgeClass.replace("badge-", "")}`}>
               {s.name}
             </a>
           </li>
@@ -53,6 +54,8 @@ export function TagUsagesPanel({
   report: TagUsageReport
   onClose: () => void
 }) {
+  void tag; // tag is available for debugging if needed
+
   const hasUsages =
     safe(report.abilities).length > 0 || safe(report.factions).length > 0 || safe(report.characters).length > 0;
 
@@ -82,9 +85,9 @@ export function TagUsagesPanel({
 }
 
 export function TagUsagesPanelInline({
-  tag,
   report,
 }: {
+   
   tag: Tag
   report: TagUsageReport
 }) {

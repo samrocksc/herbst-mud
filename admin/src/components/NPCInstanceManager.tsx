@@ -1,15 +1,16 @@
-import { useState, useCallback } from 'react';
-import { Button } from './Button';
-import { Modal } from './Modal';
+/* eslint-disable functional/no-mixed-types */
+import { useState, useCallback } from "react";
+import { Button } from "./Button";
+import { Modal } from "./Modal";
 import {
   useNPCInstances,
   useCreateNPCInstance,
   useUpdateNPCInstance,
   useDeleteNPCInstance,
-} from '../hooks/useNPCInstances';
-import type { NPCInstance, NPCInstanceInput, NPCInstanceUpdate } from '../hooks/useNPCInstances';
-import { SearchableSelect } from './SearchableSelect';
-import { logError } from '../utils/log';
+} from "../hooks/useNPCInstances";
+import type { NPCInstance, NPCInstanceInput, NPCInstanceUpdate } from "../hooks/useNPCInstances";
+import { SearchableSelect } from "./SearchableSelect";
+import { logError } from "../utils/log";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -47,7 +48,7 @@ export function NPCInstanceManager({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [createForm, setCreateForm] = useState<NPCInstanceInput>({
-    template_id: '',
+    template_id: "",
     room_id: roomId ?? 0,
   });
   const [editForm, setEditForm] = useState<NPCInstanceUpdate>({});
@@ -73,9 +74,9 @@ export function NPCInstanceManager({
     try {
       await createMutation.mutateAsync(createForm);
       setShowCreate(false);
-      setCreateForm({ template_id: '', room_id: roomId ?? 0 });
+      setCreateForm({ template_id: "", room_id: roomId ?? 0 });
     } catch (err) {
-      logError('Create NPC instance:', err);
+      logError("Create NPC instance:", err);
     }
   }, [createForm, createMutation, roomId]);
 
@@ -96,7 +97,7 @@ export function NPCInstanceManager({
       setEditingId(null);
       setEditForm({});
     } catch (err) {
-      logError('Update NPC instance:', err);
+      logError("Update NPC instance:", err);
     }
   }, [editingId, editForm, updateMutation]);
 
@@ -110,7 +111,7 @@ export function NPCInstanceManager({
           setEditForm({});
         }
       } catch (err) {
-        logError('Delete NPC instance:', err);
+        logError("Delete NPC instance:", err);
       }
     },
     [deleteMutation, editingId],
@@ -137,7 +138,7 @@ export function NPCInstanceManager({
       {/* Header */}
       <div className="p-3 border-b border-border flex justify-between items-center">
         <h3 className="m-0 text-text text-sm font-semibold">
-          NPC Instances{roomId ? ` (Room ${roomId})` : ''}
+          NPC Instances{roomId ? ` (Room ${roomId})` : ""}
         </h3>
         <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
           + Spawn
@@ -148,7 +149,7 @@ export function NPCInstanceManager({
       <div className="flex-1 overflow-y-auto p-2">
         {instances.length === 0 ? (
           <div className="text-text-muted text-xs text-center py-4">
-            No NPC instances{roomId ? ' in this room' : ''}.
+            No NPC instances{roomId ? " in this room" : ""}.
           </div>
         ) : (
           <div className="flex flex-col gap-1">
@@ -214,7 +215,7 @@ export function NPCInstanceManager({
                         onClick={handleUpdate}
                         disabled={updateMutation.isPending}
                       >
-                        {updateMutation.isPending ? 'Saving...' : 'Save'}
+                        {updateMutation.isPending ? "Saving..." : "Save"}
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>
                         Cancel
@@ -228,7 +229,7 @@ export function NPCInstanceManager({
                       <div>
                         <div className="font-medium text-text">{inst.name}</div>
                         <div className="text-text-muted text-[10px]">
-                          #{inst.id} &middot; Instance {inst.instance_number} &middot;{' '}
+                          #{inst.id} &middot; Instance {inst.instance_number} &middot;{" "}
                           {getTemplateName(inst.npc_template_id)}
                         </div>
                       </div>
@@ -237,7 +238,7 @@ export function NPCInstanceManager({
                           ✏️
                         </Button>
                         <Button
-                          variant={confirmDeleteId === inst.id ? 'secondary' : 'ghost'}
+                          variant={confirmDeleteId === inst.id ? "secondary" : "ghost"}
                           size="sm"
                           className="!px-1 !py-0"
                           onClick={() => {
@@ -248,14 +249,14 @@ export function NPCInstanceManager({
                             }
                           }}
                         >
-                          {confirmDeleteId === inst.id ? '❓' : '🗑'}
+                          {confirmDeleteId === inst.id ? "❓" : "🗑"}
                         </Button>
                       </div>
                     </div>
 
                     <div className="mt-1 flex gap-2 text-text-muted">
                       <span>
-                        HP: <span className={inst.hitpoints < inst.max_hitpoints * 0.3 ? 'text-danger' : 'text-text'}>{inst.hitpoints}/{inst.max_hitpoints}</span>
+                        HP: <span className={inst.hitpoints < inst.max_hitpoints * 0.3 ? "text-danger" : "text-text"}>{inst.hitpoints}/{inst.max_hitpoints}</span>
                       </span>
                       <span>Lv {inst.level}</span>
                       <span>{inst.race}</span>
@@ -270,10 +271,10 @@ export function NPCInstanceManager({
 
                     {confirmDeleteId === inst.id && (
                       <div className="mt-1 p-1 bg-danger/10 border border-danger rounded text-[10px] text-text">
-                        Confirm delete?{' '}
+                        Confirm delete?{" "}
                         <Button variant="danger" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={() => handleDelete(inst.id)}>
                           Yes
-                        </Button>{' '}
+                        </Button>{" "}
                         <Button variant="ghost" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={() => setConfirmDeleteId(null)}>
                           No
                         </Button>
@@ -292,7 +293,7 @@ export function NPCInstanceManager({
         <div className="space-y-3">
           {createMutation.isError && (
             <div className="p-2 bg-danger/10 text-danger rounded text-xs">
-              {(createMutation.error as Error)?.message || 'Failed to spawn NPC instance'}
+              {(createMutation.error as Error)?.message || "Failed to spawn NPC instance"}
             </div>
           )}
 
@@ -347,7 +348,7 @@ export function NPCInstanceManager({
               onClick={handleCreate}
               disabled={createMutation.isPending || !createForm.template_id || !createForm.room_id}
             >
-              {createMutation.isPending ? 'Spawning...' : 'Spawn Instance'}
+              {createMutation.isPending ? "Spawning..." : "Spawn Instance"}
             </Button>
             <Button variant="secondary" onClick={() => setShowCreate(false)}>
               Cancel

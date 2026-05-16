@@ -1,13 +1,13 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useSocial, useUpdateSocial, useDeleteSocial, type SocialInput } from '../../hooks/useSocials';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/Button';
-import { FormField, TextareaField } from '../../components/FormFields';
-import { DeleteConfirmation } from '../../components/DeleteConfirmation';
-import { showToast } from '../../components/Toast';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useSocial, useUpdateSocial, useDeleteSocial, type SocialInput } from "../../hooks/useSocials";
+import { PageHeader } from "../../components/PageHeader";
+import { Button } from "../../components/Button";
+import { FormField, TextareaField } from "../../components/FormFields";
+import { DeleteConfirmation } from "../../components/DeleteConfirmation";
+import { showToast } from "../../components/Toast";
 
-export const Route = createFileRoute('/_auth/socials/$socialId')({
+export const Route = createFileRoute("/_auth/socials/$socialId")({
   component: SocialDetailPage,
 });
 
@@ -39,7 +39,7 @@ function SocialDetailPage() {
     e.preventDefault();
     try {
       await updateMutation.mutateAsync({ id: Number(socialId), input: current });
-      showToast('Social updated', 'success');
+      showToast("Social updated", "success");
       setFormData(null);
     } catch { /* toasted globally */ }
   };
@@ -47,8 +47,8 @@ function SocialDetailPage() {
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(Number(socialId));
-      showToast('Social deleted', 'success');
-      navigate({ to: '/socials' });
+      showToast("Social deleted", "success");
+      navigate({ to: "/socials" });
     } catch { /* toasted globally */ }
   };
 
@@ -73,13 +73,13 @@ function SocialDetailPage() {
             <TextareaField label="Target Room Text" value={current.target_room_text} onChange={(v) => set({ target_room_text: v })} rows={2} placeholder="{actor} smiles at {target}." />
           </div>
           <p className="text-text-muted text-xs mt-2">
-            Use {'{actor}'} and {'{target}'} as placeholders. Pronoun substitution available: {'{he}'}, {'{him}'}, {'{his}'}.
+            Use {"{actor}"} and {"{target}"} as placeholders. Pronoun substitution available: {"{he}"}, {"{him}"}, {"{his}"}.
           </p>
         </div>
 
         <div className="flex gap-2">
           <Button type="submit" variant="primary" disabled={updateMutation.isPending}>
-            {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+            {updateMutation.isPending ? "Saving..." : "Save Changes"}
           </Button>
           <Button variant="danger" onClick={() => setShowDelete(true)} type="button">Delete</Button>
         </div>

@@ -1,8 +1,9 @@
-import { FormField } from '../fields/FormField';
-import { NumberField } from '../fields/NumberField';
-import { FormError } from '../fields/FormError';
-import { Button } from '../Button';
-import type { ItemInstanceView, EditFormData } from './types';
+/* eslint-disable functional/no-mixed-types */
+import { FormField } from "../fields/FormField";
+import { NumberField } from "../fields/NumberField";
+import { FormError } from "../fields/FormError";
+import { Button } from "../Button";
+import type { ItemInstanceView, EditFormData } from "./types";
 
 type ItemEditRowProps = Readonly<{
   inst: ItemInstanceView
@@ -20,7 +21,7 @@ export function ItemEditRow({
   return (
     <div className="space-y-1">
       <div className="font-medium">{inst.name}</div>
-      {error && <FormError message={error.message || 'Failed to update item'} />}
+      {error && <FormError message={error.message || "Failed to update item"} />}
       <div className="flex gap-1">
         <div className="flex-1">
           <FormField
@@ -55,7 +56,7 @@ export function ItemEditRow({
       </div>
       <div className="flex gap-1">
         <Button variant="primary" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={onSave} disabled={isPending}>
-          {isPending ? 'Saving...' : 'Save'}
+          {isPending ? "Saving..." : "Save"}
         </Button>
         <Button variant="ghost" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={onCancel}>
           Cancel

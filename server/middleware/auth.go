@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -145,12 +148,18 @@ func WorldAccessMiddleware() gin.HandlerFunc {
 		// Get world_id from query parameter, form, or JSON body
 		worldID := c.Query("world_id")
 		if worldID == "" {
-			// Try to get from JSON body for POST/PUT requests
-			var body struct {
-				WorldID string `json:"world_id"`
-			}
-			if err := c.ShouldBindJSON(&body); err == nil {
-				worldID = body.WorldID
+			// Try to get from JSON body for POST/PUT requests.
+			// Read raw body so we can restore it — ShouldBindJSON consumes the stream.
+			rawData, _ := c.GetRawData()
+			if len(rawData) > 0 {
+				var body struct {
+					WorldID string `json:"world_id"`
+				}
+				if err := json.Unmarshal(rawData, &body); err == nil {
+					worldID = body.WorldID
+				}
+				// Restore body for downstream handlers
+				c.Request.Body = io.NopCloser(bytes.NewReader(rawData))
 			}
 		}
 

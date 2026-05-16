@@ -27,6 +27,7 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			Class    string `json:"class"`
 			Race     string `json:"race"`
 			Gender   string `json:"gender"`
+			World    string `json:"world"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -44,6 +45,7 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			Class:    req.Class,
 			Race:     req.Race,
 			Gender:   req.Gender,
+			WorldID:  req.World,
 		})
 		if err != nil {
 			switch {
@@ -61,28 +63,29 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			return
 		}
 		c.JSON(http.StatusCreated, gin.H{
-			"id":            char.ID,
-			"name":          char.Name,
-			"isNPC":         char.IsNPC,
-			"is_admin":      char.IsAdmin,
-			"currentRoomId": char.CurrentRoomId,
-			"startingRoomId": char.StartingRoomId,
-			"hitpoints":     char.Hitpoints,
-			"max_hitpoints": char.MaxHitpoints,
-			"stamina":       char.Stamina,
-			"max_stamina":   char.MaxStamina,
-			"mana":          char.Mana,
-			"max_mana":      char.MaxMana,
-			"race":          char.Race,
-			"class":         char.Class,
-			"specialty":     char.Specialty,
-			"strength":      char.Strength,
-			"dexterity":     char.Dexterity,
-			"constitution":  char.Constitution,
-			"intelligence":  char.Intelligence,
-			"wisdom":        char.Wisdom,
-			"level":         char.Level,
-			"xp":           char.Xp,
+			"id":             char.ID,
+			"name":           char.Name,
+			"isNPC":          char.IsNPC,
+			"is_admin":       char.IsAdmin,
+			"currentRoomId":  char.CurrentRoomId,
+			"startingRoomId":  char.StartingRoomId,
+			"hitpoints":      char.Hitpoints,
+			"max_hitpoints":  char.MaxHitpoints,
+			"stamina":        char.Stamina,
+			"max_stamina":    char.MaxStamina,
+			"mana":           char.Mana,
+			"max_mana":       char.MaxMana,
+			"race":           char.Race,
+			"class":          char.Class,
+			"specialty":      char.Specialty,
+			"currentWorld":   char.CurrentWorld,
+			"strength":       char.Strength,
+			"dexterity":      char.Dexterity,
+			"constitution":   char.Constitution,
+			"intelligence":   char.Intelligence,
+			"wisdom":         char.Wisdom,
+			"level":          char.Level,
+			"xp":            char.Xp,
 		})
 	}
 }

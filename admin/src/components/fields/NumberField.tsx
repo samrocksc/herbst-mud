@@ -1,5 +1,6 @@
-import type { InputHTMLAttributes } from 'react';
-import { FieldLabel, INPUT_CLASS } from './FieldLabel';
+ 
+import type { InputHTMLAttributes } from "react";
+import { FieldLabel, INPUT_CLASS } from "./FieldLabel";
 
 type NumberFieldProps = Readonly<{
   label: string
@@ -11,10 +12,10 @@ type NumberFieldProps = Readonly<{
   max?: number
   disabled?: boolean
   tooltip?: string
-}> & Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'className' | 'id' | 'type'>
+}> & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "className" | "id" | "type">
 
 export function NumberField({ label, id, placeholder, value, onChange, min, max, disabled, tooltip, ...rest }: NumberFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-');
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, "-");
   return (
     <div>
       <FieldLabel htmlFor={fieldId} tooltip={tooltip}>{label}</FieldLabel>
@@ -22,10 +23,10 @@ export function NumberField({ label, id, placeholder, value, onChange, min, max,
         id={fieldId}
         type="text"
         inputMode="numeric"
-        value={Number.isFinite(value) ? String(value) : ''}
+        value={Number.isFinite(value) ? String(value) : ""}
         onChange={(e) => {
           const raw = e.target.value;
-          if (raw === '' || raw === '-') { onChange(0); return; }
+          if (raw === "" || raw === "-") { onChange(0); return; }
           const parsed = parseInt(raw, 10);
           if (!isNaN(parsed)) onChange(parsed);
         }}
@@ -33,7 +34,7 @@ export function NumberField({ label, id, placeholder, value, onChange, min, max,
         min={min}
         max={max}
         disabled={disabled}
-        className={`${INPUT_CLASS} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`${INPUT_CLASS} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
         {...rest}
       />
     </div>

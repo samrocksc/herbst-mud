@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/faction-system')({
+export const Route = createFileRoute("/docs/faction-system")({
   component: FactionSystemDoc,
 });
 
@@ -63,28 +63,28 @@ function FactionSystemDoc() {
 
       <Section title="Standing Scale">
         <Table
-          headers={['Standing', 'Label', 'Effects']}
+          headers={["Standing", "Label", "Effects"]}
           rows={[
-            ['+81 to +100', 'Revered', '50% shop discount. Exclusive quests. Faction abilities unlocked.'],
-            ['+51 to +80', 'Honored', '25% discount. Better quests. NPCs help in combat.'],
-            ['+11 to +50', 'Friendly', '10% discount. Standard quests available.'],
-            ['−10 to +10', 'Neutral', 'No modifiers. Standard interactions.'],
-            ['−50 to −11', 'Unfriendly', '25% price markup. NPCs refuse some services.'],
-            ['−80 to −51', 'Hostile', '50% markup. NPCs may attack on sight.'],
-            ['−100 to −81', 'Hated', 'Kill on sight. Shops closed. Bounty placed on player.'],
+            ["+81 to +100", "Revered", "50% shop discount. Exclusive quests. Faction abilities unlocked."],
+            ["+51 to +80", "Honored", "25% discount. Better quests. NPCs help in combat."],
+            ["+11 to +50", "Friendly", "10% discount. Standard quests available."],
+            ["−10 to +10", "Neutral", "No modifiers. Standard interactions."],
+            ["−50 to −11", "Unfriendly", "25% price markup. NPCs refuse some services."],
+            ["−80 to −51", "Hostile", "50% markup. NPCs may attack on sight."],
+            ["−100 to −81", "Hated", "Kill on sight. Shops closed. Bounty placed on player."],
           ]}
         />
       </Section>
 
       <Section title="Faction Categories">
         <Table
-          headers={['Category', 'Examples', 'Typical Goals']}
+          headers={["Category", "Examples", "Typical Goals"]}
           rows={[
-            ['Political', 'City councils, noble houses', 'Territory control, taxes, laws'],
-            ['Religious', 'Churches, cults, monastic orders', 'Convert followers, holy quests'],
-            ['Criminal', 'Thieves guilds, smugglers', 'Profit, territory, avoiding guards'],
-            ['Guild', 'Craft guilds, mercenary companies', 'Skill mastery, contracts, reputation'],
-            ['Race', 'Elf clans, dwarf holds', 'Species pride, ancient grudges'],
+            ["Political", "City councils, noble houses", "Territory control, taxes, laws"],
+            ["Religious", "Churches, cults, monastic orders", "Convert followers, holy quests"],
+            ["Criminal", "Thieves guilds, smugglers", "Profit, territory, avoiding guards"],
+            ["Guild", "Craft guilds, mercenary companies", "Skill mastery, contracts, reputation"],
+            ["Race", "Elf clans, dwarf holds", "Species pride, ancient grudges"],
           ]}
         />
       </Section>
@@ -92,15 +92,15 @@ function FactionSystemDoc() {
       <Section title="Changing Standing">
         <p className="text-text-muted mb-3">Standing changes through player actions:</p>
         <Table
-          headers={['Action', 'Standing Change', 'Faction']}
+          headers={["Action", "Standing Change", "Faction"]}
           rows={[
-            ['Complete faction quest', '+10 to +25', 'Quest-giver\'s faction'],
-            ['Kill faction enemy', '+5', 'Enemy of target\'s faction'],
-            ['Kill faction member', '−20 to −50', 'Victim\'s faction'],
-            ['Donate items/gold', '+1 to +5', 'Receiving faction'],
-            [' betray faction quest', '−30', 'Betrayed faction'],
-            ['Wear faction emblem', '+1 per day (max +10)', 'Emblem faction'],
-            ['Attack faction ally', '−10', 'Ally\'s faction'],
+            ["Complete faction quest", "+10 to +25", "Quest-giver's faction"],
+            ["Kill faction enemy", "+5", "Enemy of target's faction"],
+            ["Kill faction member", "−20 to −50", "Victim's faction"],
+            ["Donate items/gold", "+1 to +5", "Receiving faction"],
+            [" betray faction quest", "−30", "Betrayed faction"],
+            ["Wear faction emblem", "+1 per day (max +10)", "Emblem faction"],
+            ["Attack faction ally", "−10", "Ally's faction"],
           ]}
         />
       </Section>
@@ -110,12 +110,12 @@ function FactionSystemDoc() {
           At <strong>Revered</strong> standing, factions grant unique abilities:
         </p>
         <Table
-          headers={['Faction', 'Ability', 'Effect']}
+          headers={["Faction", "Ability", "Effect"]}
           rows={[
-            ['Surf Wardens', 'Wave Rush', 'Water-based knockback. DEX scaling.'],
-            ['Dune Traders', 'Sand Veil', 'Temporary invisibility in desert zones.'],
-            ['Tinkerers', 'Gadget Barrage', 'Tech damage + stun. INT scaling.'],
-            ['The Vine Climb', 'Overgrowth', 'Roots enemies in place. WIS scaling.'],
+            ["Surf Wardens", "Wave Rush", "Water-based knockback. DEX scaling."],
+            ["Dune Traders", "Sand Veil", "Temporary invisibility in desert zones."],
+            ["Tinkerers", "Gadget Barrage", "Tech damage + stun. INT scaling."],
+            ["The Vine Climb", "Overgrowth", "Roots enemies in place. WIS scaling."],
           ]}
         />
         <p className="text-text-muted mt-3">

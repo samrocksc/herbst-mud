@@ -1,5 +1,5 @@
-import { Button } from '../../components/Button';
-import type { FactionCategory } from './factionTypes';
+import { Button } from "../../components/Button";
+import type { FactionCategory } from "./factionTypes";
 
 export function CategorySidebar({
   categories,
@@ -19,7 +19,7 @@ export function CategorySidebar({
           {categories.map((c) => (
             <div key={c.id} className="p-2 rounded text-xs text-text">
               <div className="font-bold">{c.display_name || c.name}</div>
-              <div className="text-text-muted text-xs">{c.description || '—'}</div>
+              <div className="text-text-muted text-xs">{c.description || "—"}</div>
             </div>
           ))}
           {categories.length === 0 && <div className="text-text-muted text-center py-4">No categories</div>}

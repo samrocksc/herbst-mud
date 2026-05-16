@@ -1,13 +1,14 @@
-import { useState } from 'react';
+/* eslint-disable functional/no-mixed-types */
+import { useState } from "react";
 import {
   useCreateCompetencyCategory,
   useUpdateCompetencyCategory,
   type CompetencyCategory,
   type CompetencyThresholdInput,
-} from '../../hooks/useCompetencies';
-import { Button } from '../../components/Button';
-import { FormField, NumberField } from '../../components/FormFields';
-import { FormError } from '../../components/fields/FormError';
+} from "../../hooks/useCompetencies";
+import { Button } from "../../components/Button";
+import { FormField, NumberField } from "../../components/FormFields";
+import { FormError } from "../../components/fields/FormError";
 
 const DEFAULT_THRESHOLDS: CompetencyThresholdInput[] = [
   { level: 1, xp_required: 0, damage_multiplier: 1.0, defense_multiplier: 1.0 },
@@ -35,8 +36,8 @@ export function SkillForm({ category, onSubmit, onCancel }: Props) {
   const isLoading = createMutation.isPending || updateMutation.isPending;
   const error = createMutation.error || updateMutation.error;
 
-  const [id, setId] = useState(category?.id ?? '');
-  const [name, setName] = useState(category?.name ?? '');
+  const [id, setId] = useState(category?.id ?? "");
+  const [name, setName] = useState(category?.name ?? "");
   const [xpMult, setXpMult] = useState(category?.xp_multiplier ?? 0.2);
   const [thresholds, setThresholds] = useState<CompetencyThresholdInput[]>(
     category?.thresholds?.length ? category.thresholds : DEFAULT_THRESHOLDS,
@@ -61,7 +62,7 @@ export function SkillForm({ category, onSubmit, onCancel }: Props) {
   return (
     <div className="form-card space-y-3">
       <h3 className="mt-0 mb-0 text-text text-base font-semibold">
-        {isEditing ? 'Edit Skill' : 'Add New Skill'}
+        {isEditing ? "Edit Skill" : "Add New Skill"}
       </h3>
       {error && <FormError message={error.message} />}
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -89,15 +90,15 @@ export function SkillForm({ category, onSubmit, onCancel }: Props) {
                     <td className="py-1 px-1 text-text-muted">{t.level}</td>
                     <td className="py-1 px-1">
                       <input type="number" className="w-20 input text-right" value={t.xp_required}
-                        onChange={e => updateThreshold(t.level, 'xp_required', Number(e.target.value))} />
+                        onChange={e => updateThreshold(t.level, "xp_required", Number(e.target.value))} />
                     </td>
                     <td className="py-1 px-1">
                       <input type="number" step="0.01" className="w-20 input text-right" value={t.damage_multiplier}
-                        onChange={e => updateThreshold(t.level, 'damage_multiplier', Number(e.target.value))} />
+                        onChange={e => updateThreshold(t.level, "damage_multiplier", Number(e.target.value))} />
                     </td>
                     <td className="py-1 px-1">
                       <input type="number" step="0.01" className="w-20 input text-right" value={t.defense_multiplier}
-                        onChange={e => updateThreshold(t.level, 'defense_multiplier', Number(e.target.value))} />
+                        onChange={e => updateThreshold(t.level, "defense_multiplier", Number(e.target.value))} />
                     </td>
                   </tr>
                 ))}
@@ -108,7 +109,7 @@ export function SkillForm({ category, onSubmit, onCancel }: Props) {
 
         <div className="flex gap-2 pt-1">
           <Button type="submit" variant="primary" disabled={isLoading} fullWidth>
-            {isLoading ? 'Saving...' : isEditing ? 'Update Skill' : 'Create Skill'}
+            {isLoading ? "Saving..." : isEditing ? "Update Skill" : "Create Skill"}
           </Button>
           <Button variant="secondary" onClick={onCancel} fullWidth>Cancel</Button>
         </div>

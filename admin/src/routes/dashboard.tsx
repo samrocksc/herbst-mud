@@ -1,15 +1,15 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { StatCard } from '../components/StatCard';
-import { StatGrid } from '../components/StatGrid';
-import { PageHeader } from '../components/PageHeader';
-import { Button } from '../components/Button';
-import { useWorlds } from '../hooks/useWorlds';
-import { useNPCs } from '../hooks/useNPCs';
-import { useRooms } from '../hooks/useRooms';
-import { ToolGrid } from './ToolGrid';
-import { useWorldStore } from '../hooks/useWorldStore';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { StatCard } from "../components/StatCard";
+import { StatGrid } from "../components/StatGrid";
+import { PageHeader } from "../components/PageHeader";
+import { Button } from "../components/Button";
+import { useWorlds } from "../hooks/useWorlds";
+import { useNPCs } from "../hooks/useNPCs";
+import { useRooms } from "../hooks/useRooms";
+import { ToolGrid } from "./ToolGrid";
+import { useWorldStore } from "../contexts/WorldStoreContext";
 
-export const Route = createFileRoute('/dashboard')({
+export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
 
@@ -34,11 +34,11 @@ function Dashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('email');
-    localStorage.removeItem('isAdmin');
-    navigate({ to: '/login' });
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    localStorage.removeItem("isAdmin");
+    navigate({ to: "/login" });
   };
 
   // Get world name for display

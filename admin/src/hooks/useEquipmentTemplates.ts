@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
-import { useWorldStore } from './useWorldStore';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
+import { useWorldStore } from "../contexts/WorldStoreContext";
 
 const API = `${window.location.origin}/api/equipment-templates`;
 
@@ -73,11 +74,11 @@ export function useEquipmentTemplates() {
   const { currentWorld } = useWorldStore();
 
   const params = new URLSearchParams();
-  if (currentWorld) params.append('world_id', currentWorld);
-  const qs = params.toString() ? `?${params.toString()}` : '';
+  if (currentWorld) params.append("world_id", currentWorld);
+  const qs = params.toString() ? `?${params.toString()}` : "";
 
   return useQuery({
-    queryKey: ['equipment-templates', currentWorld],
+    queryKey: ["equipment-templates", currentWorld],
     queryFn: async (): Promise<EquipmentTemplate[]> => {
       const data = await apiGet<EquipmentTemplate[]>(`${API}${qs}`);
       return Array.isArray(data) ? data : [];
@@ -88,11 +89,11 @@ export function useEquipmentTemplates() {
 export function useEquipmentTemplate(id: string | null) {
   const { currentWorld } = useWorldStore();
   const params = new URLSearchParams();
-  if (currentWorld) params.append('world_id', currentWorld);
-  const qs = params.toString() ? `?${params.toString()}` : '';
+  if (currentWorld) params.append("world_id", currentWorld);
+  const qs = params.toString() ? `?${params.toString()}` : "";
 
   return useQuery({
-    queryKey: ['equipment-template', id, currentWorld],
+    queryKey: ["equipment-template", id, currentWorld],
     queryFn: () => apiGet<EquipmentTemplate>(`${API}/${id}${qs}`),
     enabled: !!id,
   });
@@ -102,7 +103,7 @@ export function useCreateTemplate() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: EquipmentTemplateInput) => apiPost<EquipmentTemplate>(API, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['equipment-templates'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["equipment-templates"] }),
   });
 }
 
@@ -112,8 +113,8 @@ export function useUpdateTemplate() {
     mutationFn: ({ id, input }: { id: string; input: EquipmentTemplateInput }) =>
       apiPut<EquipmentTemplate>(`${API}/${id}`, input),
     onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ queryKey: ['equipment-templates'] });
-      qc.invalidateQueries({ queryKey: ['equipment-template', id] });
+      qc.invalidateQueries({ queryKey: ["equipment-templates"] });
+      qc.invalidateQueries({ queryKey: ["equipment-template", id] });
     },
   });
 }
@@ -122,6 +123,6 @@ export function useDeleteTemplate() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiDelete(`${API}/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['equipment-templates'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["equipment-templates"] }),
   });
 }

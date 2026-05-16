@@ -1,6 +1,7 @@
-import { Link } from '@tanstack/react-router';
-import { isWeaponSlot, isArmorSlot } from './equipConstants';
-import { formatSlotName, RarityBadge } from './equipViewHelpers';
+ 
+import { Link } from "@tanstack/react-router";
+import { isWeaponSlot, isArmorSlot } from "./equipConstants";
+import { formatSlotName, RarityBadge } from "./equipViewHelpers";
 
 type EquippedItem = Readonly<{
   id: number; name: string; slot: string; level: number; itemType: string
@@ -41,7 +42,7 @@ export function UnequippedSection({ items }: Readonly<{ items: EquippedItem[] }>
 
 function SlotCard({ slot, item }: Readonly<{ slot: string; item: EquippedItem | undefined }>) {
   return (
-    <div className={`rounded border p-3 ${item ? 'border-primary/40 bg-primary/5' : 'border-border bg-surface'}`}>
+    <div className={`rounded border p-3 ${item ? "border-primary/40 bg-primary/5" : "border-border bg-surface"}`}>
       <div className="flex items-center justify-between mb-1">
         <span className="text-text-muted text-xs font-medium uppercase tracking-wide">{formatSlotName(slot)}</span>
         {item && <RarityBadge rarity={item.rarity} />}
@@ -60,7 +61,7 @@ function ItemInfo({ item, slot }: Readonly<{ item: EquippedItem; slot: string }>
       <div className="text-text-muted text-xs mt-1">
         Lv {item.level} {item.itemType}
         {isWeaponSlot(slot) && item.damage_dice_count > 0 && (
-          <> &mdash; {item.damage_dice_count}d{item.damage_dice_sides}{item.damage_bonus > 0 ? `+${item.damage_bonus}` : ''} {item.damage_type}</>
+          <> &mdash; {item.damage_dice_count}d{item.damage_dice_sides}{item.damage_bonus > 0 ? `+${item.damage_bonus}` : ""} {item.damage_type}</>
         )}
         {isArmorSlot(slot) && item.armor_rating > 0 && (
           <> &mdash; AC {item.armor_rating}</>

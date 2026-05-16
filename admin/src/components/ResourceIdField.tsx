@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { FieldLabel, INPUT_CLASS } from './fields/FieldLabel';
-import { ResourceSearchModal } from './ResourceSearchModal';
-import { useResourceExists } from './useResourceExists';
+/* eslint-disable functional/no-mixed-types */
+import { useState } from "react";
+import { FieldLabel, INPUT_CLASS } from "./fields/FieldLabel";
+import { ResourceSearchModal } from "./ResourceSearchModal";
+import { useResourceExists } from "./useResourceExists";
 
 type Props = Readonly<{
   label: string
@@ -18,8 +19,8 @@ export function ResourceIdField({
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const { exists, name, isValidating } = useResourceExists(resourceType, apiBase, value);
-  const fieldId = label.toLowerCase().replace(/\s+/g, '-');
-  const displayValue = value != null && value !== '' ? String(value) : '';
+  const fieldId = label.toLowerCase().replace(/\s+/g, "-");
+  const displayValue = value != null && value !== "" ? String(value) : "";
 
   const statusIndicator = isValidating ? (
     <span className="text-text-muted text-xs">...</span>
@@ -29,7 +30,7 @@ export function ResourceIdField({
     <span className="text-danger text-xs">Not found</span>
   ) : null;
 
-  const borderColor = exists === false ? 'border-danger' : 'border-border';
+  const borderColor = exists === false ? "border-danger" : "border-border";
 
   return (
     <div>
@@ -42,13 +43,13 @@ export function ResourceIdField({
           value={displayValue}
           onChange={(e) => {
             const raw = e.target.value;
-            if (raw === '') { onChange(null); return; }
+            if (raw === "") { onChange(null); return; }
             const parsed = parseInt(raw, 10);
             if (!isNaN(parsed)) onChange(parsed);
           }}
           placeholder={`Enter ${resourceType} ID`}
           disabled={disabled}
-          className={`${INPUT_CLASS.replace('border-border', borderColor)} w-28`}
+          className={`${INPUT_CLASS.replace("border-border", borderColor)} w-28`}
         />
         <button
           type="button"
@@ -68,7 +69,7 @@ export function ResourceIdField({
         resourceType={resourceType}
         apiBase={apiBase}
         value={value}
-        onSelect={(id, _name) => onChange(id)}
+        onSelect={(id) => onChange(id)}
       />
     </div>
   );

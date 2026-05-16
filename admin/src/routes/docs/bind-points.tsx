@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/bind-points')({
+export const Route = createFileRoute("/docs/bind-points")({
   component: BindPointsDoc,
 });
 
@@ -58,9 +58,9 @@ function BindPointsDoc() {
           The legacy "starting room" flag still exists but is being replaced by the root room concept.
         </p>
         <Table
-          headers={['Field', 'Type', 'Description']}
+          headers={["Field", "Type", "Description"]}
           rows={[
-            ['isRootRoom', 'boolean', 'Only one room can be root. New characters spawn here.'],
+            ["isRootRoom", "boolean", "Only one room can be root. New characters spawn here."],
           ]}
         />
       </Section>
@@ -68,23 +68,23 @@ function BindPointsDoc() {
       <Section title="Bind Points">
         <p className="text-text-muted mb-3">
           A <strong className="text-text">bind point</strong> is a room where a character will respawn
-          after death or after being offline for an extended period. Each character has a{' '}
+          after death or after being offline for an extended period. Each character has a{" "}
           <code className="bg-surface-dark text-text-inverse px-1 rounded">respawnRoomId</code> field
           that tracks their current bind point.
         </p>
         <Table
-          headers={['Field', 'Type', 'Description']}
+          headers={["Field", "Type", "Description"]}
           rows={[
-            ['respawnRoomId', 'integer', 'Room ID where the character respawns. Defaults to the root room on creation.'],
-            ['lastSeenAt', 'timestamp', 'When the character was last online. Used for reconnect positioning.'],
+            ["respawnRoomId", "integer", "Room ID where the character respawns. Defaults to the root room on creation."],
+            ["lastSeenAt", "timestamp", "When the character was last online. Used for reconnect positioning."],
           ]}
         />
       </Section>
 
       <Section title="Setting a Bind Point">
         <p className="text-text-muted mb-3">
-          Bind points are set via the <code className="bg-surface-dark text-text-inverse px-1 rounded">set_bind_point</code>{' '}
-          effect type. When an ability with this effect fires (target: self), the character's{' '}
+          Bind points are set via the <code className="bg-surface-dark text-text-inverse px-1 rounded">set_bind_point</code>{" "}
+          effect type. When an ability with this effect fires (target: self), the character's{" "}
           <code className="bg-surface-dark text-text-inverse px-1 rounded">respawnRoomId</code> is updated
           to their current room.
         </p>
@@ -94,13 +94,13 @@ function BindPointsDoc() {
           point to that location.
         </p>
         <Table
-          headers={['Property', 'Value']}
+          headers={["Property", "Value"]}
           rows={[
-            ['Effect Type', 'set_bind_point'],
-            ['Target', 'self'],
-            ['Mana Cost', '0'],
-            ['Cooldown', '0'],
-            ['Result', 'Character\'s respawnRoomId set to current room'],
+            ["Effect Type", "set_bind_point"],
+            ["Target", "self"],
+            ["Mana Cost", "0"],
+            ["Cooldown", "0"],
+            ["Result", "Character's respawnRoomId set to current room"],
           ]}
         />
       </Section>
@@ -110,12 +110,12 @@ function BindPointsDoc() {
           When a player reconnects after being offline, the game decides where they appear:
         </p>
         <Table
-          headers={['Condition', 'Spawn Location']}
+          headers={["Condition", "Spawn Location"]}
           rows={[
-            ['Offline < 1 hour', 'Last known room (currentRoomId)'],
-            ['Offline >= 1 hour', 'Bind point (respawnRoomId)'],
-            ['New character (first login)', 'Root room (isRootRoom)'],
-            ['Death', 'Bind point (respawnRoomId)'],
+            ["Offline < 1 hour", "Last known room (currentRoomId)"],
+            ["Offline >= 1 hour", "Bind point (respawnRoomId)"],
+            ["New character (first login)", "Root room (isRootRoom)"],
+            ["Death", "Bind point (respawnRoomId)"],
           ]}
         />
         <p className="text-text-muted mt-3">
@@ -138,11 +138,11 @@ function BindPointsDoc() {
 
       <Section title="API Reference">
         <Table
-          headers={['Endpoint', 'Method', 'Description']}
+          headers={["Endpoint", "Method", "Description"]}
           rows={[
-            ['PUT /characters/:id', 'PATCH', 'Update respawnRoomId and lastSeenAt on a character'],
-            ['POST /rooms', 'POST', 'Create room with isRootRoom flag'],
-            ['PUT /rooms/:id', 'PUT', 'Update isRootRoom (enforces single root room)'],
+            ["PUT /characters/:id", "PATCH", "Update respawnRoomId and lastSeenAt on a character"],
+            ["POST /rooms", "POST", "Create room with isRootRoom flag"],
+            ["PUT /rooms/:id", "PUT", "Update isRootRoom (enforces single root room)"],
           ]}
         />
       </Section>

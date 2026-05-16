@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/trainable-skills')({
+export const Route = createFileRoute("/docs/trainable-skills")({
   component: TrainableSkillsDoc,
 });
 
@@ -63,12 +63,12 @@ function TrainableSkillsDoc() {
 
       <Section title="Skill Categories">
         <Table
-          headers={['Category', 'Examples', 'Affects']}
+          headers={["Category", "Examples", "Affects"]}
           rows={[
-            ['Combat', 'Blades, Knives, Staves, Brawling, Martial Arts, Bows, Thrown', 'Damage with related weapons'],
-            ['Magic', 'Fire, Water, Wind, Earth, Light, Dark', 'Spell power and mana efficiency'],
-            ['Defense', 'Light Armor, Cloth Armor, Heavy Armor, Shields', 'Damage reduction, block chance'],
-            ['Utility', 'Tech, Pizza Making, Crafting, Trading', 'Non-combat success rates, item quality'],
+            ["Combat", "Blades, Knives, Staves, Brawling, Martial Arts, Bows, Thrown", "Damage with related weapons"],
+            ["Magic", "Fire, Water, Wind, Earth, Light, Dark", "Spell power and mana efficiency"],
+            ["Defense", "Light Armor, Cloth Armor, Heavy Armor, Shields", "Damage reduction, block chance"],
+            ["Utility", "Tech, Pizza Making, Crafting, Trading", "Non-combat success rates, item quality"],
           ]}
         />
       </Section>
@@ -98,14 +98,14 @@ function TrainableSkillsDoc() {
       <Section title="Training Mechanics">
         <p className="text-text-muted mb-3">Skills improve through use. Each successful action adds XP to the relevant skill.</p>
         <Table
-          headers={['Action', 'XP Gain', 'Skill Trained']}
+          headers={["Action", "XP Gain", "Skill Trained"]}
           rows={[
-            ['Hit with sword', '2–5', 'Blades'],
-            ['Cast fire spell', '3–6', 'Fire Magic'],
-            ['Block with shield', '1–3', 'Shields'],
-            ['Craft item', '5–10', 'Crafting'],
-            ['Trade successfully', '1–2', 'Trading'],
-            ['Parry attack', '3–5', 'Blades or Martial Arts'],
+            ["Hit with sword", "2–5", "Blades"],
+            ["Cast fire spell", "3–6", "Fire Magic"],
+            ["Block with shield", "1–3", "Shields"],
+            ["Craft item", "5–10", "Crafting"],
+            ["Trade successfully", "1–2", "Trading"],
+            ["Parry attack", "3–5", "Blades or Martial Arts"],
           ]}
         />
         <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mt-3 mb-3">
@@ -123,15 +123,15 @@ function TrainableSkillsDoc() {
           All conditions must be met.
         </p>
         <Table
-          headers={['Key', 'Meaning', 'Example']}
+          headers={["Key", "Meaning", "Example"]}
           rows={[
-            ['level', 'Minimum character level', 'level:10'],
-            ['str', 'Minimum Strength', 'str:15'],
-            ['dex', 'Minimum Dexterity', 'dex:12'],
-            ['con', 'Minimum Constitution', 'con:8'],
-            ['int', 'Minimum Intelligence', 'int:10'],
-            ['wis', 'Minimum Wisdom', 'wis:8'],
-            ['cha', 'Minimum Charisma', 'cha:5'],
+            ["level", "Minimum character level", "level:10"],
+            ["str", "Minimum Strength", "str:15"],
+            ["dex", "Minimum Dexterity", "dex:12"],
+            ["con", "Minimum Constitution", "con:8"],
+            ["int", "Minimum Intelligence", "int:10"],
+            ["wis", "Minimum Wisdom", "wis:8"],
+            ["cha", "Minimum Charisma", "cha:5"],
           ]}
         />
         <p className="text-text-muted mt-3">Example full requirement: <code>level:5,str:10</code> means level 5 AND 10 STR.</p>

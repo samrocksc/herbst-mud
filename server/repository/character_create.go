@@ -37,6 +37,9 @@ func (r *entCharacterRepo) Create(ctx context.Context, input CreateCharacterInpu
 	if input.RespawnRoomID > 0 {
 		builder.SetRespawnRoomId(input.RespawnRoomID)
 	}
+	if input.WorldID != "" {
+		builder.SetCurrentWorld(input.WorldID)
+	}
 	if input.Specialty != "" {
 		builder.SetSpecialty(input.Specialty)
 	}

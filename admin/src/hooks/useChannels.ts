@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPut } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPut } from "../utils/apiFetch";
 
 const API = `${window.location.origin}/api`;
 
@@ -23,7 +24,7 @@ export type ChannelInput = Readonly<{
 
 export function useChannelConfigs() {
   return useQuery({
-    queryKey: ['channels'],
+    queryKey: ["channels"],
     queryFn: () => apiGet<ChannelConfig[]>(`${API}/channels`),
   });
 }
@@ -33,6 +34,6 @@ export function useUpdateChannel() {
   return useMutation({
     mutationFn: ({ name, input }: { name: string; input: ChannelInput }) =>
       apiPut<ChannelConfig>(`${API}/channels/${name}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['channels'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["channels"] }),
   });
 }

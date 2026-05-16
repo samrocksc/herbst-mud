@@ -60,6 +60,7 @@ type model struct {
 	currentCharacterID   int
 	currentCharacterName string
 	characterRace        string
+	characterClass       string
 	characterGender      string
 	characterDescription string
 	characterHP          int
@@ -146,6 +147,22 @@ type model struct {
 	lastTeller      string     // Last player who sent a tell (for reply)
 	ignoredPlayers  []string   // List of ignored player names
 	activeChannels  []string    // List of subscribed channel names
+
+	// Character selection state
+	selectedWorldCharacters []CharacterInfo // Characters in selected world
+	isCreatingCharacter     bool           // Flag for character creation flow
+}
+
+// CharacterInfo holds basic character info for selection screen
+type CharacterInfo struct {
+	ID       int
+	Name     string
+	Race     string
+	Class    string
+	Level    int
+	Gender   string
+	Hitpoints int
+	MaxHitpoints int
 }
 
 // EquippedPotion represents a potion equipped in the R slot
@@ -234,13 +251,14 @@ var StartingRoomID = 5
 
 // Screen states
 const (
-	ScreenWelcome   = "welcome"
-	ScreenLogin     = "login"
-	ScreenRegister  = "register"
-	ScreenPlaying   = "playing"
-	ScreenProfile    = "profile"
-	ScreenEditField  = "edit_field"
-	ScreenCombat     = "combat"
-	ScreenSkillSelect = "skill_select"
-	ScreenWorldSelect = "world_select"
+	ScreenWelcome        = "welcome"
+	ScreenLogin         = "login"
+	ScreenRegister      = "register"
+	ScreenPlaying       = "playing"
+	ScreenProfile       = "profile"
+	ScreenEditField     = "edit_field"
+	ScreenCombat        = "combat"
+	ScreenSkillSelect   = "skill_select"
+	ScreenWorldSelect   = "world_select"
+	ScreenCharacterSelect = "character_select"
 )

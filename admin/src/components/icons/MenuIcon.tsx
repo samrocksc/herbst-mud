@@ -6,7 +6,7 @@ export function MenuIcon({ className, stroke }: Readonly<{ className?: string; s
       height="20"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={stroke ?? 'currentColor'}
+      stroke={stroke ?? "currentColor"}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

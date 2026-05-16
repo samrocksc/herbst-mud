@@ -1,30 +1,30 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   useCompetencyCategories,
   useDeleteCompetencyCategory,
   type CompetencyCategory,
-} from '../../hooks/useCompetencies';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
-import { SkillForm } from './SkillForm';
+} from "../../hooks/useCompetencies";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
+import { SkillForm } from "./SkillForm";
 
-export const Route = createFileRoute('/_auth/skills')({
+export const Route = createFileRoute("/_auth/skills")({
   component: SkillsManagement,
 });
 
 const COLUMNS: Column<CompetencyCategory>[] = [
-  { header: 'ID', accessor: 'id' },
-  { header: 'Name', accessor: 'name' },
+  { header: "ID", accessor: "id" },
+  { header: "Name", accessor: "name" },
   {
-    header: 'XP Mult',
-    accessor: 'xp_multiplier',
+    header: "XP Mult",
+    accessor: "xp_multiplier",
     render: (val: unknown) => `${Number(val) * 100}%`,
   },
   {
-    header: 'Levels',
-    accessor: 'thresholds',
+    header: "Levels",
+    accessor: "thresholds",
     render: (val: unknown) => `${(val as unknown[]).length}`,
   },
 ];
@@ -53,7 +53,7 @@ function DeleteConfirmation({
         </div>
         <div className="modal-footer">
           <Button variant="danger" onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? 'Deleting...' : 'Delete'}
+            {isLoading ? "Deleting..." : "Delete"}
           </Button>
           <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         </div>
@@ -86,8 +86,8 @@ function SkillsManagement() {
   const columns: Column<CompetencyCategory>[] = [
     ...COLUMNS,
     {
-      header: 'Actions',
-      accessor: '_actions',
+      header: "Actions",
+      accessor: "_actions",
       render: (_: unknown, row: CompetencyCategory) => (
         <>
           <Button variant="accent" size="sm" onClick={() => handleEdit(row)}>Edit</Button>

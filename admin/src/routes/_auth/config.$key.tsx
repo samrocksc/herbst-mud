@@ -1,14 +1,15 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { Button } from '../../components/Button';
-import { TextareaField, FormError } from '../../components/FormFields';
-import { PageHeader } from '../../components/PageHeader';
-import { apiGet, apiPut, apiDelete } from '../../utils/apiFetch';
-import { showToast } from '../../components/Toast';
-import { humanizeKey, tryParseJSON } from './-configUtils';
-import type { GameConfig } from './-configUtils';
+/* eslint-disable functional/prefer-immutable-types */
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { Button } from "../../components/Button";
+import { TextareaField, FormError } from "../../components/FormFields";
+import { PageHeader } from "../../components/PageHeader";
+import { apiGet, apiPut, apiDelete } from "../../utils/apiFetch";
+import { showToast } from "../../components/Toast";
+import { humanizeKey, tryParseJSON } from "./-configUtils";
+import type { GameConfig } from "./-configUtils";
 
-export const Route = createFileRoute('/_auth/config/$key')({
+export const Route = createFileRoute("/_auth/config/$key")({
   component: ConfigDetailPage,
 });
 
@@ -21,8 +22,8 @@ function CollapsibleJSONPreview({ value }: { value: string }) {
     <div className="mb-3">
       <button type="button" className="text-xs text-primary hover:underline cursor-pointer flex items-center gap-1 mb-1"
         onClick={() => setExpanded(e => !e)}>
-        <span className={`inline-block transition-transform ${expanded ? 'rotate-90' : ''}`}>&#9654;</span>
-        {expanded ? 'Collapse' : 'Expand'} JSON preview
+        <span className={`inline-block transition-transform ${expanded ? "rotate-90" : ""}`}>&#9654;</span>
+        {expanded ? "Collapse" : "Expand"} JSON preview
       </button>
       {expanded && <pre className="bg-surface-muted border-2 border-border rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-auto max-h-64">{formatted}</pre>}
     </div>
@@ -36,13 +37,13 @@ function ConfigDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    apiGet<GameConfig[]>(`/api/game-configs`)
+    apiGet<GameConfig[]>("/api/game-configs")
       .then((configs) => {
         const found = configs.find((c) => c.key === key);
         if (found) {
@@ -52,7 +53,7 @@ function ConfigDetailPage() {
           setError(`Config "${key}" not found`);
         }
       })
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load config'))
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load config"))
       .finally(() => setLoading(false));
   }, [key]);
 
@@ -62,11 +63,11 @@ function ConfigDetailPage() {
     setFormError(null);
     try {
       const updated = await apiPut<GameConfig>(`/api/game-configs/${config.key}`, { value });
-      showToast('Config updated.', 'success');
+      showToast("Config updated.", "success");
       setConfig(updated);
       setEditing(false);
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : 'Unknown error');
+      setFormError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setSaving(false);
     }
@@ -76,15 +77,15 @@ function ConfigDetailPage() {
     if (!config) return;
     try {
       await apiDelete(`/api/game-configs/${config.key}`);
-      showToast('Config deleted.', 'success');
-      navigate({ to: '/config' });
+      showToast("Config deleted.", "success");
+      navigate({ to: "/config" });
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : 'Unknown error');
+      setFormError(e instanceof Error ? e.message : "Unknown error");
     }
   };
 
   if (loading) return <div className="p-8"><PageHeader title="Loading..." backTo="/config" /><div className="text-text-muted">Loading config...</div></div>;
-  if (error || !config) return <div className="p-8"><PageHeader title="Error" backTo="/config" /><div className="text-danger">{error ?? 'Config not found'}</div></div>;
+  if (error || !config) return <div className="p-8"><PageHeader title="Error" backTo="/config" /><div className="text-danger">{error ?? "Config not found"}</div></div>;
 
   const parsed = tryParseJSON(config.value);
 
@@ -94,7 +95,7 @@ function ConfigDetailPage() {
         <div className="flex gap-2">
           <Button variant="danger" size="sm" onClick={handleDelete}>Delete</Button>
           <Button variant="primary" size="sm" onClick={() => setEditing(!editing)}>
-            {editing ? 'Cancel' : 'Edit'}
+            {editing ? "Cancel" : "Edit"}
           </Button>
         </div>
       } />
@@ -112,7 +113,7 @@ function ConfigDetailPage() {
               <TextareaField label="" value={value} onChange={setValue} rows={6} />
               <div className="flex gap-2 mt-3">
                 <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
-                  {saving ? 'Saving...' : 'Save'}
+                  {saving ? "Saving..." : "Save"}
                 </Button>
                 <Button variant="secondary" size="sm" onClick={() => { setEditing(false); setValue(config.value); }}>
                   Cancel

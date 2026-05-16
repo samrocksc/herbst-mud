@@ -1,15 +1,16 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost } from '../utils/apiFetch';
-import { PageHeader } from '../components/PageHeader';
-import { Button } from '../components/Button';
-import { NumberField } from '../components/fields/NumberField';
-import { FormField } from '../components/fields/FormField';
-import { FormError } from '../components/fields/FormError';
-import { ResourceSearchSelect } from '../components/ResourceSearchSelect';
-import { SearchableSelect } from '../components/SearchableSelect';
-import { RESOURCE_ENDPOINTS } from '../utils/resourceEndpoints';
+/* eslint-disable functional/immutable-data */
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost } from "../utils/apiFetch";
+import { PageHeader } from "../components/PageHeader";
+import { Button } from "../components/Button";
+import { NumberField } from "../components/fields/NumberField";
+import { FormField } from "../components/fields/FormField";
+import { FormError } from "../components/fields/FormError";
+import { ResourceSearchSelect } from "../components/ResourceSearchSelect";
+import { SearchableSelect } from "../components/SearchableSelect";
+import { RESOURCE_ENDPOINTS } from "../utils/resourceEndpoints";
 
 const API = `${window.location.origin}/api`;
 
@@ -23,10 +24,10 @@ type NPCTemplate = Readonly<{
 }>
 
 function parseRoomIds(raw: string): string[] {
-  return raw.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+  return raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
 }
 
-export const Route = createFileRoute('/map/rooms/$roomId/npcs/spawn')({
+export const Route = createFileRoute("/map/rooms/$roomId/npcs/spawn")({
   component: NPCSpawnPage,
 });
 
@@ -37,24 +38,24 @@ function NPCSpawnPage() {
   const queryClient = useQueryClient();
 
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
-    queryKey: ['npc-templates'],
+    queryKey: ["npc-templates"],
     queryFn: () => apiGet<NPCTemplate[]>(`${API}/npc-templates`),
   });
 
   const createMutation = useMutation({
     mutationFn: (input: Record<string, unknown>) => apiPost(`${API}/npc-instances`, input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-instances'] });
-      navigate({ to: '/map', search: { room: roomIdNum } });
+      queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
+      navigate({ to: "/map", search: { room: roomIdNum } });
     },
   });
 
-  const [templateId, setTemplateId] = useState('');
+  const [templateId, setTemplateId] = useState("");
   const [level, setLevel] = useState(0);
   const [hitpoints, setHitpoints] = useState(0);
   const [spawnRoomId, setSpawnRoomId] = useState<number | string | null>(roomIdNum);
   const [respawnCooldown, setRespawnCooldown] = useState(0);
-  const [respawnRooms, setRespawnRooms] = useState('');
+  const [respawnRooms, setRespawnRooms] = useState("");
 
   const selectedTemplate = templateId ? templates.find((t) => t.id === templateId) ?? null : null;
 
@@ -78,7 +79,7 @@ function NPCSpawnPage() {
       <div className="bg-surface p-6 border border-border rounded max-w-[600px]">
         <form onSubmit={handleSubmit} className="space-y-3">
           {createMutation.isError && (
-            <FormError message={(createMutation.error as Error)?.message || 'Failed to spawn NPC instance'} />
+            <FormError message={(createMutation.error as Error)?.message || "Failed to spawn NPC instance"} />
           )}
           <div>
             <label className="text-text-muted text-xs block mb-1">NPC Template *</label>
@@ -92,7 +93,7 @@ function NPCSpawnPage() {
           {selectedTemplate && (
             <div className="p-2 bg-surface-muted border border-border rounded text-xs text-text-muted space-y-0.5">
               <div>Respawn cooldown: {selectedTemplate.respawn_cooldown}s</div>
-              <div>Respawn rooms: {(selectedTemplate.respawn_rooms ?? []).length > 0 ? selectedTemplate.respawn_rooms.join(', ') : 'none'}</div>
+              <div>Respawn rooms: {(selectedTemplate.respawn_rooms ?? []).length > 0 ? selectedTemplate.respawn_rooms.join(", ") : "none"}</div>
             </div>
           )}
           <div className="flex gap-2">
@@ -112,9 +113,9 @@ function NPCSpawnPage() {
           </div>
           <div className="flex gap-2 pt-2">
             <Button type="submit" variant="primary" disabled={!templateId || createMutation.isPending}>
-              {createMutation.isPending ? 'Spawning...' : 'Spawn Instance'}
+              {createMutation.isPending ? "Spawning..." : "Spawn Instance"}
             </Button>
-            <Button type="button" variant="secondary" onClick={() => navigate({ to: '/map', search: { room: roomIdNum } })}>
+            <Button type="button" variant="secondary" onClick={() => navigate({ to: "/map", search: { room: roomIdNum } })}>
               Cancel
             </Button>
           </div>

@@ -1,9 +1,10 @@
-import { useState, memo } from 'react';
-import type { Room } from './types';
-import { ALL_DIRECTIONS } from './DirectionUtils';
-import { Button } from '../Button';
-import { NPCInstanceManager } from './NPCInstanceManager';
-import { ItemInstanceManager } from './ItemInstanceManager';
+/* eslint-disable functional/no-mixed-types, functional/prefer-immutable-types */
+import { useState, memo } from "react";
+import type { Room } from "./types";
+import { ALL_DIRECTIONS } from "./DirectionUtils";
+import { Button } from "../Button";
+import { NPCInstanceManager } from "./NPCInstanceManager";
+import { ItemInstanceManager } from "./ItemInstanceManager";
 
 type RoomDetailPanelProps = {
   selectedRoom: Room
@@ -61,7 +62,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
             {ALL_DIRECTIONS.map((dir) => {
               const targetId = selectedRoom.exits?.[dir];
               const targetRoom = rooms.find((r) => r.id === targetId);
-              const isZExit = dir === 'up' || dir === 'down';
+              const isZExit = dir === "up" || dir === "down";
 
               if (targetId && targetRoom) {
                 return (
@@ -69,13 +70,13 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
                     key={dir}
                     onClick={() => onSelectRoom(targetRoom)}
                     className={[
-                      'p-1 my-1 rounded cursor-pointer text-xs transition-colors',
+                      "p-1 my-1 rounded cursor-pointer text-xs transition-colors",
                       isZExit
-                        ? dir === 'up'
-                          ? 'bg-warning/20 border border-warning'
-                          : 'bg-success/20 border border-success'
-                        : 'bg-surface-muted',
-                    ].join(' ')}
+                        ? dir === "up"
+                          ? "bg-warning/20 border border-warning"
+                          : "bg-success/20 border border-success"
+                        : "bg-surface-muted",
+                    ].join(" ")}
                   >
                     <strong>{dir}</strong> → {targetRoom.name}
                     {isZExit && (
@@ -91,7 +92,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
                     key={dir}
                     className="p-1 my-1 rounded text-xs bg-surface-muted"
                   >
-                    <strong>{dir}</strong> →{' '}
+                    <strong>{dir}</strong> →{" "}
                     <span className="text-text-muted">Room #{targetId}</span>
                   </div>
                 );
@@ -125,7 +126,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
           Edit Room
         </Button>
         <Button
-          variant={confirmDelete === selectedRoom.id ? 'secondary' : 'danger'}
+          variant={confirmDelete === selectedRoom.id ? "secondary" : "danger"}
           size="md"
           fullWidth
           onClick={() => {
@@ -137,7 +138,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
             }
           }}
         >
-          {confirmDelete === selectedRoom.id ? 'Confirm Delete?' : 'Delete Room'}
+          {confirmDelete === selectedRoom.id ? "Confirm Delete?" : "Delete Room"}
         </Button>
       </div>
     </>

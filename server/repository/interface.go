@@ -300,6 +300,7 @@ type CreateCharacterInput struct {
 	RoomID           int
 	StartingRoomID   int
 	RespawnRoomID    int
+	WorldID          string
 	IsAdmin          bool
 	IsNPC            bool
 	NPCTemplateID    string

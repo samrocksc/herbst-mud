@@ -1,26 +1,27 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiPut } from '../../utils/apiFetch';
-import { Button } from '../../components/Button';
-import { CombatFieldsEditor, type CombatFields } from '../../components/CombatFieldsEditor';
-import { NumberField, SelectField, CheckboxField, TextareaField, FormField } from '../../components/FormFields';
-import { ResourceIdField } from '../../components/ResourceIdField';
-import { RESOURCE_ENDPOINTS } from '../../utils/resourceEndpoints';
-import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from '../../components/itemConstants';
-import type { ItemInstance } from '../../hooks/useItemInstances';
+/* eslint-disable functional/immutable-data */
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiPut } from "../../utils/apiFetch";
+import { Button } from "../../components/Button";
+import { CombatFieldsEditor, type CombatFields } from "../../components/CombatFieldsEditor";
+import { NumberField, SelectField, CheckboxField, TextareaField, FormField } from "../../components/FormFields";
+import { ResourceIdField } from "../../components/ResourceIdField";
+import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
+import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
+import type { ItemInstance } from "../../hooks/useItemInstances";
 
 const EFFECT_TYPE_OPTS = [
-  { value: '', label: '— None —' },
-  { value: 'heal', label: 'Heal' },
-  { value: 'damage', label: 'Damage' },
-  { value: 'dot', label: 'DoT (Damage over Time)' },
-  { value: 'hot', label: 'HoT (Heal over Time)' },
-  { value: 'buff', label: 'Buff' },
-  { value: 'debuff', label: 'Debuff' },
-  { value: 'stun', label: 'Stun' },
-  { value: 'buff_armor', label: 'Buff Armor' },
-  { value: 'buff_dodge', label: 'Buff Dodge' },
-  { value: 'buff_crit', label: 'Buff Crit' },
+  { value: "", label: "— None —" },
+  { value: "heal", label: "Heal" },
+  { value: "damage", label: "Damage" },
+  { value: "dot", label: "DoT (Damage over Time)" },
+  { value: "hot", label: "HoT (Heal over Time)" },
+  { value: "buff", label: "Buff" },
+  { value: "debuff", label: "Debuff" },
+  { value: "stun", label: "Stun" },
+  { value: "buff_armor", label: "Buff Armor" },
+  { value: "buff_dodge", label: "Buff Dodge" },
+  { value: "buff_crit", label: "Buff Crit" },
 ];
 
 type InstanceEditFormState = Readonly<{
@@ -41,25 +42,25 @@ export function InstanceEditForm({ instance, instanceId, onDone }: Readonly<{
     itemType: instance.itemType, level: instance.level, weight: instance.weight,
     color: instance.color, ownerId: instance.ownerId, roomId: instance.roomId,
     isVisible: instance.isVisible, isImmovable: instance.isImmovable, isEquipped: instance.isEquipped,
-    effect_type: (instance as Record<string, unknown>).effect_type as string ?? '',
+    effect_type: (instance as Record<string, unknown>).effect_type as string ?? "",
     effect_value: (instance as Record<string, unknown>).effect_value as number ?? 0,
     effect_duration: (instance as Record<string, unknown>).effect_duration as number ?? 0,
     isContainer: (instance as Record<string, unknown>).isContainer as boolean ?? false,
     containerCapacity: (instance as Record<string, unknown>).containerCapacity as number ?? 0,
     isLocked: (instance as Record<string, unknown>).isLocked as boolean ?? false,
-    keyItemID: (instance as Record<string, unknown>).keyItemID as string ?? '',
-    revealCondition: (instance as Record<string, unknown>).revealCondition as string ?? '',
+    keyItemID: (instance as Record<string, unknown>).keyItemID as string ?? "",
+    revealCondition: (instance as Record<string, unknown>).revealCondition as string ?? "",
     armor_rating: instance.armor_rating, armor_type: instance.armor_type, rarity: instance.rarity,
     skill_requirement: instance.skill_requirement, skill_requirement_level: instance.skill_requirement_level,
     damage_dice_count: instance.damage_dice_count, damage_dice_sides: instance.damage_dice_sides,
     damage_bonus: instance.damage_bonus, damage_type: instance.damage_type,
     weapon_type: instance.weapon_type, is_two_handed: instance.is_two_handed,
-    stats: instance.stats ? JSON.stringify(instance.stats) : '{}',
+    stats: instance.stats ? JSON.stringify(instance.stats) : "{}",
   }));
 
   const updateMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) => apiPut(`${window.location.origin}/api/item-instances/${instanceId}`, body),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['item-instances', instanceId] }); queryClient.invalidateQueries({ queryKey: ['item-instances'] }); onDone(); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["item-instances", instanceId] }); queryClient.invalidateQueries({ queryKey: ["item-instances"] }); onDone(); },
   });
 
   const set = <K extends keyof InstanceEditFormState>(key: K, value: InstanceEditFormState[K]) =>
@@ -76,42 +77,42 @@ export function InstanceEditForm({ instance, instanceId, onDone }: Readonly<{
       <div className="bg-surface-muted rounded-lg p-6 border border-border">
         <h2 className="mt-0 mb-4 text-text text-lg font-semibold">Edit Instance</h2>
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div><label className="text-text-muted text-xs block mb-1">Name</label><input type="text" value={form.name} onChange={(e) => set('name', e.target.value)} className="w-full p-2 bg-surface border border-border rounded text-text text-sm" /></div>
-          <SelectField label="Slot" value={form.slot} onChange={(v) => set('slot', v)} options={[...SLOT_OPTIONS]} />
-          <SelectField label="Item Type" value={form.itemType} onChange={(v) => set('itemType', v)} options={[...ITEM_TYPE_OPTIONS]} />
-          <NumberField label="Level" value={form.level} onChange={(v) => set('level', v)} />
-          <NumberField label="Weight" value={form.weight} onChange={(v) => set('weight', v)} />
-          <div><label className="text-text-muted text-xs block mb-1">Color</label><input type="text" value={form.color} onChange={(e) => set('color', e.target.value)} className="w-full p-2 bg-surface border border-border rounded text-text text-sm" /></div>
-          <ResourceIdField label="Room" value={form.roomId} onChange={(id) => set('roomId', id ? Number(id) : null)} {...RESOURCE_ENDPOINTS.rooms} />
+          <div><label className="text-text-muted text-xs block mb-1">Name</label><input type="text" value={form.name} onChange={(e) => set("name", e.target.value)} className="w-full p-2 bg-surface border border-border rounded text-text text-sm" /></div>
+          <SelectField label="Slot" value={form.slot} onChange={(v) => set("slot", v)} options={[...SLOT_OPTIONS]} />
+          <SelectField label="Item Type" value={form.itemType} onChange={(v) => set("itemType", v)} options={[...ITEM_TYPE_OPTIONS]} />
+          <NumberField label="Level" value={form.level} onChange={(v) => set("level", v)} />
+          <NumberField label="Weight" value={form.weight} onChange={(v) => set("weight", v)} />
+          <div><label className="text-text-muted text-xs block mb-1">Color</label><input type="text" value={form.color} onChange={(e) => set("color", e.target.value)} className="w-full p-2 bg-surface border border-border rounded text-text text-sm" /></div>
+          <ResourceIdField label="Room" value={form.roomId} onChange={(id) => set("roomId", id ? Number(id) : null)} {...RESOURCE_ENDPOINTS.rooms} />
           <div className="flex items-center gap-4 col-span-2 pt-1">
-            <CheckboxField label="Visible" checked={form.isVisible} onChange={(v) => set('isVisible', v)} />
-            <CheckboxField label="Immovable" checked={form.isImmovable} onChange={(v) => set('isImmovable', v)} />
-            <CheckboxField label="Equipped" checked={form.isEquipped} onChange={(v) => set('isEquipped', v)} />
-            <CheckboxField label="Container" checked={form.isContainer} onChange={(v) => set('isContainer', v)} />
+            <CheckboxField label="Visible" checked={form.isVisible} onChange={(v) => set("isVisible", v)} />
+            <CheckboxField label="Immovable" checked={form.isImmovable} onChange={(v) => set("isImmovable", v)} />
+            <CheckboxField label="Equipped" checked={form.isEquipped} onChange={(v) => set("isEquipped", v)} />
+            <CheckboxField label="Container" checked={form.isContainer} onChange={(v) => set("isContainer", v)} />
           </div>
         </div>
         {form.isContainer && (
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <NumberField label="Container Capacity" value={form.containerCapacity} onChange={(v) => set('containerCapacity', v)} min={0} />
-            <CheckboxField label="Locked" checked={form.isLocked} onChange={(v) => set('isLocked', v)} />
-            <FormField label="Key Item ID" value={form.keyItemID} onChange={(v) => set('keyItemID', v)} placeholder="Template ID of key to unlock" />
+            <NumberField label="Container Capacity" value={form.containerCapacity} onChange={(v) => set("containerCapacity", v)} min={0} />
+            <CheckboxField label="Locked" checked={form.isLocked} onChange={(v) => set("isLocked", v)} />
+            <FormField label="Key Item ID" value={form.keyItemID} onChange={(v) => set("keyItemID", v)} placeholder="Template ID of key to unlock" />
           </div>
         )}
-        <TextareaField label="Description" value={form.description} onChange={(v) => set('description', v)} rows={2} />
+        <TextareaField label="Description" value={form.description} onChange={(v) => set("description", v)} rows={2} />
         <div className="mt-4 pt-4 border-t border-border">
           <h3 className="text-text text-sm font-semibold mb-3">Effect</h3>
           <div className="grid grid-cols-3 gap-4">
-            <SelectField label="Effect Type" value={form.effect_type} onChange={(v) => set('effect_type', v)} options={EFFECT_TYPE_OPTS} />
-            <NumberField label="Effect Value" value={form.effect_value} onChange={(v) => set('effect_value', v)} min={0} />
-            <NumberField label="Duration (ticks)" value={form.effect_duration} onChange={(v) => set('effect_duration', v)} min={0} tooltip="0 = instant" />
+            <SelectField label="Effect Type" value={form.effect_type} onChange={(v) => set("effect_type", v)} options={EFFECT_TYPE_OPTS} />
+            <NumberField label="Effect Value" value={form.effect_value} onChange={(v) => set("effect_value", v)} min={0} />
+            <NumberField label="Duration (ticks)" value={form.effect_duration} onChange={(v) => set("effect_duration", v)} min={0} tooltip="0 = instant" />
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-border">
           <CombatFieldsEditor form={form} onChange={(u) => setForm(prev => ({ ...prev, ...u }))} slot={form.slot} />
         </div>
-        <FormField label="Reveal Condition" value={form.revealCondition} onChange={(v) => set('revealCondition', v)} placeholder='e.g. {"type":"examine","minLevel":3}' tooltip="JSON condition for revealing hidden details" />
+        <FormField label="Reveal Condition" value={form.revealCondition} onChange={(v) => set("revealCondition", v)} placeholder='e.g. {"type":"examine","minLevel":3}' tooltip="JSON condition for revealing hidden details" />
         <div className="flex gap-2 mt-4">
-          <Button variant="primary" onClick={handleSave} disabled={updateMutation.isPending}>{updateMutation.isPending ? 'Saving...' : 'Save'}</Button>
+          <Button variant="primary" onClick={handleSave} disabled={updateMutation.isPending}>{updateMutation.isPending ? "Saving..." : "Save"}</Button>
           <Button variant="secondary" onClick={onDone}>Cancel</Button>
         </div>
         {updateMutation.isError && <div className="mt-3 text-danger text-sm">Failed to save: {(updateMutation.error as Error)?.message}</div>}

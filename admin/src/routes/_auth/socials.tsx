@@ -1,21 +1,21 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useSocials, useDeleteSocial } from '../../hooks/useSocials';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
-import { DeleteConfirmation } from '../../components/DeleteConfirmation';
-import { showToast } from '../../components/Toast';
-import type { SocialCommand } from '../../hooks/useSocials';
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useSocials, useDeleteSocial } from "../../hooks/useSocials";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
+import { DeleteConfirmation } from "../../components/DeleteConfirmation";
+import { showToast } from "../../components/Toast";
+import type { SocialCommand } from "../../hooks/useSocials";
 
-export const Route = createFileRoute('/_auth/socials')({
+export const Route = createFileRoute("/_auth/socials")({
   component: SocialsManagement,
 });
 
 const COLUMNS: Column<SocialCommand>[] = [
   {
-    header: 'Name',
-    accessor: 'name',
+    header: "Name",
+    accessor: "name",
     render: (_, row) => (
       <Link
         to="/socials/$socialId"
@@ -26,12 +26,12 @@ const COLUMNS: Column<SocialCommand>[] = [
       </Link>
     ),
   },
-  { header: 'Self Text', accessor: 'self_text' },
-  { header: 'Room Text', accessor: 'room_text' },
+  { header: "Self Text", accessor: "self_text" },
+  { header: "Room Text", accessor: "room_text" },
 ];
 
 function SocialsManagement() {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,12 +48,12 @@ function SocialsManagement() {
     deleteMutation.mutate(deleteId, {
       onSuccess: () => {
         setDeleteId(null);
-        showToast('Social deleted', 'success');
+        showToast("Social deleted", "success");
       },
     });
   };
 
-  if (location.pathname !== '/socials') return <Outlet />;
+  if (location.pathname !== "/socials") return <Outlet />;
 
   if (isLoading) return <div className="loading">Loading socials...</div>;
   if (error) return <div className="error">Failed to load socials: {error.message}</div>;
@@ -64,7 +64,7 @@ function SocialsManagement() {
         title="Social Commands"
         backTo="/dashboard"
         actions={
-          <Button variant="primary" onClick={() => navigate({ to: '/socials/new' })}>
+          <Button variant="primary" onClick={() => navigate({ to: "/socials/new" })}>
             + Add Social
           </Button>
         }
@@ -84,9 +84,9 @@ function SocialsManagement() {
         columns={[
           ...COLUMNS.slice(0, -1), // Remove the actions column from COLUMNS
           {
-            header: '',
-            accessor: '_actions',
-            align: 'right',
+            header: "",
+            accessor: "_actions",
+            align: "right",
             render: (_, row) => (
               <div className="flex gap-2 justify-end">
                 <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(row.id); }}>
@@ -98,9 +98,9 @@ function SocialsManagement() {
         ]}
         data={filtered}
         getKey={(row) => row.id}
-        onRowClick={(row) => navigate({ to: '/socials/$socialId', params: { socialId: String(row.id) } })}
+        onRowClick={(row) => navigate({ to: "/socials/$socialId", params: { socialId: String(row.id) } })}
         emptyMessage={
-          search ? 'No socials match this search.' : 'No socials found. Create your first social command!'
+          search ? "No socials match this search." : "No socials found. Create your first social command!"
         }
       />
 

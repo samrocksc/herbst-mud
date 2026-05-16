@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiDelete } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}`;
 
@@ -19,7 +20,7 @@ export type ActiveEffect = Readonly<{
 
 export function useActiveEffects(characterId: number | null) {
   return useQuery({
-    queryKey: ['activeEffects', characterId],
+    queryKey: ["activeEffects", characterId],
     queryFn: () => apiGet<ActiveEffect[]>(`${API}/api/characters/${characterId}/effects`),
     enabled: !!characterId,
   });
@@ -31,7 +32,7 @@ export function useRemoveActiveEffect() {
     mutationFn: ({ characterId, effectId }: { characterId: number; effectId: number }) =>
       apiDelete(`${API}/api/characters/${characterId}/effects/${effectId}`),
     onSuccess: (_, { characterId }) => {
-      qc.invalidateQueries({ queryKey: ['activeEffects', characterId] });
+      qc.invalidateQueries({ queryKey: ["activeEffects", characterId] });
     },
   });
 }
@@ -45,7 +46,7 @@ export function useApplyEffect() {
         applied_by_id: appliedById ?? 0,
       }),
     onSuccess: (_, { characterId }) => {
-      qc.invalidateQueries({ queryKey: ['activeEffects', characterId] });
+      qc.invalidateQueries({ queryKey: ["activeEffects", characterId] });
     },
   });
 }

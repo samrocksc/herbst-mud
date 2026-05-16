@@ -1,12 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState, useCallback } from 'react';
-import { apiGet, apiPost, apiPut } from '../utils/apiFetch';
-import { Button } from '../components/Button';
-import { Modal } from '../components/Modal';
-import { PageHeader } from '../components/PageHeader';
-import { FormField, NumberField, TextareaField, SelectField } from '../components/fields';
-import { FormError } from '../components/fields/FormError';
-import { showToast } from '../components/Toast';
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState, useCallback } from "react";
+import { apiGet, apiPost, apiPut } from "../utils/apiFetch";
+import { Button } from "../components/Button";
+import { Modal } from "../components/Modal";
+import { PageHeader } from "../components/PageHeader";
+import { FormField, NumberField, TextareaField, SelectField } from "../components/fields";
+import { FormError } from "../components/fields/FormError";
+import { showToast } from "../components/Toast";
 
 type NPCTemplate = Readonly<{
   id: string
@@ -17,14 +17,14 @@ type NPCTemplate = Readonly<{
   respawn_cooldown: number
 }>
 
-export const Route = createFileRoute('/npc-templates')({
+export const Route = createFileRoute("/npc-templates")({
   component: NPCTemplatePage,
 });
 
 const DISPOSITION_OPTS = [
-  { value: 'neutral', label: 'Neutral' },
-  { value: 'friendly', label: 'Friendly' },
-  { value: 'hostile', label: 'Hostile' },
+  { value: "neutral", label: "Neutral" },
+  { value: "friendly", label: "Friendly" },
+  { value: "hostile", label: "Hostile" },
 ];
 
 function NPCTemplatePage() {
@@ -32,20 +32,20 @@ function NPCTemplatePage() {
   const [loading, setLoading] = useState(true);
   const [editingID, setEditingID] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [roomsInput, setRoomsInput] = useState('');
-  const [cooldownInput, setCooldownInput] = useState('60');
+  const [roomsInput, setRoomsInput] = useState("");
+  const [cooldownInput, setCooldownInput] = useState("60");
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({
-    id: '', name: '', description: '', race: '', disposition: 'neutral',
-    level: 1, xp_value: 0, greeting: '', respawn_cooldown: 60, respawn_rooms: '',
+    id: "", name: "", description: "", race: "", disposition: "neutral",
+    level: 1, xp_value: 0, greeting: "", respawn_cooldown: 60, respawn_rooms: "",
   });
-  const [createError, setCreateError] = useState('');
+  const [createError, setCreateError] = useState("");
 
   const load = useCallback(async () => {
     try {
       const data = await apiGet<NPCTemplate[]>(`${window.location.origin}/api/npc-templates`);
       setTemplates(data);
-    } catch { showToast('Failed to load NPC templates', 'error'); }
+    } catch { showToast("Failed to load NPC templates", "error"); }
     finally { setLoading(false); }
   }, []);
 
@@ -54,22 +54,22 @@ function NPCTemplatePage() {
   async function handleSave(id: string) {
     setSaving(true);
     try {
-      const rooms = roomsInput.split(',').map((s) => s.trim().replace(/^r/i, '')).filter(Boolean);
+      const rooms = roomsInput.split(",").map((s) => s.trim().replace(/^r/i, "")).filter(Boolean);
       const cooldown = parseInt(cooldownInput, 10) || 0;
       const current = templates.find((t) => t.id === id);
       await apiPut(`${window.location.origin}/api/npc-templates/${id}`, {
         xp_value: current?.xp_value ?? 0, respawn_rooms: rooms, respawn_cooldown: cooldown,
       });
       await load(); setEditingID(null);
-      showToast('NPC template saved', 'success');
-    } catch { showToast('Failed to save NPC template', 'error'); }
+      showToast("NPC template saved", "success");
+    } catch { showToast("Failed to save NPC template", "error"); }
     finally { setSaving(false); }
   }
 
   async function handleCreate() {
-    setCreateError('');
+    setCreateError("");
     try {
-      const rooms = createForm.respawn_rooms.split(',').map((s) => s.trim().replace(/^r/i, '')).filter(Boolean);
+      const rooms = createForm.respawn_rooms.split(",").map((s) => s.trim().replace(/^r/i, "")).filter(Boolean);
       await apiPost(`${window.location.origin}/api/npc-templates`, {
         id: createForm.id, name: createForm.name, description: createForm.description,
         race: createForm.race, disposition: createForm.disposition, level: createForm.level,
@@ -77,12 +77,12 @@ function NPCTemplatePage() {
         respawn_cooldown: createForm.respawn_cooldown, respawn_rooms: rooms, skills: {}, trades_with: [],
       });
       await load(); setShowCreate(false);
-      setCreateForm({ id: '', name: '', description: '', race: '', disposition: 'neutral', level: 1, xp_value: 0, greeting: '', respawn_cooldown: 60, respawn_rooms: '' });
+      setCreateForm({ id: "", name: "", description: "", race: "", disposition: "neutral", level: 1, xp_value: 0, greeting: "", respawn_cooldown: 60, respawn_rooms: "" });
     } catch (e: unknown) { setCreateError(e instanceof Error ? e.message : String(e)); }
   }
 
   function startEdit(t: NPCTemplate) {
-    setEditingID(t.id); setRoomsInput(t.respawn_rooms?.join(', ') ?? ''); setCooldownInput(String(t.respawn_cooldown ?? 60));
+    setEditingID(t.id); setRoomsInput(t.respawn_rooms?.join(", ") ?? ""); setCooldownInput(String(t.respawn_cooldown ?? 60));
   }
 
   if (loading) return <div className="min-h-screen bg-surface p-6"><PageHeader title="NPC Templates" backTo="/dashboard" /><p className="text-text-muted">Loading templates...</p></div>;
@@ -100,7 +100,7 @@ function NPCTemplatePage() {
                 <Button variant="accent" size="sm" onClick={() => startEdit(t)}>Edit</Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button variant="primary" size="sm" onClick={() => handleSave(t.id)} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+                  <Button variant="primary" size="sm" onClick={() => handleSave(t.id)} disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
                   <Button variant="ghost" size="sm" onClick={() => setEditingID(null)}>Cancel</Button>
                 </div>
               )}

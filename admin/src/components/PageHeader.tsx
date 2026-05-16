@@ -1,5 +1,6 @@
-import { Link } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
+ 
+import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
 type PageHeaderProps = Readonly<{
   title: string
@@ -9,13 +10,13 @@ type PageHeaderProps = Readonly<{
   actions?: ReactNode
 }>
 
-export function PageHeader({ title, showBack, backTo, backLabel = '← Dashboard', actions }: PageHeaderProps) {
+export function PageHeader({ title, showBack, backTo, backLabel = "← Dashboard", actions }: PageHeaderProps) {
   return (
     <div className="flex justify-between items-center mb-6">
       <div className="flex items-center gap-3">
         {showBack && backTo && (
           <Link
-            to={backTo as any}
+            to={backTo as "/dashboard" | "/map" | "/npcs" | "/items" | "/abilities" | "/quests" | "/logs" | "/skills" | "/factions"}
             className="no-underline px-3 py-1.5 rounded border border-border hover:border-primary transition-colors text-sm font-medium"
           >
             {backLabel}

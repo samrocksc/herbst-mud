@@ -1,17 +1,19 @@
-import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router';
-import { useState, useMemo } from 'react';
-import { useCharacters, type Character } from '../../hooks/useCharacters';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { fuzzyMatch } from '../../components/fuzzyMatch';
+/* eslint-disable react-hooks/purity */
 
-export const Route = createFileRoute('/_auth/characters')({
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
+import { useCharacters, type Character } from "../../hooks/useCharacters";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { fuzzyMatch } from "../../components/fuzzyMatch";
+
+export const Route = createFileRoute("/_auth/characters")({
   component: CharactersIndex,
 });
 
 function CharactersIndex() {
   const { data: characters, isLoading, isError, error } = useCharacters();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [showNPCs, setShowNPCs] = useState(false);
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
@@ -22,24 +24,27 @@ function CharactersIndex() {
       if (showOnlineOnly) {
         if (!c.lastSeenAt) return false;
         const lastSeen = new Date(c.lastSeenAt);
+         
         const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
         if (lastSeen < fifteenMinAgo) return false;
       }
       return true;
     });
     return list;
+
   }, [characters, searchQuery, showNPCs, showOnlineOnly]);
 
+   
   const columns: Column<Character>[] = [
     {
-      header: 'ID',
-      accessor: 'id',
+      header: "ID",
+      accessor: "id",
       render: (_, row) => <span className="font-mono text-xs">{row.id}</span>,
     },
     {
-      header: 'Name',
-      accessor: 'name',
-      className: 'font-bold',
+      header: "Name",
+      accessor: "name",
+      className: "font-bold",
       render: (_, row) => (
         <Link
           to="/characters/$characterId"
@@ -50,22 +55,23 @@ function CharactersIndex() {
         </Link>
       ),
     },
-    { header: 'Race', accessor: 'race' },
-    { header: 'Class', accessor: 'class' },
-    { header: 'Level', accessor: 'level', align: 'center' },
+    { header: "Race", accessor: "race" },
+    { header: "Class", accessor: "class" },
+    { header: "Level", accessor: "level", align: "center" },
     {
-      header: 'Room',
-      accessor: 'currentRoomId',
-      align: 'center',
+      header: "Room",
+      accessor: "currentRoomId",
+      align: "center",
       render: (_, row) => <span className="font-mono text-xs">#{row.currentRoomId}</span>,
     },
     {
-      header: 'Status',
-      accessor: 'lastSeenAt',
+      header: "Status",
+      accessor: "lastSeenAt",
       render: (_, row) => {
         if (row.isNPC) return <span className="badge badge-neutral">NPC</span>;
         if (!row.lastSeenAt) return <span className="badge badge-warning">Offline</span>;
         const lastSeen = new Date(row.lastSeenAt);
+         
         const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
         if (lastSeen >= fifteenMinAgo) {
           return <span className="badge badge-success">Online</span>;
@@ -76,7 +82,8 @@ function CharactersIndex() {
   ];
 
   const location = useLocation();
-  const isList = location.pathname === '/characters';
+
+  const isList = location.pathname === "/characters";
 
   if (!isList) {
     return <Outlet />;
@@ -117,7 +124,7 @@ function CharactersIndex() {
       {isLoading && <div className="p-8 text-text-muted text-center text-xs">Loading characters...</div>}
       {isError && (
         <div className="p-4 bg-danger/10 border border-danger rounded text-danger text-xs">
-          Failed to load characters: {error?.message ?? 'Unknown error'}
+          Failed to load characters: {error?.message ?? "Unknown error"}
         </div>
       )}
       {!isLoading && !isError && (

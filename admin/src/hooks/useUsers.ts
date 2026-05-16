@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost } from '../utils/apiFetch';
+ 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost } from "../utils/apiFetch";
 
 const API = `${window.location.origin}`;
 
@@ -13,14 +14,14 @@ export type User = Readonly<{
 
 export function useUsers() {
   return useQuery({
-    queryKey: ['users'],
+    queryKey: ["users"],
     queryFn: () => apiGet<User[]>(`${API}/users`),
   });
 }
 
 export function useUser(id: number | null) {
   return useQuery({
-    queryKey: ['user', id],
+    queryKey: ["user", id],
     queryFn: () => (id ? apiGet<User>(`${API}/users/${id}`) : null),
     enabled: !!id,
   });
@@ -31,6 +32,6 @@ export function useResetPassword() {
   return useMutation({
     mutationFn: (id: number) =>
       apiPost<{ message: string }>(`${API}/users/${id}/reset-password`, {}),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });
 }

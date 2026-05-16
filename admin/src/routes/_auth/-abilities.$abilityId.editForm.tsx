@@ -1,37 +1,37 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   useUpdateAbility,
   useDeleteAbility,
   type Ability,
   type AbilityInput,
-} from '../../hooks/useAbilities';
-import { useTags } from '../../hooks/useTags';
-import { useNavigate } from '@tanstack/react-router';
-import { Button } from '../../components/Button';
-import { TagInput } from '../../components/TagInput';
-import { EffectsSubForm } from '../../components/EffectsSubForm';
-import { DeleteConfirmation } from '../../components/DeleteConfirmation';
+} from "../../hooks/useAbilities";
+import { useTags } from "../../hooks/useTags";
+import { useNavigate } from "@tanstack/react-router";
+import { Button } from "../../components/Button";
+import { TagInput } from "../../components/TagInput";
+import { EffectsSubForm } from "../../components/EffectsSubForm";
+import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import {
   FormField,
   NumberField,
   TextareaField,
   SelectField,
-} from '../../components/FormFields';
-import { showToast } from '../../components/Toast';
+} from "../../components/FormFields";
+import { showToast } from "../../components/Toast";
 
 const ABILITY_TYPE_OPTS = [
-  { value: 'combat', label: 'Combat' },
-  { value: 'magic', label: 'Magic' },
-  { value: 'utility', label: 'Utility' },
-  { value: 'healing', label: 'Healing' },
-  { value: 'support', label: 'Support' },
-  { value: 'defensive', label: 'Defensive' },
+  { value: "combat", label: "Combat" },
+  { value: "magic", label: "Magic" },
+  { value: "utility", label: "Utility" },
+  { value: "healing", label: "Healing" },
+  { value: "support", label: "Support" },
+  { value: "defensive", label: "Defensive" },
 ];
 
 const ABILITY_CLASS_OPTS = [
-  { value: 'active', label: 'Active' },
-  { value: 'passive', label: 'Passive' },
-  { value: 'toggle', label: 'Toggle' },
+  { value: "active", label: "Active" },
+  { value: "passive", label: "Passive" },
+  { value: "toggle", label: "Toggle" },
 ];
 
 export function AbilityEditForm({
@@ -53,7 +53,7 @@ export function AbilityEditForm({
     name: ability.name,
     description: ability.description,
     ability_type: ability.ability_type,
-    requirements: ability.requirements ?? '',
+    requirements: ability.requirements ?? "",
     cost: ability.cost,
     cooldown: ability.cooldown,
     cooldown_seconds: ability.cooldown_seconds,
@@ -61,13 +61,13 @@ export function AbilityEditForm({
     stamina_cost: ability.stamina_cost,
     hp_cost: ability.hp_cost,
     proc_chance: ability.proc_chance,
-    proc_event: ability.proc_event ?? '',
+    proc_event: ability.proc_event ?? "",
     ability_class: ability.ability_class,
-    required_tag: ability.required_tag ?? '',
+    required_tag: ability.required_tag ?? "",
   });
 
   const selectedTags = formData.required_tag
-    ? formData.required_tag.split(',').map((t) => t.trim()).filter(Boolean)
+    ? formData.required_tag.split(",").map((t) => t.trim()).filter(Boolean)
     : [];
 
   const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }));
@@ -76,7 +76,7 @@ export function AbilityEditForm({
     e.preventDefault();
     try {
       await updateAbility.mutateAsync({ id: abilityId, input: formData });
-      showToast('Ability updated', 'success');
+      showToast("Ability updated", "success");
       onDone();
     } catch {
       // Error is toasted by global onError handler
@@ -86,8 +86,8 @@ export function AbilityEditForm({
   const handleDelete = async () => {
     try {
       await deleteAbility.mutateAsync(abilityId);
-      showToast('Ability deleted', 'success');
-      navigate({ to: '/abilities' });
+      showToast("Ability deleted", "success");
+      navigate({ to: "/abilities" });
     } catch {
       // Error is toasted by global onError handler
     }
@@ -103,7 +103,7 @@ export function AbilityEditForm({
           <TagInput
             label="Required Tag (optional)"
             value={selectedTags}
-            onChange={(tags) => set({ required_tag: tags.join(', ') })}
+            onChange={(tags) => set({ required_tag: tags.join(", ") })}
             availableTags={(availableTags ?? []).map((t) => t.name)}
             placeholder="e.g., sword, fire, healing"
           />
@@ -130,7 +130,7 @@ export function AbilityEditForm({
 
         <div className="flex gap-2 pt-2">
           <Button type="submit" variant="primary" disabled={updateAbility.isPending}>
-            {updateAbility.isPending ? 'Saving...' : 'Save Changes'}
+            {updateAbility.isPending ? "Saving..." : "Save Changes"}
           </Button>
           <Button variant="secondary" onClick={onDone} type="button">Cancel</Button>
           <Button variant="danger" onClick={() => setShowDeleteModal(true)} type="button">Delete Ability</Button>

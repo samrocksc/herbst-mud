@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/npc-system')({
+export const Route = createFileRoute("/docs/npc-system")({
   component: NPCSystemDoc,
 });
 
@@ -87,18 +87,18 @@ function NPCSystemDoc() {
 
       <Section title="Template Fields">
         <Table
-          headers={['Field', 'Meaning']}
+          headers={["Field", "Meaning"]}
           rows={[
-            ['Name', 'Display name. e.g. "Junkyard Scrapper"'],
-            ['Level', 'Power rating. Determines HP pool, damage output, and XP value.'],
-            ['XP Value', 'Experience points awarded when defeated. Split among damage contributors.'],
-            ['Race', 'Affects base stats, resistances, and available abilities. References races table.'],
-            ['Respawn Cooldown', 'Seconds after death before a new instance appears.'],
+            ["Name", "Display name. e.g. \"Junkyard Scrapper\""],
+            ["Level", "Power rating. Determines HP pool, damage output, and XP value."],
+            ["XP Value", "Experience points awarded when defeated. Split among damage contributors."],
+            ["Race", "Affects base stats, resistances, and available abilities. References races table."],
+            ["Respawn Cooldown", "Seconds after death before a new instance appears."],
             [
-              'Respawn Rooms',
-              'Comma-separated room IDs. New instance randomly picks one after cooldown.',
+              "Respawn Rooms",
+              "Comma-separated room IDs. New instance randomly picks one after cooldown.",
             ],
-            ['Description', 'Flavor text shown when player examines the NPC.'],
+            ["Description", "Flavor text shown when player examines the NPC."],
           ]}
         />
       </Section>
@@ -113,40 +113,40 @@ function NPCSystemDoc() {
           Race provides the base CON/STR values.
         </p>
         <Table
-          headers={['Level Range', 'Tier', 'Typical HP', 'Typical Damage']}
+          headers={["Level Range", "Tier", "Typical HP", "Typical Damage"]}
           rows={[
-            ['1–5', 'Weakling', '65–125', '4–10'],
-            ['6–15', 'Standard', '140–275', '12–25'],
-            ['16–30', 'Veteran', '290–500', '27–48'],
-            ['31–50', 'Elite', '515–800', '50–78'],
-            ['51+', 'Boss', '815+', '80+'],
+            ["1–5", "Weakling", "65–125", "4–10"],
+            ["6–15", "Standard", "140–275", "12–25"],
+            ["16–30", "Veteran", "290–500", "27–48"],
+            ["31–50", "Elite", "515–800", "50–78"],
+            ["51+", "Boss", "815+", "80+"],
           ]}
         />
       </Section>
 
       <Section title="AI Behaviors">
         <Table
-          headers={['Behavior', 'Trigger', 'Action']}
+          headers={["Behavior", "Trigger", "Action"]}
           rows={[
             [
-              'Passive',
-              'Player enters room',
-              'Watches but does not attack unless attacked first.',
+              "Passive",
+              "Player enters room",
+              "Watches but does not attack unless attacked first.",
             ],
             [
-              'Aggressive',
-              'Player enters room',
-              'Immediately attacks if player level ≤ NPC level + 5.',
+              "Aggressive",
+              "Player enters room",
+              "Immediately attacks if player level ≤ NPC level + 5.",
             ],
             [
-              'Flee',
-              'HP drops below 25%',
-              'Attempts to move to adjacent room. Success = DEX check.',
+              "Flee",
+              "HP drops below 25%",
+              "Attempts to move to adjacent room. Success = DEX check.",
             ],
             [
-              'Healer',
-              'Ally HP drops below 50%',
-              'Uses healing ability if available. Priority over attack.',
+              "Healer",
+              "Ally HP drops below 50%",
+              "Uses healing ability if available. Priority over attack.",
             ],
           ]}
         />
@@ -157,13 +157,13 @@ function NPCSystemDoc() {
           xp_per_player = (xp_value × damage_contribution%) × level_gap_multiplier
         </div>
         <Table
-          headers={['Level Gap', 'Multiplier', 'Rule']}
+          headers={["Level Gap", "Multiplier", "Rule"]}
           rows={[
-            ['Player ≥ NPC level', '1.0', 'Full XP.'],
-            ['Player = NPC level − 1 to −5', '0.8–0.5', 'Slight penalty for easy kills.'],
-            ['Player = NPC level − 6 to −10', '0.4–0.1', 'Large penalty. Grind elsewhere.'],
-            ['Player < NPC level − 10', '0.0', 'No XP. Too easy.'],
-            ['Player > NPC level + 5', '1.2–1.5', 'Bonus for challenging yourself.'],
+            ["Player ≥ NPC level", "1.0", "Full XP."],
+            ["Player = NPC level − 1 to −5", "0.8–0.5", "Slight penalty for easy kills."],
+            ["Player = NPC level − 6 to −10", "0.4–0.1", "Large penalty. Grind elsewhere."],
+            ["Player < NPC level − 10", "0.0", "No XP. Too easy."],
+            ["Player > NPC level + 5", "1.2–1.5", "Bonus for challenging yourself."],
           ]}
         />
         <p className="text-text-muted mt-3">

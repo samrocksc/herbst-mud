@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
-import { useWorldStore } from './useWorldStore';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
+import { useWorldStore } from "../contexts/WorldStoreContext";
 
 const API_BASE = `${window.location.origin}`;
 
@@ -128,12 +129,11 @@ export type ItemInstanceUpdateInput = Partial<{
 export function useItemInstances() {
   const { currentWorld } = useWorldStore();
 
-  const params = new URLSearchParams();
-  if (currentWorld) params.append('world_id', currentWorld);
-  const qs = params.toString() ? `?${params.toString()}` : '';
+  const params = new URLSearchParams(currentWorld ? [["world_id", currentWorld]] : []);
+  const qs = params.toString() ? `?${params.toString()}` : "";
 
   return useQuery({
-    queryKey: ['item-instances', currentWorld],
+    queryKey: ["item-instances", currentWorld],
     queryFn: async (): Promise<ItemInstance[]> => {
       const data = await apiGet<ItemInstance[]>(`${API_BASE}/api/item-instances${qs}`);
       return Array.isArray(data) ? data : [];
@@ -143,12 +143,11 @@ export function useItemInstances() {
 
 export function useItemInstance(id: number | null) {
   const { currentWorld } = useWorldStore();
-  const params = new URLSearchParams();
-  if (currentWorld) params.append('world_id', currentWorld);
-  const qs = params.toString() ? `?${params.toString()}` : '';
+  const params = new URLSearchParams(currentWorld ? [["world_id", currentWorld]] : []);
+  const qs = params.toString() ? `?${params.toString()}` : "";
 
   return useQuery({
-    queryKey: ['item-instance', id, currentWorld],
+    queryKey: ["item-instance", id, currentWorld],
     queryFn: () => apiGet<ItemInstance>(`${API_BASE}/api/item-instances/${id}${qs}`),
     enabled: !!id,
   });
@@ -161,7 +160,7 @@ export function useCreateItemInstance() {
   return useMutation({
     mutationFn: (input: ItemInstanceCreateInput) =>
       apiPost<ItemInstance>(`${API_BASE}/api/item-instances`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['item-instances'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["item-instances"] }),
   });
 }
 
@@ -171,8 +170,8 @@ export function useUpdateItemInstance() {
     mutationFn: ({ id, update }: { id: number; update: ItemInstanceUpdateInput }) =>
       apiPut<ItemInstance>(`${API_BASE}/api/item-instances/${id}`, update),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['item-instances'] });
-      qc.invalidateQueries({ queryKey: ['item-instance'] });
+      qc.invalidateQueries({ queryKey: ["item-instances"] });
+      qc.invalidateQueries({ queryKey: ["item-instance"] });
     },
   });
 }
@@ -181,6 +180,6 @@ export function useDeleteItemInstance() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API_BASE}/api/item-instances/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['item-instances'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["item-instances"] }),
   });
 }

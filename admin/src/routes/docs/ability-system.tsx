@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/ability-system')({
+export const Route = createFileRoute("/docs/ability-system")({
   component: AbilitySystemDoc,
 });
 
@@ -67,12 +67,12 @@ function AbilitySystemDoc() {
           The system separates concerns across four domains:
         </p>
         <Table
-          headers={['Domain', 'What it is', 'Examples', 'Entity']}
+          headers={["Domain", "What it is", "Examples", "Entity"]}
           rows={[
-            ['Abilities', 'Actions characters perform', 'Concentrate, Haymaker, Fireball', 'Ability'],
-            ['Skills', 'Leveled proficiencies (training)', 'Blades, Staves, Light Armor', 'Character columns'],
-            ['Stats', 'Numeric attributes', 'Strength, Dexterity, Wisdom', 'Character fields'],
-            ['Effects', 'What actually happens', 'Damage, Heal, Buff, Stun', 'AbilityEffect'],
+            ["Abilities", "Actions characters perform", "Concentrate, Haymaker, Fireball", "Ability"],
+            ["Skills", "Leveled proficiencies (training)", "Blades, Staves, Light Armor", "Character columns"],
+            ["Stats", "Numeric attributes", "Strength, Dexterity, Wisdom", "Character fields"],
+            ["Effects", "What actually happens", "Damage, Heal, Buff, Stun", "AbilityEffect"],
           ]}
         />
       </Section>
@@ -83,13 +83,13 @@ function AbilitySystemDoc() {
           effects defined in the AbilityEffect entity.
         </p>
         <Table
-          headers={['Slot', 'Ability', 'Effects', 'Mana', 'Stamina', 'Cooldown']}
+          headers={["Slot", "Ability", "Effects", "Mana", "Stamina", "Cooldown"]}
           rows={[
-            ['1', 'Concentrate', 'accuracy_boost (self, 4t, WIS scaled)', '10', '0', '8s'],
-            ['2', 'Haymaker', 'damage (enemy, STR scaled) + debuff (self, 1t)', '0', '15', '6s'],
-            ['3', 'Back-off', 'dodge_all (self, 1t)', '0', '25', '10s'],
-            ['4', 'Scream', 'buff (self, CON scaled, 2t) + debuff (enemy, CON scaled, 2t)', '5', '10', '12s'],
-            ['5', 'Slap', 'stun (enemy, 1t, DEX contest)', '0', '12', '8s'],
+            ["1", "Concentrate", "accuracy_boost (self, 4t, WIS scaled)", "10", "0", "8s"],
+            ["2", "Haymaker", "damage (enemy, STR scaled) + debuff (self, 1t)", "0", "15", "6s"],
+            ["3", "Back-off", "dodge_all (self, 1t)", "0", "25", "10s"],
+            ["4", "Scream", "buff (self, CON scaled, 2t) + debuff (enemy, CON scaled, 2t)", "5", "10", "12s"],
+            ["5", "Slap", "stun (enemy, 1t, DEX contest)", "0", "12", "8s"],
           ]}
         />
       </Section>
@@ -100,18 +100,18 @@ function AbilitySystemDoc() {
           targets, values, and scaling. The effect types are:
         </p>
         <Table
-          headers={['Type', 'What It Does', 'Target Options']}
+          headers={["Type", "What It Does", "Target Options"]}
           rows={[
-            ['damage', 'Subtracts HP from target. Can specify a damage subtype.', 'enemy, area, random_enemy'],
-            ['heal', 'Restores HP to target (self or ally).', 'self, ally'],
-            ['buff', 'Applies a positive status effect for a duration.', 'self, ally'],
-            ['debuff', 'Applies a negative status effect for a duration.', 'enemy'],
-            ['dot', 'Damage Over Time — repeats every combat tick for the duration.', 'enemy'],
-            ['hot', 'Heal Over Time — repeats every combat tick for the duration.', 'self, ally'],
-            ['stun', 'Target skips their next turn. Resisted by CON contest.', 'enemy'],
-            ['accuracy_boost', 'Increases hit chance for a duration.', 'self'],
-            ['dodge_all', 'Avoids all attacks for the duration.', 'self'],
-            ['set_bind_point', 'Sets the character\'s respawn point to the current room.', 'self'],
+            ["damage", "Subtracts HP from target. Can specify a damage subtype.", "enemy, area, random_enemy"],
+            ["heal", "Restores HP to target (self or ally).", "self, ally"],
+            ["buff", "Applies a positive status effect for a duration.", "self, ally"],
+            ["debuff", "Applies a negative status effect for a duration.", "enemy"],
+            ["dot", "Damage Over Time — repeats every combat tick for the duration.", "enemy"],
+            ["hot", "Heal Over Time — repeats every combat tick for the duration.", "self, ally"],
+            ["stun", "Target skips their next turn. Resisted by CON contest.", "enemy"],
+            ["accuracy_boost", "Increases hit chance for a duration.", "self"],
+            ["dodge_all", "Avoids all attacks for the duration.", "self"],
+            ["set_bind_point", "Sets the character's respawn point to the current room.", "self"],
           ]}
         />
       </Section>
@@ -121,36 +121,36 @@ function AbilitySystemDoc() {
           Damage effects can specify a subtype for future resistance/weakness calculations:
         </p>
         <Table
-          headers={['Subtype', 'Description']}
+          headers={["Subtype", "Description"]}
           rows={[
-            ['slashing', 'Swords, axes — countered by heavy armor'],
-            ['piercing', 'Daggers, arrows — countered by cloth armor'],
-            ['bludgeoning', 'Clubs, fists — countered by light armor'],
-            ['fire', 'Fireballs, dragon breath'],
-            ['cold', 'Ice spells, frost weapons'],
-            ['lightning', 'Shock spells, storm abilities'],
-            ['poison', 'Toxins, venoms'],
-            ['psychic', 'Mind-based attacks'],
+            ["slashing", "Swords, axes — countered by heavy armor"],
+            ["piercing", "Daggers, arrows — countered by cloth armor"],
+            ["bludgeoning", "Clubs, fists — countered by light armor"],
+            ["fire", "Fireballs, dragon breath"],
+            ["cold", "Ice spells, frost weapons"],
+            ["lightning", "Shock spells, storm abilities"],
+            ["poison", "Toxins, venoms"],
+            ["psychic", "Mind-based attacks"],
           ]}
         />
       </Section>
 
       <Section title="Ability Fields Reference">
         <Table
-          headers={['Field', 'Meaning']}
+          headers={["Field", "Meaning"]}
           rows={[
-            ['Name', 'The command name players type, e.g. "concentrate".'],
-            ['Description', 'Flavor text shown when examining the ability.'],
-            ['Ability Type', 'combat, magic, utility, healing, support, defensive'],
-            ['Ability Class', 'active (press to use), passive (auto-trigger), toggle (on/off)'],
-            ['Required Tag', 'Item tag required to use this ability.'],
-            ['Level Req', 'Minimum character level to learn this ability.'],
-            ['Cooldown (s)', 'Seconds before ability can be reused.'],
-            ['Mana Cost', 'MP drained on activation.'],
-            ['Stamina Cost', 'SP drained on activation.'],
-            ['HP Cost', 'Self-damage to cast.'],
-            ['Proc Chance', '0.0–1.0 trigger probability (passives only).'],
-            ['Proc Event', 'When to roll: on_hit, on_hit_received, on_crit, on_kill'],
+            ["Name", "The command name players type, e.g. \"concentrate\"."],
+            ["Description", "Flavor text shown when examining the ability."],
+            ["Ability Type", "combat, magic, utility, healing, support, defensive"],
+            ["Ability Class", "active (press to use), passive (auto-trigger), toggle (on/off)"],
+            ["Required Tag", "Item tag required to use this ability."],
+            ["Level Req", "Minimum character level to learn this ability."],
+            ["Cooldown (s)", "Seconds before ability can be reused."],
+            ["Mana Cost", "MP drained on activation."],
+            ["Stamina Cost", "SP drained on activation."],
+            ["HP Cost", "Self-damage to cast."],
+            ["Proc Chance", "0.0–1.0 trigger probability (passives only)."],
+            ["Proc Event", "When to roll: on_hit, on_hit_received, on_crit, on_kill"],
           ]}
         />
       </Section>
@@ -171,12 +171,12 @@ function AbilitySystemDoc() {
 
       <Section title="Ability Combos">
         <Table
-          headers={['Combo', 'How It Works']}
+          headers={["Combo", "How It Works"]}
           rows={[
-            ['Scream → Haymaker', 'Scream buffs STR, Haymaker uses it. Trade INT/WIS for massive damage.'],
-            ['Concentrate → Back-off', 'Use Concentrate for accuracy. Back-off when things get dicey.'],
-            ['Slap → Haymaker', 'Stun prevents enemy action. Free Haymaker with no retaliation risk.'],
-            ['Back-off → Potion → Attack', 'Dodge round gives time to heal. Re-engage with full resources.'],
+            ["Scream → Haymaker", "Scream buffs STR, Haymaker uses it. Trade INT/WIS for massive damage."],
+            ["Concentrate → Back-off", "Use Concentrate for accuracy. Back-off when things get dicey."],
+            ["Slap → Haymaker", "Stun prevents enemy action. Free Haymaker with no retaliation risk."],
+            ["Back-off → Potion → Attack", "Dodge round gives time to heal. Re-engage with full resources."],
           ]}
         />
       </Section>

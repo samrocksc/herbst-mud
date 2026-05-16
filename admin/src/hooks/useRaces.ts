@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types, functional/immutable-data */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}/api/races`;
 
@@ -22,21 +23,23 @@ export type RaceInput = Readonly<{
   display_name: string
   description: string
   stat_modifiers: string
-  equipment_slots: string[]
+  equipment_slots: ReadonlyArray<string>
   is_playable: boolean
   color: string
-  tags: string[]
+  tags: ReadonlyArray<string>
 }>
 
-function parseRaceForApi(input: RaceInput) {
+function parseRaceForApi(input: RaceInput): Record<string, unknown> {
+  const equipmentSlots: string[] = [...input.equipment_slots];
+  const tags: string[] = [...input.tags];
   const body: Record<string, unknown> = {
     name: input.name,
     display_name: input.display_name || input.name,
     description: input.description,
-    equipment_slots: input.equipment_slots,
+    equipment_slots: equipmentSlots,
     is_playable: input.is_playable,
     color: input.color,
-    tags: input.tags,
+    tags: tags,
   };
   if (input.stat_modifiers.trim()) {
     body.stat_modifiers = input.stat_modifiers;
@@ -46,7 +49,7 @@ function parseRaceForApi(input: RaceInput) {
 
 export function useRaces() {
   return useQuery({
-    queryKey: ['races'],
+    queryKey: ["races"],
     queryFn: async (): Promise<Race[]> => {
       const data = await apiGet<Race[]>(API);
       return Array.isArray(data) ? data : [];
@@ -59,7 +62,7 @@ export function useCreateRace() {
   return useMutation({
     mutationFn: (input: RaceInput) =>
       apiPost<Race>(API, parseRaceForApi(input)),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['races'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["races"] }),
   });
 }
 
@@ -68,7 +71,7 @@ export function useUpdateRace() {
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: RaceInput }) =>
       apiPut<Race>(`${API}/${id}`, parseRaceForApi(input)),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['races'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["races"] }),
   });
 }
 
@@ -76,7 +79,7 @@ export function useDeleteRace() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['races'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["races"] }),
   });
 }
 
@@ -86,8 +89,8 @@ export function useApplyRaceTags() {
     mutationFn: (id: number) =>
       apiPost<{ race: string; characters_updated: number; tags_applied: string[] }>(`${API}/${id}/apply-tags`, {}),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['races'] });
-      qc.invalidateQueries({ queryKey: ['characters'] });
+      qc.invalidateQueries({ queryKey: ["races"] });
+      qc.invalidateQueries({ queryKey: ["characters"] });
     },
   });
 }

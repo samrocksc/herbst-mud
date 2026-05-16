@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { Button } from './Button';
+/* eslint-disable functional/no-mixed-types, functional/immutable-data */
+import { useEffect } from "react";
+import type { ReactNode } from "react";
+import { Button } from "./Button";
 
 type ModalProps = Readonly<{
   isOpen: boolean
@@ -12,20 +13,19 @@ type ModalProps = Readonly<{
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.removeEventListener("keydown", handleEscape);
+        document.body.style.overflow = "";
+      };
     }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;

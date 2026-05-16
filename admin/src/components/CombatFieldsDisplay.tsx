@@ -1,4 +1,5 @@
-import { isWeaponSlot, isArmorSlot } from './equipConstants';
+ 
+import { isWeaponSlot, isArmorSlot } from "./equipConstants";
 
 /** Read-only display of weapon/armor combat fields. */
 export function CombatFieldsDisplay(props: Readonly<{
@@ -23,24 +24,24 @@ export function CombatFieldsDisplay(props: Readonly<{
     <div className="space-y-3">
       <h3 className="text-text text-sm font-semibold border-b border-border pb-1">Combat Stats</h3>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
-        <DetailField label="Rarity" value={props.rarity || 'common'} />
+        <DetailField label="Rarity" value={props.rarity || "common"} />
         {showWeapon && (
           <>
             <DetailField label="Damage" value={props.damage_dice_count > 0
-              ? `${props.damage_dice_count}d${props.damage_dice_sides}${props.damage_bonus > 0 ? `+${props.damage_bonus}` : ''}`
-              : '—'} />
-            <DetailField label="Weapon Type" value={props.weapon_type || '—'} />
-            <DetailField label="Damage Type" value={props.damage_type || '—'} />
-            <DetailField label="Two-Handed" value={props.is_two_handed ? 'Yes' : 'No'} />
+              ? `${props.damage_dice_count}d${props.damage_dice_sides}${props.damage_bonus > 0 ? `+${props.damage_bonus}` : ""}`
+              : "—"} />
+            <DetailField label="Weapon Type" value={props.weapon_type || "—"} />
+            <DetailField label="Damage Type" value={props.damage_type || "—"} />
+            <DetailField label="Two-Handed" value={props.is_two_handed ? "Yes" : "No"} />
           </>
         )}
         {showArmor && (
           <>
             <DetailField label="Armor Rating" value={String(props.armor_rating)} />
-            <DetailField label="Armor Type" value={props.armor_type || '—'} />
+            <DetailField label="Armor Type" value={props.armor_type || "—"} />
           </>
         )}
-        <DetailField label="Skill Requirement" value={props.skill_requirement || '—'} />
+        <DetailField label="Skill Requirement" value={props.skill_requirement || "—"} />
         <DetailField label="Skill Req. Level" value={String(props.skill_requirement_level)} />
       </div>
       {props.stats && Object.keys(props.stats).length > 0 && <StatsDisplay stats={props.stats as Record<string, number>} />}

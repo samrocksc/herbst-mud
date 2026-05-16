@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   useQuest,
   useUpdateQuest,
@@ -8,24 +8,24 @@ import {
   type QuestInput,
   EMPTY_REWARDS,
   type QuestObjective,
-} from '../../hooks/useQuests';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/Button';
-import { FormField, TextareaField, NumberField, SelectField } from '../../components/FormFields';
-import { showToast } from '../../components/Toast';
+} from "../../hooks/useQuests";
+import { PageHeader } from "../../components/PageHeader";
+import { Button } from "../../components/Button";
+import { FormField, TextareaField, NumberField, SelectField } from "../../components/FormFields";
+import { showToast } from "../../components/Toast";
 
-export const Route = createFileRoute('/_auth/quests/$questId')({
+export const Route = createFileRoute("/_auth/quests/$questId")({
   component: QuestDetailPage,
 });
 
 const REPEAT_MODE_OPTS = [
-  { value: 'none', label: 'None (one-time)' },
-  { value: 'cooldown', label: 'Cooldown' },
-  { value: 'always', label: 'Always repeatable' },
+  { value: "none", label: "None (one-time)" },
+  { value: "cooldown", label: "Cooldown" },
+  { value: "always", label: "Always repeatable" },
 ];
 
 const EMPTY_OBJECTIVE: QuestObjective = {
-  type: '', target_id: '', tag_filter: '', count: 1, labels: [], hint: '',
+  type: "", target_id: "", tag_filter: "", count: 1, labels: [], hint: "",
 };
 
 function QuestDetailPage() {
@@ -53,7 +53,7 @@ function QuestDetailPage() {
     repeat_mode: quest.repeat_mode,
     cooldown_hours: quest.cooldown_hours,
     is_active: quest.is_active,
-    main_type: quest.main_type ?? 'general',
+    main_type: quest.main_type ?? "general",
   };
 
   const set = (patch: Partial<QuestInput>) => setFormData({ ...current, ...patch });
@@ -75,9 +75,9 @@ function QuestDetailPage() {
   const getTargetsForType = (type: string) => {
     if (!lookups) return [];
     switch (type) {
-      case 'kill': return lookups.npcs;
-      case 'explore': return lookups.rooms;
-      case 'collect': return lookups.items;
+      case "kill": return lookups.npcs;
+      case "explore": return lookups.rooms;
+      case "collect": return lookups.items;
       default: return [];
     }
   };
@@ -95,7 +95,7 @@ function QuestDetailPage() {
     e.preventDefault();
     try {
       await updateQuest.mutateAsync({ id: Number(questId), input: current });
-      showToast('Quest updated', 'success');
+      showToast("Quest updated", "success");
       setFormData(null);
     } catch { /* toasted globally */ }
   };
@@ -103,8 +103,8 @@ function QuestDetailPage() {
   const handleDelete = async () => {
     try {
       await deleteQuest.mutateAsync(Number(questId));
-      showToast('Quest deleted', 'success');
-      navigate({ to: '/quests' });
+      showToast("Quest deleted", "success");
+      navigate({ to: "/quests" });
     } catch { /* toasted globally */ }
   };
 
@@ -112,16 +112,16 @@ function QuestDetailPage() {
     <div className="management-page">
       <PageHeader title={quest.name} backTo="/quests" />
       <form onSubmit={handleSubmit} className="form-card space-y-3">
-        <FormField label="Name" value={current.name ?? ''} onChange={(v) => set({ name: v })} />
-        <TextareaField label="Description" value={current.description ?? ''} onChange={(v) => set({ description: v })} rows={3} />
-        <SelectField label="Quest Type" value={current.main_type ?? 'general'} onChange={(v) => set({ main_type: v })} options={[
-        { value: 'general', label: 'General' },
-        { value: 'hunter', label: 'Hunter (Kill NPCs)' },
-        { value: 'collector', label: 'Collector (Gather Items)' },
-        { value: 'explorer', label: 'Explorer (Visit Rooms)' },
+        <FormField label="Name" value={current.name ?? ""} onChange={(v) => set({ name: v })} />
+        <TextareaField label="Description" value={current.description ?? ""} onChange={(v) => set({ description: v })} rows={3} />
+        <SelectField label="Quest Type" value={current.main_type ?? "general"} onChange={(v) => set({ main_type: v })} options={[
+        { value: "general", label: "General" },
+        { value: "hunter", label: "Hunter (Kill NPCs)" },
+        { value: "collector", label: "Collector (Gather Items)" },
+        { value: "explorer", label: "Explorer (Visit Rooms)" },
       ]} />
-      <SelectField label="Repeat Mode" value={current.repeat_mode ?? 'none'} onChange={(v) => set({ repeat_mode: v })} options={REPEAT_MODE_OPTS} />
-        {(current.repeat_mode === 'cooldown') && (
+      <SelectField label="Repeat Mode" value={current.repeat_mode ?? "none"} onChange={(v) => set({ repeat_mode: v })} options={REPEAT_MODE_OPTS} />
+        {(current.repeat_mode === "cooldown") && (
           <NumberField label="Cooldown (hours)" value={current.cooldown_hours ?? 0} onChange={(v) => set({ cooldown_hours: v })} />
         )}
         <div className="flex items-center gap-2">
@@ -140,8 +140,8 @@ function QuestDetailPage() {
                 onClick={() => togglePrereqQuest(q.id)}
                 className={`px-2 py-1 text-xs rounded border ${
                   (current.prerequisite_quest_ids ?? []).includes(q.id)
-                    ? 'bg-primary/20 border-primary text-text'
-                    : 'bg-surface border-border text-muted hover:border-primary'
+                    ? "bg-primary/20 border-primary text-text"
+                    : "bg-surface border-border text-muted hover:border-primary"
                 }`}
               >
                 {q.name}
@@ -162,11 +162,11 @@ function QuestDetailPage() {
                 <SelectField
                   label="Type"
                   value={obj.type}
-                  onChange={(v) => updateObjective(i, { type: v, target_id: '' })}
+                  onChange={(v) => updateObjective(i, { type: v, target_id: "" })}
                   options={[
-                    { value: 'kill', label: 'Kill NPC' },
-                    { value: 'explore', label: 'Explore Room' },
-                    { value: 'collect', label: 'Collect Item' },
+                    { value: "kill", label: "Kill NPC" },
+                    { value: "explore", label: "Explore Room" },
+                    { value: "collect", label: "Collect Item" },
                   ]}
                 />
                 <SelectField
@@ -174,13 +174,13 @@ function QuestDetailPage() {
                   value={obj.target_id}
                   onChange={(v) => updateObjective(i, { target_id: v })}
                   options={[
-                    { value: '', label: 'Select target...' },
+                    { value: "", label: "Select target..." },
                     ...targetOptions.map(t => ({ value: t.id, label: t.name }))
                   ]}
                 />
                 <FormField label="Tag Filter" value={obj.tag_filter} onChange={(v) => updateObjective(i, { tag_filter: v })} placeholder="Optional: filter by tag" />
                 <NumberField label="Count" value={obj.count} onChange={(v) => updateObjective(i, { count: v })} />
-                <FormField label="Label" value={obj.labels?.[0] ?? ''} onChange={(v) => updateObjective(i, { labels: [v] })} placeholder="Kill Rats" />
+                <FormField label="Label" value={obj.labels?.[0] ?? ""} onChange={(v) => updateObjective(i, { labels: [v] })} placeholder="Kill Rats" />
                 <FormField label="Hint" value={obj.hint} onChange={(v) => updateObjective(i, { hint: v })} placeholder="Optional hint" />
                 <Button variant="danger" size="sm" onClick={() => removeObjective(i)}>×</Button>
               </div>
@@ -209,8 +209,8 @@ function QuestDetailPage() {
                   }}
                   className={`px-2 py-1 text-xs rounded border ${
                     (current.rewards?.item_ids ?? []).includes(item.id)
-                      ? 'bg-primary/20 border-primary text-text'
-                      : 'bg-surface border-border text-muted hover:border-primary'
+                      ? "bg-primary/20 border-primary text-text"
+                      : "bg-surface border-border text-muted hover:border-primary"
                   }`}
                 >
                   {item.name}
@@ -236,8 +236,8 @@ function QuestDetailPage() {
                   }}
                   className={`px-2 py-1 text-xs rounded border ${
                     (current.rewards?.tag_adds ?? []).includes(tag.id)
-                      ? 'bg-primary/20 border-primary text-text'
-                      : 'bg-surface border-border text-muted hover:border-primary'
+                      ? "bg-primary/20 border-primary text-text"
+                      : "bg-surface border-border text-muted hover:border-primary"
                   }`}
                 >
                   {tag.name}
@@ -249,7 +249,7 @@ function QuestDetailPage() {
 
         <div className="flex gap-2 pt-1">
           <Button type="submit" variant="primary" disabled={updateQuest.isPending}>
-            {updateQuest.isPending ? 'Saving...' : 'Save Changes'}
+            {updateQuest.isPending ? "Saving..." : "Save Changes"}
           </Button>
           <Button variant="danger" onClick={() => setConfirmDelete(true)}>Delete Quest</Button>
         </div>
@@ -268,7 +268,7 @@ function QuestDetailPage() {
             </div>
             <div className="modal-footer">
               <Button variant="danger" onClick={handleDelete} disabled={deleteQuest.isPending}>
-                {deleteQuest.isPending ? 'Deleting...' : 'Delete'}
+                {deleteQuest.isPending ? "Deleting..." : "Delete"}
               </Button>
               <Button variant="secondary" onClick={() => setConfirmDelete(false)}>Cancel</Button>
             </div>

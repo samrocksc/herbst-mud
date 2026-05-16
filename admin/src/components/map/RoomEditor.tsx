@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { ALL_DIRECTIONS } from './DirectionUtils';
-import { Button } from '../Button';
-import { SearchableSelect } from '../SearchableSelect';
-import { FormField } from '../fields/FormField';
-import { TextareaField } from '../fields/TextareaField';
-import { FormError } from '../fields/FormError';
-import { showToast } from '../Toast';
-import { useRooms } from '../../hooks/useRooms';
-import type { Room } from './types';
+/* eslint-disable functional/prefer-immutable-types, functional/no-mixed-types */
+import { useState } from "react";
+import { ALL_DIRECTIONS } from "./DirectionUtils";
+import { Button } from "../Button";
+import { SearchableSelect } from "../SearchableSelect";
+import { FormField } from "../fields/FormField";
+import { TextareaField } from "../fields/TextareaField";
+import { FormError } from "../fields/FormError";
+import { showToast } from "../Toast";
+import { useRooms } from "../../hooks/useRooms";
+import type { Room } from "./types";
 
 type RoomEditorProps = {
   room: Room
@@ -24,7 +25,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
     isRootRoom: room.isRootRoom,
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleExitChange = async (dir: string, val: string) => {
     if (val) {
@@ -40,11 +41,12 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
         await createBidirectionalExit({ roomId: room.id, direction: dir, targetRoomId: targetId });
       } catch {
         setForm(f => ({ ...f, exits: { ...f.exits, [dir]: oldTargetId } }));
-        showToast('Failed to create exit', 'error');
+        showToast("Failed to create exit", "error");
       }
     } else {
       const oldTargetId = form.exits[dir];
-      const { [dir]: _, ...rest } = form.exits;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [dir]: _exitDir, ...rest } = form.exits;
       setForm(f => ({ ...f, exits: rest }));
       if (oldTargetId) {
         removeBidirectionalExit({ roomId: room.id, direction: dir }).catch(() => {});
@@ -53,7 +55,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
   };
 
   const handleSave = () => {
-    setError('');
+    setError("");
     setSaving(true);
     updateRoom({
       id: room.id,
@@ -115,13 +117,13 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
               <span className="w-[60px] text-text-muted text-xs">{dir}:</span>
               <SearchableSelect
                 options={rooms.map(r => ({ id: String(r.id), name: `${r.name} (ID: ${r.id})` }))}
-                value={form.exits[dir] ? String(form.exits[dir]) : ''}
+                value={form.exits[dir] ? String(form.exits[dir]) : ""}
                 onChange={(val) => handleExitChange(dir, val)}
                 placeholder="Pick destination..."
               />
               {form.exits[dir] && (
                 <Button variant="ghost" size="sm" className="!px-1 !py-0.5 text-danger"
-                  onClick={() => handleExitChange(dir, '')} aria-label={`Remove ${dir} exit`}>×</Button>
+                  onClick={() => handleExitChange(dir, "")} aria-label={`Remove ${dir} exit`}>×</Button>
               )}
             </div>
           ))}
@@ -130,7 +132,7 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
 
       <div className="p-3 border-t border-border flex gap-2">
         <Button variant="primary" size="md" fullWidth onClick={handleSave} disabled={isUpdating || saving}>
-          {isUpdating || saving ? 'Saving...' : 'Save Changes'}
+          {isUpdating || saving ? "Saving..." : "Save Changes"}
         </Button>
         <Button variant="secondary" size="md" fullWidth onClick={onCancel}>Cancel</Button>
       </div>

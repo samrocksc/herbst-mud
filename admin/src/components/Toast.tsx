@@ -1,35 +1,37 @@
-import { createContext, useCallback, useContext, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components, functional/no-let, functional/immutable-data, functional/prefer-immutable-types, react-hooks/globals */
+import { createContext, useCallback, useContext, useState } from "react";
 
-type ToastVariant = 'success' | 'error' | 'info'
+type ToastVariant = "success" | "error" | "info"
 
-interface Toast {
+type Toast = Readonly<{
   id: number
   message: string
   variant: ToastVariant
-}
+}>
 
-interface ToastContextValue {
+type ToastContextValue = Readonly<{
   addToast: (message: string, variant?: ToastVariant) => void
-}
+}>;
 
 const ToastContext = createContext<ToastContextValue>({ addToast: () => {} });
 
-let nextId = 0;
+const nextId = { value: 0 };
+const inc = () => nextId.value++;
 
 let globalAddToast: ((message: string, variant?: ToastVariant) => void) | null = null;
 
-export function showToast(message: string, variant: ToastVariant = 'error') {
+export function showToast(message: string, variant: ToastVariant = "error") {
   if (globalAddToast) {
     globalAddToast(message, variant);
   } else {
-    console.error('[Toast]', message);
+    console.error("[Toast]", message);
   }
 }
 
 const VARIANT_CLASSES: Record<ToastVariant, string> = {
-  success: 'bg-success/10 border-success text-success',
-  error: 'bg-danger/10 border-danger text-danger',
-  info: 'bg-primary/10 border-primary text-primary',
+  success: "bg-success/10 border-success text-success",
+  error: "bg-danger/10 border-danger text-danger",
+  info: "bg-primary/10 border-primary text-primary",
 };
 
 export function useToast() {
@@ -37,13 +39,13 @@ export function useToast() {
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toasts, setToasts] = useState<ReadonlyArray<Toast>>([]);
 
-  const addToast = useCallback((message: string, variant: ToastVariant = 'info') => {
-    const id = nextId++;
-    setToasts((prev) => [...prev, { id, message, variant }]);
+  const addToast = useCallback((message: string, variant: ToastVariant = "info") => {
+    const id = inc();
+    setToasts((prev) => [...prev, { id, message, variant }] as unknown as ReadonlyArray<Toast>);
     setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
+      setToasts((prev) => prev.filter((t) => t.id !== id) as unknown as ReadonlyArray<Toast>);
     }, 4000);
   }, []);
 

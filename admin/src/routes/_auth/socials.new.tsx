@@ -1,22 +1,22 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useCreateSocial, type SocialInput } from '../../hooks/useSocials';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/Button';
-import { FormField, TextareaField } from '../../components/FormFields';
-import { showToast } from '../../components/Toast';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useCreateSocial, type SocialInput } from "../../hooks/useSocials";
+import { PageHeader } from "../../components/PageHeader";
+import { Button } from "../../components/Button";
+import { FormField, TextareaField } from "../../components/FormFields";
+import { showToast } from "../../components/Toast";
 
-export const Route = createFileRoute('/_auth/socials/new')({
+export const Route = createFileRoute("/_auth/socials/new")({
   component: SocialCreatePage,
 });
 
 const EMPTY_FORM: SocialInput = {
-  name: '',
-  self_text: '',
-  room_text: '',
-  target_self_text: '',
-  target_text: '',
-  target_room_text: '',
+  name: "",
+  self_text: "",
+  room_text: "",
+  target_self_text: "",
+  target_text: "",
+  target_room_text: "",
 };
 
 function SocialCreatePage() {
@@ -30,8 +30,8 @@ function SocialCreatePage() {
     e.preventDefault();
     try {
       await createMutation.mutateAsync(formData);
-      showToast('Social created', 'success');
-      navigate({ to: '/socials' });
+      showToast("Social created", "success");
+      navigate({ to: "/socials" });
     } catch { /* toasted globally */ }
   };
 
@@ -56,12 +56,12 @@ function SocialCreatePage() {
             <TextareaField label="Target Room Text" value={formData.target_room_text} onChange={(v) => set({ target_room_text: v })} rows={2} placeholder="{actor} smiles at {target}." />
           </div>
           <p className="text-text-muted text-xs mt-2">
-            Use {'{actor}'} and {'{target}'} as placeholders. Pronoun substitution available: {'{he}'}, {'{him}'}, {'{his}'}.
+            Use {"{actor}"} and {"{target}"} as placeholders. Pronoun substitution available: {"{he}"}, {"{him}"}, {"{his}"}.
           </p>
         </div>
 
         <Button type="submit" variant="primary" disabled={createMutation.isPending} fullWidth>
-          {createMutation.isPending ? 'Creating...' : 'Create Social'}
+          {createMutation.isPending ? "Creating..." : "Create Social"}
         </Button>
       </form>
     </div>

@@ -38,7 +38,9 @@ func welcomeScreen(width, height int, inputView string) string {
 	outputContent.WriteString("      - Log in to your existing account\n")
 	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  2. Register"))
 	outputContent.WriteString("   - Create a new character\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  3. Quit"))
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  3. World"))
+	outputContent.WriteString("     - Select world to play\n")
+	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  4. Quit"))
 	outputContent.WriteString("       - Exit the game\n\n")
 	outputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("  Use arrow keys or type number/command"))
 
@@ -123,6 +125,90 @@ func registerScreen(width, height int, message, messageType string, inputView st
 	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
 	outputContent.WriteString("\n\n")
 	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        CREATE ACCOUNT        "))
+	outputContent.WriteString("\n\n")
+
+	if message != "" {
+		outputContent.WriteString(styleMessage(message, messageType))
+		outputContent.WriteString("\n")
+	}
+
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width).
+		Height(inputHeight - 2)
+
+	var sb strings.Builder
+	sb.WriteString(outputStyle.Render(outputContent.String()))
+	sb.WriteString("\n")
+	sb.WriteString(inputStyle.Render(inputView))
+
+	return sb.String()
+}
+
+func worldSelectScreen(width, height int, displayContent string, inputView string) string {
+	inputHeight := height * 30 / 100
+	if inputHeight < 5 {
+		inputHeight = 5
+	}
+	outputHeight := height - inputHeight
+	if outputHeight < 10 {
+		outputHeight = 10
+	}
+
+	outputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width).
+		Height(outputHeight - 2)
+
+	var outputContent strings.Builder
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        SELECT WORLD        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(displayContent)
+
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width).
+		Height(inputHeight - 2)
+
+	var sb strings.Builder
+	sb.WriteString(outputStyle.Render(outputContent.String()))
+	sb.WriteString("\n")
+	sb.WriteString(inputStyle.Render(inputView))
+
+	return sb.String()
+}
+
+func characterSelectScreen(width, height int, message, messageType string, inputView string) string {
+	inputHeight := height * 30 / 100
+	if inputHeight < 5 {
+		inputHeight = 5
+	}
+	outputHeight := height - inputHeight
+	if outputHeight < 10 {
+		outputHeight = 10
+	}
+
+	outputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(pink).
+		Padding(0, 1).
+		Width(width).
+		Height(outputHeight - 2)
+
+	var outputContent strings.Builder
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
+	outputContent.WriteString("\n\n")
+	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        SELECT CHARACTER        "))
 	outputContent.WriteString("\n\n")
 
 	if message != "" {

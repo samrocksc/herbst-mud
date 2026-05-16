@@ -1,14 +1,15 @@
-import { useId, type ReactNode } from 'react';
+ 
+import { useId, type ReactNode } from "react";
 
 // ─── Tooltip — CSS-only hover tooltip (no JS positioning library) ──────────
 
 type TooltipProps = Readonly<{
   children: ReactNode
   content: string
-  placement?: 'top' | 'bottom' | 'left' | 'right'
+  placement?: "top" | "bottom" | "left" | "right"
 }>
 
-export function Tooltip({ children, content, placement = 'top' }: TooltipProps) {
+export function Tooltip({ children, content, placement = "top" }: TooltipProps) {
   const id = useId();
 
   return (

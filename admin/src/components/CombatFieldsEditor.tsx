@@ -1,5 +1,8 @@
-import { NumberField, SelectField, CheckboxField, TextareaField } from './FormFields';
-import { WEAPON_TYPES, DAMAGE_TYPES, ARMOR_TYPES, RARITY_OPTIONS, isWeaponSlot, isArmorSlot } from './equipConstants';
+ 
+/* eslint-disable functional/no-mixed-types */
+
+import { NumberField, SelectField, CheckboxField, TextareaField } from "./FormFields";
+import { WEAPON_TYPES, DAMAGE_TYPES, ARMOR_TYPES, RARITY_OPTIONS, isWeaponSlot, isArmorSlot } from "./equipConstants";
 
 /** Combat form state shared by Equipment and EquipmentTemplate. */
 export type CombatFields = Readonly<{

@@ -1,15 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
-import type { KeyboardEvent } from 'react';
-import { Button } from './Button';
-import { TooltipIcon } from './Tooltip';
+/* eslint-disable functional/no-mixed-types */
+import { useState, useRef, useEffect } from "react";
+import type { KeyboardEvent } from "react";
+import { Button } from "./Button";
+import { TooltipIcon } from "./Tooltip";
 
 export type TagInputProps = Readonly<{
   /** Current selected tags */
-  value: string[]
+  value: ReadonlyArray<string>
   /** Called when tags change */
-  onChange: (tags: string[]) => void
+  onChange: (tags: ReadonlyArray<string>) => void
   /** All known tags for autocomplete */
-  availableTags?: string[]
+  availableTags?: ReadonlyArray<string>
   /** Placeholder shown when input is empty */
   placeholder?: string
   /** Disable the input */
@@ -32,12 +33,12 @@ export function TagInput({
   value,
   onChange,
   availableTags = [],
-  placeholder = 'Add a tag…',
+  placeholder = "Add a tag…",
   disabled = false,
   label,
   tooltip,
 }: TagInputProps) {
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,8 +51,8 @@ export function TagInput({
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const normalised = inputValue.toLowerCase().trim();
@@ -70,19 +71,19 @@ export function TagInput({
 
   const addTag = (tag: string) => {
     const trimmed = tag.trim();
-    if (!trimmed || value.includes(trimmed)) return;
-    onChange([...value, trimmed]);
-    setInputValue('');
+    if (!trimmed || (value as string[]).includes(trimmed)) return;
+    onChange([...value, trimmed] as unknown as ReadonlyArray<string>);
+    setInputValue("");
     setIsOpen(false);
     inputRef.current?.focus();
   };
 
   const removeTag = (tag: string) => {
-    onChange(value.filter((t) => t !== tag));
+    onChange(value.filter((t) => t !== tag) as unknown as ReadonlyArray<string>);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       if (suggestions.length > 0) {
         addTag(suggestions[highlightedIndex]);
@@ -92,17 +93,17 @@ export function TagInput({
         // Existing but not selected — add it anyway
         addTag(inputValue);
       }
-    } else if (e.key === 'ArrowDown') {
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
       setIsOpen(true);
       setHighlightedIndex((i) => Math.min(i + 1, suggestions.length - (inputIsNewTag ? 0 : 1)));
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlightedIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setIsOpen(false);
-      setInputValue('');
-    } else if (e.key === 'Backspace' && inputValue === '' && value.length > 0) {
+      setInputValue("");
+    } else if (e.key === "Backspace" && inputValue === "" && value.length > 0) {
       removeTag(value[value.length - 1]);
     }
   };
@@ -168,7 +169,7 @@ export function TagInput({
                 key={tag}
                 role="option"
                 aria-selected={i === highlightedIndex}
-                className={`tag-dropdown-item${i === highlightedIndex ? ' highlighted' : ''}`}
+                className={`tag-dropdown-item${i === highlightedIndex ? " highlighted" : ""}`}
                 onMouseDown={(e) => { e.preventDefault(); addTag(tag); }}
                 onMouseEnter={() => setHighlightedIndex(i)}
               >
@@ -180,7 +181,7 @@ export function TagInput({
                 role="option"
                 aria-selected={highlightedIndex === suggestions.length}
                 className={`tag-dropdown-item tag-dropdown-item-create${
-                  highlightedIndex === suggestions.length ? ' highlighted' : ''
+                  highlightedIndex === suggestions.length ? " highlighted" : ""
                 }`}
                 onMouseDown={(e) => { e.preventDefault(); addTag(inputValue); }}
                 onMouseEnter={() => setHighlightedIndex(suggestions.length)}

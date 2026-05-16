@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 
 const API_BASE = `${window.location.origin}`;
 
@@ -41,10 +42,10 @@ export type NPCInstanceUpdate = Readonly<{
 // ─── Query hooks ────────────────────────────────────────────────────────────
 
 export function useNPCInstances(roomId?: number) {
-  const params = roomId ? `?roomId=${roomId}` : '';
+  const params = roomId ? `?roomId=${roomId}` : "";
   return useQuery({
-    queryKey: roomId ? ['npc-instances', roomId] : ['npc-instances'],
-    queryFn: async (): Promise<NPCInstance[]> => {
+    queryKey: roomId ? ["npc-instances", roomId] : ["npc-instances"],
+    queryFn: (): Promise<NPCInstance[]> => {
       return apiGet<NPCInstance[]>(`${API_BASE}/api/npc-instances${params}`);
     },
   });
@@ -55,11 +56,11 @@ export function useNPCInstances(roomId?: number) {
 export function useCreateNPCInstance() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: NPCInstanceInput): Promise<NPCInstance> => {
+    mutationFn: (input: NPCInstanceInput): Promise<NPCInstance> => {
       return apiPost<NPCInstance>(`${API_BASE}/api/npc-instances`, input);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-instances'] });
+      queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
     },
   });
 }
@@ -67,11 +68,11 @@ export function useCreateNPCInstance() {
 export function useUpdateNPCInstance() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, update }: { id: number; update: NPCInstanceUpdate }): Promise<NPCInstance> => {
+    mutationFn: ({ id, update }: { id: number; update: NPCInstanceUpdate }): Promise<NPCInstance> => {
       return apiPut<NPCInstance>(`${API_BASE}/api/npc-instances/${id}`, update);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-instances'] });
+      queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
     },
   });
 }
@@ -79,11 +80,11 @@ export function useUpdateNPCInstance() {
 export function useDeleteNPCInstance() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: number): Promise<void> => {
-      await apiDelete(`${API_BASE}/api/npc-instances/${id}`);
+    mutationFn: async (id: number): Promise<NPCInstance> => {
+      return apiDelete<NPCInstance>(`${API_BASE}/api/npc-instances/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-instances'] });
+      queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
     },
   });
 }

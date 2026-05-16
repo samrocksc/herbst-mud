@@ -1,9 +1,10 @@
-import { Link } from '@tanstack/react-router';
-import { Button } from '../Button';
-import { ItemEditRow } from './ItemEditRow';
-import { ItemInstanceRow } from './ItemInstanceRow';
-import { useItemInstances } from './useItemInstances';
-import type { ItemInstanceView } from './types';
+ 
+import { Link } from "@tanstack/react-router";
+import { Button } from "../Button";
+import { ItemEditRow } from "./ItemEditRow";
+import { ItemInstanceRow } from "./ItemInstanceRow";
+import { useItemInstances } from "./useItemInstances";
+import type { ItemInstanceView } from "./types";
 
 type ItemInstanceManagerProps = Readonly<{ roomId: number }>
 
@@ -60,8 +61,8 @@ export function ItemInstanceManager({ roomId }: ItemInstanceManagerProps) {
                   onDelete={() => confirmDeleteId === inst.id ? handleDelete(inst.id) : setConfirmDeleteId(inst.id)} />
               )}
               {confirmDeleteId === inst.id && editingId !== inst.id && (
-                <div className="mt-1 text-[10px] text-text">Confirm delete?{' '}
-                  <Button variant="danger" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={() => handleDelete(inst.id)}>Yes</Button>{' '}
+                <div className="mt-1 text-[10px] text-text">Confirm delete?{" "}
+                  <Button variant="danger" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={() => handleDelete(inst.id)}>Yes</Button>{" "}
                   <Button variant="ghost" size="sm" className="!px-1 !py-0 !text-[10px]" onClick={() => setConfirmDeleteId(null)}>No</Button>
                 </div>
               )}

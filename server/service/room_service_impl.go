@@ -58,6 +58,7 @@ func (s *roomService) CreateRoom(ctx context.Context, input CreateRoomInput) (*d
 		PosX:           input.PosX,
 		PosY:           input.PosY,
 		PosZ:           input.PosZ,
+		WorldID:        input.WorldID,
 	}
 	return s.roomRepo.Create(ctx, repoInput)
 }

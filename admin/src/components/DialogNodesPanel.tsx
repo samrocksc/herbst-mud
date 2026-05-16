@@ -1,4 +1,5 @@
-import { useState } from 'react';
+ 
+import { useState } from "react";
 import {
   useDialogNodes,
   useCreateDialogNode,
@@ -6,15 +7,15 @@ import {
   useDeleteDialogNode,
   type DialogNode,
   type DialogResponse,
-} from '../hooks/useDialogNodes';
-import { Button } from './Button';
-import { FormField, TextareaField } from './FormFields';
-import { DeleteConfirmation } from './DeleteConfirmation';
+} from "../hooks/useDialogNodes";
+import { Button } from "./Button";
+import { FormField, TextareaField } from "./FormFields";
+import { DeleteConfirmation } from "./DeleteConfirmation";
 
-type Props = { npcTemplateId: string }
+type Props = Readonly<{ npcTemplateId: string }>
 
 const EMPTY_RESPONSE: DialogResponse = {
-  label: '', next_node_id: '', condition: '', quest_offer_id: '', decline_node_id: '', effects: [],
+  label: "", next_node_id: "", condition: "", quest_offer_id: "", decline_node_id: "", effects: [],
 };
 
 export function DialogNodesPanel({ npcTemplateId }: Props) {
@@ -26,8 +27,8 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const [newText, setNewText] = useState('');
-  const [newId, setNewId] = useState('');
+  const [newText, setNewText] = useState("");
+  const [newId, setNewId] = useState("");
   const [newEntry, setNewEntry] = useState(false);
   const [editForm, setEditForm] = useState<Partial<DialogNode> | null>(null);
 
@@ -37,15 +38,15 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
     const id = newId || `node_${Date.now()}`;
     await createNode.mutateAsync({
       id,
-      npc_text: newText || '...',
+      npc_text: newText || "...",
       npc_template_id: npcTemplateId,
       is_entry: newEntry && !entryNode,
       responses: [],
       on_enter_effects: [],
     });
     setAdding(false);
-    setNewText('');
-    setNewId('');
+    setNewText("");
+    setNewId("");
     setNewEntry(false);
   };
 
@@ -94,7 +95,7 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
           </div>
           <div className="flex gap-2">
             <Button variant="primary" size="sm" onClick={handleAdd} disabled={createNode.isPending}>
-              {createNode.isPending ? 'Creating...' : 'Create'}
+              {createNode.isPending ? "Creating..." : "Create"}
             </Button>
             <Button variant="secondary" size="sm" onClick={() => setAdding(false)}>Cancel</Button>
           </div>
@@ -113,16 +114,16 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
                 <span className="font-mono text-primary">{node.id}</span>
                 {node.is_entry && <span className="bg-success/20 text-success px-2 py-0.5 rounded text-xs">Entry</span>}
               </div>
-              <TextareaField label="NPC Text" value={editForm.npc_text ?? ''} onChange={(v) => setEditForm({ ...editForm, npc_text: v })} rows={3} />
+              <TextareaField label="NPC Text" value={editForm.npc_text ?? ""} onChange={(v) => setEditForm({ ...editForm, npc_text: v })} rows={3} />
               <div className="flex items-center gap-2">
                 <input type="checkbox" checked={editForm.is_entry ?? false} onChange={(e) => setEditForm({ ...editForm, is_entry: e.target.checked })} id={`entry-${node.id}`} disabled={!!entryNode && entryNode.id !== node.id} />
                 <label htmlFor={`entry-${node.id}`} className="text-sm text-text">Entry Node</label>
               </div>
-              <FormField label="Entry Condition" value={editForm.entry_condition ?? ''} onChange={(v) => setEditForm({ ...editForm, entry_condition: v })} placeholder="e.g. character.tags.has(wizard_complete)" />
+              <FormField label="Entry Condition" value={editForm.entry_condition ?? ""} onChange={(v) => setEditForm({ ...editForm, entry_condition: v })} placeholder="e.g. character.tags.has(wizard_complete)" />
               <ResponsesEditor responses={editForm.responses ?? []} onChange={(r) => setEditForm({ ...editForm, responses: r })} />
               <div className="flex gap-2">
                 <Button variant="primary" size="sm" onClick={handleSave} disabled={updateNode.isPending}>
-                  {updateNode.isPending ? 'Saving...' : 'Save'}
+                  {updateNode.isPending ? "Saving..." : "Save"}
                 </Button>
                 <Button variant="secondary" size="sm" onClick={() => { setEditing(null); setEditForm(null); }}>Cancel</Button>
               </div>
@@ -146,7 +147,7 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
                   <ol className="ml-4 mt-1 space-y-0.5">
                     {node.responses.map((r, i) => (
                       <li key={i} className="text-text">
-                        <span className="text-primary">{i + 1}.</span> {r.label || '[Leave]'}
+                        <span className="text-primary">{i + 1}.</span> {r.label || "[Leave]"}
                         {r.next_node_id && <span className="text-text-muted"> → {r.next_node_id}</span>}
                         {r.quest_offer_id && <span className="text-success ml-1">[Quest: {r.quest_offer_id}]</span>}
                       </li>
@@ -174,7 +175,7 @@ export function DialogNodesPanel({ npcTemplateId }: Props) {
   );
 }
 
-function ResponsesEditor({ responses, onChange }: { responses: DialogResponse[]; onChange: (r: DialogResponse[]) => void }) {
+function ResponsesEditor({ responses, onChange }: Readonly<{ responses: DialogResponse[]; onChange: (r: DialogResponse[]) => void }>) {
   const add = () => onChange([...responses, { ...EMPTY_RESPONSE }]);
   const remove = (i: number) => onChange(responses.filter((_, idx) => idx !== i));
   const update = (i: number, patch: Partial<DialogResponse>) => onChange(responses.map((r, idx) => idx === i ? { ...r, ...patch } : r));
@@ -189,7 +190,7 @@ function ResponsesEditor({ responses, onChange }: { responses: DialogResponse[];
         <div key={i} className="grid grid-cols-4 gap-2 mb-2 items-end">
           <FormField label="Label" value={r.label} onChange={(v) => update(i, { label: v })} placeholder="What troubles you?" />
           <FormField label="Next Node" value={r.next_node_id} onChange={(v) => update(i, { next_node_id: v })} placeholder="node_002" />
-          <FormField label="Quest Offer" value={r.quest_offer_id ?? ''} onChange={(v) => update(i, { quest_offer_id: v })} placeholder="quest ID" />
+          <FormField label="Quest Offer" value={r.quest_offer_id ?? ""} onChange={(v) => update(i, { quest_offer_id: v })} placeholder="quest ID" />
           <Button variant="danger" size="sm" onClick={() => remove(i)}>×</Button>
         </div>
       ))}

@@ -4,10 +4,10 @@ import {
   TextareaField,
   SelectField,
   CheckboxField,
-} from '../../components/FormFields';
-import { TagInput } from '../../components/TagInput';
-import { useTags } from '../../hooks/useTags';
-import type { FactionCategory, FactionForm } from './factionTypes';
+} from "../../components/FormFields";
+import { TagInput } from "../../components/TagInput";
+import { useTags } from "../../hooks/useTags";
+import type { FactionCategory, FactionForm } from "./factionTypes";
 
 export function FactionFormFields({
   form,
@@ -22,7 +22,7 @@ export function FactionFormFields({
   const { data: tags } = useTags();
   const availableTags = (tags ?? []).map((t) => t.name);
   const catOptions = [
-    { value: '', label: 'None' },
+    { value: "", label: "None" },
     ...categories.map((c) => ({ value: String(c.id), label: c.display_name || c.name })),
   ];
 
@@ -50,7 +50,7 @@ export function FactionFormFields({
         <SelectField
           label="Category"
           value={String(form.category_id)}
-          onChange={(v) => set({ category_id: v ? Number(v) : '' })}
+          onChange={(v) => set({ category_id: v ? Number(v) : "" })}
           options={catOptions}
         />
         <NumberField

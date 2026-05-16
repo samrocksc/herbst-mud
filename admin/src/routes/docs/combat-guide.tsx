@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/combat-guide')({
+export const Route = createFileRoute("/docs/combat-guide")({
   component: CombatGuideDoc,
 });
 
@@ -67,27 +67,27 @@ function CombatGuideDoc() {
           When a character's accumulated tick debt is paid, they can act again.
         </p>
         <Table
-          headers={['Action', 'Tick Cost', 'Notes']}
+          headers={["Action", "Tick Cost", "Notes"]}
           rows={[
-            ['Attack', '1', 'Basic melee or ranged attack. Damage = weapon + stat.'],
-            ['Defend', '0', 'Buff action — raises armor briefly without costing a turn.'],
-            ['Flee', '1', 'Attempt to escape combat. Success chance = DEX vs enemy level.'],
-            ['Use Item', '1', 'Drink potion, throw grenade, etc.'],
-            ['Activate Skill', '1–3', 'Classless skills (1 tick) or passive abilities (1–3 ticks).'],
+            ["Attack", "1", "Basic melee or ranged attack. Damage = weapon + stat."],
+            ["Defend", "0", "Buff action — raises armor briefly without costing a turn."],
+            ["Flee", "1", "Attempt to escape combat. Success chance = DEX vs enemy level."],
+            ["Use Item", "1", "Drink potion, throw grenade, etc."],
+            ["Activate Skill", "1–3", "Classless skills (1 tick) or passive abilities (1–3 ticks)."],
           ]}
         />
       </Section>
 
       <Section title="Character Stats">
         <Table
-          headers={['Stat', 'Abbreviation', 'What It Does']}
+          headers={["Stat", "Abbreviation", "What It Does"]}
           rows={[
-            ['Strength', 'STR', 'Melee damage bonus, carrying capacity.'],
-            ['Dexterity', 'DEX', 'Accuracy (hit chance), dodge chance, attack speed.'],
-            ['Constitution', 'CON', 'HP pool, stamina pool, resistance to stun/poison.'],
-            ['Intelligence', 'INT', 'Magic power, tech skill effectiveness, mana pool.'],
-            ['Wisdom', 'WIS', 'Perception, wind magic, healing power, resistance.'],
-            ['Charisma', 'CHA', 'Shop prices, NPC disposition, party size limit.'],
+            ["Strength", "STR", "Melee damage bonus, carrying capacity."],
+            ["Dexterity", "DEX", "Accuracy (hit chance), dodge chance, attack speed."],
+            ["Constitution", "CON", "HP pool, stamina pool, resistance to stun/poison."],
+            ["Intelligence", "INT", "Magic power, tech skill effectiveness, mana pool."],
+            ["Wisdom", "WIS", "Perception, wind magic, healing power, resistance."],
+            ["Charisma", "CHA", "Shop prices, NPC disposition, party size limit."],
           ]}
         />
       </Section>
@@ -163,15 +163,15 @@ function CombatGuideDoc() {
 
       <Section title="Status Effects">
         <Table
-          headers={['Effect', 'What It Does', 'Duration']}
+          headers={["Effect", "What It Does", "Duration"]}
           rows={[
-            ['Stunned', 'Cannot act. Skips next turn.', '1 round (Slap)'],
-            ['Poisoned (dot)', 'Loses HP every tick.', 'Until cured or duration ends'],
-            ['Buffed', 'Raised stat(s).', 'Ability duration (ticks)'],
-            ['Debuffed', 'Lowered stat(s).', 'Ability duration (ticks)'],
-            ['Concentrating', '+WIS to hit rolls.', '4 rounds'],
-            ['Haymaker stance', '+STR damage, −DEX hit.', '1 attack'],
-            ['Screaming', '+DEX/STR, −WIS/INT.', '2 rounds'],
+            ["Stunned", "Cannot act. Skips next turn.", "1 round (Slap)"],
+            ["Poisoned (dot)", "Loses HP every tick.", "Until cured or duration ends"],
+            ["Buffed", "Raised stat(s).", "Ability duration (ticks)"],
+            ["Debuffed", "Lowered stat(s).", "Ability duration (ticks)"],
+            ["Concentrating", "+WIS to hit rolls.", "4 rounds"],
+            ["Haymaker stance", "+STR damage, −DEX hit.", "1 attack"],
+            ["Screaming", "+DEX/STR, −WIS/INT.", "2 rounds"],
           ]}
         />
       </Section>

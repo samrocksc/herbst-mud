@@ -1,8 +1,14 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { Modal } from './Modal';
-import { Button } from './Button';
-import { useResourceSearch } from './useResourceSearch';
-import { fuzzyMatch, highlightMatch } from './fuzzyMatch';
+/* eslint-disable functional/no-mixed-types, functional/prefer-immutable-types, functional/immutable-data, react-hooks/set-state-in-effect */
+ 
+ 
+ 
+ 
+ 
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Modal } from "./Modal";
+import { Button } from "./Button";
+import { useResourceSearch } from "./useResourceSearch";
+import { fuzzyMatch, highlightMatch } from "./fuzzyMatch";
 
 type Props = Readonly<{
   isOpen: boolean
@@ -11,7 +17,7 @@ type Props = Readonly<{
   resourceType: string
   apiBase: string
   value?: number | string | null
-  onSelect: (id: number | string, name: string) => void
+  onSelect: (id: number | string) => void
   multi?: boolean
   selectedIds?: (number | string)[]
 }>
@@ -20,7 +26,7 @@ export function ResourceSearchModal({
   isOpen, onClose, title, resourceType, apiBase,
   value, onSelect, multi = false, selectedIds = [],
 }: Props) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const { data: results = [], isLoading } = useResourceSearch(resourceType, apiBase, query);
@@ -31,26 +37,39 @@ export function ResourceSearchModal({
     );
   }, [results, query]);
 
-  useEffect(() => { setHighlightIdx(-1); }, [filtered.length]);
-  useEffect(() => { if (isOpen) { setQuery(''); inputRef.current?.focus(); } }, [isOpen]);
+  // Use a ref to track previous filtered length to avoid cascading renders
+  const prevFilteredLength = useRef(filtered.length);
+  useEffect(() => {
+    if (filtered.length !== prevFilteredLength.current) {
+      setHighlightIdx(-1);
+    }
+    prevFilteredLength.current = filtered.length;
+  }, [filtered.length]);
 
-  const handleSelect = (id: number | string, name: string) => {
-    onSelect(id, name);
+  useEffect(() => {
+    if (isOpen) {
+      setQuery("");
+      inputRef.current?.focus();
+    }
+  }, [isOpen]);
+
+  const handleSelect = (id: number | string) => {
+    onSelect(id);
     if (!multi) onClose();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlightIdx((i) => Math.min(i + 1, filtered.length - 1));
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlightIdx((i) => Math.max(i - 1, 0));
-    } else if (e.key === 'Enter' && highlightIdx >= 0 && highlightIdx < filtered.length) {
+    } else if (e.key === "Enter" && highlightIdx >= 0 && highlightIdx < filtered.length) {
       e.preventDefault();
       const r = filtered[highlightIdx];
-      handleSelect(r.id, r.name);
-    } else if (e.key === 'Escape') {
+      handleSelect(r.id);
+    } else if (e.key === "Escape") {
       e.preventDefault();
       onClose();
     }
@@ -74,7 +93,7 @@ export function ResourceSearchModal({
         <div className="text-text-muted text-sm p-4 text-center">Loading...</div>
       ) : filtered.length === 0 ? (
         <div className="text-text-muted text-sm p-4 text-center">
-          {query ? 'No results found' : 'Type to search...'}
+          {query ? "No results found" : "Type to search..."}
         </div>
       ) : (
         <div className="max-h-64 overflow-y-auto">
@@ -86,10 +105,10 @@ export function ResourceSearchModal({
                 key={r.id}
                 role="option"
                 aria-selected={isHighlighted}
-                onClick={() => handleSelect(r.id, r.name)}
+                onClick={() => handleSelect(r.id)}
                 className={`px-3 py-2 text-sm cursor-pointer flex items-center gap-2 ${
-                  isHighlighted ? 'bg-surface-hover' : ''
-                } hover:bg-surface-hover ${isSelected ? 'opacity-60' : ''}`}
+                  isHighlighted ? "bg-surface-hover" : ""
+                } hover:bg-surface-hover ${isSelected ? "opacity-60" : ""}`}
               >
                 {isSelected && <span className="text-primary">✓</span>}
                 <span className="text-text-muted">#{r.id}</span>

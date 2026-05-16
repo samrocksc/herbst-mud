@@ -38,6 +38,7 @@ type CreateCharacterInput struct {
 	Class    string
 	Race     string
 	Gender   string
+	WorldID  string
 }
 
 func (s *characterService) CreateCharacter(ctx context.Context, input CreateCharacterInput) (*db.Character, error) {
@@ -97,6 +98,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 		RoomID:          startingRoomID,
 		StartingRoomID:  startingRoomID,
 		RespawnRoomID:   startingRoomID,
+		WorldID:         input.WorldID,
 		IsNPC:           false,
 		Race:            race,
 		Gender:          gen,

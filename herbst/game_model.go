@@ -280,6 +280,8 @@ func (m *model) processInput(input string) {
 		m.handleEditFieldInput(input)
 	case ScreenWorldSelect:
 		m.handleWorldSelectInput(input)
+	case ScreenCharacterSelect:
+		m.handleCharacterSelectInput(input)
 	case ScreenPlaying:
 		m.processCommand(input)
 	case ScreenCombat:
@@ -450,7 +452,41 @@ func (m *model) View() string {
 		return sb.String()
 
 	case ScreenWorldSelect:
-		return m.displayWorlds()
+		var inputContent strings.Builder
+		inputContent.WriteString(promptStyle.Render("> "))
+		inputContent.WriteString(m.textInput.View())
+		inputContent.WriteString("\n\n")
+		inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type number or name to select, 'b' to go back"))
+		return worldSelectScreen(m.width, m.height, m.displayWorlds(), inputContent.String())
+
+	case ScreenCharacterSelect:
+		var inputContent strings.Builder
+		if m.isCreatingCharacter {
+			// Show appropriate prompt based on creation step
+			promptText := "> "
+			switch m.inputField {
+			case "char_name":
+				promptText = "Character name: "
+			case "char_password":
+				promptText = "Password: "
+			case "char_confirm_password":
+				promptText = "Confirm: "
+			case "char_race":
+				promptText = "Race: "
+			case "char_class":
+				promptText = "Class: "
+			}
+			inputContent.WriteString(promptStyle.Render(promptText))
+			inputContent.WriteString(m.textInput.View())
+			inputContent.WriteString("\n\n")
+			inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type 'cancel' to abort"))
+		} else {
+			inputContent.WriteString(promptStyle.Render("> "))
+			inputContent.WriteString(m.textInput.View())
+			inputContent.WriteString("\n\n")
+			inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type number to select, 'n' for new, 'b' for back"))
+		}
+		return characterSelectScreen(m.width, m.height, m.message, m.messageType, inputContent.String())
 
 	case ScreenPlaying:
 		width := m.width

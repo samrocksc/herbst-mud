@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}`;
 
@@ -27,14 +28,14 @@ export type HookInput = {
 
 export function useHooks() {
   return useQuery({
-    queryKey: ['hooks'],
+    queryKey: ["hooks"],
     queryFn: () => apiGet<EffectHook[]>(`${API}/api/hooks`),
   });
 }
 
 export function useTemplateHooks(npcTemplateId: string | null) {
   return useQuery({
-    queryKey: ['hooks', 'template', npcTemplateId],
+    queryKey: ["hooks", "template", npcTemplateId],
     queryFn: () => apiGet<EffectHook[]>(`${API}/api/npc-templates/${npcTemplateId}/hooks`),
     enabled: !!npcTemplateId,
   });
@@ -45,7 +46,7 @@ export function useCreateHook() {
   return useMutation({
     mutationFn: ({ templateId, input }: { templateId: string; input: HookInput }) =>
       apiPost<EffectHook>(`${API}/api/npc-templates/${templateId}/hooks`, input),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['hooks'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["hooks"] }); },
   });
 }
 
@@ -54,7 +55,7 @@ export function useUpdateHook() {
   return useMutation({
     mutationFn: ({ id, input }: { id: number; input: Partial<HookInput> }) =>
       apiPut<EffectHook>(`${API}/api/hooks/${id}`, input),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['hooks'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["hooks"] }); },
   });
 }
 
@@ -62,6 +63,6 @@ export function useDeleteHook() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/api/hooks/${id}`),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['hooks'] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["hooks"] }); },
   });
 }

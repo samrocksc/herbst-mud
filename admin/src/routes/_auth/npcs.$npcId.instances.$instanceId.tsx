@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { apiGet, apiPut, apiDelete } from '../../utils/apiFetch';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/Button';
-import { DeleteConfirmation } from '../../components/DeleteConfirmation';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { apiGet, apiPut, apiDelete } from "../../utils/apiFetch";
+import { PageHeader } from "../../components/PageHeader";
+import { Button } from "../../components/Button";
+import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ const API = `${window.location.origin}`;
 
 // ─── Route ─────────────────────────────────────────────────────────────────
 
-export const Route = createFileRoute('/_auth/npcs/$npcId/instances/$instanceId')({
+export const Route = createFileRoute("/_auth/npcs/$npcId/instances/$instanceId")({
   component: NpcInstanceDetail,
 });
 
@@ -51,7 +51,7 @@ function NpcInstanceDetail() {
   // ── Queries ────────────────────────────────────────────────────────────────
 
   const { data: instance, isLoading, error } = useQuery<NPCInstance>({
-    queryKey: ['npc-instances', instanceId],
+    queryKey: ["npc-instances", instanceId],
     queryFn: () => apiGet<NPCInstance>(`${API}/api/npc-instances/${instanceId}`),
   });
 
@@ -61,8 +61,8 @@ function NpcInstanceDetail() {
     mutationFn: (body: Record<string, unknown>) =>
       apiPut(`${API}/api/npc-instances/${instanceId}`, body),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-instances', instanceId] });
-      queryClient.invalidateQueries({ queryKey: ['npc-instances'] });
+      queryClient.invalidateQueries({ queryKey: ["npc-instances", instanceId] });
+      queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
       setIsEditing(false);
     },
   });
@@ -70,8 +70,8 @@ function NpcInstanceDetail() {
   const deleteMutation = useMutation({
     mutationFn: () => apiDelete(`${API}/api/npc-instances/${instanceId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-instances'] });
-      navigate({ to: '/npcs/$npcId', params: { npcId } });
+      queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
+      navigate({ to: "/npcs/$npcId", params: { npcId } });
     },
   });
 
@@ -118,7 +118,7 @@ function NpcInstanceDetail() {
       <div className="p-8">
         <PageHeader title="Error" backTo={`/npcs/${npcId}`} />
         <div className="text-danger">
-          Failed to load instance: {error?.message ?? 'Unknown error'}
+          Failed to load instance: {error?.message ?? "Unknown error"}
         </div>
       </div>
     );
@@ -228,7 +228,7 @@ function NpcInstanceDetail() {
                   onClick={handleSave}
                   disabled={updateMutation.isPending}
                 >
-                  {updateMutation.isPending ? 'Saving...' : 'Save'}
+                  {updateMutation.isPending ? "Saving..." : "Save"}
                 </Button>
                 <Button variant="secondary" onClick={() => setIsEditing(false)}>
                   Cancel

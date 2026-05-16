@@ -1,19 +1,20 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useAbilities } from '../../hooks/useAbilities';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
-import type { Ability } from '../../hooks/useAbilities';
+/* eslint-disable functional/immutable-data */
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useAbilities } from "../../hooks/useAbilities";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
+import type { Ability } from "../../hooks/useAbilities";
 
-export const Route = createFileRoute('/_auth/abilities')({
+export const Route = createFileRoute("/_auth/abilities")({
   component: AbilitiesManagement,
 });
 
 const COLUMNS: Column<Ability>[] = [
   {
-    header: 'Name',
-    accessor: 'name',
+    header: "Name",
+    accessor: "name",
     render: (_, row) => (
       <Link
         to="/abilities/$abilityId"
@@ -24,24 +25,24 @@ const COLUMNS: Column<Ability>[] = [
       </Link>
     ),
   },
-  { header: 'Description', accessor: 'description' },
+  { header: "Description", accessor: "description" },
   {
-    header: 'Type',
-    accessor: 'ability_type',
+    header: "Type",
+    accessor: "ability_type",
     render: (val: unknown) => (
       <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>
     ),
   },
   {
-    header: 'Class',
-    accessor: 'ability_class',
+    header: "Class",
+    accessor: "ability_class",
     render: (val: unknown) => (
       <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>
     ),
   },
   {
-    header: 'Costs',
-    accessor: 'mana_cost',
+    header: "Costs",
+    accessor: "mana_cost",
     render: (_, row: Ability) => {
       const parts: React.ReactNode[] = [];
       if (row.mana_cost > 0) parts.push(<span key="mp" className="cost-badge" title="Mana Cost">MP: {row.mana_cost}</span>);
@@ -54,8 +55,8 @@ const COLUMNS: Column<Ability>[] = [
 ];
 
 function AbilitiesManagement() {
-  const [filterType, setFilterType] = useState<string>('');
-  const [filterClass, setFilterClass] = useState<string>('');
+  const [filterType, setFilterType] = useState<string>("");
+  const [filterClass, setFilterClass] = useState<string>("");
   const navigate = useNavigate();
   const location = useLocation();
   const { data: abilities, isLoading, error } = useAbilities({
@@ -63,7 +64,7 @@ function AbilitiesManagement() {
     abilityClass: filterClass || undefined,
   });
 
-  if (location.pathname !== '/abilities') return <Outlet />;
+  if (location.pathname !== "/abilities") return <Outlet />;
 
   if (isLoading) return <div className="loading">Loading abilities...</div>;
   if (error) return <div className="error">Failed to load abilities: {error.message}</div>;
@@ -74,7 +75,7 @@ function AbilitiesManagement() {
         title="Abilities"
         backTo="/dashboard"
         actions={
-          <Button variant="primary" onClick={() => navigate({ to: '/abilities/new' })}>
+          <Button variant="primary" onClick={() => navigate({ to: "/abilities/new" })}>
             + Add Ability
           </Button>
         }
@@ -103,7 +104,7 @@ function AbilitiesManagement() {
           </select>
         </div>
         {(filterType || filterClass) && (
-          <Button variant="ghost" size="sm" onClick={() => { setFilterType(''); setFilterClass(''); }}>
+          <Button variant="ghost" size="sm" onClick={() => { setFilterType(""); setFilterClass(""); }}>
             Clear Filters
           </Button>
         )}
@@ -115,8 +116,8 @@ function AbilitiesManagement() {
         getKey={(row) => row.id}
         emptyMessage={
           filterType
-            ? 'No abilities match this filter.'
-            : 'No abilities found. Create your first ability!'
+            ? "No abilities match this filter."
+            : "No abilities found. Create your first ability!"
         }
       />
     </div>

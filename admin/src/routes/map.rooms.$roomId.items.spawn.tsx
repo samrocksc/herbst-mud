@@ -1,20 +1,21 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost } from '../utils/apiFetch';
-import { PageHeader } from '../components/PageHeader';
-import { Button } from '../components/Button';
-import { FormField } from '../components/fields/FormField';
-import { NumberField } from '../components/fields/NumberField';
-import { SelectField } from '../components/fields/SelectField';
-import { FormError } from '../components/fields/FormError';
-import { ResourceSearchSelect } from '../components/ResourceSearchSelect';
-import { RESOURCE_ENDPOINTS } from '../utils/resourceEndpoints';
-import type { EquipmentTemplate } from '../components/map/types';
+/* eslint-disable functional/immutable-data */
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost } from "../utils/apiFetch";
+import { PageHeader } from "../components/PageHeader";
+import { Button } from "../components/Button";
+import { FormField } from "../components/fields/FormField";
+import { NumberField } from "../components/fields/NumberField";
+import { SelectField } from "../components/fields/SelectField";
+import { FormError } from "../components/fields/FormError";
+import { ResourceSearchSelect } from "../components/ResourceSearchSelect";
+import { RESOURCE_ENDPOINTS } from "../utils/resourceEndpoints";
+import type { EquipmentTemplate } from "../components/map/types";
 
 const API = `${window.location.origin}/api`;
 
-export const Route = createFileRoute('/map/rooms/$roomId/items/spawn')({
+export const Route = createFileRoute("/map/rooms/$roomId/items/spawn")({
   component: ItemSpawnPage,
 });
 
@@ -25,25 +26,25 @@ function ItemSpawnPage() {
   const queryClient = useQueryClient();
 
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
-    queryKey: ['equipment-templates'],
+    queryKey: ["equipment-templates"],
     queryFn: () => apiGet<EquipmentTemplate[]>(`${API}/equipment-templates`),
   });
 
   const createMutation = useMutation({
     mutationFn: (input: Record<string, unknown>) => apiPost(`${API}/item-instances`, input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['item-instances'] });
-      navigate({ to: '/map', search: { room: roomIdNum } });
+      queryClient.invalidateQueries({ queryKey: ["item-instances"] });
+      navigate({ to: "/map", search: { room: roomIdNum } });
     },
   });
 
-  const [templateId, setTemplateId] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [slot, setSlot] = useState('none');
+  const [templateId, setTemplateId] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [slot, setSlot] = useState("none");
   const [level, setLevel] = useState(0);
   const [weight, setWeight] = useState(0);
-  const [color, setColor] = useState('');
+  const [color, setColor] = useState("");
   const [spawnRoomId, setSpawnRoomId] = useState<number | string | null>(roomIdNum);
 
   const selectedTemplate = templates.find((t) => t.equipment_template_id === templateId);
@@ -71,7 +72,7 @@ function ItemSpawnPage() {
     const p: Record<string, unknown> = { equipment_template_id: templateId, room_id: Number(spawnRoomId) || roomIdNum };
     if (name.trim()) p.name = name.trim();
     if (description.trim()) p.description = description.trim();
-    if (slot && slot !== 'none') p.slot = slot;
+    if (slot && slot !== "none") p.slot = slot;
     if (level > 0) p.level = level;
     if (weight > 0) p.weight = weight;
     if (color.trim()) p.color = color.trim();
@@ -84,7 +85,7 @@ function ItemSpawnPage() {
       <div className="bg-surface p-6 border border-border rounded max-w-[600px]">
         <form onSubmit={handleSubmit} className="space-y-3">
           {createMutation.isError && (
-            <FormError message={(createMutation.error as Error)?.message || 'Failed to spawn item instance'} />
+            <FormError message={(createMutation.error as Error)?.message || "Failed to spawn item instance"} />
           )}
           <SelectField
             label="Equipment Template *"
@@ -128,9 +129,9 @@ function ItemSpawnPage() {
           />
           <div className="flex gap-2 pt-2">
             <Button type="submit" variant="primary" disabled={!templateId || createMutation.isPending}>
-              {createMutation.isPending ? 'Spawning...' : 'Spawn Instance'}
+              {createMutation.isPending ? "Spawning..." : "Spawn Instance"}
             </Button>
-            <Button type="button" variant="secondary" onClick={() => navigate({ to: '/map', search: { room: roomIdNum } })}>
+            <Button type="button" variant="secondary" onClick={() => navigate({ to: "/map", search: { room: roomIdNum } })}>
               Cancel
             </Button>
           </div>

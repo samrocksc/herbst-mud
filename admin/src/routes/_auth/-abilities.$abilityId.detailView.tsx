@@ -1,4 +1,4 @@
-import type { Ability } from '../../hooks/useAbilities';
+import type { Ability } from "../../hooks/useAbilities";
 
 export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
   return (
@@ -10,21 +10,21 @@ export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
         <DetailField label="Type" value={ability.ability_type} />
         <DetailField label="Class" value={ability.ability_class} />
         <DetailField label="Slug" value={ability.slug} />
-        <DetailField label="Required Tag" value={ability.required_tag || '—'} />
-        <DetailField label="Level Req" value={ability.requirements || '—'} />
+        <DetailField label="Required Tag" value={ability.required_tag || "—"} />
+        <DetailField label="Level Req" value={ability.requirements || "—"} />
         <DetailField label="Cost" value={String(ability.cost)} />
-        <DetailField label="Cooldown" value={ability.cooldown_seconds > 0 ? `${ability.cooldown_seconds}s` : '—'} />
-        <DetailField label="Mana Cost" value={ability.mana_cost > 0 ? String(ability.mana_cost) : '—'} />
-        <DetailField label="Stamina Cost" value={ability.stamina_cost > 0 ? String(ability.stamina_cost) : '—'} />
-        <DetailField label="HP Cost" value={ability.hp_cost > 0 ? String(ability.hp_cost) : '—'} />
+        <DetailField label="Cooldown" value={ability.cooldown_seconds > 0 ? `${ability.cooldown_seconds}s` : "—"} />
+        <DetailField label="Mana Cost" value={ability.mana_cost > 0 ? String(ability.mana_cost) : "—"} />
+        <DetailField label="Stamina Cost" value={ability.stamina_cost > 0 ? String(ability.stamina_cost) : "—"} />
+        <DetailField label="HP Cost" value={ability.hp_cost > 0 ? String(ability.hp_cost) : "—"} />
         {ability.proc_chance > 0 && (
           <DetailField label="Proc Chance" value={String(ability.proc_chance)} />
         )}
         {ability.proc_event && (
           <DetailField label="Proc Event" value={ability.proc_event} />
         )}
-        {ability.faction_name && (
-          <DetailField label="Faction" value={ability.faction_name} />
+        {ability.faction_skills !== null && (
+          <DetailField label="Faction Skills" value={String(ability.faction_skills)} />
         )}
       </div>
       {ability.description && (

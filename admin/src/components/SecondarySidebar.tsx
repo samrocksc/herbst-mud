@@ -1,6 +1,7 @@
-import { Link } from '@tanstack/react-router';
-import { Button } from './Button';
-import type { ReactNode } from 'react';
+ 
+import { Link } from "@tanstack/react-router";
+import { Button } from "./Button";
+import type { ReactNode } from "react";
 
 // ─── Nav link ───────────────────────────────────────────────────────────────
 
@@ -16,24 +17,24 @@ function NavLink({ to, icon, label, collapsed }: NavLinkProps) {
     <Link
       to={to}
       activeProps={{
-        className: 'bg-primary/10 text-primary border-l-4 border-primary font-semibold',
+        className: "bg-primary/10 text-primary border-l-4 border-primary font-semibold",
       }}
       inactiveProps={{
-        className: 'text-text-muted hover:bg-surface-muted hover:text-text',
+        className: "text-text-muted hover:bg-surface-muted hover:text-text",
       }}
       className={[
-        'flex items-center gap-3 px-3 py-2 rounded text-sm',
-        'no-underline transition-colors',
-        collapsed ? 'justify-center' : '',
-      ].join(' ')}
+        "flex items-center gap-3 px-3 py-2 rounded text-sm",
+        "no-underline transition-colors",
+        collapsed ? "justify-center" : "",
+      ].join(" ")}
       title={collapsed ? label : undefined}
     >
       <span className="flex-shrink-0">{icon}</span>
       <span
         className={[
-          'whitespace-nowrap transition-opacity duration-300 min-w-0',
-          collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100',
-        ].join(' ')}
+          "whitespace-nowrap transition-opacity duration-300 min-w-0",
+          collapsed ? "opacity-0 pointer-events-none" : "opacity-100",
+        ].join(" ")}
       >
         {label}
       </span>
@@ -50,7 +51,7 @@ type SecondarySidebarProps = Readonly<{
   action?: {
     label: string
     onClick: () => void
-    variant?: 'primary' | 'secondary' | 'danger' | 'accent'
+    variant?: "primary" | "secondary" | "danger" | "accent"
     disabled?: boolean
   }
   /** Section title */
@@ -88,7 +89,7 @@ export function SecondarySidebar({
       {action && (
         <div className="p-3 border-b border-border">
           <Button
-            variant={action.variant ?? 'primary'}
+            variant={action.variant ?? "primary"}
             size="md"
             fullWidth
             onClick={action.onClick}

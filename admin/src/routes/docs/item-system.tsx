@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/item-system')({
+export const Route = createFileRoute("/docs/item-system")({
   component: ItemSystemDoc,
 });
 
@@ -62,16 +62,16 @@ function ItemSystemDoc() {
 
       <Section title="Equipment Slots">
         <Table
-          headers={['Slot', 'What Goes Here', 'Notes']}
+          headers={["Slot", "What Goes Here", "Notes"]}
           rows={[
-            ['head', 'Helmets, hats, headbands', 'Usually armor-focused.'],
-            ['body', 'Armor, robes, shirts', 'Highest armor value slot.'],
-            ['hands', 'Gloves, gauntlets', 'Often adds DEX or damage.'],
-            ['legs', 'Pants, greaves', 'Armor + movement.'],
-            ['feet', 'Boots, shoes', 'Often adds DEX or dodge.'],
-            ['main_hand', 'Sword, staff, pistol', 'Primary weapon. Damage used in attacks.'],
-            ['off_hand', 'Shield, dagger, orb', 'Secondary item. Can add armor or utility.'],
-            ['both_hands', 'Greatsword, bow, rifle', 'Occupies main + off hand. Cannot equip off_hand item.'],
+            ["head", "Helmets, hats, headbands", "Usually armor-focused."],
+            ["body", "Armor, robes, shirts", "Highest armor value slot."],
+            ["hands", "Gloves, gauntlets", "Often adds DEX or damage."],
+            ["legs", "Pants, greaves", "Armor + movement."],
+            ["feet", "Boots, shoes", "Often adds DEX or dodge."],
+            ["main_hand", "Sword, staff, pistol", "Primary weapon. Damage used in attacks."],
+            ["off_hand", "Shield, dagger, orb", "Secondary item. Can add armor or utility."],
+            ["both_hands", "Greatsword, bow, rifle", "Occupies main + off hand. Cannot equip off_hand item."],
           ]}
         />
       </Section>
@@ -98,14 +98,14 @@ function ItemSystemDoc() {
           <code>required_tag</code> field — the character must have an item with that tag equipped.
         </p>
         <Table
-          headers={['Tag', 'Typical Items', 'Required By']}
+          headers={["Tag", "Typical Items", "Required By"]}
           rows={[
-            ['sword', 'Longsword, katana, rapier', 'Slash, Parry, Riposte abilities'],
-            ['blade', 'Knives, daggers, swords', 'Stab, Backstab, Quick Strike'],
-            ['staff', 'Quarterstaff, bo staff', 'Bash, Sweep, Deflect'],
-            ['fire', 'Flame torch, fire gem', 'Fireball, Ignite, Flame Ward'],
-            ['shield', 'Buckler, tower shield', 'Shield Bash, Block, Raise Shield'],
-            ['potion', 'Health potion, mana potion', 'Item use (no tag requirement)'],
+            ["sword", "Longsword, katana, rapier", "Slash, Parry, Riposte abilities"],
+            ["blade", "Knives, daggers, swords", "Stab, Backstab, Quick Strike"],
+            ["staff", "Quarterstaff, bo staff", "Bash, Sweep, Deflect"],
+            ["fire", "Flame torch, fire gem", "Fireball, Ignite, Flame Ward"],
+            ["shield", "Buckler, tower shield", "Shield Bash, Block, Raise Shield"],
+            ["potion", "Health potion, mana potion", "Item use (no tag requirement)"],
           ]}
         />
         <p className="text-text-muted mt-3">
@@ -116,11 +116,11 @@ function ItemSystemDoc() {
 
       <Section title="Item Visibility">
         <Table
-          headers={['Visibility', 'Meaning']}
+          headers={["Visibility", "Meaning"]}
           rows={[
-            ['Visible', 'Players see this item when they look at the room.'],
-            ['Hidden', 'Only found via search/examine commands.'],
-            ['Immovable', 'Cannot be picked up. Part of the room description.'],
+            ["Visible", "Players see this item when they look at the room."],
+            ["Hidden", "Only found via search/examine commands."],
+            ["Immovable", "Cannot be picked up. Part of the room description."],
           ]}
         />
       </Section>

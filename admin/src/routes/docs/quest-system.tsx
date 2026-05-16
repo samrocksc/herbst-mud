@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { PageHeader } from '../../components/PageHeader';
+import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "../../components/PageHeader";
 
-export const Route = createFileRoute('/docs/quest-system')({
+export const Route = createFileRoute("/docs/quest-system")({
   component: QuestSystemDoc,
 });
 
@@ -67,12 +67,12 @@ function QuestSystemDoc() {
           A quest progresses through these states for each character:
         </p>
         <Table
-          headers={['State', 'Description']}
+          headers={["State", "Description"]}
           rows={[
-            ['Available', 'Quest meets prerequisites and character hasn\'t accepted it yet.'],
-            ['Active', 'Character has accepted the quest and is working on objectives.'],
-            ['Completed', 'All objectives finished. Rewards applied.'],
-            ['Abandoned', 'Character chose to abandon. Progress is lost.'],
+            ["Available", "Quest meets prerequisites and character hasn't accepted it yet."],
+            ["Active", "Character has accepted the quest and is working on objectives."],
+            ["Completed", "All objectives finished. Rewards applied."],
+            ["Abandoned", "Character chose to abandon. Progress is lost."],
           ]}
         />
       </Section>
@@ -83,13 +83,13 @@ function QuestSystemDoc() {
           sequentially — later objectives don't start counting until earlier ones are done.
         </p>
         <Table
-          headers={['Type', 'Target', 'Description']}
+          headers={["Type", "Target", "Description"]}
           rows={[
-            ['kill', 'NPC template ID', 'Defeat a specific NPC type. Count tracks kills.'],
-            ['explore', 'Room ID', 'Visit a specific room. Auto-completes on room entry.'],
-            ['collect', 'Item template ID', 'Gather items. Count tracks items picked up.'],
-            ['talk', 'NPC template ID', 'Speak with a specific NPC. Auto-completes on conversation.'],
-            ['return', 'Item template ID', 'Bring an item back to a quest giver.'],
+            ["kill", "NPC template ID", "Defeat a specific NPC type. Count tracks kills."],
+            ["explore", "Room ID", "Visit a specific room. Auto-completes on room entry."],
+            ["collect", "Item template ID", "Gather items. Count tracks items picked up."],
+            ["talk", "NPC template ID", "Speak with a specific NPC. Auto-completes on conversation."],
+            ["return", "Item template ID", "Bring an item back to a quest giver."],
           ]}
         />
       </Section>
@@ -99,11 +99,11 @@ function QuestSystemDoc() {
           Quests can be one-time or repeatable:
         </p>
         <Table
-          headers={['Mode', 'Behavior']}
+          headers={["Mode", "Behavior"]}
           rows={[
-            ['none', 'One-time quest. Cannot be re-accepted after completion.'],
-            ['cooldown', 'Repeatable after cooldown_hours since last completion.'],
-            ['always', 'Always repeatable, no cooldown enforced.'],
+            ["none", "One-time quest. Cannot be re-accepted after completion."],
+            ["cooldown", "Repeatable after cooldown_hours since last completion."],
+            ["always", "Always repeatable, no cooldown enforced."],
           ]}
         />
         <p className="text-text-muted">
@@ -117,13 +117,13 @@ function QuestSystemDoc() {
           Completing a quest grants these reward types:
         </p>
         <Table
-          headers={['Reward', 'Description']}
+          headers={["Reward", "Description"]}
           rows={[
-            ['XP', 'Experience points added to the character.'],
-            ['Items', 'Item templates granted to character inventory.'],
-            ['Effects', 'Ability effects applied to the character.'],
-            ['Tags', 'Tags added or removed from the character.'],
-            ['Achievements', 'Achievements unlocked for the character.'],
+            ["XP", "Experience points added to the character."],
+            ["Items", "Item templates granted to character inventory."],
+            ["Effects", "Ability effects applied to the character."],
+            ["Tags", "Tags added or removed from the character."],
+            ["Achievements", "Achievements unlocked for the character."],
           ]}
         />
         <InfoBox>
@@ -134,11 +134,11 @@ function QuestSystemDoc() {
 
       <Section title="Player Commands">
         <Table
-          headers={['Command', 'Description']}
+          headers={["Command", "Description"]}
           rows={[
-            ['quests / quest / q', 'Show quest tracker with all active/completed/abandoned quests.'],
-            ['quest accept &lt;id&gt;', 'Accept a quest by its ID. Checks prerequisites.'],
-            ['quest abandon &lt;id&gt;', 'Abandon an active quest. Progress is lost.'],
+            ["quests / quest / q", "Show quest tracker with all active/completed/abandoned quests."],
+            ["quest accept &lt;id&gt;", "Accept a quest by its ID. Checks prerequisites."],
+            ["quest abandon &lt;id&gt;", "Abandon an active quest. Progress is lost."],
           ]}
         />
         <p className="text-text-muted">
@@ -149,18 +149,18 @@ function QuestSystemDoc() {
 
       <Section title="Admin API">
         <Table
-          headers={['Method', 'Endpoint', 'Description']}
+          headers={["Method", "Endpoint", "Description"]}
           rows={[
-            ['GET', '/api/quests', 'List all quest definitions.'],
-            ['POST', '/api/quests', 'Create a new quest.'],
-            ['GET', '/api/quests/:id', 'Get a quest definition by ID.'],
-            ['PUT', '/api/quests/:id', 'Update a quest definition.'],
-            ['DELETE', '/api/quests/:id', 'Delete a quest (fails if progress records exist).'],
-            ['GET', '/api/characters/:id/quests', 'List quest progress for a character.'],
-            ['POST', '/api/characters/:id/quests', 'Accept a quest (body: {"quest_id": N}).'],
-            ['PUT', '/api/characters/:id/quests/:qid/check', 'Check/increment single quest progress.'],
-            ['PUT', '/api/characters/:id/quests/:qid/abandon', 'Abandon a quest.'],
-            ['POST', '/api/characters/:id/quests/check-all', 'Bulk check all matching quests.'],
+            ["GET", "/api/quests", "List all quest definitions."],
+            ["POST", "/api/quests", "Create a new quest."],
+            ["GET", "/api/quests/:id", "Get a quest definition by ID."],
+            ["PUT", "/api/quests/:id", "Update a quest definition."],
+            ["DELETE", "/api/quests/:id", "Delete a quest (fails if progress records exist)."],
+            ["GET", "/api/characters/:id/quests", "List quest progress for a character."],
+            ["POST", "/api/characters/:id/quests", "Accept a quest (body: {\"quest_id\": N})."],
+            ["PUT", "/api/characters/:id/quests/:qid/check", "Check/increment single quest progress."],
+            ["PUT", "/api/characters/:id/quests/:qid/abandon", "Abandon a quest."],
+            ["POST", "/api/characters/:id/quests/check-all", "Bulk check all matching quests."],
           ]}
         />
       </Section>

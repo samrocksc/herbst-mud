@@ -1,4 +1,5 @@
-import { FieldLabel } from './FieldLabel';
+/* eslint-disable functional/no-mixed-types */
+import { FieldLabel } from "./FieldLabel";
 
 type ColorFieldProps = Readonly<{
   label: string
@@ -8,10 +9,10 @@ type ColorFieldProps = Readonly<{
   placeholder?: string
 }>
 
-const DEFAULT_COLOR = 'var(--color-tag-default)';
+const DEFAULT_COLOR = "var(--color-tag-default)";
 
 export function ColorField({ label, id, value, onChange, placeholder }: ColorFieldProps) {
-  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, '-');
+  const fieldId = id ?? label.toLowerCase().replace(/\s+/g, "-");
   return (
     <div>
       <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
@@ -27,7 +28,7 @@ export function ColorField({ label, id, value, onChange, placeholder }: ColorFie
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder ?? 'CSS color / hex'}
+          placeholder={placeholder ?? "CSS color / hex"}
           pattern="^#[0-9a-fA-F]{6}$"
           className="w-28 p-2 bg-surface border border-border rounded text-text text-sm"
         />

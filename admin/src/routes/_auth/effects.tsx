@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+/* eslint-disable functional/prefer-immutable-types */
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   useEffectDefs,
   useCreateEffectDef,
@@ -11,12 +12,12 @@ import {
   EFFECT_TYPES,
   STACK_MODES,
   MESSAGE_TYPES,
-} from '../../hooks/useEffectDefs';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
-import { showToast } from '../../components/Toast';
-import { FormField, NumberField, TextareaField, SelectField, CheckboxField, FieldLabel } from '../../components/fields';
+} from "../../hooks/useEffectDefs";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
+import { showToast } from "../../components/Toast";
+import { FormField, NumberField, TextareaField, SelectField, CheckboxField, FieldLabel } from "../../components/fields";
 
 // Group effect types for better organization
 const EFFECT_TYPE_GROUPS = Array.from(
@@ -29,46 +30,46 @@ const EFFECT_TYPE_GROUPS = Array.from(
 // Get parameter fields based on effect type
 function getParamConfig(effectType: string) {
   switch (effectType) {
-    case 'hp_change':
-    case 'stamina_change':
-    case 'mana_change':
+    case "hp_change":
+    case "stamina_change":
+    case "mana_change":
       return [
-        { key: 'amount', label: 'Amount (+/-)', type: 'number' as const },
+        { key: "amount", label: "Amount (+/-)", type: "number" as const },
       ];
-    case 'xp_drain':
-    case 'xp_gain':
-    case 'xp_set':
+    case "xp_drain":
+    case "xp_gain":
+    case "xp_set":
       return [
-        { key: 'amount', label: 'Amount', type: 'number' as const },
+        { key: "amount", label: "Amount", type: "number" as const },
       ];
-    case 'bind_point_set':
-    case 'teleport':
+    case "bind_point_set":
+    case "teleport":
       return [
-        { key: 'room_id', label: 'Room ID', type: 'number' as const },
+        { key: "room_id", label: "Room ID", type: "number" as const },
       ];
-    case 'message':
+    case "message":
       return [
-        { key: 'text', label: 'Message Text', type: 'text' as const },
-        { key: 'message_type', label: 'Message Type', type: 'select' as const, options: MESSAGE_TYPES },
+        { key: "text", label: "Message Text", type: "text" as const },
+        { key: "message_type", label: "Message Type", type: "select" as const, options: MESSAGE_TYPES },
       ];
-    case 'room_message':
+    case "room_message":
       return [
-        { key: 'text', label: 'Message Text', type: 'text' as const },
-        { key: 'message_type', label: 'Message Type', type: 'select' as const, options: MESSAGE_TYPES },
+        { key: "text", label: "Message Text", type: "text" as const },
+        { key: "message_type", label: "Message Type", type: "select" as const, options: MESSAGE_TYPES },
       ];
-    case 'whisper':
+    case "whisper":
       return [
-        { key: 'text', label: 'Message Text', type: 'text' as const },
-        { key: 'target', label: 'Target Name', type: 'text' as const },
+        { key: "text", label: "Message Text", type: "text" as const },
+        { key: "target", label: "Target Name", type: "text" as const },
       ];
-    case 'apply_effect':
+    case "apply_effect":
       return [
-        { key: 'effect_id', label: 'Effect ID', type: 'number' as const },
+        { key: "effect_id", label: "Effect ID", type: "number" as const },
       ];
-    case 'tag_add':
-    case 'tag_remove':
+    case "tag_add":
+    case "tag_remove":
       return [
-        { key: 'tag_name', label: 'Tag Name', type: 'text' as const },
+        { key: "tag_name", label: "Tag Name", type: "text" as const },
       ];
     default:
       return [];
@@ -97,7 +98,7 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
   const [form, setForm] = useState<EffectDefInput>(() =>
     effect
       ? { ...effect, parameters: { ...effect.parameters }, messages: { ...effect.messages } }
-      : createEmptyInput('hp_change'),
+      : createEmptyInput("hp_change"),
   );
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -116,13 +117,13 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
   return (
     <form onSubmit={handleSubmit} className="bg-surface rounded-lg border border-border p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-text">{isEdit ? 'Edit Effect' : 'Create Effect'}</h3>
+        <h3 className="text-lg font-semibold text-text">{isEdit ? "Edit Effect" : "Create Effect"}</h3>
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
           className="text-sm text-primary hover:underline"
         >
-          {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
+          {showAdvanced ? "Hide Advanced" : "Show Advanced"}
         </button>
       </div>
 
@@ -160,7 +161,7 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
         <h4 className="text-sm font-semibold text-text mb-3">Parameters</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {paramConfig.map((pc) => {
-            if (pc.type === 'number') {
+            if (pc.type === "number") {
               return (
                 <div key={pc.key}>
                   <FieldLabel htmlFor={pc.key}>{pc.label}</FieldLabel>
@@ -173,12 +174,12 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
                 </div>
               );
             }
-            if (pc.type === 'select') {
+            if (pc.type === "select") {
               return (
                 <SelectField
                   key={pc.key}
                   label={pc.label}
-                  value={String(form.parameters[pc.key] ?? '')}
+                  value={String(form.parameters[pc.key] ?? "")}
                   onChange={(v) => set({ parameters: { ...form.parameters, [pc.key]: v } })}
                   options={pc.options ?? []}
                 />
@@ -188,7 +189,7 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
               <FormField
                 key={pc.key}
                 label={pc.label}
-                value={String(form.parameters[pc.key] ?? '')}
+                value={String(form.parameters[pc.key] ?? "")}
                 onChange={(v) => set({ parameters: { ...form.parameters, [pc.key]: v } })}
               />
             );
@@ -237,12 +238,12 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="On Start"
-                value={form.messages.on_start ?? ''}
+                value={form.messages.on_start ?? ""}
                 onChange={(v) => set({ messages: { ...form.messages, on_start: v } })}
               />
               <FormField
                 label="On End"
-                value={form.messages.on_end ?? ''}
+                value={form.messages.on_end ?? ""}
                 onChange={(v) => set({ messages: { ...form.messages, on_end: v } })}
               />
             </div>
@@ -252,7 +253,7 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
 
       <div className="flex gap-3 pt-4 border-t border-border">
         <Button variant="primary" type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving…' : isEdit ? 'Update Effect' : 'Create Effect'}
+          {isLoading ? "Saving…" : isEdit ? "Update Effect" : "Create Effect"}
         </Button>
         <Button variant="secondary" type="button" onClick={onCancel}>
           Cancel
@@ -270,26 +271,26 @@ function EffectsManagement() {
 
   const handleCreate = (input: EffectDefInput) => {
     mutations.create.mutate(input, {
-      onSuccess: () => { setShowForm(false); showToast('Effect created', 'success'); },
+      onSuccess: () => { setShowForm(false); showToast("Effect created", "success"); },
     });
   };
   const handleUpdate = (input: EffectDefInput) => {
     if (!editingEffect) return;
     mutations.update.mutate({ id: editingEffect.id, input }, {
-      onSuccess: () => { setEditingEffect(null); showToast('Effect updated', 'success'); },
+      onSuccess: () => { setEditingEffect(null); showToast("Effect updated", "success"); },
     });
   };
   const handleDelete = (id: number) => {
     mutations.delete.mutate(id, {
-      onSuccess: () => { showToast('Effect deleted', 'success'); },
+      onSuccess: () => { showToast("Effect deleted", "success"); },
     });
   };
 
   const columns: Column<EffectDef>[] = [
-    { header: 'Name', accessor: 'name' },
+    { header: "Name", accessor: "name" },
     {
-      header: 'Type',
-      accessor: 'effect_type',
+      header: "Type",
+      accessor: "effect_type",
       render: (v) => (
         <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-accent/10 text-accent">
           {String(v)}
@@ -297,8 +298,8 @@ function EffectsManagement() {
       ),
     },
     {
-      header: 'Stack',
-      accessor: 'stack_mode',
+      header: "Stack",
+      accessor: "stack_mode",
       render: (v, r) => (
         <div className="flex items-center gap-2">
           <span className="text-xs">{String(v)}</span>
@@ -307,8 +308,8 @@ function EffectsManagement() {
       ),
     },
     {
-      header: 'Duration',
-      accessor: 'duration_secs',
+      header: "Duration",
+      accessor: "duration_secs",
       render: (v, r) => {
         const duration = Number(v);
         return r.is_permanent ? (
@@ -321,14 +322,14 @@ function EffectsManagement() {
       },
     },
     {
-      header: 'Hooks',
-      accessor: 'hook_count',
+      header: "Hooks",
+      accessor: "hook_count",
       render: (v) => <span className="text-text-muted">{Number(v)}</span>,
     },
     {
-      header: '',
-      accessor: '_actions',
-      align: 'right',
+      header: "",
+      accessor: "_actions",
+      align: "right",
       render: (_, r) => (
         <div className="flex gap-2 justify-end">
           <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setEditingEffect(r); }}>
@@ -423,4 +424,4 @@ function EffectsManagement() {
   );
 }
 
-export const Route = createFileRoute('/_auth/effects')({ component: EffectsManagement });
+export const Route = createFileRoute("/_auth/effects")({ component: EffectsManagement });

@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
+/* eslint-disable functional/prefer-immutable-types */
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}`;
 
@@ -29,7 +30,7 @@ export type EffectInput = Readonly<{
 
 export function useEffects(abilityId: number | null) {
   return useQuery({
-    queryKey: ['effects', abilityId],
+    queryKey: ["effects", abilityId],
     queryFn: async (): Promise<AbilityEffect[]> => {
       if (!abilityId) return [];
       return apiGet<AbilityEffect[]>(`${API}/api/abilities/${abilityId}/effects`);
@@ -44,8 +45,8 @@ export function useCreateEffect() {
     mutationFn: ({ abilityId, input }: { abilityId: number; input: EffectInput }) =>
       apiPost<AbilityEffect>(`${API}/api/abilities/${abilityId}/effects`, input),
     onSuccess: (_, { abilityId }) => {
-      qc.invalidateQueries({ queryKey: ['effects', abilityId] });
-      qc.invalidateQueries({ queryKey: ['abilities'] });
+      qc.invalidateQueries({ queryKey: ["effects", abilityId] });
+      qc.invalidateQueries({ queryKey: ["abilities"] });
     },
   });
 }
@@ -56,8 +57,8 @@ export function useUpdateEffect() {
     mutationFn: ({ id, input }: { id: number; abilityId: number; input: Partial<EffectInput> }) =>
       apiPut<AbilityEffect>(`${API}/api/ability-effects/${id}`, input),
     onSuccess: (_, { abilityId }) => {
-      qc.invalidateQueries({ queryKey: ['effects', abilityId] });
-      qc.invalidateQueries({ queryKey: ['abilities'] });
+      qc.invalidateQueries({ queryKey: ["effects", abilityId] });
+      qc.invalidateQueries({ queryKey: ["abilities"] });
     },
   });
 }
@@ -68,8 +69,8 @@ export function useDeleteEffect() {
     mutationFn: ({ id }: { id: number; abilityId: number }) =>
       apiDelete(`${API}/api/ability-effects/${id}`),
     onSuccess: (_, { abilityId }) => {
-      qc.invalidateQueries({ queryKey: ['effects', abilityId] });
-      qc.invalidateQueries({ queryKey: ['abilities'] });
+      qc.invalidateQueries({ queryKey: ["effects", abilityId] });
+      qc.invalidateQueries({ queryKey: ["abilities"] });
     },
   });
 }

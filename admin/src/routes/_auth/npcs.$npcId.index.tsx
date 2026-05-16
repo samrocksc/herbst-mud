@@ -1,23 +1,24 @@
-import { createFileRoute, useNavigate, Link, Outlet } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
-import { useLocation } from '@tanstack/react-router';
-import { apiGet, apiPost, apiPut, apiDelete } from '../../utils/apiFetch';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { DeleteConfirmation } from '../../components/DeleteConfirmation';
-import { Modal } from '../../components/Modal';
-import { Button } from '../../components/Button';
-import { HooksPanel } from '../../components/HooksPanel';
-import { DialogNodesPanel } from '../../components/DialogNodesPanel';
+/* eslint-disable functional/prefer-immutable-types, functional/immutable-data, functional/no-loop-statements, react-hooks/set-state-in-effect */
+import { createFileRoute, useNavigate, Link, Outlet } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useLocation } from "@tanstack/react-router";
+import { apiGet, apiPost, apiPut, apiDelete } from "../../utils/apiFetch";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { DeleteConfirmation } from "../../components/DeleteConfirmation";
+import { Modal } from "../../components/Modal";
+import { Button } from "../../components/Button";
+import { HooksPanel } from "../../components/HooksPanel";
+import { DialogNodesPanel } from "../../components/DialogNodesPanel";
 import {
   FormField,
   NumberField,
   TextareaField,
   FormError,
-} from '../../components/FormFields';
+} from "../../components/FormFields";
 
-export const Route = createFileRoute('/_auth/npcs/$npcId/')({
+export const Route = createFileRoute("/_auth/npcs/$npcId/")({
   component: NpcTemplateDetail,
 });
 
@@ -82,10 +83,10 @@ const API = `${window.location.origin}`;
 
 function buildInstanceColumns(npcId: string): Column<NPCInstance>[] {
   return [
-    { header: 'ID', accessor: 'id', align: 'center' },
+    { header: "ID", accessor: "id", align: "center" },
     {
-      header: 'Name',
-      accessor: 'name',
+      header: "Name",
+      accessor: "name",
       render: (_: unknown, row: NPCInstance) => (
         <Link
           to="/npcs/$npcId/instances/$instanceId"
@@ -97,8 +98,8 @@ function buildInstanceColumns(npcId: string): Column<NPCInstance>[] {
       ),
     },
     {
-      header: 'Location',
-      accessor: 'room_id',
+      header: "Location",
+      accessor: "room_id",
       render: (_: unknown, row: NPCInstance) => (
         <Link
           to="/map"
@@ -108,10 +109,10 @@ function buildInstanceColumns(npcId: string): Column<NPCInstance>[] {
         </Link>
       ),
     },
-    { header: 'Instance #', accessor: 'instance_number', align: 'center' },
+    { header: "Instance #", accessor: "instance_number", align: "center" },
     {
-      header: 'HP',
-      accessor: 'hitpoints',
+      header: "HP",
+      accessor: "hitpoints",
       render: (_: unknown, row: NPCInstance) => (
         <span>{row.hitpoints}/{row.max_hitpoints}</span>
       ),
@@ -134,20 +135,20 @@ function templateToEditForm(t: NPCTemplate): EditForm {
     xp_value: t.xp_value,
     skills: Object.entries(skills)
       .map(([k, v]) => `${k}:${v}`)
-      .join('\\n'),
-    trades_with: trades.join('\\n'),
-    greeting: t.greeting ?? '',
-    respawn_rooms: rooms.join('\\n'),
+      .join("\\n"),
+    trades_with: trades.join("\\n"),
+    greeting: t.greeting ?? "",
+    respawn_rooms: rooms.join("\\n"),
     respawn_cooldown: t.respawn_cooldown,
   };
 }
 
 function editFormToPayload(form: EditForm) {
   const skills: Record<string, number> = {};
-  for (const line of form.skills.split('\\n')) {
+  for (const line of form.skills.split("\\n")) {
     const trimmed = line.trim();
     if (!trimmed) continue;
-    const colonIdx = trimmed.lastIndexOf(':');
+    const colonIdx = trimmed.lastIndexOf(":");
     if (colonIdx > 0) {
       skills[trimmed.slice(0, colonIdx)] = parseInt(trimmed.slice(colonIdx + 1)) || 0;
     } else {
@@ -162,9 +163,9 @@ function editFormToPayload(form: EditForm) {
     level: form.level,
     xp_value: form.xp_value,
     skills,
-    trades_with: form.trades_with.split('\\n').map((s) => s.trim()).filter(Boolean),
+    trades_with: form.trades_with.split("\\n").map((s) => s.trim()).filter(Boolean),
     greeting: form.greeting,
-    respawn_rooms: form.respawn_rooms.split('\\n').map((s) => s.trim()).filter(Boolean),
+    respawn_rooms: form.respawn_rooms.split("\\n").map((s) => s.trim()).filter(Boolean),
     respawn_cooldown: form.respawn_cooldown,
   };
 }
@@ -183,53 +184,31 @@ export function NpcTemplateDetail() {
   const [spawnForm, setSpawnForm] = useState<SpawnForm>({
     room_id: 1,
     instance_number: 1,
-    instance_name: '',
+    instance_name: "",
   });
 
-  // Render outlet for child routes (instances, etc.)
-  if (location.pathname !== `/npcs/${npcId}`) {
-    return <Outlet />;
-  }
-
-  const templateQuery = useQuery<NPCTemplate>({
-    queryKey: ['npc-templates', npcId],
-    queryFn: () => apiGet<NPCTemplate>(`${API}/api/npc-templates/${npcId}`),
-  });
-
-  const instancesQuery = useQuery<NPCInstance[]>({
-    queryKey: ['npc-instances'],
-    queryFn: () => apiGet<NPCInstance[]>(`${API}/api/npc-instances`),
-  });
-
-  const templateInstances = (instancesQuery.data ?? []).filter((inst) => {
-    return inst.npc_template_id === npcId;
-  });
-
-  useEffect(() => {
-    if (editing && templateQuery.data && !form) {
-      setForm(templateToEditForm(templateQuery.data));
-    }
-  }, [editing, templateQuery.data, form]);
-
+   
   const deleteMutation = useMutation({
     mutationFn: () => apiDelete(`${API}/api/npc-templates/${npcId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-templates'] });
-      navigate({ to: '/npcs' });
+      queryClient.invalidateQueries({ queryKey: ["npc-templates"] });
+      navigate({ to: "/npcs" });
     },
   });
 
+   
   const updateMutation = useMutation({
     mutationFn: (body: ReturnType<typeof editFormToPayload>) =>
       apiPut(`${API}/api/npc-templates/${npcId}`, body),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-templates', npcId] });
-      queryClient.invalidateQueries({ queryKey: ['npc-templates'] });
+      queryClient.invalidateQueries({ queryKey: ["npc-templates", npcId] });
+      queryClient.invalidateQueries({ queryKey: ["npc-templates"] });
       setEditing(false);
       setForm(null);
     },
   });
 
+   
   const spawnMutation = useMutation({
     mutationFn: (input: SpawnForm) =>
       apiPost<NPCInstance>(`${API}/api/npc-instances`, {
@@ -239,11 +218,40 @@ export function NpcTemplateDetail() {
         instance_name: input.instance_name || undefined,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['npc-instances'] });
+      queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
       setShowSpawnModal(false);
-      setSpawnForm({ room_id: 1, instance_number: 1, instance_name: '' });
+      setSpawnForm({ room_id: 1, instance_number: 1, instance_name: "" });
     },
   });
+
+   
+  const templateQuery = useQuery<NPCTemplate>({
+    queryKey: ["npc-templates", npcId],
+    queryFn: () => apiGet<NPCTemplate>(`${API}/api/npc-templates/${npcId}`),
+  });
+
+   
+  const instancesQuery = useQuery<NPCInstance[]>({
+    queryKey: ["npc-instances"],
+    queryFn: () => apiGet<NPCInstance[]>(`${API}/api/npc-instances`),
+  });
+
+   
+  const templateInstances = (instancesQuery.data ?? []).filter((inst) => {
+    return inst.npc_template_id === npcId;
+  });
+
+   
+  useEffect(() => {
+    if (editing && templateQuery.data && !form) {
+      setForm(templateToEditForm(templateQuery.data));
+    }
+  }, [editing, templateQuery.data, form]);
+
+  // Render outlet for child routes (instances, etc.)
+  if (location.pathname !== `/npcs/${npcId}`) {
+    return <Outlet />;
+  }
 
   const handleDelete = () => {
     deleteMutation.mutate();
@@ -255,7 +263,7 @@ export function NpcTemplateDetail() {
 
   const handleSpawnModalClose = () => {
     setShowSpawnModal(false);
-    setSpawnForm({ room_id: 1, instance_number: 1, instance_name: '' });
+    setSpawnForm({ room_id: 1, instance_number: 1, instance_name: "" });
   };
 
   const startEditing = () => {
@@ -289,7 +297,7 @@ export function NpcTemplateDetail() {
       <div className="p-8">
         <PageHeader title="Error" backTo="/npcs" />
         <div className="text-danger">
-          Failed to load template: {templateQuery.error?.message ?? 'Unknown error'}
+          Failed to load template: {templateQuery.error?.message ?? "Unknown error"}
         </div>
       </div>
     );
@@ -312,7 +320,7 @@ export function NpcTemplateDetail() {
                   onClick={handleSave}
                   disabled={updateMutation.isPending}
                 >
-                  {updateMutation.isPending ? 'Saving...' : 'Save'}
+                  {updateMutation.isPending ? "Saving..." : "Save"}
                 </Button>
                 <Button variant="secondary" size="sm" onClick={cancelEditing}>
                   Cancel
@@ -356,9 +364,9 @@ export function NpcTemplateDetail() {
                 <DetailField label="Level" value={String(template.level)} />
                 <DetailField label="XP Value" value={String(template.xp_value)} />
                 <DetailField label="Respawn Cooldown" value={`${template.respawn_cooldown}s`} />
-                <DetailField label="Respawn Rooms" value={(template.respawn_rooms ?? []).join(', ') || '—'} />
-                <DetailField label="Greeting" value={template.greeting || '—'} />
-                <DetailField label="Trades With" value={(template.trades_with ?? []).join(', ') || '—'} />
+                <DetailField label="Respawn Rooms" value={(template.respawn_rooms ?? []).join(", ") || "—"} />
+                <DetailField label="Greeting" value={template.greeting || "—"} />
+                <DetailField label="Trades With" value={(template.trades_with ?? []).join(", ") || "—"} />
               </div>
 
               {template.description && (
@@ -400,7 +408,7 @@ export function NpcTemplateDetail() {
 
         {instancesQuery.isError && (
           <div className="p-4 bg-danger/10 border border-danger rounded text-danger text-xs">
-            Failed to load instances: {instancesQuery.error?.message ?? 'Unknown error'}
+            Failed to load instances: {instancesQuery.error?.message ?? "Unknown error"}
           </div>
         )}
 
@@ -435,7 +443,7 @@ export function NpcTemplateDetail() {
             <input
               type="text"
               inputMode="numeric"
-              value={spawnForm.room_id || ''}
+              value={spawnForm.room_id || ""}
               onChange={(e) =>
                 setSpawnForm({ ...spawnForm, room_id: parseInt(e.target.value) || 0 })
               }
@@ -449,7 +457,7 @@ export function NpcTemplateDetail() {
             <input
               type="text"
               inputMode="numeric"
-              value={spawnForm.instance_number || ''}
+              value={spawnForm.instance_number || ""}
               onChange={(e) =>
                 setSpawnForm({ ...spawnForm, instance_number: parseInt(e.target.value) || 1 })
               }
@@ -475,13 +483,13 @@ export function NpcTemplateDetail() {
 
           {spawnMutation.isError && (
             <div className="p-2 bg-danger/10 border border-danger rounded text-danger text-xs">
-              Failed to spawn instance: {spawnMutation.error?.message ?? 'Unknown error'}
+              Failed to spawn instance: {spawnMutation.error?.message ?? "Unknown error"}
             </div>
           )}
 
           <div className="flex gap-2">
             <Button variant="primary" onClick={handleSpawn} disabled={spawnMutation.isPending}>
-              {spawnMutation.isPending ? 'Spawning...' : 'Spawn'}
+              {spawnMutation.isPending ? "Spawning..." : "Spawn"}
             </Button>
             <Button variant="secondary" onClick={handleSpawnModalClose}>
               Cancel

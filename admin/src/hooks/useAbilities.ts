@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiFetch';
-import { useWorldStore } from './useWorldStore';
+ 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
+import { useWorldStore } from "../contexts/WorldStoreContext";
 
 const API = `${window.location.origin}/api/abilities`;
 
@@ -65,13 +66,14 @@ export function useAbilities(filters?: { type?: string; abilityClass?: string })
   const { currentWorld } = useWorldStore();
 
   return useQuery({
-    queryKey: ['abilities', filters, currentWorld],
+    queryKey: ["abilities", filters, currentWorld],
     queryFn: async (): Promise<Ability[]> => {
-      const params = new URLSearchParams();
-      if (filters?.type) params.append('type', filters.type);
-      if (filters?.abilityClass) params.append('ability_class', filters.abilityClass);
-      if (currentWorld) params.append('world_id', currentWorld);
-      const url = `${API}${params.toString() ? '?' + params.toString() : ''}`;
+      const params = new URLSearchParams([
+        ...(filters?.type ? [["type", filters.type]] : []),
+        ...(filters?.abilityClass ? [["ability_class", filters.abilityClass]] : []),
+        ...(currentWorld ? [["world_id", currentWorld]] : []),
+      ]);
+      const url = `${API}${params.toString() ? "?" + params.toString() : ""}`;
       const data = await apiGet<Ability[]>(url);
       return Array.isArray(data) ? data : [];
     },
@@ -82,12 +84,11 @@ export function useAbility(id: number | null) {
   const { currentWorld } = useWorldStore();
 
   return useQuery({
-    queryKey: ['ability', id, currentWorld],
+    queryKey: ["ability", id, currentWorld],
     queryFn: async (): Promise<Ability | null> => {
       if (!id) return null;
-      const params = new URLSearchParams();
-      if (currentWorld) params.append('world_id', currentWorld);
-      const url = `${API}/${id}${params.toString() ? '?' + params.toString() : ''}`;
+      const params = new URLSearchParams(currentWorld ? [["world_id", currentWorld]] : []);
+      const url = `${API}/${id}${params.toString() ? "?" + params.toString() : ""}`;
       const data = await apiGet<Ability>(url);
       return data ?? null;
     },
@@ -100,18 +101,18 @@ export function useCreateAbility() {
   return useMutation({
     mutationFn: (input: AbilityInput) =>
       apiPost<Ability>(API, parseForApi(input)),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['abilities'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["abilities"] }),
   });
 }
 
 export function useUpdateAbility() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, input }: { id: number; input: AbilityInput }) =>
+    mutationFn: ({ id, input }: { readonly id: number; readonly input: AbilityInput }) =>
       apiPut<Ability>(`${API}/${id}`, parseForApi(input)),
     onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: ['abilities'] });
-      qc.invalidateQueries({ queryKey: ['ability', id] });
+      qc.invalidateQueries({ queryKey: ["abilities"] });
+      qc.invalidateQueries({ queryKey: ["ability", id] });
     },
   });
 }
@@ -120,6 +121,6 @@ export function useDeleteAbility() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => apiDelete(`${API}/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['abilities'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["abilities"] }),
   });
 }

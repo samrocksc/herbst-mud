@@ -1,5 +1,5 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   useQuests,
   useCreateQuest,
@@ -7,38 +7,38 @@ import {
   type QuestInput,
   EMPTY_REWARDS,
   type QuestObjective,
-} from '../../hooks/useQuests';
-import { PageHeader } from '../../components/PageHeader';
-import { DataTable, type Column } from '../../components/DataTable';
-import { Button } from '../../components/Button';
-import { FormField, TextareaField, NumberField, SelectField } from '../../components/FormFields';
-import { showToast } from '../../components/Toast';
-import type { Quest } from '../../hooks/useQuests';
+} from "../../hooks/useQuests";
+import { PageHeader } from "../../components/PageHeader";
+import { DataTable, type Column } from "../../components/DataTable";
+import { Button } from "../../components/Button";
+import { FormField, TextareaField, NumberField, SelectField } from "../../components/FormFields";
+import { showToast } from "../../components/Toast";
+import type { Quest } from "../../hooks/useQuests";
 
-export const Route = createFileRoute('/_auth/quests')({
+export const Route = createFileRoute("/_auth/quests")({
   component: QuestsManagement,
 });
 
 const REPEAT_MODE_OPTS = [
-  { value: 'none', label: 'None (one-time)' },
-  { value: 'cooldown', label: 'Cooldown' },
-  { value: 'always', label: 'Always repeatable' },
+  { value: "none", label: "None (one-time)" },
+  { value: "cooldown", label: "Cooldown" },
+  { value: "always", label: "Always repeatable" },
 ];
 
 const EMPTY_OBJECTIVE: QuestObjective = {
-  type: '', target_id: '', tag_filter: '', count: 1, labels: [], hint: '',
+  type: "", target_id: "", tag_filter: "", count: 1, labels: [], hint: "",
 };
 
 const EMPTY_QUEST: QuestInput = {
-  name: '',
-  description: '',
+  name: "",
+  description: "",
   prerequisite_quest_ids: [],
   objectives: [{ ...EMPTY_OBJECTIVE }],
   rewards: { ...EMPTY_REWARDS },
-  repeat_mode: 'none',
+  repeat_mode: "none",
   cooldown_hours: 0,
   is_active: true,
-  main_type: 'general',
+  main_type: "general",
 };
 
 function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
@@ -66,23 +66,23 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
   const getTargetsForType = (type: string) => {
     if (!lookups) return [];
     switch (type) {
-      case 'kill': return lookups.npcs;
-      case 'explore': return lookups.rooms;
-      case 'collect': return lookups.items;
+      case "kill": return lookups.npcs;
+      case "explore": return lookups.rooms;
+      case "collect": return lookups.items;
       default: return [];
     }
   };
 
   // Get current target options based on selected type
   const currentObjective = formData.objectives?.[0];
-  const targetOptions = getTargetsForType(currentObjective?.type ?? '');
+  const targetOptions = getTargetsForType(currentObjective?.type ?? "");
 
   // Convert prerequisite_quest_ids from strings to numbers for API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await createQuest.mutateAsync(formData);
-      showToast('Quest created', 'success');
+      showToast("Quest created", "success");
       setFormData(EMPTY_QUEST);
       onSuccess();
     } catch { /* toasted globally */ }
@@ -102,16 +102,16 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
     <div className="form-card space-y-3">
       <h3 className="mt-0 mb-0 text-text text-base font-semibold">Add New Quest</h3>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <FormField label="Name" value={formData.name ?? ''} onChange={(v) => set({ name: v })} />
-        <TextareaField label="Description" value={formData.description ?? ''} onChange={(v) => set({ description: v })} rows={3} />
-        <SelectField label="Quest Type" value={formData.main_type ?? 'general'} onChange={(v) => set({ main_type: v })} options={[
-        { value: 'general', label: 'General' },
-        { value: 'hunter', label: 'Hunter (Kill NPCs)' },
-        { value: 'collector', label: 'Collector (Gather Items)' },
-        { value: 'explorer', label: 'Explorer (Visit Rooms)' },
+        <FormField label="Name" value={formData.name ?? ""} onChange={(v) => set({ name: v })} />
+        <TextareaField label="Description" value={formData.description ?? ""} onChange={(v) => set({ description: v })} rows={3} />
+        <SelectField label="Quest Type" value={formData.main_type ?? "general"} onChange={(v) => set({ main_type: v })} options={[
+        { value: "general", label: "General" },
+        { value: "hunter", label: "Hunter (Kill NPCs)" },
+        { value: "collector", label: "Collector (Gather Items)" },
+        { value: "explorer", label: "Explorer (Visit Rooms)" },
       ]} />
-      <SelectField label="Repeat Mode" value={formData.repeat_mode ?? 'none'} onChange={(v) => set({ repeat_mode: v })} options={REPEAT_MODE_OPTS} />
-        {(formData.repeat_mode === 'cooldown') && (
+      <SelectField label="Repeat Mode" value={formData.repeat_mode ?? "none"} onChange={(v) => set({ repeat_mode: v })} options={REPEAT_MODE_OPTS} />
+        {(formData.repeat_mode === "cooldown") && (
           <NumberField label="Cooldown (hours)" value={formData.cooldown_hours ?? 0} onChange={(v) => set({ cooldown_hours: v })} />
         )}
         <div className="flex items-center gap-2">
@@ -130,8 +130,8 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
                 onClick={() => togglePrereqQuest(q.id)}
                 className={`px-2 py-1 text-xs rounded border ${
                   (formData.prerequisite_quest_ids ?? []).includes(q.id)
-                    ? 'bg-primary/20 border-primary text-text'
-                    : 'bg-surface border-border text-muted hover:border-primary'
+                    ? "bg-primary/20 border-primary text-text"
+                    : "bg-surface border-border text-muted hover:border-primary"
                 }`}
               >
                 {q.name}
@@ -150,11 +150,11 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
               <SelectField
                 label="Type"
                 value={obj.type}
-                onChange={(v) => updateObjective(i, { type: v, target_id: '' })}
+                onChange={(v) => updateObjective(i, { type: v, target_id: "" })}
                 options={[
-                  { value: 'kill', label: 'Kill NPC' },
-                  { value: 'explore', label: 'Explore Room' },
-                  { value: 'collect', label: 'Collect Item' },
+                  { value: "kill", label: "Kill NPC" },
+                  { value: "explore", label: "Explore Room" },
+                  { value: "collect", label: "Collect Item" },
                 ]}
               />
               <SelectField
@@ -162,13 +162,13 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
                 value={obj.target_id}
                 onChange={(v) => updateObjective(i, { target_id: v })}
                 options={[
-                  { value: '', label: 'Select target...' },
+                  { value: "", label: "Select target..." },
                   ...targetOptions.map(t => ({ value: t.id, label: t.name }))
                 ]}
               />
               <FormField label="Tag Filter" value={obj.tag_filter} onChange={(v) => updateObjective(i, { tag_filter: v })} placeholder="Optional: filter by tag" />
               <NumberField label="Count" value={obj.count} onChange={(v) => updateObjective(i, { count: v })} />
-              <FormField label="Label" value={obj.labels?.[0] ?? ''} onChange={(v) => updateObjective(i, { labels: [v] })} placeholder="Kill Rats" />
+              <FormField label="Label" value={obj.labels?.[0] ?? ""} onChange={(v) => updateObjective(i, { labels: [v] })} placeholder="Kill Rats" />
               <FormField label="Hint" value={obj.hint} onChange={(v) => updateObjective(i, { hint: v })} placeholder="Optional hint" />
               <Button variant="danger" size="sm" onClick={() => removeObjective(i)}>×</Button>
             </div>
@@ -196,8 +196,8 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
                   }}
                   className={`px-2 py-1 text-xs rounded border ${
                     (formData.rewards?.item_ids ?? []).includes(item.id)
-                      ? 'bg-primary/20 border-primary text-text'
-                      : 'bg-surface border-border text-muted hover:border-primary'
+                      ? "bg-primary/20 border-primary text-text"
+                      : "bg-surface border-border text-muted hover:border-primary"
                   }`}
                 >
                   {item.name}
@@ -223,8 +223,8 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
                   }}
                   className={`px-2 py-1 text-xs rounded border ${
                     (formData.rewards?.tag_adds ?? []).includes(tag.id)
-                      ? 'bg-primary/20 border-primary text-text'
-                      : 'bg-surface border-border text-muted hover:border-primary'
+                      ? "bg-primary/20 border-primary text-text"
+                      : "bg-surface border-border text-muted hover:border-primary"
                   }`}
                 >
                   {tag.name}
@@ -236,7 +236,7 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
 
         <div className="flex gap-2 pt-1">
           <Button type="submit" variant="primary" disabled={createQuest.isPending} fullWidth>
-            {createQuest.isPending ? 'Creating...' : 'Create Quest'}
+            {createQuest.isPending ? "Creating..." : "Create Quest"}
           </Button>
         </div>
       </form>
@@ -246,18 +246,18 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
 
 const COLUMNS: Column<Quest>[] = [
   {
-    header: 'Name',
-    accessor: 'name',
+    header: "Name",
+    accessor: "name",
     render: (_, row) => (
       <Link to="/quests/$questId" params={{ questId: String(row.id) }} className="no-underline text-primary hover:underline font-bold">
         {row.name}
       </Link>
     ),
   },
-  { header: 'Active', accessor: 'is_active', render: (val) => val ? '✓' : '✗' },
-  { header: 'Repeat', accessor: 'repeat_mode' },
-  { header: 'Objectives', accessor: 'objectives', render: (val) => (val as unknown as unknown[])?.length ?? 0 },
-  { header: 'XP', accessor: 'rewards', render: (val) => (val as { xp?: number })?.xp ?? 0 },
+  { header: "Active", accessor: "is_active", render: (val) => val ? "✓" : "✗" },
+  { header: "Repeat", accessor: "repeat_mode" },
+  { header: "Objectives", accessor: "objectives", render: (val) => (val as unknown as unknown[])?.length ?? 0 },
+  { header: "XP", accessor: "rewards", render: (val) => (val as { xp?: number })?.xp ?? 0 },
 ];
 
 function QuestsManagement() {
@@ -266,7 +266,7 @@ function QuestsManagement() {
   const location = useLocation();
   const { data: quests, isLoading, error } = useQuests();
 
-  if (location.pathname !== '/quests') return <Outlet />;
+  if (location.pathname !== "/quests") return <Outlet />;
 
   if (isLoading) return <div className="loading">Loading quests...</div>;
   if (error) return <div className="error">Failed to load quests: {error.message}</div>;
@@ -278,7 +278,7 @@ function QuestsManagement() {
         backTo="/dashboard"
         actions={
           <Button variant="primary" onClick={() => setShowCreate(!showCreate)}>
-            {showCreate ? 'Cancel' : '+ Add Quest'}
+            {showCreate ? "Cancel" : "+ Add Quest"}
           </Button>
         }
       />
@@ -287,7 +287,7 @@ function QuestsManagement() {
         columns={COLUMNS}
         data={quests ?? []}
         getKey={(row) => row.id}
-        onRowClick={(row) => navigate({ to: '/quests/$questId', params: { questId: String(row.id) } })}
+        onRowClick={(row) => navigate({ to: "/quests/$questId", params: { questId: String(row.id) } })}
         emptyMessage="No quests found. Create your first quest!"
       />
     </div>
