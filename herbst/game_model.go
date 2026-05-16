@@ -294,6 +294,16 @@ func (m *model) processInput(input string) {
 // VIEW RENDERING
 // ============================================================
 
+// renderHeaderBar builds the top header bar with room/area name and compact stats
+func (m *model) renderHeaderBar(width int) string {
+	headerContent := fmt.Sprintf("%s  |  Lvl %d %s",
+		lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(m.roomName),
+		m.characterLevel,
+		m.characterRace,
+	)
+	return HeaderBarStyle.Width(width).Render(headerContent)
+}
+
 func (m *model) View() string {
 	var s strings.Builder
 
@@ -498,6 +508,8 @@ func (m *model) View() string {
 			height = 24
 		}
 
+		// Layout proportions
+		headerHeight := 1
 		inputHeight := height * 20 / 100
 		if inputHeight < 3 {
 			inputHeight = 3
@@ -506,9 +518,17 @@ func (m *model) View() string {
 		if statusHeight < 3 {
 			statusHeight = 3
 		}
+		contentHeight := height - headerHeight - inputHeight - statusHeight - 3
+		if contentHeight < 5 {
+			contentHeight = 5
+		}
 
-		roomInfo := fmt.Sprintf("[%s]\n%s\n\nExits: %s",
-			lipgloss.NewStyle().Bold(true).Foreground(green).Render(m.roomName),
+		// Header bar
+		s.WriteString(m.renderHeaderBar(width))
+		s.WriteString("\n")
+
+		// Main content (room + messages)
+		roomInfo := fmt.Sprintf("%s\n\nExits: %s",
 			m.roomDesc,
 			m.formatExitsWithColor())
 
@@ -522,43 +542,40 @@ func (m *model) View() string {
 		if m.viewport.Width != width {
 			m.viewport.Width = width
 		}
-		if m.viewport.Height != height-statusHeight-inputHeight {
-			m.viewport.Height = height - statusHeight - inputHeight
-		}
+		m.viewport.Height = contentHeight
 		m.viewport.SetContent(roomInfo)
 
-		viewportStyle := lipgloss.NewStyle().
+		contentStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(pink).
+			BorderForeground(PrimaryPurple).
 			Width(width)
-		s.WriteString(viewportStyle.Render(m.viewport.View()))
+		s.WriteString(contentStyle.Render(m.viewport.View()))
 		s.WriteString("\n")
 
-		// Determine if regen is active (out of combat, not full HP, alive)
+		// Status bar
 		regenActive := !m.inCombat && m.characterHP < m.characterMaxHP && m.characterHP > 0
 		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana, regenActive)
 		debugInfo := ""
 		if m.debugMode {
-			debugInfo = " " + lipgloss.NewStyle().Foreground(yellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))
+			debugInfo = " " + lipgloss.NewStyle().Foreground(StatusYellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))
 		}
-		statusBarStyle := lipgloss.NewStyle().
-			Foreground(pink).
-			Background(lipgloss.Color("235")).
+		statusStyle := lipgloss.NewStyle().
+			Foreground(AccentBlue).
+			Background(StatusBarBg).
 			Bold(true).
 			Width(width).
 			Padding(0, 1)
-		s.WriteString(statusBarStyle.Render(statsLine + debugInfo))
+		s.WriteString(statusStyle.Render(statsLine + debugInfo))
 		s.WriteString("\n")
 
+		// Input area
 		inputStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(pink).
+			BorderForeground(PrimaryGold).
 			Padding(0, 1).
 			Width(width).
 			Height(inputHeight - 2)
 		s.WriteString(inputStyle.Render(promptStyle.Render("> ") + m.textInput.View()))
-
-		return s.String()
 	}
 
 	// Center in terminal
