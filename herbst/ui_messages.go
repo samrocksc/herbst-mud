@@ -2,6 +2,8 @@ package main
 
 import (
 	"strings"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 // ============================================================
@@ -21,11 +23,11 @@ func styleMessage(msg string, msgType string) string {
 
 	switch msgType {
 	case "success":
-		return successStyle.Render("✓ ") + msg
+		return lipgloss.NewStyle().Foreground(StatusGreen).Bold(true).Render("◆ ") + msg
 	case "error":
-		return errorStyle.Render("✗ ") + msg
+		return lipgloss.NewStyle().Foreground(StatusRed).Bold(true).Render("▲ ") + msg
 	case "info":
-		return infoStyle.Render("ℹ ") + msg
+		return lipgloss.NewStyle().Foreground(AccentBlue).Render("● ") + msg
 	case "damage":
 		return combatDamageStyle.Render("⚔ ") + msg
 	case "heal":
