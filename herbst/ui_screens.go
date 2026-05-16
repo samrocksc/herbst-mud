@@ -12,222 +12,287 @@ import (
 // ============================================================
 
 func welcomeScreen(width, height int, inputView string) string {
-	inputHeight := height * 30 / 100
-	if inputHeight < 5 {
-		inputHeight = 5
+	if width < 40 {
+		width = 80
 	}
-	outputHeight := height - inputHeight
-	if outputHeight < 10 {
-		outputHeight = 10
+
+	// Calculate split
+	outputHeight := height * 60 / 100
+	if outputHeight < 8 {
+		outputHeight = 8
 	}
+
+	var outputContent strings.Builder
+
+	// Title banner
+	outputContent.WriteString("\n")
+	titleLine := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(PrimaryGold).
+		Render("✦ HERBST MUD ✦")
+	outputContent.WriteString(lipgloss.NewStyle().
+		Width(width).
+		Align(lipgloss.Center).
+		Render(titleLine))
+	outputContent.WriteString("\n\n")
+
+	// Subtitle
+	subtitleLine := lipgloss.NewStyle().
+		Foreground(PrimaryPurple).
+		Italic(true).
+		Render("A World of Adventure Awaits")
+	outputContent.WriteString(lipgloss.NewStyle().
+		Width(width).
+		Align(lipgloss.Center).
+		Render(subtitleLine))
+	outputContent.WriteString("\n\n")
+
+	// Menu
+	menuItems := []struct {
+		key  string
+		desc string
+	}{
+		{"1", "Login"},
+		{"2", "Register"},
+		{"3", "Quit"},
+	}
+	for _, item := range menuItems {
+		keyStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(item.key + ".")
+		nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(item.desc)
+		outputContent.WriteString(fmt.Sprintf("  %s  %s\n", keyStyle, nameStyle))
+	}
+	outputContent.WriteString("\n")
+	outputContent.WriteString(lipgloss.NewStyle().
+		Foreground(TextGray).
+		Width(width).
+		Align(lipgloss.Center).
+		Render("Type a number or command"))
 
 	outputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
+		BorderForeground(PrimaryPurple).
 		Padding(0, 1).
 		Width(width).
-		Height(outputHeight - 2)
-
-	var outputContent strings.Builder
-	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        Welcome Adventurer!        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  1. Login"))
-	outputContent.WriteString("      - Log in to your existing account\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  2. Register"))
-	outputContent.WriteString("   - Create a new character\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  3. World"))
-	outputContent.WriteString("     - Select world to play\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(cyan).Render("  4. Quit"))
-	outputContent.WriteString("       - Exit the game\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("  Use arrow keys or type number/command"))
-
+		Height(outputHeight)
 	inputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
+		BorderForeground(PrimaryGold).
 		Padding(0, 1).
 		Width(width).
-		Height(inputHeight - 2)
+		Height(height - outputHeight - 1)
 
 	var sb strings.Builder
 	sb.WriteString(outputStyle.Render(outputContent.String()))
 	sb.WriteString("\n")
 	sb.WriteString(inputStyle.Render(inputView))
-
 	return sb.String()
 }
 
 func loginScreen(width, height int, message, messageType string, inputView string) string {
-	inputHeight := height * 30 / 100
-	if inputHeight < 5 {
-		inputHeight = 5
-	}
-	outputHeight := height - inputHeight
-	if outputHeight < 10 {
-		outputHeight = 10
+	if width < 40 {
+		width = 80
 	}
 
-	outputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width).
-		Height(outputHeight - 2)
+	outputHeight := height * 55 / 100
+	if outputHeight < 8 {
+		outputHeight = 8
+	}
 
 	var outputContent strings.Builder
 	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("            LOGIN            "))
+	title := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(PrimaryGold).
+		Width(width).
+		Align(lipgloss.Center).
+		Render("✦ ACCOUNT LOGIN ✦")
+	outputContent.WriteString(title)
 	outputContent.WriteString("\n\n")
 
 	if message != "" {
-		outputContent.WriteString(styleMessage(message, messageType))
-		outputContent.WriteString("\n")
+		styled := styleMessage(message, messageType)
+		outputContent.WriteString(styled)
+		outputContent.WriteString("\n\n")
 	}
 
-	inputStyle := lipgloss.NewStyle().
+	instructions := lipgloss.NewStyle().
+		Foreground(TextGray).
+		Render("Type 'register' to create a new account")
+	outputContent.WriteString(instructions)
+	outputContent.WriteString("\n")
+	quitText := lipgloss.NewStyle().
+		Foreground(TextGray).
+		Render("Type 'quit' or press Ctrl+C to exit")
+	outputContent.WriteString(quitText)
+
+	outputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
+		BorderForeground(PrimaryPurple).
 		Padding(0, 1).
 		Width(width).
-		Height(inputHeight - 2)
+		Height(outputHeight)
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(PrimaryGold).
+		Padding(0, 1).
+		Width(width).
+		Height(height - outputHeight - 1)
 
 	var sb strings.Builder
 	sb.WriteString(outputStyle.Render(outputContent.String()))
 	sb.WriteString("\n")
 	sb.WriteString(inputStyle.Render(inputView))
-
 	return sb.String()
 }
 
 func registerScreen(width, height int, message, messageType string, inputView string) string {
-	inputHeight := height * 30 / 100
-	if inputHeight < 5 {
-		inputHeight = 5
-	}
-	outputHeight := height - inputHeight
-	if outputHeight < 10 {
-		outputHeight = 10
+	if width < 40 {
+		width = 80
 	}
 
-	outputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width).
-		Height(outputHeight - 2)
+	outputHeight := height * 55 / 100
+	if outputHeight < 8 {
+		outputHeight = 8
+	}
 
 	var outputContent strings.Builder
 	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        CREATE ACCOUNT        "))
+	title := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(PrimaryGold).
+		Width(width).
+		Align(lipgloss.Center).
+		Render("✦ CREATE ACCOUNT ✦")
+	outputContent.WriteString(title)
 	outputContent.WriteString("\n\n")
 
 	if message != "" {
-		outputContent.WriteString(styleMessage(message, messageType))
-		outputContent.WriteString("\n")
+		styled := styleMessage(message, messageType)
+		outputContent.WriteString(styled)
+		outputContent.WriteString("\n\n")
 	}
 
-	inputStyle := lipgloss.NewStyle().
+	instructions := lipgloss.NewStyle().
+		Foreground(TextGray).
+		Render("Press Esc to go back")
+	outputContent.WriteString(instructions)
+
+	outputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
+		BorderForeground(PrimaryPurple).
 		Padding(0, 1).
 		Width(width).
-		Height(inputHeight - 2)
+		Height(outputHeight)
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(PrimaryGold).
+		Padding(0, 1).
+		Width(width).
+		Height(height - outputHeight - 1)
 
 	var sb strings.Builder
 	sb.WriteString(outputStyle.Render(outputContent.String()))
 	sb.WriteString("\n")
 	sb.WriteString(inputStyle.Render(inputView))
-
 	return sb.String()
 }
 
 func worldSelectScreen(width, height int, displayContent string, inputView string) string {
-	inputHeight := height * 30 / 100
-	if inputHeight < 5 {
-		inputHeight = 5
-	}
-	outputHeight := height - inputHeight
-	if outputHeight < 10 {
-		outputHeight = 10
+	if width < 40 {
+		width = 80
 	}
 
-	outputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width).
-		Height(outputHeight - 2)
+	outputHeight := height * 55 / 100
+	if outputHeight < 8 {
+		outputHeight = 8
+	}
 
 	var outputContent strings.Builder
 	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        SELECT WORLD        "))
+	title := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(PrimaryGold).
+		Width(width).
+		Align(lipgloss.Center).
+		Render("✦ SELECT WORLD ✦")
+	outputContent.WriteString(title)
 	outputContent.WriteString("\n\n")
 	outputContent.WriteString(displayContent)
+	outputContent.WriteString("\n")
+	hint := lipgloss.NewStyle().
+		Foreground(TextGray).
+		Render("Type the number or name of a world. 'b' to go back.")
+	outputContent.WriteString(hint)
 
-	inputStyle := lipgloss.NewStyle().
+	outputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
+		BorderForeground(PrimaryPurple).
 		Padding(0, 1).
 		Width(width).
-		Height(inputHeight - 2)
+		Height(outputHeight)
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(PrimaryGold).
+		Padding(0, 1).
+		Width(width).
+		Height(height - outputHeight - 1)
 
 	var sb strings.Builder
 	sb.WriteString(outputStyle.Render(outputContent.String()))
 	sb.WriteString("\n")
 	sb.WriteString(inputStyle.Render(inputView))
-
 	return sb.String()
 }
 
 func characterSelectScreen(width, height int, message, messageType string, inputView string) string {
-	inputHeight := height * 30 / 100
-	if inputHeight < 5 {
-		inputHeight = 5
-	}
-	outputHeight := height - inputHeight
-	if outputHeight < 10 {
-		outputHeight = 10
+	if width < 40 {
+		width = 80
 	}
 
-	outputStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
-		Padding(0, 1).
-		Width(width).
-		Height(outputHeight - 2)
+	outputHeight := height * 55 / 100
+	if outputHeight < 8 {
+		outputHeight = 8
+	}
 
 	var outputContent strings.Builder
 	outputContent.WriteString("\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(green).Render("        🐢 HERBST MUD 🐢        "))
-	outputContent.WriteString("\n\n")
-	outputContent.WriteString(lipgloss.NewStyle().Bold(true).Foreground(pink).Render("        SELECT CHARACTER        "))
+	title := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(PrimaryGold).
+		Width(width).
+		Align(lipgloss.Center).
+		Render("✦ SELECT CHARACTER ✦")
+	outputContent.WriteString(title)
 	outputContent.WriteString("\n\n")
 
 	if message != "" {
-		outputContent.WriteString(styleMessage(message, messageType))
-		outputContent.WriteString("\n")
+		styled := styleMessage(message, messageType)
+		outputContent.WriteString(styled)
+		outputContent.WriteString("\n\n")
 	}
 
-	inputStyle := lipgloss.NewStyle().
+	hint := lipgloss.NewStyle().
+		Foreground(TextGray).
+		Render("Type number to select, 'n' for new character, 'b' for back")
+	outputContent.WriteString(hint)
+
+	outputStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(pink).
+		BorderForeground(PrimaryPurple).
 		Padding(0, 1).
 		Width(width).
-		Height(inputHeight - 2)
+		Height(outputHeight)
+	inputStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(PrimaryGold).
+		Padding(0, 1).
+		Width(width).
+		Height(height - outputHeight - 1)
 
 	var sb strings.Builder
 	sb.WriteString(outputStyle.Render(outputContent.String()))
 	sb.WriteString("\n")
 	sb.WriteString(inputStyle.Render(inputView))
-
 	return sb.String()
 }
 
