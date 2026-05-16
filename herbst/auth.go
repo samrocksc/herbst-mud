@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // ============================================================
@@ -341,24 +342,22 @@ func parseWorldIndex(input string, numWorlds int) int {
 func (m *model) displayWorlds() string {
 	var buf bytes.Buffer
 
-	buf.WriteString("\n=== SELECT WORLD ===\n\n")
-
 	if len(availableWorlds) == 0 {
-		buf.WriteString("Fetching available worlds...\n\n")
+		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("Fetching available worlds..."))
+		buf.WriteString("\n\n")
 	} else {
-		buf.WriteString("Available worlds:\n")
 		for idx, world := range availableWorlds {
-			indicator := ""
+			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+			nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(world)
+			line := fmt.Sprintf("  %s  %s", numStyle, nameStyle)
 			if world == m.currentWorld {
-				indicator = " [SELECTED]"
+				line += lipgloss.NewStyle().Foreground(PrimaryGold).Render("  [ACTIVE]")
 			}
-			buf.WriteString(fmt.Sprintf("%d. %s%s\n", idx+1, world, indicator))
+			buf.WriteString(line)
+			buf.WriteString("\n")
 		}
 		buf.WriteString("\n")
 	}
-
-	buf.WriteString("Type the number or name of a world to select it.\n")
-	buf.WriteString("Type 'b' or 'q' to go back.\n\n")
 
 	return buf.String()
 }
@@ -507,29 +506,28 @@ func (m *model) fetchCharactersByWorld() {
 func (m *model) displayCharacters() string {
 	var buf bytes.Buffer
 
-	buf.WriteString("\n=== SELECT CHARACTER ===\n")
-	buf.WriteString(fmt.Sprintf("World: %s\n\n", m.currentWorld))
+	worldLabel := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render("World:")
+	worldVal := lipgloss.NewStyle().Foreground(TextWhite).Render(m.currentWorld)
+	buf.WriteString(fmt.Sprintf("  %s  %s\n\n", worldLabel, worldVal))
 
 	if len(m.selectedWorldCharacters) == 0 {
-		buf.WriteString("No characters in this world.\n")
-		buf.WriteString("Select 'n' to create a new character.\n\n")
+		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("  No characters in this world."))
+		buf.WriteString("\n")
+		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("  Type 'n' to create a new character."))
+		buf.WriteString("\n\n")
 	} else {
-		buf.WriteString("Your characters:\n")
 		for idx, char := range m.selectedWorldCharacters {
-			genderStr := ""
-			if char.Gender != "" {
-				genderStr = fmt.Sprintf(" (%s)", char.Gender)
-			}
-			buf.WriteString(fmt.Sprintf("%d. %s — Level %d %s%s\n",
-				idx+1, char.Name, char.Level, char.Race, genderStr))
-			buf.WriteString(fmt.Sprintf("   Class: %s | HP: %d/%d\n", char.Class, char.Hitpoints, char.MaxHitpoints))
+			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+			nameStyle := lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(char.Name)
+			details := fmt.Sprintf("Lvl %d %s %s", char.Level, char.Race, char.Class)
+			detailsStyle := lipgloss.NewStyle().Foreground(TextGray).Render(details)
+			hpLabel := lipgloss.NewStyle().Foreground(StatusRed).Render("HP")
+			hpStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(fmt.Sprintf("%d/%d", char.Hitpoints, char.MaxHitpoints))
+			buf.WriteString(fmt.Sprintf("  %s  %s\n", numStyle, nameStyle))
+			buf.WriteString(fmt.Sprintf("       %s  %s  %s\n", detailsStyle, hpLabel+":", hpStyle))
 		}
 		buf.WriteString("\n")
 	}
-
-	buf.WriteString("Type the number or name to select a character.\n")
-	buf.WriteString("Type 'n' to create a new character.\n")
-	buf.WriteString("Type 'b' to go back to world selection.\n\n")
 
 	return buf.String()
 }
@@ -623,11 +621,18 @@ func (m *model) loadCharacter(charID int) {
 	m.inputBuffer = ""
 	m.selectedWorldCharacters = []CharacterInfo{}
 	m.isCreatingCharacter = false
+	// Check if this is a new character (first room visit)
+	isNewCharacter := !m.visitedRooms[m.currentRoom]
 	m.visitedRooms[m.currentRoom] = true
 
 	// Determine reconnect room
 	targetRoomID := m.determineReconnectRoom()
 	m.loadRoom(targetRoomID)
+
+	// Show onboarding for new characters
+	if isNewCharacter {
+		m.AppendMessage(m.getWelcomeMessage(), "info")
+	}
 
 	// Update last seen
 	m.updateLastSeenAt()
@@ -819,6 +824,29 @@ func (m *model) createCharacter(name, password, race, class string) {
 		m.AppendMessage(fmt.Sprintf("Character '%s' created successfully!", name), "success")
 		m.loadCharacter(int(id))
 	}
+}
+
+// getWelcomeMessage returns an onboarding message for new characters
+func (m *model) getWelcomeMessage() string {
+	msg := lipgloss.NewStyle().Bold(true).Foreground(PrimaryGold).Render("Welcome to Herbst MUD!")
+	msg += "\n\n"
+	msg += lipgloss.NewStyle().Foreground(AccentBlue).Render("Essential Commands:")
+	msg += "\n"
+	type cmdHelp struct{ cmd, desc string }
+	commands := []cmdHelp{
+		{"look", "Examine your surroundings"},
+		{"north / south / east / west", "Move between rooms"},
+		{"say <text>", "Speak to others in the room"},
+		{"help", "Show all available commands"},
+		{"who", "See who's online"},
+	}
+	for _, c := range commands {
+		cmdStyle := lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(c.cmd)
+		msg += fmt.Sprintf("  %s — %s\n", cmdStyle, c.desc)
+	}
+	msg += "\n"
+	msg += lipgloss.NewStyle().Foreground(TextGray).Italic(true).Render("Tip: try 'look' to see where you are!")
+	return msg
 }
 
 func (m *model) cancelCharacterCreation() {
