@@ -179,8 +179,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-		// Vim-style navigation for character creation race/class selection
-		if m.screen == ScreenCharacterSelect && m.isCreatingCharacter && (m.inputField == "char_race" || m.inputField == "char_class") {
+		// Vim-style navigation for character creation race/class/faction selection
+		if m.screen == ScreenCharacterSelect && m.isCreatingCharacter && (m.inputField == "char_race" || m.inputField == "char_class" || m.inputField == "char_faction") {
 			if key == "j" || key == "down" {
 				m.createCursor++
 				if m.inputField == "char_race" {
@@ -189,6 +189,14 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				} else if m.inputField == "char_class" {
 					if m.createCursor >= len(availableClasses) {
+						m.createCursor = 0
+					}
+				} else if m.inputField == "char_faction" {
+					numFactions := 0
+					if createCharFactionStep >= 0 && createCharFactionStep < len(createCharFactionCategories) {
+						numFactions = len(createCharFactionCategories[createCharFactionStep].Factions)
+					}
+					if m.createCursor >= numFactions {
 						m.createCursor = 0
 					}
 				}
@@ -203,6 +211,14 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else if m.inputField == "char_class" {
 					if m.createCursor < 0 {
 						m.createCursor = len(availableClasses) - 1
+					}
+				} else if m.inputField == "char_faction" {
+					numFactions := 0
+					if createCharFactionStep >= 0 && createCharFactionStep < len(createCharFactionCategories) {
+						numFactions = len(createCharFactionCategories[createCharFactionStep].Factions)
+					}
+					if m.createCursor < 0 {
+						m.createCursor = numFactions - 1
 					}
 				}
 				return m, nil
@@ -547,20 +563,19 @@ func (m *model) View() string {
 				promptText = "Race: "
 			case "char_class":
 				promptText = "Class: "
+			case "char_faction":
+				promptText = "Faction: "
 			}
 			inputContent.WriteString(promptStyle.Render(promptText))
 			inputContent.WriteString(m.textInput.View())
 			inputContent.WriteString("\n\n")
-				if m.inputField == "char_race" || m.inputField == "char_class" {
+				if m.inputField == "char_race" || m.inputField == "char_class" || m.inputField == "char_faction" {
 				inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · enter/1-9 select · 'cancel' abort"))
 				} else {
 				inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type 'cancel' to abort"))
 				}
 		} else {
-			inputContent.WriteString(promptStyle.Render("> "))
-			inputContent.WriteString(m.textInput.View())
-			inputContent.WriteString("\n\n")
-			inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · enter/1-9 select · 'n' new · 'b' back"))
+			inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · Enter select · 'b' back"))
 			return characterSelectScreen(m.width, m.height, m.displayCharacters(), inputContent.String())
 		}
 		var displayContent string
@@ -568,6 +583,8 @@ func (m *model) View() string {
 			displayContent = m.displayRaces()
 		} else if m.inputField == "char_class" {
 			displayContent = m.displayClasses()
+		} else if m.inputField == "char_faction" {
+			displayContent = m.displayFactions(createCharFactionStep)
 		}
 		return characterSelectScreen(m.width, m.height, displayContent, inputContent.String())
 	case ScreenPlaying:

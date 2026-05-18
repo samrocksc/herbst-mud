@@ -16,6 +16,21 @@ import (
 // ============================================================
 
 func (m *model) handleWelcomeInput(input string) {
+	if input == "" {
+		// Enter pressed with empty input — use menuCursor to navigate
+		m.menuCursor = (m.menuCursor%len(m.menuItems) + len(m.menuItems)) % len(m.menuItems)
+		switch m.menuItems[m.menuCursor] {
+		case "Login":
+			input = "login"
+		case "Register":
+			input = "register"
+		case "Quit":
+			input = "quit"
+		default:
+			input = ""
+		}
+	}
+
 	input = strings.ToLower(input)
 
 	switch input {
@@ -240,8 +255,45 @@ func (m *model) attemptRegistration(email string) {
 	m.AppendMessage(m.displayWorlds(), "info")
 }
 
+// WorldInfo represents a world from the server response
+type WorldInfo struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+}
+
+// RaceInfo represents a playable race from the server response
+type RaceInfo struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+}
+
+// FactionInfo represents a faction from the server response
+type FactionInfo struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+}
+
+// FactionCategoryInfo represents a faction category with initial_config=true
+type FactionCategoryInfo struct {
+	ID              int            `json:"id"`
+	Name            string         `json:"name"`
+	DisplayName     string         `json:"display_name"`
+	MaxMemberships  int            `json:"max_memberships"`
+	InitialConfig   bool          `json:"initial_config"`
+	Factions        []FactionInfo `json:"factions"`
+}
+
 // worlds holds the list of available worlds
-var availableWorlds []string
+var availableWorlds []WorldInfo
+
+// races holds the list of available playable races
+var availableRaces []RaceInfo
+
+// availableClasses holds the list of selectable character classes
+var availableClasses = []string{"adventurer", "warrior", "mage", "rogue", "cleric"}
 
 // fetchWorlds retrieves the list of available worlds from the server
 func (m *model) fetchWorlds() {
@@ -263,9 +315,9 @@ func (m *model) fetchWorlds() {
 	}
 
 	var result struct {
-		Count   int      `json:"count"`
-		Default string   `json:"default"`
-		Worlds  []string `json:"worlds"`
+		Count   int         `json:"count"`
+		Default string      `json:"default"`
+		Worlds  []WorldInfo `json:"worlds"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		m.AppendMessage(fmt.Sprintf("Error parsing worlds: %v", err), "error")
@@ -275,9 +327,65 @@ func (m *model) fetchWorlds() {
 	if len(availableWorlds) > 0 {
 		// Set current world to first available world if not already set
 		if m.currentWorld == "" {
-			m.currentWorld = result.Worlds[0]
+			m.currentWorld = result.Worlds[0].Name
 		}
 	}
+}
+
+// fetchRaces retrieves the list of available playable races from the server
+func (m *model) fetchRaces() {
+	m.isLoading = true
+	m.loadingMessage = "Fetching races..."
+
+	resp, err := http.Get(RESTAPIBase + "/playable-races")
+	m.isLoading = false
+
+	if err != nil {
+		m.AppendMessage(fmt.Sprintf("Cannot connect to server at %s. Is the server running?", RESTAPIBase), "error")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.AppendMessage("Failed to fetch races from server.", "error")
+		return
+	}
+
+	var result struct {
+		Races []RaceInfo `json:"races"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		m.AppendMessage(fmt.Sprintf("Error parsing races: %v", err), "error")
+		return
+	}
+	availableRaces = result.Races
+}
+
+// fetchFactionCategories retrieves faction categories with initial_config=true
+func (m *model) fetchFactionCategories() {
+	m.isLoading = true
+	m.loadingMessage = "Fetching factions..."
+
+	resp, err := http.Get(RESTAPIBase + "/api/faction-categories?initial_config=true")
+	m.isLoading = false
+
+	if err != nil {
+		m.AppendMessage(fmt.Sprintf("Cannot connect to server at %s. Is the server running?", RESTAPIBase), "error")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.AppendMessage("Failed to fetch faction categories from server.", "error")
+		return
+	}
+
+	var categories []FactionCategoryInfo
+	if err := json.NewDecoder(resp.Body).Decode(&categories); err != nil {
+		m.AppendMessage(fmt.Sprintf("Error parsing faction categories: %v", err), "error")
+		return
+	}
+	createCharFactionCategories = categories
 }
 
 // handleWorldSelectInput handles input for the world selection screen
@@ -292,6 +400,19 @@ func (m *model) handleWorldSelectInput(input string) {
 		return
 	}
 
+	// Enter with empty input — select highlighted world
+	if input == "" {
+		if m.worldCursor >= 0 && m.worldCursor < len(availableWorlds) {
+			m.currentWorld = availableWorlds[m.worldCursor].Name
+			m.AppendMessage(fmt.Sprintf("Selected world: %s", m.currentWorld), "success")
+			m.fetchCharactersByWorld()
+			m.screen = ScreenCharacterSelect
+			m.textInput.SetValue("")
+			m.inputBuffer = ""
+		}
+		return
+	}
+
 	switch input {
 	case "b", "back", "q", "quit":
 		m.screen = ScreenWelcome
@@ -300,7 +421,7 @@ func (m *model) handleWorldSelectInput(input string) {
 	case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 		// Parse world index (1-based)
 		if idx := parseWorldIndex(input, len(availableWorlds)); idx >= 0 {
-			m.currentWorld = availableWorlds[idx]
+			m.currentWorld = availableWorlds[idx].Name
 			m.AppendMessage(fmt.Sprintf("Selected world: %s", m.currentWorld), "success")
 			m.fetchCharactersByWorld()
 			m.screen = ScreenCharacterSelect
@@ -311,11 +432,12 @@ func (m *model) handleWorldSelectInput(input string) {
 	default:
 		// Check if input matches a world name exactly
 		for _, world := range availableWorlds {
-			if strings.ToLower(world) == input {
-				m.currentWorld = world
+			if strings.ToLower(world.Name) == input {
+				m.currentWorld = world.Name
 				m.AppendMessage(fmt.Sprintf("Selected world: %s", m.currentWorld), "success")
 				m.fetchCharactersByWorld()
 				m.screen = ScreenCharacterSelect
+				m.characterCursor = 0
 				m.textInput.SetValue("")
 				m.inputBuffer = ""
 				return
@@ -347,13 +469,107 @@ func (m *model) displayWorlds() string {
 		buf.WriteString("\n\n")
 	} else {
 		for idx, world := range availableWorlds {
+			cursorStr := " "
 			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
-			nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(world)
-			line := fmt.Sprintf("  %s  %s", numStyle, nameStyle)
-			if world == m.currentWorld {
+			nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(world.Name)
+			if idx == m.worldCursor {
+				cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
+				numStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+				nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render(world.Name)
+			}
+			line := fmt.Sprintf("  %s  %s  %s", cursorStr, numStyle, nameStyle)
+			if world.Name == m.currentWorld {
 				line += lipgloss.NewStyle().Foreground(PrimaryGold).Render("  [ACTIVE]")
 			}
 			buf.WriteString(line)
+			buf.WriteString("\n")
+		}
+		buf.WriteString("\n")
+	}
+
+	return buf.String()
+}
+
+// displayRaces returns the formatted race selection menu with cursor
+func (m *model) displayRaces() string {
+	var buf bytes.Buffer
+
+	if len(availableRaces) == 0 {
+		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("No playable races available."))
+		buf.WriteString("\n\n")
+	} else {
+		for idx, race := range availableRaces {
+			cursorStr := " "
+			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+			nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(race.DisplayName)
+			if idx == m.createCursor {
+				cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
+				numStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+				nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render(race.DisplayName)
+			}
+			buf.WriteString(fmt.Sprintf("  %s  %s  %s", cursorStr, numStyle, nameStyle))
+			buf.WriteString("\n")
+		}
+		buf.WriteString("\n")
+	}
+
+	return buf.String()
+}
+
+// displayClasses returns the formatted class selection menu with cursor
+func (m *model) displayClasses() string {
+	var buf bytes.Buffer
+
+	if len(availableClasses) == 0 {
+		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("No classes available."))
+		buf.WriteString("\n\n")
+	} else {
+		for idx, class := range availableClasses {
+			cursorStr := " "
+			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+			nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(class)
+			if idx == m.createCursor {
+				cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
+				numStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+				nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render(class)
+			}
+			buf.WriteString(fmt.Sprintf("  %s  %s  %s", cursorStr, numStyle, nameStyle))
+			buf.WriteString("\n")
+		}
+		buf.WriteString("\n")
+	}
+
+	return buf.String()
+}
+
+// displayFactions returns the formatted faction selection menu for a specific category
+func (m *model) displayFactions(categoryIdx int) string {
+	var buf bytes.Buffer
+
+	if categoryIdx < 0 || categoryIdx >= len(createCharFactionCategories) {
+		return buf.String()
+	}
+
+	category := createCharFactionCategories[categoryIdx]
+	buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render(fmt.Sprintf("Category %d of %d", categoryIdx+1, len(createCharFactionCategories))))
+	buf.WriteString("\n\n")
+	buf.WriteString(lipgloss.NewStyle().Bold(true).Foreground(AccentBlue).Render(category.DisplayName))
+	buf.WriteString("\n\n")
+
+	if len(category.Factions) == 0 {
+		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("No factions available."))
+		buf.WriteString("\n\n")
+	} else {
+		for idx, faction := range category.Factions {
+			cursorStr := " "
+			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+			nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(faction.DisplayName)
+			if idx == m.createCursor {
+				cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
+				numStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+				nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render(faction.DisplayName)
+			}
+			buf.WriteString(fmt.Sprintf("  %s  %s  %s", cursorStr, numStyle, nameStyle))
 			buf.WriteString("\n")
 		}
 		buf.WriteString("\n")
@@ -374,6 +590,17 @@ func (m *model) handleCharacterSelectInput(input string) {
 		return
 	}
 
+	// Enter with empty input — select highlighted character or "Create new"
+	if input == "" {
+		createNewIdx := len(m.selectedWorldCharacters)
+		if m.characterCursor >= 0 && m.characterCursor < createNewIdx {
+			m.selectCharacter(m.characterCursor)
+		} else if m.characterCursor == createNewIdx {
+			m.startCharacterCreation()
+		}
+		return
+	}
+
 	input = strings.ToLower(input)
 
 	switch input {
@@ -382,30 +609,17 @@ func (m *model) handleCharacterSelectInput(input string) {
 		m.textInput.SetValue("")
 		m.inputBuffer = ""
 		m.AppendMessage("Select a world:", "info")
-	case "r", "refresh":
-		m.fetchCharactersByWorld()
-		m.AppendMessage("Characters refreshed.", "info")
-	case "n", "new", "create":
-		m.startCharacterCreation()
-	default:
-		// Try to parse as character number (1-9)
+	case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 		if idx := parseWorldIndex(input, len(m.selectedWorldCharacters)); idx >= 0 {
 			m.selectCharacter(idx)
-			return
 		}
-		// Try exact name match
-		for _, char := range m.selectedWorldCharacters {
-			if strings.ToLower(char.Name) == input {
-				m.selectCharacterByName(char.Name)
-				return
-			}
-		}
+	default:
 		if input != "" {
 			numChars := len(m.selectedWorldCharacters)
 			if numChars > 0 {
-				m.AppendMessage(fmt.Sprintf("Invalid choice. Type 1-%d to select, 'n' for new, or 'b' to go back.", numChars), "error")
+				m.AppendMessage(fmt.Sprintf("Invalid choice. Use j/k to navigate, Enter to select, or type 1-%d.", numChars), "error")
 			} else {
-				m.AppendMessage("Type 'n' to create your first character, or 'b' to go back.", "info")
+				m.AppendMessage("Press Enter to create your first character, or 'b' to go back.", "info")
 			}
 		}
 	}
@@ -512,22 +726,37 @@ func (m *model) displayCharacters() string {
 
 	if len(m.selectedWorldCharacters) == 0 {
 		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("  No characters in this world."))
-		buf.WriteString("\n")
-		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("  Type 'n' to create a new character."))
 		buf.WriteString("\n\n")
 	} else {
 		for idx, char := range m.selectedWorldCharacters {
+			cursorStr := " "
 			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
 			nameStyle := lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(char.Name)
+			if idx == m.characterCursor {
+				cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
+				numStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+				nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render(char.Name)
+			}
 			details := fmt.Sprintf("Lvl %d %s %s", char.Level, char.Race, char.Class)
 			detailsStyle := lipgloss.NewStyle().Foreground(TextGray).Render(details)
 			hpLabel := lipgloss.NewStyle().Foreground(StatusRed).Render("HP")
 			hpStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(fmt.Sprintf("%d/%d", char.Hitpoints, char.MaxHitpoints))
-			buf.WriteString(fmt.Sprintf("  %s  %s\n", numStyle, nameStyle))
+			buf.WriteString(fmt.Sprintf("  %s  %s  %s\n", cursorStr, numStyle, nameStyle))
 			buf.WriteString(fmt.Sprintf("       %s  %s  %s\n", detailsStyle, hpLabel+":", hpStyle))
 		}
 		buf.WriteString("\n")
 	}
+
+	// "Create new character" as the last selectable option
+	createNewIdx := len(m.selectedWorldCharacters)
+	cursorStr := " "
+	nameStyle := lipgloss.NewStyle().Foreground(AccentBlue).Render("Create new character")
+	if m.characterCursor == createNewIdx {
+		cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
+		nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render("Create new character")
+	}
+	buf.WriteString(fmt.Sprintf("  %s  %s\n", cursorStr, nameStyle))
+	buf.WriteString("\n")
 
 	return buf.String()
 }
@@ -648,14 +877,17 @@ func (m *model) loadCharacter(charID int) {
 
 // Character creation input state
 var createCharName string
-var createCharPassword string
 var createCharRace string
+var createCharFactionCategories []FactionCategoryInfo
+var createCharFactionStep int
+var createCharFactionChoices map[int]int
 
 func (m *model) startCharacterCreation() {
 	m.isCreatingCharacter = true
 	m.inputField = "char_name"
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
+	m.fetchRaces() // Fetch available races for selection
 	m.AppendMessage("Creating new character in: "+m.currentWorld, "info")
 	m.AppendMessage("Enter character name (letters only, 1-23 chars):", "info")
 	m.textInput.Focus()
@@ -686,82 +918,129 @@ func (m *model) handleCharacterCreationInput(input string) {
 			}
 		}
 		createCharName = input
-		m.inputField = "char_password"
-		m.AppendMessage("Enter character password:", "info")
-		m.textInput.EchoMode = textinput.EchoPassword
+		m.inputField = "char_race"
+		m.AppendMessage("Select race (or press Enter for default):", "info")
 		m.textInput.SetValue("")
 		m.textInput.Focus()
-	case "char_password":
+	case "char_race":
+		// Cursor-based race selection
 		if input == "" {
-			m.AppendMessage("Password cannot be empty. Enter password:", "error")
+			// Enter — select highlighted race
+			if m.createCursor >= 0 && m.createCursor < len(availableRaces) {
+				createCharRace = availableRaces[m.createCursor].Name
+			} else if len(availableRaces) > 0 {
+				createCharRace = availableRaces[0].Name
+			} else {
+				createCharRace = "human" // fallback
+			}
+		} else if idx := parseWorldIndex(input, len(availableRaces)); idx >= 0 {
+			createCharRace = availableRaces[idx].Name
+		} else {
+			m.AppendMessage(fmt.Sprintf("Invalid choice. Use j/k to navigate, Enter to select, or type 1-%d.", len(availableRaces)), "error")
 			return
 		}
-		createCharPassword = input
-		m.inputField = "char_confirm_password"
-		m.AppendMessage("Confirm password:", "info")
+		// Fetch faction categories for character creation wizard
+		m.fetchFactionCategories()
+		createCharFactionStep = 0
+		createCharFactionChoices = make(map[int]int)
+		m.createCursor = 0
+		// If we have faction categories, start with first one; otherwise skip to class
+		if len(createCharFactionCategories) > 0 {
+			m.inputField = "char_faction"
+			m.AppendMessage(fmt.Sprintf("Race selected: %s", createCharRace), "success")
+			m.AppendMessage(fmt.Sprintf("Select %s:", createCharFactionCategories[0].DisplayName), "info")
+		} else {
+			m.inputField = "char_class"
+			m.AppendMessage(fmt.Sprintf("Race selected: %s", createCharRace), "success")
+			m.AppendMessage("Select class (use j/k, Enter to select):", "info")
+		}
 		m.textInput.SetValue("")
 		m.textInput.Focus()
-	case "char_confirm_password":
-		if input != createCharPassword {
-			m.AppendMessage("Passwords do not match. Try again:", "error")
-			m.inputField = "char_password"
-			createCharPassword = ""
-			m.textInput.EchoMode = textinput.EchoPassword
+	case "char_faction":
+		// Faction category selection
+		if len(createCharFactionCategories) == 0 {
+			// No categories, skip to class
+			m.inputField = "char_class"
+			m.createCursor = 0
+			m.AppendMessage("Select class (use j/k, Enter to select):", "info")
 			m.textInput.SetValue("")
 			m.textInput.Focus()
 			return
 		}
-		m.inputField = "char_race"
-		m.textInput.EchoMode = textinput.EchoNormal
-		m.AppendMessage("Select race (or press Enter for human):", "info")
-		m.AppendMessage("Available: human, elf, dwarf, halfling, orc", "info")
-		m.textInput.SetValue("")
-		m.textInput.Focus()
-	case "char_race":
-		race := strings.ToLower(input)
-		if race == "" {
-			race = "human"
-		}
-		validRaces := map[string]bool{"human": true, "elf": true, "dwarf": true, "halfling": true, "orc": true}
-		if !validRaces[race] {
-			m.AppendMessage("Invalid race. Choose: human, elf, dwarf, halfling, orc", "error")
+		category := createCharFactionCategories[createCharFactionStep]
+		var selectedFaction string
+		if input == "" {
+			// Enter — select highlighted faction
+			if m.createCursor >= 0 && m.createCursor < len(category.Factions) {
+				selectedFaction = fmt.Sprintf("%d", category.Factions[m.createCursor].ID)
+			} else {
+				m.AppendMessage("Please select a faction.", "error")
+				return
+			}
+		} else if idx := parseWorldIndex(input, len(category.Factions)); idx >= 0 {
+			selectedFaction = fmt.Sprintf("%d", category.Factions[idx].ID)
+		} else {
+			m.AppendMessage(fmt.Sprintf("Invalid choice. Use j/k to navigate, Enter to select, or type 1-%d.", len(category.Factions)), "error")
 			return
 		}
-		createCharRace = race
-		m.inputField = "char_class"
-		m.AppendMessage(fmt.Sprintf("Race selected: %s", race), "success")
-		m.AppendMessage("Select class (or press Enter for adventurer):", "info")
-		m.AppendMessage("Available: adventurer, warrior, mage, rogue, cleric", "info")
+		factionID := 0
+		fmt.Sscanf(selectedFaction, "%d", &factionID)
+		createCharFactionChoices[createCharFactionStep] = factionID
+		createCharFactionStep++
+		m.createCursor = 0
+		if createCharFactionStep >= len(createCharFactionCategories) {
+			// Done with factions, proceed to class
+			m.inputField = "char_class"
+			m.AppendMessage("Factions selected.", "success")
+			m.AppendMessage("Select class (use j/k, Enter to select):", "info")
+		} else {
+			// More factions to select
+			nextCategory := createCharFactionCategories[createCharFactionStep]
+			m.AppendMessage(fmt.Sprintf("Select %s:", nextCategory.DisplayName), "info")
+		}
 		m.textInput.SetValue("")
 		m.textInput.Focus()
 	case "char_class":
-		class := strings.ToLower(input)
-		if class == "" {
-			class = "adventurer"
-		}
-		validClasses := map[string]bool{"adventurer": true, "warrior": true, "mage": true, "rogue": true, "cleric": true}
-		if !validClasses[class] {
-			m.AppendMessage("Invalid class. Choose: adventurer, warrior, mage, rogue, cleric", "error")
+		var class string
+		if input == "" {
+			// Enter — select highlighted class
+			if m.createCursor >= 0 && m.createCursor < len(availableClasses) {
+				class = availableClasses[m.createCursor]
+			} else {
+				class = "adventurer"
+			}
+		} else if idx := parseWorldIndex(input, len(availableClasses)); idx >= 0 {
+			class = availableClasses[idx]
+		} else {
+			m.AppendMessage("Invalid choice. Use j/k to navigate, Enter to select, or type 1-5.", "error")
 			return
 		}
 		// Create the character
-		m.createCharacter(createCharName, createCharPassword, createCharRace, class)
+		m.createCharacter(createCharName, createCharRace, class)
 	default:
 		// Unknown state, reset
 		m.cancelCharacterCreation()
 	}
 }
 
-func (m *model) createCharacter(name, password, race, class string) {
+func (m *model) createCharacter(name, race, class string) {
 	m.isLoading = true
 	m.loadingMessage = "Creating character..."
 
+	// Collect faction IDs from choices
+	factionIDs := make([]string, 0, len(createCharFactionChoices))
+	for i := 0; i < len(createCharFactionCategories); i++ {
+		if fid, ok := createCharFactionChoices[i]; ok {
+			factionIDs = append(factionIDs, fmt.Sprintf("%d", fid))
+		}
+	}
+
 	jsonData, _ := json.Marshal(map[string]interface{}{
 		"name":     name,
-		"password": password,
 		"race":     race,
 		"class":    class,
 		"world":    m.currentWorld,
+		"factions": factionIDs,
 	})
 
 	resp, err := http.Post(fmt.Sprintf("%s/user-characters/%d", RESTAPIBase, m.currentUserID),
@@ -779,8 +1058,6 @@ func (m *model) createCharacter(name, password, race, class string) {
 		m.AppendMessage("Character name already taken. Try a different name.", "error")
 		m.inputField = "char_name"
 		createCharName = ""
-		createCharPassword = ""
-		m.textInput.EchoMode = textinput.EchoNormal
 		m.textInput.SetValue("")
 		m.textInput.Focus()
 		return
@@ -813,11 +1090,12 @@ func (m *model) createCharacter(name, password, race, class string) {
 
 	// Reset creation state
 	createCharName = ""
-	createCharPassword = ""
 	createCharRace = ""
+	createCharFactionCategories = nil
+	createCharFactionStep = 0
+	createCharFactionChoices = nil
 	m.isCreatingCharacter = false
 	m.inputField = ""
-	m.textInput.EchoMode = textinput.EchoNormal
 
 	// Load the new character
 	if id, ok := result["id"].(float64); ok {
@@ -851,12 +1129,14 @@ func (m *model) getWelcomeMessage() string {
 
 func (m *model) cancelCharacterCreation() {
 	createCharName = ""
-	createCharPassword = ""
 	createCharRace = ""
+	createCharFactionCategories = nil
+	createCharFactionStep = 0
+	createCharFactionChoices = nil
 	m.isCreatingCharacter = false
 	m.inputField = ""
-	m.textInput.EchoMode = textinput.EchoNormal
 	m.screen = ScreenCharacterSelect
+	m.characterCursor = 0
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
 }
