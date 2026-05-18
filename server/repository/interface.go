@@ -245,6 +245,7 @@ type RaceRepo interface {
 	Update(ctx context.Context, id int, updates RaceUpdates) (*db.Race, error)
 	Delete(ctx context.Context, id int) error
 	CountCharactersByRaceName(ctx context.Context, raceName string) (int, error)
+	ListPlayable(ctx context.Context) ([]*Race, error)
 }
 
 // GenderRepo defines data access for genders.
@@ -296,7 +297,6 @@ type TransactionRunner interface {
 type CreateCharacterInput struct {
 	Name             string
 	UserID           int
-	Password         string
 	RoomID           int
 	StartingRoomID   int
 	RespawnRoomID    int
@@ -513,6 +513,7 @@ type EquipmentUpdates struct {
 
 type CreateNPCTemplateInput struct {
 	ID               string
+	Slug             string
 	Name             string
 	Description      string
 	Race             string
@@ -529,6 +530,7 @@ type CreateNPCTemplateInput struct {
 
 type NPCTemplateUpdates struct {
 	Name             *string
+	Slug             *string
 	Description      *string
 	Race             *string
 	Disposition      *string

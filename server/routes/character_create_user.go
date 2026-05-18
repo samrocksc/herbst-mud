@@ -22,30 +22,23 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			return
 		}
 		var req struct {
-			Name     string `json:"name" binding:"required"`
-			Password string `json:"password" binding:"required"`
-			Class    string `json:"class"`
-			Race     string `json:"race"`
-			Gender   string `json:"gender"`
-			World    string `json:"world"`
+			Name     string   `json:"name" binding:"required"`
+			Race     string   `json:"race"`
+			Gender   string   `json:"gender"`
+			World    string   `json:"world"`
+			Factions []string `json:"factions"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		hashedPassword, err := service.HashPassword(req.Password)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-			return
-		}
-		char, err := svc.Character.CreateCharacter(c.Request.Context(), service.CreateCharacterInput{
+			char, err := svc.Character.CreateCharacter(c.Request.Context(), service.CreateCharacterInput{
 			UserID:   userID,
 			Name:     req.Name,
-			Password: hashedPassword,
-			Class:    req.Class,
 			Race:     req.Race,
 			Gender:   req.Gender,
 			WorldID:  req.World,
+			Factions: req.Factions,
 		})
 		if err != nil {
 			switch {

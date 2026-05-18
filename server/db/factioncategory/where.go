@@ -79,6 +79,11 @@ func AutoJoin(v bool) predicate.FactionCategory {
 	return predicate.FactionCategory(sql.FieldEQ(FieldAutoJoin, v))
 }
 
+// InitialConfig applies equality check predicate on the "initial_config" field. It's identical to InitialConfigEQ.
+func InitialConfig(v bool) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldEQ(FieldInitialConfig, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.FactionCategory {
 	return predicate.FactionCategory(sql.FieldEQ(FieldName, v))
@@ -332,6 +337,16 @@ func AutoJoinEQ(v bool) predicate.FactionCategory {
 // AutoJoinNEQ applies the NEQ predicate on the "auto_join" field.
 func AutoJoinNEQ(v bool) predicate.FactionCategory {
 	return predicate.FactionCategory(sql.FieldNEQ(FieldAutoJoin, v))
+}
+
+// InitialConfigEQ applies the EQ predicate on the "initial_config" field.
+func InitialConfigEQ(v bool) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldEQ(FieldInitialConfig, v))
+}
+
+// InitialConfigNEQ applies the NEQ predicate on the "initial_config" field.
+func InitialConfigNEQ(v bool) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldNEQ(FieldInitialConfig, v))
 }
 
 // HasFactions applies the HasEdge predicate on the "factions" edge.

@@ -4269,6 +4269,7 @@ type AppLogMutation struct {
 	room_id         *int
 	addroom_id      *int
 	template_id     *string
+	world_id        *string
 	metadata        *map[string]interface{}
 	created_at      *time.Time
 	clearedFields   map[string]struct{}
@@ -4691,6 +4692,55 @@ func (m *AppLogMutation) ResetTemplateID() {
 	delete(m.clearedFields, applog.FieldTemplateID)
 }
 
+// SetWorldID sets the "world_id" field.
+func (m *AppLogMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *AppLogMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the AppLog entity.
+// If the AppLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AppLogMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ClearWorldID clears the value of the "world_id" field.
+func (m *AppLogMutation) ClearWorldID() {
+	m.world_id = nil
+	m.clearedFields[applog.FieldWorldID] = struct{}{}
+}
+
+// WorldIDCleared returns if the "world_id" field was cleared in this mutation.
+func (m *AppLogMutation) WorldIDCleared() bool {
+	_, ok := m.clearedFields[applog.FieldWorldID]
+	return ok
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *AppLogMutation) ResetWorldID() {
+	m.world_id = nil
+	delete(m.clearedFields, applog.FieldWorldID)
+}
+
 // SetMetadata sets the "metadata" field.
 func (m *AppLogMutation) SetMetadata(value map[string]interface{}) {
 	m.metadata = &value
@@ -4810,7 +4860,7 @@ func (m *AppLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AppLogMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.level != nil {
 		fields = append(fields, applog.FieldLevel)
 	}
@@ -4828,6 +4878,9 @@ func (m *AppLogMutation) Fields() []string {
 	}
 	if m.template_id != nil {
 		fields = append(fields, applog.FieldTemplateID)
+	}
+	if m.world_id != nil {
+		fields = append(fields, applog.FieldWorldID)
 	}
 	if m.metadata != nil {
 		fields = append(fields, applog.FieldMetadata)
@@ -4855,6 +4908,8 @@ func (m *AppLogMutation) Field(name string) (ent.Value, bool) {
 		return m.RoomID()
 	case applog.FieldTemplateID:
 		return m.TemplateID()
+	case applog.FieldWorldID:
+		return m.WorldID()
 	case applog.FieldMetadata:
 		return m.Metadata()
 	case applog.FieldCreatedAt:
@@ -4880,6 +4935,8 @@ func (m *AppLogMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldRoomID(ctx)
 	case applog.FieldTemplateID:
 		return m.OldTemplateID(ctx)
+	case applog.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case applog.FieldMetadata:
 		return m.OldMetadata(ctx)
 	case applog.FieldCreatedAt:
@@ -4934,6 +4991,13 @@ func (m *AppLogMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTemplateID(v)
+		return nil
+	case applog.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
 		return nil
 	case applog.FieldMetadata:
 		v, ok := value.(map[string]interface{})
@@ -5018,6 +5082,9 @@ func (m *AppLogMutation) ClearedFields() []string {
 	if m.FieldCleared(applog.FieldTemplateID) {
 		fields = append(fields, applog.FieldTemplateID)
 	}
+	if m.FieldCleared(applog.FieldWorldID) {
+		fields = append(fields, applog.FieldWorldID)
+	}
 	if m.FieldCleared(applog.FieldMetadata) {
 		fields = append(fields, applog.FieldMetadata)
 	}
@@ -5047,6 +5114,9 @@ func (m *AppLogMutation) ClearField(name string) error {
 	case applog.FieldTemplateID:
 		m.ClearTemplateID()
 		return nil
+	case applog.FieldWorldID:
+		m.ClearWorldID()
+		return nil
 	case applog.FieldMetadata:
 		m.ClearMetadata()
 		return nil
@@ -5075,6 +5145,9 @@ func (m *AppLogMutation) ResetField(name string) error {
 		return nil
 	case applog.FieldTemplateID:
 		m.ResetTemplateID()
+		return nil
+	case applog.FieldWorldID:
+		m.ResetWorldID()
 		return nil
 	case applog.FieldMetadata:
 		m.ResetMetadata()
@@ -5773,7 +5846,6 @@ type CharacterMutation struct {
 	typ                        string
 	id                         *int
 	name                       *string
-	password                   *string
 	isNPC                      *bool
 	startingRoomId             *int
 	addstartingRoomId          *int
@@ -6011,55 +6083,6 @@ func (m *CharacterMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *CharacterMutation) ResetName() {
 	m.name = nil
-}
-
-// SetPassword sets the "password" field.
-func (m *CharacterMutation) SetPassword(s string) {
-	m.password = &s
-}
-
-// Password returns the value of the "password" field in the mutation.
-func (m *CharacterMutation) Password() (r string, exists bool) {
-	v := m.password
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPassword returns the old "password" field's value of the Character entity.
-// If the Character object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CharacterMutation) OldPassword(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPassword is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPassword requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPassword: %w", err)
-	}
-	return oldValue.Password, nil
-}
-
-// ClearPassword clears the value of the "password" field.
-func (m *CharacterMutation) ClearPassword() {
-	m.password = nil
-	m.clearedFields[character.FieldPassword] = struct{}{}
-}
-
-// PasswordCleared returns if the "password" field was cleared in this mutation.
-func (m *CharacterMutation) PasswordCleared() bool {
-	_, ok := m.clearedFields[character.FieldPassword]
-	return ok
-}
-
-// ResetPassword resets all changes to the "password" field.
-func (m *CharacterMutation) ResetPassword() {
-	m.password = nil
-	delete(m.clearedFields, character.FieldPassword)
 }
 
 // SetIsNPC sets the "isNPC" field.
@@ -7039,9 +7062,22 @@ func (m *CharacterMutation) OldClass(ctx context.Context) (v string, err error) 
 	return oldValue.Class, nil
 }
 
+// ClearClass clears the value of the "class" field.
+func (m *CharacterMutation) ClearClass() {
+	m.class = nil
+	m.clearedFields[character.FieldClass] = struct{}{}
+}
+
+// ClassCleared returns if the "class" field was cleared in this mutation.
+func (m *CharacterMutation) ClassCleared() bool {
+	_, ok := m.clearedFields[character.FieldClass]
+	return ok
+}
+
 // ResetClass resets all changes to the "class" field.
 func (m *CharacterMutation) ResetClass() {
 	m.class = nil
+	delete(m.clearedFields, character.FieldClass)
 }
 
 // SetSpecialty sets the "specialty" field.
@@ -8811,12 +8847,9 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 44)
+	fields := make([]string, 0, 43)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
-	}
-	if m.password != nil {
-		fields = append(fields, character.FieldPassword)
 	}
 	if m.isNPC != nil {
 		fields = append(fields, character.FieldIsNPC)
@@ -8954,8 +8987,6 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case character.FieldName:
 		return m.Name()
-	case character.FieldPassword:
-		return m.Password()
 	case character.FieldIsNPC:
 		return m.IsNPC()
 	case character.FieldCurrentRoomId:
@@ -9051,8 +9082,6 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 	switch name {
 	case character.FieldName:
 		return m.OldName(ctx)
-	case character.FieldPassword:
-		return m.OldPassword(ctx)
 	case character.FieldIsNPC:
 		return m.OldIsNPC(ctx)
 	case character.FieldCurrentRoomId:
@@ -9152,13 +9181,6 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
-		return nil
-	case character.FieldPassword:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPassword(v)
 		return nil
 	case character.FieldIsNPC:
 		v, ok := value.(bool)
@@ -9799,14 +9821,14 @@ func (m *CharacterMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *CharacterMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(character.FieldPassword) {
-		fields = append(fields, character.FieldPassword)
-	}
 	if m.FieldCleared(character.FieldNpcTemplateID) {
 		fields = append(fields, character.FieldNpcTemplateID)
 	}
 	if m.FieldCleared(character.FieldNpcSkillID) {
 		fields = append(fields, character.FieldNpcSkillID)
+	}
+	if m.FieldCleared(character.FieldClass) {
+		fields = append(fields, character.FieldClass)
 	}
 	if m.FieldCleared(character.FieldSpecialty) {
 		fields = append(fields, character.FieldSpecialty)
@@ -9837,14 +9859,14 @@ func (m *CharacterMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *CharacterMutation) ClearField(name string) error {
 	switch name {
-	case character.FieldPassword:
-		m.ClearPassword()
-		return nil
 	case character.FieldNpcTemplateID:
 		m.ClearNpcTemplateID()
 		return nil
 	case character.FieldNpcSkillID:
 		m.ClearNpcSkillID()
+		return nil
+	case character.FieldClass:
+		m.ClearClass()
 		return nil
 	case character.FieldSpecialty:
 		m.ClearSpecialty()
@@ -9871,9 +9893,6 @@ func (m *CharacterMutation) ResetField(name string) error {
 	switch name {
 	case character.FieldName:
 		m.ResetName()
-		return nil
-	case character.FieldPassword:
-		m.ResetPassword()
 		return nil
 	case character.FieldIsNPC:
 		m.ResetIsNPC()
@@ -24730,6 +24749,7 @@ type FactionCategoryMutation struct {
 	max_memberships    *int
 	addmax_memberships *int
 	auto_join          *bool
+	initial_config     *bool
 	clearedFields      map[string]struct{}
 	factions           map[int]struct{}
 	removedfactions    map[int]struct{}
@@ -25050,6 +25070,42 @@ func (m *FactionCategoryMutation) ResetAutoJoin() {
 	m.auto_join = nil
 }
 
+// SetInitialConfig sets the "initial_config" field.
+func (m *FactionCategoryMutation) SetInitialConfig(b bool) {
+	m.initial_config = &b
+}
+
+// InitialConfig returns the value of the "initial_config" field in the mutation.
+func (m *FactionCategoryMutation) InitialConfig() (r bool, exists bool) {
+	v := m.initial_config
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInitialConfig returns the old "initial_config" field's value of the FactionCategory entity.
+// If the FactionCategory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FactionCategoryMutation) OldInitialConfig(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInitialConfig is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInitialConfig requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInitialConfig: %w", err)
+	}
+	return oldValue.InitialConfig, nil
+}
+
+// ResetInitialConfig resets all changes to the "initial_config" field.
+func (m *FactionCategoryMutation) ResetInitialConfig() {
+	m.initial_config = nil
+}
+
 // AddFactionIDs adds the "factions" edge to the Faction entity by ids.
 func (m *FactionCategoryMutation) AddFactionIDs(ids ...int) {
 	if m.factions == nil {
@@ -25138,7 +25194,7 @@ func (m *FactionCategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FactionCategoryMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, factioncategory.FieldName)
 	}
@@ -25153,6 +25209,9 @@ func (m *FactionCategoryMutation) Fields() []string {
 	}
 	if m.auto_join != nil {
 		fields = append(fields, factioncategory.FieldAutoJoin)
+	}
+	if m.initial_config != nil {
+		fields = append(fields, factioncategory.FieldInitialConfig)
 	}
 	return fields
 }
@@ -25172,6 +25231,8 @@ func (m *FactionCategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.MaxMemberships()
 	case factioncategory.FieldAutoJoin:
 		return m.AutoJoin()
+	case factioncategory.FieldInitialConfig:
+		return m.InitialConfig()
 	}
 	return nil, false
 }
@@ -25191,6 +25252,8 @@ func (m *FactionCategoryMutation) OldField(ctx context.Context, name string) (en
 		return m.OldMaxMemberships(ctx)
 	case factioncategory.FieldAutoJoin:
 		return m.OldAutoJoin(ctx)
+	case factioncategory.FieldInitialConfig:
+		return m.OldInitialConfig(ctx)
 	}
 	return nil, fmt.Errorf("unknown FactionCategory field %s", name)
 }
@@ -25234,6 +25297,13 @@ func (m *FactionCategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAutoJoin(v)
+		return nil
+	case factioncategory.FieldInitialConfig:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInitialConfig(v)
 		return nil
 	}
 	return fmt.Errorf("unknown FactionCategory field %s", name)
@@ -25322,6 +25392,9 @@ func (m *FactionCategoryMutation) ResetField(name string) error {
 		return nil
 	case factioncategory.FieldAutoJoin:
 		m.ResetAutoJoin()
+		return nil
+	case factioncategory.FieldInitialConfig:
+		m.ResetInitialConfig()
 		return nil
 	}
 	return fmt.Errorf("unknown FactionCategory field %s", name)
@@ -27270,6 +27343,7 @@ type NPCTemplateMutation struct {
 	op                   Op
 	typ                  string
 	id                   *string
+	slug                 *string
 	world_id             *string
 	name                 *string
 	description          *string
@@ -27407,6 +27481,55 @@ func (m *NPCTemplateMutation) IDs(ctx context.Context) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetSlug sets the "slug" field.
+func (m *NPCTemplateMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *NPCTemplateMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ClearSlug clears the value of the "slug" field.
+func (m *NPCTemplateMutation) ClearSlug() {
+	m.slug = nil
+	m.clearedFields[npctemplate.FieldSlug] = struct{}{}
+}
+
+// SlugCleared returns if the "slug" field was cleared in this mutation.
+func (m *NPCTemplateMutation) SlugCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldSlug]
+	return ok
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *NPCTemplateMutation) ResetSlug() {
+	m.slug = nil
+	delete(m.clearedFields, npctemplate.FieldSlug)
 }
 
 // SetWorldID sets the "world_id" field.
@@ -28209,7 +28332,10 @@ func (m *NPCTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NPCTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
+	if m.slug != nil {
+		fields = append(fields, npctemplate.FieldSlug)
+	}
 	if m.world_id != nil {
 		fields = append(fields, npctemplate.FieldWorldID)
 	}
@@ -28254,6 +28380,8 @@ func (m *NPCTemplateMutation) Fields() []string {
 // schema.
 func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case npctemplate.FieldSlug:
+		return m.Slug()
 	case npctemplate.FieldWorldID:
 		return m.WorldID()
 	case npctemplate.FieldName:
@@ -28287,6 +28415,8 @@ func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case npctemplate.FieldSlug:
+		return m.OldSlug(ctx)
 	case npctemplate.FieldWorldID:
 		return m.OldWorldID(ctx)
 	case npctemplate.FieldName:
@@ -28320,6 +28450,13 @@ func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Va
 // type.
 func (m *NPCTemplateMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case npctemplate.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
 	case npctemplate.FieldWorldID:
 		v, ok := value.(string)
 		if !ok {
@@ -28473,6 +28610,9 @@ func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *NPCTemplateMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(npctemplate.FieldSlug) {
+		fields = append(fields, npctemplate.FieldSlug)
+	}
 	if m.FieldCleared(npctemplate.FieldRespawnRooms) {
 		fields = append(fields, npctemplate.FieldRespawnRooms)
 	}
@@ -28493,6 +28633,9 @@ func (m *NPCTemplateMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *NPCTemplateMutation) ClearField(name string) error {
 	switch name {
+	case npctemplate.FieldSlug:
+		m.ClearSlug()
+		return nil
 	case npctemplate.FieldRespawnRooms:
 		m.ClearRespawnRooms()
 		return nil
@@ -28507,6 +28650,9 @@ func (m *NPCTemplateMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *NPCTemplateMutation) ResetField(name string) error {
 	switch name {
+	case npctemplate.FieldSlug:
+		m.ResetSlug()
+		return nil
 	case npctemplate.FieldWorldID:
 		m.ResetWorldID()
 		return nil

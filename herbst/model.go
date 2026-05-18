@@ -29,6 +29,9 @@ type model struct {
 	// World state
 	currentWorld string
 
+	// World selection cursor
+	worldCursor int // Cursor for j/k navigation on world selection screen
+
 	// Auth state
 	currentUserID   int
 	currentUserName string
@@ -151,6 +154,12 @@ type model struct {
 	// Character selection state
 	selectedWorldCharacters []CharacterInfo // Characters in selected world
 	isCreatingCharacter     bool           // Flag for character creation flow
+
+	// Character selection cursor (j/k navigation)
+	characterCursor int // Cursor for character selection list
+
+	// Character creation cursor (j/k navigation for race/class)
+	createCursor int // Cursor for race or class selection during creation
 }
 
 // CharacterInfo holds basic character info for selection screen

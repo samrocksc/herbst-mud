@@ -21,7 +21,6 @@ func Characters(ctx context.Context, client *db.Client, backupDir string, mappin
 	var characters []struct {
 		ID             int    `json:"id"`
 		Name           string `json:"name"`
-		Password       string `json:"password"`
 		IsNPC          bool   `json:"isNPC"`
 		CurrentRoomID   int    `json:"currentRoomId"`
 		StartingRoomID  int    `json:"startingRoomId"`
@@ -58,7 +57,7 @@ func Characters(ctx context.Context, client *db.Client, backupDir string, mappin
 		}
 
 		builder := client.Character.Create().
-			SetName(c.Name).SetPassword(c.Password).SetIsNPC(c.IsNPC).
+			SetName(c.Name).SetIsNPC(c.IsNPC).
 			SetCurrentRoomId(mapping.Rooms[c.CurrentRoomID]).
 			SetStartingRoomId(mapping.Rooms[c.StartingRoomID]).
 			SetIsAdmin(c.IsAdmin).SetHitpoints(c.Hitpoints).

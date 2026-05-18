@@ -89,7 +89,6 @@ var (
 	CharactersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
-		{Name: "password", Type: field.TypeString, Nullable: true},
 		{Name: "is_npc", Type: field.TypeBool, Default: false},
 		{Name: "starting_room_id", Type: field.TypeInt},
 		{Name: "is_admin", Type: field.TypeBool, Default: false},
@@ -101,7 +100,7 @@ var (
 		{Name: "mana", Type: field.TypeInt, Default: 25},
 		{Name: "max_mana", Type: field.TypeInt, Default: 25},
 		{Name: "race", Type: field.TypeString, Default: "human"},
-		{Name: "class", Type: field.TypeString, Default: "adventurer"},
+		{Name: "class", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "current_world", Type: field.TypeString, Default: "default"},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "constitution", Type: field.TypeInt, Default: 10},
@@ -134,31 +133,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_abilities_characters",
-				Columns:    []*schema.Column{CharactersColumns[33]},
+				Columns:    []*schema.Column{CharactersColumns[32]},
 				RefColumns: []*schema.Column{AbilitiesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[34]},
+				Columns:    []*schema.Column{CharactersColumns[33]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[35]},
+				Columns:    []*schema.Column{CharactersColumns[34]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[36]},
+				Columns:    []*schema.Column{CharactersColumns[35]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[37]},
+				Columns:    []*schema.Column{CharactersColumns[36]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -334,6 +333,7 @@ var (
 	// NpcTemplatesColumns holds the columns for the "npc_templates" table.
 	NpcTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "race", Type: field.TypeString},

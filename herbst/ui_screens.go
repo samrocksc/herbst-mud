@@ -11,7 +11,7 @@ import (
 // STATIC SCREENS
 // ============================================================
 
-func welcomeScreen(width, height int, inputView string) string {
+func welcomeScreen(width, height int, cursor int, inputView string) string {
 	if width < 40 {
 		width = 80
 	}
@@ -56,10 +56,16 @@ func welcomeScreen(width, height int, inputView string) string {
 		{"2", "Register"},
 		{"3", "Quit"},
 	}
-	for _, item := range menuItems {
+	for i, item := range menuItems {
+		cursorStr := " "
 		keyStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(item.key + ".")
 		nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(item.desc)
-		outputContent.WriteString(fmt.Sprintf("  %s  %s\n", keyStyle, nameStyle))
+		if i == cursor {
+			cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
+			keyStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(item.key + ".")
+			nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render(item.desc)
+		}
+		outputContent.WriteString(fmt.Sprintf("  %s  %s  %s\n", cursorStr, keyStyle, nameStyle))
 	}
 	outputContent.WriteString("\n")
 	outputContent.WriteString(lipgloss.NewStyle().
@@ -221,7 +227,7 @@ func worldSelectScreen(width, height int, displayContent string, inputView strin
 	outputContent.WriteString("\n")
 	hint := lipgloss.NewStyle().
 		Foreground(TextGray).
-		Render("Type the number or name of a world. 'b' to go back.")
+		Render("j/k navigate · enter/1-9 select · 'b' back")
 	outputContent.WriteString(hint)
 
 	outputStyle := lipgloss.NewStyle().
@@ -244,7 +250,7 @@ func worldSelectScreen(width, height int, displayContent string, inputView strin
 	return sb.String()
 }
 
-func characterSelectScreen(width, height int, message, messageType string, inputView string) string {
+func characterSelectScreen(width, height int, displayContent string, inputView string) string {
 	if width < 40 {
 		width = 80
 	}
@@ -265,15 +271,11 @@ func characterSelectScreen(width, height int, message, messageType string, input
 	outputContent.WriteString(title)
 	outputContent.WriteString("\n\n")
 
-	if message != "" {
-		styled := styleMessage(message, messageType)
-		outputContent.WriteString(styled)
-		outputContent.WriteString("\n\n")
-	}
-
+	outputContent.WriteString(displayContent)
+	outputContent.WriteString("\n")
 	hint := lipgloss.NewStyle().
 		Foreground(TextGray).
-		Render("Type number to select, 'n' for new character, 'b' for back")
+		Render("j/k navigate · enter/1-9 select · 'n' new · 'b' back")
 	outputContent.WriteString(hint)
 
 	outputStyle := lipgloss.NewStyle().

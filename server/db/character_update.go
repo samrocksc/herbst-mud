@@ -54,26 +54,6 @@ func (_u *CharacterUpdate) SetNillableName(v *string) *CharacterUpdate {
 	return _u
 }
 
-// SetPassword sets the "password" field.
-func (_u *CharacterUpdate) SetPassword(v string) *CharacterUpdate {
-	_u.mutation.SetPassword(v)
-	return _u
-}
-
-// SetNillablePassword sets the "password" field if the given value is not nil.
-func (_u *CharacterUpdate) SetNillablePassword(v *string) *CharacterUpdate {
-	if v != nil {
-		_u.SetPassword(*v)
-	}
-	return _u
-}
-
-// ClearPassword clears the value of the "password" field.
-func (_u *CharacterUpdate) ClearPassword() *CharacterUpdate {
-	_u.mutation.ClearPassword()
-	return _u
-}
-
 // SetIsNPC sets the "isNPC" field.
 func (_u *CharacterUpdate) SetIsNPC(v bool) *CharacterUpdate {
 	_u.mutation.SetIsNPC(v)
@@ -447,6 +427,12 @@ func (_u *CharacterUpdate) SetNillableClass(v *string) *CharacterUpdate {
 	if v != nil {
 		_u.SetClass(*v)
 	}
+	return _u
+}
+
+// ClearClass clears the value of the "class" field.
+func (_u *CharacterUpdate) ClearClass() *CharacterUpdate {
+	_u.mutation.ClearClass()
 	return _u
 }
 
@@ -1318,12 +1304,6 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(character.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Password(); ok {
-		_spec.SetField(character.FieldPassword, field.TypeString, value)
-	}
-	if _u.mutation.PasswordCleared() {
-		_spec.ClearField(character.FieldPassword, field.TypeString)
-	}
 	if value, ok := _u.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 	}
@@ -1413,6 +1393,9 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Class(); ok {
 		_spec.SetField(character.FieldClass, field.TypeString, value)
+	}
+	if _u.mutation.ClassCleared() {
+		_spec.ClearField(character.FieldClass, field.TypeString)
 	}
 	if value, ok := _u.mutation.Specialty(); ok {
 		_spec.SetField(character.FieldSpecialty, field.TypeString, value)
@@ -2066,26 +2049,6 @@ func (_u *CharacterUpdateOne) SetNillableName(v *string) *CharacterUpdateOne {
 	return _u
 }
 
-// SetPassword sets the "password" field.
-func (_u *CharacterUpdateOne) SetPassword(v string) *CharacterUpdateOne {
-	_u.mutation.SetPassword(v)
-	return _u
-}
-
-// SetNillablePassword sets the "password" field if the given value is not nil.
-func (_u *CharacterUpdateOne) SetNillablePassword(v *string) *CharacterUpdateOne {
-	if v != nil {
-		_u.SetPassword(*v)
-	}
-	return _u
-}
-
-// ClearPassword clears the value of the "password" field.
-func (_u *CharacterUpdateOne) ClearPassword() *CharacterUpdateOne {
-	_u.mutation.ClearPassword()
-	return _u
-}
-
 // SetIsNPC sets the "isNPC" field.
 func (_u *CharacterUpdateOne) SetIsNPC(v bool) *CharacterUpdateOne {
 	_u.mutation.SetIsNPC(v)
@@ -2459,6 +2422,12 @@ func (_u *CharacterUpdateOne) SetNillableClass(v *string) *CharacterUpdateOne {
 	if v != nil {
 		_u.SetClass(*v)
 	}
+	return _u
+}
+
+// ClearClass clears the value of the "class" field.
+func (_u *CharacterUpdateOne) ClearClass() *CharacterUpdateOne {
+	_u.mutation.ClearClass()
 	return _u
 }
 
@@ -3360,12 +3329,6 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(character.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Password(); ok {
-		_spec.SetField(character.FieldPassword, field.TypeString, value)
-	}
-	if _u.mutation.PasswordCleared() {
-		_spec.ClearField(character.FieldPassword, field.TypeString)
-	}
 	if value, ok := _u.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)
 	}
@@ -3455,6 +3418,9 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.Class(); ok {
 		_spec.SetField(character.FieldClass, field.TypeString, value)
+	}
+	if _u.mutation.ClassCleared() {
+		_spec.ClearField(character.FieldClass, field.TypeString)
 	}
 	if value, ok := _u.mutation.Specialty(); ok {
 		_spec.SetField(character.FieldSpecialty, field.TypeString, value)

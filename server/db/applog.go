@@ -31,6 +31,8 @@ type AppLog struct {
 	RoomID *int `json:"room_id,omitempty"`
 	// Optional NPC template ID context
 	TemplateID string `json:"template_id,omitempty"`
+	// Optional world ID context
+	WorldID string `json:"world_id,omitempty"`
 	// Arbitrary key-value metadata
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	// When the log entry was created
@@ -47,7 +49,7 @@ func (*AppLog) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case applog.FieldID, applog.FieldCharacterID, applog.FieldRoomID:
 			values[i] = new(sql.NullInt64)
-		case applog.FieldLevel, applog.FieldMessage, applog.FieldService, applog.FieldTemplateID:
+		case applog.FieldLevel, applog.FieldMessage, applog.FieldService, applog.FieldTemplateID, applog.FieldWorldID:
 			values[i] = new(sql.NullString)
 		case applog.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -109,6 +111,12 @@ func (_m *AppLog) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field template_id", values[i])
 			} else if value.Valid {
 				_m.TemplateID = value.String
+			}
+		case applog.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
 			}
 		case applog.FieldMetadata:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -181,6 +189,9 @@ func (_m *AppLog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("template_id=")
 	builder.WriteString(_m.TemplateID)
+	builder.WriteString(", ")
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
 	builder.WriteString(", ")
 	builder.WriteString("metadata=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Metadata))

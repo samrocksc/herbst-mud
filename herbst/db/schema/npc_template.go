@@ -16,6 +16,10 @@ func (NPCTemplate) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").
 			Unique(),
+		field.String("slug").
+			Unique().
+			Optional().
+			Comment("Globally unique slug derived from name, e.g., goblin_scout"),
 		field.String("name"),
 		field.Text("description"),
 		field.String("race"),

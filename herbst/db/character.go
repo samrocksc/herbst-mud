@@ -21,8 +21,6 @@ type Character struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Password holds the value of the "password" field.
-	Password string `json:"password,omitempty"`
 	// IsNPC holds the value of the "isNPC" field.
 	IsNPC bool `json:"isNPC,omitempty"`
 	// CurrentRoomId holds the value of the "currentRoomId" field.
@@ -47,7 +45,7 @@ type Character struct {
 	MaxMana int `json:"max_mana,omitempty"`
 	// Race holds the value of the "race" field.
 	Race string `json:"race,omitempty"`
-	// Class holds the value of the "class" field.
+	// Class derived from faction memberships in 'class' category. Empty = classless.
 	Class string `json:"class,omitempty"`
 	// World this character belongs to (for multi-world support)
 	CurrentWorld string `json:"currentWorld,omitempty"`
@@ -172,7 +170,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
-		case character.FieldName, character.FieldPassword, character.FieldRace, character.FieldClass, character.FieldCurrentWorld, character.FieldGender, character.FieldDescription:
+		case character.FieldName, character.FieldRace, character.FieldClass, character.FieldCurrentWorld, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
 		case character.ForeignKeys[0]: // ability_characters
 			values[i] = new(sql.NullInt64)
@@ -208,12 +206,6 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
-			}
-		case character.FieldPassword:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field password", values[i])
-			} else if value.Valid {
-				_m.Password = value.String
 			}
 		case character.FieldIsNPC:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -492,9 +484,6 @@ func (_m *Character) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
-	builder.WriteString(", ")
-	builder.WriteString("password=")
-	builder.WriteString(_m.Password)
 	builder.WriteString(", ")
 	builder.WriteString("isNPC=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsNPC))

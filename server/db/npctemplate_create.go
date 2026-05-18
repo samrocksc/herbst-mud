@@ -23,6 +23,20 @@ type NPCTemplateCreate struct {
 	hooks    []Hook
 }
 
+// SetSlug sets the "slug" field.
+func (_c *NPCTemplateCreate) SetSlug(v string) *NPCTemplateCreate {
+	_c.mutation.SetSlug(v)
+	return _c
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableSlug(v *string) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetSlug(*v)
+	}
+	return _c
+}
+
 // SetWorldID sets the "world_id" field.
 func (_c *NPCTemplateCreate) SetWorldID(v string) *NPCTemplateCreate {
 	_c.mutation.SetWorldID(v)
@@ -329,6 +343,10 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.Slug(); ok {
+		_spec.SetField(npctemplate.FieldSlug, field.TypeString, value)
+		_node.Slug = value
 	}
 	if value, ok := _c.mutation.WorldID(); ok {
 		_spec.SetField(npctemplate.FieldWorldID, field.TypeString, value)

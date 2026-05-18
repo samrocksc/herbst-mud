@@ -9,7 +9,6 @@ import (
 func (r *entCharacterRepo) Create(ctx context.Context, input CreateCharacterInput) (*db.Character, error) {
 	builder := r.client.Character.Create().
 		SetName(input.Name).
-		SetPassword(input.Password).
 		SetCurrentRoomId(input.RoomID).
 		SetIsAdmin(input.IsAdmin).
 		SetIsNPC(input.IsNPC).

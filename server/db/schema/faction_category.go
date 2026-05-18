@@ -26,6 +26,9 @@ func (FactionCategory) Fields() []ent.Field {
 		field.Bool("auto_join").
 			Default(false).
 			Comment("If true, earning required tag auto-joins faction"),
+		field.Bool("initial_config").
+			Default(false).
+			Comment("If true, this category appears in the character creation wizard"),
 	}
 }
 

@@ -25,6 +25,8 @@ const (
 	FieldRoomID = "room_id"
 	// FieldTemplateID holds the string denoting the template_id field in the database.
 	FieldTemplateID = "template_id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldMetadata holds the string denoting the metadata field in the database.
 	FieldMetadata = "metadata"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -42,6 +44,7 @@ var Columns = []string{
 	FieldCharacterID,
 	FieldRoomID,
 	FieldTemplateID,
+	FieldWorldID,
 	FieldMetadata,
 	FieldCreatedAt,
 }
@@ -97,6 +100,11 @@ func ByRoomID(opts ...sql.OrderTermOption) OrderOption {
 // ByTemplateID orders the results by the template_id field.
 func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

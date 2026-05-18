@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_auth/npcs")({
 
 type NPCTemplate = Readonly<{
   id: string
+  slug: string
   name: string
   level: number
   xp_value: number
@@ -25,7 +26,6 @@ type NPCTemplate = Readonly<{
 }>
 
 type NPCTemplateForm = Readonly<{
-  id: string
   name: string
   description: string
   race: string
@@ -40,7 +40,6 @@ const API = `${window.location.origin}`;
 // ─── Empty form ─────────────────────────────────────────────────────────────
 
 const EMPTY_FORM: NPCTemplateForm = {
-  id: "",
   name: "",
   description: "",
   race: "",
@@ -98,7 +97,6 @@ function NPCTemplatesIndex() {
         .map((s) => s.trim())
         .filter((s) => s !== "");
       return apiPost<NPCTemplate>(`${API}/api/npc-templates${qs}`, {
-        id: input.id,
         name: input.name,
         description: input.description,
         race: input.race,
@@ -126,7 +124,7 @@ function NPCTemplatesIndex() {
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleCreate = () => {
-    if (!form.name.trim() || !form.id.trim()) return;
+    if (!form.name.trim()) return;
     createMutation.mutate(form);
   };
 
@@ -143,6 +141,7 @@ function NPCTemplatesIndex() {
   const columns = useMemo<Column<NPCTemplate>[]>(
     () => [
       { header: "ID", accessor: "id" },
+      { header: "Slug", accessor: "slug" },
       {
         header: "Name",
         accessor: "name",
@@ -227,18 +226,6 @@ function NPCTemplatesIndex() {
       {/* Create modal */}
       <Modal isOpen={showCreateModal} onClose={handleModalClose} title="Add NPC Template">
         <div className="flex flex-col gap-4">
-          {/* ID */}
-          <div>
-            <label className="text-text-muted text-xs block mb-1">ID *</label>
-            <input
-              type="text"
-              value={form.id}
-              onChange={(e) => setForm({ ...form, id: e.target.value })}
-              placeholder="e.g. goblin_scout"
-              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-            />
-          </div>
-
           {/* Name */}
           <div>
             <label className="text-text-muted text-xs block mb-1">Name *</label>
@@ -341,7 +328,7 @@ function NPCTemplatesIndex() {
               size="md"
               fullWidth
               onClick={handleCreate}
-              disabled={!form.name.trim() || !form.id.trim() || createMutation.isPending}
+              disabled={!form.name.trim() || createMutation.isPending}
             >
               {createMutation.isPending ? "Creating..." : "Create Template"}
             </Button>

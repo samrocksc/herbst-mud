@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useLogs, useLogServices } from "../../hooks/useLogs";
+import { useLogs, useLogServices, useLogWorlds } from "../../hooks/useLogs";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 
@@ -32,14 +32,16 @@ type LogLine = {
 function LogsPage() {
   const [level, setLevel] = useState<string>("");
   const [service, setService] = useState<string>("");
+  const [world, setWorld] = useState<string>("");
   const [search, setSearch] = useState<string>("");
   const [live, setLive] = useState(false);
   const [liveLines, setLiveLines] = useState<LogLine[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const filters = { level: level || undefined, service: service || undefined, limit: 200 };
+  const filters = { level: level || undefined, service: service || undefined, world_id: world || undefined, limit: 200 };
   const { data, isLoading } = useLogs(live ? undefined : filters);
   const { data: services } = useLogServices();
+  const { data: worlds } = useLogWorlds();
 
   const logs = live ? liveLines : (data?.logs ?? []);
   const filtered = search
@@ -121,6 +123,17 @@ function LogsPage() {
           ))}
         </select>
 
+        <select
+          value={world}
+          onChange={(e) => setWorld(e.target.value)}
+          className="bg-surface border border-border rounded-md px-2.5 py-1.5 text-sm text-text min-w-[140px]"
+        >
+          <option value="">All Worlds</option>
+          {(worlds ?? []).map((w) => (
+            <option key={w} value={w}>{w}</option>
+          ))}
+        </select>
+
         <div className="flex-1 min-w-[200px]">
           <input
             type="text"
@@ -189,6 +202,11 @@ function LogsPage() {
                 {log.room_id != null && (
                   <span className="bg-surface px-1.5 py-0.5 rounded" title="Room ID">
                     r:{log.room_id}
+                  </span>
+                )}
+                {log.world_id != null && log.world_id !== "" && (
+                  <span className="bg-surface px-1.5 py-0.5 rounded" title="World ID">
+                    w:{log.world_id}
                   </span>
                 )}
               </div>

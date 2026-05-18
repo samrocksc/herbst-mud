@@ -55,7 +55,7 @@ func (b *logBroadcaster) broadcast(line string) {
 }
 
 // BroadcastLogLine publishes a log line to SSE subscribers.
-func BroadcastLogLine(level, service, message string, ts time.Time, characterID *int, roomID *int, templateID string, metadata map[string]interface{}) {
+func BroadcastLogLine(level, service, message string, ts time.Time, characterID *int, roomID *int, templateID string, worldID string, metadata map[string]interface{}) {
 	line := map[string]interface{}{
 		"level":      level,
 		"service":    service,
@@ -68,8 +68,8 @@ func BroadcastLogLine(level, service, message string, ts time.Time, characterID 
 	if roomID != nil {
 		line["room_id"] = *roomID
 	}
-	if templateID != "" {
-		line["template_id"] = templateID
+	if worldID != "" {
+		line["world_id"] = worldID
 	}
 	if metadata != nil && len(metadata) > 0 {
 		line["metadata"] = metadata
@@ -91,6 +91,7 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 		charID := c.Query("character_id")
 		roomID := c.Query("room_id")
 		templateID := c.Query("template_id")
+	worldID := c.Query("world_id")
 		limitStr := c.DefaultQuery("limit", "100")
 		offsetStr := c.DefaultQuery("offset", "0")
 
@@ -134,6 +135,11 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 				})
 			}
 		}
+	if worldID != "" {
+		conditions = append(conditions, func(q *db.AppLogQuery) *db.AppLogQuery {
+			return q.Where(applog.WorldIDEQ(worldID))
+		})
+	}
 		if templateID != "" {
 			conditions = append(conditions, func(q *db.AppLogQuery) *db.AppLogQuery {
 				return q.Where(applog.TemplateIDEQ(templateID))
@@ -171,6 +177,7 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 			CharacterID *int                   `json:"character_id,omitempty"`
 			RoomID      *int                   `json:"room_id,omitempty"`
 			TemplateID  string                 `json:"template_id,omitempty"`
+			WorldID     string                 `json:"world_id,omitempty"`
 			Metadata    map[string]interface{} `json:"metadata,omitempty"`
 			CreatedAt   time.Time              `json:"created_at"`
 		}
@@ -191,6 +198,9 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 			}
 			if e.RoomID != nil {
 				lo.RoomID = e.RoomID
+			}
+			if e.WorldID != "" {
+				lo.WorldID = e.WorldID
 			}
 			if e.TemplateID != "" {
 				lo.TemplateID = e.TemplateID
@@ -230,6 +240,28 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 		}
 		c.JSON(http.StatusOK, gin.H{"services": services})
 	})
+
+		// GET /api/logs/worlds -- distinct world IDs
+		protected.GET("/logs/worlds", func(c *gin.Context) {
+			entries, err := client.AppLog.Query().
+				Select(applog.FieldWorldID).
+				Where(applog.WorldIDNotNil()).
+				All(context.Background())
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list worlds"})
+				return
+			}
+
+			seen := make(map[string]bool)
+			worlds := make([]string, 0)
+			for _, e := range entries {
+				if e.WorldID != "" && !seen[e.WorldID] {
+					seen[e.WorldID] = true
+					worlds = append(worlds, e.WorldID)
+				}
+			}
+			c.JSON(http.StatusOK, gin.H{"worlds": worlds})
+		})
 }
 
 // streamLogsWithTokenAuth validates a token from the query string and serves SSE.

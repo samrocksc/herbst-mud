@@ -26,6 +26,8 @@ type FactionCategory struct {
 	MaxMemberships int `json:"max_memberships,omitempty"`
 	// If true, earning required tag auto-joins faction
 	AutoJoin bool `json:"auto_join,omitempty"`
+	// If true, this category appears in the character creation wizard
+	InitialConfig bool `json:"initial_config,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FactionCategoryQuery when eager-loading is set.
 	Edges        FactionCategoryEdges `json:"edges"`
@@ -55,7 +57,7 @@ func (*FactionCategory) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case factioncategory.FieldAutoJoin:
+		case factioncategory.FieldAutoJoin, factioncategory.FieldInitialConfig:
 			values[i] = new(sql.NullBool)
 		case factioncategory.FieldID, factioncategory.FieldMaxMemberships:
 			values[i] = new(sql.NullInt64)
@@ -112,6 +114,12 @@ func (_m *FactionCategory) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.AutoJoin = value.Bool
 			}
+		case factioncategory.FieldInitialConfig:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field initial_config", values[i])
+			} else if value.Valid {
+				_m.InitialConfig = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -167,6 +175,9 @@ func (_m *FactionCategory) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("auto_join=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AutoJoin))
+	builder.WriteString(", ")
+	builder.WriteString("initial_config=")
+	builder.WriteString(fmt.Sprintf("%v", _m.InitialConfig))
 	builder.WriteByte(')')
 	return builder.String()
 }

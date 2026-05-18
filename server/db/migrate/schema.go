@@ -125,6 +125,7 @@ var (
 		{Name: "character_id", Type: field.TypeInt, Nullable: true},
 		{Name: "room_id", Type: field.TypeInt, Nullable: true},
 		{Name: "template_id", Type: field.TypeString, Nullable: true},
+		{Name: "world_id", Type: field.TypeString, Nullable: true},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 	}
@@ -147,7 +148,7 @@ var (
 			{
 				Name:    "applog_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{AppLogsColumns[8]},
+				Columns: []*schema.Column{AppLogsColumns[9]},
 			},
 		},
 	}
@@ -171,7 +172,6 @@ var (
 	CharactersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
-		{Name: "password", Type: field.TypeString, Nullable: true},
 		{Name: "is_npc", Type: field.TypeBool, Default: false},
 		{Name: "starting_room_id", Type: field.TypeInt},
 		{Name: "respawn_room_id", Type: field.TypeInt, Default: 5},
@@ -190,7 +190,7 @@ var (
 		{Name: "mana", Type: field.TypeInt, Default: 25},
 		{Name: "max_mana", Type: field.TypeInt, Default: 25},
 		{Name: "race", Type: field.TypeString, Default: "human"},
-		{Name: "class", Type: field.TypeString, Default: "adventurer"},
+		{Name: "class", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "specialty", Type: field.TypeString, Nullable: true},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "xp", Type: field.TypeInt, Default: 0},
@@ -226,31 +226,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[43]},
+				Columns:    []*schema.Column{CharactersColumns[42]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[44]},
+				Columns:    []*schema.Column{CharactersColumns[43]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[45]},
+				Columns:    []*schema.Column{CharactersColumns[44]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[46]},
+				Columns:    []*schema.Column{CharactersColumns[45]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_worlds_characters",
-				Columns:    []*schema.Column{CharactersColumns[47]},
+				Columns:    []*schema.Column{CharactersColumns[46]},
 				RefColumns: []*schema.Column{WorldsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -675,6 +675,7 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "max_memberships", Type: field.TypeInt, Default: 1},
 		{Name: "auto_join", Type: field.TypeBool, Default: false},
+		{Name: "initial_config", Type: field.TypeBool, Default: false},
 	}
 	// FactionCategoriesTable holds the schema information for the "faction_categories" table.
 	FactionCategoriesTable = &schema.Table{
@@ -743,6 +744,7 @@ var (
 	// NpcTemplatesColumns holds the columns for the "npc_templates" table.
 	NpcTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},

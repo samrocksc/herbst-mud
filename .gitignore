@@ -61,3 +61,6 @@ server/herbst-mud
 # Claude memory (project-specific)
 memory/
 .claude/
+
+# Honcho preload context (ephemeral, generated per Claude Code session)
+HONCHO_CONTEXT.md

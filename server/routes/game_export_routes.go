@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -85,6 +86,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		// Query all worlds from the database
 		worlds, err := client.World.Query().All(c.Request.Context())
 		if err != nil {
+			slog.Error("Failed to fetch worlds", "error", err.Error(), "path", "/admin/export/worlds")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch worlds: " + err.Error()})
 			return
 		}
@@ -157,6 +159,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		}
 		rooms, err := roomsQuery.All(c.Request.Context())
 		if err != nil {
+			slog.Error("Failed to fetch rooms for export", "error", err.Error(), "path", "/admin/export")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch rooms: " + err.Error()})
 			return
 		}

@@ -14,8 +14,6 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldPassword holds the string denoting the password field in the database.
-	FieldPassword = "password"
 	// FieldIsNPC holds the string denoting the isnpc field in the database.
 	FieldIsNPC = "is_npc"
 	// FieldCurrentRoomId holds the string denoting the currentroomid field in the database.
@@ -216,7 +214,6 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
-	FieldPassword,
 	FieldIsNPC,
 	FieldCurrentRoomId,
 	FieldStartingRoomId,
@@ -364,11 +361,6 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
-}
-
-// ByPassword orders the results by the password field.
-func ByPassword(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPassword, opts...).ToFunc()
 }
 
 // ByIsNPC orders the results by the isNPC field.

@@ -22,6 +22,8 @@ const (
 	FieldMaxMemberships = "max_memberships"
 	// FieldAutoJoin holds the string denoting the auto_join field in the database.
 	FieldAutoJoin = "auto_join"
+	// FieldInitialConfig holds the string denoting the initial_config field in the database.
+	FieldInitialConfig = "initial_config"
 	// EdgeFactions holds the string denoting the factions edge name in mutations.
 	EdgeFactions = "factions"
 	// Table holds the table name of the factioncategory in the database.
@@ -43,6 +45,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldMaxMemberships,
 	FieldAutoJoin,
+	FieldInitialConfig,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -60,6 +63,8 @@ var (
 	DefaultMaxMemberships int
 	// DefaultAutoJoin holds the default value on creation for the "auto_join" field.
 	DefaultAutoJoin bool
+	// DefaultInitialConfig holds the default value on creation for the "initial_config" field.
+	DefaultInitialConfig bool
 )
 
 // OrderOption defines the ordering options for the FactionCategory queries.
@@ -93,6 +98,11 @@ func ByMaxMemberships(opts ...sql.OrderTermOption) OrderOption {
 // ByAutoJoin orders the results by the auto_join field.
 func ByAutoJoin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAutoJoin, opts...).ToFunc()
+}
+
+// ByInitialConfig orders the results by the initial_config field.
+func ByInitialConfig(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInitialConfig, opts...).ToFunc()
 }
 
 // ByFactionsCount orders the results by factions count.

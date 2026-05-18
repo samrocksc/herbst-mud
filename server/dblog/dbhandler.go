@@ -31,7 +31,7 @@ type DBHandler struct {
 
 // BroadcastFunc is called after each log entry is persisted.
 // Used to push live entries to SSE subscribers.
-type BroadcastFunc func(level, service, message string, ts time.Time, characterID *int, roomID *int, templateID string, metadata map[string]interface{})
+type BroadcastFunc func(level, service, message string, ts time.Time, characterID *int, roomID *int, templateID string, worldID string, metadata map[string]interface{})
 
 type logEntry struct {
 	Level       slog.Level
@@ -40,6 +40,7 @@ type logEntry struct {
 	CharacterID *int
 	RoomID      *int
 	TemplateID  string
+	WorldID     string
 	Metadata    map[string]interface{}
 }
 
@@ -109,6 +110,8 @@ func (h *DBHandler) Handle(_ context.Context, r slog.Record) error {
 				entry.RoomID = &v
 			}
 		case "template_id":
+			case "world_id":
+				entry.WorldID = a.Value.String()
 			entry.TemplateID = a.Value.String()
 		default:
 			if entry.Metadata == nil {
@@ -195,6 +198,9 @@ func (h *DBHandler) flush(batch []logEntry) {
 		if e.RoomID != nil {
 			b.SetRoomID(*e.RoomID)
 		}
+			if e.WorldID != "" {
+				b.SetWorldID(e.WorldID)
+			}
 		if e.TemplateID != "" {
 			b.SetTemplateID(e.TemplateID)
 		}
@@ -215,7 +221,7 @@ func (h *DBHandler) flush(batch []logEntry) {
 
 	for _, e := range batch {
 		if h.broadcastFn != nil {
-			h.broadcastFn(e.Level.String(), e.Service, e.Message, time.Now(), e.CharacterID, e.RoomID, e.TemplateID, e.Metadata)
+			h.broadcastFn(e.Level.String(), e.Service, e.Message, time.Now(), e.CharacterID, e.RoomID, e.TemplateID, e.WorldID, e.Metadata)
 		}
 	}
 }

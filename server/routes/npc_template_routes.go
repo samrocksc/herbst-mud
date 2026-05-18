@@ -32,6 +32,7 @@ func RegisterNPCTemplateRoutes(r *gin.Engine, repos *repository.Container) {
 // npcTemplateView is the JSON shape returned by the API.
 type npcTemplateView struct {
 	ID              string         `json:"id"`
+	Slug            string         `json:"slug"`
 	Name            string         `json:"name"`
 	Description     string         `json:"description"`
 	Race            string         `json:"race"`
@@ -72,6 +73,7 @@ func listNPCTemplates(repos *repository.Container) gin.HandlerFunc {
 		for i, t := range templates {
 			result[i] = npcTemplateView{
 				ID:              t.ID,
+				Slug:            t.Slug,
 				Name:            t.Name,
 				Description:     t.Description,
 				Race:            t.Race,
@@ -106,6 +108,7 @@ func getNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, npcTemplateView{
 			ID:              tmpl.ID,
+			Slug:            tmpl.Slug,
 			Name:            tmpl.Name,
 			Description:     tmpl.Description,
 			Race:            tmpl.Race,
@@ -126,6 +129,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			ID              string         `json:"id"`
+			Slug            string         `json:"slug"`
 			Name            string         `json:"name"`
 			Description     string         `json:"description"`
 			Race            string         `json:"race"`
@@ -142,8 +146,8 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		if req.ID == "" || req.Name == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "id and name are required"})
+		if req.Name == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
 
@@ -161,6 +165,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 		cooldown := req.RespawnCooldown
 		created, err := repos.NPCTemplate.Create(c.Request.Context(), repository.CreateNPCTemplateInput{
 			ID:              req.ID,
+			Slug:            req.Slug,
 			Name:            req.Name,
 			Description:     req.Description,
 			Race:            req.Race,
@@ -180,6 +185,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 
 		c.JSON(http.StatusCreated, npcTemplateView{
 			ID:              created.ID,
+			Slug:            created.Slug,
 			Name:            created.Name,
 			Description:     created.Description,
 			Race:            created.Race,
@@ -199,6 +205,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 // Only non-nil fields are applied.
 type updateNPCTemplateRequest struct {
 	Name            *string         `json:"name"`
+		Slug            *string         `json:"slug"`
 	Description     *string         `json:"description"`
 	Race            *string         `json:"race"`
 	Disposition     *string         `json:"disposition"`
@@ -228,6 +235,7 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 
 		updates := repository.NPCTemplateUpdates{
 			Name:            req.Name,
+			Slug:            req.Slug,
 			Description:     req.Description,
 			Race:            req.Race,
 			Level:           req.Level,
@@ -256,6 +264,7 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, npcTemplateView{
 			ID:              updated.ID,
+			Slug:            updated.Slug,
 			Name:            updated.Name,
 			Description:     updated.Description,
 			Race:            updated.Race,

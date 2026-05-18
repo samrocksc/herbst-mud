@@ -349,10 +349,6 @@ func (m *Manager) ReloadNPCFile(path string) error {
 		return fmt.Errorf("failed to parse NPC file: %w", err)
 	}
 
-	if npc.ID == "" {
-		return fmt.Errorf("NPC missing ID")
-	}
-
 	if err := m.NPCs.Register(&npc); err != nil {
 		return fmt.Errorf("failed to register NPC: %w", err)
 	}
@@ -467,9 +463,6 @@ func (m *Manager) ValidateContentChange(contentType string, data json.RawMessage
 		var npc NPCTemplate
 		if err := yaml.Unmarshal(data, &npc); err != nil {
 			return false, []string{fmt.Sprintf("Invalid NPC YAML: %v", err)}
-		}
-		if npc.ID == "" {
-			errors = append(errors, "NPC missing ID")
 		}
 		// Validate loot table items exist
 		for _, loot := range npc.Loot {

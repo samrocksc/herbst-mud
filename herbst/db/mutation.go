@@ -2956,7 +2956,6 @@ type CharacterMutation struct {
 	typ                   string
 	id                    *int
 	name                  *string
-	password              *string
 	isNPC                 *bool
 	startingRoomId        *int
 	addstartingRoomId     *int
@@ -3159,55 +3158,6 @@ func (m *CharacterMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *CharacterMutation) ResetName() {
 	m.name = nil
-}
-
-// SetPassword sets the "password" field.
-func (m *CharacterMutation) SetPassword(s string) {
-	m.password = &s
-}
-
-// Password returns the value of the "password" field in the mutation.
-func (m *CharacterMutation) Password() (r string, exists bool) {
-	v := m.password
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPassword returns the old "password" field's value of the Character entity.
-// If the Character object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CharacterMutation) OldPassword(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPassword is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPassword requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPassword: %w", err)
-	}
-	return oldValue.Password, nil
-}
-
-// ClearPassword clears the value of the "password" field.
-func (m *CharacterMutation) ClearPassword() {
-	m.password = nil
-	m.clearedFields[character.FieldPassword] = struct{}{}
-}
-
-// PasswordCleared returns if the "password" field was cleared in this mutation.
-func (m *CharacterMutation) PasswordCleared() bool {
-	_, ok := m.clearedFields[character.FieldPassword]
-	return ok
-}
-
-// ResetPassword resets all changes to the "password" field.
-func (m *CharacterMutation) ResetPassword() {
-	m.password = nil
-	delete(m.clearedFields, character.FieldPassword)
 }
 
 // SetIsNPC sets the "isNPC" field.
@@ -3813,9 +3763,22 @@ func (m *CharacterMutation) OldClass(ctx context.Context) (v string, err error) 
 	return oldValue.Class, nil
 }
 
+// ClearClass clears the value of the "class" field.
+func (m *CharacterMutation) ClearClass() {
+	m.class = nil
+	m.clearedFields[character.FieldClass] = struct{}{}
+}
+
+// ClassCleared returns if the "class" field was cleared in this mutation.
+func (m *CharacterMutation) ClassCleared() bool {
+	_, ok := m.clearedFields[character.FieldClass]
+	return ok
+}
+
 // ResetClass resets all changes to the "class" field.
 func (m *CharacterMutation) ResetClass() {
 	m.class = nil
+	delete(m.clearedFields, character.FieldClass)
 }
 
 // SetCurrentWorld sets the "currentWorld" field.
@@ -5052,12 +5015,9 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 33)
+	fields := make([]string, 0, 32)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
-	}
-	if m.password != nil {
-		fields = append(fields, character.FieldPassword)
 	}
 	if m.isNPC != nil {
 		fields = append(fields, character.FieldIsNPC)
@@ -5162,8 +5122,6 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case character.FieldName:
 		return m.Name()
-	case character.FieldPassword:
-		return m.Password()
 	case character.FieldIsNPC:
 		return m.IsNPC()
 	case character.FieldCurrentRoomId:
@@ -5237,8 +5195,6 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 	switch name {
 	case character.FieldName:
 		return m.OldName(ctx)
-	case character.FieldPassword:
-		return m.OldPassword(ctx)
 	case character.FieldIsNPC:
 		return m.OldIsNPC(ctx)
 	case character.FieldCurrentRoomId:
@@ -5316,13 +5272,6 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
-		return nil
-	case character.FieldPassword:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPassword(v)
 		return nil
 	case character.FieldIsNPC:
 		v, ok := value.(bool)
@@ -5838,8 +5787,8 @@ func (m *CharacterMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *CharacterMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(character.FieldPassword) {
-		fields = append(fields, character.FieldPassword)
+	if m.FieldCleared(character.FieldClass) {
+		fields = append(fields, character.FieldClass)
 	}
 	if m.FieldCleared(character.FieldGender) {
 		fields = append(fields, character.FieldGender)
@@ -5861,8 +5810,8 @@ func (m *CharacterMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *CharacterMutation) ClearField(name string) error {
 	switch name {
-	case character.FieldPassword:
-		m.ClearPassword()
+	case character.FieldClass:
+		m.ClearClass()
 		return nil
 	case character.FieldGender:
 		m.ClearGender()
@@ -5880,9 +5829,6 @@ func (m *CharacterMutation) ResetField(name string) error {
 	switch name {
 	case character.FieldName:
 		m.ResetName()
-		return nil
-	case character.FieldPassword:
-		m.ResetPassword()
 		return nil
 	case character.FieldIsNPC:
 		m.ResetIsNPC()
@@ -13186,6 +13132,7 @@ type NPCTemplateMutation struct {
 	op                  Op
 	typ                 string
 	id                  *string
+	slug                *string
 	name                *string
 	description         *string
 	race                *string
@@ -13310,6 +13257,55 @@ func (m *NPCTemplateMutation) IDs(ctx context.Context) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetSlug sets the "slug" field.
+func (m *NPCTemplateMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *NPCTemplateMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ClearSlug clears the value of the "slug" field.
+func (m *NPCTemplateMutation) ClearSlug() {
+	m.slug = nil
+	m.clearedFields[npctemplate.FieldSlug] = struct{}{}
+}
+
+// SlugCleared returns if the "slug" field was cleared in this mutation.
+func (m *NPCTemplateMutation) SlugCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldSlug]
+	return ok
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *NPCTemplateMutation) ResetSlug() {
+	m.slug = nil
+	delete(m.clearedFields, npctemplate.FieldSlug)
 }
 
 // SetName sets the "name" field.
@@ -13777,7 +13773,10 @@ func (m *NPCTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NPCTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
+	if m.slug != nil {
+		fields = append(fields, npctemplate.FieldSlug)
+	}
 	if m.name != nil {
 		fields = append(fields, npctemplate.FieldName)
 	}
@@ -13810,6 +13809,8 @@ func (m *NPCTemplateMutation) Fields() []string {
 // schema.
 func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case npctemplate.FieldSlug:
+		return m.Slug()
 	case npctemplate.FieldName:
 		return m.Name()
 	case npctemplate.FieldDescription:
@@ -13835,6 +13836,8 @@ func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case npctemplate.FieldSlug:
+		return m.OldSlug(ctx)
 	case npctemplate.FieldName:
 		return m.OldName(ctx)
 	case npctemplate.FieldDescription:
@@ -13860,6 +13863,13 @@ func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Va
 // type.
 func (m *NPCTemplateMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case npctemplate.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
 	case npctemplate.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -13960,7 +13970,11 @@ func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *NPCTemplateMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(npctemplate.FieldSlug) {
+		fields = append(fields, npctemplate.FieldSlug)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -13973,6 +13987,11 @@ func (m *NPCTemplateMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *NPCTemplateMutation) ClearField(name string) error {
+	switch name {
+	case npctemplate.FieldSlug:
+		m.ClearSlug()
+		return nil
+	}
 	return fmt.Errorf("unknown NPCTemplate nullable field %s", name)
 }
 
@@ -13980,6 +13999,9 @@ func (m *NPCTemplateMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *NPCTemplateMutation) ResetField(name string) error {
 	switch name {
+	case npctemplate.FieldSlug:
+		m.ResetSlug()
+		return nil
 	case npctemplate.FieldName:
 		m.ResetName()
 		return nil

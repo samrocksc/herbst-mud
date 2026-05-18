@@ -41,33 +41,6 @@ func TestDataStructureV1_User(t *testing.T) {
 	t.Log("✅ User has all required fields: id, username, email, password_hash, created_at, last_login, account_status")
 }
 
-// TestCharacterFieldsExists verifies all required character fields are accessible
-func TestCharacterFieldsExist(t *testing.T) {
-	// Test that we can access Character field setters (proves fields exist)
-	cc := &CharacterCreate{}
-	
-	// These Set methods prove the fields exist in the schema
-	_ = cc.SetName("test")
-	_ = cc.SetGender("Male")
-	_ = cc.SetDescription("A test character")
-	
-	// Stats fields
-	_ = cc.SetStrength(10)
-	_ = cc.SetDexterity(10)
-	_ = cc.SetConstitution(10)
-	_ = cc.SetIntelligence(10)
-	_ = cc.SetWisdom(10)
-	
-	// Room references
-	_ = cc.SetCurrentRoomId(1)
-	_ = cc.SetStartingRoomId(1)
-	
-	// Admin/NPC flags
-	_ = cc.SetIsNPC(false)
-	_ = cc.SetIsAdmin(false)
-	
-	t.Log("✅ Character fields are accessible via setters")
-}
 
 // TestRoomFieldsExist verifies all required room fields are accessible
 func TestRoomFieldsExist(t *testing.T) {

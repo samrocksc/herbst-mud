@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
 )
 
 // NPCRegistry manages NPC templates
@@ -125,18 +126,43 @@ type ReputationDef struct {
 func (r *NPCRegistry) Register(npc *NPCTemplate) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	if npc.ID == "" {
-		return fmt.Errorf("NPC ID cannot be empty")
+		npc.ID = slugify(npc.TemplateName)
 	}
-	
+	if npc.ID == "" {
+		return fmt.Errorf("NPC ID cannot be empty (name is required)")
+	}
+
 	id := strings.ToLower(npc.ID)
 	if _, exists := r.npcs[id]; exists {
 		return fmt.Errorf("NPC '%s' already registered", id)
 	}
-	
+
 	r.npcs[id] = npc
 	return nil
+}
+
+// slugify converts a name into a URL-friendly slug.
+func slugify(s string) string {
+	s = strings.ToLower(s)
+	var b strings.Builder
+	for _, ch := range s {
+		switch {
+		case ch >= 'a' && ch <= 'z':
+			b.WriteRune(ch)
+		case ch >= '0' && ch <= '9':
+			b.WriteRune(ch)
+		case ch == ' ' || ch == '-' || ch == '_':
+			b.WriteByte('_')
+		}
+	}
+	result := b.String()
+	for strings.Contains(result, "__") {
+		result = strings.ReplaceAll(result, "__", "_")
+	}
+	result = strings.Trim(result, "_")
+	return result
 }
 
 // Get retrieves an NPC template

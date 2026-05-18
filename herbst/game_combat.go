@@ -541,6 +541,56 @@ func (m *model) exitCombat() {
 	m.combatQueuedAction = ""
 	m.combatJustStarted = false
 	m.screen = ScreenPlaying
+
+	// Refresh character state from server after combat to ensure stamina/mana/HP are synced
+	// This fixes the bug where stamina regen stops working after combat because the client's
+	// characterStamina was out of sync with the server
+	m.refreshCharacterState()
+}
+
+// refreshCharacterState fetches the latest character stats from the server
+// to keep the client's local state in sync after combat or other state-changing events
+func (m *model) refreshCharacterState() {
+	if m.currentCharacterID == 0 {
+		return
+	}
+
+	resp, err := httpGet(fmt.Sprintf("%s/characters/%d", RESTAPIBase, m.currentCharacterID))
+	if err != nil {
+		m.debugLogf("failed to refresh character state: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		m.debugLogf("refresh character state: status %d", resp.StatusCode)
+		return
+	}
+
+	var char map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&char); err != nil {
+		m.debugLogf("failed to decode character state: %v", err)
+		return
+	}
+
+	if hp, ok := char["hitpoints"].(float64); ok {
+		m.characterHP = int(hp)
+	}
+	if maxHP, ok := char["max_hitpoints"].(float64); ok {
+		m.characterMaxHP = int(maxHP)
+	}
+	if stamina, ok := char["stamina"].(float64); ok {
+		m.characterStamina = int(stamina)
+	}
+	if maxStamina, ok := char["max_stamina"].(float64); ok {
+		m.characterMaxStamina = int(maxStamina)
+	}
+	if mana, ok := char["mana"].(float64); ok {
+		m.characterMana = int(mana)
+	}
+	if maxMana, ok := char["max_mana"].(float64); ok {
+		m.characterMaxMana = int(maxMana)
+	}
 }
 
 // addCombatLog adds a message to the combat log

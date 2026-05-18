@@ -12,6 +12,7 @@ export type LogEntry = Readonly<{
   character_id?: number
   room_id?: number
   template_id?: string
+  world_id?: string
   metadata?: Record<string, unknown>
   created_at: string
 }>
@@ -22,6 +23,7 @@ export type LogFilters = {
   character_id?: string
   room_id?: string
   template_id?: string
+  world_id?: string
   limit?: number
   offset?: number
 }
@@ -33,6 +35,7 @@ export function useLogs(filters?: LogFilters) {
   if (filters?.character_id) params.append("character_id", filters.character_id);
   if (filters?.room_id) params.append("room_id", filters.room_id);
   if (filters?.template_id) params.append("template_id", filters.template_id);
+  if (filters?.world_id) params.append("world_id", filters.world_id);
   if (filters?.limit) params.append("limit", String(filters.limit));
   if (filters?.offset) params.append("offset", String(filters.offset));
   const qs = params.toString();
@@ -53,6 +56,16 @@ export function useLogServices() {
     queryFn: async () => {
       const data = await apiGet<{ services: string[] }>(`${API}/api/logs/services`);
       return data.services ?? [];
+    },
+  });
+}
+
+export function useLogWorlds() {
+  return useQuery({
+    queryKey: ["log-worlds"],
+    queryFn: async () => {
+      const data = await apiGet<{ worlds: string[] }>(`${API}/api/logs/worlds`);
+      return data.worlds ?? [];
     },
   });
 }

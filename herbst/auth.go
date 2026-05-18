@@ -292,9 +292,6 @@ var availableWorlds []WorldInfo
 // races holds the list of available playable races
 var availableRaces []RaceInfo
 
-// availableClasses holds the list of selectable character classes
-var availableClasses = []string{"adventurer", "warrior", "mage", "rogue", "cleric"}
-
 // fetchWorlds retrieves the list of available worlds from the server
 func (m *model) fetchWorlds() {
 	m.isLoading = true
@@ -516,31 +513,9 @@ func (m *model) displayRaces() string {
 	return buf.String()
 }
 
-// displayClasses returns the formatted class selection menu with cursor
-func (m *model) displayClasses() string {
-	var buf bytes.Buffer
-
-	if len(availableClasses) == 0 {
-		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("No classes available."))
-		buf.WriteString("\n\n")
-	} else {
-		for idx, class := range availableClasses {
-			cursorStr := " "
-			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
-			nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(class)
-			if idx == m.createCursor {
-				cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
-				numStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
-				nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render(class)
-			}
-			buf.WriteString(fmt.Sprintf("  %s  %s  %s", cursorStr, numStyle, nameStyle))
-			buf.WriteString("\n")
-		}
-		buf.WriteString("\n")
-	}
-
-	return buf.String()
-}
+// ============================================================
+// CHARACTER SELECTION
+// ============================================================
 
 // displayFactions returns the formatted faction selection menu for a specific category
 func (m *model) displayFactions(categoryIdx int) string {
@@ -944,27 +919,23 @@ func (m *model) handleCharacterCreationInput(input string) {
 		createCharFactionStep = 0
 		createCharFactionChoices = make(map[int]int)
 		m.createCursor = 0
-		// If we have faction categories, start with first one; otherwise skip to class
+		// If we have faction categories, start with first one; otherwise create character
 		if len(createCharFactionCategories) > 0 {
 			m.inputField = "char_faction"
 			m.AppendMessage(fmt.Sprintf("Race selected: %s", createCharRace), "success")
 			m.AppendMessage(fmt.Sprintf("Select %s:", createCharFactionCategories[0].DisplayName), "info")
 		} else {
-			m.inputField = "char_class"
 			m.AppendMessage(fmt.Sprintf("Race selected: %s", createCharRace), "success")
-			m.AppendMessage("Select class (use j/k, Enter to select):", "info")
+			m.createCharacter(createCharName, createCharRace)
 		}
 		m.textInput.SetValue("")
 		m.textInput.Focus()
 	case "char_faction":
 		// Faction category selection
 		if len(createCharFactionCategories) == 0 {
-			// No categories, skip to class
-			m.inputField = "char_class"
-			m.createCursor = 0
-			m.AppendMessage("Select class (use j/k, Enter to select):", "info")
-			m.textInput.SetValue("")
-			m.textInput.Focus()
+			// No categories, create the character directly
+			m.AppendMessage("Race selected.", "success")
+			m.createCharacter(createCharName, createCharRace)
 			return
 		}
 		category := createCharFactionCategories[createCharFactionStep]
@@ -989,10 +960,9 @@ func (m *model) handleCharacterCreationInput(input string) {
 		createCharFactionStep++
 		m.createCursor = 0
 		if createCharFactionStep >= len(createCharFactionCategories) {
-			// Done with factions, proceed to class
-			m.inputField = "char_class"
+			// Done with factions, create the character
 			m.AppendMessage("Factions selected.", "success")
-			m.AppendMessage("Select class (use j/k, Enter to select):", "info")
+			m.createCharacter(createCharName, createCharRace)
 		} else {
 			// More factions to select
 			nextCategory := createCharFactionCategories[createCharFactionStep]
@@ -1000,30 +970,13 @@ func (m *model) handleCharacterCreationInput(input string) {
 		}
 		m.textInput.SetValue("")
 		m.textInput.Focus()
-	case "char_class":
-		var class string
-		if input == "" {
-			// Enter — select highlighted class
-			if m.createCursor >= 0 && m.createCursor < len(availableClasses) {
-				class = availableClasses[m.createCursor]
-			} else {
-				class = "adventurer"
-			}
-		} else if idx := parseWorldIndex(input, len(availableClasses)); idx >= 0 {
-			class = availableClasses[idx]
-		} else {
-			m.AppendMessage("Invalid choice. Use j/k to navigate, Enter to select, or type 1-5.", "error")
-			return
-		}
-		// Create the character
-		m.createCharacter(createCharName, createCharRace, class)
 	default:
 		// Unknown state, reset
 		m.cancelCharacterCreation()
 	}
 }
 
-func (m *model) createCharacter(name, race, class string) {
+func (m *model) createCharacter(name, race string) {
 	m.isLoading = true
 	m.loadingMessage = "Creating character..."
 
@@ -1038,7 +991,6 @@ func (m *model) createCharacter(name, race, class string) {
 	jsonData, _ := json.Marshal(map[string]interface{}{
 		"name":     name,
 		"race":     race,
-		"class":    class,
 		"world":    m.currentWorld,
 		"factions": factionIDs,
 	})

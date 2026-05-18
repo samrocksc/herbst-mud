@@ -14,6 +14,8 @@ const (
 	Label = "npc_template"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldSlug holds the string denoting the slug field in the database.
+	FieldSlug = "slug"
 	// FieldWorldID holds the string denoting the world_id field in the database.
 	FieldWorldID = "world_id"
 	// FieldName holds the string denoting the name field in the database.
@@ -79,6 +81,7 @@ const (
 // Columns holds all SQL columns for npctemplate fields.
 var Columns = []string{
 	FieldID,
+	FieldSlug,
 	FieldWorldID,
 	FieldName,
 	FieldDescription,
@@ -153,6 +156,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// BySlug orders the results by the slug field.
+func BySlug(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSlug, opts...).ToFunc()
 }
 
 // ByWorldID orders the results by the world_id field.

@@ -118,3 +118,30 @@ func (r *entRaceRepo) Update(ctx context.Context, id int, updates RaceUpdates) (
 func (r *entRaceRepo) Delete(ctx context.Context, id int) error {
 	return r.client.Race.DeleteOneID(id).Exec(ctx)
 }
+
+// Race represents a playable race for character creation
+type Race struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+}
+
+func (r *entRaceRepo) ListPlayable(ctx context.Context) ([]*Race, error) {
+	races, err := r.client.Race.Query().
+		Where(race.IsPlayable(true)).
+		Order(race.ByName()).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*Race, len(races))
+	for i, r := range races {
+		result[i] = &Race{
+			ID:          r.ID,
+			Name:        r.Name,
+			DisplayName: r.DisplayName,
+		}
+	}
+	return result, nil
+}

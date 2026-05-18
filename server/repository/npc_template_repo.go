@@ -2,10 +2,36 @@ package repository
 
 import (
 	"context"
+	"strings"
 
 	"herbst-server/db"
 	"herbst-server/db/npctemplate"
+
+	"github.com/google/uuid"
 )
+
+// slugify converts a name into a URL-friendly slug.
+// Example: "Goblin Scout" -> "goblin_scout"
+func slugify(s string) string {
+	s = strings.ToLower(s)
+	var b strings.Builder
+	for _, ch := range s {
+		switch {
+		case ch >= 'a' && ch <= 'z':
+			b.WriteRune(ch)
+		case ch >= '0' && ch <= '9':
+			b.WriteRune(ch)
+		case ch == ' ' || ch == '-' || ch == '_':
+			b.WriteByte('_')
+		}
+	}
+	result := b.String()
+	for strings.Contains(result, "__") {
+		result = strings.ReplaceAll(result, "__", "_")
+	}
+	result = strings.Trim(result, "_")
+	return result
+}
 
 type entNPCTemplateRepo struct {
 	client *db.Client
@@ -28,8 +54,18 @@ func (r *entNPCTemplateRepo) List(ctx context.Context, worldID string) ([]*db.NP
 }
 
 func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplateInput) (*db.NPCTemplate, error) {
+	id := input.ID
+	if id == "" {
+		id = uuid.New().String()
+	}
+	slug := input.Slug
+	if slug == "" {
+		slug = slugify(input.Name)
+	}
+
 	builder := r.client.NPCTemplate.Create().
-		SetID(input.ID).
+		SetID(id).
+		SetSlug(slug).
 		SetName(input.Name).
 		SetDescription(input.Description).
 		SetRace(input.Race).
@@ -51,6 +87,9 @@ func (r *entNPCTemplateRepo) Update(ctx context.Context, id string, updates NPCT
 	builder := r.client.NPCTemplate.UpdateOneID(id)
 	if updates.Name != nil {
 		builder = builder.SetName(*updates.Name)
+	}
+	if updates.Slug != nil {
+		builder = builder.SetSlug(*updates.Slug)
 	}
 	if updates.Description != nil {
 		builder = builder.SetDescription(*updates.Description)

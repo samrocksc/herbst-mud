@@ -1,0 +1,135 @@
+{
+  "version": "1.0",
+  "exported_at": "2026-05-17T12:00:00Z",
+  "rooms": [
+    {
+      "id": 1,
+      "name": "The Foyer",
+      "description": "A grand entrance hall with dust motes swirling in the light from high windows.",
+      "is_starting": true,
+      "exits": [
+        {
+          "direction": "south",
+          "target_room_id": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "The Hall",
+      "description": "A long chamber with tapestries depicting ancient battles along the walls.",
+      "is_starting": false,
+      "exits": [
+        {
+          "direction": "north",
+          "target_room_id": 1
+        },
+        {
+          "direction": "east",
+          "target_room_id": 3
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "The Sanctum",
+      "description": "A quiet room filled with the faint smell of old books and candle wax.",
+      "is_starting": false,
+      "exits": [
+        {
+          "direction": "west",
+          "target_room_id": 2
+        }
+      ]
+    }
+  ],
+  "npcs": [
+    {
+      "id": 1,
+      "name": "Sentry Bot",
+      "current_room_id": 1,
+      "race": "construct",
+      "class": "warrior",
+      "level": 1,
+      "hitpoints": 20,
+      "max_hitpoints": 20,
+      "stamina": 50,
+      "max_stamina": 50,
+      "mana": 0,
+      "max_mana": 0,
+      "strength": 12,
+      "dexterity": 10,
+      "constitution": 14,
+      "intelligence": 4,
+      "wisdom": 6,
+      "npc_skill_id": "slap",
+      "is_immortal": true
+    },
+    {
+      "id": 2,
+      "name": "Old Sage",
+      "current_room_id": 3,
+      "race": "human",
+      "class": "mage",
+      "level": 3,
+      "hitpoints": 18,
+      "max_hitpoints": 18,
+      "stamina": 30,
+      "max_stamina": 30,
+      "mana": 60,
+      "max_mana": 60,
+      "strength": 8,
+      "dexterity": 10,
+      "constitution": 10,
+      "intelligence": 16,
+      "wisdom": 15,
+      "npc_skill_id": "concentrate",
+      "is_immortal": false
+    }
+  ],
+  "skills": [
+    {
+      "id": "druid_heal",
+      "name": "Nature's Blessing",
+      "description": "Heals 5% of max HP using druidic magic",
+      "min_cooldown": 4,
+      "effect_type": "heal"
+    },
+    {
+      "id": "concentrate",
+      "name": "Concentrate",
+      "description": "Focus your mind to increase accuracy. +WIS to hit for 4 rounds.",
+      "min_cooldown": 8,
+      "effect_type": "buff"
+    },
+    {
+      "id": "haymaker",
+      "name": "Haymaker",
+      "description": "A powerful but reckless strike. +STR damage, -DEX to hit.",
+      "min_cooldown": 6,
+      "effect_type": "attack"
+    },
+    {
+      "id": "backoff",
+      "name": "Back-off",
+      "description": "Use agility to dodge all attacks this round. Costs stamina.",
+      "min_cooldown": 10,
+      "effect_type": "defense"
+    },
+    {
+      "id": "scream",
+      "name": "Scream",
+      "description": "Release a berserker cry. -WIS/INT, +DEX/STR for 2 rounds.",
+      "min_cooldown": 12,
+      "effect_type": "buff"
+    },
+    {
+      "id": "slap",
+      "name": "Slap",
+      "description": "A quick stunning strike. DEX vs CON to stun for 1 round.",
+      "min_cooldown": 8,
+      "effect_type": "debuff"
+    }
+  ],
+  "items": []
+}

@@ -16,7 +16,6 @@ func createCharacter(svc *service.Container, repos *repository.Container) gin.Ha
 	return func(c *gin.Context) {
 		var req struct {
 			Name         string `json:"name" binding:"required"`
-			Password     string `json:"password"`
 			IsNPC        bool   `json:"isNPC"`
 			CurrentRoom  int    `json:"currentRoomId"`
 			StartingRoom int    `json:"startingRoomId"`
@@ -46,7 +45,6 @@ func createCharacter(svc *service.Container, repos *repository.Container) gin.Ha
 		}
 		char, err := repos.Character.Create(c.Request.Context(), repository.CreateCharacterInput{
 			Name:      req.Name,
-			Password:  req.Password,
 			UserID:    req.UserID,
 			RoomID:    req.CurrentRoom,
 			IsAdmin:   req.IsAdmin,

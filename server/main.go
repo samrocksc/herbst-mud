@@ -276,6 +276,9 @@ func main() {
 	// Register race routes (RACES-001)
 	routes.RegisterRaceRoutes(router, repos, client)
 
+	// Register playable race routes (public endpoint for character creation)
+	routes.RegisterPlayableRaceRoutes(router, repos)
+
 	// Register character tag routes
 	routes.RegisterCharacterTagRoutes(router, repos)
 

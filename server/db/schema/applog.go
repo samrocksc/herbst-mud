@@ -36,6 +36,9 @@ func (AppLog) Fields() []ent.Field {
 		field.String("template_id").
 			Optional().
 			Comment("Optional NPC template ID context"),
+		field.String("world_id").
+			Optional().
+			Comment("Optional world ID context"),
 		field.JSON("metadata", map[string]interface{}{}).
 			Optional().
 			Comment("Arbitrary key-value metadata"),

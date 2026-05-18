@@ -60,11 +60,6 @@ func Name(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldName, v))
 }
 
-// Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
-func Password(v string) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldPassword, v))
-}
-
 // IsNPC applies equality check predicate on the "isNPC" field. It's identical to IsNPCEQ.
 func IsNPC(v bool) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldIsNPC, v))
@@ -338,81 +333,6 @@ func NameEqualFold(v string) predicate.Character {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Character {
 	return predicate.Character(sql.FieldContainsFold(FieldName, v))
-}
-
-// PasswordEQ applies the EQ predicate on the "password" field.
-func PasswordEQ(v string) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldPassword, v))
-}
-
-// PasswordNEQ applies the NEQ predicate on the "password" field.
-func PasswordNEQ(v string) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldPassword, v))
-}
-
-// PasswordIn applies the In predicate on the "password" field.
-func PasswordIn(vs ...string) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldPassword, vs...))
-}
-
-// PasswordNotIn applies the NotIn predicate on the "password" field.
-func PasswordNotIn(vs ...string) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldPassword, vs...))
-}
-
-// PasswordGT applies the GT predicate on the "password" field.
-func PasswordGT(v string) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldPassword, v))
-}
-
-// PasswordGTE applies the GTE predicate on the "password" field.
-func PasswordGTE(v string) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldPassword, v))
-}
-
-// PasswordLT applies the LT predicate on the "password" field.
-func PasswordLT(v string) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldPassword, v))
-}
-
-// PasswordLTE applies the LTE predicate on the "password" field.
-func PasswordLTE(v string) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldPassword, v))
-}
-
-// PasswordContains applies the Contains predicate on the "password" field.
-func PasswordContains(v string) predicate.Character {
-	return predicate.Character(sql.FieldContains(FieldPassword, v))
-}
-
-// PasswordHasPrefix applies the HasPrefix predicate on the "password" field.
-func PasswordHasPrefix(v string) predicate.Character {
-	return predicate.Character(sql.FieldHasPrefix(FieldPassword, v))
-}
-
-// PasswordHasSuffix applies the HasSuffix predicate on the "password" field.
-func PasswordHasSuffix(v string) predicate.Character {
-	return predicate.Character(sql.FieldHasSuffix(FieldPassword, v))
-}
-
-// PasswordIsNil applies the IsNil predicate on the "password" field.
-func PasswordIsNil() predicate.Character {
-	return predicate.Character(sql.FieldIsNull(FieldPassword))
-}
-
-// PasswordNotNil applies the NotNil predicate on the "password" field.
-func PasswordNotNil() predicate.Character {
-	return predicate.Character(sql.FieldNotNull(FieldPassword))
-}
-
-// PasswordEqualFold applies the EqualFold predicate on the "password" field.
-func PasswordEqualFold(v string) predicate.Character {
-	return predicate.Character(sql.FieldEqualFold(FieldPassword, v))
-}
-
-// PasswordContainsFold applies the ContainsFold predicate on the "password" field.
-func PasswordContainsFold(v string) predicate.Character {
-	return predicate.Character(sql.FieldContainsFold(FieldPassword, v))
 }
 
 // IsNPCEQ applies the EQ predicate on the "isNPC" field.
@@ -1218,6 +1138,16 @@ func ClassHasPrefix(v string) predicate.Character {
 // ClassHasSuffix applies the HasSuffix predicate on the "class" field.
 func ClassHasSuffix(v string) predicate.Character {
 	return predicate.Character(sql.FieldHasSuffix(FieldClass, v))
+}
+
+// ClassIsNil applies the IsNil predicate on the "class" field.
+func ClassIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldClass))
+}
+
+// ClassNotNil applies the NotNil predicate on the "class" field.
+func ClassNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldClass))
 }
 
 // ClassEqualFold applies the EqualFold predicate on the "class" field.

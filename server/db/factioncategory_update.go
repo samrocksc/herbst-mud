@@ -111,6 +111,20 @@ func (_u *FactionCategoryUpdate) SetNillableAutoJoin(v *bool) *FactionCategoryUp
 	return _u
 }
 
+// SetInitialConfig sets the "initial_config" field.
+func (_u *FactionCategoryUpdate) SetInitialConfig(v bool) *FactionCategoryUpdate {
+	_u.mutation.SetInitialConfig(v)
+	return _u
+}
+
+// SetNillableInitialConfig sets the "initial_config" field if the given value is not nil.
+func (_u *FactionCategoryUpdate) SetNillableInitialConfig(v *bool) *FactionCategoryUpdate {
+	if v != nil {
+		_u.SetInitialConfig(*v)
+	}
+	return _u
+}
+
 // AddFactionIDs adds the "factions" edge to the Faction entity by IDs.
 func (_u *FactionCategoryUpdate) AddFactionIDs(ids ...int) *FactionCategoryUpdate {
 	_u.mutation.AddFactionIDs(ids...)
@@ -208,6 +222,9 @@ func (_u *FactionCategoryUpdate) sqlSave(ctx context.Context) (_node int, err er
 	}
 	if value, ok := _u.mutation.AutoJoin(); ok {
 		_spec.SetField(factioncategory.FieldAutoJoin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.InitialConfig(); ok {
+		_spec.SetField(factioncategory.FieldInitialConfig, field.TypeBool, value)
 	}
 	if _u.mutation.FactionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -357,6 +374,20 @@ func (_u *FactionCategoryUpdateOne) SetNillableAutoJoin(v *bool) *FactionCategor
 	return _u
 }
 
+// SetInitialConfig sets the "initial_config" field.
+func (_u *FactionCategoryUpdateOne) SetInitialConfig(v bool) *FactionCategoryUpdateOne {
+	_u.mutation.SetInitialConfig(v)
+	return _u
+}
+
+// SetNillableInitialConfig sets the "initial_config" field if the given value is not nil.
+func (_u *FactionCategoryUpdateOne) SetNillableInitialConfig(v *bool) *FactionCategoryUpdateOne {
+	if v != nil {
+		_u.SetInitialConfig(*v)
+	}
+	return _u
+}
+
 // AddFactionIDs adds the "factions" edge to the Faction entity by IDs.
 func (_u *FactionCategoryUpdateOne) AddFactionIDs(ids ...int) *FactionCategoryUpdateOne {
 	_u.mutation.AddFactionIDs(ids...)
@@ -484,6 +515,9 @@ func (_u *FactionCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Faction
 	}
 	if value, ok := _u.mutation.AutoJoin(); ok {
 		_spec.SetField(factioncategory.FieldAutoJoin, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.InitialConfig(); ok {
+		_spec.SetField(factioncategory.FieldInitialConfig, field.TypeBool, value)
 	}
 	if _u.mutation.FactionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

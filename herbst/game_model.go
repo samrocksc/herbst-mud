@@ -187,10 +187,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.createCursor >= len(availableRaces) {
 						m.createCursor = 0
 					}
-				} else if m.inputField == "char_class" {
-					if m.createCursor >= len(availableClasses) {
-						m.createCursor = 0
-					}
 				} else if m.inputField == "char_faction" {
 					numFactions := 0
 					if createCharFactionStep >= 0 && createCharFactionStep < len(createCharFactionCategories) {
@@ -207,10 +203,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.inputField == "char_race" {
 					if m.createCursor < 0 {
 						m.createCursor = len(availableRaces) - 1
-					}
-				} else if m.inputField == "char_class" {
-					if m.createCursor < 0 {
-						m.createCursor = len(availableClasses) - 1
 					}
 				} else if m.inputField == "char_faction" {
 					numFactions := 0
@@ -569,7 +561,7 @@ func (m *model) View() string {
 			inputContent.WriteString(promptStyle.Render(promptText))
 			inputContent.WriteString(m.textInput.View())
 			inputContent.WriteString("\n\n")
-				if m.inputField == "char_race" || m.inputField == "char_class" || m.inputField == "char_faction" {
+				if m.inputField == "char_race" || m.inputField == "char_faction" {
 				inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · enter/1-9 select · 'cancel' abort"))
 				} else {
 				inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type 'cancel' to abort"))
@@ -581,8 +573,6 @@ func (m *model) View() string {
 		var displayContent string
 		if m.inputField == "char_race" {
 			displayContent = m.displayRaces()
-		} else if m.inputField == "char_class" {
-			displayContent = m.displayClasses()
 		} else if m.inputField == "char_faction" {
 			displayContent = m.displayFactions(createCharFactionStep)
 		}

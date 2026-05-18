@@ -15,8 +15,6 @@ type Character struct {
 func (Character) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
-		field.String("password").
-			Optional(),
 		field.Bool("isNPC").
 			Default(false),
 		field.Int("currentRoomId"),
@@ -40,7 +38,9 @@ func (Character) Fields() []ent.Field {
 		field.String("race").
 			Default("human"),
 		field.String("class").
-			Default("adventurer"),
+			Optional().
+			Default("").
+			Comment("Class derived from faction memberships in 'class' category. Empty = classless."),
 		field.String("currentWorld").
 			Default("default").
 			Comment("World this character belongs to (for multi-world support)"),

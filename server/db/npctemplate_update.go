@@ -32,6 +32,26 @@ func (_u *NPCTemplateUpdate) Where(ps ...predicate.NPCTemplate) *NPCTemplateUpda
 	return _u
 }
 
+// SetSlug sets the "slug" field.
+func (_u *NPCTemplateUpdate) SetSlug(v string) *NPCTemplateUpdate {
+	_u.mutation.SetSlug(v)
+	return _u
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableSlug(v *string) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetSlug(*v)
+	}
+	return _u
+}
+
+// ClearSlug clears the value of the "slug" field.
+func (_u *NPCTemplateUpdate) ClearSlug() *NPCTemplateUpdate {
+	_u.mutation.ClearSlug()
+	return _u
+}
+
 // SetWorldID sets the "world_id" field.
 func (_u *NPCTemplateUpdate) SetWorldID(v string) *NPCTemplateUpdate {
 	_u.mutation.SetWorldID(v)
@@ -419,6 +439,12 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			}
 		}
 	}
+	if value, ok := _u.mutation.Slug(); ok {
+		_spec.SetField(npctemplate.FieldSlug, field.TypeString, value)
+	}
+	if _u.mutation.SlugCleared() {
+		_spec.ClearField(npctemplate.FieldSlug, field.TypeString)
+	}
 	if value, ok := _u.mutation.WorldID(); ok {
 		_spec.SetField(npctemplate.FieldWorldID, field.TypeString, value)
 	}
@@ -678,6 +704,26 @@ type NPCTemplateUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *NPCTemplateMutation
+}
+
+// SetSlug sets the "slug" field.
+func (_u *NPCTemplateUpdateOne) SetSlug(v string) *NPCTemplateUpdateOne {
+	_u.mutation.SetSlug(v)
+	return _u
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableSlug(v *string) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetSlug(*v)
+	}
+	return _u
+}
+
+// ClearSlug clears the value of the "slug" field.
+func (_u *NPCTemplateUpdateOne) ClearSlug() *NPCTemplateUpdateOne {
+	_u.mutation.ClearSlug()
+	return _u
 }
 
 // SetWorldID sets the "world_id" field.
@@ -1096,6 +1142,12 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Slug(); ok {
+		_spec.SetField(npctemplate.FieldSlug, field.TypeString, value)
+	}
+	if _u.mutation.SlugCleared() {
+		_spec.ClearField(npctemplate.FieldSlug, field.TypeString)
 	}
 	if value, ok := _u.mutation.WorldID(); ok {
 		_spec.SetField(npctemplate.FieldWorldID, field.TypeString, value)

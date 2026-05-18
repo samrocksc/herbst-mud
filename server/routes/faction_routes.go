@@ -198,7 +198,10 @@ func listFactionCategories(client *db.Client) gin.HandlerFunc {
 		if search := c.Query("search"); search != "" {
 			query = query.Where(factioncategory.NameContains(search))
 		}
-		cats, err := query.All(c.Request.Context())
+		if c.Query("initial_config") == "true" {
+			query = query.Where(factioncategory.InitialConfig(true))
+		}
+		cats, err := query.WithFactions().All(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -219,6 +222,7 @@ func createFactionCategory(client *db.Client) gin.HandlerFunc {
 			Description    string `json:"description"`
 			MaxMemberships int    `json:"max_memberships"`
 			AutoJoin       bool   `json:"auto_join"`
+			InitialConfig  bool   `json:"initial_config"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -230,6 +234,7 @@ func createFactionCategory(client *db.Client) gin.HandlerFunc {
 			SetDescription(req.Description).
 			SetMaxMemberships(req.MaxMemberships).
 			SetAutoJoin(req.AutoJoin).
+			SetInitialConfig(req.InitialConfig).
 			Save(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -272,12 +277,25 @@ func factionToJSON(f *db.Faction) gin.H {
 }
 
 func categoryToJSON(cat *db.FactionCategory) gin.H {
-	return gin.H{
+	result := gin.H{
 		"id":              cat.ID,
 		"name":            cat.Name,
 		"display_name":    cat.DisplayName,
 		"description":     cat.Description,
 		"max_memberships": cat.MaxMemberships,
 		"auto_join":       cat.AutoJoin,
+		"initial_config":  cat.InitialConfig,
 	}
+	if cat.Edges.Factions != nil {
+		factions := make([]gin.H, len(cat.Edges.Factions))
+		for i, f := range cat.Edges.Factions {
+			factions[i] = gin.H{
+				"id":           f.ID,
+				"name":         f.Name,
+				"display_name": f.DisplayName,
+			}
+		}
+		result["factions"] = factions
+	}
+	return result
 }

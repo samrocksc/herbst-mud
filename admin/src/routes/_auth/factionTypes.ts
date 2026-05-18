@@ -6,6 +6,7 @@ export type FactionCategory = Readonly<{
   description?: string
   max_memberships?: number
   auto_join?: boolean
+  initial_config?: boolean
 }>
 
 /** Faction record from the API. */

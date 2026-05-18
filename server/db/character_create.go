@@ -38,20 +38,6 @@ func (_c *CharacterCreate) SetName(v string) *CharacterCreate {
 	return _c
 }
 
-// SetPassword sets the "password" field.
-func (_c *CharacterCreate) SetPassword(v string) *CharacterCreate {
-	_c.mutation.SetPassword(v)
-	return _c
-}
-
-// SetNillablePassword sets the "password" field if the given value is not nil.
-func (_c *CharacterCreate) SetNillablePassword(v *string) *CharacterCreate {
-	if v != nil {
-		_c.SetPassword(*v)
-	}
-	return _c
-}
-
 // SetIsNPC sets the "isNPC" field.
 func (_c *CharacterCreate) SetIsNPC(v bool) *CharacterCreate {
 	_c.mutation.SetIsNPC(v)
@@ -1022,9 +1008,6 @@ func (_c *CharacterCreate) check() error {
 	if _, ok := _c.mutation.Race(); !ok {
 		return &ValidationError{Name: "race", err: errors.New(`db: missing required field "Character.race"`)}
 	}
-	if _, ok := _c.mutation.Class(); !ok {
-		return &ValidationError{Name: "class", err: errors.New(`db: missing required field "Character.class"`)}
-	}
 	if _, ok := _c.mutation.Level(); !ok {
 		return &ValidationError{Name: "level", err: errors.New(`db: missing required field "Character.level"`)}
 	}
@@ -1105,10 +1088,6 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(character.FieldName, field.TypeString, value)
 		_node.Name = value
-	}
-	if value, ok := _c.mutation.Password(); ok {
-		_spec.SetField(character.FieldPassword, field.TypeString, value)
-		_node.Password = value
 	}
 	if value, ok := _c.mutation.IsNPC(); ok {
 		_spec.SetField(character.FieldIsNPC, field.TypeBool, value)

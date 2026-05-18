@@ -72,3 +72,22 @@ Feature: Admin - World Export/Import E2E (admin-19)
     When I call POST /admin/import with invalid JSON
     Then I should receive a validation error
     And the import should not modify any data
+
+  @donnie @raph @splinter
+  Scenario: Import test world and verify round-trip
+    Given I have the test world file
+    When I import the test world
+    Then the import should succeed
+    And I should receive confirmation with counts
+    When I export the test world
+    Then the export should have rooms
+    And the export should have NPCs
+    And the export should have skills
+
+  @donnie @raph @splinter
+  Scenario: Destroy test world after import
+    Given I have the test world file
+    When I import the test world
+    Then the test world should exist
+    When I destroy the test world
+    Then the test world should no longer exist

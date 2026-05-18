@@ -74,6 +74,20 @@ func (_c *FactionCategoryCreate) SetNillableAutoJoin(v *bool) *FactionCategoryCr
 	return _c
 }
 
+// SetInitialConfig sets the "initial_config" field.
+func (_c *FactionCategoryCreate) SetInitialConfig(v bool) *FactionCategoryCreate {
+	_c.mutation.SetInitialConfig(v)
+	return _c
+}
+
+// SetNillableInitialConfig sets the "initial_config" field if the given value is not nil.
+func (_c *FactionCategoryCreate) SetNillableInitialConfig(v *bool) *FactionCategoryCreate {
+	if v != nil {
+		_c.SetInitialConfig(*v)
+	}
+	return _c
+}
+
 // AddFactionIDs adds the "factions" edge to the Faction entity by IDs.
 func (_c *FactionCategoryCreate) AddFactionIDs(ids ...int) *FactionCategoryCreate {
 	_c.mutation.AddFactionIDs(ids...)
@@ -132,6 +146,10 @@ func (_c *FactionCategoryCreate) defaults() {
 		v := factioncategory.DefaultAutoJoin
 		_c.mutation.SetAutoJoin(v)
 	}
+	if _, ok := _c.mutation.InitialConfig(); !ok {
+		v := factioncategory.DefaultInitialConfig
+		_c.mutation.SetInitialConfig(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -147,6 +165,9 @@ func (_c *FactionCategoryCreate) check() error {
 	}
 	if _, ok := _c.mutation.AutoJoin(); !ok {
 		return &ValidationError{Name: "auto_join", err: errors.New(`db: missing required field "FactionCategory.auto_join"`)}
+	}
+	if _, ok := _c.mutation.InitialConfig(); !ok {
+		return &ValidationError{Name: "initial_config", err: errors.New(`db: missing required field "FactionCategory.initial_config"`)}
 	}
 	return nil
 }
@@ -193,6 +214,10 @@ func (_c *FactionCategoryCreate) createSpec() (*FactionCategory, *sqlgraph.Creat
 	if value, ok := _c.mutation.AutoJoin(); ok {
 		_spec.SetField(factioncategory.FieldAutoJoin, field.TypeBool, value)
 		_node.AutoJoin = value
+	}
+	if value, ok := _c.mutation.InitialConfig(); ok {
+		_spec.SetField(factioncategory.FieldInitialConfig, field.TypeBool, value)
+		_node.InitialConfig = value
 	}
 	if nodes := _c.mutation.FactionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

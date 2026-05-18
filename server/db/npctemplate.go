@@ -17,6 +17,8 @@ type NPCTemplate struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// Globally unique slug derived from name, e.g., goblin_scout
+	Slug string `json:"slug,omitempty"`
 	// World this NPC template belongs to (for multi-world support)
 	WorldID string `json:"world_id,omitempty"`
 	// Name holds the value of the "name" field.
@@ -107,7 +109,7 @@ func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case npctemplate.FieldLevel, npctemplate.FieldXpValue, npctemplate.FieldRespawnCooldown:
 			values[i] = new(sql.NullInt64)
-		case npctemplate.FieldID, npctemplate.FieldWorldID, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldRace, npctemplate.FieldDisposition, npctemplate.FieldGreeting:
+		case npctemplate.FieldID, npctemplate.FieldSlug, npctemplate.FieldWorldID, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldRace, npctemplate.FieldDisposition, npctemplate.FieldGreeting:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -129,6 +131,12 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
+			}
+		case npctemplate.FieldSlug:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field slug", values[i])
+			} else if value.Valid {
+				_m.Slug = value.String
 			}
 		case npctemplate.FieldWorldID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -264,6 +272,9 @@ func (_m *NPCTemplate) String() string {
 	var builder strings.Builder
 	builder.WriteString("NPCTemplate(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("slug=")
+	builder.WriteString(_m.Slug)
+	builder.WriteString(", ")
 	builder.WriteString("world_id=")
 	builder.WriteString(_m.WorldID)
 	builder.WriteString(", ")

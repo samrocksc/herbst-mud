@@ -16,8 +16,8 @@ func TestPanelHeightsFillTerminal(t *testing.T) {
 		minLineCount  int // minimum lines expected in output
 		screenFunc    func(int, int, string) string
 	}{
-		{"welcomeScreen 80x24", 80, 24, 15, func(w, h int, s string) string { return welcomeScreen(w, h, s) }},
-		{"welcomeScreen 120x40", 120, 40, 25, func(w, h int, s string) string { return welcomeScreen(w, h, s) }},
+		{"welcomeScreen 80x24", 80, 24, 15, func(w, h int, s string) string { return welcomeScreen(w, h, 0, s) }},
+		{"welcomeScreen 120x40", 120, 40, 25, func(w, h int, s string) string { return welcomeScreen(w, h, 0, s) }},
 		{"loginScreen 80x24", 80, 24, 15, func(w, h int, s string) string { return loginScreen(w, h, "", "", s) }},
 		{"loginScreen 120x40", 120, 40, 25, func(w, h int, s string) string { return loginScreen(w, h, "", "", s) }},
 		{"registerScreen 80x24", 80, 24, 15, func(w, h int, s string) string { return registerScreen(w, h, "", "", s) }},
@@ -66,7 +66,7 @@ func TestExplicitHeightCalculations(t *testing.T) {
 			var result string
 			switch tt.fn {
 			case "welcomeScreen":
-				result = welcomeScreen(80, tt.terminalH, "input")
+				result = welcomeScreen(80, tt.terminalH, 0, "input")
 			case "loginScreen":
 				result = loginScreen(80, tt.terminalH, "", "", "input")
 			case "registerScreen":

@@ -88,6 +88,20 @@ func (_c *AppLogCreate) SetNillableTemplateID(v *string) *AppLogCreate {
 	return _c
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *AppLogCreate) SetWorldID(v string) *AppLogCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *AppLogCreate) SetNillableWorldID(v *string) *AppLogCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // SetMetadata sets the "metadata" field.
 func (_c *AppLogCreate) SetMetadata(v map[string]interface{}) *AppLogCreate {
 	_c.mutation.SetMetadata(v)
@@ -221,6 +235,10 @@ func (_c *AppLogCreate) createSpec() (*AppLog, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.TemplateID(); ok {
 		_spec.SetField(applog.FieldTemplateID, field.TypeString, value)
 		_node.TemplateID = value
+	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(applog.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
 	}
 	if value, ok := _c.mutation.Metadata(); ok {
 		_spec.SetField(applog.FieldMetadata, field.TypeJSON, value)

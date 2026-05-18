@@ -129,19 +129,16 @@ func TestCharacterCreationE2E(t *testing.T) {
 	m.createCursor = 1
 	m.handleCharacterCreationInput("") // Enter = select highlighted
 
-	if m.inputField != "char_class" {
-		t.Fatalf("Step 3: Expected transition to char_class after race select, got %q", m.inputField)
+	// No faction categories in mock, so we skip directly to character creation
+	if m.inputField == "char_faction" {
+		// Simulate empty faction categories by triggering create directly
+		m.handleCharacterCreationInput("")
 	}
 
-	// --- Step 4: Select class via cursor ---
-	// Warrior is at index 1 (0=adventurer, 1=warrior, 2=mage, 3=rogue, 4=cleric)
-	m.createCursor = 1
-	m.handleCharacterCreationInput("") // Enter = select highlighted
-
-	// Step 4 triggers createCharacter which makes the API call.
+	// Step 3/4 triggers createCharacter which makes the API call.
 	// If we reach the API handler, the create request was sent.
 	if createCharReq.url == "" {
-		t.Fatal("Step 4: Expected createCharacter API call after class selection")
+		t.Fatal("Step 3/4: Expected createCharacter API call after race selection")
 	}
 	expectedPath := "/user-characters/1"
 	if createCharReq.url != expectedPath {
@@ -154,9 +151,6 @@ func TestCharacterCreationE2E(t *testing.T) {
 	}
 	if race, ok := createCharReq.body["race"].(string); !ok || race != "elf" {
 		t.Errorf("Step 4: Expected race 'elf', got %v", createCharReq.body["race"])
-	}
-	if class, ok := createCharReq.body["class"].(string); !ok || class != "warrior" {
-		t.Errorf("Step 4: Expected class 'warrior', got %v", createCharReq.body["class"])
 	}
 	if world, ok := createCharReq.body["world"].(string); !ok || world != "TestWorld" {
 		t.Errorf("Step 4: Expected world 'TestWorld', got %v", createCharReq.body["world"])
@@ -201,8 +195,6 @@ func TestCharacterCreationE2EView(t *testing.T) {
 		{Name: "dwarf", DisplayName: "Dwarf"},
 	}
 	defer func() { availableRaces = nil }()
-
-	availableClasses = []string{"adventurer", "warrior", "mage", "rogue", "cleric"}
 
 	t.Run("character select list shows cursor", func(t *testing.T) {
 		m := &model{
@@ -271,35 +263,6 @@ func TestCharacterCreationE2EView(t *testing.T) {
 		}
 		if !contains(view, "Human") || !contains(view, "Elf") {
 			t.Error("Expected all races in view")
-		}
-	})
-
-	t.Run("class selection shows cursor", func(t *testing.T) {
-		m := &model{
-			screen:              ScreenCharacterSelect,
-			isCreatingCharacter: true,
-			inputField:          "char_class",
-			createCursor:        3, // Highlight rogue
-			textInput:           ti,
-			connectedAt:         time.Now(),
-			visitedRooms:        make(map[int]bool),
-			knownExits:          make(map[string]bool),
-			width:               80,
-			height:              24,
-			maxHistory:          50,
-		}
-		m.Init()
-
-		view := m.View()
-
-		if !contains(view, "▸") {
-			t.Error("Expected cursor (▸) in class selection view")
-		}
-		if !contains(view, "rogue") {
-			t.Error("Expected 'rogue' in view (should be highlighted)")
-		}
-		if !contains(view, "warrior") || !contains(view, "mage") {
-			t.Error("Expected all classes in view")
 		}
 	})
 }

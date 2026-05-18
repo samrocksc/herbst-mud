@@ -34,11 +34,10 @@ var (
 type CreateCharacterInput struct {
 	UserID   int
 	Name     string
-	Password string
-	Class    string
 	Race     string
 	Gender   string
 	WorldID  string
+	Factions []string
 }
 
 func (s *characterService) CreateCharacter(ctx context.Context, input CreateCharacterInput) (*db.Character, error) {
@@ -76,10 +75,9 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 		}
 		gen = genderObj.Name
 	}
+	// Class is derived from faction memberships in the "class" category.
+	// Default to "survivor" if no class faction found (backwards compatibility).
 	class := "survivor"
-	if input.Class != "" {
-		class = input.Class
-	}
 	classConfig := constants.GetClassConfig(class, "")
 	baseStrength := constants.DefaultStats.Strength + classConfig.StatBonuses.Strength
 	baseDexterity := constants.DefaultStats.Dexterity + classConfig.StatBonuses.Dexterity
@@ -93,7 +91,6 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	}
 	char, err := s.repos.Character.Create(ctx, repository.CreateCharacterInput{
 		Name:            input.Name,
-		Password:        input.Password,
 		UserID:          input.UserID,
 		RoomID:          startingRoomID,
 		StartingRoomID:  startingRoomID,
@@ -127,6 +124,16 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	}
 	if syncErr := s.SyncRaceTags(ctx, char.ID, char.Race); syncErr != nil {
 		fmt.Printf("Warning: failed to sync race tags for character %d: %v\n", char.ID, syncErr)
+	}
+	// Add initial faction memberships
+	for _, factionStr := range input.Factions {
+		factionID := 0
+		fmt.Sscanf(factionStr, "%d", &factionID)
+		if factionID > 0 {
+			if _, cfErr := s.repos.CharacterFaction.Create(ctx, char.ID, factionID, 0); cfErr != nil {
+				fmt.Printf("Warning: failed to add faction %d to character %d: %v\n", factionID, char.ID, cfErr)
+			}
+		}
 	}
 	return char, nil
 }

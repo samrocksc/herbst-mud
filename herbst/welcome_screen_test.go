@@ -13,37 +13,34 @@ func TestWelcomeScreenASCIIArt(t *testing.T) {
 
 // TestWelcomeScreenContent verifies the welcome screen content structure
 func TestWelcomeScreenContent(t *testing.T) {
-	result := welcomeScreen(80, 24, "test input")
+	result := welcomeScreen(80, 24, 0, "test input")
 
-	// Verify ASCII art is rendered (green)
-	if !strings.Contains(result, "\x1b[38;5;46m") && !strings.Contains(result, "HERBST") {
-		// Either ANSI green code or text should be present
-		if !strings.Contains(result, "HERBST MUD") {
-			t.Error("Welcome screen should contain HERBST MUD")
-		}
+	// Verify HERBST MUD title is present
+	if !strings.Contains(result, "HERBST MUD") {
+		t.Error("Welcome screen should contain HERBST MUD")
 	}
 
-	// Verify commands are displayed
-	if !strings.Contains(result, "login") {
-		t.Error("Welcome screen should contain login command")
+	// Verify subtitle
+	if !strings.Contains(result, "A World of Adventure Awaits") {
+		t.Error("Welcome screen should contain subtitle")
 	}
 
-	if !strings.Contains(result, "register") {
-		t.Error("Welcome screen should contain register command")
+	// Verify menu items are displayed (capitalized with ANSI styling)
+	if !strings.Contains(result, "Login") {
+		t.Error("Welcome screen should contain Login option")
 	}
 
-	if !strings.Contains(result, "quit") {
-		t.Error("Welcome screen should contain quit command")
+	if !strings.Contains(result, "Register") {
+		t.Error("Welcome screen should contain Register option")
 	}
 
-	// Verify welcome message
-	if !strings.Contains(result, "Welcome Adventurer") {
-		t.Error("Welcome screen should contain welcome message")
+	if !strings.Contains(result, "Quit") {
+		t.Error("Welcome screen should contain Quit option")
 	}
 
-	// Verify tip is present
-	if !strings.Contains(result, "Tip:") {
-		t.Error("Welcome screen should contain tip")
+	// Verify hint text
+	if !strings.Contains(result, "Type a number or command") {
+		t.Error("Welcome screen should contain hint text")
 	}
 }
 
@@ -71,7 +68,7 @@ func TestWelcomeScreenDimensions(t *testing.T) {
 				}
 			}()
 
-			result := welcomeScreen(tt.width, tt.height, "test")
+			result := welcomeScreen(tt.width, tt.height, 0, "test")
 			if result == "" {
 				t.Error("Result should not be empty")
 			}
@@ -81,10 +78,10 @@ func TestWelcomeScreenDimensions(t *testing.T) {
 
 // TestWelcomeScreenArrowIcon verifies arrow icons are displayed
 func TestWelcomeScreenArrowIcon(t *testing.T) {
-	result := welcomeScreen(80, 24, "test input")
+	result := welcomeScreen(80, 24, 0, "test input")
 
 	// Verify arrow icons are used
-	if !strings.Contains(result, "➤") {
-		t.Error("Welcome screen should use arrow icons (➤)")
+	if !strings.Contains(result, "▸") {
+		t.Error("Welcome screen should use arrow icons (▸)")
 	}
 }

@@ -150,6 +150,26 @@ func (_u *AppLogUpdate) ClearTemplateID() *AppLogUpdate {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *AppLogUpdate) SetWorldID(v string) *AppLogUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *AppLogUpdate) SetNillableWorldID(v *string) *AppLogUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
+// ClearWorldID clears the value of the "world_id" field.
+func (_u *AppLogUpdate) ClearWorldID() *AppLogUpdate {
+	_u.mutation.ClearWorldID()
+	return _u
+}
+
 // SetMetadata sets the "metadata" field.
 func (_u *AppLogUpdate) SetMetadata(v map[string]interface{}) *AppLogUpdate {
 	_u.mutation.SetMetadata(v)
@@ -252,6 +272,12 @@ func (_u *AppLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.TemplateIDCleared() {
 		_spec.ClearField(applog.FieldTemplateID, field.TypeString)
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(applog.FieldWorldID, field.TypeString, value)
+	}
+	if _u.mutation.WorldIDCleared() {
+		_spec.ClearField(applog.FieldWorldID, field.TypeString)
 	}
 	if value, ok := _u.mutation.Metadata(); ok {
 		_spec.SetField(applog.FieldMetadata, field.TypeJSON, value)
@@ -404,6 +430,26 @@ func (_u *AppLogUpdateOne) ClearTemplateID() *AppLogUpdateOne {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *AppLogUpdateOne) SetWorldID(v string) *AppLogUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *AppLogUpdateOne) SetNillableWorldID(v *string) *AppLogUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
+// ClearWorldID clears the value of the "world_id" field.
+func (_u *AppLogUpdateOne) ClearWorldID() *AppLogUpdateOne {
+	_u.mutation.ClearWorldID()
+	return _u
+}
+
 // SetMetadata sets the "metadata" field.
 func (_u *AppLogUpdateOne) SetMetadata(v map[string]interface{}) *AppLogUpdateOne {
 	_u.mutation.SetMetadata(v)
@@ -536,6 +582,12 @@ func (_u *AppLogUpdateOne) sqlSave(ctx context.Context) (_node *AppLog, err erro
 	}
 	if _u.mutation.TemplateIDCleared() {
 		_spec.ClearField(applog.FieldTemplateID, field.TypeString)
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(applog.FieldWorldID, field.TypeString, value)
+	}
+	if _u.mutation.WorldIDCleared() {
+		_spec.ClearField(applog.FieldWorldID, field.TypeString)
 	}
 	if value, ok := _u.mutation.Metadata(); ok {
 		_spec.SetField(applog.FieldMetadata, field.TypeJSON, value)
