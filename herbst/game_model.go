@@ -143,6 +143,72 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		// Vim-style navigation for world selection
+		if m.screen == ScreenWorldSelect {
+			if key == "j" || key == "down" {
+				m.worldCursor++
+				if m.worldCursor >= len(availableWorlds) {
+					m.worldCursor = 0
+				}
+				return m, nil
+			}
+			if key == "k" || key == "up" {
+				m.worldCursor--
+				if m.worldCursor < 0 {
+					m.worldCursor = len(availableWorlds) - 1
+				}
+				return m, nil
+			}
+		}
+
+		// Vim-style navigation for character selection
+		if m.screen == ScreenCharacterSelect && !m.isCreatingCharacter {
+			if key == "j" || key == "down" {
+				m.characterCursor++
+				if m.characterCursor >= len(m.selectedWorldCharacters) {
+					m.characterCursor = 0
+				}
+				return m, nil
+			}
+			if key == "k" || key == "up" {
+				m.characterCursor--
+				if m.characterCursor < 0 {
+					m.characterCursor = len(m.selectedWorldCharacters) - 1
+				}
+				return m, nil
+			}
+		}
+
+		// Vim-style navigation for character creation race/class selection
+		if m.screen == ScreenCharacterSelect && m.isCreatingCharacter && (m.inputField == "char_race" || m.inputField == "char_class") {
+			if key == "j" || key == "down" {
+				m.createCursor++
+				if m.inputField == "char_race" {
+					if m.createCursor >= len(availableRaces) {
+						m.createCursor = 0
+					}
+				} else if m.inputField == "char_class" {
+					if m.createCursor >= len(availableClasses) {
+						m.createCursor = 0
+					}
+				}
+				return m, nil
+			}
+			if key == "k" || key == "up" {
+				m.createCursor--
+				if m.inputField == "char_race" {
+					if m.createCursor < 0 {
+						m.createCursor = len(availableRaces) - 1
+					}
+				} else if m.inputField == "char_class" {
+					if m.createCursor < 0 {
+						m.createCursor = len(availableClasses) - 1
+					}
+				}
+				return m, nil
+			}
+		}
+
 		// Combat screen key handlers - queue actions for next tick
 		if m.screen == ScreenCombat {
 			m.handleCombatInput(key)
@@ -322,7 +388,7 @@ func (m *model) View() string {
 		inputContent.WriteString(m.textInput.View())
 		inputContent.WriteString("\n\n")
 		inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Press 1/2/3 or type login/register/quit"))
-		return welcomeScreen(m.width, m.height, inputContent.String())
+		return welcomeScreen(m.width, m.height, m.menuCursor, inputContent.String())
 
 	case ScreenLogin:
 		promptText := "> "
@@ -466,7 +532,7 @@ func (m *model) View() string {
 		inputContent.WriteString(promptStyle.Render("> "))
 		inputContent.WriteString(m.textInput.View())
 		inputContent.WriteString("\n\n")
-		inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type number or name to select, 'b' to go back"))
+		inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · enter/1-9 select · 'b' back"))
 		return worldSelectScreen(m.width, m.height, m.displayWorlds(), inputContent.String())
 
 	case ScreenCharacterSelect:
@@ -477,10 +543,6 @@ func (m *model) View() string {
 			switch m.inputField {
 			case "char_name":
 				promptText = "Character name: "
-			case "char_password":
-				promptText = "Password: "
-			case "char_confirm_password":
-				promptText = "Confirm: "
 			case "char_race":
 				promptText = "Race: "
 			case "char_class":
@@ -489,15 +551,25 @@ func (m *model) View() string {
 			inputContent.WriteString(promptStyle.Render(promptText))
 			inputContent.WriteString(m.textInput.View())
 			inputContent.WriteString("\n\n")
-			inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type 'cancel' to abort"))
+				if m.inputField == "char_race" || m.inputField == "char_class" {
+				inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · enter/1-9 select · 'cancel' abort"))
+				} else {
+				inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type 'cancel' to abort"))
+				}
 		} else {
 			inputContent.WriteString(promptStyle.Render("> "))
 			inputContent.WriteString(m.textInput.View())
 			inputContent.WriteString("\n\n")
-			inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type number to select, 'n' for new, 'b' for back"))
+			inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · enter/1-9 select · 'n' new · 'b' back"))
+			return characterSelectScreen(m.width, m.height, m.displayCharacters(), inputContent.String())
 		}
-		return characterSelectScreen(m.width, m.height, m.message, m.messageType, inputContent.String())
-
+		var displayContent string
+		if m.inputField == "char_race" {
+			displayContent = m.displayRaces()
+		} else if m.inputField == "char_class" {
+			displayContent = m.displayClasses()
+		}
+		return characterSelectScreen(m.width, m.height, displayContent, inputContent.String())
 	case ScreenPlaying:
 		width := m.width
 		height := m.height
