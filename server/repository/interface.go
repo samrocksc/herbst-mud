@@ -312,6 +312,7 @@ type CreateCharacterInput struct {
 	Charisma         int
 	Race             string
 	Gender           string
+	Description      string
 	Class            string
 	Specialty        string
 	HP               int

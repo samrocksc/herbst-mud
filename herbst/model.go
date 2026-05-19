@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -232,6 +233,24 @@ type InventoryItem struct {
 	ItemType    string `json:"itemType"`
 	IsEquipped  bool   `json:"isEquipped"`
 	Rarity      string `json:"rarity"`
+}
+
+// auditLogf emits an audit log entry to the admin log viewer.
+// Unlike debugLogf, this fires unconditionally (always-on audit trail).
+// Uses user name when no character is loaded (login/logout events).
+func (m *model) auditLogf(format string, args ...any) {
+	if m.debugLog == nil {
+		return
+	}
+	msg := fmt.Sprintf(format, args...)
+	charID := m.currentCharacterID
+	roomID := m.currentRoom
+	// If no character is loaded yet, tag with user ID (negative = user-level event)
+	if charID == 0 {
+		charID = -m.currentUserID
+		roomID = 0
+	}
+	m.debugLog.Log(charID, roomID, "%s", msg)
 }
 
 // debugLogf emits a structured debug log entry to the admin log viewer.

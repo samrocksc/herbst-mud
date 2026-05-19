@@ -180,11 +180,15 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Vim-style navigation for character creation race/class/faction selection
-		if m.screen == ScreenCharacterSelect && m.isCreatingCharacter && (m.inputField == "char_race" || m.inputField == "char_class" || m.inputField == "char_faction") {
+		if m.screen == ScreenCharacterSelect && m.isCreatingCharacter && (m.inputField == "char_race" || m.inputField == "char_class" || m.inputField == "char_gender" || m.inputField == "char_faction") {
 			if key == "j" || key == "down" {
 				m.createCursor++
 				if m.inputField == "char_race" {
 					if m.createCursor >= len(availableRaces) {
+						m.createCursor = 0
+					}
+				} else if m.inputField == "char_gender" {
+					if m.createCursor >= len(availableGenders) {
 						m.createCursor = 0
 					}
 				} else if m.inputField == "char_faction" {
@@ -203,6 +207,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.inputField == "char_race" {
 					if m.createCursor < 0 {
 						m.createCursor = len(availableRaces) - 1
+					}
+				} else if m.inputField == "char_gender" {
+					if m.createCursor < 0 {
+						m.createCursor = len(availableGenders) - 1
 					}
 				} else if m.inputField == "char_faction" {
 					numFactions := 0
@@ -544,6 +552,7 @@ func (m *model) View() string {
 		return worldSelectScreen(m.width, m.height, m.displayWorlds(), inputContent.String())
 
 	case ScreenCharacterSelect:
+		promptStyle := lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true)
 		var inputContent strings.Builder
 		if m.isCreatingCharacter {
 			// Show appropriate prompt based on creation step
@@ -553,6 +562,10 @@ func (m *model) View() string {
 				promptText = "Character name: "
 			case "char_race":
 				promptText = "Race: "
+			case "char_gender":
+				promptText = "Pronouns: "
+			case "char_description":
+				promptText = "Description: "
 			case "char_class":
 				promptText = "Class: "
 			case "char_faction":
@@ -561,11 +574,11 @@ func (m *model) View() string {
 			inputContent.WriteString(promptStyle.Render(promptText))
 			inputContent.WriteString(m.textInput.View())
 			inputContent.WriteString("\n\n")
-				if m.inputField == "char_race" || m.inputField == "char_faction" {
+			if m.inputField == "char_race" || m.inputField == "char_gender" || m.inputField == "char_faction" {
 				inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · enter/1-9 select · 'cancel' abort"))
-				} else {
+			} else {
 				inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("Type 'cancel' to abort"))
-				}
+			}
 		} else {
 			inputContent.WriteString(lipgloss.NewStyle().Foreground(gray).Render("j/k navigate · Enter select · 'b' back"))
 			return characterSelectScreen(m.width, m.height, m.displayCharacters(), inputContent.String())
@@ -573,6 +586,8 @@ func (m *model) View() string {
 		var displayContent string
 		if m.inputField == "char_race" {
 			displayContent = m.displayRaces()
+		} else if m.inputField == "char_gender" {
+			displayContent = m.displayGenders()
 		} else if m.inputField == "char_faction" {
 			displayContent = m.displayFactions(createCharFactionStep)
 		}

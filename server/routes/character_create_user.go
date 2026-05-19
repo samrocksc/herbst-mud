@@ -22,11 +22,12 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			return
 		}
 		var req struct {
-			Name     string   `json:"name" binding:"required"`
-			Race     string   `json:"race"`
-			Gender   string   `json:"gender"`
-			World    string   `json:"world"`
-			Factions []string `json:"factions"`
+			Name        string   `json:"name" binding:"required"`
+			Race        string   `json:"race"`
+			Gender      string   `json:"gender"`
+			Description string   `json:"description"`
+			World       string   `json:"world"`
+			Factions    []string `json:"factions"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -37,6 +38,7 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			Name:     req.Name,
 			Race:     req.Race,
 			Gender:   req.Gender,
+			Description: req.Description,
 			WorldID:  req.World,
 			Factions: req.Factions,
 		})

@@ -150,6 +150,8 @@ func (m *model) attemptLogin() {
 	if token, ok := result["token"].(string); ok {
 		m.characterToken = token
 	}
+	// Audit: successful login
+	m.auditLogf("LOGIN user=%q", m.currentUserName)
 	// Go to world select instead of auto-loading character
 	m.screen = ScreenWorldSelect
 	m.textInput.SetValue("")
@@ -251,6 +253,8 @@ func (m *model) attemptRegistration(email string) {
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
 	m.AppendMessage(fmt.Sprintf("Account created! Welcome to Herbst MUD, %s!", m.currentUserName), "success")
+	// Audit: new account
+	m.auditLogf("REGISTER user=%q", m.currentUserName)
 	m.fetchWorlds()
 	m.AppendMessage(m.displayWorlds(), "info")
 }
@@ -267,6 +271,15 @@ type WorldInfo struct {
 type RaceInfo struct {
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+}
+
+// GenderInfo represents a gender/pronoun option from the server response
+type GenderInfo struct {
+	Name               string `json:"name"`
+	DisplayName        string `json:"display_name"`
+	SubjectPronoun     string `json:"subject_pronoun"`
+	ObjectPronoun      string `json:"object_pronoun"`
+	PossessivePronoun  string `json:"possessive_pronoun"`
 }
 
 // FactionInfo represents a faction from the server response
@@ -291,6 +304,7 @@ var availableWorlds []WorldInfo
 
 // races holds the list of available playable races
 var availableRaces []RaceInfo
+var availableGenders []GenderInfo
 
 // fetchWorlds retrieves the list of available worlds from the server
 func (m *model) fetchWorlds() {
@@ -356,6 +370,34 @@ func (m *model) fetchRaces() {
 		return
 	}
 	availableRaces = result.Races
+}
+
+// fetchGenders retrieves the list of available genders from the server
+func (m *model) fetchGenders() {
+	m.isLoading = true
+	m.loadingMessage = "Fetching genders..."
+
+	resp, err := http.Get(RESTAPIBase + "/genders")
+	m.isLoading = false
+
+	if err != nil {
+		m.AppendMessage(fmt.Sprintf("Cannot connect to server at %s. Is the server running?", RESTAPIBase), "error")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		m.AppendMessage("Failed to fetch genders from server.", "error")
+		return
+	}
+
+	// Genders endpoint returns a flat array — decode directly
+	var genders []GenderInfo
+	if err := json.NewDecoder(resp.Body).Decode(&genders); err != nil {
+		m.AppendMessage(fmt.Sprintf("Error parsing genders: %v", err), "error")
+		return
+	}
+	availableGenders = genders
 }
 
 // fetchFactionCategories retrieves faction categories with initial_config=true
@@ -516,6 +558,34 @@ func (m *model) displayRaces() string {
 // ============================================================
 // CHARACTER SELECTION
 // ============================================================
+
+// displayGenders returns the formatted gender/pronoun selection menu with cursor
+func (m *model) displayGenders() string {
+	var buf bytes.Buffer
+
+	if len(availableGenders) == 0 {
+		buf.WriteString(lipgloss.NewStyle().Foreground(TextGray).Render("No gender options available."))
+		buf.WriteString("\n\n")
+	} else {
+		for idx, g := range availableGenders {
+			cursorStr := " "
+			numStyle := lipgloss.NewStyle().Foreground(AccentBlue).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+			nameStyle := lipgloss.NewStyle().Foreground(TextWhite).Render(g.DisplayName)
+			if idx == m.createCursor {
+				cursorStr = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render("▸")
+				numStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Bold(true).Render(fmt.Sprintf("%d.", idx+1))
+				nameStyle = lipgloss.NewStyle().Foreground(PrimaryGold).Render(g.DisplayName)
+			}
+			pronounHint := fmt.Sprintf("(%s/%s)", g.SubjectPronoun, g.ObjectPronoun)
+			hintStyle := lipgloss.NewStyle().Foreground(TextGray).Render(pronounHint)
+			buf.WriteString(fmt.Sprintf("  %s  %s  %s  %s", cursorStr, numStyle, nameStyle, hintStyle))
+			buf.WriteString("\n")
+		}
+		buf.WriteString("\n")
+	}
+
+	return buf.String()
+}
 
 // displayFactions returns the formatted faction selection menu for a specific category
 func (m *model) displayFactions(categoryIdx int) string {
@@ -818,6 +888,9 @@ func (m *model) loadCharacter(charID int) {
 	if level, ok := char["level"].(float64); ok {
 		m.characterLevel = int(level)
 	}
+	if isTest, ok := char["is_test"].(bool); ok {
+		m.isTest = isTest
+	}
 
 	// Transition to playing screen
 	m.screen = ScreenPlaying
@@ -825,6 +898,8 @@ func (m *model) loadCharacter(charID int) {
 	m.inputBuffer = ""
 	m.selectedWorldCharacters = []CharacterInfo{}
 	m.isCreatingCharacter = false
+	// Audit: character selected
+	m.auditLogf("SELECT char=%q race=%q class=%q level=%d", m.currentCharacterName, m.characterRace, m.characterClass, m.characterLevel)
 	// Check if this is a new character (first room visit)
 	isNewCharacter := !m.visitedRooms[m.currentRoom]
 	m.visitedRooms[m.currentRoom] = true
@@ -853,6 +928,8 @@ func (m *model) loadCharacter(charID int) {
 // Character creation input state
 var createCharName string
 var createCharRace string
+var createCharGender string
+var createCharDescription string
 var createCharFactionCategories []FactionCategoryInfo
 var createCharFactionStep int
 var createCharFactionChoices map[int]int
@@ -894,6 +971,7 @@ func (m *model) handleCharacterCreationInput(input string) {
 		}
 		createCharName = input
 		m.inputField = "char_race"
+		m.AppendMessage(fmt.Sprintf("Name set: %s", createCharName), "success")
 		m.AppendMessage("Select race (or press Enter for default):", "info")
 		m.textInput.SetValue("")
 		m.textInput.Focus()
@@ -914,18 +992,55 @@ func (m *model) handleCharacterCreationInput(input string) {
 			m.AppendMessage(fmt.Sprintf("Invalid choice. Use j/k to navigate, Enter to select, or type 1-%d.", len(availableRaces)), "error")
 			return
 		}
+		// Fetch genders
+		m.fetchGenders()
+
 		// Fetch faction categories for character creation wizard
 		m.fetchFactionCategories()
 		createCharFactionStep = 0
 		createCharFactionChoices = make(map[int]int)
 		m.createCursor = 0
-		// If we have faction categories, start with first one; otherwise create character
+		// Go to gender selection next
+		m.inputField = "char_gender"
+		m.AppendMessage(fmt.Sprintf("Race selected: %s", createCharRace), "success")
+		m.AppendMessage("Select pronouns (or press Enter for default):", "info")
+		m.textInput.SetValue("")
+		m.textInput.Focus()
+	case "char_gender":
+		// Cursor-based gender selection
+		createCharGender = ""
+		if input == "" || strings.TrimSpace(input) == "" {
+			// Enter with no input — default to first gender
+			if m.createCursor >= 0 && m.createCursor < len(availableGenders) {
+				createCharGender = availableGenders[m.createCursor].Name
+			} else if len(availableGenders) > 0 {
+				createCharGender = availableGenders[0].Name
+			} else {
+				createCharGender = "he_him" // fallback
+			}
+		} else if idx := parseWorldIndex(input, len(availableGenders)); idx >= 0 {
+			createCharGender = availableGenders[idx].Name
+		} else {
+			m.AppendMessage(fmt.Sprintf("Invalid choice. Use j/k to navigate, Enter to select, or type 1-%d.", len(availableGenders)), "error")
+			return
+		}
+		// Go to description next
+		m.inputField = "char_description"
+		m.AppendMessage(fmt.Sprintf("Pronouns set: %s", createCharGender), "success")
+		m.AppendMessage("Enter a short description of your character (or press Enter to skip):", "info")
+		m.textInput.SetValue("")
+		m.textInput.Focus()
+	case "char_description":
+		// Free text description
+		createCharDescription = strings.TrimSpace(input)
+		// Transition to factions (if any) or create character
+		m.createCursor = 0
 		if len(createCharFactionCategories) > 0 {
 			m.inputField = "char_faction"
-			m.AppendMessage(fmt.Sprintf("Race selected: %s", createCharRace), "success")
+			m.AppendMessage(fmt.Sprintf("Description: %s", createCharDescription), "success")
 			m.AppendMessage(fmt.Sprintf("Select %s:", createCharFactionCategories[0].DisplayName), "info")
 		} else {
-			m.AppendMessage(fmt.Sprintf("Race selected: %s", createCharRace), "success")
+			m.AppendMessage("Description set.", "success")
 			m.createCharacter(createCharName, createCharRace)
 		}
 		m.textInput.SetValue("")
@@ -989,10 +1104,12 @@ func (m *model) createCharacter(name, race string) {
 	}
 
 	jsonData, _ := json.Marshal(map[string]interface{}{
-		"name":     name,
-		"race":     race,
-		"world":    m.currentWorld,
-		"factions": factionIDs,
+		"name":        name,
+		"race":        race,
+		"gender":      createCharGender,
+		"description": createCharDescription,
+		"world":       m.currentWorld,
+		"factions":    factionIDs,
 	})
 
 	resp, err := http.Post(fmt.Sprintf("%s/user-characters/%d", RESTAPIBase, m.currentUserID),
@@ -1082,6 +1199,8 @@ func (m *model) getWelcomeMessage() string {
 func (m *model) cancelCharacterCreation() {
 	createCharName = ""
 	createCharRace = ""
+	createCharGender = ""
+	createCharDescription = ""
 	createCharFactionCategories = nil
 	createCharFactionStep = 0
 	createCharFactionChoices = nil

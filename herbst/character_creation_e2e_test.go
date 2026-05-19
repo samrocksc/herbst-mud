@@ -35,6 +35,17 @@ func TestCharacterCreationE2E(t *testing.T) {
 				},
 			})
 
+		case r.Method == "GET" && r.URL.Path == "/genders":
+			json.NewEncoder(w).Encode([]map[string]string{
+				{"name": "he_him", "display_name": "He/Him", "subject_pronoun": "he", "object_pronoun": "him", "possessive_pronoun": "his"},
+				{"name": "she_her", "display_name": "She/Her", "subject_pronoun": "she", "object_pronoun": "her", "possessive_pronoun": "hers"},
+				{"name": "they_them", "display_name": "They/Them", "subject_pronoun": "they", "object_pronoun": "them", "possessive_pronoun": "theirs"},
+			})
+
+		case r.Method == "GET" && r.URL.Path == "/api/faction-categories":
+			// No factions configured — return empty
+			json.NewEncoder(w).Encode([]map[string]interface{}{})
+
 		case r.Method == "POST" && strings.HasPrefix(r.URL.Path, "/user-characters/"):
 			// Record the request
 			createCharReq.url = r.URL.Path
@@ -129,57 +140,73 @@ func TestCharacterCreationE2E(t *testing.T) {
 	m.createCursor = 1
 	m.handleCharacterCreationInput("") // Enter = select highlighted
 
-	// No faction categories in mock, so we skip directly to character creation
-	if m.inputField == "char_faction" {
-		// Simulate empty faction categories by triggering create directly
-		m.handleCharacterCreationInput("")
+	// Should transition to char_gender
+	if m.inputField != "char_gender" {
+		t.Fatalf("Step 3: Expected transition to char_gender, got %q", m.inputField)
 	}
 
-	// Step 3/4 triggers createCharacter which makes the API call.
-	// If we reach the API handler, the create request was sent.
+	// --- Step 4: Select gender via cursor ---
+	// She/Her is at index 1
+	m.createCursor = 1
+	m.handleCharacterCreationInput("") // Enter = select highlighted
+
+	if m.inputField != "char_description" {
+		t.Fatalf("Step 4: Expected transition to char_description, got %q", m.inputField)
+	}
+
+	// --- Step 5: Enter description ---
+	m.handleCharacterCreationInput("A brave elven warrior.")
+
+	// Step 5 should trigger createCharacter (no factions configured)
 	if createCharReq.url == "" {
-		t.Fatal("Step 3/4: Expected createCharacter API call after race selection")
+		t.Fatal("Step 5: Expected createCharacter API call after description")
 	}
 	expectedPath := "/user-characters/1"
 	if createCharReq.url != expectedPath {
-		t.Errorf("Step 4: Expected API path %q, got %q", expectedPath, createCharReq.url)
+		t.Errorf("Step 5: Expected API path %q, got %q", expectedPath, createCharReq.url)
 	}
 
 	// Verify the create payload
 	if name, ok := createCharReq.body["name"].(string); !ok || name != "HeroName" {
-		t.Errorf("Step 4: Expected character name 'HeroName', got %v", createCharReq.body["name"])
+		t.Errorf("Step 5: Expected character name 'HeroName', got %v", createCharReq.body["name"])
 	}
 	if race, ok := createCharReq.body["race"].(string); !ok || race != "elf" {
-		t.Errorf("Step 4: Expected race 'elf', got %v", createCharReq.body["race"])
+		t.Errorf("Step 5: Expected race 'elf', got %v", createCharReq.body["race"])
+	}
+	if gender, ok := createCharReq.body["gender"].(string); !ok || gender != "she_her" {
+		t.Errorf("Step 5: Expected gender 'she_her', got %v", createCharReq.body["gender"])
+	}
+	if desc, ok := createCharReq.body["description"].(string); !ok || desc != "A brave elven warrior." {
+		t.Errorf("Step 5: Expected description 'A brave elven warrior.', got %v", createCharReq.body["description"])
 	}
 	if world, ok := createCharReq.body["world"].(string); !ok || world != "TestWorld" {
-		t.Errorf("Step 4: Expected world 'TestWorld', got %v", createCharReq.body["world"])
+		t.Errorf("Step 5: Expected world 'TestWorld', got %v", createCharReq.body["world"])
 	}
 
-	// --- Step 5: Verify loadCharacter was called and we're in playing screen ---
+	// --- Step 6: Verify loadCharacter was called and we're in playing screen ---
 	if !loadCharCalled {
-		t.Error("Step 5: Expected loadCharacter to call GET /characters/42")
+		t.Error("Step 6: Expected loadCharacter to call GET /characters/42")
 	}
 	if m.screen != ScreenPlaying {
-		t.Errorf("Step 5: Expected screen 'playing', got %q", m.screen)
+		t.Errorf("Step 6: Expected screen 'playing', got %q", m.screen)
 	}
 	if m.currentCharacterName != "HeroName" {
-		t.Errorf("Step 5: Expected character name 'HeroName', got %q", m.currentCharacterName)
+		t.Errorf("Step 6: Expected character name 'HeroName', got %q", m.currentCharacterName)
 	}
 	if m.characterRace != "elf" {
-		t.Errorf("Step 5: Expected race 'elf', got %q", m.characterRace)
+		t.Errorf("Step 6: Expected race 'elf', got %q", m.characterRace)
 	}
 	if m.characterClass != "warrior" {
-		t.Errorf("Step 5: Expected class 'warrior', got %q", m.characterClass)
+		t.Errorf("Step 6: Expected class 'warrior', got %q", m.characterClass)
 	}
 	if m.characterLevel != 1 {
-		t.Errorf("Step 5: Expected level 1, got %d", m.characterLevel)
+		t.Errorf("Step 6: Expected level 1, got %d", m.characterLevel)
 	}
 	if m.characterHP != 100 {
-		t.Errorf("Step 5: Expected HP 100, got %d", m.characterHP)
+		t.Errorf("Step 6: Expected HP 100, got %d", m.characterHP)
 	}
 	if m.isCreatingCharacter {
-		t.Error("Step 5: Expected isCreatingCharacter to be false after load")
+		t.Error("Step 6: Expected isCreatingCharacter to be false after load")
 	}
 }
 

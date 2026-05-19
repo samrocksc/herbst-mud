@@ -175,6 +175,15 @@ func main() {
 						log.Printf("Bubbletea error: %v", err)
 					}
 
+					// Audit: disconnect
+					if m.currentCharacterName != "" {
+						m.auditLogf("LOGOUT char=%q user=%q", m.currentCharacterName, m.currentUserName)
+					} else if m.currentUserName != "" {
+						m.auditLogf("LOGOUT user=%q", m.currentUserName)
+					} else {
+						m.auditLogf("LOGOUT addr=%q", s.RemoteAddr().String())
+					}
+
 					log.Printf("Connection from %s closed", s.RemoteAddr().String())
 				}
 			},

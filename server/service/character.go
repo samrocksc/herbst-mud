@@ -36,6 +36,7 @@ type CreateCharacterInput struct {
 	Name     string
 	Race     string
 	Gender   string
+	Description string
 	WorldID  string
 	Factions []string
 }
@@ -99,6 +100,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 		IsNPC:           false,
 		Race:            race,
 		Gender:          gen,
+		Description:     input.Description,
 		Class:           class,
 		Specialty:       classConfig.Specialty,
 		HP:              100,

@@ -42,6 +42,9 @@ func (r *entCharacterRepo) Create(ctx context.Context, input CreateCharacterInpu
 	if input.Specialty != "" {
 		builder.SetSpecialty(input.Specialty)
 	}
+	if input.Description != "" {
+		builder.SetDescription(input.Description)
+	}
 	if input.SkillBlades > 0 {
 		builder.SetSkillBlades(input.SkillBlades)
 	}
