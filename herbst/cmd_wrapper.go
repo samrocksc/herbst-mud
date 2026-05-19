@@ -44,6 +44,11 @@ func (m *model) initCommands() {
 	m.commands.Register("trade", m.handleChannelWrapperCommand)
 	m.commands.Register("channels", m.handleChannelWrapperCommand)
 	m.commands.Register("channel", m.handleChannelWrapperCommand)
+
+	// Crafting commands
+	m.commands.Register("craft", m.handleCraftWrapperCommand)
+	m.commands.Register("recipes", m.handleRecipesWrapperCommand)
+	m.commands.Register("stations", m.handleStationsWrapperCommand)
 }
 
 func (m *model) handleInventoryWrapperCommand(_ *model, args []string) {
@@ -125,4 +130,24 @@ func (m *model) handleIgnoreWrapperCommand(_ *model, args []string) {
 
 func (m *model) handleChannelWrapperCommand(_ *model, args []string) {
 	m.handleChannelCommand(args)
+}
+
+func (m *model) handleCraftWrapperCommand(_ *model, args []string) {
+	cmd := "craft"
+	if len(args) > 0 {
+		cmd = fmt.Sprintf("craft %s", strings.Join(args, " "))
+	}
+	m.handleCraftCommand(cmd)
+}
+
+func (m *model) handleRecipesWrapperCommand(_ *model, args []string) {
+	cmd := "recipes"
+	if len(args) > 0 {
+		cmd = fmt.Sprintf("recipes %s", strings.Join(args, " "))
+	}
+	m.handleRecipesCommand(cmd)
+}
+
+func (m *model) handleStationsWrapperCommand(_ *model, args []string) {
+	m.handleStationsCommand()
 }
