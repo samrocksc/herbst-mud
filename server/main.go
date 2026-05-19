@@ -268,6 +268,12 @@ func main() {
 	// Register faction routes
 	routes.RegisterFactionRoutes(router, repos, client)
 
+	// Register crafting recipe routes (CRAFT-003)
+	routes.RegisterCraftingRecipeRoutes(router, repos, client)
+
+	// Register craft endpoint (CRAFT-004)
+	routes.RegisterCraftRoutes(router, repos)
+
 	// Register social command routes
 	routes.RegisterSocialRoutes(router, client)
 	// Register channel config routes

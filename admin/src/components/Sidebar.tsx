@@ -25,6 +25,7 @@ import { QuestsIcon } from "./icons/QuestsIcon";
 import { SocialsIcon } from "./icons/SocialsIcon";
 import { ChannelsIcon } from "./icons/ChannelsIcon";
 import { WorldIcon } from "./icons/WorldIcon";
+import { CraftingIcon } from "./icons/CraftingIcon";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard", Icon: DashboardIcon },
@@ -32,6 +33,7 @@ const navItems = [
   { label: "Config", path: "/config", Icon: ConfigIcon },
   { label: "Factions", path: "/factions", Icon: FactionsIcon },
   { label: "Items", path: "/items", Icon: ItemsIcon },
+  { label: "Recipes", path: "/recipes", Icon: CraftingIcon },
   { label: "Abilities", path: "/abilities", Icon: AbilitiesIcon },
   { label: "Effects", path: "/effects", Icon: EffectsIcon },
   { label: "Socials", path: "/socials", Icon: SocialsIcon },

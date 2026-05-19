@@ -37,6 +37,7 @@ type Container struct {
 	OfflineTell          OfflineTellRepo
 	Ignore               IgnoreRepo
 	World                WorldRepo
+	CraftingRecipe       CraftingRecipeRepo
 }
 
 // NewContainer creates all ent-backed repositories.
@@ -73,5 +74,6 @@ func NewContainer(client *db.Client) *Container {
 		OfflineTell:           NewEntOfflineTellRepo(client),
 		Ignore:               NewEntIgnoreRepo(client),
 		World:                NewEntWorldRepo(client),
+		CraftingRecipe:       NewEntCraftingRecipeRepo(client),
 	}
 }

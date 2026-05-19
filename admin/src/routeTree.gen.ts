@@ -36,6 +36,7 @@ import { Route as AuthTellQueueRouteImport } from './routes/_auth/tell-queue'
 import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
 import { Route as AuthSocialsRouteImport } from './routes/_auth/socials'
 import { Route as AuthSkillsRouteImport } from './routes/_auth/skills'
+import { Route as AuthRecipesRouteImport } from './routes/_auth/recipes'
 import { Route as AuthRacesRouteImport } from './routes/_auth/races'
 import { Route as AuthQuestsRouteImport } from './routes/_auth/quests'
 import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
@@ -202,6 +203,11 @@ const AuthSocialsRoute = AuthSocialsRouteImport.update({
 const AuthSkillsRoute = AuthSkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRecipesRoute = AuthRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthRacesRoute = AuthRacesRouteImport.update({
@@ -395,6 +401,7 @@ export interface FileRoutesByFullPath {
   '/players': typeof AuthPlayersRoute
   '/quests': typeof AuthQuestsRouteWithChildren
   '/races': typeof AuthRacesRoute
+  '/recipes': typeof AuthRecipesRoute
   '/skills': typeof AuthSkillsRoute
   '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
@@ -454,6 +461,7 @@ export interface FileRoutesByTo {
   '/players': typeof AuthPlayersRoute
   '/quests': typeof AuthQuestsRouteWithChildren
   '/races': typeof AuthRacesRoute
+  '/recipes': typeof AuthRecipesRoute
   '/skills': typeof AuthSkillsRoute
   '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
@@ -516,6 +524,7 @@ export interface FileRoutesById {
   '/_auth/players': typeof AuthPlayersRoute
   '/_auth/quests': typeof AuthQuestsRouteWithChildren
   '/_auth/races': typeof AuthRacesRoute
+  '/_auth/recipes': typeof AuthRecipesRoute
   '/_auth/skills': typeof AuthSkillsRoute
   '/_auth/socials': typeof AuthSocialsRouteWithChildren
   '/_auth/tags': typeof AuthTagsRoute
@@ -579,6 +588,7 @@ export interface FileRouteTypes {
     | '/players'
     | '/quests'
     | '/races'
+    | '/recipes'
     | '/skills'
     | '/socials'
     | '/tags'
@@ -638,6 +648,7 @@ export interface FileRouteTypes {
     | '/players'
     | '/quests'
     | '/races'
+    | '/recipes'
     | '/skills'
     | '/socials'
     | '/tags'
@@ -699,6 +710,7 @@ export interface FileRouteTypes {
     | '/_auth/players'
     | '/_auth/quests'
     | '/_auth/races'
+    | '/_auth/recipes'
     | '/_auth/skills'
     | '/_auth/socials'
     | '/_auth/tags'
@@ -940,6 +952,13 @@ declare module '@tanstack/react-router' {
       path: '/skills'
       fullPath: '/skills'
       preLoaderRoute: typeof AuthSkillsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/recipes': {
+      id: '/_auth/recipes'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof AuthRecipesRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/races': {
@@ -1325,6 +1344,7 @@ interface AuthRouteChildren {
   AuthPlayersRoute: typeof AuthPlayersRoute
   AuthQuestsRoute: typeof AuthQuestsRouteWithChildren
   AuthRacesRoute: typeof AuthRacesRoute
+  AuthRecipesRoute: typeof AuthRecipesRoute
   AuthSkillsRoute: typeof AuthSkillsRoute
   AuthSocialsRoute: typeof AuthSocialsRouteWithChildren
   AuthTagsRoute: typeof AuthTagsRoute
@@ -1347,6 +1367,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthPlayersRoute: AuthPlayersRoute,
   AuthQuestsRoute: AuthQuestsRouteWithChildren,
   AuthRacesRoute: AuthRacesRoute,
+  AuthRecipesRoute: AuthRecipesRoute,
   AuthSkillsRoute: AuthSkillsRoute,
   AuthSocialsRoute: AuthSocialsRouteWithChildren,
   AuthTagsRoute: AuthTagsRoute,
