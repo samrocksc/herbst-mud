@@ -81,6 +81,12 @@ func (_c *RoomCreate) SetNillableAtmosphere(v *room.Atmosphere) *RoomCreate {
 	return _c
 }
 
+// SetTags sets the "tags" field.
+func (_c *RoomCreate) SetTags(v []string) *RoomCreate {
+	_c.mutation.SetTags(v)
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_c *RoomCreate) AddCharacterIDs(ids ...int) *RoomCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -234,6 +240,10 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Atmosphere(); ok {
 		_spec.SetField(room.FieldAtmosphere, field.TypeEnum, value)
 		_node.Atmosphere = value
+	}
+	if value, ok := _c.mutation.Tags(); ok {
+		_spec.SetField(room.FieldTags, field.TypeJSON, value)
+		_node.Tags = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

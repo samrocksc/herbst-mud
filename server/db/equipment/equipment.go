@@ -66,6 +66,8 @@ const (
 	FieldHiddenThreshold = "hidden_threshold"
 	// FieldExpiresAt holds the string denoting the expiresat field in the database.
 	FieldExpiresAt = "expires_at"
+	// FieldQuantity holds the string denoting the quantity field in the database.
+	FieldQuantity = "quantity"
 	// FieldArmorRating holds the string denoting the armor_rating field in the database.
 	FieldArmorRating = "armor_rating"
 	// FieldArmorType holds the string denoting the armor_type field in the database.
@@ -142,6 +144,7 @@ var Columns = []string{
 	FieldHiddenDetails,
 	FieldHiddenThreshold,
 	FieldExpiresAt,
+	FieldQuantity,
 	FieldArmorRating,
 	FieldArmorType,
 	FieldStats,
@@ -218,6 +221,8 @@ var (
 	DefaultHiddenDetails []map[string]interface{}
 	// DefaultHiddenThreshold holds the default value on creation for the "hiddenThreshold" field.
 	DefaultHiddenThreshold int
+	// DefaultQuantity holds the default value on creation for the "quantity" field.
+	DefaultQuantity int
 	// DefaultArmorRating holds the default value on creation for the "armor_rating" field.
 	DefaultArmorRating int
 	// DefaultArmorType holds the default value on creation for the "armor_type" field.
@@ -380,6 +385,11 @@ func ByHiddenThreshold(opts ...sql.OrderTermOption) OrderOption {
 // ByExpiresAt orders the results by the expiresAt field.
 func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
+}
+
+// ByQuantity orders the results by the quantity field.
+func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
 }
 
 // ByArmorRating orders the results by the armor_rating field.

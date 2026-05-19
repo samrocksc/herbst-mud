@@ -426,6 +426,7 @@ var (
 		{Name: "is_root_room", Type: field.TypeBool, Default: false},
 		{Name: "exits", Type: field.TypeJSON},
 		{Name: "atmosphere", Type: field.TypeEnum, Enums: []string{"air", "water", "wind"}, Default: "air"},
+		{Name: "tags", Type: field.TypeJSON, Nullable: true},
 	}
 	// RoomsTable holds the schema information for the "rooms" table.
 	RoomsTable = &schema.Table{

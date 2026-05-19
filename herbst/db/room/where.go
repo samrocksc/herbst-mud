@@ -244,6 +244,16 @@ func AtmosphereNotIn(vs ...Atmosphere) predicate.Room {
 	return predicate.Room(sql.FieldNotIn(FieldAtmosphere, vs...))
 }
 
+// TagsIsNil applies the IsNil predicate on the "tags" field.
+func TagsIsNil() predicate.Room {
+	return predicate.Room(sql.FieldIsNull(FieldTags))
+}
+
+// TagsNotNil applies the NotNil predicate on the "tags" field.
+func TagsNotNil() predicate.Room {
+	return predicate.Room(sql.FieldNotNull(FieldTags))
+}
+
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
 func HasCharacters() predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {

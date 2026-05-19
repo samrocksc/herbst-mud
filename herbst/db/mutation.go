@@ -16600,6 +16600,8 @@ type RoomMutation struct {
 	isRootRoom        *bool
 	exits             *map[string]int
 	atmosphere        *room.Atmosphere
+	tags              *[]string
+	appendtags        []string
 	clearedFields     map[string]struct{}
 	characters        map[int]struct{}
 	removedcharacters map[int]struct{}
@@ -16926,6 +16928,71 @@ func (m *RoomMutation) ResetAtmosphere() {
 	m.atmosphere = nil
 }
 
+// SetTags sets the "tags" field.
+func (m *RoomMutation) SetTags(s []string) {
+	m.tags = &s
+	m.appendtags = nil
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *RoomMutation) Tags() (r []string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// AppendTags adds s to the "tags" field.
+func (m *RoomMutation) AppendTags(s []string) {
+	m.appendtags = append(m.appendtags, s...)
+}
+
+// AppendedTags returns the list of values that were appended to the "tags" field in this mutation.
+func (m *RoomMutation) AppendedTags() ([]string, bool) {
+	if len(m.appendtags) == 0 {
+		return nil, false
+	}
+	return m.appendtags, true
+}
+
+// ClearTags clears the value of the "tags" field.
+func (m *RoomMutation) ClearTags() {
+	m.tags = nil
+	m.appendtags = nil
+	m.clearedFields[room.FieldTags] = struct{}{}
+}
+
+// TagsCleared returns if the "tags" field was cleared in this mutation.
+func (m *RoomMutation) TagsCleared() bool {
+	_, ok := m.clearedFields[room.FieldTags]
+	return ok
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *RoomMutation) ResetTags() {
+	m.tags = nil
+	m.appendtags = nil
+	delete(m.clearedFields, room.FieldTags)
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
 func (m *RoomMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -17068,7 +17135,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
@@ -17086,6 +17153,9 @@ func (m *RoomMutation) Fields() []string {
 	}
 	if m.atmosphere != nil {
 		fields = append(fields, room.FieldAtmosphere)
+	}
+	if m.tags != nil {
+		fields = append(fields, room.FieldTags)
 	}
 	return fields
 }
@@ -17107,6 +17177,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.Exits()
 	case room.FieldAtmosphere:
 		return m.Atmosphere()
+	case room.FieldTags:
+		return m.Tags()
 	}
 	return nil, false
 }
@@ -17128,6 +17200,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldExits(ctx)
 	case room.FieldAtmosphere:
 		return m.OldAtmosphere(ctx)
+	case room.FieldTags:
+		return m.OldTags(ctx)
 	}
 	return nil, fmt.Errorf("unknown Room field %s", name)
 }
@@ -17179,6 +17253,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAtmosphere(v)
 		return nil
+	case room.FieldTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)
 }
@@ -17208,7 +17289,11 @@ func (m *RoomMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *RoomMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(room.FieldTags) {
+		fields = append(fields, room.FieldTags)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -17221,6 +17306,11 @@ func (m *RoomMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *RoomMutation) ClearField(name string) error {
+	switch name {
+	case room.FieldTags:
+		m.ClearTags()
+		return nil
+	}
 	return fmt.Errorf("unknown Room nullable field %s", name)
 }
 
@@ -17245,6 +17335,9 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldAtmosphere:
 		m.ResetAtmosphere()
+		return nil
+	case room.FieldTags:
+		m.ResetTags()
 		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)

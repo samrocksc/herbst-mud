@@ -524,6 +524,16 @@ func VersionLTE(v int) predicate.Room {
 	return predicate.Room(sql.FieldLTE(FieldVersion, v))
 }
 
+// TagsIsNil applies the IsNil predicate on the "tags" field.
+func TagsIsNil() predicate.Room {
+	return predicate.Room(sql.FieldIsNull(FieldTags))
+}
+
+// TagsNotNil applies the NotNil predicate on the "tags" field.
+func TagsNotNil() predicate.Room {
+	return predicate.Room(sql.FieldNotNull(FieldTags))
+}
+
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
 func HasCharacters() predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {

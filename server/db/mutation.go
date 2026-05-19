@@ -21,6 +21,7 @@ import (
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/db/craftingrecipe"
 	"herbst-server/db/damagelog"
 	"herbst-server/db/dialognode"
 	"herbst-server/db/effect"
@@ -76,6 +77,7 @@ const (
 	TypeCharacterTag             = "CharacterTag"
 	TypeCompetencyCategory       = "CompetencyCategory"
 	TypeCompetencyLevelThreshold = "CompetencyLevelThreshold"
+	TypeCraftingRecipe           = "CraftingRecipe"
 	TypeDamageLog                = "DamageLog"
 	TypeDialogNode               = "DialogNode"
 	TypeEffect                   = "Effect"
@@ -15316,6 +15318,1033 @@ func (m *CompetencyLevelThresholdMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown CompetencyLevelThreshold edge %s", name)
 }
 
+// CraftingRecipeMutation represents an operation that mutates the CraftingRecipe nodes in the graph.
+type CraftingRecipeMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int
+	name                    *string
+	display_name            *string
+	description             *string
+	required_station_tag    *string
+	required_class          *string
+	required_skill_level    *int
+	addrequired_skill_level *int
+	required_skill          *string
+	inputs                  *[]schema.CraftingInput
+	appendinputs            []schema.CraftingInput
+	outputs                 *[]schema.CraftingOutput
+	appendoutputs           []schema.CraftingOutput
+	craft_time_secs         *int
+	addcraft_time_secs      *int
+	world_id                *string
+	clearedFields           map[string]struct{}
+	done                    bool
+	oldValue                func(context.Context) (*CraftingRecipe, error)
+	predicates              []predicate.CraftingRecipe
+}
+
+var _ ent.Mutation = (*CraftingRecipeMutation)(nil)
+
+// craftingrecipeOption allows management of the mutation configuration using functional options.
+type craftingrecipeOption func(*CraftingRecipeMutation)
+
+// newCraftingRecipeMutation creates new mutation for the CraftingRecipe entity.
+func newCraftingRecipeMutation(c config, op Op, opts ...craftingrecipeOption) *CraftingRecipeMutation {
+	m := &CraftingRecipeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCraftingRecipe,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCraftingRecipeID sets the ID field of the mutation.
+func withCraftingRecipeID(id int) craftingrecipeOption {
+	return func(m *CraftingRecipeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CraftingRecipe
+		)
+		m.oldValue = func(ctx context.Context) (*CraftingRecipe, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CraftingRecipe.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCraftingRecipe sets the old CraftingRecipe of the mutation.
+func withCraftingRecipe(node *CraftingRecipe) craftingrecipeOption {
+	return func(m *CraftingRecipeMutation) {
+		m.oldValue = func(context.Context) (*CraftingRecipe, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CraftingRecipeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CraftingRecipeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CraftingRecipeMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CraftingRecipeMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CraftingRecipe.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *CraftingRecipeMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CraftingRecipeMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CraftingRecipeMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDisplayName sets the "display_name" field.
+func (m *CraftingRecipeMutation) SetDisplayName(s string) {
+	m.display_name = &s
+}
+
+// DisplayName returns the value of the "display_name" field in the mutation.
+func (m *CraftingRecipeMutation) DisplayName() (r string, exists bool) {
+	v := m.display_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayName returns the old "display_name" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldDisplayName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayName: %w", err)
+	}
+	return oldValue.DisplayName, nil
+}
+
+// ResetDisplayName resets all changes to the "display_name" field.
+func (m *CraftingRecipeMutation) ResetDisplayName() {
+	m.display_name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *CraftingRecipeMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *CraftingRecipeMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *CraftingRecipeMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[craftingrecipe.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *CraftingRecipeMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[craftingrecipe.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *CraftingRecipeMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, craftingrecipe.FieldDescription)
+}
+
+// SetRequiredStationTag sets the "required_station_tag" field.
+func (m *CraftingRecipeMutation) SetRequiredStationTag(s string) {
+	m.required_station_tag = &s
+}
+
+// RequiredStationTag returns the value of the "required_station_tag" field in the mutation.
+func (m *CraftingRecipeMutation) RequiredStationTag() (r string, exists bool) {
+	v := m.required_station_tag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiredStationTag returns the old "required_station_tag" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldRequiredStationTag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiredStationTag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiredStationTag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiredStationTag: %w", err)
+	}
+	return oldValue.RequiredStationTag, nil
+}
+
+// ResetRequiredStationTag resets all changes to the "required_station_tag" field.
+func (m *CraftingRecipeMutation) ResetRequiredStationTag() {
+	m.required_station_tag = nil
+}
+
+// SetRequiredClass sets the "required_class" field.
+func (m *CraftingRecipeMutation) SetRequiredClass(s string) {
+	m.required_class = &s
+}
+
+// RequiredClass returns the value of the "required_class" field in the mutation.
+func (m *CraftingRecipeMutation) RequiredClass() (r string, exists bool) {
+	v := m.required_class
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiredClass returns the old "required_class" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldRequiredClass(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiredClass is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiredClass requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiredClass: %w", err)
+	}
+	return oldValue.RequiredClass, nil
+}
+
+// ClearRequiredClass clears the value of the "required_class" field.
+func (m *CraftingRecipeMutation) ClearRequiredClass() {
+	m.required_class = nil
+	m.clearedFields[craftingrecipe.FieldRequiredClass] = struct{}{}
+}
+
+// RequiredClassCleared returns if the "required_class" field was cleared in this mutation.
+func (m *CraftingRecipeMutation) RequiredClassCleared() bool {
+	_, ok := m.clearedFields[craftingrecipe.FieldRequiredClass]
+	return ok
+}
+
+// ResetRequiredClass resets all changes to the "required_class" field.
+func (m *CraftingRecipeMutation) ResetRequiredClass() {
+	m.required_class = nil
+	delete(m.clearedFields, craftingrecipe.FieldRequiredClass)
+}
+
+// SetRequiredSkillLevel sets the "required_skill_level" field.
+func (m *CraftingRecipeMutation) SetRequiredSkillLevel(i int) {
+	m.required_skill_level = &i
+	m.addrequired_skill_level = nil
+}
+
+// RequiredSkillLevel returns the value of the "required_skill_level" field in the mutation.
+func (m *CraftingRecipeMutation) RequiredSkillLevel() (r int, exists bool) {
+	v := m.required_skill_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiredSkillLevel returns the old "required_skill_level" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldRequiredSkillLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiredSkillLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiredSkillLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiredSkillLevel: %w", err)
+	}
+	return oldValue.RequiredSkillLevel, nil
+}
+
+// AddRequiredSkillLevel adds i to the "required_skill_level" field.
+func (m *CraftingRecipeMutation) AddRequiredSkillLevel(i int) {
+	if m.addrequired_skill_level != nil {
+		*m.addrequired_skill_level += i
+	} else {
+		m.addrequired_skill_level = &i
+	}
+}
+
+// AddedRequiredSkillLevel returns the value that was added to the "required_skill_level" field in this mutation.
+func (m *CraftingRecipeMutation) AddedRequiredSkillLevel() (r int, exists bool) {
+	v := m.addrequired_skill_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRequiredSkillLevel resets all changes to the "required_skill_level" field.
+func (m *CraftingRecipeMutation) ResetRequiredSkillLevel() {
+	m.required_skill_level = nil
+	m.addrequired_skill_level = nil
+}
+
+// SetRequiredSkill sets the "required_skill" field.
+func (m *CraftingRecipeMutation) SetRequiredSkill(s string) {
+	m.required_skill = &s
+}
+
+// RequiredSkill returns the value of the "required_skill" field in the mutation.
+func (m *CraftingRecipeMutation) RequiredSkill() (r string, exists bool) {
+	v := m.required_skill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiredSkill returns the old "required_skill" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldRequiredSkill(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiredSkill is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiredSkill requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiredSkill: %w", err)
+	}
+	return oldValue.RequiredSkill, nil
+}
+
+// ClearRequiredSkill clears the value of the "required_skill" field.
+func (m *CraftingRecipeMutation) ClearRequiredSkill() {
+	m.required_skill = nil
+	m.clearedFields[craftingrecipe.FieldRequiredSkill] = struct{}{}
+}
+
+// RequiredSkillCleared returns if the "required_skill" field was cleared in this mutation.
+func (m *CraftingRecipeMutation) RequiredSkillCleared() bool {
+	_, ok := m.clearedFields[craftingrecipe.FieldRequiredSkill]
+	return ok
+}
+
+// ResetRequiredSkill resets all changes to the "required_skill" field.
+func (m *CraftingRecipeMutation) ResetRequiredSkill() {
+	m.required_skill = nil
+	delete(m.clearedFields, craftingrecipe.FieldRequiredSkill)
+}
+
+// SetInputs sets the "inputs" field.
+func (m *CraftingRecipeMutation) SetInputs(si []schema.CraftingInput) {
+	m.inputs = &si
+	m.appendinputs = nil
+}
+
+// Inputs returns the value of the "inputs" field in the mutation.
+func (m *CraftingRecipeMutation) Inputs() (r []schema.CraftingInput, exists bool) {
+	v := m.inputs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInputs returns the old "inputs" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldInputs(ctx context.Context) (v []schema.CraftingInput, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInputs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInputs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInputs: %w", err)
+	}
+	return oldValue.Inputs, nil
+}
+
+// AppendInputs adds si to the "inputs" field.
+func (m *CraftingRecipeMutation) AppendInputs(si []schema.CraftingInput) {
+	m.appendinputs = append(m.appendinputs, si...)
+}
+
+// AppendedInputs returns the list of values that were appended to the "inputs" field in this mutation.
+func (m *CraftingRecipeMutation) AppendedInputs() ([]schema.CraftingInput, bool) {
+	if len(m.appendinputs) == 0 {
+		return nil, false
+	}
+	return m.appendinputs, true
+}
+
+// ResetInputs resets all changes to the "inputs" field.
+func (m *CraftingRecipeMutation) ResetInputs() {
+	m.inputs = nil
+	m.appendinputs = nil
+}
+
+// SetOutputs sets the "outputs" field.
+func (m *CraftingRecipeMutation) SetOutputs(so []schema.CraftingOutput) {
+	m.outputs = &so
+	m.appendoutputs = nil
+}
+
+// Outputs returns the value of the "outputs" field in the mutation.
+func (m *CraftingRecipeMutation) Outputs() (r []schema.CraftingOutput, exists bool) {
+	v := m.outputs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutputs returns the old "outputs" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldOutputs(ctx context.Context) (v []schema.CraftingOutput, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutputs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutputs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutputs: %w", err)
+	}
+	return oldValue.Outputs, nil
+}
+
+// AppendOutputs adds so to the "outputs" field.
+func (m *CraftingRecipeMutation) AppendOutputs(so []schema.CraftingOutput) {
+	m.appendoutputs = append(m.appendoutputs, so...)
+}
+
+// AppendedOutputs returns the list of values that were appended to the "outputs" field in this mutation.
+func (m *CraftingRecipeMutation) AppendedOutputs() ([]schema.CraftingOutput, bool) {
+	if len(m.appendoutputs) == 0 {
+		return nil, false
+	}
+	return m.appendoutputs, true
+}
+
+// ResetOutputs resets all changes to the "outputs" field.
+func (m *CraftingRecipeMutation) ResetOutputs() {
+	m.outputs = nil
+	m.appendoutputs = nil
+}
+
+// SetCraftTimeSecs sets the "craft_time_secs" field.
+func (m *CraftingRecipeMutation) SetCraftTimeSecs(i int) {
+	m.craft_time_secs = &i
+	m.addcraft_time_secs = nil
+}
+
+// CraftTimeSecs returns the value of the "craft_time_secs" field in the mutation.
+func (m *CraftingRecipeMutation) CraftTimeSecs() (r int, exists bool) {
+	v := m.craft_time_secs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCraftTimeSecs returns the old "craft_time_secs" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldCraftTimeSecs(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCraftTimeSecs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCraftTimeSecs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCraftTimeSecs: %w", err)
+	}
+	return oldValue.CraftTimeSecs, nil
+}
+
+// AddCraftTimeSecs adds i to the "craft_time_secs" field.
+func (m *CraftingRecipeMutation) AddCraftTimeSecs(i int) {
+	if m.addcraft_time_secs != nil {
+		*m.addcraft_time_secs += i
+	} else {
+		m.addcraft_time_secs = &i
+	}
+}
+
+// AddedCraftTimeSecs returns the value that was added to the "craft_time_secs" field in this mutation.
+func (m *CraftingRecipeMutation) AddedCraftTimeSecs() (r int, exists bool) {
+	v := m.addcraft_time_secs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCraftTimeSecs resets all changes to the "craft_time_secs" field.
+func (m *CraftingRecipeMutation) ResetCraftTimeSecs() {
+	m.craft_time_secs = nil
+	m.addcraft_time_secs = nil
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *CraftingRecipeMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *CraftingRecipeMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the CraftingRecipe entity.
+// If the CraftingRecipe object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CraftingRecipeMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *CraftingRecipeMutation) ResetWorldID() {
+	m.world_id = nil
+}
+
+// Where appends a list predicates to the CraftingRecipeMutation builder.
+func (m *CraftingRecipeMutation) Where(ps ...predicate.CraftingRecipe) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CraftingRecipeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CraftingRecipeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CraftingRecipe, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CraftingRecipeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CraftingRecipeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CraftingRecipe).
+func (m *CraftingRecipeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CraftingRecipeMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.name != nil {
+		fields = append(fields, craftingrecipe.FieldName)
+	}
+	if m.display_name != nil {
+		fields = append(fields, craftingrecipe.FieldDisplayName)
+	}
+	if m.description != nil {
+		fields = append(fields, craftingrecipe.FieldDescription)
+	}
+	if m.required_station_tag != nil {
+		fields = append(fields, craftingrecipe.FieldRequiredStationTag)
+	}
+	if m.required_class != nil {
+		fields = append(fields, craftingrecipe.FieldRequiredClass)
+	}
+	if m.required_skill_level != nil {
+		fields = append(fields, craftingrecipe.FieldRequiredSkillLevel)
+	}
+	if m.required_skill != nil {
+		fields = append(fields, craftingrecipe.FieldRequiredSkill)
+	}
+	if m.inputs != nil {
+		fields = append(fields, craftingrecipe.FieldInputs)
+	}
+	if m.outputs != nil {
+		fields = append(fields, craftingrecipe.FieldOutputs)
+	}
+	if m.craft_time_secs != nil {
+		fields = append(fields, craftingrecipe.FieldCraftTimeSecs)
+	}
+	if m.world_id != nil {
+		fields = append(fields, craftingrecipe.FieldWorldID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CraftingRecipeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case craftingrecipe.FieldName:
+		return m.Name()
+	case craftingrecipe.FieldDisplayName:
+		return m.DisplayName()
+	case craftingrecipe.FieldDescription:
+		return m.Description()
+	case craftingrecipe.FieldRequiredStationTag:
+		return m.RequiredStationTag()
+	case craftingrecipe.FieldRequiredClass:
+		return m.RequiredClass()
+	case craftingrecipe.FieldRequiredSkillLevel:
+		return m.RequiredSkillLevel()
+	case craftingrecipe.FieldRequiredSkill:
+		return m.RequiredSkill()
+	case craftingrecipe.FieldInputs:
+		return m.Inputs()
+	case craftingrecipe.FieldOutputs:
+		return m.Outputs()
+	case craftingrecipe.FieldCraftTimeSecs:
+		return m.CraftTimeSecs()
+	case craftingrecipe.FieldWorldID:
+		return m.WorldID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CraftingRecipeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case craftingrecipe.FieldName:
+		return m.OldName(ctx)
+	case craftingrecipe.FieldDisplayName:
+		return m.OldDisplayName(ctx)
+	case craftingrecipe.FieldDescription:
+		return m.OldDescription(ctx)
+	case craftingrecipe.FieldRequiredStationTag:
+		return m.OldRequiredStationTag(ctx)
+	case craftingrecipe.FieldRequiredClass:
+		return m.OldRequiredClass(ctx)
+	case craftingrecipe.FieldRequiredSkillLevel:
+		return m.OldRequiredSkillLevel(ctx)
+	case craftingrecipe.FieldRequiredSkill:
+		return m.OldRequiredSkill(ctx)
+	case craftingrecipe.FieldInputs:
+		return m.OldInputs(ctx)
+	case craftingrecipe.FieldOutputs:
+		return m.OldOutputs(ctx)
+	case craftingrecipe.FieldCraftTimeSecs:
+		return m.OldCraftTimeSecs(ctx)
+	case craftingrecipe.FieldWorldID:
+		return m.OldWorldID(ctx)
+	}
+	return nil, fmt.Errorf("unknown CraftingRecipe field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CraftingRecipeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case craftingrecipe.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case craftingrecipe.FieldDisplayName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayName(v)
+		return nil
+	case craftingrecipe.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case craftingrecipe.FieldRequiredStationTag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiredStationTag(v)
+		return nil
+	case craftingrecipe.FieldRequiredClass:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiredClass(v)
+		return nil
+	case craftingrecipe.FieldRequiredSkillLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiredSkillLevel(v)
+		return nil
+	case craftingrecipe.FieldRequiredSkill:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiredSkill(v)
+		return nil
+	case craftingrecipe.FieldInputs:
+		v, ok := value.([]schema.CraftingInput)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInputs(v)
+		return nil
+	case craftingrecipe.FieldOutputs:
+		v, ok := value.([]schema.CraftingOutput)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutputs(v)
+		return nil
+	case craftingrecipe.FieldCraftTimeSecs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCraftTimeSecs(v)
+		return nil
+	case craftingrecipe.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CraftingRecipe field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CraftingRecipeMutation) AddedFields() []string {
+	var fields []string
+	if m.addrequired_skill_level != nil {
+		fields = append(fields, craftingrecipe.FieldRequiredSkillLevel)
+	}
+	if m.addcraft_time_secs != nil {
+		fields = append(fields, craftingrecipe.FieldCraftTimeSecs)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CraftingRecipeMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case craftingrecipe.FieldRequiredSkillLevel:
+		return m.AddedRequiredSkillLevel()
+	case craftingrecipe.FieldCraftTimeSecs:
+		return m.AddedCraftTimeSecs()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CraftingRecipeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case craftingrecipe.FieldRequiredSkillLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRequiredSkillLevel(v)
+		return nil
+	case craftingrecipe.FieldCraftTimeSecs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCraftTimeSecs(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CraftingRecipe numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CraftingRecipeMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(craftingrecipe.FieldDescription) {
+		fields = append(fields, craftingrecipe.FieldDescription)
+	}
+	if m.FieldCleared(craftingrecipe.FieldRequiredClass) {
+		fields = append(fields, craftingrecipe.FieldRequiredClass)
+	}
+	if m.FieldCleared(craftingrecipe.FieldRequiredSkill) {
+		fields = append(fields, craftingrecipe.FieldRequiredSkill)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CraftingRecipeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CraftingRecipeMutation) ClearField(name string) error {
+	switch name {
+	case craftingrecipe.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case craftingrecipe.FieldRequiredClass:
+		m.ClearRequiredClass()
+		return nil
+	case craftingrecipe.FieldRequiredSkill:
+		m.ClearRequiredSkill()
+		return nil
+	}
+	return fmt.Errorf("unknown CraftingRecipe nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CraftingRecipeMutation) ResetField(name string) error {
+	switch name {
+	case craftingrecipe.FieldName:
+		m.ResetName()
+		return nil
+	case craftingrecipe.FieldDisplayName:
+		m.ResetDisplayName()
+		return nil
+	case craftingrecipe.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case craftingrecipe.FieldRequiredStationTag:
+		m.ResetRequiredStationTag()
+		return nil
+	case craftingrecipe.FieldRequiredClass:
+		m.ResetRequiredClass()
+		return nil
+	case craftingrecipe.FieldRequiredSkillLevel:
+		m.ResetRequiredSkillLevel()
+		return nil
+	case craftingrecipe.FieldRequiredSkill:
+		m.ResetRequiredSkill()
+		return nil
+	case craftingrecipe.FieldInputs:
+		m.ResetInputs()
+		return nil
+	case craftingrecipe.FieldOutputs:
+		m.ResetOutputs()
+		return nil
+	case craftingrecipe.FieldCraftTimeSecs:
+		m.ResetCraftTimeSecs()
+		return nil
+	case craftingrecipe.FieldWorldID:
+		m.ResetWorldID()
+		return nil
+	}
+	return fmt.Errorf("unknown CraftingRecipe field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CraftingRecipeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CraftingRecipeMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CraftingRecipeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CraftingRecipeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CraftingRecipeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CraftingRecipeMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CraftingRecipeMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown CraftingRecipe unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CraftingRecipeMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown CraftingRecipe edge %s", name)
+}
+
 // DamageLogMutation represents an operation that mutates the DamageLog nodes in the graph.
 type DamageLogMutation struct {
 	config
@@ -18403,6 +19432,8 @@ type EquipmentMutation struct {
 	hiddenThreshold            *int
 	addhiddenThreshold         *int
 	expiresAt                  *time.Time
+	quantity                   *int
+	addquantity                *int
 	armor_rating               *int
 	addarmor_rating            *int
 	armor_type                 *string
@@ -19728,6 +20759,62 @@ func (m *EquipmentMutation) ResetExpiresAt() {
 	delete(m.clearedFields, equipment.FieldExpiresAt)
 }
 
+// SetQuantity sets the "quantity" field.
+func (m *EquipmentMutation) SetQuantity(i int) {
+	m.quantity = &i
+	m.addquantity = nil
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *EquipmentMutation) Quantity() (r int, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the Equipment entity.
+// If the Equipment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentMutation) OldQuantity(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// AddQuantity adds i to the "quantity" field.
+func (m *EquipmentMutation) AddQuantity(i int) {
+	if m.addquantity != nil {
+		*m.addquantity += i
+	} else {
+		m.addquantity = &i
+	}
+}
+
+// AddedQuantity returns the value that was added to the "quantity" field in this mutation.
+func (m *EquipmentMutation) AddedQuantity() (r int, exists bool) {
+	v := m.addquantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *EquipmentMutation) ResetQuantity() {
+	m.quantity = nil
+	m.addquantity = nil
+}
+
 // SetArmorRating sets the "armor_rating" field.
 func (m *EquipmentMutation) SetArmorRating(i int) {
 	m.armor_rating = &i
@@ -20360,7 +21447,7 @@ func (m *EquipmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentMutation) Fields() []string {
-	fields := make([]string, 0, 39)
+	fields := make([]string, 0, 40)
 	if m.name != nil {
 		fields = append(fields, equipment.FieldName)
 	}
@@ -20441,6 +21528,9 @@ func (m *EquipmentMutation) Fields() []string {
 	}
 	if m.expiresAt != nil {
 		fields = append(fields, equipment.FieldExpiresAt)
+	}
+	if m.quantity != nil {
+		fields = append(fields, equipment.FieldQuantity)
 	}
 	if m.armor_rating != nil {
 		fields = append(fields, equipment.FieldArmorRating)
@@ -20540,6 +21630,8 @@ func (m *EquipmentMutation) Field(name string) (ent.Value, bool) {
 		return m.HiddenThreshold()
 	case equipment.FieldExpiresAt:
 		return m.ExpiresAt()
+	case equipment.FieldQuantity:
+		return m.Quantity()
 	case equipment.FieldArmorRating:
 		return m.ArmorRating()
 	case equipment.FieldArmorType:
@@ -20627,6 +21719,8 @@ func (m *EquipmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldHiddenThreshold(ctx)
 	case equipment.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
+	case equipment.FieldQuantity:
+		return m.OldQuantity(ctx)
 	case equipment.FieldArmorRating:
 		return m.OldArmorRating(ctx)
 	case equipment.FieldArmorType:
@@ -20849,6 +21943,13 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetExpiresAt(v)
 		return nil
+	case equipment.FieldQuantity:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
 	case equipment.FieldArmorRating:
 		v, ok := value.(int)
 		if !ok {
@@ -20965,6 +22066,9 @@ func (m *EquipmentMutation) AddedFields() []string {
 	if m.addhiddenThreshold != nil {
 		fields = append(fields, equipment.FieldHiddenThreshold)
 	}
+	if m.addquantity != nil {
+		fields = append(fields, equipment.FieldQuantity)
+	}
 	if m.addarmor_rating != nil {
 		fields = append(fields, equipment.FieldArmorRating)
 	}
@@ -21004,6 +22108,8 @@ func (m *EquipmentMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedContainerCapacity()
 	case equipment.FieldHiddenThreshold:
 		return m.AddedHiddenThreshold()
+	case equipment.FieldQuantity:
+		return m.AddedQuantity()
 	case equipment.FieldArmorRating:
 		return m.AddedArmorRating()
 	case equipment.FieldSkillRequirementLevel:
@@ -21078,6 +22184,13 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddHiddenThreshold(v)
+		return nil
+	case equipment.FieldQuantity:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuantity(v)
 		return nil
 	case equipment.FieldArmorRating:
 		v, ok := value.(int)
@@ -21248,6 +22361,9 @@ func (m *EquipmentMutation) ResetField(name string) error {
 		return nil
 	case equipment.FieldExpiresAt:
 		m.ResetExpiresAt()
+		return nil
+	case equipment.FieldQuantity:
+		m.ResetQuantity()
 		return nil
 	case equipment.FieldArmorRating:
 		m.ResetArmorRating()
@@ -31471,6 +32587,8 @@ type RoomMutation struct {
 	addposZ           *int
 	version           *int
 	addversion        *int
+	tags              *[]string
+	appendtags        []string
 	clearedFields     map[string]struct{}
 	characters        map[int]struct{}
 	removedcharacters map[int]struct{}
@@ -32099,6 +33217,71 @@ func (m *RoomMutation) ResetVersion() {
 	m.addversion = nil
 }
 
+// SetTags sets the "tags" field.
+func (m *RoomMutation) SetTags(s []string) {
+	m.tags = &s
+	m.appendtags = nil
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *RoomMutation) Tags() (r []string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// AppendTags adds s to the "tags" field.
+func (m *RoomMutation) AppendTags(s []string) {
+	m.appendtags = append(m.appendtags, s...)
+}
+
+// AppendedTags returns the list of values that were appended to the "tags" field in this mutation.
+func (m *RoomMutation) AppendedTags() ([]string, bool) {
+	if len(m.appendtags) == 0 {
+		return nil, false
+	}
+	return m.appendtags, true
+}
+
+// ClearTags clears the value of the "tags" field.
+func (m *RoomMutation) ClearTags() {
+	m.tags = nil
+	m.appendtags = nil
+	m.clearedFields[room.FieldTags] = struct{}{}
+}
+
+// TagsCleared returns if the "tags" field was cleared in this mutation.
+func (m *RoomMutation) TagsCleared() bool {
+	_, ok := m.clearedFields[room.FieldTags]
+	return ok
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *RoomMutation) ResetTags() {
+	m.tags = nil
+	m.appendtags = nil
+	delete(m.clearedFields, room.FieldTags)
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
 func (m *RoomMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -32241,7 +33424,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
@@ -32275,6 +33458,9 @@ func (m *RoomMutation) Fields() []string {
 	if m.version != nil {
 		fields = append(fields, room.FieldVersion)
 	}
+	if m.tags != nil {
+		fields = append(fields, room.FieldTags)
+	}
 	return fields
 }
 
@@ -32305,6 +33491,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.PosZ()
 	case room.FieldVersion:
 		return m.Version()
+	case room.FieldTags:
+		return m.Tags()
 	}
 	return nil, false
 }
@@ -32336,6 +33524,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPosZ(ctx)
 	case room.FieldVersion:
 		return m.OldVersion(ctx)
+	case room.FieldTags:
+		return m.OldTags(ctx)
 	}
 	return nil, fmt.Errorf("unknown Room field %s", name)
 }
@@ -32421,6 +33611,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetVersion(v)
+		return nil
+	case room.FieldTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)
@@ -32512,6 +33709,9 @@ func (m *RoomMutation) ClearedFields() []string {
 	if m.FieldCleared(room.FieldPosZ) {
 		fields = append(fields, room.FieldPosZ)
 	}
+	if m.FieldCleared(room.FieldTags) {
+		fields = append(fields, room.FieldTags)
+	}
 	return fields
 }
 
@@ -32534,6 +33734,9 @@ func (m *RoomMutation) ClearField(name string) error {
 		return nil
 	case room.FieldPosZ:
 		m.ClearPosZ()
+		return nil
+	case room.FieldTags:
+		m.ClearTags()
 		return nil
 	}
 	return fmt.Errorf("unknown Room nullable field %s", name)
@@ -32575,6 +33778,9 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldVersion:
 		m.ResetVersion()
+		return nil
+	case room.FieldTags:
+		m.ResetTags()
 		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)

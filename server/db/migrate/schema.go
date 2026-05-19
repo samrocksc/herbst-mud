@@ -449,6 +449,27 @@ var (
 			},
 		},
 	}
+	// CraftingRecipesColumns holds the columns for the "crafting_recipes" table.
+	CraftingRecipesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "required_station_tag", Type: field.TypeString},
+		{Name: "required_class", Type: field.TypeString, Nullable: true},
+		{Name: "required_skill_level", Type: field.TypeInt, Default: 0},
+		{Name: "required_skill", Type: field.TypeString, Nullable: true},
+		{Name: "inputs", Type: field.TypeJSON},
+		{Name: "outputs", Type: field.TypeJSON},
+		{Name: "craft_time_secs", Type: field.TypeInt, Default: 3},
+		{Name: "world_id", Type: field.TypeString, Default: "default"},
+	}
+	// CraftingRecipesTable holds the schema information for the "crafting_recipes" table.
+	CraftingRecipesTable = &schema.Table{
+		Name:       "crafting_recipes",
+		Columns:    CraftingRecipesColumns,
+		PrimaryKey: []*schema.Column{CraftingRecipesColumns[0]},
+	}
 	// DamageLogsColumns holds the columns for the "damage_logs" table.
 	DamageLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -567,6 +588,7 @@ var (
 		{Name: "hidden_details", Type: field.TypeJSON},
 		{Name: "hidden_threshold", Type: field.TypeInt, Default: 0},
 		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "quantity", Type: field.TypeInt, Default: 1},
 		{Name: "armor_rating", Type: field.TypeInt, Default: 0},
 		{Name: "armor_type", Type: field.TypeString, Default: ""},
 		{Name: "stats", Type: field.TypeJSON},
@@ -590,13 +612,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "equipment_equipment_templates_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[39]},
+				Columns:    []*schema.Column{EquipmentColumns[40]},
 				RefColumns: []*schema.Column{EquipmentTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "equipment_rooms_equipment",
-				Columns:    []*schema.Column{EquipmentColumns[40]},
+				Columns:    []*schema.Column{EquipmentColumns[41]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -847,6 +869,7 @@ var (
 		{Name: "posy", Type: field.TypeInt, Nullable: true, Default: 0},
 		{Name: "posz", Type: field.TypeInt, Nullable: true, Default: 0},
 		{Name: "version", Type: field.TypeInt, Default: 1},
+		{Name: "tags", Type: field.TypeJSON, Nullable: true},
 	}
 	// RoomsTable holds the schema information for the "rooms" table.
 	RoomsTable = &schema.Table{
@@ -1031,6 +1054,7 @@ var (
 		CharacterTagsTable,
 		CompetencyCategoriesTable,
 		CompetencyLevelThresholdsTable,
+		CraftingRecipesTable,
 		DamageLogsTable,
 		DialogNodesTable,
 		EffectsTable,

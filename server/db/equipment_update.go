@@ -487,6 +487,27 @@ func (_u *EquipmentUpdate) ClearExpiresAt() *EquipmentUpdate {
 	return _u
 }
 
+// SetQuantity sets the "quantity" field.
+func (_u *EquipmentUpdate) SetQuantity(v int) *EquipmentUpdate {
+	_u.mutation.ResetQuantity()
+	_u.mutation.SetQuantity(v)
+	return _u
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (_u *EquipmentUpdate) SetNillableQuantity(v *int) *EquipmentUpdate {
+	if v != nil {
+		_u.SetQuantity(*v)
+	}
+	return _u
+}
+
+// AddQuantity adds value to the "quantity" field.
+func (_u *EquipmentUpdate) AddQuantity(v int) *EquipmentUpdate {
+	_u.mutation.AddQuantity(v)
+	return _u
+}
+
 // SetArmorRating sets the "armor_rating" field.
 func (_u *EquipmentUpdate) SetArmorRating(v int) *EquipmentUpdate {
 	_u.mutation.ResetArmorRating()
@@ -874,6 +895,12 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ExpiresAtCleared() {
 		_spec.ClearField(equipment.FieldExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Quantity(); ok {
+		_spec.SetField(equipment.FieldQuantity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedQuantity(); ok {
+		_spec.AddField(equipment.FieldQuantity, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.ArmorRating(); ok {
 		_spec.SetField(equipment.FieldArmorRating, field.TypeInt, value)
@@ -1460,6 +1487,27 @@ func (_u *EquipmentUpdateOne) ClearExpiresAt() *EquipmentUpdateOne {
 	return _u
 }
 
+// SetQuantity sets the "quantity" field.
+func (_u *EquipmentUpdateOne) SetQuantity(v int) *EquipmentUpdateOne {
+	_u.mutation.ResetQuantity()
+	_u.mutation.SetQuantity(v)
+	return _u
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (_u *EquipmentUpdateOne) SetNillableQuantity(v *int) *EquipmentUpdateOne {
+	if v != nil {
+		_u.SetQuantity(*v)
+	}
+	return _u
+}
+
+// AddQuantity adds value to the "quantity" field.
+func (_u *EquipmentUpdateOne) AddQuantity(v int) *EquipmentUpdateOne {
+	_u.mutation.AddQuantity(v)
+	return _u
+}
+
 // SetArmorRating sets the "armor_rating" field.
 func (_u *EquipmentUpdateOne) SetArmorRating(v int) *EquipmentUpdateOne {
 	_u.mutation.ResetArmorRating()
@@ -1877,6 +1925,12 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 	}
 	if _u.mutation.ExpiresAtCleared() {
 		_spec.ClearField(equipment.FieldExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Quantity(); ok {
+		_spec.SetField(equipment.FieldQuantity, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedQuantity(); ok {
+		_spec.AddField(equipment.FieldQuantity, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.ArmorRating(); ok {
 		_spec.SetField(equipment.FieldArmorRating, field.TypeInt, value)

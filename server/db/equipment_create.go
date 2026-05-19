@@ -368,6 +368,20 @@ func (_c *EquipmentCreate) SetNillableExpiresAt(v *time.Time) *EquipmentCreate {
 	return _c
 }
 
+// SetQuantity sets the "quantity" field.
+func (_c *EquipmentCreate) SetQuantity(v int) *EquipmentCreate {
+	_c.mutation.SetQuantity(v)
+	return _c
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (_c *EquipmentCreate) SetNillableQuantity(v *int) *EquipmentCreate {
+	if v != nil {
+		_c.SetQuantity(*v)
+	}
+	return _c
+}
+
 // SetArmorRating sets the "armor_rating" field.
 func (_c *EquipmentCreate) SetArmorRating(v int) *EquipmentCreate {
 	_c.mutation.SetArmorRating(v)
@@ -667,6 +681,10 @@ func (_c *EquipmentCreate) defaults() {
 		v := equipment.DefaultHiddenThreshold
 		_c.mutation.SetHiddenThreshold(v)
 	}
+	if _, ok := _c.mutation.Quantity(); !ok {
+		v := equipment.DefaultQuantity
+		_c.mutation.SetQuantity(v)
+	}
 	if _, ok := _c.mutation.ArmorRating(); !ok {
 		v := equipment.DefaultArmorRating
 		_c.mutation.SetArmorRating(v)
@@ -787,6 +805,9 @@ func (_c *EquipmentCreate) check() error {
 	}
 	if _, ok := _c.mutation.HiddenThreshold(); !ok {
 		return &ValidationError{Name: "hiddenThreshold", err: errors.New(`db: missing required field "Equipment.hiddenThreshold"`)}
+	}
+	if _, ok := _c.mutation.Quantity(); !ok {
+		return &ValidationError{Name: "quantity", err: errors.New(`db: missing required field "Equipment.quantity"`)}
 	}
 	if _, ok := _c.mutation.ArmorRating(); !ok {
 		return &ValidationError{Name: "armor_rating", err: errors.New(`db: missing required field "Equipment.armor_rating"`)}
@@ -953,6 +974,10 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(equipment.FieldExpiresAt, field.TypeTime, value)
 		_node.ExpiresAt = &value
+	}
+	if value, ok := _c.mutation.Quantity(); ok {
+		_spec.SetField(equipment.FieldQuantity, field.TypeInt, value)
+		_node.Quantity = value
 	}
 	if value, ok := _c.mutation.ArmorRating(); ok {
 		_spec.SetField(equipment.FieldArmorRating, field.TypeInt, value)

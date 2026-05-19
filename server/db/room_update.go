@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -221,6 +222,24 @@ func (_u *RoomUpdate) AddVersion(v int) *RoomUpdate {
 	return _u
 }
 
+// SetTags sets the "tags" field.
+func (_u *RoomUpdate) SetTags(v []string) *RoomUpdate {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// AppendTags appends value to the "tags" field.
+func (_u *RoomUpdate) AppendTags(v []string) *RoomUpdate {
+	_u.mutation.AppendTags(v)
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *RoomUpdate) ClearTags() *RoomUpdate {
+	_u.mutation.ClearTags()
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *RoomUpdate) AddCharacterIDs(ids ...int) *RoomUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -400,6 +419,17 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(room.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(room.FieldTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, room.FieldTags, value)
+		})
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(room.FieldTags, field.TypeJSON)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -703,6 +733,24 @@ func (_u *RoomUpdateOne) AddVersion(v int) *RoomUpdateOne {
 	return _u
 }
 
+// SetTags sets the "tags" field.
+func (_u *RoomUpdateOne) SetTags(v []string) *RoomUpdateOne {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// AppendTags appends value to the "tags" field.
+func (_u *RoomUpdateOne) AppendTags(v []string) *RoomUpdateOne {
+	_u.mutation.AppendTags(v)
+	return _u
+}
+
+// ClearTags clears the value of the "tags" field.
+func (_u *RoomUpdateOne) ClearTags() *RoomUpdateOne {
+	_u.mutation.ClearTags()
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *RoomUpdateOne) AddCharacterIDs(ids ...int) *RoomUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -912,6 +960,17 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(room.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(room.FieldTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, room.FieldTags, value)
+		})
+	}
+	if _u.mutation.TagsCleared() {
+		_spec.ClearField(room.FieldTags, field.TypeJSON)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{

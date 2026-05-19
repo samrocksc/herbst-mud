@@ -51,6 +51,9 @@ type CompetencyCategory func(*sql.Selector)
 // CompetencyLevelThreshold is the predicate function for competencylevelthreshold builders.
 type CompetencyLevelThreshold func(*sql.Selector)
 
+// CraftingRecipe is the predicate function for craftingrecipe builders.
+type CraftingRecipe func(*sql.Selector)
+
 // DamageLog is the predicate function for damagelog builders.
 type DamageLog func(*sql.Selector)
 

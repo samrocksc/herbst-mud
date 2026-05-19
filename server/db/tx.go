@@ -42,6 +42,8 @@ type Tx struct {
 	CompetencyCategory *CompetencyCategoryClient
 	// CompetencyLevelThreshold is the client for interacting with the CompetencyLevelThreshold builders.
 	CompetencyLevelThreshold *CompetencyLevelThresholdClient
+	// CraftingRecipe is the client for interacting with the CraftingRecipe builders.
+	CraftingRecipe *CraftingRecipeClient
 	// DamageLog is the client for interacting with the DamageLog builders.
 	DamageLog *DamageLogClient
 	// DialogNode is the client for interacting with the DialogNode builders.
@@ -232,6 +234,7 @@ func (tx *Tx) init() {
 	tx.CharacterTag = NewCharacterTagClient(tx.config)
 	tx.CompetencyCategory = NewCompetencyCategoryClient(tx.config)
 	tx.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(tx.config)
+	tx.CraftingRecipe = NewCraftingRecipeClient(tx.config)
 	tx.DamageLog = NewDamageLogClient(tx.config)
 	tx.DialogNode = NewDialogNodeClient(tx.config)
 	tx.Effect = NewEffectClient(tx.config)

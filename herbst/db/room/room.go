@@ -26,6 +26,8 @@ const (
 	FieldExits = "exits"
 	// FieldAtmosphere holds the string denoting the atmosphere field in the database.
 	FieldAtmosphere = "atmosphere"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
@@ -57,6 +59,7 @@ var Columns = []string{
 	FieldIsRootRoom,
 	FieldExits,
 	FieldAtmosphere,
+	FieldTags,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

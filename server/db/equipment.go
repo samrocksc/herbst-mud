@@ -74,6 +74,8 @@ type Equipment struct {
 	HiddenThreshold int `json:"hiddenThreshold,omitempty"`
 	// When this item expires and is auto-deleted. nil = never rots.
 	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+	// Stack size for consumable/ingredient items
+	Quantity int `json:"quantity,omitempty"`
 	// Flat AC bonus when equipped
 	ArmorRating int `json:"armor_rating,omitempty"`
 	// light|cloth|heavy or empty
@@ -147,7 +149,7 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsContainer, equipment.FieldIsLocked, equipment.FieldIsTwoHanded:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity, equipment.FieldHiddenThreshold, equipment.FieldArmorRating, equipment.FieldSkillRequirementLevel, equipment.FieldDamageDiceCount, equipment.FieldDamageDiceSides, equipment.FieldDamageBonus:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity, equipment.FieldHiddenThreshold, equipment.FieldQuantity, equipment.FieldArmorRating, equipment.FieldSkillRequirementLevel, equipment.FieldDamageDiceCount, equipment.FieldDamageDiceSides, equipment.FieldDamageBonus:
 			values[i] = new(sql.NullInt64)
 		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEquipmentTemplateID, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition, equipment.FieldExamineDesc, equipment.FieldArmorType, equipment.FieldRarity, equipment.FieldSkillRequirement, equipment.FieldDamageType, equipment.FieldWeaponType:
 			values[i] = new(sql.NullString)
@@ -341,6 +343,12 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ExpiresAt = new(time.Time)
 				*_m.ExpiresAt = value.Time
+			}
+		case equipment.FieldQuantity:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field quantity", values[i])
+			} else if value.Valid {
+				_m.Quantity = int(value.Int64)
 			}
 		case equipment.FieldArmorRating:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -553,6 +561,9 @@ func (_m *Equipment) String() string {
 		builder.WriteString("expiresAt=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("quantity=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Quantity))
 	builder.WriteString(", ")
 	builder.WriteString("armor_rating=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ArmorRating))

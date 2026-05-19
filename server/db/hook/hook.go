@@ -188,6 +188,18 @@ func (f CompetencyLevelThresholdFunc) Mutate(ctx context.Context, m db.Mutation)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CompetencyLevelThresholdMutation", m)
 }
 
+// The CraftingRecipeFunc type is an adapter to allow the use of ordinary
+// function as CraftingRecipe mutator.
+type CraftingRecipeFunc func(context.Context, *db.CraftingRecipeMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CraftingRecipeFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CraftingRecipeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CraftingRecipeMutation", m)
+}
+
 // The DamageLogFunc type is an adapter to allow the use of ordinary
 // function as DamageLog mutator.
 type DamageLogFunc func(context.Context, *db.DamageLogMutation) (db.Value, error)

@@ -82,5 +82,8 @@ func equipmentBaseFields() []ent.Field {
 			Optional().
 			Nillable().
 			Comment("When this item expires and is auto-deleted. nil = never rots."),
+		field.Int("quantity").
+			Default(1).
+			Comment("Stack size for consumable/ingredient items"),
 	}
 }

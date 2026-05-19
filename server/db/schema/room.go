@@ -49,6 +49,9 @@ func (Room) Fields() []ent.Field {
 			Comment("Z-level for map rendering; 0 = ground floor"),
 		field.Int("version").
 			Default(1),
+		field.JSON("tags", []string{}).
+			Optional().
+			Comment("Tags for station discovery, room features (e.g. pizza_station, forge)"),
 	}
 }
 

@@ -21,6 +21,7 @@ import (
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/db/craftingrecipe"
 	"herbst-server/db/damagelog"
 	"herbst-server/db/dialognode"
 	"herbst-server/db/effect"
@@ -124,6 +125,7 @@ func checkColumn(t, c string) error {
 			charactertag.Table:             charactertag.ValidColumn,
 			competencycategory.Table:       competencycategory.ValidColumn,
 			competencylevelthreshold.Table: competencylevelthreshold.ValidColumn,
+			craftingrecipe.Table:           craftingrecipe.ValidColumn,
 			damagelog.Table:                damagelog.ValidColumn,
 			dialognode.Table:               dialognode.ValidColumn,
 			effect.Table:                   effect.ValidColumn,

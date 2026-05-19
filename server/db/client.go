@@ -26,6 +26,7 @@ import (
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/db/craftingrecipe"
 	"herbst-server/db/damagelog"
 	"herbst-server/db/dialognode"
 	"herbst-server/db/effect"
@@ -90,6 +91,8 @@ type Client struct {
 	CompetencyCategory *CompetencyCategoryClient
 	// CompetencyLevelThreshold is the client for interacting with the CompetencyLevelThreshold builders.
 	CompetencyLevelThreshold *CompetencyLevelThresholdClient
+	// CraftingRecipe is the client for interacting with the CraftingRecipe builders.
+	CraftingRecipe *CraftingRecipeClient
 	// DamageLog is the client for interacting with the DamageLog builders.
 	DamageLog *DamageLogClient
 	// DialogNode is the client for interacting with the DialogNode builders.
@@ -160,6 +163,7 @@ func (c *Client) init() {
 	c.CharacterTag = NewCharacterTagClient(c.config)
 	c.CompetencyCategory = NewCompetencyCategoryClient(c.config)
 	c.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(c.config)
+	c.CraftingRecipe = NewCraftingRecipeClient(c.config)
 	c.DamageLog = NewDamageLogClient(c.config)
 	c.DialogNode = NewDialogNodeClient(c.config)
 	c.Effect = NewEffectClient(c.config)
@@ -289,6 +293,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CharacterTag:             NewCharacterTagClient(cfg),
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
 		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
+		CraftingRecipe:           NewCraftingRecipeClient(cfg),
 		DamageLog:                NewDamageLogClient(cfg),
 		DialogNode:               NewDialogNodeClient(cfg),
 		Effect:                   NewEffectClient(cfg),
@@ -345,6 +350,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CharacterTag:             NewCharacterTagClient(cfg),
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
 		CompetencyLevelThreshold: NewCompetencyLevelThresholdClient(cfg),
+		CraftingRecipe:           NewCraftingRecipeClient(cfg),
 		DamageLog:                NewDamageLogClient(cfg),
 		DialogNode:               NewDialogNodeClient(cfg),
 		Effect:                   NewEffectClient(cfg),
@@ -399,11 +405,11 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
 		c.ChannelConfig, c.Character, c.CharacterAbility, c.CharacterChannel,
 		c.CharacterCompetency, c.CharacterFaction, c.CharacterIgnore, c.CharacterTag,
-		c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog, c.DialogNode,
-		c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate, c.Faction,
-		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility,
-		c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand,
-		c.Tag, c.TellQueue, c.User, c.World,
+		c.CompetencyCategory, c.CompetencyLevelThreshold, c.CraftingRecipe,
+		c.DamageLog, c.DialogNode, c.Effect, c.EffectHook, c.Equipment,
+		c.EquipmentTemplate, c.Faction, c.FactionCategory, c.FactionRequiredTag,
+		c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress,
+		c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue, c.User, c.World,
 	} {
 		n.Use(hooks...)
 	}
@@ -416,11 +422,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
 		c.ChannelConfig, c.Character, c.CharacterAbility, c.CharacterChannel,
 		c.CharacterCompetency, c.CharacterFaction, c.CharacterIgnore, c.CharacterTag,
-		c.CompetencyCategory, c.CompetencyLevelThreshold, c.DamageLog, c.DialogNode,
-		c.Effect, c.EffectHook, c.Equipment, c.EquipmentTemplate, c.Faction,
-		c.FactionCategory, c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility,
-		c.NPCTemplate, c.Quest, c.QuestProgress, c.Race, c.Room, c.SocialCommand,
-		c.Tag, c.TellQueue, c.User, c.World,
+		c.CompetencyCategory, c.CompetencyLevelThreshold, c.CraftingRecipe,
+		c.DamageLog, c.DialogNode, c.Effect, c.EffectHook, c.Equipment,
+		c.EquipmentTemplate, c.Faction, c.FactionCategory, c.FactionRequiredTag,
+		c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress,
+		c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue, c.User, c.World,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -459,6 +465,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CompetencyCategory.mutate(ctx, m)
 	case *CompetencyLevelThresholdMutation:
 		return c.CompetencyLevelThreshold.mutate(ctx, m)
+	case *CraftingRecipeMutation:
+		return c.CraftingRecipe.mutate(ctx, m)
 	case *DamageLogMutation:
 		return c.DamageLog.mutate(ctx, m)
 	case *DialogNodeMutation:
@@ -2996,6 +3004,139 @@ func (c *CompetencyLevelThresholdClient) mutate(ctx context.Context, m *Competen
 		return (&CompetencyLevelThresholdDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CompetencyLevelThreshold mutation op: %q", m.Op())
+	}
+}
+
+// CraftingRecipeClient is a client for the CraftingRecipe schema.
+type CraftingRecipeClient struct {
+	config
+}
+
+// NewCraftingRecipeClient returns a client for the CraftingRecipe from the given config.
+func NewCraftingRecipeClient(c config) *CraftingRecipeClient {
+	return &CraftingRecipeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `craftingrecipe.Hooks(f(g(h())))`.
+func (c *CraftingRecipeClient) Use(hooks ...Hook) {
+	c.hooks.CraftingRecipe = append(c.hooks.CraftingRecipe, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `craftingrecipe.Intercept(f(g(h())))`.
+func (c *CraftingRecipeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CraftingRecipe = append(c.inters.CraftingRecipe, interceptors...)
+}
+
+// Create returns a builder for creating a CraftingRecipe entity.
+func (c *CraftingRecipeClient) Create() *CraftingRecipeCreate {
+	mutation := newCraftingRecipeMutation(c.config, OpCreate)
+	return &CraftingRecipeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CraftingRecipe entities.
+func (c *CraftingRecipeClient) CreateBulk(builders ...*CraftingRecipeCreate) *CraftingRecipeCreateBulk {
+	return &CraftingRecipeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CraftingRecipeClient) MapCreateBulk(slice any, setFunc func(*CraftingRecipeCreate, int)) *CraftingRecipeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CraftingRecipeCreateBulk{err: fmt.Errorf("calling to CraftingRecipeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CraftingRecipeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CraftingRecipeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CraftingRecipe.
+func (c *CraftingRecipeClient) Update() *CraftingRecipeUpdate {
+	mutation := newCraftingRecipeMutation(c.config, OpUpdate)
+	return &CraftingRecipeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CraftingRecipeClient) UpdateOne(_m *CraftingRecipe) *CraftingRecipeUpdateOne {
+	mutation := newCraftingRecipeMutation(c.config, OpUpdateOne, withCraftingRecipe(_m))
+	return &CraftingRecipeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CraftingRecipeClient) UpdateOneID(id int) *CraftingRecipeUpdateOne {
+	mutation := newCraftingRecipeMutation(c.config, OpUpdateOne, withCraftingRecipeID(id))
+	return &CraftingRecipeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CraftingRecipe.
+func (c *CraftingRecipeClient) Delete() *CraftingRecipeDelete {
+	mutation := newCraftingRecipeMutation(c.config, OpDelete)
+	return &CraftingRecipeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CraftingRecipeClient) DeleteOne(_m *CraftingRecipe) *CraftingRecipeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CraftingRecipeClient) DeleteOneID(id int) *CraftingRecipeDeleteOne {
+	builder := c.Delete().Where(craftingrecipe.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CraftingRecipeDeleteOne{builder}
+}
+
+// Query returns a query builder for CraftingRecipe.
+func (c *CraftingRecipeClient) Query() *CraftingRecipeQuery {
+	return &CraftingRecipeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCraftingRecipe},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CraftingRecipe entity by its id.
+func (c *CraftingRecipeClient) Get(ctx context.Context, id int) (*CraftingRecipe, error) {
+	return c.Query().Where(craftingrecipe.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CraftingRecipeClient) GetX(ctx context.Context, id int) *CraftingRecipe {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CraftingRecipeClient) Hooks() []Hook {
+	return c.hooks.CraftingRecipe
+}
+
+// Interceptors returns the client interceptors.
+func (c *CraftingRecipeClient) Interceptors() []Interceptor {
+	return c.inters.CraftingRecipe
+}
+
+func (c *CraftingRecipeClient) mutate(ctx context.Context, m *CraftingRecipeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CraftingRecipeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CraftingRecipeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CraftingRecipeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CraftingRecipeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CraftingRecipe mutation op: %q", m.Op())
 	}
 }
 
@@ -6411,18 +6552,20 @@ type (
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, ChannelConfig,
 		Character, CharacterAbility, CharacterChannel, CharacterCompetency,
 		CharacterFaction, CharacterIgnore, CharacterTag, CompetencyCategory,
-		CompetencyLevelThreshold, DamageLog, DialogNode, Effect, EffectHook, Equipment,
-		EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag, GameConfig,
-		Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room,
-		SocialCommand, Tag, TellQueue, User, World []ent.Hook
+		CompetencyLevelThreshold, CraftingRecipe, DamageLog, DialogNode, Effect,
+		EffectHook, Equipment, EquipmentTemplate, Faction, FactionCategory,
+		FactionRequiredTag, GameConfig, Gender, NPCAbility, NPCTemplate, Quest,
+		QuestProgress, Race, Room, SocialCommand, Tag, TellQueue, User,
+		World []ent.Hook
 	}
 	inters struct {
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, ChannelConfig,
 		Character, CharacterAbility, CharacterChannel, CharacterCompetency,
 		CharacterFaction, CharacterIgnore, CharacterTag, CompetencyCategory,
-		CompetencyLevelThreshold, DamageLog, DialogNode, Effect, EffectHook, Equipment,
-		EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag, GameConfig,
-		Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room,
-		SocialCommand, Tag, TellQueue, User, World []ent.Interceptor
+		CompetencyLevelThreshold, CraftingRecipe, DamageLog, DialogNode, Effect,
+		EffectHook, Equipment, EquipmentTemplate, Faction, FactionCategory,
+		FactionRequiredTag, GameConfig, Gender, NPCAbility, NPCTemplate, Quest,
+		QuestProgress, Race, Room, SocialCommand, Tag, TellQueue, User,
+		World []ent.Interceptor
 	}
 )

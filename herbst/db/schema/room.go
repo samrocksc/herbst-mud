@@ -33,6 +33,9 @@ func (Room) Fields() []ent.Field {
 		field.Enum("atmosphere").
 			Values("air", "water", "wind").
 			Default("air"),
+		field.JSON("tags", []string{}).
+			Optional().
+			Comment("Tags for station discovery (e.g. pizza_station, forge)"),
 	}
 }
 
