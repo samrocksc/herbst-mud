@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { Button } from "../../components/Button";
 import { FormField, TextareaField, NumberField, FormError } from "../../components/fields";
+import { SearchableSelect } from "../../components/SearchableSelect";
+import { useEquipmentTemplates } from "../../hooks/useEquipmentTemplates";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
 import type { Recipe, RecipeInput, CraftingInput, CraftingOutput } from "../../hooks/useRecipes";
 
 type RecipeFormProps = Readonly<{
@@ -32,20 +35,23 @@ function InputRow({
   input,
   onChange,
   onRemove,
+  templates,
 }: Readonly<{
   input: CraftingInput
   onChange: (input: CraftingInput) => void
   onRemove: () => void
+  templates: ReadonlyArray<{ id: string; name: string }>
 }>) {
   return (
     <div className="flex gap-2 items-center mb-2">
-      <input
-        type="text"
-        placeholder="Equipment Template ID"
-        value={input.equipment_template_id}
-        onChange={(e) => onChange({ ...input, equipment_template_id: e.target.value })}
-        className="flex-1 px-3 py-1.5 bg-surface border border-border rounded text-text text-sm"
-      />
+      <div className="flex-1">
+        <SearchableSelect
+          options={templates}
+          value={input.equipment_template_id}
+          onChange={(v) => onChange({ ...input, equipment_template_id: v })}
+          placeholder="Search equipment template..."
+        />
+      </div>
       <input
         type="number"
         placeholder="Qty"
@@ -72,20 +78,23 @@ function OutputRow({
   output,
   onChange,
   onRemove,
+  templates,
 }: Readonly<{
   output: CraftingOutput
   onChange: (output: CraftingOutput) => void
   onRemove: () => void
+  templates: ReadonlyArray<{ id: string; name: string }>
 }>) {
   return (
     <div className="flex gap-2 items-center mb-2">
-      <input
-        type="text"
-        placeholder="Equipment Template ID"
-        value={output.equipment_template_id}
-        onChange={(e) => onChange({ ...output, equipment_template_id: e.target.value })}
-        className="flex-1 px-3 py-1.5 bg-surface border border-border rounded text-text text-sm"
-      />
+      <div className="flex-1">
+        <SearchableSelect
+          options={templates}
+          value={output.equipment_template_id}
+          onChange={(v) => onChange({ ...output, equipment_template_id: v })}
+          placeholder="Search equipment template..."
+        />
+      </div>
       <input
         type="number"
         placeholder="Qty"
@@ -100,6 +109,9 @@ function OutputRow({
 }
 
 export function RecipeForm({ recipe, onSubmit, onCancel }: RecipeFormProps) {
+  const { data: templates } = useEquipmentTemplates();
+  const { currentWorld } = useWorldStore();
+  const templateOptions = (templates ?? []).map((t) => ({ id: t.id, name: t.name }));
   const [form, setForm] = useState<RecipeInput>(() =>
     recipe ? recipeToForm(recipe) : {
       name: "",
@@ -112,7 +124,7 @@ export function RecipeForm({ recipe, onSubmit, onCancel }: RecipeFormProps) {
       inputs: [],
       outputs: [],
       craft_time_secs: 3,
-      world_id: "default",
+      world_id: currentWorld || "default",
     }
   );
   const [submitError, setSubmitError] = useState("");
@@ -237,6 +249,7 @@ export function RecipeForm({ recipe, onSubmit, onCancel }: RecipeFormProps) {
             <InputRow
               key={i}
               input={input}
+              templates={templateOptions}
               onChange={(updated) => updateInput(i, updated)}
               onRemove={() => removeInput(i)}
             />
@@ -252,6 +265,7 @@ export function RecipeForm({ recipe, onSubmit, onCancel }: RecipeFormProps) {
             <OutputRow
               key={i}
               output={output}
+              templates={templateOptions}
               onChange={(updated) => updateOutput(i, updated)}
               onRemove={() => removeOutput(i)}
             />
