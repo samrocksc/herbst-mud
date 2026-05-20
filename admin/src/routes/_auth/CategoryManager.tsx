@@ -4,26 +4,69 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { FormField, TextareaField } from "../../components/FormFields";
 import { FormError } from "../../components/fields/FormError";
 import { showToast } from "../../components/Toast";
-import { apiPost } from "../../utils/apiFetch";
+import { apiPost, apiDelete } from "../../utils/apiFetch";
+import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import type { FactionCategory } from "./factionTypes";
 
-export function CategoryManager({ categories }: Readonly<{ categories: FactionCategory[] }>) {
+export function CategoryManager({ categories, onRefresh }: Readonly<{ categories: FactionCategory[]; onRefresh: () => void }>) {
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (deleteId == null) return;
+    setDeleting(true);
+    try {
+      await apiDelete(`/api/faction-categories/${deleteId}`);
+      showToast("Category deleted", "success");
+      setDeleteId(null);
+      onRefresh();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to delete category", "error");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="max-w-[600px] mx-auto">
       <h2 className="mt-0 mb-4 text-text">Faction Categories</h2>
-      <DataTable columns={categoryColumns} data={categories} getKey={(c) => c.id} emptyMessage="No categories yet" />
+      <DataTable columns={categoryColumns(setDeleteId)} data={categories} getKey={(c) => c.id} emptyMessage="No categories yet" />
+      {deleteId != null && (
+        <DeleteConfirmation
+          open={deleteId != null}
+          title="Delete Faction Category"
+          message="Are you sure? This will unlink any factions in this category."
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteId(null)}
+          isLoading={deleting}
+        />
+      )}
     </div>
   );
 }
 
-const categoryColumns: Column<FactionCategory>[] = [
-  { header: "ID", accessor: "id" },
-  { header: "Name", accessor: "name", className: "font-bold" },
-  { header: "Display Name", accessor: "display_name" },
-  { header: "Memberships", accessor: "max_memberships", render: (v) => String(v ?? 1) },
-  { header: "Wizard", accessor: "initial_config", render: (v) => v ? "Yes" : "No" },
-  { header: "Description", accessor: "description" },
-];
+function categoryColumns(setDeleteId: (id: number | null) => void): Column<FactionCategory>[] {
+  return [
+    { header: "ID", accessor: "id" },
+    { header: "Name", accessor: "name", className: "font-bold" },
+    { header: "Display Name", accessor: "display_name" },
+    { header: "Memberships", accessor: "max_memberships", render: (v) => String(v ?? 1) },
+    { header: "Wizard", accessor: "initial_config", render: (v) => v ? "Yes" : "No" },
+    { header: "Description", accessor: "description" },
+    {
+      header: "",
+      accessor: "_actions",
+      align: "right",
+      render: (_, row) => (
+        <div className="flex gap-2 justify-end">
+          <Button variant="danger" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(row.id); }}>
+            Delete
+          </Button>
+        </div>
+      ),
+    },
+  ];
+}
 
 export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>) {
   const [name, setName] = useState("");

@@ -30,6 +30,7 @@ func RegisterFactionRoutes(r *gin.Engine, repos *repository.Container, client *d
 		// TODO: Migrate to FactionCategoryRepo once created
 		factions.GET("/faction-categories", listFactionCategories(client))
 		factions.POST("/faction-categories", createFactionCategory(client))
+		factions.DELETE("/faction-categories/:id", deleteFactionCategory(client))
 	}
 }
 
@@ -241,6 +242,21 @@ func createFactionCategory(client *db.Client) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusCreated, categoryToJSON(created))
+	}
+}
+
+func deleteFactionCategory(client *db.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := parseIntParam(c, "id")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
+			return
+		}
+		if err := client.FactionCategory.DeleteOneID(id).Exec(c.Request.Context()); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"deleted": id})
 	}
 }
 

@@ -85,7 +85,7 @@ function FactionsManagement() {
         {tab === "categories" && showCreateCategory && (
           <CreateCategoryForm onDone={() => { setShowCreateCategory(false); refresh(); }} />
         )}
-        {tab === "categories" && !showCreateCategory && <CategoryManager categories={categories} />}
+        {tab === "categories" && !showCreateCategory && <CategoryManager categories={categories} onRefresh={refresh} />}
       </div>
     </div>
   );
