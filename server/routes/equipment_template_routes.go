@@ -89,6 +89,7 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			DamageType          string         `json:"damage_type"`
 			WeaponType          string         `json:"weapon_type"`
 			IsTwoHanded         *bool          `json:"is_two_handed"`
+			WorldID             string         `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -99,6 +100,15 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		templateID := req.Name
 		templateID = strings.ToLower(templateID)
 		templateID = strings.NewReplacer(" ", "_", "-", "_", "'", "", "\"", "").Replace(templateID)
+
+		// Inherit world from query param if not in body, default to "default"
+		worldID := req.WorldID
+		if worldID == "" {
+			worldID = c.Query("world_id")
+		}
+		if worldID == "" {
+			worldID = "default"
+		}
 
 		isVisible := false
 		if req.IsVisible != nil {
