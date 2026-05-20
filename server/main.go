@@ -169,6 +169,18 @@ func main() {
 		c.Next()
 	})
 
+	// Log server errors (5xx) to slog so they appear in admin logs page
+	router.Use(func(c *gin.Context) {
+		c.Next()
+		if c.Writer.Status() >= 500 {
+			slog.Error("server error",
+				"path", c.Request.URL.Path,
+				"method", c.Request.Method,
+				"status", c.Writer.Status(),
+			)
+		}
+	})
+
 	// CORS middleware - configurable origins for security
 	allowedOrigins := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")
 	router.Use(func(c *gin.Context) {

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
@@ -94,6 +95,11 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
+		// Auto-derive template ID from name if not provided
+		templateID := req.Name
+		templateID = strings.ToLower(templateID)
+		templateID = strings.NewReplacer(" ", "_", "-", "_", "'", "", "\"", "").Replace(templateID)
+
 		isVisible := false
 		if req.IsVisible != nil {
 			isVisible = *req.IsVisible
@@ -116,6 +122,7 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		}
 
 		t, err := repos.EquipmentTemplate.Create(c.Request.Context(), repository.CreateEquipmentTemplateInput{
+			ID:                    templateID,
 			Name:                  req.Name,
 			Description:           req.Description,
 			Slot:                  req.Slot,
