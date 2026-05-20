@@ -73,7 +73,7 @@ function Dashboard() {
         <StatGrid>
           <StatCard label="Total Rooms" value={roomCount} accent="primary" loading={false} />
           <StatCard label="Active NPCs" value={npcCount} accent="warning" loading={false} />
-          <StatCard label="Items" value={0} accent="accent" loading={false} />
+          <StatCard label="Items" value={templates?.length ?? 0} accent="accent" loading={templatesLoading} />
           <StatCard label="Instances" value={0} accent="primary" loading={false} />
           <StatCard label="Players" value={0} accent="secondary" loading={false} />
           <StatCard label="Skills" value={0} accent="success" loading={false} />
