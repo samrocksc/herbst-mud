@@ -387,11 +387,30 @@ func main() {
 	// OpenAPI spec — served from static file (generated; see tools/openapi-gen/)
 	// Binary runs from repo root, so use ./server/static/ relative to that
 	staticPath := "./server/static"
+
+	// Inline Swagger UI for /docs (no swagger/ directory needed on disk)
+	const swaggerUI = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Herbst MUD — API Docs</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    SwaggerUIBundle({ url: '/openapi.json', dom_id: '#swagger-ui', deepLinking: true });
+  </script>
+</body>
+</html>`
+
 	router.GET("/openapi.json", func(c *gin.Context) {
 		c.File(staticPath + "/openapi.json")
 	})
 	router.GET("/docs", func(c *gin.Context) {
-		c.File(staticPath + "/swagger/index.html")
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.String(http.StatusOK, swaggerUI)
 	})
 
 	// Start the server

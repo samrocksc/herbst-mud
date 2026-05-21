@@ -62,6 +62,41 @@ const DOC_PAGES = [
     path: "/docs/worlds",
     desc: "Multi-world architecture, settings, content structure, and game time.",
   },
+  {
+    title: "Achievements",
+    path: "/docs/achievements",
+    desc: "Achievement criteria, XP rewards, and admin management.",
+  },
+  {
+    title: "Character Tags",
+    path: "/docs/character-tags",
+    desc: "Key-value metadata on characters for quest markers and feature flags.",
+  },
+  {
+    title: "Competencies",
+    path: "/docs/competencies",
+    desc: "Trainable skill categories, level thresholds, and XP progression.",
+  },
+  {
+    title: "Crafting System",
+    path: "/docs/crafting-system",
+    desc: "Recipes, stations, inputs/outputs, and craft commands.",
+  },
+  {
+    title: "Dialog System",
+    path: "/docs/dialog-system",
+    desc: "NPC dialog trees, branching conversations, and on-enter effects.",
+  },
+  {
+    title: "Social Commands",
+    path: "/docs/social-commands",
+    desc: "Say, shout, whisper, tell, emote, and configurable custom socials.",
+  },
+  {
+    title: "Effect System",
+    path: "/docs/effect-system",
+    desc: "Effect entities, hooks, active effects, types, and scaling.",
+  },
 ];
 
 function DocsIndex() {

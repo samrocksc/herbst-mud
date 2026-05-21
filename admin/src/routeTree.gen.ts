@@ -21,14 +21,21 @@ import { Route as MapIndexRouteImport } from './routes/map.index'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DocsWorldsRouteImport } from './routes/docs/worlds'
 import { Route as DocsTrainableSkillsRouteImport } from './routes/docs/trainable-skills'
+import { Route as DocsSocialCommandsRouteImport } from './routes/docs/social-commands'
 import { Route as DocsQuestSystemRouteImport } from './routes/docs/quest-system'
 import { Route as DocsNpcSystemRouteImport } from './routes/docs/npc-system'
 import { Route as DocsItemSystemRouteImport } from './routes/docs/item-system'
 import { Route as DocsFactionSystemRouteImport } from './routes/docs/faction-system'
 import { Route as DocsExamineSkillRouteImport } from './routes/docs/examine-skill'
+import { Route as DocsEffectSystemRouteImport } from './routes/docs/effect-system'
+import { Route as DocsDialogSystemRouteImport } from './routes/docs/dialog-system'
+import { Route as DocsCraftingSystemRouteImport } from './routes/docs/crafting-system'
 import { Route as DocsConfigReferenceRouteImport } from './routes/docs/config-reference'
+import { Route as DocsCompetenciesRouteImport } from './routes/docs/competencies'
 import { Route as DocsCombatGuideRouteImport } from './routes/docs/combat-guide'
+import { Route as DocsCharacterTagsRouteImport } from './routes/docs/character-tags'
 import { Route as DocsBindPointsRouteImport } from './routes/docs/bind-points'
+import { Route as DocsAchievementsRouteImport } from './routes/docs/achievements'
 import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
 import { Route as AuthWorldsRouteImport } from './routes/_auth/worlds'
@@ -130,6 +137,11 @@ const DocsTrainableSkillsRoute = DocsTrainableSkillsRouteImport.update({
   path: '/trainable-skills',
   getParentRoute: () => DocsRoute,
 } as any)
+const DocsSocialCommandsRoute = DocsSocialCommandsRouteImport.update({
+  id: '/social-commands',
+  path: '/social-commands',
+  getParentRoute: () => DocsRoute,
+} as any)
 const DocsQuestSystemRoute = DocsQuestSystemRouteImport.update({
   id: '/quest-system',
   path: '/quest-system',
@@ -155,9 +167,29 @@ const DocsExamineSkillRoute = DocsExamineSkillRouteImport.update({
   path: '/examine-skill',
   getParentRoute: () => DocsRoute,
 } as any)
+const DocsEffectSystemRoute = DocsEffectSystemRouteImport.update({
+  id: '/effect-system',
+  path: '/effect-system',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsDialogSystemRoute = DocsDialogSystemRouteImport.update({
+  id: '/dialog-system',
+  path: '/dialog-system',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsCraftingSystemRoute = DocsCraftingSystemRouteImport.update({
+  id: '/crafting-system',
+  path: '/crafting-system',
+  getParentRoute: () => DocsRoute,
+} as any)
 const DocsConfigReferenceRoute = DocsConfigReferenceRouteImport.update({
   id: '/config-reference',
   path: '/config-reference',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsCompetenciesRoute = DocsCompetenciesRouteImport.update({
+  id: '/competencies',
+  path: '/competencies',
   getParentRoute: () => DocsRoute,
 } as any)
 const DocsCombatGuideRoute = DocsCombatGuideRouteImport.update({
@@ -165,9 +197,19 @@ const DocsCombatGuideRoute = DocsCombatGuideRouteImport.update({
   path: '/combat-guide',
   getParentRoute: () => DocsRoute,
 } as any)
+const DocsCharacterTagsRoute = DocsCharacterTagsRouteImport.update({
+  id: '/character-tags',
+  path: '/character-tags',
+  getParentRoute: () => DocsRoute,
+} as any)
 const DocsBindPointsRoute = DocsBindPointsRouteImport.update({
   id: '/bind-points',
   path: '/bind-points',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsAchievementsRoute = DocsAchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
   getParentRoute: () => DocsRoute,
 } as any)
 const DocsAbilitySystemRoute = DocsAbilitySystemRouteImport.update({
@@ -409,14 +451,21 @@ export interface FileRoutesByFullPath {
   '/worlds': typeof AuthWorldsRouteWithChildren
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/achievements': typeof DocsAchievementsRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
+  '/docs/character-tags': typeof DocsCharacterTagsRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
+  '/docs/competencies': typeof DocsCompetenciesRoute
   '/docs/config-reference': typeof DocsConfigReferenceRoute
+  '/docs/crafting-system': typeof DocsCraftingSystemRoute
+  '/docs/dialog-system': typeof DocsDialogSystemRoute
+  '/docs/effect-system': typeof DocsEffectSystemRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
   '/docs/faction-system': typeof DocsFactionSystemRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
+  '/docs/social-commands': typeof DocsSocialCommandsRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/docs/worlds': typeof DocsWorldsRoute
   '/docs/': typeof DocsIndexRoute
@@ -469,14 +518,21 @@ export interface FileRoutesByTo {
   '/worlds': typeof AuthWorldsRouteWithChildren
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/achievements': typeof DocsAchievementsRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
+  '/docs/character-tags': typeof DocsCharacterTagsRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
+  '/docs/competencies': typeof DocsCompetenciesRoute
   '/docs/config-reference': typeof DocsConfigReferenceRoute
+  '/docs/crafting-system': typeof DocsCraftingSystemRoute
+  '/docs/dialog-system': typeof DocsDialogSystemRoute
+  '/docs/effect-system': typeof DocsEffectSystemRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
   '/docs/faction-system': typeof DocsFactionSystemRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
+  '/docs/social-commands': typeof DocsSocialCommandsRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/docs/worlds': typeof DocsWorldsRoute
   '/docs': typeof DocsIndexRoute
@@ -532,14 +588,21 @@ export interface FileRoutesById {
   '/_auth/worlds': typeof AuthWorldsRouteWithChildren
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
+  '/docs/achievements': typeof DocsAchievementsRoute
   '/docs/bind-points': typeof DocsBindPointsRoute
+  '/docs/character-tags': typeof DocsCharacterTagsRoute
   '/docs/combat-guide': typeof DocsCombatGuideRoute
+  '/docs/competencies': typeof DocsCompetenciesRoute
   '/docs/config-reference': typeof DocsConfigReferenceRoute
+  '/docs/crafting-system': typeof DocsCraftingSystemRoute
+  '/docs/dialog-system': typeof DocsDialogSystemRoute
+  '/docs/effect-system': typeof DocsEffectSystemRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
   '/docs/faction-system': typeof DocsFactionSystemRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
+  '/docs/social-commands': typeof DocsSocialCommandsRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
   '/docs/worlds': typeof DocsWorldsRoute
   '/docs/': typeof DocsIndexRoute
@@ -596,14 +659,21 @@ export interface FileRouteTypes {
     | '/worlds'
     | '/xp'
     | '/docs/ability-system'
+    | '/docs/achievements'
     | '/docs/bind-points'
+    | '/docs/character-tags'
     | '/docs/combat-guide'
+    | '/docs/competencies'
     | '/docs/config-reference'
+    | '/docs/crafting-system'
+    | '/docs/dialog-system'
+    | '/docs/effect-system'
     | '/docs/examine-skill'
     | '/docs/faction-system'
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/quest-system'
+    | '/docs/social-commands'
     | '/docs/trainable-skills'
     | '/docs/worlds'
     | '/docs/'
@@ -656,14 +726,21 @@ export interface FileRouteTypes {
     | '/worlds'
     | '/xp'
     | '/docs/ability-system'
+    | '/docs/achievements'
     | '/docs/bind-points'
+    | '/docs/character-tags'
     | '/docs/combat-guide'
+    | '/docs/competencies'
     | '/docs/config-reference'
+    | '/docs/crafting-system'
+    | '/docs/dialog-system'
+    | '/docs/effect-system'
     | '/docs/examine-skill'
     | '/docs/faction-system'
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/quest-system'
+    | '/docs/social-commands'
     | '/docs/trainable-skills'
     | '/docs/worlds'
     | '/docs'
@@ -718,14 +795,21 @@ export interface FileRouteTypes {
     | '/_auth/worlds'
     | '/_auth/xp'
     | '/docs/ability-system'
+    | '/docs/achievements'
     | '/docs/bind-points'
+    | '/docs/character-tags'
     | '/docs/combat-guide'
+    | '/docs/competencies'
     | '/docs/config-reference'
+    | '/docs/crafting-system'
+    | '/docs/dialog-system'
+    | '/docs/effect-system'
     | '/docs/examine-skill'
     | '/docs/faction-system'
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/quest-system'
+    | '/docs/social-commands'
     | '/docs/trainable-skills'
     | '/docs/worlds'
     | '/docs/'
@@ -849,6 +933,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsTrainableSkillsRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/docs/social-commands': {
+      id: '/docs/social-commands'
+      path: '/social-commands'
+      fullPath: '/docs/social-commands'
+      preLoaderRoute: typeof DocsSocialCommandsRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/docs/quest-system': {
       id: '/docs/quest-system'
       path: '/quest-system'
@@ -884,11 +975,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsExamineSkillRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/docs/effect-system': {
+      id: '/docs/effect-system'
+      path: '/effect-system'
+      fullPath: '/docs/effect-system'
+      preLoaderRoute: typeof DocsEffectSystemRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/dialog-system': {
+      id: '/docs/dialog-system'
+      path: '/dialog-system'
+      fullPath: '/docs/dialog-system'
+      preLoaderRoute: typeof DocsDialogSystemRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/crafting-system': {
+      id: '/docs/crafting-system'
+      path: '/crafting-system'
+      fullPath: '/docs/crafting-system'
+      preLoaderRoute: typeof DocsCraftingSystemRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/docs/config-reference': {
       id: '/docs/config-reference'
       path: '/config-reference'
       fullPath: '/docs/config-reference'
       preLoaderRoute: typeof DocsConfigReferenceRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/competencies': {
+      id: '/docs/competencies'
+      path: '/competencies'
+      fullPath: '/docs/competencies'
+      preLoaderRoute: typeof DocsCompetenciesRouteImport
       parentRoute: typeof DocsRoute
     }
     '/docs/combat-guide': {
@@ -898,11 +1017,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsCombatGuideRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/docs/character-tags': {
+      id: '/docs/character-tags'
+      path: '/character-tags'
+      fullPath: '/docs/character-tags'
+      preLoaderRoute: typeof DocsCharacterTagsRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/docs/bind-points': {
       id: '/docs/bind-points'
       path: '/bind-points'
       fullPath: '/docs/bind-points'
       preLoaderRoute: typeof DocsBindPointsRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/achievements': {
+      id: '/docs/achievements'
+      path: '/achievements'
+      fullPath: '/docs/achievements'
+      preLoaderRoute: typeof DocsAchievementsRouteImport
       parentRoute: typeof DocsRoute
     }
     '/docs/ability-system': {
@@ -1380,14 +1513,21 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface DocsRouteChildren {
   DocsAbilitySystemRoute: typeof DocsAbilitySystemRoute
+  DocsAchievementsRoute: typeof DocsAchievementsRoute
   DocsBindPointsRoute: typeof DocsBindPointsRoute
+  DocsCharacterTagsRoute: typeof DocsCharacterTagsRoute
   DocsCombatGuideRoute: typeof DocsCombatGuideRoute
+  DocsCompetenciesRoute: typeof DocsCompetenciesRoute
   DocsConfigReferenceRoute: typeof DocsConfigReferenceRoute
+  DocsCraftingSystemRoute: typeof DocsCraftingSystemRoute
+  DocsDialogSystemRoute: typeof DocsDialogSystemRoute
+  DocsEffectSystemRoute: typeof DocsEffectSystemRoute
   DocsExamineSkillRoute: typeof DocsExamineSkillRoute
   DocsFactionSystemRoute: typeof DocsFactionSystemRoute
   DocsItemSystemRoute: typeof DocsItemSystemRoute
   DocsNpcSystemRoute: typeof DocsNpcSystemRoute
   DocsQuestSystemRoute: typeof DocsQuestSystemRoute
+  DocsSocialCommandsRoute: typeof DocsSocialCommandsRoute
   DocsTrainableSkillsRoute: typeof DocsTrainableSkillsRoute
   DocsWorldsRoute: typeof DocsWorldsRoute
   DocsIndexRoute: typeof DocsIndexRoute
@@ -1395,14 +1535,21 @@ interface DocsRouteChildren {
 
 const DocsRouteChildren: DocsRouteChildren = {
   DocsAbilitySystemRoute: DocsAbilitySystemRoute,
+  DocsAchievementsRoute: DocsAchievementsRoute,
   DocsBindPointsRoute: DocsBindPointsRoute,
+  DocsCharacterTagsRoute: DocsCharacterTagsRoute,
   DocsCombatGuideRoute: DocsCombatGuideRoute,
+  DocsCompetenciesRoute: DocsCompetenciesRoute,
   DocsConfigReferenceRoute: DocsConfigReferenceRoute,
+  DocsCraftingSystemRoute: DocsCraftingSystemRoute,
+  DocsDialogSystemRoute: DocsDialogSystemRoute,
+  DocsEffectSystemRoute: DocsEffectSystemRoute,
   DocsExamineSkillRoute: DocsExamineSkillRoute,
   DocsFactionSystemRoute: DocsFactionSystemRoute,
   DocsItemSystemRoute: DocsItemSystemRoute,
   DocsNpcSystemRoute: DocsNpcSystemRoute,
   DocsQuestSystemRoute: DocsQuestSystemRoute,
+  DocsSocialCommandsRoute: DocsSocialCommandsRoute,
   DocsTrainableSkillsRoute: DocsTrainableSkillsRoute,
   DocsWorldsRoute: DocsWorldsRoute,
   DocsIndexRoute: DocsIndexRoute,
