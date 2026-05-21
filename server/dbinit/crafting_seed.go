@@ -57,7 +57,7 @@ func InitCraftingContent(client *db.Client) error {
 	if !hasPizzaChef {
 		faction, err := client.Faction.Create().
 			SetName("pizza_chef").
-			SetWorldID("default").
+			SetWorldID("1").
 			SetDisplayName("Pizza Chef").
 			SetDescription("Those who craft delicious pizzas.").
 			Save(ctx)
@@ -106,7 +106,7 @@ func InitCraftingContent(client *db.Client) error {
 		}
 		_, err := client.EquipmentTemplate.Create().
 			SetID(ing.id).
-			SetWorldID("default").
+			SetWorldID("1").
 			SetName(ing.name).
 			SetDescription(ing.description).
 			SetSlot("misc").
@@ -145,7 +145,7 @@ func InitCraftingContent(client *db.Client) error {
 		}
 		_, err := client.EquipmentTemplate.Create().
 			SetID(p.id).
-			SetWorldID("default").
+			SetWorldID("1").
 			SetName(p.name).
 			SetDescription(p.description).
 			SetSlot("main_hand").
@@ -250,7 +250,7 @@ func InitCraftingContent(client *db.Client) error {
 			SetInputs(r.inputs).
 			SetOutputs(r.outputs).
 			SetCraftTimeSecs(r.craftTimeSecs).
-			SetWorldID("default").
+			SetWorldID("1").
 			Save(ctx)
 		if err != nil {
 			log.Printf("Warning: failed to seed recipe '%s': %v", r.name, err)

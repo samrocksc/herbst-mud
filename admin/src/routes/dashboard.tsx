@@ -8,6 +8,7 @@ import { useNPCs } from "../hooks/useNPCs";
 import { useRooms } from "../hooks/useRooms";
 import { ToolGrid } from "./ToolGrid";
 import { useWorldStore } from "../contexts/WorldStoreContext";
+import { useEquipmentTemplates } from "../hooks/useEquipmentTemplates";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -23,6 +24,7 @@ function Dashboard() {
   // Use world-scoped hooks for counts
   const { rooms } = useRooms();
   const { data: npcsData } = useNPCs();
+  const { data: templates, isLoading: templatesLoading } = useEquipmentTemplates();
 
   // Derived counts
   const roomCount = rooms.length;

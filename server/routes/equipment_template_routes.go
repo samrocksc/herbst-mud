@@ -101,13 +101,13 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		templateID = strings.ToLower(templateID)
 		templateID = strings.NewReplacer(" ", "_", "-", "_", "'", "", "\"", "").Replace(templateID)
 
-		// Inherit world from query param if not in body, default to "default"
+		// Inherit world from query param if not in body, default to first world
 		worldID := req.WorldID
 		if worldID == "" {
 			worldID = c.Query("world_id")
 		}
 		if worldID == "" {
-			worldID = "default"
+			worldID = "1"
 		}
 
 		isVisible := false
