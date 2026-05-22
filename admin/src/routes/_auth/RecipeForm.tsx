@@ -47,8 +47,8 @@ function InputRow({
       <div className="flex-1">
         <SearchableSelect
           options={templates}
-          value={input.equipment_template_id}
-          onChange={(v) => onChange({ ...input, equipment_template_id: v })}
+          value={input.equipment_template_slug}
+          onChange={(v) => onChange({ ...input, equipment_template_slug: v })}
           placeholder="Search equipment template..."
         />
       </div>
@@ -90,8 +90,8 @@ function OutputRow({
       <div className="flex-1">
         <SearchableSelect
           options={templates}
-          value={output.equipment_template_id}
-          onChange={(v) => onChange({ ...output, equipment_template_id: v })}
+          value={output.equipment_template_slug}
+          onChange={(v) => onChange({ ...output, equipment_template_slug: v })}
           placeholder="Search equipment template..."
         />
       </div>
@@ -111,7 +111,7 @@ function OutputRow({
 export function RecipeForm({ recipe, onSubmit, onCancel }: RecipeFormProps) {
   const { data: templates } = useEquipmentTemplates();
   const { currentWorld } = useWorldStore();
-  const templateOptions = (templates ?? []).map((t) => ({ id: t.id, name: t.name }));
+  const templateOptions = (templates ?? []).map((t) => ({ id: t.slug, name: t.name }));
   const [form, setForm] = useState<RecipeInput>(() =>
     recipe ? recipeToForm(recipe) : {
       name: "",
@@ -146,7 +146,7 @@ export function RecipeForm({ recipe, onSubmit, onCancel }: RecipeFormProps) {
   };
 
   const addInput = () => {
-    set("inputs", [...form.inputs, { equipment_template_id: "", quantity: 1, consumed: true }]);
+    set("inputs", [...form.inputs, { equipment_template_slug: "", quantity: 1, consumed: true }]);
   };
 
   const updateInput = (index: number, input: CraftingInput) => {
@@ -160,7 +160,7 @@ export function RecipeForm({ recipe, onSubmit, onCancel }: RecipeFormProps) {
   };
 
   const addOutput = () => {
-    set("outputs", [...form.outputs, { equipment_template_id: "", quantity: 1 }]);
+    set("outputs", [...form.outputs, { equipment_template_slug: "", quantity: 1 }]);
   };
 
   const updateOutput = (index: number, output: CraftingOutput) => {

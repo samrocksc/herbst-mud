@@ -4,13 +4,13 @@ import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 const API = `${window.location.origin}/api/recipes`;
 
 export type CraftingInput = Readonly<{
-  equipment_template_id: string
+  equipment_template_slug: string
   quantity: number
   consumed: boolean
 }>
 
 export type CraftingOutput = Readonly<{
-  equipment_template_id: string
+  equipment_template_slug: string
   quantity: number
 }>
 
