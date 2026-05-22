@@ -4,6 +4,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { useRecipes, useDeleteRecipe, useCreateRecipe, useUpdateRecipe, type Recipe } from "../../hooks/useRecipes";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
 import { RecipeForm } from "./RecipeForm";
 
 export const Route = createFileRoute("/_auth/recipes")({
@@ -48,7 +49,8 @@ function RecipesManagement() {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [deletingRecipe, setDeletingRecipe] = useState<Recipe | null>(null);
 
-  const { data: recipes, isLoading, error } = useRecipes();
+  const { currentWorld } = useWorldStore();
+  const { data: recipes, isLoading, error } = useRecipes({ world_id: currentWorld });
   const deleteMutation = useDeleteRecipe();
   const createMutation = useCreateRecipe();
   const updateMutation = useUpdateRecipe();
