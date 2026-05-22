@@ -178,6 +178,7 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			DamageType:            req.DamageType,
 			WeaponType:            req.WeaponType,
 			IsTwoHanded:           isTwoHanded,
+			WorldID:               worldID,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
