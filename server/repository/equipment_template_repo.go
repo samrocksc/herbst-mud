@@ -20,12 +20,10 @@ func (r *entEquipmentTemplateRepo) Get(ctx context.Context, id int) (*db.Equipme
 }
 
 func (r *entEquipmentTemplateRepo) GetBySlug(ctx context.Context, slug string, worldID string) (*db.EquipmentTemplate, error) {
-	query := r.client.EquipmentTemplate.Query().
-		Where(equipmenttemplate.Slug(slug))
-	if worldID != "" {
-		query = query.Where(equipmenttemplate.WorldID(worldID))
-	}
-	return query.Only(ctx)
+	return r.client.EquipmentTemplate.Query().
+		Where(equipmenttemplate.SlugEQ(slug)).
+		Where(equipmenttemplate.WorldIDEQ(worldID)).
+		Only(ctx)
 }
 
 func (r *entEquipmentTemplateRepo) List(ctx context.Context, worldID string) ([]*db.EquipmentTemplate, error) {

@@ -19,7 +19,7 @@ type EquipmentTemplate struct {
 	// ID of the ent.
 	// Auto-increment primary key
 	ID int `json:"id,omitempty"`
-	// URL-friendly unique identifier, e.g. 'pizza_dough'
+	// URL-friendly unique identifier, e.g. 'pizza_dough' (unique per world_id)
 	Slug string `json:"slug,omitempty"`
 	// World this item template belongs to (for multi-world support)
 	WorldID string `json:"world_id,omitempty"`

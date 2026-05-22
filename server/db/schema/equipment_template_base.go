@@ -11,8 +11,7 @@ func equipmentTemplateBaseFields() []ent.Field {
 		field.Int("id").
 			Comment("Auto-increment primary key"),
 		field.String("slug").
-			Unique().
-			Comment("URL-friendly unique identifier, e.g. 'pizza_dough'"),
+			Comment("URL-friendly unique identifier, e.g. 'pizza_dough' (unique per world_id)"),
 		field.String("world_id").
 			Default("default").
 			Comment("World this item template belongs to (for multi-world support)"),

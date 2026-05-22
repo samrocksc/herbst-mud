@@ -627,7 +627,7 @@ var (
 	// EquipmentTemplatesColumns holds the columns for the "equipment_templates" table.
 	EquipmentTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "slug", Type: field.TypeString, Unique: true},
+		{Name: "slug", Type: field.TypeString},
 		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
@@ -665,6 +665,13 @@ var (
 		Name:       "equipment_templates",
 		Columns:    EquipmentTemplatesColumns,
 		PrimaryKey: []*schema.Column{EquipmentTemplatesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "equipmenttemplate_slug_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{EquipmentTemplatesColumns[1], EquipmentTemplatesColumns[2]},
+			},
+		},
 	}
 	// FactionsColumns holds the columns for the "factions" table.
 	FactionsColumns = []*schema.Column{
