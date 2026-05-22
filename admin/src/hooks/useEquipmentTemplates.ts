@@ -68,6 +68,7 @@ export type EquipmentTemplateInput = Partial<{
   damage_type: string
   weapon_type: string
   is_two_handed: boolean
+  world_id: string
 }>
 
 export function useEquipmentTemplates() {

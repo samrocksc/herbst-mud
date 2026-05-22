@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
 import { useState } from "react";
 import { useCreateTemplate } from "../../hooks/useEquipmentTemplates";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { FormField, NumberField, SelectField, CheckboxField, TextareaField } from "../../components/FormFields";
 import { showToast } from "../../components/Toast";
+import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
 
 const EFFECT_TYPE_OPTS = [
@@ -27,6 +29,7 @@ export const Route = createFileRoute("/_auth/items/new")({
 
 function CreateItemPage() {
   const navigate = useNavigate();
+  const { currentWorld } = useWorldStore();
   const { mutate: createTemplate, isPending } = useCreateTemplate();
 
   const [form, setForm] = useState({
@@ -42,15 +45,27 @@ function CreateItemPage() {
     effect_type: "",
     effect_value: 0,
     effect_duration: 0,
+    world_id: currentWorld || "default",
   });
+
+  const [conflict, setConflict] = useState<{ existing: Record<string, unknown> } | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    createTemplate(form, {
+    setConflict(null);
+    createTemplate({ ...form, world_id: currentWorld || "default" }, {
       onSuccess: () => {
         showToast("Item template created", "success");
         navigate({ to: "/items" });
+      },
+      onError: (err: unknown) => {
+        const apiErr = err as { response?: { status?: number; data?: { existing?: Record<string, unknown> } } };
+        if (apiErr?.response?.status === 409 && apiErr.response.data?.existing) {
+          setConflict({ existing: apiErr.response.data.existing });
+        } else {
+          showToast("Failed to create item template", "error");
+        }
       },
     });
   };
@@ -92,6 +107,31 @@ function CreateItemPage() {
           </div>
         </form>
       </div>
+
+      {conflict && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+             onClick={() => setConflict(null)}>
+          <div className="bg-surface border border-border rounded-lg p-6 max-w-lg w-full mx-4 shadow-xl"
+               onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-text font-semibold mb-2">Name Already Exists</h3>
+            <p className="text-text-muted text-sm mb-4">
+              "{form.name}" is already taken (slug: <code className="bg-surface-dark px-1 rounded">{form.name.toLowerCase().replace(/\s+/g, '_')}</code>).
+              You can:
+            </p>
+            <ul className="text-sm text-text-muted space-y-2 mb-4">
+              <li>• Choose a different name</li>
+              <li>• Edit the existing template instead</li>
+              <li>• Add a suffix like "_2" or " (new)"</li>
+            </ul>
+            <div className="flex gap-2 justify-end">
+              <Button variant="secondary" onClick={() => setConflict(null)}>Keep Editing</Button>
+              <Button variant="ghost" onClick={() => { setConflict(null); navigate({ to: "/items" }); }}>
+                Back to Items
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

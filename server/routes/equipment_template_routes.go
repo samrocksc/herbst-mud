@@ -101,13 +101,28 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		templateID = strings.ToLower(templateID)
 		templateID = strings.NewReplacer(" ", "_", "-", "_", "'", "", "\"", "").Replace(templateID)
 
+		// Check if a template with this ID already exists
+		existing, err := repos.EquipmentTemplate.Get(c.Request.Context(), templateID)
+		if err == nil && existing != nil {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":      "An item template with this name already exists",
+				"existing":   templateToMap(existing),
+				"suggestions": []string{
+					"Choose a different name",
+					"Edit the existing template instead",
+					"Add a suffix like '_2' or ' (new)'",
+				},
+			})
+			return
+		}
+
 		// Inherit world from query param if not in body, default to first world
 		worldID := req.WorldID
 		if worldID == "" {
 			worldID = c.Query("world_id")
 		}
 		if worldID == "" {
-			worldID = "1"
+			worldID = "default"
 		}
 
 		isVisible := false
