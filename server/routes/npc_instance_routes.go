@@ -350,7 +350,7 @@ func addNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 		}
 
 		var req struct {
-			EquipmentTemplateID string `json:"equipment_template_id" binding:"required"`
+			EquipmentTemplateID int    `json:"equipment_template_id" binding:"required"`
 			SlotOverride         string `json:"slot,omitempty"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -361,7 +361,7 @@ func addNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 		// Fetch the equipment template
 		eqTmpl, err := repos.EquipmentTemplate.Get(c.Request.Context(), req.EquipmentTemplateID)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "equipment template not found: " + req.EquipmentTemplateID})
+			c.JSON(http.StatusNotFound, gin.H{"error": "equipment template not found"})
 			return
 		}
 

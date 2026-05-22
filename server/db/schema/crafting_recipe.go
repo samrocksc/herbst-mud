@@ -6,14 +6,14 @@ import (
 )
 
 type CraftingInput struct {
-	EquipmentTemplateID string `json:"equipment_template_id"`
-	Quantity            int    `json:"quantity"`
-	Consumed            bool   `json:"consumed"`
+	EquipmentTemplateSlug string `json:"equipment_template_slug"`
+	Quantity              int    `json:"quantity"`
+	Consumed              bool   `json:"consumed"`
 }
 
 type CraftingOutput struct {
-	EquipmentTemplateID string `json:"equipment_template_id"`
-	Quantity            int    `json:"quantity"`
+	EquipmentTemplateSlug string `json:"equipment_template_slug"`
+	Quantity               int    `json:"quantity"`
 }
 
 type CraftingRecipe struct {

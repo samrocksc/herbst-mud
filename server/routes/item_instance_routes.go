@@ -45,7 +45,7 @@ type itemInstanceView struct {
 	Color               string `json:"color"`
 	IsVisible           bool   `json:"isVisible"`
 	ItemType            string `json:"itemType"`
-	EquipmentTemplateID string `json:"equipment_template_id"`
+	EquipmentTemplateID int    `json:"equipment_template_id"`
 	OwnerID             *int   `json:"ownerId,omitempty"`
 	RoomID              int    `json:"roomId"`
 	EffectType          string `json:"effect_type"`
@@ -131,7 +131,7 @@ func listItemInstances(repos *repository.Container, client *db.Client) gin.Handl
 		worldID := c.Query("world_id")
 
 		query := client.Equipment.Query().
-			Where(equipment.Or(equipment.EquipmentTemplateIDNEQ(""), equipment.EquipmentTemplateIDIsNil()))
+			Where(equipment.EquipmentTemplateIDNotNil())
 
 		// Filter by world_id via room
 		if worldID != "" {
@@ -145,8 +145,10 @@ func listItemInstances(repos *repository.Container, client *db.Client) gin.Handl
 				query = query.Where(equipment.OwnerIdEQ(ownerID))
 			}
 		}
-		if templateID := c.Query("templateId"); templateID != "" {
-			query = query.Where(equipment.EquipmentTemplateIDEQ(templateID))
+		if templateIDStr := c.Query("templateId"); templateIDStr != "" {
+			if tid, err := strconv.Atoi(templateIDStr); err == nil {
+				query = query.Where(equipment.EquipmentTemplateIDEQ(tid))
+			}
 		}
 		if itemType := c.Query("type"); itemType != "" {
 			query = query.Where(equipment.ItemTypeEQ(itemType))
@@ -179,7 +181,7 @@ func createItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 	return func(c *gin.Context) {
 		var req struct {
 			WorldID            string `json:"world_id"`
-			EquipmentTemplateID string `json:"equipment_template_id"`
+			EquipmentTemplateID int    `json:"equipment_template_id"`
 			Name                string `json:"name"`
 			Description         string `json:"description"`
 			Slot                string `json:"slot"`
@@ -224,11 +226,11 @@ func createItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 
 		builder := client.Equipment.Create()
 
-		// If template provided, auto-fill fields from template
-		if req.EquipmentTemplateID != "" {
+		// If template provided by slug, look it up
+		if req.EquipmentTemplateID > 0 {
 			tmpl, err := repos.EquipmentTemplate.Get(c.Request.Context(), req.EquipmentTemplateID)
 			if err != nil {
-				c.JSON(http.StatusNotFound, gin.H{"error": "equipment template not found: " + req.EquipmentTemplateID})
+				c.JSON(http.StatusNotFound, gin.H{"error": "equipment template not found"})
 				return
 			}
 			builder.SetEquipmentTemplateID(tmpl.ID)
@@ -381,7 +383,7 @@ func getItemInstance(repos *repository.Container, client *db.Client) gin.Handler
 		}
 
 		eq, err := client.Equipment.Query().
-			Where(equipment.IDEQ(id), equipment.Or(equipment.EquipmentTemplateIDNEQ(""), equipment.EquipmentTemplateIDIsNil())).
+			Where(equipment.IDEQ(id), equipment.EquipmentTemplateIDNotNil()).
 			Only(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "item instance not found"})

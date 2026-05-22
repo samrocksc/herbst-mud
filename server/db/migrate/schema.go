@@ -601,7 +601,7 @@ var (
 		{Name: "damage_type", Type: field.TypeString, Default: ""},
 		{Name: "weapon_type", Type: field.TypeString, Default: ""},
 		{Name: "is_two_handed", Type: field.TypeBool, Default: false},
-		{Name: "equipment_template_id", Type: field.TypeString, Nullable: true},
+		{Name: "equipment_template_id", Type: field.TypeInt, Nullable: true},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -626,7 +626,8 @@ var (
 	}
 	// EquipmentTemplatesColumns holds the columns for the "equipment_templates" table.
 	EquipmentTemplatesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "slug", Type: field.TypeString, Unique: true},
 		{Name: "world_id", Type: field.TypeString, Default: "default"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},

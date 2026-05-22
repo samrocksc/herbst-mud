@@ -124,7 +124,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		}
 		itemItems := make([]lookupItem, len(items))
 		for i, item := range items {
-			itemItems[i] = lookupItem{ID: item.ID, Name: item.Name}
+			itemItems[i] = lookupItem{ID: fmt.Sprintf("%d", item.ID), Name: item.Name}
 		}
 		sort.Slice(itemItems, func(i, j int) bool { return itemItems[i].Name < itemItems[j].Name })
 

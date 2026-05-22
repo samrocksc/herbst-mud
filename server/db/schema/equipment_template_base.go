@@ -8,8 +8,11 @@ import (
 /** Base fields for EquipmentTemplate (non-combat). */
 func equipmentTemplateBaseFields() []ent.Field {
 	return []ent.Field{
-		field.String("id").
-			Unique(),
+		field.Int("id").
+			Comment("Auto-increment primary key"),
+		field.String("slug").
+			Unique().
+			Comment("URL-friendly unique identifier, e.g. 'pizza_dough'"),
 		field.String("world_id").
 			Default("default").
 			Comment("World this item template belongs to (for multi-world support)"),

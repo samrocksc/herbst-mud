@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_auth/items/$itemId")({
 
 const instanceColumns: Column<ItemInstance>[] = [
   { header: "ID", accessor: "id", render: (_, row) => (
-    <Link to="/items/$itemId/instances/$instanceId" params={{ itemId: row.equipment_template_id, instanceId: String(row.id) }}
+    <Link to="/items/$itemId/instances/$instanceId" params={{ itemId: String(row.equipment_template_id), instanceId: String(row.id) }}
       className="text-primary no-underline hover:underline font-mono text-xs">{row.id}</Link>
   )},
   { header: "Name", accessor: "name" },

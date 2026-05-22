@@ -29,6 +29,20 @@ func (_u *EquipmentTemplateUpdate) Where(ps ...predicate.EquipmentTemplate) *Equ
 	return _u
 }
 
+// SetSlug sets the "slug" field.
+func (_u *EquipmentTemplateUpdate) SetSlug(v string) *EquipmentTemplateUpdate {
+	_u.mutation.SetSlug(v)
+	return _u
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdate) SetNillableSlug(v *string) *EquipmentTemplateUpdate {
+	if v != nil {
+		_u.SetSlug(*v)
+	}
+	return _u
+}
+
 // SetWorldID sets the "world_id" field.
 func (_u *EquipmentTemplateUpdate) SetWorldID(v string) *EquipmentTemplateUpdate {
 	_u.mutation.SetWorldID(v)
@@ -612,13 +626,16 @@ func (_u *EquipmentTemplateUpdate) ExecX(ctx context.Context) {
 }
 
 func (_u *EquipmentTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(equipmenttemplate.Table, equipmenttemplate.Columns, sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(equipmenttemplate.Table, equipmenttemplate.Columns, sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Slug(); ok {
+		_spec.SetField(equipmenttemplate.FieldSlug, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.WorldID(); ok {
 		_spec.SetField(equipmenttemplate.FieldWorldID, field.TypeString, value)
@@ -815,6 +832,20 @@ type EquipmentTemplateUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *EquipmentTemplateMutation
+}
+
+// SetSlug sets the "slug" field.
+func (_u *EquipmentTemplateUpdateOne) SetSlug(v string) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetSlug(v)
+	return _u
+}
+
+// SetNillableSlug sets the "slug" field if the given value is not nil.
+func (_u *EquipmentTemplateUpdateOne) SetNillableSlug(v *string) *EquipmentTemplateUpdateOne {
+	if v != nil {
+		_u.SetSlug(*v)
+	}
+	return _u
 }
 
 // SetWorldID sets the "world_id" field.
@@ -1413,7 +1444,7 @@ func (_u *EquipmentTemplateUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (_u *EquipmentTemplateUpdateOne) sqlSave(ctx context.Context) (_node *EquipmentTemplate, err error) {
-	_spec := sqlgraph.NewUpdateSpec(equipmenttemplate.Table, equipmenttemplate.Columns, sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(equipmenttemplate.Table, equipmenttemplate.Columns, sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "EquipmentTemplate.id" for update`)}
@@ -1437,6 +1468,9 @@ func (_u *EquipmentTemplateUpdateOne) sqlSave(ctx context.Context) (_node *Equip
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Slug(); ok {
+		_spec.SetField(equipmenttemplate.FieldSlug, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.WorldID(); ok {
 		_spec.SetField(equipmenttemplate.FieldWorldID, field.TypeString, value)

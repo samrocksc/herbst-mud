@@ -6,7 +6,8 @@ import { useWorldStore } from "../contexts/WorldStoreContext";
 const API = `${window.location.origin}/api/equipment-templates`;
 
 export type EquipmentTemplate = Readonly<{
-  id: string
+  id: number
+  slug: string
   name: string
   description: string
   slot: string
@@ -40,6 +41,7 @@ export type EquipmentTemplate = Readonly<{
 
 export type EquipmentTemplateInput = Partial<{
   name: string
+  slug: string
   description: string
   slot: string
   level: number
@@ -87,7 +89,7 @@ export function useEquipmentTemplates() {
   });
 }
 
-export function useEquipmentTemplate(id: string | null) {
+export function useEquipmentTemplate(id: number | null) {
   const { currentWorld } = useWorldStore();
   const params = new URLSearchParams();
   if (currentWorld) params.append("world_id", currentWorld);
@@ -111,7 +113,7 @@ export function useCreateTemplate() {
 export function useUpdateTemplate() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: EquipmentTemplateInput }) =>
+    mutationFn: ({ id, input }: { id: number; input: EquipmentTemplateInput }) =>
       apiPut<EquipmentTemplate>(`${API}/${id}`, input),
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ["equipment-templates"] });
@@ -123,7 +125,7 @@ export function useUpdateTemplate() {
 export function useDeleteTemplate() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => apiDelete(`${API}/${id}`),
+    mutationFn: (id: number) => apiDelete(`${API}/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["equipment-templates"] }),
   });
 }

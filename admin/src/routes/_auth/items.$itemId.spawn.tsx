@@ -30,7 +30,7 @@ function ItemSpawnPage() {
 
   const spawnMutation = useMutation({
     mutationFn: ({ targetType, targetId }: { targetType: TargetType; targetId: number }) => {
-      const body: Record<string, unknown> = { equipment_template_id: itemId };
+      const body: Record<string, unknown> = { equipment_template_id: Number(itemId) };
       if (targetType === "room") body.room_id = targetId;
       else body.ownerId = targetId;
       return apiPost(`${API}/api/item-instances`, body);

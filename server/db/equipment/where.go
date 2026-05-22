@@ -106,7 +106,7 @@ func ItemType(v string) predicate.Equipment {
 }
 
 // EquipmentTemplateID applies equality check predicate on the "equipment_template_id" field. It's identical to EquipmentTemplateIDEQ.
-func EquipmentTemplateID(v string) predicate.Equipment {
+func EquipmentTemplateID(v int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldEquipmentTemplateID, v))
 }
 
@@ -681,58 +681,23 @@ func ItemTypeContainsFold(v string) predicate.Equipment {
 }
 
 // EquipmentTemplateIDEQ applies the EQ predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDEQ(v string) predicate.Equipment {
+func EquipmentTemplateIDEQ(v int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldEQ(FieldEquipmentTemplateID, v))
 }
 
 // EquipmentTemplateIDNEQ applies the NEQ predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDNEQ(v string) predicate.Equipment {
+func EquipmentTemplateIDNEQ(v int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldNEQ(FieldEquipmentTemplateID, v))
 }
 
 // EquipmentTemplateIDIn applies the In predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDIn(vs ...string) predicate.Equipment {
+func EquipmentTemplateIDIn(vs ...int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldIn(FieldEquipmentTemplateID, vs...))
 }
 
 // EquipmentTemplateIDNotIn applies the NotIn predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDNotIn(vs ...string) predicate.Equipment {
+func EquipmentTemplateIDNotIn(vs ...int) predicate.Equipment {
 	return predicate.Equipment(sql.FieldNotIn(FieldEquipmentTemplateID, vs...))
-}
-
-// EquipmentTemplateIDGT applies the GT predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDGT(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldGT(FieldEquipmentTemplateID, v))
-}
-
-// EquipmentTemplateIDGTE applies the GTE predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDGTE(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldGTE(FieldEquipmentTemplateID, v))
-}
-
-// EquipmentTemplateIDLT applies the LT predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDLT(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldLT(FieldEquipmentTemplateID, v))
-}
-
-// EquipmentTemplateIDLTE applies the LTE predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDLTE(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldLTE(FieldEquipmentTemplateID, v))
-}
-
-// EquipmentTemplateIDContains applies the Contains predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDContains(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldContains(FieldEquipmentTemplateID, v))
-}
-
-// EquipmentTemplateIDHasPrefix applies the HasPrefix predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDHasPrefix(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldHasPrefix(FieldEquipmentTemplateID, v))
-}
-
-// EquipmentTemplateIDHasSuffix applies the HasSuffix predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDHasSuffix(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldHasSuffix(FieldEquipmentTemplateID, v))
 }
 
 // EquipmentTemplateIDIsNil applies the IsNil predicate on the "equipment_template_id" field.
@@ -743,16 +708,6 @@ func EquipmentTemplateIDIsNil() predicate.Equipment {
 // EquipmentTemplateIDNotNil applies the NotNil predicate on the "equipment_template_id" field.
 func EquipmentTemplateIDNotNil() predicate.Equipment {
 	return predicate.Equipment(sql.FieldNotNull(FieldEquipmentTemplateID))
-}
-
-// EquipmentTemplateIDEqualFold applies the EqualFold predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDEqualFold(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldEqualFold(FieldEquipmentTemplateID, v))
-}
-
-// EquipmentTemplateIDContainsFold applies the ContainsFold predicate on the "equipment_template_id" field.
-func EquipmentTemplateIDContainsFold(v string) predicate.Equipment {
-	return predicate.Equipment(sql.FieldContainsFold(FieldEquipmentTemplateID, v))
 }
 
 // OwnerIdEQ applies the EQ predicate on the "ownerId" field.

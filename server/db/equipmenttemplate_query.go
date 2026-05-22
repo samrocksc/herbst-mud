@@ -107,8 +107,8 @@ func (_q *EquipmentTemplateQuery) FirstX(ctx context.Context) *EquipmentTemplate
 
 // FirstID returns the first EquipmentTemplate ID from the query.
 // Returns a *NotFoundError when no EquipmentTemplate ID was found.
-func (_q *EquipmentTemplateQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (_q *EquipmentTemplateQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -120,7 +120,7 @@ func (_q *EquipmentTemplateQuery) FirstID(ctx context.Context) (id string, err e
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *EquipmentTemplateQuery) FirstIDX(ctx context.Context) string {
+func (_q *EquipmentTemplateQuery) FirstIDX(ctx context.Context) int {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -158,8 +158,8 @@ func (_q *EquipmentTemplateQuery) OnlyX(ctx context.Context) *EquipmentTemplate 
 // OnlyID is like Only, but returns the only EquipmentTemplate ID in the query.
 // Returns a *NotSingularError when more than one EquipmentTemplate ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *EquipmentTemplateQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (_q *EquipmentTemplateQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -175,7 +175,7 @@ func (_q *EquipmentTemplateQuery) OnlyID(ctx context.Context) (id string, err er
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *EquipmentTemplateQuery) OnlyIDX(ctx context.Context) string {
+func (_q *EquipmentTemplateQuery) OnlyIDX(ctx context.Context) int {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -203,7 +203,7 @@ func (_q *EquipmentTemplateQuery) AllX(ctx context.Context) []*EquipmentTemplate
 }
 
 // IDs executes the query and returns a list of EquipmentTemplate IDs.
-func (_q *EquipmentTemplateQuery) IDs(ctx context.Context) (ids []string, err error) {
+func (_q *EquipmentTemplateQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -215,7 +215,7 @@ func (_q *EquipmentTemplateQuery) IDs(ctx context.Context) (ids []string, err er
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *EquipmentTemplateQuery) IDsX(ctx context.Context) []string {
+func (_q *EquipmentTemplateQuery) IDsX(ctx context.Context) []int {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -299,12 +299,12 @@ func (_q *EquipmentTemplateQuery) WithEquipment(opts ...func(*EquipmentQuery)) *
 // Example:
 //
 //	var v []struct {
-//		WorldID string `json:"world_id,omitempty"`
+//		Slug string `json:"slug,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.EquipmentTemplate.Query().
-//		GroupBy(equipmenttemplate.FieldWorldID).
+//		GroupBy(equipmenttemplate.FieldSlug).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *EquipmentTemplateQuery) GroupBy(field string, fields ...string) *EquipmentTemplateGroupBy {
@@ -322,11 +322,11 @@ func (_q *EquipmentTemplateQuery) GroupBy(field string, fields ...string) *Equip
 // Example:
 //
 //	var v []struct {
-//		WorldID string `json:"world_id,omitempty"`
+//		Slug string `json:"slug,omitempty"`
 //	}
 //
 //	client.EquipmentTemplate.Query().
-//		Select(equipmenttemplate.FieldWorldID).
+//		Select(equipmenttemplate.FieldSlug).
 //		Scan(ctx, &v)
 func (_q *EquipmentTemplateQuery) Select(fields ...string) *EquipmentTemplateSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -405,7 +405,7 @@ func (_q *EquipmentTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook
 
 func (_q *EquipmentTemplateQuery) loadEquipment(ctx context.Context, query *EquipmentQuery, nodes []*EquipmentTemplate, init func(*EquipmentTemplate), assign func(*EquipmentTemplate, *Equipment)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[string]*EquipmentTemplate)
+	nodeids := make(map[int]*EquipmentTemplate)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -445,7 +445,7 @@ func (_q *EquipmentTemplateQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *EquipmentTemplateQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(equipmenttemplate.Table, equipmenttemplate.Columns, sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString))
+	_spec := sqlgraph.NewQuerySpec(equipmenttemplate.Table, equipmenttemplate.Columns, sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

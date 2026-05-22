@@ -19454,7 +19454,7 @@ type EquipmentMutation struct {
 	clearedFields              map[string]struct{}
 	room                       *int
 	clearedroom                bool
-	equipmentTemplate          *string
+	equipmentTemplate          *int
 	clearedequipmentTemplate   bool
 	done                       bool
 	oldValue                   func(context.Context) (*Equipment, error)
@@ -19960,12 +19960,12 @@ func (m *EquipmentMutation) ResetItemType() {
 }
 
 // SetEquipmentTemplateID sets the "equipment_template_id" field.
-func (m *EquipmentMutation) SetEquipmentTemplateID(s string) {
-	m.equipmentTemplate = &s
+func (m *EquipmentMutation) SetEquipmentTemplateID(i int) {
+	m.equipmentTemplate = &i
 }
 
 // EquipmentTemplateID returns the value of the "equipment_template_id" field in the mutation.
-func (m *EquipmentMutation) EquipmentTemplateID() (r string, exists bool) {
+func (m *EquipmentMutation) EquipmentTemplateID() (r int, exists bool) {
 	v := m.equipmentTemplate
 	if v == nil {
 		return
@@ -19976,7 +19976,7 @@ func (m *EquipmentMutation) EquipmentTemplateID() (r string, exists bool) {
 // OldEquipmentTemplateID returns the old "equipment_template_id" field's value of the Equipment entity.
 // If the Equipment object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v string, err error) {
+func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEquipmentTemplateID is only allowed on UpdateOne operations")
 	}
@@ -21400,7 +21400,7 @@ func (m *EquipmentMutation) EquipmentTemplateCleared() bool {
 // EquipmentTemplateIDs returns the "equipmentTemplate" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // EquipmentTemplateID instead. It exists only for internal usage by the builders.
-func (m *EquipmentMutation) EquipmentTemplateIDs() (ids []string) {
+func (m *EquipmentMutation) EquipmentTemplateIDs() (ids []int) {
 	if id := m.equipmentTemplate; id != nil {
 		ids = append(ids, *id)
 	}
@@ -21825,7 +21825,7 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		m.SetItemType(v)
 		return nil
 	case equipment.FieldEquipmentTemplateID:
-		v, ok := value.(string)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -22502,7 +22502,8 @@ type EquipmentTemplateMutation struct {
 	config
 	op                         Op
 	typ                        string
-	id                         *string
+	id                         *int
+	slug                       *string
 	world_id                   *string
 	name                       *string
 	description                *string
@@ -22573,7 +22574,7 @@ func newEquipmentTemplateMutation(c config, op Op, opts ...equipmenttemplateOpti
 }
 
 // withEquipmentTemplateID sets the ID field of the mutation.
-func withEquipmentTemplateID(id string) equipmenttemplateOption {
+func withEquipmentTemplateID(id int) equipmenttemplateOption {
 	return func(m *EquipmentTemplateMutation) {
 		var (
 			err   error
@@ -22625,13 +22626,13 @@ func (m EquipmentTemplateMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of EquipmentTemplate entities.
-func (m *EquipmentTemplateMutation) SetID(id string) {
+func (m *EquipmentTemplateMutation) SetID(id int) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *EquipmentTemplateMutation) ID() (id string, exists bool) {
+func (m *EquipmentTemplateMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -22642,12 +22643,12 @@ func (m *EquipmentTemplateMutation) ID() (id string, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]string, error) {
+func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []string{id}, nil
+			return []int{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -22655,6 +22656,42 @@ func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetSlug sets the "slug" field.
+func (m *EquipmentTemplateMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *EquipmentTemplateMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *EquipmentTemplateMutation) ResetSlug() {
+	m.slug = nil
 }
 
 // SetWorldID sets the "world_id" field.
@@ -24100,7 +24137,10 @@ func (m *EquipmentTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 31)
+	fields := make([]string, 0, 32)
+	if m.slug != nil {
+		fields = append(fields, equipmenttemplate.FieldSlug)
+	}
 	if m.world_id != nil {
 		fields = append(fields, equipmenttemplate.FieldWorldID)
 	}
@@ -24202,6 +24242,8 @@ func (m *EquipmentTemplateMutation) Fields() []string {
 // schema.
 func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case equipmenttemplate.FieldSlug:
+		return m.Slug()
 	case equipmenttemplate.FieldWorldID:
 		return m.WorldID()
 	case equipmenttemplate.FieldName:
@@ -24273,6 +24315,8 @@ func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case equipmenttemplate.FieldSlug:
+		return m.OldSlug(ctx)
 	case equipmenttemplate.FieldWorldID:
 		return m.OldWorldID(ctx)
 	case equipmenttemplate.FieldName:
@@ -24344,6 +24388,13 @@ func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (
 // type.
 func (m *EquipmentTemplateMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case equipmenttemplate.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
 	case equipmenttemplate.FieldWorldID:
 		v, ok := value.(string)
 		if !ok {
@@ -24754,6 +24805,9 @@ func (m *EquipmentTemplateMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *EquipmentTemplateMutation) ResetField(name string) error {
 	switch name {
+	case equipmenttemplate.FieldSlug:
+		m.ResetSlug()
+		return nil
 	case equipmenttemplate.FieldWorldID:
 		m.ResetWorldID()
 		return nil

@@ -186,13 +186,13 @@ func (_u *EquipmentUpdate) SetNillableItemType(v *string) *EquipmentUpdate {
 }
 
 // SetEquipmentTemplateID sets the "equipment_template_id" field.
-func (_u *EquipmentUpdate) SetEquipmentTemplateID(v string) *EquipmentUpdate {
+func (_u *EquipmentUpdate) SetEquipmentTemplateID(v int) *EquipmentUpdate {
 	_u.mutation.SetEquipmentTemplateID(v)
 	return _u
 }
 
 // SetNillableEquipmentTemplateID sets the "equipment_template_id" field if the given value is not nil.
-func (_u *EquipmentUpdate) SetNillableEquipmentTemplateID(v *string) *EquipmentUpdate {
+func (_u *EquipmentUpdate) SetNillableEquipmentTemplateID(v *int) *EquipmentUpdate {
 	if v != nil {
 		_u.SetEquipmentTemplateID(*v)
 	}
@@ -990,7 +990,7 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{equipment.EquipmentTemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1003,7 +1003,7 @@ func (_u *EquipmentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{equipment.EquipmentTemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1186,13 +1186,13 @@ func (_u *EquipmentUpdateOne) SetNillableItemType(v *string) *EquipmentUpdateOne
 }
 
 // SetEquipmentTemplateID sets the "equipment_template_id" field.
-func (_u *EquipmentUpdateOne) SetEquipmentTemplateID(v string) *EquipmentUpdateOne {
+func (_u *EquipmentUpdateOne) SetEquipmentTemplateID(v int) *EquipmentUpdateOne {
 	_u.mutation.SetEquipmentTemplateID(v)
 	return _u
 }
 
 // SetNillableEquipmentTemplateID sets the "equipment_template_id" field if the given value is not nil.
-func (_u *EquipmentUpdateOne) SetNillableEquipmentTemplateID(v *string) *EquipmentUpdateOne {
+func (_u *EquipmentUpdateOne) SetNillableEquipmentTemplateID(v *int) *EquipmentUpdateOne {
 	if v != nil {
 		_u.SetEquipmentTemplateID(*v)
 	}
@@ -2020,7 +2020,7 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 			Columns: []string{equipment.EquipmentTemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -2033,7 +2033,7 @@ func (_u *EquipmentUpdateOne) sqlSave(ctx context.Context) (_node *Equipment, er
 			Columns: []string{equipment.EquipmentTemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

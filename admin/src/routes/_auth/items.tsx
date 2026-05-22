@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_auth/items")({
 
 function ItemsIndex() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const templatesQuery = useEquipmentTemplates();
@@ -24,7 +24,7 @@ function ItemsIndex() {
   const deleteMutation = useDeleteTemplate();
 
   const instanceCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<number, number> = {};
     for (const inst of instancesQuery.data ?? []) {
       const tid = inst.equipment_template_id;
       if (tid) counts[tid] = (counts[tid] ?? 0) + 1;
@@ -36,7 +36,7 @@ function ItemsIndex() {
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     deleteMutation.mutate(id, {
       onSuccess: () => { setDeleteId(null); showToast("Item template deleted", "success"); },
     });

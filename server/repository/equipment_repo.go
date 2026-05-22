@@ -129,7 +129,7 @@ func (r *entEquipmentRepo) Delete(ctx context.Context, id int) error {
 	return r.client.Equipment.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *entEquipmentRepo) CountByTemplateID(ctx context.Context, templateID string) (int, error) {
+func (r *entEquipmentRepo) CountByTemplateID(ctx context.Context, templateID int) (int, error) {
 	return r.client.Equipment.Query().
 		Where(equipment.EquipmentTemplateIDEQ(templateID)).
 		Count(ctx)

@@ -70,7 +70,7 @@ type EquipmentRepo interface {
 	Create(ctx context.Context, input CreateEquipmentInput) (*db.Equipment, error)
 	Update(ctx context.Context, id int, updates EquipmentUpdates) (*db.Equipment, error)
 	Delete(ctx context.Context, id int) error
-	CountByTemplateID(ctx context.Context, templateID string) (int, error)
+	CountByTemplateID(ctx context.Context, templateID int) (int, error)
 }
 
 // NPCTemplateRepo defines data access for NPC templates.
@@ -268,11 +268,12 @@ type WorldRepo interface {
 
 // EquipmentTemplateRepo defines data access for equipment templates.
 type EquipmentTemplateRepo interface {
-	Get(ctx context.Context, id string) (*db.EquipmentTemplate, error)
+	Get(ctx context.Context, id int) (*db.EquipmentTemplate, error)
+	GetBySlug(ctx context.Context, slug string, worldID string) (*db.EquipmentTemplate, error)
 	List(ctx context.Context, worldID string) ([]*db.EquipmentTemplate, error)
 	Create(ctx context.Context, input CreateEquipmentTemplateInput) (*db.EquipmentTemplate, error)
-	Update(ctx context.Context, id string, updates EquipmentTemplateUpdates) (*db.EquipmentTemplate, error)
-	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id int, updates EquipmentTemplateUpdates) (*db.EquipmentTemplate, error)
+	Delete(ctx context.Context, id int) error
 }
 
 // ItemInstanceRepo defines data access for NPC instances and item instances.
@@ -468,7 +469,7 @@ type CreateEquipmentInput struct {
 	EffectType            string
 	EffectValue           int
 	EffectDuration        int
-	EquipmentTemplateID   *string
+	EquipmentTemplateID   *int
 	Healing               int
 	IsContainer           bool
 	ContainerCapacity     int
@@ -753,15 +754,15 @@ type RaceUpdates struct {
 }
 
 type CreateEquipmentTemplateInput struct {
-	ID                    string
+	Slug                  string
 	Name                  string
 	Description           string
 	Slot                  string
 	Level                 int
-	Weight                 int
+	Weight                int
 	ItemType              string
 	Stats                 map[string]int
-	Color                  string
+	Color                 string
 	IsVisible             bool
 	IsImmovable           bool
 	EffectType            string
@@ -781,7 +782,7 @@ type CreateEquipmentTemplateInput struct {
 	DamageDiceSides       int
 	DamageBonus           int
 	DamageType            string
-	WeaponType             string
+	WeaponType            string
 	IsTwoHanded           bool
 	WorldID               string
 }

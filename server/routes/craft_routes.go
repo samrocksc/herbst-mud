@@ -92,29 +92,38 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
-		available := make(map[string]int)
+		available := make(map[int]int)
 		for _, item := range inventory {
-			if item.EquipmentTemplateID != "" {
+			if item.EquipmentTemplateID > 0 {
 				available[item.EquipmentTemplateID] += item.Quantity
 			}
 		}
 
+		// Resolve input slugs to template IDs
+		type inputSlot struct {
+			TemplateID int
+			Quantity   int
+			Consumed   bool
+		}
+		var resolvedInputs []inputSlot
 		for _, input := range recipe.Inputs {
-			if available[input.EquipmentTemplateID] < input.Quantity {
-				template, _ := repos.EquipmentTemplate.Get(ctx, input.EquipmentTemplateID)
-				name := input.EquipmentTemplateID
-				if template != nil {
-					name = template.Name
-				}
-				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "missing ingredient: " + name})
+			tmpl, err := repos.EquipmentTemplate.GetBySlug(ctx, input.EquipmentTemplateSlug, "")
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "missing ingredient template: " + input.EquipmentTemplateSlug})
 				return
 			}
+			if available[tmpl.ID] < input.Quantity {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "missing ingredient: " + tmpl.Name})
+				return
+			}
+			resolvedInputs = append(resolvedInputs, inputSlot{TemplateID: tmpl.ID, Quantity: input.Quantity, Consumed: input.Consumed})
 		}
 
-		for _, input := range recipe.Inputs {
+		// Consume ingredients from inventory
+		for _, input := range resolvedInputs {
 			need := input.Quantity
 			for _, item := range inventory {
-				if item.EquipmentTemplateID != input.EquipmentTemplateID || need <= 0 {
+				if item.EquipmentTemplateID != input.TemplateID || need <= 0 {
 					continue
 				}
 				if item.Quantity <= need {
@@ -130,9 +139,9 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 
 		var outputs []outputItem
 		for _, output := range recipe.Outputs {
-			template, err := repos.EquipmentTemplate.Get(ctx, output.EquipmentTemplateID)
+			template, err := repos.EquipmentTemplate.GetBySlug(ctx, output.EquipmentTemplateSlug, "")
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to load template: " + output.EquipmentTemplateID})
+				c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to load template: " + output.EquipmentTemplateSlug})
 				return
 			}
 
@@ -164,7 +173,7 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 					EffectType:            template.EffectType,
 					EffectValue:           template.EffectValue,
 					EffectDuration:        template.EffectDuration,
-					EquipmentTemplateID:   &output.EquipmentTemplateID,
+					EquipmentTemplateID:   &template.ID,
 					OwnerID:               &ownerID,
 				})
 				if err != nil {

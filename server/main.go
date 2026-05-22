@@ -125,11 +125,6 @@ func main() {
 		log.Printf("Warning: failed to initialize character health: %v", err)
 	}
 
-	// Seed Pizza Chef crafting content
-	if err := dbinit.InitCraftingContent(client); err != nil {
-		log.Printf("Warning: failed to initialize crafting content: %v", err)
-	}
-
 	// Apply database fixes again (after InitCharacterHealth which might restore 0 HP chars)
 	if err := dbinit.EnsureCombatDummyImmortal(client); err != nil {
 		log.Printf("Warning: failed to ensure Combat Dummy immortality: %v", err)

@@ -21,6 +21,12 @@ type EquipmentTemplateCreate struct {
 	hooks    []Hook
 }
 
+// SetSlug sets the "slug" field.
+func (_c *EquipmentTemplateCreate) SetSlug(v string) *EquipmentTemplateCreate {
+	_c.mutation.SetSlug(v)
+	return _c
+}
+
 // SetWorldID sets the "world_id" field.
 func (_c *EquipmentTemplateCreate) SetWorldID(v string) *EquipmentTemplateCreate {
 	_c.mutation.SetWorldID(v)
@@ -424,7 +430,7 @@ func (_c *EquipmentTemplateCreate) SetNillableIsTwoHanded(v *bool) *EquipmentTem
 }
 
 // SetID sets the "id" field.
-func (_c *EquipmentTemplateCreate) SetID(v string) *EquipmentTemplateCreate {
+func (_c *EquipmentTemplateCreate) SetID(v int) *EquipmentTemplateCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
@@ -583,6 +589,9 @@ func (_c *EquipmentTemplateCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *EquipmentTemplateCreate) check() error {
+	if _, ok := _c.mutation.Slug(); !ok {
+		return &ValidationError{Name: "slug", err: errors.New(`db: missing required field "EquipmentTemplate.slug"`)}
+	}
 	if _, ok := _c.mutation.WorldID(); !ok {
 		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "EquipmentTemplate.world_id"`)}
 	}
@@ -681,12 +690,9 @@ func (_c *EquipmentTemplateCreate) sqlSave(ctx context.Context) (*EquipmentTempl
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(string); ok {
-			_node.ID = id
-		} else {
-			return nil, fmt.Errorf("unexpected EquipmentTemplate.ID type: %T", _spec.ID.Value)
-		}
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int(id)
 	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
@@ -696,11 +702,15 @@ func (_c *EquipmentTemplateCreate) sqlSave(ctx context.Context) (*EquipmentTempl
 func (_c *EquipmentTemplateCreate) createSpec() (*EquipmentTemplate, *sqlgraph.CreateSpec) {
 	var (
 		_node = &EquipmentTemplate{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(equipmenttemplate.Table, sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString))
+		_spec = sqlgraph.NewCreateSpec(equipmenttemplate.Table, sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.Slug(); ok {
+		_spec.SetField(equipmenttemplate.FieldSlug, field.TypeString, value)
+		_node.Slug = value
 	}
 	if value, ok := _c.mutation.WorldID(); ok {
 		_spec.SetField(equipmenttemplate.FieldWorldID, field.TypeString, value)
@@ -890,6 +900,10 @@ func (_c *EquipmentTemplateCreateBulk) Save(ctx context.Context) ([]*EquipmentTe
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				mutation.done = true
 				return nodes[i], nil
 			})

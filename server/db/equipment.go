@@ -41,7 +41,7 @@ type Equipment struct {
 	// weapon|armor|consumable|quest|misc|container|potion
 	ItemType string `json:"itemType,omitempty"`
 	// FK to equipment_template
-	EquipmentTemplateID string `json:"equipment_template_id,omitempty"`
+	EquipmentTemplateID int `json:"equipment_template_id,omitempty"`
 	// Character ID that owns this item
 	OwnerId *int `json:"ownerId,omitempty"`
 	// heal|damage|dot|buff_armor|buff_dodge|buff_crit|debuff
@@ -149,9 +149,9 @@ func (*Equipment) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case equipment.FieldIsEquipped, equipment.FieldIsImmovable, equipment.FieldIsVisible, equipment.FieldIsContainer, equipment.FieldIsLocked, equipment.FieldIsTwoHanded:
 			values[i] = new(sql.NullBool)
-		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity, equipment.FieldHiddenThreshold, equipment.FieldQuantity, equipment.FieldArmorRating, equipment.FieldSkillRequirementLevel, equipment.FieldDamageDiceCount, equipment.FieldDamageDiceSides, equipment.FieldDamageBonus:
+		case equipment.FieldID, equipment.FieldLevel, equipment.FieldWeight, equipment.FieldEquipmentTemplateID, equipment.FieldOwnerId, equipment.FieldEffectValue, equipment.FieldEffectDuration, equipment.FieldHealing, equipment.FieldContainerCapacity, equipment.FieldHiddenThreshold, equipment.FieldQuantity, equipment.FieldArmorRating, equipment.FieldSkillRequirementLevel, equipment.FieldDamageDiceCount, equipment.FieldDamageDiceSides, equipment.FieldDamageBonus:
 			values[i] = new(sql.NullInt64)
-		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEquipmentTemplateID, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition, equipment.FieldExamineDesc, equipment.FieldArmorType, equipment.FieldRarity, equipment.FieldSkillRequirement, equipment.FieldDamageType, equipment.FieldWeaponType:
+		case equipment.FieldName, equipment.FieldDescription, equipment.FieldSlot, equipment.FieldColor, equipment.FieldItemType, equipment.FieldEffectType, equipment.FieldEffect, equipment.FieldKeyItemID, equipment.FieldContainedItems, equipment.FieldRevealCondition, equipment.FieldExamineDesc, equipment.FieldArmorType, equipment.FieldRarity, equipment.FieldSkillRequirement, equipment.FieldDamageType, equipment.FieldWeaponType:
 			values[i] = new(sql.NullString)
 		case equipment.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -239,10 +239,10 @@ func (_m *Equipment) assignValues(columns []string, values []any) error {
 				_m.ItemType = value.String
 			}
 		case equipment.FieldEquipmentTemplateID:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field equipment_template_id", values[i])
 			} else if value.Valid {
-				_m.EquipmentTemplateID = value.String
+				_m.EquipmentTemplateID = int(value.Int64)
 			}
 		case equipment.FieldOwnerId:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -508,7 +508,7 @@ func (_m *Equipment) String() string {
 	builder.WriteString(_m.ItemType)
 	builder.WriteString(", ")
 	builder.WriteString("equipment_template_id=")
-	builder.WriteString(_m.EquipmentTemplateID)
+	builder.WriteString(fmt.Sprintf("%v", _m.EquipmentTemplateID))
 	builder.WriteString(", ")
 	if v := _m.OwnerId; v != nil {
 		builder.WriteString("ownerId=")

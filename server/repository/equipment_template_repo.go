@@ -15,8 +15,17 @@ func NewEntEquipmentTemplateRepo(client *db.Client) EquipmentTemplateRepo {
 	return &entEquipmentTemplateRepo{client: client}
 }
 
-func (r *entEquipmentTemplateRepo) Get(ctx context.Context, id string) (*db.EquipmentTemplate, error) {
+func (r *entEquipmentTemplateRepo) Get(ctx context.Context, id int) (*db.EquipmentTemplate, error) {
 	return r.client.EquipmentTemplate.Get(ctx, id)
+}
+
+func (r *entEquipmentTemplateRepo) GetBySlug(ctx context.Context, slug string, worldID string) (*db.EquipmentTemplate, error) {
+	query := r.client.EquipmentTemplate.Query().
+		Where(equipmenttemplate.Slug(slug))
+	if worldID != "" {
+		query = query.Where(equipmenttemplate.WorldID(worldID))
+	}
+	return query.Only(ctx)
 }
 
 func (r *entEquipmentTemplateRepo) List(ctx context.Context, worldID string) ([]*db.EquipmentTemplate, error) {
@@ -29,7 +38,7 @@ func (r *entEquipmentTemplateRepo) List(ctx context.Context, worldID string) ([]
 
 func (r *entEquipmentTemplateRepo) Create(ctx context.Context, input CreateEquipmentTemplateInput) (*db.EquipmentTemplate, error) {
 	builder := r.client.EquipmentTemplate.Create().
-		SetID(input.ID).
+		SetSlug(input.Slug).
 		SetName(input.Name).
 		SetDescription(input.Description).
 		SetSlot(input.Slot).
@@ -67,7 +76,7 @@ func (r *entEquipmentTemplateRepo) Create(ctx context.Context, input CreateEquip
 	return builder.Save(ctx)
 }
 
-func (r *entEquipmentTemplateRepo) Update(ctx context.Context, id string, updates EquipmentTemplateUpdates) (*db.EquipmentTemplate, error) {
+func (r *entEquipmentTemplateRepo) Update(ctx context.Context, id int, updates EquipmentTemplateUpdates) (*db.EquipmentTemplate, error) {
 	builder := r.client.EquipmentTemplate.UpdateOneID(id)
 	if updates.Name != nil {
 		builder = builder.SetName(*updates.Name)
@@ -162,6 +171,6 @@ func (r *entEquipmentTemplateRepo) Update(ctx context.Context, id string, update
 	return builder.Save(ctx)
 }
 
-func (r *entEquipmentTemplateRepo) Delete(ctx context.Context, id string) error {
+func (r *entEquipmentTemplateRepo) Delete(ctx context.Context, id int) error {
 	return r.client.EquipmentTemplate.DeleteOneID(id).Exec(ctx)
 }

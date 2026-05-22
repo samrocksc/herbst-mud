@@ -3978,7 +3978,7 @@ func (c *EquipmentTemplateClient) UpdateOne(_m *EquipmentTemplate) *EquipmentTem
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *EquipmentTemplateClient) UpdateOneID(id string) *EquipmentTemplateUpdateOne {
+func (c *EquipmentTemplateClient) UpdateOneID(id int) *EquipmentTemplateUpdateOne {
 	mutation := newEquipmentTemplateMutation(c.config, OpUpdateOne, withEquipmentTemplateID(id))
 	return &EquipmentTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -3995,7 +3995,7 @@ func (c *EquipmentTemplateClient) DeleteOne(_m *EquipmentTemplate) *EquipmentTem
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *EquipmentTemplateClient) DeleteOneID(id string) *EquipmentTemplateDeleteOne {
+func (c *EquipmentTemplateClient) DeleteOneID(id int) *EquipmentTemplateDeleteOne {
 	builder := c.Delete().Where(equipmenttemplate.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -4012,12 +4012,12 @@ func (c *EquipmentTemplateClient) Query() *EquipmentTemplateQuery {
 }
 
 // Get returns a EquipmentTemplate entity by its id.
-func (c *EquipmentTemplateClient) Get(ctx context.Context, id string) (*EquipmentTemplate, error) {
+func (c *EquipmentTemplateClient) Get(ctx context.Context, id int) (*EquipmentTemplate, error) {
 	return c.Query().Where(equipmenttemplate.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *EquipmentTemplateClient) GetX(ctx context.Context, id string) *EquipmentTemplate {
+func (c *EquipmentTemplateClient) GetX(ctx context.Context, id int) *EquipmentTemplate {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

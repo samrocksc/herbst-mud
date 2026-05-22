@@ -39,13 +39,13 @@ func derefBool(p *bool) bool {
 func inputsFromInterface(in []map[string]any) []schema.CraftingInput {
 	result := make([]schema.CraftingInput, len(in))
 	for i, m := range in {
-		templateID, _ := m["equipment_template_id"].(string)
+		slug, _ := m["equipment_template_slug"].(string)
 		q, _ := m["quantity"].(float64)
 		consumed, _ := m["consumed"].(bool)
 		result[i] = schema.CraftingInput{
-			EquipmentTemplateID: templateID,
-			Quantity:            int(q),
-			Consumed:            consumed,
+			EquipmentTemplateSlug: slug,
+			Quantity:              int(q),
+			Consumed:              consumed,
 		}
 	}
 	return result
@@ -54,11 +54,11 @@ func inputsFromInterface(in []map[string]any) []schema.CraftingInput {
 func outputsFromInterface(in []map[string]any) []schema.CraftingOutput {
 	result := make([]schema.CraftingOutput, len(in))
 	for i, m := range in {
-		templateID, _ := m["equipment_template_id"].(string)
+		slug, _ := m["equipment_template_slug"].(string)
 		q, _ := m["quantity"].(float64)
 		result[i] = schema.CraftingOutput{
-			EquipmentTemplateID: templateID,
-			Quantity:            int(q),
+			EquipmentTemplateSlug: slug,
+			Quantity:              int(q),
 		}
 	}
 	return result

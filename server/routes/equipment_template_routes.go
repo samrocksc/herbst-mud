@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -43,14 +44,15 @@ func listEquipmentTemplates(repos *repository.Container) gin.HandlerFunc {
 
 func getEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
-		if id == "" {
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
 		t, err := repos.EquipmentTemplate.Get(c.Request.Context(), id)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "template not found: " + id})
+			c.JSON(http.StatusNotFound, gin.H{"error": "template not found: " + idStr})
 			return
 		}
 		c.JSON(http.StatusOK, templateToMap(t))
@@ -96,25 +98,9 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
-		// Auto-derive template ID from name if not provided
-		templateID := req.Name
-		templateID = strings.ToLower(templateID)
-		templateID = strings.NewReplacer(" ", "_", "-", "_", "'", "", "\"", "").Replace(templateID)
-
-		// Check if a template with this ID already exists
-		existing, err := repos.EquipmentTemplate.Get(c.Request.Context(), templateID)
-		if err == nil && existing != nil {
-			c.JSON(http.StatusConflict, gin.H{
-				"error":      "An item template with this name already exists",
-				"existing":   templateToMap(existing),
-				"suggestions": []string{
-					"Choose a different name",
-					"Edit the existing template instead",
-					"Add a suffix like '_2' or ' (new)'",
-				},
-			})
-			return
-		}
+		// Auto-derive slug from name
+		slug := strings.ToLower(req.Name)
+		slug = strings.NewReplacer(" ", "_", "-", "_", "'", "", "\"", "").Replace(slug)
 
 		// Inherit world from query param if not in body, default to first world
 		worldID := req.WorldID
@@ -123,6 +109,21 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		}
 		if worldID == "" {
 			worldID = "default"
+		}
+
+		// Check if a template with this slug already exists
+		existing, err := repos.EquipmentTemplate.GetBySlug(c.Request.Context(), slug, worldID)
+		if err == nil && existing != nil {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":       "An item template with this name already exists",
+				"existing":    templateToMap(existing),
+				"suggestions": []string{
+					"Choose a different name",
+					"Edit the existing template instead",
+					"Add a suffix like '_2' or ' (new)'",
+				},
+			})
+			return
 		}
 
 		isVisible := false
@@ -147,7 +148,7 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		}
 
 		t, err := repos.EquipmentTemplate.Create(c.Request.Context(), repository.CreateEquipmentTemplateInput{
-			ID:                    templateID,
+			Slug:                  slug,
 			Name:                  req.Name,
 			Description:           req.Description,
 			Slot:                  req.Slot,
@@ -189,8 +190,9 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 
 func updateEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
-		if id == "" {
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
@@ -273,8 +275,9 @@ func updateEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 
 func deleteEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
-		if id == "" {
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
@@ -302,6 +305,7 @@ func deleteEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 func templateToMap(t *db.EquipmentTemplate) gin.H {
 	return gin.H{
 		"id":                      t.ID,
+		"slug":                    t.Slug,
 		"name":                    t.Name,
 		"description":             t.Description,
 		"slot":                    t.Slot,

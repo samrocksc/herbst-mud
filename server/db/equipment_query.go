@@ -485,8 +485,8 @@ func (_q *EquipmentQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes 
 	return nil
 }
 func (_q *EquipmentQuery) loadEquipmentTemplate(ctx context.Context, query *EquipmentTemplateQuery, nodes []*Equipment, init func(*Equipment), assign func(*Equipment, *EquipmentTemplate)) error {
-	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*Equipment)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Equipment)
 	for i := range nodes {
 		fk := nodes[i].EquipmentTemplateID
 		if _, ok := nodeids[fk]; !ok {

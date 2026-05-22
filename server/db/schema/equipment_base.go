@@ -29,7 +29,7 @@ func equipmentBaseFields() []ent.Field {
 		field.String("itemType").
 			Default("misc").
 			Comment("weapon|armor|consumable|quest|misc|container|potion"),
-		field.String("equipment_template_id").
+		field.Int("equipment_template_id").
 			Optional().
 			Comment("FK to equipment_template"),
 		field.Int("ownerId").

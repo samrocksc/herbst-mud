@@ -139,13 +139,13 @@ func (_c *EquipmentCreate) SetNillableItemType(v *string) *EquipmentCreate {
 }
 
 // SetEquipmentTemplateID sets the "equipment_template_id" field.
-func (_c *EquipmentCreate) SetEquipmentTemplateID(v string) *EquipmentCreate {
+func (_c *EquipmentCreate) SetEquipmentTemplateID(v int) *EquipmentCreate {
 	_c.mutation.SetEquipmentTemplateID(v)
 	return _c
 }
 
 // SetNillableEquipmentTemplateID sets the "equipment_template_id" field if the given value is not nil.
-func (_c *EquipmentCreate) SetNillableEquipmentTemplateID(v *string) *EquipmentCreate {
+func (_c *EquipmentCreate) SetNillableEquipmentTemplateID(v *int) *EquipmentCreate {
 	if v != nil {
 		_c.SetEquipmentTemplateID(*v)
 	}
@@ -1052,7 +1052,7 @@ func (_c *EquipmentCreate) createSpec() (*Equipment, *sqlgraph.CreateSpec) {
 			Columns: []string{equipment.EquipmentTemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(equipmenttemplate.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

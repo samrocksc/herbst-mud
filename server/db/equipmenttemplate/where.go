@@ -11,58 +11,53 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id string) predicate.EquipmentTemplate {
+func ID(id int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id string) predicate.EquipmentTemplate {
+func IDEQ(id int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id string) predicate.EquipmentTemplate {
+func IDNEQ(id int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...string) predicate.EquipmentTemplate {
+func IDIn(ids ...int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...string) predicate.EquipmentTemplate {
+func IDNotIn(ids ...int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id string) predicate.EquipmentTemplate {
+func IDGT(id int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id string) predicate.EquipmentTemplate {
+func IDGTE(id int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id string) predicate.EquipmentTemplate {
+func IDLT(id int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id string) predicate.EquipmentTemplate {
+func IDLTE(id int) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldLTE(FieldID, id))
 }
 
-// IDEqualFold applies the EqualFold predicate on the ID field.
-func IDEqualFold(id string) predicate.EquipmentTemplate {
-	return predicate.EquipmentTemplate(sql.FieldEqualFold(FieldID, id))
-}
-
-// IDContainsFold applies the ContainsFold predicate on the ID field.
-func IDContainsFold(id string) predicate.EquipmentTemplate {
-	return predicate.EquipmentTemplate(sql.FieldContainsFold(FieldID, id))
+// Slug applies equality check predicate on the "slug" field. It's identical to SlugEQ.
+func Slug(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldEQ(FieldSlug, v))
 }
 
 // WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
@@ -213,6 +208,71 @@ func WeaponType(v string) predicate.EquipmentTemplate {
 // IsTwoHanded applies equality check predicate on the "is_two_handed" field. It's identical to IsTwoHandedEQ.
 func IsTwoHanded(v bool) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldEQ(FieldIsTwoHanded, v))
+}
+
+// SlugEQ applies the EQ predicate on the "slug" field.
+func SlugEQ(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldEQ(FieldSlug, v))
+}
+
+// SlugNEQ applies the NEQ predicate on the "slug" field.
+func SlugNEQ(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldNEQ(FieldSlug, v))
+}
+
+// SlugIn applies the In predicate on the "slug" field.
+func SlugIn(vs ...string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldIn(FieldSlug, vs...))
+}
+
+// SlugNotIn applies the NotIn predicate on the "slug" field.
+func SlugNotIn(vs ...string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldNotIn(FieldSlug, vs...))
+}
+
+// SlugGT applies the GT predicate on the "slug" field.
+func SlugGT(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldGT(FieldSlug, v))
+}
+
+// SlugGTE applies the GTE predicate on the "slug" field.
+func SlugGTE(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldGTE(FieldSlug, v))
+}
+
+// SlugLT applies the LT predicate on the "slug" field.
+func SlugLT(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldLT(FieldSlug, v))
+}
+
+// SlugLTE applies the LTE predicate on the "slug" field.
+func SlugLTE(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldLTE(FieldSlug, v))
+}
+
+// SlugContains applies the Contains predicate on the "slug" field.
+func SlugContains(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldContains(FieldSlug, v))
+}
+
+// SlugHasPrefix applies the HasPrefix predicate on the "slug" field.
+func SlugHasPrefix(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldHasPrefix(FieldSlug, v))
+}
+
+// SlugHasSuffix applies the HasSuffix predicate on the "slug" field.
+func SlugHasSuffix(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldHasSuffix(FieldSlug, v))
+}
+
+// SlugEqualFold applies the EqualFold predicate on the "slug" field.
+func SlugEqualFold(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldEqualFold(FieldSlug, v))
+}
+
+// SlugContainsFold applies the ContainsFold predicate on the "slug" field.
+func SlugContainsFold(v string) predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldContainsFold(FieldSlug, v))
 }
 
 // WorldIDEQ applies the EQ predicate on the "world_id" field.
