@@ -138,19 +138,17 @@ export function Sidebar({
         // Base
         "bg-surface border-r border-border flex flex-col",
         "transition-all duration-300 ease-in-out",
-        // Mobile (<768px): completely hidden by default, full dropdown when open
-        "hidden",
-        mobileOpen
-          ? "flex absolute top-0 left-0 w-full z-40 shadow-lg opacity-100 translate-y-0"
-          : "opacity-0 -translate-y-4 pointer-events-none",
-        // Tablet+ (>=768px): fixed left sidebar
+        // Mobile (<768px): conditionally shown as full dropdown
+        !mobileOpen && "hidden opacity-0 -translate-y-4 pointer-events-none",
+        mobileOpen && "absolute top-0 left-0 w-full h-screen z-40 shadow-lg opacity-100 translate-y-0",
+        // Tablet+ (>=768px): fixed left sidebar always visible
         "md:flex md:fixed md:inset-y-0 md:left-0 md:h-screen",
         "md:translate-y-0 md:opacity-100 md:pointer-events-auto",
         "md:shadow-none",
         // Widths
         "md:w-[64px] lg:w-[220px]",
         collapsed ? "lg:w-[64px]" : "lg:w-[220px]",
-      ].join(" ")}
+      ].filter(Boolean).join(" ")}
     >
       {/* Header: WorldTitle + close button (mobile) + collapse toggle (desktop) */}
       <div className="flex items-center border-b border-border flex-shrink-0 h-14 px-1">
