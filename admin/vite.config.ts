@@ -29,7 +29,10 @@ export default defineConfig({
         target: "http://localhost:8080",
         changeOrigin: true,
         bypass(req) {
-          // Only proxy exact /npcs (dashboard stats); /npcs/* are SPA routes
+          // Only proxy exact /npcs when NOT requesting HTML (API data fetch);
+          // SPA page load sends Accept: text/html → serve index.html
+          const accept = req.headers.accept ?? "";
+          if (accept.includes("text/html")) return "/index.html";
           if (req.url !== "/npcs") return "/index.html";
         },
       },
