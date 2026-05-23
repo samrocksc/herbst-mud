@@ -15,6 +15,7 @@ import {
   SelectField,
 } from "../../components/FormFields";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 
 export const Route = createFileRoute("/_auth/abilities/new")({
   component: CreateAbilityPage,
@@ -76,7 +77,7 @@ function CreateAbilityPage() {
   };
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto">
+    <PageContainer>
       <PageHeader title="Create Ability" showBack backTo="/abilities" />
       <div className="card bg-surface p-6 border border-border rounded">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,6 +122,6 @@ function CreateAbilityPage() {
           </div>
         </form>
       </div>
-    </div>
+    </PageContainer>
   );
 }

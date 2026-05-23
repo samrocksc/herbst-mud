@@ -4,6 +4,7 @@ import { useWorlds, useSetActiveWorld } from "../../hooks/useWorlds";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 import type { World } from "../../hooks/useWorlds";
 
 export const Route = createFileRoute("/_auth/worlds")({
@@ -71,7 +72,7 @@ function WorldsManagement() {
   if (error) return <div className="error">Failed to load worlds: {error.message}</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader
         title="Worlds"
         showBack
@@ -89,6 +90,6 @@ function WorldsManagement() {
         getKey={(row) => row.id}
         emptyMessage="No worlds found. Create your first world!"
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -8,6 +8,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Modal } from "../../components/Modal";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 
 export const Route = createFileRoute("/_auth/npcs")({
   component: NPCTemplatesIndex,
@@ -186,7 +187,7 @@ function NPCTemplatesIndex() {
   }
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto">
+    <PageContainer>
       <PageHeader
         title="NPC Templates"
         showBack
@@ -350,6 +351,6 @@ function NPCTemplatesIndex() {
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }

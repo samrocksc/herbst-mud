@@ -8,6 +8,7 @@ import { Button } from "../../components/Button";
 import { ColorField } from "../../components/fields/ColorField";
 import { FormField, NumberField, CheckboxField } from "../../components/FormFields";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 import type { ChannelConfig, ChannelInput } from "../../hooks/useChannels";
 
 export const Route = createFileRoute("/_auth/channels")({
@@ -51,7 +52,7 @@ function ChannelEditForm({ channel, onDone }: { channel: ChannelConfig; onDone: 
   };
 
   return (
-    <div className="bg-surface-muted rounded-lg p-6 border border-border mb-6">
+    <PageContainer>
       <h3 className="mt-0 mb-4 text-text text-lg font-semibold">Edit Channel: {channel.name}</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -70,7 +71,7 @@ function ChannelEditForm({ channel, onDone }: { channel: ChannelConfig; onDone: 
           <Button variant="secondary" onClick={onDone} type="button">Cancel</Button>
         </div>
       </form>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -87,7 +88,7 @@ function ChannelsManagement() {
   const editingChannel = channels?.find((c) => c.name === editing);
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader title="Channels" backTo="/dashboard" />
 
       {editingChannel && (
@@ -112,6 +113,6 @@ function ChannelsManagement() {
         getKey={(row) => row.name}
         emptyMessage="No channels configured."
       />
-    </div>
+    </PageContainer>
   );
 }

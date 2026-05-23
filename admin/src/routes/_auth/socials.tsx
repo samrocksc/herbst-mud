@@ -6,6 +6,7 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 import type { SocialCommand } from "../../hooks/useSocials";
 
 export const Route = createFileRoute("/_auth/socials")({
@@ -59,7 +60,7 @@ function SocialsManagement() {
   if (error) return <div className="error">Failed to load socials: {error.message}</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader
         title="Social Commands"
         backTo="/dashboard"
@@ -112,6 +113,6 @@ function SocialsManagement() {
         onCancel={() => setDeleteId(null)}
         isLoading={deleteMutation.isPending}
       />
-    </div>
+    </PageContainer>
   );
 }

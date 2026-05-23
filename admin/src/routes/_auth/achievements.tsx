@@ -8,6 +8,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 import { COLUMNS } from "./AchievementColumns";
 import { AchievementForm, DeleteConfirmation } from "./AchievementForm";
 
@@ -52,7 +53,7 @@ function AchievementsManagement() {
   ];
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader title="Achievements" backTo="/dashboard"
         actions={<Button variant="primary" onClick={() => { setEditing(null); setShowForm(true); }}>+ Add Achievement</Button>} />
       {showForm && <AchievementForm achievement={editing} onSubmit={handleSubmit}
@@ -62,6 +63,6 @@ function AchievementsManagement() {
         emptyMessage="No achievements found. Add your first achievement!" />
       {deleting && <DeleteConfirmation achievement={deleting} onConfirm={handleDelete}
         onCancel={() => setDeleting(null)} isLoading={remove.isPending} />}
-    </div>
+    </PageContainer>
   );
 }

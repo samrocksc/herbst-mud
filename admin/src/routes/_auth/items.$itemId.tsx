@@ -6,6 +6,7 @@ import { apiGet } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 import { TemplateEditForm } from "./-items.$itemId.editForm";
 import { ItemDetailView } from "./-items.$itemId.detailView";
 import type { ItemInstance } from "../../hooks/useItemInstances";
@@ -57,7 +58,7 @@ function ItemDetail() {
   if (templateQuery.error || !template) return <div className="p-8"><PageHeader title="Error" backTo="/items" /><div className="text-danger">Failed to load item</div></div>;
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto">
+    <PageContainer>
       <PageHeader title={template.name} backTo="/items" actions={
         <Button variant={editing ? "secondary" : "primary"} size="sm" onClick={() => setEditing(!editing)}>{editing ? "Cancel" : "Edit"}</Button>
       } />
@@ -72,6 +73,6 @@ function ItemDetail() {
         {instancesQuery.isError && <div className="text-danger text-xs mb-3">Failed to load instances</div>}
         <DataTable<ItemInstance> columns={instanceColumns} data={instances} getKey={(row) => row.id} emptyMessage="No instances found." variant="dark" />
       </div>
-    </div>
+    </PageContainer>
   );
 }

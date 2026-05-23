@@ -19,7 +19,7 @@
   --color-surface-dark: #1a1a1a;
   --color-surface-darker: #111827;
 
-  /* Base colors (ensure text-white etc. resolve correctly) */
+  /* Base colors */
   --color-white: #ffffff;
   --color-black: #000000;
 
@@ -45,6 +45,26 @@
   --color-skill-edit: #2563eb;
   --color-skill-edit-hover: #1d4ed8;
   --color-skill-delete: #dc2626;
+
+  /* Extra semantic colors referenced by remaining CSS rules */
+  --color-bg-light: #e5e7eb;
+  --color-border-light: #e5e7eb;
+  --color-class-icon: #7c3aed;
+  --color-danger-alt: #ef4444;
+  --color-danger-dark: #b91c1c;
+  --color-danger-hover-alt: #f87171;
+  --color-danger-raw: #dc2626;
+  --color-hp-critical: #ef4444;
+  --color-hp-endless: #8b5cf6;
+  --color-hp-normal: #16a34a;
+  --color-info-light: #60a5fa;
+  --color-muted: #9ca3af;
+  --color-success-alt: #22c55e;
+  --color-table-dark-row-border: #374151;
+  --color-text-body: #374151;
+  --color-toast-error: #ef4444;
+  --color-toast-success: #22c55e;
+  --color-warning-alt: #f59e0b;
 }
 
 :root {
@@ -94,32 +114,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-/* Admin Styles */
-.auth-layout {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.auth-layout header {
-  background-color: var(--color-surface-dark);
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.auth-layout nav a {
-  margin-left: 1rem;
-  color: var(--color-primary);
-  text-decoration: none;
-}
-
-.auth-layout nav a:hover {
-  color: var(--color-primary-hover);
-}
-
+/* ─── Login Page ───────────────────────────────────────────────────────────── */
 .login-container {
   max-width: 400px;
   margin: 2rem auto;
@@ -147,10 +142,7 @@ button:focus-visible {
   color: var(--color-text);
 }
 
-.dashboard {
-  padding: 2rem;
-}
-
+/* ─── Dashboard ────────────────────────────────────────────────────────────── */
 .dashboard-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -169,86 +161,109 @@ button:focus-visible {
   margin-top: 0;
 }
 
-.home {
-  text-align: center;
-  padding: 2rem;
-}
-
-/* Management Pages */
-.management-page {
-  padding: 2rem;
-  background: var(--color-surface);
-  min-height: 100%;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
-.page-header h2 {
-  margin: 0;
-  color: var(--color-text);
-}
-
-.form-card {
+.stat-card {
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1.5rem;
-  background-color: var(--color-bg);
-  margin-bottom: 2rem;
+  text-align: center;
 }
 
-.form-row {
-  margin-bottom: 1rem;
+.stat-value {
+  font-size: 2em;
+  font-weight: bold;
+  color: var(--color-primary);
 }
 
-.form-row label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--color-form-label);
+.stat-label {
+  font-size: 0.9em;
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
 }
 
-.form-row input[type="text"],
-.form-row input[type="number"],
-.form-row textarea,
-.form-row select {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  font-family: inherit;
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
 }
 
-.form-row textarea {
-  min-height: 80px;
-  resize: vertical;
+.quick-actions a {
+  text-decoration: none;
 }
 
-.form-row.checkbox label {
+.activity-feed {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-feed li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.activity-feed li:last-child {
+  border-bottom: none;
+}
+
+.activity-login {
+  color: var(--color-success-alt);
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.8em;
+}
+
+.activity-death {
+  color: var(--color-danger-alt);
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.8em;
+}
+
+.activity-player {
+  flex: 1;
+}
+
+.activity-time {
+  color: var(--color-text-muted);
+  font-size: 0.85em;
+}
+
+.health-indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.health-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
-  color: var(--color-form-label);
 }
 
-.form-row.checkbox input {
-  width: auto;
+.health-ok {
+  color: var(--color-success-alt);
+  font-size: 1.2em;
 }
 
-.form-row input[type="color"] {
-  width: 40px;
-  height: 30px;
-  padding: 0;
-  border: none;
-  cursor: pointer;
-  margin-left: 0.5rem;
+.health-warning {
+  color: var(--color-warning-alt);
+  font-size: 1.2em;
+}
+
+.health-error {
+  color: var(--color-danger-alt);
+  font-size: 1.2em;
 }
 
 /* ─── Tag Input ────────────────────────────────────────────────────────────── */
@@ -369,7 +384,7 @@ button:focus-visible {
   content: '+ ';
 }
 
-/* Items Grid */
+/* ─── Items / Rooms / NPCs Grid Cards ──────────────────────────────────────── */
 .items-grid,
 .rooms-grid,
 .npcs-grid {
@@ -413,6 +428,7 @@ button:focus-visible {
   margin-bottom: 0.5rem;
 }
 
+/* ─── Badge (first definition, keep) ─────────────────────────────────────── */
 .badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
@@ -431,14 +447,13 @@ button.danger:hover {
   background-color: var(--color-danger-dark);
 }
 
-/* Room specific */
+/* ─── Room / NPC specifics ─────────────────────────────────────────────────── */
 .room-exits,
 .room-items {
   font-size: 0.9em;
   margin-bottom: 0.5rem;
 }
 
-/* NPC specific */
 .npc-type {
   display: inline-block;
   padding: 0.25rem 0.75rem;
@@ -477,7 +492,7 @@ button.danger:hover {
   color: var(--color-black);
 }
 
-/* Skills */
+/* ─── Skills ───────────────────────────────────────────────────────────────── */
 .skill-category {
   margin-bottom: 2rem;
 }
@@ -523,32 +538,7 @@ button.danger:hover {
   gap: 0.5rem;
 }
 
-.skill-actions button {
-  flex: 1;
-  padding: 0.4rem;
-  font-size: 0.85em;
-  background: var(--color-skill-edit);
-  color: var(--color-surface);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.skill-actions button:hover {
-  background: var(--color-skill-edit-hover);
-}
-
-.skill-actions button.danger {
-  background: var(--color-skill-delete);
-  color: var(--color-surface);
-}
-
-.skill-actions button.danger:hover {
-  background: var(--color-danger-raw);
-}
-
-/* ─── Shared DataTable ─────────────────────────────────────────────────────── */
-
+/* ─── Shared DataTable ────────────────────────────────────────────────────── */
 .table-container {
   overflow-x: auto;
   border-radius: 8px;
@@ -590,7 +580,6 @@ button.danger:hover {
   background-color: var(--color-surface-muted, #f9fafb);
 }
 
-/* Clickable rows (used by players etc.) */
 .table .clickable-row {
   cursor: pointer;
 }
@@ -605,8 +594,7 @@ button.danger:hover {
   background-color: var(--color-surface);
 }
 
-/* ─── Dark variant (XP page) ───────────────────────────────────────────────── */
-
+/* ─── Dark variant ──────────────────────────────────────────────────────────── */
 .table-dark {
   width: 100%;
   border-collapse: collapse;
@@ -659,17 +647,7 @@ button.danger:hover {
   font-weight: bold;
 }
 
-.btn-reset {
-  background-color: var(--color-info);
-  font-size: 0.85em;
-  padding: 0.4rem 0.75rem;
-}
-
-.btn-reset:hover {
-  background-color: var(--color-badge-player);
-}
-
-/* Modals */
+/* ─── Modals (primary definitions) ─────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -748,7 +726,7 @@ button.danger:hover {
   border-top: 1px solid var(--color-border);
 }
 
-/* Player Detail Modal */
+/* ─── Player Detail Modal ──────────────────────────────────────────────────── */
 .detail-row {
   display: flex;
   gap: 1rem;
@@ -765,7 +743,7 @@ button.danger:hover {
   flex: 1;
 }
 
-/* Success/Error Messages */
+/* ─── Messages ───────────────────────────────────────────────────────────── */
 .success-message {
   background-color: var(--color-success-alt);
   color: var(--color-surface);
@@ -782,53 +760,7 @@ button.danger:hover {
   margin-bottom: 1rem;
 }
 
-/* Skills Filters */
-.filters-bar {
-  display: flex;
-  gap: 1.5rem;
-  align-items: flex-end;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.filter-group label {
-  font-size: 0.85em;
-  color: var(--color-text-muted);
-}
-
-.filter-group select {
-  padding: 0.4rem 0.75rem;
-  border-radius: 4px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
-  min-width: 120px;
-}
-
-.btn-clear-filters {
-  background-color: var(--color-text-muted);
-  color: var(--color-surface);
-  font-size: 0.85em;
-  padding: 0.4rem 0.75rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-clear-filters:hover {
-  background-color: var(--color-grey-mid);
-}
-
-/* Skill Cards */
+/* ─── Skill Cards (detailed) ───────────────────────────────────────────────── */
 .skill-header {
   display: flex;
   justify-content: space-between;
@@ -905,61 +837,19 @@ button.danger:hover {
   margin-bottom: 0.75rem;
 }
 
-/* Form Row Group */
-.form-row-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #333;
-}
-
-.form-actions button[type="submit"] {
-  flex: 1;
-  background-color: var(--color-success-alt);
-}
-
-.form-actions button[type="submit"]:hover {
-  background-color: var(--color-faction-hp);
-}
-
-.btn-cancel {
-  background-color: #555;
-}
-
-.btn-cancel:hover {
-  background-color: var(--color-text-muted);
-}
-
-.btn-danger {
-  background-color: var(--color-danger-hover-alt);
-}
-
-.btn-danger:hover {
-  background-color: var(--color-danger-alt);
-}
-
-/* Empty State */
+/* ─── Empty / Loading / Error ──────────────────────────────────────────────── */
 .empty-state {
   text-align: center;
   padding: 3rem;
   color: var(--color-text-muted);
 }
 
-/* Loading */
 .loading {
   text-align: center;
   padding: 3rem;
   color: var(--color-text-muted);
 }
 
-/* Error */
 .error {
   background-color: var(--color-danger-hover-alt);
   color: var(--color-surface);
@@ -968,132 +858,28 @@ button.danger:hover {
   margin-bottom: 1rem;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .form-row-group {
-    grid-template-columns: 1fr;
-  }
-  
-  .filters-bar {
-    flex-wrap: wrap;
-  }
+/* ─── Toast ────────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 6px;
+  z-index: 100;
+  font-weight: 500;
 }
 
-/* Dashboard */
-.dashboard-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+.toast-success {
+  background: var(--color-toast-success);
+  color: white;
 }
 
-.stat-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1.5rem;
-  text-align: center;
+.toast-error {
+  background: var(--color-toast-error);
+  color: white;
 }
 
-.stat-value {
-  font-size: 2em;
-  font-weight: bold;
-  color: var(--color-primary);
-}
-
-.stat-label {
-  font-size: 0.9em;
-  color: var(--color-text-muted);
-  margin-top: 0.5rem;
-}
-
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 0.75rem;
-}
-
-.quick-actions a {
-  text-decoration: none;
-}
-
-.quick-actions button {
-  width: 100%;
-  background-color: var(--color-faction-dark);
-}
-
-.quick-actions button:hover {
-  background-color: var(--color-faction-accent);
-}
-
-.activity-feed {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.activity-feed li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--color-border-dark);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.activity-feed li:last-child {
-  border-bottom: none;
-}
-
-.activity-login {
-  color: var(--color-success-alt);
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 0.8em;
-}
-
-.activity-death {
-  color: var(--color-danger-alt);
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 0.8em;
-}
-
-.activity-player {
-  flex: 1;
-}
-
-.activity-time {
-  color: var(--color-text-muted);
-  font-size: 0.85em;
-}
-
-.health-indicators {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.health-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.health-ok {
-  color: var(--color-success-alt);
-  font-size: 1.2em;
-}
-
-.health-warning {
-  color: var(--color-warning-alt);
-  font-size: 1.2em;
-}
-
-.health-error {
-  color: var(--color-danger-alt);
-  font-size: 1.2em;
-}
-
+/* ─── Light color scheme override ──────────────────────────────────────────── */
 @media (prefers-color-scheme: light) {
   :root {
     color: var(--color-text-body);
@@ -1117,145 +903,9 @@ button.danger:hover {
     background-color: var(--color-bg-light);
     border: 1px solid #ddd;
   }
-  .auth-layout header {
-    background-color: var(--color-bg-light);
-    border-bottom: 1px solid #ddd;
-  }
-}
-/* Players and Skills Admin Panel Styles */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-.badge-admin { background: var(--color-badge-moderator); color: white; }
-.badge-player { background: var(--color-skill-edit); color: white; }
-.badge-classless { background: var(--color-badge-classless); color: white; }
-
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
-  align-items: center; justify-content: center; z-index: 50;
-}
-.modal-content {
-  background: white; border-radius: 8px; max-width: 500px; width: 90%;
-  max-height: 90vh; overflow-y: auto;
-}
-.modal-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 20px; border-bottom: 1px solid var(--color-border-light);
-}
-.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; }
-.modal-body { padding: 20px; }
-.modal-footer {
-  padding: 16px 20px; border-top: 1px solid var(--color-border);
-  display: flex; gap: 8px; justify-content: flex-end;
 }
 
-.form-row { margin-bottom: 16px; }
-.form-row label { display: block; font-weight: 500; margin-bottom: 4px; }
-.form-row input, .form-row select, .form-row textarea {
-  width: 100%; padding: 8px 12px; border: 1px solid var(--color-border);
-  border-radius: 6px; font-size: 14px;
-}
-.form-row textarea { min-height: 80px; resize: vertical; }
-
-.btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; border: 2px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
-.btn-primary { background: var(--color-primary); color: var(--color-surface); border-color: var(--color-primary); }
-.btn-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
-.btn-danger { background: var(--color-danger); color: var(--color-surface); border-color: var(--color-danger); }
-.btn-danger:hover { background: var(--color-danger-hover); border-color: var(--color-danger-hover); }
-.btn-secondary { background: var(--color-surface-muted); color: var(--color-text); border-color: var(--color-border); }
-.btn-secondary:hover { background: var(--color-border); border-color: var(--color-border-dark); }
-
-.skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-.skill-card {
-  background: white; border: 1px solid var(--color-border-light); border-radius: 8px;
-  padding: 16px; transition: box-shadow 0.2s;
-}
-.skill-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.skill-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.skill-type-badge {
-  font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;
-}
-.skill-type-weapon { background: var(--color-skill-weapon-bg); color: var(--color-danger-hover-alt); }
-.skill-type-magic { background: var(--color-skill-magic-bg); color: var(--color-badge-moderator); }
-.skill-type-utility { background: var(--color-skill-utility-bg); color: var(--color-skill-utility-text); }
-
-.filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-.filter-bar select { padding: 6px 12px; border: 1px solid var(--color-border); border-radius: 6px; }
-
-.toast {
-  position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
-  border-radius: 6px; z-index: 100; font-weight: 500;
-}
-.toast-success { background: var(--color-toast-success); color: white; }
-.toast-error { background: var(--color-toast-error); color: white; }
-
-/* Sidebar */
-/* Sidebar — width managed via Tailwind w-[64px]/w-[220px] + min-w-0 override */
-.sidebar-header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-.sidebar-header h2 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: var(--color-skill-utility-text);
-}
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  padding: 0.5rem;
-  gap: 0.25rem;
-}
-.sidebar-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 6px;
-  color: var(--color-form-label);
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: background 0.15s, color 0.15s;
-}
-.sidebar-nav-item:hover {
-  background: var(--color-border-light);
-  color: var(--color-text);
-}
-.sidebar-nav-item.active {
-  background: var(--color-skill-edit);
-  color: var(--color-surface);
-}
-
-/* XP Management Page */
-.xp-page { padding: 24px; }
-.xp-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 20px; }
-.xp-muted { color: var(--color-muted); font-size: 0.875rem; }
-.xp-error { color: var(--color-danger); }
-.xp-msg { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-weight: 500; }
-.xp-msg-success { background: var(--color-toast-success); color: white; }
-.xp-msg-error { background: var(--color-toast-error); color: white; }
-.xp-section { background: white; border: 1px solid var(--color-border-light); border-radius: 8px; padding: 20px; margin-bottom: 24px; }
-.xp-section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
-.xp-field { margin-bottom: 16px; }
-.xp-label { display: block; font-weight: 500; margin-bottom: 6px; }
-.xp-field-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.xp-input { padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 14px; }
-.xp-btn { padding: 8px 16px; background: var(--color-primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
-.xp-btn:hover { background: var(--color-primary-hover); }
-.xp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.xp-thresholds { margin-top: 16px; }
-.xp-threshold-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.xp-badge { padding: 4px 10px; border-radius: 4px; background: var(--color-surface-muted); color: var(--color-text); font-size: 12px; font-weight: 500; }
-.xp-level { font-weight: 600; color: var(--color-accent); }
-.xp-max { color: var(--color-accent); font-weight: 600; font-size: 12px; }
-
-/* ─── Tooltip System ─────────────────────────────────────────────────────── */
-
+/* ─── Tooltip System ───────────────────────────────────────────────────────── */
 .tooltip-wrapper {
   position: relative;
   display: inline-flex;
@@ -1289,7 +939,6 @@ button.danger:hover {
   transform-origin: center bottom;
 }
 
-/* Arrow */
 .tooltip-text::after {
   content: '';
   position: absolute;
@@ -1298,7 +947,6 @@ button.danger:hover {
   border: 6px solid transparent;
 }
 
-/* Top placement (default) */
 .tooltip-top {
   bottom: calc(100% + 8px);
   left: 50%;
@@ -1311,7 +959,6 @@ button.danger:hover {
   border-top-color: var(--color-surface-darker);
 }
 
-/* Bottom placement */
 .tooltip-bottom {
   top: calc(100% + 8px);
   left: 50%;
@@ -1324,7 +971,6 @@ button.danger:hover {
   border-bottom-color: var(--color-surface-darker);
 }
 
-/* Left placement */
 .tooltip-left {
   right: calc(100% + 8px);
   top: 50%;
@@ -1337,7 +983,6 @@ button.danger:hover {
   border-left-color: var(--color-surface-darker);
 }
 
-/* Right placement */
 .tooltip-right {
   left: calc(100% + 8px);
   top: 50%;
@@ -1350,7 +995,6 @@ button.danger:hover {
   border-right-color: var(--color-surface-darker);
 }
 
-/* Show on hover or when focused — with subtle entrance animation */
 .tooltip-wrapper:hover .tooltip-text,
 .tooltip-wrapper:focus-within .tooltip-text {
   opacity: 1;
@@ -1374,12 +1018,42 @@ button.danger:hover {
   transform: translateY(-50%) translateX(0);
 }
 
-.xp-progress-label { font-size: 12px; color: var(--color-muted); margin-bottom: 4px; }
-.xp-progress-track { width: 120px; height: 6px; background: var(--color-border-light); border-radius: 3px; overflow: hidden; }
-.xp-progress-fill { height: 100%; background: var(--color-accent); border-radius: 3px; transition: width 0.3s ease; }
-.xp-count { color: var(--color-muted); font-size: 0.875rem; }
+/* ─── XP Progress ──────────────────────────────────────────────────────────── */
+.xp-progress-label {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 4px;
+}
 
-/* NPC HP Status */
-.hp-normal { color: var(--color-hp-normal); }
-.hp-critical { color: var(--color-hp-critical); }
-.hp-endless { color: var(--color-hp-endless); }
+.xp-progress-track {
+  width: 120px;
+  height: 6px;
+  background: var(--color-border-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.xp-progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.xp-count {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+/* ─── NPC HP Status ────────────────────────────────────────────────────────── */
+.hp-normal {
+  color: var(--color-hp-normal);
+}
+
+.hp-critical {
+  color: var(--color-hp-critical);
+}
+
+.hp-endless {
+  color: var(--color-hp-endless);
+}

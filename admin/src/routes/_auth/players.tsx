@@ -6,6 +6,7 @@ import { apiGet } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 
 export const Route = createFileRoute("/_auth/players")({
   component: PlayersManagement,
@@ -74,7 +75,7 @@ function PlayersManagement() {
   if (error) return <div className="error">Failed to load players: {error.message}</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader title="Players Management" backTo="/dashboard" />
       {resetSuccess && <div className="success-message">{resetSuccess}</div>}
       {resetError && <div className="error-message">{resetError}</div>}
@@ -116,6 +117,6 @@ function PlayersManagement() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

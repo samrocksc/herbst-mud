@@ -8,6 +8,7 @@ import {
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 import { SkillForm } from "./SkillForm";
 
 export const Route = createFileRoute("/_auth/skills")({
@@ -41,7 +42,7 @@ function DeleteConfirmation({
   isLoading: boolean
 }>) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <PageContainer>
       <div className="modal-content modal-sm" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Delete Skill</h3>
@@ -58,7 +59,7 @@ function DeleteConfirmation({
           <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -101,7 +102,7 @@ function SkillsManagement() {
   if (error) return <div className="error">Failed to load skills: {error.message}</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader
         title="Skills (Competencies)"
         backTo="/dashboard"
@@ -140,6 +141,6 @@ function SkillsManagement() {
           isLoading={deleteMutation.isPending}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

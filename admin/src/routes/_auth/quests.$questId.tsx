@@ -13,6 +13,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { FormField, TextareaField, NumberField, SelectField } from "../../components/FormFields";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 
 export const Route = createFileRoute("/_auth/quests/$questId")({
   component: QuestDetailPage,
@@ -109,7 +110,7 @@ function QuestDetailPage() {
   };
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader title={quest.name} backTo="/quests" />
       <form onSubmit={handleSubmit} className="form-card space-y-3">
         <FormField label="Name" value={current.name ?? ""} onChange={(v) => set({ name: v })} />
@@ -275,6 +276,6 @@ function QuestDetailPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

@@ -9,7 +9,7 @@ export function ItemDetailView({ template }: Readonly<{ template: EquipmentTempl
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border">
       <h2 className="mt-0 mb-4 text-text text-lg font-semibold">Item Stats</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <DetailField label="ID" value={template.id} />
         <DetailField label="Name" value={template.name} />
         <DetailField label="Slot" value={template.slot} />

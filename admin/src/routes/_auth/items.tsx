@@ -8,6 +8,7 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 import type { EquipmentTemplate } from "../../hooks/useEquipmentTemplates";
 import { useWorldStore } from "../../contexts/WorldStoreContext";
 import { useWorlds } from "../../hooks/useWorlds";
@@ -92,7 +93,7 @@ function ItemsIndex() {
   if (!isList) return <Outlet />;
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto">
+    <PageContainer>
       <PageHeader title="Items" showBack backTo="/dashboard" actions={
         <Button variant="primary" onClick={() => navigate({ to: "/items/new" })}>+ Add Item</Button>
       } />
@@ -147,7 +148,7 @@ function ItemsIndex() {
           isLoading={deleteMutation.isPending}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }
 

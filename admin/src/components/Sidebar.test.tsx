@@ -17,9 +17,11 @@ describe("Sidebar", () => {
     localStorage.clear();
   });
 
+  const defaultProps = { mobileOpen: false, onMobileClose: () => {} };
+
   it("renders all navigation items", async () => {
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Items")).toBeInTheDocument();
@@ -31,14 +33,14 @@ describe("Sidebar", () => {
 
   it("renders the header with title", async () => {
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     expect(screen.getByText("Herbst MUD")).toBeInTheDocument();
   });
 
   it("renders a collapse toggle button with correct aria-label", async () => {
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     const toggleButton = screen.getByRole("button", { name: "Collapse sidebar" });
     expect(toggleButton).toBeInTheDocument();
@@ -46,7 +48,7 @@ describe("Sidebar", () => {
 
   it("toggles to collapsed state when collapse button is clicked", async () => {
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     const toggleButton = screen.getByRole("button", { name: "Collapse sidebar" });
     fireEvent.click(toggleButton);
@@ -57,7 +59,7 @@ describe("Sidebar", () => {
 
   it("persists collapsed state to localStorage", async () => {
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     const toggleButton = screen.getByRole("button", { name: "Collapse sidebar" });
     fireEvent.click(toggleButton);
@@ -69,7 +71,7 @@ describe("Sidebar", () => {
     localStorage.setItem("sidebar-collapsed", "true");
 
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     // If initially collapsed, the button should say "Expand sidebar"
     expect(screen.getByRole("button", { name: "Expand sidebar" })).toBeInTheDocument();
@@ -77,7 +79,7 @@ describe("Sidebar", () => {
 
   it("defaults to expanded when localStorage is empty", async () => {
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     expect(screen.getByRole("button", { name: "Collapse sidebar" })).toBeInTheDocument();
   });
@@ -86,7 +88,7 @@ describe("Sidebar", () => {
     localStorage.setItem("sidebar-collapsed", "true");
 
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     // When collapsed, nav items should have title attributes
     const dashboardLink = screen.getByText("Dashboard").closest("a");
@@ -95,7 +97,7 @@ describe("Sidebar", () => {
 
   it("hides tooltips on nav items when expanded", async () => {
     const { Sidebar } = await import("./Sidebar");
-    render(<Sidebar />);
+    render(<Sidebar {...defaultProps} />);
 
     // When expanded, nav items should NOT have title attributes
     const dashboardLink = screen.getByText("Dashboard").closest("a");

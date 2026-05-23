@@ -82,7 +82,7 @@ function SidebarCloseButton({ onClose }: Readonly<{ onClose: () => void }>) {
       onClick={onClose}
       aria-label="Close menu"
       title="Close menu"
-      className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded hover:bg-surface-muted transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary lg:hidden"
+      className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded hover:bg-surface-muted transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary md:hidden"
       style={{ color: "var(--color-primary)" }}
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -118,22 +118,38 @@ export function Sidebar({
     }
   }, [collapsed]);
 
+  // Auto-collapse sidebar on narrow viewports to prevent content cramping.
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth < 1280 && !collapsed) {
+        setCollapsed(true);
+      } else if (window.innerWidth >= 1280 && collapsed) {
+        setCollapsed(false);
+      }
+    }
+    handleResize(); // run once on mount
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [collapsed]);
+
   return (
     <nav
       className={[
         // Base
         "bg-surface border-r border-border flex flex-col",
         "transition-all duration-300 ease-in-out",
-        // Mobile: top-down dropdown below header
-        "absolute top-0 left-0 w-full z-40",
-        "shadow-lg",
-        mobileOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none",
-        // Desktop: sidebar on the left
-        "lg:fixed lg:inset-y-0 lg:left-0 lg:top-auto lg:h-screen",
-        "lg:translate-y-0 lg:opacity-100 lg:pointer-events-auto",
-        "lg:shadow-none",
-        "lg:max-w-[220px]",
-        collapsed ? "lg:w-[64px] lg:max-w-[64px]" : "lg:w-[220px]",
+        // Mobile (<768px): completely hidden by default, full dropdown when open
+        "hidden",
+        mobileOpen
+          ? "flex absolute top-0 left-0 w-full z-40 shadow-lg opacity-100 translate-y-0"
+          : "opacity-0 -translate-y-4 pointer-events-none",
+        // Tablet+ (>=768px): fixed left sidebar
+        "md:flex md:fixed md:inset-y-0 md:left-0 md:h-screen",
+        "md:translate-y-0 md:opacity-100 md:pointer-events-auto",
+        "md:shadow-none",
+        // Widths
+        "md:w-[64px] lg:w-[220px]",
+        collapsed ? "lg:w-[64px]" : "lg:w-[220px]",
       ].join(" ")}
     >
       {/* Header: WorldTitle + close button (mobile) + collapse toggle (desktop) */}

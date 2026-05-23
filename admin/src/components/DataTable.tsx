@@ -45,6 +45,130 @@ function DefaultCell({ value }: { value: unknown }): ReactNode {
   return <>{String(value)}</>;
 }
 
+// ─── Cell renderer ───────────────────────────────────────────────────────────
+
+function renderCell<T>(col: Column<T>, row: T): ReactNode {
+  const raw = getValue(row, col.accessor);
+  if (col.render) return col.render(raw, row);
+  return <DefaultCell value={raw} />;
+}
+
+// ─── Mobile card view ────────────────────────────────────────────────────────
+
+function MobileCardList<T>({
+  columns,
+  data,
+  getKey,
+  onRowClick,
+  expandedRow,
+}: Omit<DataTableProps<T>, "className" | "emptyMessage" | "variant">) {
+  const metaCols = columns.filter((c) => c.header !== "");
+  const actionCols = columns.filter((c) => c.header === "");
+
+  return (
+    <div className="space-y-3">
+      {data.map((row) => {
+        const key = getKey(row);
+        const clickable = !!onRowClick;
+        return (
+          <Fragment key={key}>
+            <div
+              className={[
+                "bg-surface border border-border rounded-lg p-3",
+                clickable ? "cursor-pointer hover:bg-surface-muted" : "",
+                "transition-colors",
+              ].join(" ")}
+              onClick={clickable ? () => onRowClick!(row) : undefined}
+            >
+              {/* Meta fields */}
+              {metaCols.map((col) => (
+                <div key={col.accessor} className="flex items-start justify-between py-1 gap-3">
+                  <span className="text-text-muted text-xs shrink-0">{col.header}</span>
+                  <div className={[`text-sm text-right min-w-0`, col.align === "center" ? "text-center" : col.align === "right" ? "text-right" : "text-left"].join(" ")}>
+                    {renderCell(col, row)}
+                  </div>
+                </div>
+              ))}
+
+              {/* Action buttons */}
+              {actionCols.length > 0 && (
+                <div className="flex justify-end gap-2 pt-2 mt-2 border-t border-border">
+                  {actionCols.map((col) => (
+                    <div key={col.accessor}>{renderCell(col, row)}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Expanded row */}
+            {expandedRow && <div className="px-1">{expandedRow(row)}</div>}
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Desktop table view ──────────────────────────────────────────────────────
+
+function DesktopTable<T>({
+  columns,
+  data,
+  getKey,
+  onRowClick,
+  expandedRow,
+  variant,
+}: Omit<DataTableProps<T>, "className" | "emptyMessage">) {
+  const tableClass = variant === "dark" ? "table table-dark" : "table";
+
+  const alignClass = (align?: "left" | "center" | "right") =>
+    align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
+
+  return (
+    <div className="table-container">
+      <table className={tableClass}>
+        <thead>
+          <tr>
+            {columns.map((col) => (
+              <th key={col.accessor} className={alignClass(col.align)}>
+                {col.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row) => {
+            const key = getKey(row);
+            const clickable = !!onRowClick;
+            return (
+              <Fragment key={key}>
+                <tr
+                  className={clickable ? "clickable-row" : ""}
+                  onClick={clickable ? () => onRowClick!(row) : undefined}
+                >
+                  {columns.map((col) => (
+                    <td
+                      key={col.accessor}
+                      className={`${alignClass(col.align)} ${col.className ?? ""}`}
+                    >
+                      {renderCell(col, row)}
+                    </td>
+                  ))}
+                </tr>
+                {expandedRow && (
+                  <tr className="expanded-row">
+                    <td colSpan={columns.length}>{expandedRow(row)}</td>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function DataTable<T>({
@@ -57,66 +181,38 @@ export function DataTable<T>({
   emptyMessage = "No records found.",
   variant = "default",
 }: DataTableProps<T>) {
-  const tableClass = variant === "dark" ? "table table-dark" : "table";
-
-  const alignClass = (align?: "left" | "center" | "right") =>
-    align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
+  if (data.length === 0) {
+    return (
+      <div className={`p-6 sm:p-8 text-center text-text-muted text-sm ${className}`}>
+        {emptyMessage}
+      </div>
+    );
+  }
 
   return (
-    <div className={`table-container ${className}`}>
-      <table className={tableClass}>
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={col.accessor}
-                className={alignClass(col.align)}
-              >
-                {col.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length}>
-                <div className="empty-state">
-                  <p>{emptyMessage}</p>
-                </div>
-              </td>
-            </tr>
-          ) : (
-            data.map((row: Readonly<T>) => {
-              const key = getKey(row);
-              const expanded = expandedRow?.(row);
-              return (
-                <Fragment key={key}>
-                  <tr onClick={onRowClick ? () => onRowClick(row) : undefined}
-                      className={onRowClick ? "clickable-row" : undefined}>
-                    {columns.map((col: Column<T>) => {
-                      const raw = getValue(row, col.accessor);
-                      return (
-                        <td
-                          key={col.accessor}
-                          className={[col.className, alignClass(col.align)].filter(Boolean).join(" ") || undefined}
-                        >
-                          {col.render ? col.render(raw, row) : <DefaultCell value={raw} />}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                  {expanded && (
-                    <tr className="expanded-row">
-                      <td colSpan={columns.length}>{expanded}</td>
-                    </tr>
-                  )}
-                </Fragment>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+    <div className={className}>
+      {/* Mobile card list */}
+      <div className="sm:hidden">
+        <MobileCardList
+          columns={columns}
+          data={data}
+          getKey={getKey}
+          onRowClick={onRowClick}
+          expandedRow={expandedRow}
+        />
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block">
+        <DesktopTable
+          columns={columns}
+          data={data}
+          getKey={getKey}
+          onRowClick={onRowClick}
+          expandedRow={expandedRow}
+          variant={variant}
+        />
+      </div>
     </div>
   );
 }

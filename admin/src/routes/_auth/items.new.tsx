@@ -8,6 +8,7 @@ import { FormField, NumberField, SelectField, CheckboxField, TextareaField } fro
 import { showToast } from "../../components/Toast";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
+import { PageContainer } from "../../components/PageContainer";
 
 const EFFECT_TYPE_OPTS = [
   { value: "", label: "— None —" },
@@ -71,7 +72,7 @@ function CreateItemPage() {
   };
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto">
+    <PageContainer>
       <PageHeader title="Create Item Template" showBack backTo="/items" />
 
       <div className="card bg-surface p-6 border border-border rounded">
@@ -132,6 +133,6 @@ function CreateItemPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

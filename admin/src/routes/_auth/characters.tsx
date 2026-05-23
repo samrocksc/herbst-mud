@@ -6,6 +6,7 @@ import { useCharacters, type Character } from "../../hooks/useCharacters";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { fuzzyMatch } from "../../components/fuzzyMatch";
+import { PageContainer } from "../../components/PageContainer";
 
 export const Route = createFileRoute("/_auth/characters")({
   component: CharactersIndex,
@@ -90,7 +91,7 @@ function CharactersIndex() {
   }
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto">
+    <PageContainer>
       <PageHeader title="Characters" showBack backTo="/dashboard" />
 
       <div className="flex gap-3 mb-4 flex-wrap">
@@ -136,6 +137,6 @@ function CharactersIndex() {
           variant="dark"
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

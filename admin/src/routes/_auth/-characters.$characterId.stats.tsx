@@ -30,7 +30,7 @@ export function CharacterStats({ character }: Readonly<{
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border mb-6">
       <h2 className="mt-0 mb-4 text-text text-lg font-semibold">Character Stats</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
         <DetailField label="ID" value={String(character.id)} />
         <DetailField label="Name" value={character.name} />
         <DetailField label="Race" value={character.race} />

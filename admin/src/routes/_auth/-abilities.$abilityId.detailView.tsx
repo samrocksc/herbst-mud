@@ -4,7 +4,7 @@ export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border">
       <h2 className="mt-0 mb-4 text-text text-lg font-semibold">Ability Details</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <DetailField label="ID" value={String(ability.id)} />
         <DetailField label="Name" value={ability.name} />
         <DetailField label="Type" value={ability.ability_type} />

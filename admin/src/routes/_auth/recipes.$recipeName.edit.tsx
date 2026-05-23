@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
+import { PageContainer } from "../../components/PageContainer";
 import { useRecipe, useUpdateRecipe } from "../../hooks/useRecipes";
 import { RecipeForm } from "./RecipeForm";
 import type { RecipeInput } from "../../hooks/useRecipes";
@@ -28,7 +29,7 @@ function RecipeEditPage() {
   if (recipeQuery.error || !recipe) return <div className="error">Failed to load recipe.</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader
         title={`Edit: ${recipe.display_name || recipe.name}`}
         backTo="/recipes"
@@ -44,6 +45,6 @@ function RecipeEditPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate({ to: "/recipes/$recipeName", params: { recipeName } })}
       />
-    </div>
+    </PageContainer>
   );
 }

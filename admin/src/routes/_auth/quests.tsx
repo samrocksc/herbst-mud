@@ -13,6 +13,7 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { FormField, TextareaField, NumberField, SelectField } from "../../components/FormFields";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 import type { Quest } from "../../hooks/useQuests";
 
 export const Route = createFileRoute("/_auth/quests")({
@@ -41,6 +42,22 @@ const EMPTY_QUEST: QuestInput = {
   main_type: "general",
 };
 
+const COLUMNS: Column<Quest>[] = [
+  {
+    header: "Name",
+    accessor: "name",
+    render: (_, row) => (
+      <Link to="/quests/$questId" params={{ questId: String(row.id) }} className="no-underline text-primary hover:underline font-bold">
+        {row.name}
+      </Link>
+    ),
+  },
+  { header: "Active", accessor: "is_active", render: (val) => val ? "✓" : "✗" },
+  { header: "Repeat", accessor: "repeat_mode" },
+  { header: "Objectives", accessor: "objectives", render: (val) => (val as unknown as unknown[])?.length ?? 0 },
+  { header: "XP", accessor: "rewards", render: (val) => (val as { xp?: number })?.xp ?? 0 },
+];
+
 function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
   const createQuest = useCreateQuest();
   const { data: lookups, isLoading: lookupsLoading } = useQuestLookups();
@@ -62,7 +79,6 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
     set({ objectives: objs });
   };
 
-  // Get targets filtered by objective type
   const getTargetsForType = (type: string) => {
     if (!lookups) return [];
     switch (type) {
@@ -73,11 +89,9 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
     }
   };
 
-  // Get current target options based on selected type
   const currentObjective = formData.objectives?.[0];
   const targetOptions = getTargetsForType(currentObjective?.type ?? "");
 
-  // Convert prerequisite_quest_ids from strings to numbers for API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -88,7 +102,6 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
     } catch { /* toasted globally */ }
   };
 
-  // Multi-select handlers for rewards
   const togglePrereqQuest = (questId: string) => {
     const current = formData.prerequisite_quest_ids ?? [];
     if (current.includes(questId)) {
@@ -99,18 +112,18 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <div className="form-card space-y-3">
+    <PageContainer>
       <h3 className="mt-0 mb-0 text-text text-base font-semibold">Add New Quest</h3>
       <form onSubmit={handleSubmit} className="space-y-3">
         <FormField label="Name" value={formData.name ?? ""} onChange={(v) => set({ name: v })} />
         <TextareaField label="Description" value={formData.description ?? ""} onChange={(v) => set({ description: v })} rows={3} />
         <SelectField label="Quest Type" value={formData.main_type ?? "general"} onChange={(v) => set({ main_type: v })} options={[
-        { value: "general", label: "General" },
-        { value: "hunter", label: "Hunter (Kill NPCs)" },
-        { value: "collector", label: "Collector (Gather Items)" },
-        { value: "explorer", label: "Explorer (Visit Rooms)" },
-      ]} />
-      <SelectField label="Repeat Mode" value={formData.repeat_mode ?? "none"} onChange={(v) => set({ repeat_mode: v })} options={REPEAT_MODE_OPTS} />
+          { value: "general", label: "General" },
+          { value: "hunter", label: "Hunter (Kill NPCs)" },
+          { value: "collector", label: "Collector (Gather Items)" },
+          { value: "explorer", label: "Explorer (Visit Rooms)" },
+        ]} />
+        <SelectField label="Repeat Mode" value={formData.repeat_mode ?? "none"} onChange={(v) => set({ repeat_mode: v })} options={REPEAT_MODE_OPTS} />
         {(formData.repeat_mode === "cooldown") && (
           <NumberField label="Cooldown (hours)" value={formData.cooldown_hours ?? 0} onChange={(v) => set({ cooldown_hours: v })} />
         )}
@@ -119,7 +132,6 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
           <label htmlFor="quest-active" className="text-sm text-text">Active</label>
         </div>
 
-        {/* Prerequisite Quests */}
         <div className="border-t border-border pt-3 mt-3">
           <h4 className="text-sm font-semibold text-text mb-2">Prerequisite Quests</h4>
           <div className="flex flex-wrap gap-2">
@@ -179,7 +191,6 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
           <h4 className="text-sm font-semibold text-text mb-2">Rewards</h4>
           <NumberField label="XP" value={formData.rewards?.xp ?? 0} onChange={(v) => set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, xp: v } })} />
 
-          {/* Item Rewards */}
           <div className="mt-3">
             <label className="text-sm text-muted mb-1 block">Item Rewards</label>
             <div className="flex flex-wrap gap-2">
@@ -206,7 +217,6 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </div>
 
-          {/* Tag Add Rewards */}
           <div className="mt-3">
             <label className="text-sm text-muted mb-1 block">Tags to Add</label>
             <div className="flex flex-wrap gap-2">
@@ -240,25 +250,9 @@ function CreateQuestForm({ onSuccess }: { onSuccess: () => void }) {
           </Button>
         </div>
       </form>
-    </div>
+    </PageContainer>
   );
 }
-
-const COLUMNS: Column<Quest>[] = [
-  {
-    header: "Name",
-    accessor: "name",
-    render: (_, row) => (
-      <Link to="/quests/$questId" params={{ questId: String(row.id) }} className="no-underline text-primary hover:underline font-bold">
-        {row.name}
-      </Link>
-    ),
-  },
-  { header: "Active", accessor: "is_active", render: (val) => val ? "✓" : "✗" },
-  { header: "Repeat", accessor: "repeat_mode" },
-  { header: "Objectives", accessor: "objectives", render: (val) => (val as unknown as unknown[])?.length ?? 0 },
-  { header: "XP", accessor: "rewards", render: (val) => (val as { xp?: number })?.xp ?? 0 },
-];
 
 function QuestsManagement() {
   const [showCreate, setShowCreate] = useState(false);
@@ -272,7 +266,7 @@ function QuestsManagement() {
   if (error) return <div className="error">Failed to load quests: {error.message}</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader
         title="Quests"
         backTo="/dashboard"
@@ -290,6 +284,6 @@ function QuestsManagement() {
         onRowClick={(row) => navigate({ to: "/quests/$questId", params: { questId: String(row.id) } })}
         emptyMessage="No quests found. Create your first quest!"
       />
-    </div>
+    </PageContainer>
   );
 }

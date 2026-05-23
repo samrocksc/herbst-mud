@@ -5,6 +5,8 @@ import { useAbilities } from "../../hooks/useAbilities";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
+import { FilterBar } from "../../components/FilterBar";
 import type { Ability } from "../../hooks/useAbilities";
 
 export const Route = createFileRoute("/_auth/abilities")({
@@ -70,7 +72,7 @@ function AbilitiesManagement() {
   if (error) return <div className="error">Failed to load abilities: {error.message}</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader
         title="Abilities"
         backTo="/dashboard"
@@ -81,10 +83,17 @@ function AbilitiesManagement() {
         }
       />
 
-      <div className="filters-bar">
-        <div className="filter-group">
-          <label>Type:</label>
-          <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+      <FilterBar
+        showClear={!!(filterType || filterClass)}
+        onClear={() => { setFilterType(""); setFilterClass(""); }}
+      >
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-text-muted">Type:</label>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:outline-none focus:border-primary"
+          >
             <option value="">All Types</option>
             <option value="combat">Combat</option>
             <option value="magic">Magic</option>
@@ -94,21 +103,20 @@ function AbilitiesManagement() {
             <option value="defensive">Defensive</option>
           </select>
         </div>
-        <div className="filter-group">
-          <label>Class:</label>
-          <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)}>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-text-muted">Class:</label>
+          <select
+            value={filterClass}
+            onChange={(e) => setFilterClass(e.target.value)}
+            className="px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:outline-none focus:border-primary"
+          >
             <option value="">All Classes</option>
             <option value="active">Active</option>
             <option value="passive">Passive</option>
             <option value="toggle">Toggle</option>
           </select>
         </div>
-        {(filterType || filterClass) && (
-          <Button variant="ghost" size="sm" onClick={() => { setFilterType(""); setFilterClass(""); }}>
-            Clear Filters
-          </Button>
-        )}
-      </div>
+      </FilterBar>
 
       <DataTable
         columns={COLUMNS}
@@ -120,6 +128,6 @@ function AbilitiesManagement() {
             : "No abilities found. Create your first ability!"
         }
       />
-    </div>
+    </PageContainer>
   );
 }

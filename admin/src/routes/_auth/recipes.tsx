@@ -3,6 +3,7 @@ import { useState } from "react";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 import { useRecipes, useDeleteRecipe, type Recipe } from "../../hooks/useRecipes";
 import { useWorldStore } from "../../contexts/WorldStoreContext";
 
@@ -22,7 +23,7 @@ function DeleteConfirmation({
   isLoading: boolean
 }>) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <PageContainer>
       <div className="modal-content modal-sm" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Delete Recipe</h3>
@@ -39,7 +40,7 @@ function DeleteConfirmation({
           <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -116,7 +117,7 @@ function RecipesManagement() {
   if (!isList) return <Outlet />;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader
         title="Crafting Recipes"
         backTo="/dashboard"
@@ -142,6 +143,6 @@ function RecipesManagement() {
           isLoading={deleteMutation.isPending}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

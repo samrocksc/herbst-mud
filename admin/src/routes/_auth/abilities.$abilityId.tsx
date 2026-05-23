@@ -4,6 +4,7 @@ import { useAbility } from "../../hooks/useAbilities";
 import { useLocation } from "@tanstack/react-router";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 import { AbilityDetailView } from "./-abilities.$abilityId.detailView";
 import { AbilityEditForm } from "./-abilities.$abilityId.editForm";
 
@@ -27,7 +28,7 @@ function AbilityDetailPage() {
   if (!ability) return <div className="p-8"><PageHeader title="Not Found" backTo="/abilities" /><div className="text-danger">Ability not found</div></div>;
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto">
+    <PageContainer>
       <PageHeader
         title={ability.name}
         backTo="/abilities"
@@ -42,6 +43,6 @@ function AbilityDetailPage() {
       ) : (
         <AbilityDetailView ability={ability} />
       )}
-    </div>
+    </PageContainer>
   );
 }

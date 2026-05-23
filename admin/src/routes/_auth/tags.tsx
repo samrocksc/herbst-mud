@@ -6,6 +6,7 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 import { TagForm } from "./TagForm";
 import { TagUsagesPanelInline, ColorDot } from "./TagUsagesPanel";
 
@@ -56,7 +57,7 @@ function TagsManagement() {
   ];
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader title="Tags" backTo="/dashboard" actions={<Button variant="primary" onClick={() => { setShowForm(true); setEditingTag(null); }}>+ Add Tag</Button>} />
       {error && <div className="error-banner">{error instanceof Error ? error.message : "Failed to load tags"}</div>}
       {showForm && !editingTag && <TagForm tag={null} onSubmit={handleCreate} onCancel={() => setShowForm(false)} isLoading={mutations.create.isPending} error={mutations.create.error?.message ?? null} />}
@@ -82,6 +83,6 @@ function TagsManagement() {
           isLoading={mutations.delete.isPending}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

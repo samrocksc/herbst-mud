@@ -7,6 +7,7 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { RaceForm } from "../../components/RaceForm";
 import { FormError } from "../../components/fields/FormError";
+import { PageContainer } from "../../components/PageContainer";
 
 export const Route = createFileRoute("/_auth/races")({
   component: RacesManagement,
@@ -121,7 +122,7 @@ function RacesManagement() {
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader title="Races" backTo="/dashboard" actions={<Button variant="primary" onClick={() => { setShowForm(true); setEditingRace(null); }}>+ Add Race</Button>} />
       {error && <div className="error-banner">{error instanceof Error ? error.message : "Failed to load races"}</div>}
       {formError && <FormError message={formError} />}
@@ -132,7 +133,7 @@ function RacesManagement() {
       )}
       {deletingRace && <DeleteConfirmation race={deletingRace} onConfirm={handleDelete} onCancel={() => setDeletingRace(null)} isLoading={deleteMutation.isPending} />}
       {applyingRace && <ApplyTagsConfirmation race={applyingRace} onConfirm={handleApplyTags} onCancel={() => setApplyingRace(null)} isLoading={applyTagsMutation.isPending} />}
-    </div>
+    </PageContainer>
   );
 }
 

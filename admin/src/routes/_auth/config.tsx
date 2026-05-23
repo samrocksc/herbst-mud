@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { Button } from "../../components/Button";
 import { DataTable } from "../../components/DataTable";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 import { apiGet, apiDelete } from "../../utils/apiFetch";
 import { humanizeKey, tryParseJSON } from "./-configUtils";
 import type { GameConfig } from "./-configUtils";
@@ -18,10 +19,10 @@ function ConfigValueCell({ value }: { value: string }) {
     const formatted = JSON.stringify(parsed, null, 2);
     const isLong = formatted.split("\n").length > 4;
     return (
-      <div className="text-xs">
+      <PageContainer>
         <pre className={`font-mono text-text-secondary whitespace-pre-wrap m-0 ${!expanded ? "max-h-16 overflow-hidden" : ""}`}>{formatted}</pre>
         {isLong && <button type="button" className="text-primary text-xs mt-1 hover:underline cursor-pointer" onClick={() => setExpanded(e => !e)}>{expanded ? "Show less" : "Show more"}</button>}
-      </div>
+      </PageContainer>
     );
   }
   return <span className="inline-block max-w-md overflow-hidden text-ellipsis whitespace-nowrap text-text-secondary text-xs">{value.length > 60 ? value.slice(0, 60) + "…" : value}</span>;
@@ -52,7 +53,7 @@ function ConfigManagement() {
   const filtered = configs.filter(c => c.key.toLowerCase().includes(search.toLowerCase()) || c.value.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="management-page">
+    <div >
       <div className="page-header">
         <h2>Game Configs</h2>
         <Link to="/config/new" className="no-underline">

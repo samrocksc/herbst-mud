@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLogs, useLogServices, useLogWorlds } from "../../hooks/useLogs";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
+import { PageContainer } from "../../components/PageContainer";
 
 export const Route = createFileRoute("/_auth/logs")({
   component: LogsPage,
@@ -76,7 +77,7 @@ function LogsPage() {
   const total = data?.total ?? 0;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader title="Logs" backTo="/dashboard" actions={
         <div className="flex items-center gap-2">
           <span className="text-xs text-text-muted">{live ? `${liveLines.length} live` : `${total} total`}</span>
@@ -222,7 +223,7 @@ function LogsPage() {
       )}
 
       <div ref={bottomRef} />
-    </div>
+    </PageContainer>
   );
 }
 

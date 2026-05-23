@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
 import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
+import { PageContainer } from "../../components/PageContainer";
 import { useRecipe } from "../../hooks/useRecipes";
 import { useWorldStore } from "../../contexts/WorldStoreContext";
 
@@ -26,7 +27,7 @@ function RecipeDetail() {
   if (recipeQuery.error || !recipe) return <div className="error">Failed to load recipe.</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader
         title={recipe.display_name || recipe.name}
         backTo="/recipes"
@@ -88,6 +89,6 @@ function RecipeDetail() {
           )}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

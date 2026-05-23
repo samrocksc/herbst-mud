@@ -67,7 +67,7 @@ export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border mb-6">
       <h2 className="mt-0 mb-4 text-text text-lg font-semibold">Edit Template</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div><label className="text-text-muted text-xs block mb-1">Name</label>
           <input type="text" value={form.name} onChange={(e) => set("name", e.target.value)}
             className="w-full p-2 bg-surface border border-border rounded text-text text-sm" /></div>

@@ -6,6 +6,7 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { showToast } from "../../components/Toast";
+import { PageContainer } from "../../components/PageContainer";
 import type { TellQueueEntry } from "../../hooks/useTellQueue";
 
 export const Route = createFileRoute("/_auth/tell-queue")({
@@ -63,7 +64,7 @@ function TellQueuePage() {
   if (error) return <div className="error">Failed to load tell queue: {error.message}</div>;
 
   return (
-    <div className="management-page">
+    <PageContainer>
       <PageHeader title="Offline Tell Queue" backTo="/dashboard" />
 
       <div className="flex items-center gap-4 mb-4">
@@ -111,6 +112,6 @@ function TellQueuePage() {
         onCancel={() => setDeleteId(null)}
         isLoading={deleteMutation.isPending}
       />
-    </div>
+    </PageContainer>
   );
 }
