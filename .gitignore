@@ -27,8 +27,6 @@ herbst/herbst-tui
 herbst/herbst-server
 herbst/herbst-web
 server/herbst-server
-admin-tui/admin-tui
-admin-tui/herbst-admin
 *.pid
 server.log
 

@@ -29,10 +29,6 @@ go generate ./...
 oapi-codegen -generate typescript -package api \
   http://localhost:8080/openapi.json > admin/src/api/types.gen.ts
 
-# Generate Go client SDK for admin TUI
-oapi-codegen -generate gin -package client \
-  http://localhost:8080/openapi.json > admin-tui/client.gen.go
-
 # Generate request validators (middleware)
 oapi-codegen -generate gin -package middleware \
   http://localhost:8080/openapi.json > server/middleware/validators.gen.go

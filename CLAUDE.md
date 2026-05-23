@@ -31,7 +31,6 @@ on port 3000.
 - `herbst/` — SSH client (bubbletea TUI), separate Go module
 - `server/` — REST API (Gin), separate Go module, ent ORM
 - `admin/` — Vite/React/TanStack admin panel
-- `admin-tui/` — Go bubbletea admin TUI
 - `content/` — YAML data-driven content (skills, NPCs, items, rooms)
 
 ## Key Directories
