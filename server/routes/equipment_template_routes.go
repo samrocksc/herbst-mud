@@ -308,6 +308,7 @@ func templateToMap(t *db.EquipmentTemplate) gin.H {
 		"id":                      t.ID,
 		"slug":                    t.Slug,
 		"name":                    t.Name,
+		"world_id":                t.WorldID,
 		"description":             t.Description,
 		"slot":                    t.Slot,
 		"level":                   t.Level,

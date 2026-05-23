@@ -1,11 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
-import { useRecipes, useDeleteRecipe, useCreateRecipe, useUpdateRecipe, type Recipe } from "../../hooks/useRecipes";
+import { useRecipes, useDeleteRecipe, type Recipe } from "../../hooks/useRecipes";
 import { useWorldStore } from "../../contexts/WorldStoreContext";
-import { RecipeForm } from "./RecipeForm";
 
 export const Route = createFileRoute("/_auth/recipes")({
   component: RecipesManagement,
@@ -45,20 +44,11 @@ function DeleteConfirmation({
 }
 
 function RecipesManagement() {
-  const [showForm, setShowForm] = useState(false);
-  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [deletingRecipe, setDeletingRecipe] = useState<Recipe | null>(null);
 
   const { currentWorld } = useWorldStore();
   const { data: recipes, isLoading, error } = useRecipes({ world_id: currentWorld });
   const deleteMutation = useDeleteRecipe();
-  const createMutation = useCreateRecipe();
-  const updateMutation = useUpdateRecipe();
-
-  const handleEdit = (recipe: Recipe) => {
-    setEditingRecipe(recipe);
-    setShowForm(true);
-  };
 
   const handleDelete = async () => {
     if (!deletingRecipe) return;
@@ -68,24 +58,20 @@ function RecipesManagement() {
     } catch { /* error is in mutation state */ }
   };
 
-  const handleCreate = async (input: Parameters<ReturnType<typeof useCreateRecipe>["mutateAsync"]>[0]) => {
-    try {
-      await createMutation.mutateAsync(input);
-      setShowForm(false);
-    } catch { /* error is in mutation state */ }
-  };
-
-  const handleUpdate = async (input: Parameters<ReturnType<typeof useUpdateRecipe>["mutateAsync"]>[0]["input"]) => {
-    if (!editingRecipe) return;
-    try {
-      await updateMutation.mutateAsync({ name: editingRecipe.name, input });
-      setShowForm(false);
-      setEditingRecipe(null);
-    } catch { /* error is in mutation state */ }
-  };
-
   const columns: Column<Recipe>[] = [
-    { header: "Name", accessor: "name" },
+    {
+      header: "Name",
+      accessor: "name",
+      render: (_: unknown, row: Recipe) => (
+        <Link
+          to="/recipes/$recipeName"
+          params={{ recipeName: row.name }}
+          className="text-primary no-underline hover:underline font-bold"
+        >
+          {row.name}
+        </Link>
+      ),
+    },
     { header: "Display Name", accessor: "display_name" },
     { header: "Station", accessor: "required_station_tag" },
     { header: "Class", accessor: "required_class", render: (val: unknown) => String(val) || "Any" },
@@ -104,8 +90,19 @@ function RecipesManagement() {
       accessor: "_actions",
       render: (_: unknown, row: Recipe) => (
         <>
-          <Button variant="accent" size="sm" onClick={() => handleEdit(row)}>Edit</Button>
-          <Button variant="danger" size="sm" className="ml-2" onClick={() => setDeletingRecipe(row)}>Delete</Button>
+          <Link
+            to="/recipes/$recipeName/edit"
+            params={{ recipeName: row.name }}
+            className="text-accent no-underline hover:underline text-sm mr-2"
+          >
+            Edit
+          </Link>
+          <span
+            className="text-danger cursor-pointer text-sm hover:underline"
+            onClick={() => setDeletingRecipe(row)}
+          >
+            Delete
+          </span>
         </>
       ),
     },
@@ -120,30 +117,11 @@ function RecipesManagement() {
         title="Crafting Recipes"
         backTo="/dashboard"
         actions={
-          <Button
-            variant="primary"
-            onClick={() => { setEditingRecipe(null); setShowForm(true); }}
-          >
-            + Add Recipe
-          </Button>
+          <Link to="/recipes/new">
+            <Button variant="primary">+ Add Recipe</Button>
+          </Link>
         }
       />
-
-      {showForm && editingRecipe && (
-        <RecipeForm
-          recipe={editingRecipe}
-          onSubmit={handleUpdate}
-          onCancel={() => { setShowForm(false); setEditingRecipe(null); }}
-        />
-      )}
-
-      {showForm && !editingRecipe && (
-        <RecipeForm
-          recipe={null}
-          onSubmit={handleCreate}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
 
       <DataTable
         columns={columns}

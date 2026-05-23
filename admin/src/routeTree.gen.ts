@@ -62,6 +62,7 @@ import { Route as AuthWorldsNewRouteImport } from './routes/_auth/worlds.new'
 import { Route as AuthWorldsWorldIdRouteImport } from './routes/_auth/worlds.$worldId'
 import { Route as AuthSocialsNewRouteImport } from './routes/_auth/socials.new'
 import { Route as AuthSocialsSocialIdRouteImport } from './routes/_auth/socials.$socialId'
+import { Route as AuthRecipesRecipeNameRouteImport } from './routes/_auth/recipes.$recipeName'
 import { Route as AuthQuestsQuestIdRouteImport } from './routes/_auth/quests.$questId'
 import { Route as AuthNpcsNpcIdRouteImport } from './routes/_auth/npcs.$npcId'
 import { Route as AuthItemsNewRouteImport } from './routes/_auth/items.new'
@@ -72,6 +73,7 @@ import { Route as AuthCharactersCharacterIdRouteImport } from './routes/_auth/ch
 import { Route as AuthAbilitiesNewRouteImport } from './routes/_auth/abilities.new'
 import { Route as AuthAbilitiesAbilityIdRouteImport } from './routes/_auth/abilities.$abilityId'
 import { Route as AuthNpcsNpcIdIndexRouteImport } from './routes/_auth/npcs.$npcId.index'
+import { Route as AuthRecipesRecipeNameEditRouteImport } from './routes/_auth/recipes.$recipeName.edit'
 import { Route as AuthItemsItemIdSpawnRouteImport } from './routes/_auth/items.$itemId.spawn'
 import { Route as MapRoomsRoomIdNpcsSpawnRouteImport } from './routes/map.rooms.$roomId.npcs.spawn'
 import { Route as MapRoomsRoomIdItemsSpawnRouteImport } from './routes/map.rooms.$roomId.items.spawn'
@@ -342,6 +344,11 @@ const AuthSocialsSocialIdRoute = AuthSocialsSocialIdRouteImport.update({
   path: '/$socialId',
   getParentRoute: () => AuthSocialsRoute,
 } as any)
+const AuthRecipesRecipeNameRoute = AuthRecipesRecipeNameRouteImport.update({
+  id: '/$recipeName',
+  path: '/$recipeName',
+  getParentRoute: () => AuthRecipesRoute,
+} as any)
 const AuthQuestsQuestIdRoute = AuthQuestsQuestIdRouteImport.update({
   id: '/$questId',
   path: '/$questId',
@@ -393,6 +400,12 @@ const AuthNpcsNpcIdIndexRoute = AuthNpcsNpcIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthNpcsNpcIdRoute,
 } as any)
+const AuthRecipesRecipeNameEditRoute =
+  AuthRecipesRecipeNameEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthRecipesRecipeNameRoute,
+  } as any)
 const AuthItemsItemIdSpawnRoute = AuthItemsItemIdSpawnRouteImport.update({
   id: '/spawn',
   path: '/spawn',
@@ -443,7 +456,7 @@ export interface FileRoutesByFullPath {
   '/players': typeof AuthPlayersRoute
   '/quests': typeof AuthQuestsRouteWithChildren
   '/races': typeof AuthRacesRoute
-  '/recipes': typeof AuthRecipesRoute
+  '/recipes': typeof AuthRecipesRouteWithChildren
   '/skills': typeof AuthSkillsRoute
   '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
@@ -479,12 +492,14 @@ export interface FileRoutesByFullPath {
   '/items/new': typeof AuthItemsNewRoute
   '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
   '/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
   '/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
+  '/recipes/$recipeName/edit': typeof AuthRecipesRecipeNameEditRoute
   '/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
@@ -510,7 +525,7 @@ export interface FileRoutesByTo {
   '/players': typeof AuthPlayersRoute
   '/quests': typeof AuthQuestsRouteWithChildren
   '/races': typeof AuthRacesRoute
-  '/recipes': typeof AuthRecipesRoute
+  '/recipes': typeof AuthRecipesRouteWithChildren
   '/skills': typeof AuthSkillsRoute
   '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
@@ -545,12 +560,14 @@ export interface FileRoutesByTo {
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/items/new': typeof AuthItemsNewRoute
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
   '/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
   '/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
+  '/recipes/$recipeName/edit': typeof AuthRecipesRecipeNameEditRoute
   '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
@@ -580,7 +597,7 @@ export interface FileRoutesById {
   '/_auth/players': typeof AuthPlayersRoute
   '/_auth/quests': typeof AuthQuestsRouteWithChildren
   '/_auth/races': typeof AuthRacesRoute
-  '/_auth/recipes': typeof AuthRecipesRoute
+  '/_auth/recipes': typeof AuthRecipesRouteWithChildren
   '/_auth/skills': typeof AuthSkillsRoute
   '/_auth/socials': typeof AuthSocialsRouteWithChildren
   '/_auth/tags': typeof AuthTagsRoute
@@ -616,12 +633,14 @@ export interface FileRoutesById {
   '/_auth/items/new': typeof AuthItemsNewRoute
   '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
   '/_auth/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/_auth/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/_auth/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/_auth/socials/new': typeof AuthSocialsNewRoute
   '/_auth/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/_auth/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
   '/_auth/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
+  '/_auth/recipes/$recipeName/edit': typeof AuthRecipesRecipeNameEditRoute
   '/_auth/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
   '/_auth/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
   '/_auth/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
@@ -687,12 +706,14 @@ export interface FileRouteTypes {
     | '/items/new'
     | '/npcs/$npcId'
     | '/quests/$questId'
+    | '/recipes/$recipeName'
     | '/socials/$socialId'
     | '/socials/new'
     | '/worlds/$worldId'
     | '/worlds/new'
     | '/map/rooms/new'
     | '/items/$itemId/spawn'
+    | '/recipes/$recipeName/edit'
     | '/npcs/$npcId/'
     | '/items/$itemId/instances/$instanceId'
     | '/npcs/$npcId/instances/$instanceId'
@@ -753,12 +774,14 @@ export interface FileRouteTypes {
     | '/items/$itemId'
     | '/items/new'
     | '/quests/$questId'
+    | '/recipes/$recipeName'
     | '/socials/$socialId'
     | '/socials/new'
     | '/worlds/$worldId'
     | '/worlds/new'
     | '/map/rooms/new'
     | '/items/$itemId/spawn'
+    | '/recipes/$recipeName/edit'
     | '/npcs/$npcId'
     | '/items/$itemId/instances/$instanceId'
     | '/npcs/$npcId/instances/$instanceId'
@@ -823,12 +846,14 @@ export interface FileRouteTypes {
     | '/_auth/items/new'
     | '/_auth/npcs/$npcId'
     | '/_auth/quests/$questId'
+    | '/_auth/recipes/$recipeName'
     | '/_auth/socials/$socialId'
     | '/_auth/socials/new'
     | '/_auth/worlds/$worldId'
     | '/_auth/worlds/new'
     | '/map/rooms/new'
     | '/_auth/items/$itemId/spawn'
+    | '/_auth/recipes/$recipeName/edit'
     | '/_auth/npcs/$npcId/'
     | '/_auth/items/$itemId/instances/$instanceId'
     | '/_auth/npcs/$npcId/instances/$instanceId'
@@ -1220,6 +1245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSocialsSocialIdRouteImport
       parentRoute: typeof AuthSocialsRoute
     }
+    '/_auth/recipes/$recipeName': {
+      id: '/_auth/recipes/$recipeName'
+      path: '/$recipeName'
+      fullPath: '/recipes/$recipeName'
+      preLoaderRoute: typeof AuthRecipesRecipeNameRouteImport
+      parentRoute: typeof AuthRecipesRoute
+    }
     '/_auth/quests/$questId': {
       id: '/_auth/quests/$questId'
       path: '/$questId'
@@ -1289,6 +1321,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/npcs/$npcId/'
       preLoaderRoute: typeof AuthNpcsNpcIdIndexRouteImport
       parentRoute: typeof AuthNpcsNpcIdRoute
+    }
+    '/_auth/recipes/$recipeName/edit': {
+      id: '/_auth/recipes/$recipeName/edit'
+      path: '/edit'
+      fullPath: '/recipes/$recipeName/edit'
+      preLoaderRoute: typeof AuthRecipesRecipeNameEditRouteImport
+      parentRoute: typeof AuthRecipesRecipeNameRoute
     }
     '/_auth/items/$itemId/spawn': {
       id: '/_auth/items/$itemId/spawn'
@@ -1435,6 +1474,31 @@ const AuthQuestsRouteWithChildren = AuthQuestsRoute._addFileChildren(
   AuthQuestsRouteChildren,
 )
 
+interface AuthRecipesRecipeNameRouteChildren {
+  AuthRecipesRecipeNameEditRoute: typeof AuthRecipesRecipeNameEditRoute
+}
+
+const AuthRecipesRecipeNameRouteChildren: AuthRecipesRecipeNameRouteChildren = {
+  AuthRecipesRecipeNameEditRoute: AuthRecipesRecipeNameEditRoute,
+}
+
+const AuthRecipesRecipeNameRouteWithChildren =
+  AuthRecipesRecipeNameRoute._addFileChildren(
+    AuthRecipesRecipeNameRouteChildren,
+  )
+
+interface AuthRecipesRouteChildren {
+  AuthRecipesRecipeNameRoute: typeof AuthRecipesRecipeNameRouteWithChildren
+}
+
+const AuthRecipesRouteChildren: AuthRecipesRouteChildren = {
+  AuthRecipesRecipeNameRoute: AuthRecipesRecipeNameRouteWithChildren,
+}
+
+const AuthRecipesRouteWithChildren = AuthRecipesRoute._addFileChildren(
+  AuthRecipesRouteChildren,
+)
+
 interface AuthSocialsRouteChildren {
   AuthSocialsSocialIdRoute: typeof AuthSocialsSocialIdRoute
   AuthSocialsNewRoute: typeof AuthSocialsNewRoute
@@ -1477,7 +1541,7 @@ interface AuthRouteChildren {
   AuthPlayersRoute: typeof AuthPlayersRoute
   AuthQuestsRoute: typeof AuthQuestsRouteWithChildren
   AuthRacesRoute: typeof AuthRacesRoute
-  AuthRecipesRoute: typeof AuthRecipesRoute
+  AuthRecipesRoute: typeof AuthRecipesRouteWithChildren
   AuthSkillsRoute: typeof AuthSkillsRoute
   AuthSocialsRoute: typeof AuthSocialsRouteWithChildren
   AuthTagsRoute: typeof AuthTagsRoute
@@ -1500,7 +1564,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthPlayersRoute: AuthPlayersRoute,
   AuthQuestsRoute: AuthQuestsRouteWithChildren,
   AuthRacesRoute: AuthRacesRoute,
-  AuthRecipesRoute: AuthRecipesRoute,
+  AuthRecipesRoute: AuthRecipesRouteWithChildren,
   AuthSkillsRoute: AuthSkillsRoute,
   AuthSocialsRoute: AuthSocialsRouteWithChildren,
   AuthTagsRoute: AuthTagsRoute,

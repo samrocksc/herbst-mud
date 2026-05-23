@@ -30,7 +30,7 @@ function getDisplayLabel(
   value: string,
   options: ReadonlyArray<SearchableSelectOption>,
 ): string {
-  if (!value) return "";
+  if (!value) return "(not selected)";
   const found = options.find((o) => o.id === value);
   return found ? `${found.name} (${found.id})` : value;
 }
