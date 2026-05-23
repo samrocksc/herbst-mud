@@ -1,4 +1,3 @@
- 
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { WorldTitle } from "./WorldTitle";
@@ -51,26 +50,20 @@ const navItems = [
   { label: "Docs", path: "/docs", Icon: DocsIcon },
 ];
 
-/** Toggle button for collapsing/expanding the sidebar. Named component for DevTools clarity. */
+/** Toggle button for collapsing/expanding the sidebar on desktop. */
 function SidebarCollapseToggle({
   collapsed,
   onToggle,
 }: Readonly<{
-  collapsed: boolean
-  onToggle: () => void
+  collapsed: boolean;
+  onToggle: () => void;
 }>) {
   return (
     <button
       onClick={onToggle}
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      className={[
-        "flex-shrink-0 flex items-center justify-center",
-        "w-8 h-8 rounded",
-        "hover:bg-surface-muted",
-        "transition-colors duration-200",
-        "focus:outline-none focus:ring-2 focus:ring-primary",
-      ].join(" ")}
+      className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded hover:bg-surface-muted transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
       style={{ color: "var(--color-primary)" }}
     >
       {collapsed ? (
@@ -82,10 +75,33 @@ function SidebarCollapseToggle({
   );
 }
 
-// Collapsed state key
+/** Close button (X) for mobile dropdown. */
+function SidebarCloseButton({ onClose }: Readonly<{ onClose: () => void }>) {
+  return (
+    <button
+      onClick={onClose}
+      aria-label="Close menu"
+      title="Close menu"
+      className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded hover:bg-surface-muted transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary lg:hidden"
+      style={{ color: "var(--color-primary)" }}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </button>
+  );
+}
+
 const COLLAPSED_KEY = "sidebar-collapsed";
 
-export function Sidebar() {
+export function Sidebar({
+  mobileOpen,
+  onMobileClose,
+}: Readonly<{
+  mobileOpen: boolean;
+  onMobileClose: () => void;
+}>) {
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem(COLLAPSED_KEY) === "true";
@@ -94,49 +110,53 @@ export function Sidebar() {
     }
   });
 
-  // Update localStorage when collapsed changes
   useEffect(() => {
     try {
       localStorage.setItem(COLLAPSED_KEY, String(collapsed));
     } catch {
-      // Ignore errors
+      // ignore
     }
   }, [collapsed]);
 
   return (
     <nav
       className={[
-        "h-screen bg-surface border-r border-border",
-        "flex flex-col",
+        // Base
+        "bg-surface border-r border-border flex flex-col",
         "transition-all duration-300 ease-in-out",
-        "relative",
-        // Mobile: sidebar slides in/out as an overlay
-        "fixed inset-y-0 left-0 z-40",
-        "max-w-[220px]",
-        collapsed ? "w-[64px] max-w-[64px]" : "w-[220px]",
-        // Desktop: always visible, not fixed
-        "lg:relative lg:inset-auto lg:z-auto",
+        // Mobile: top-down dropdown below header
+        "absolute top-0 left-0 w-full z-40",
+        "shadow-lg",
+        mobileOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none",
+        // Desktop: sidebar on the left
+        "lg:fixed lg:inset-y-0 lg:left-0 lg:top-auto lg:h-screen",
+        "lg:translate-y-0 lg:opacity-100 lg:pointer-events-auto",
+        "lg:shadow-none",
+        "lg:max-w-[220px]",
+        collapsed ? "lg:w-[64px] lg:max-w-[64px]" : "lg:w-[220px]",
       ].join(" ")}
     >
-      {/* Mobile overlay backdrop — only visible when collapsed on mobile */}
-      {/* Header + toggle */}
+      {/* Header: WorldTitle + close button (mobile) + collapse toggle (desktop) */}
       <div className="flex items-center border-b border-border flex-shrink-0 h-14 px-1">
         <div
           className={[
             "flex-1 min-w-0 px-1 overflow-hidden",
             "transition-opacity duration-300",
-            collapsed ? "opacity-0 select-none" : "opacity-100",
+            collapsed ? "lg:opacity-0 lg:select-none" : "lg:opacity-100",
           ].join(" ")}
         >
           <WorldTitle />
         </div>
-        <SidebarCollapseToggle
-          collapsed={collapsed}
-          onToggle={() => setCollapsed((c) => !c)}
-        />
+        <SidebarCloseButton onClose={onMobileClose} />
+        <div className="hidden lg:block">
+          <SidebarCollapseToggle
+            collapsed={collapsed}
+            onToggle={() => setCollapsed((c) => !c)}
+          />
+        </div>
       </div>
 
-      {/* Nav items — the only scrollable region */}
+      {/* Nav items */}
       <div className="flex flex-col p-2 gap-1 flex-1 overflow-y-auto">
         {navItems.map((item) => (
           <Link
@@ -154,9 +174,10 @@ export function Sidebar() {
             className={[
               "flex items-center gap-3 px-3 py-2.5 rounded text-sm",
               "no-underline transition-colors",
-              collapsed ? "justify-center px-0" : "",
+              collapsed ? "lg:justify-center lg:px-0" : "",
             ].join(" ")}
             title={collapsed ? item.label : undefined}
+            onClick={onMobileClose}
           >
             <span className="flex-shrink-0">
               <item.Icon />
@@ -164,7 +185,7 @@ export function Sidebar() {
             <span
               className={[
                 "whitespace-nowrap transition-opacity duration-300 min-w-0",
-                collapsed ? "opacity-0 pointer-events-none w-0 overflow-hidden" : "opacity-100",
+                collapsed ? "lg:opacity-0 lg:pointer-events-none lg:w-0 lg:overflow-hidden" : "lg:opacity-100",
               ].join(" ")}
             >
               {item.label}

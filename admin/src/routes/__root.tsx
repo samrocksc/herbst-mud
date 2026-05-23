@@ -30,6 +30,7 @@ function RootComponent() {
       <ToastProvider>
         <ErrorBoundary>
           <div className="flex h-screen bg-white">
+            {/* Mobile hamburger button — Opens top-down sidebar/nav */}
             <Button
               variant="ghost"
               size="sm"
@@ -40,15 +41,12 @@ function RootComponent() {
               <MenuIcon stroke="currentColor" />
             </Button>
 
-            <div
-              className={[
-                "lg:block",
-                mobileSidebarOpen ? "block" : "hidden",
-              ].join(" ")}
-            >
-              <Sidebar />
-            </div>
+            <Sidebar
+              mobileOpen={mobileSidebarOpen}
+              onMobileClose={() => setMobileSidebarOpen(false)}
+            />
 
+            {/* Mobile backdrop */}
             {mobileSidebarOpen && (
               <div
                 className="fixed inset-0 bg-black/30 z-30 lg:hidden"
@@ -56,7 +54,7 @@ function RootComponent() {
               />
             )}
 
-            <main className="flex-1 overflow-auto bg-gray-50">
+            <main className="flex-1 overflow-auto bg-surface-muted">
               <Outlet />
             </main>
           </div>
