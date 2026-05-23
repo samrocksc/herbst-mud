@@ -22,8 +22,8 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldRace holds the string denoting the race field in the database.
-	FieldRace = "race"
+	// FieldRaceID holds the string denoting the race_id field in the database.
+	FieldRaceID = "race_id"
 	// FieldDisposition holds the string denoting the disposition field in the database.
 	FieldDisposition = "disposition"
 	// FieldLevel holds the string denoting the level field in the database.
@@ -48,6 +48,8 @@ const (
 	EdgeDialogNodes = "dialog_nodes"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
+	// EdgeRace holds the string denoting the race edge name in mutations.
+	EdgeRace = "race"
 	// Table holds the table name of the npctemplate in the database.
 	Table = "npc_templates"
 	// NpcAbilitiesTable is the table that holds the npc_abilities relation/edge. The primary key declared below.
@@ -76,6 +78,13 @@ const (
 	CharactersInverseTable = "characters"
 	// CharactersColumn is the table column denoting the characters relation/edge.
 	CharactersColumn = "npc_template_id"
+	// RaceTable is the table that holds the race relation/edge.
+	RaceTable = "npc_templates"
+	// RaceInverseTable is the table name for the Race entity.
+	// It exists in this package in order to avoid circular dependency with the "race" package.
+	RaceInverseTable = "races"
+	// RaceColumn is the table column denoting the race relation/edge.
+	RaceColumn = "race_id"
 )
 
 // Columns holds all SQL columns for npctemplate fields.
@@ -85,7 +94,7 @@ var Columns = []string{
 	FieldWorldID,
 	FieldName,
 	FieldDescription,
-	FieldRace,
+	FieldRaceID,
 	FieldDisposition,
 	FieldLevel,
 	FieldXpValue,
@@ -178,9 +187,9 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
-// ByRace orders the results by the race field.
-func ByRace(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRace, opts...).ToFunc()
+// ByRaceID orders the results by the race_id field.
+func ByRaceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRaceID, opts...).ToFunc()
 }
 
 // ByDisposition orders the results by the disposition field.
@@ -263,6 +272,13 @@ func ByCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByRaceField orders the results by race field.
+func ByRaceField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRaceStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newNpcAbilitiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -289,5 +305,12 @@ func newCharactersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CharactersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, true, CharactersTable, CharactersColumn),
+	)
+}
+func newRaceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RaceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RaceTable, RaceColumn),
 	)
 }

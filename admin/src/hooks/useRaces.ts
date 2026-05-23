@@ -13,7 +13,7 @@ export type Race = Readonly<{
   skill_grants: string[]
   ability_modifiers: string[]
   equipment_slots: string[]
-  is_playable: boolean
+  requirement_tags: string[]
   color: string
   tags: string[]
 }>
@@ -24,7 +24,7 @@ export type RaceInput = Readonly<{
   description: string
   stat_modifiers: string
   equipment_slots: ReadonlyArray<string>
-  is_playable: boolean
+  requirement_tags: ReadonlyArray<string>
   color: string
   tags: ReadonlyArray<string>
 }>
@@ -32,12 +32,13 @@ export type RaceInput = Readonly<{
 function parseRaceForApi(input: RaceInput): Record<string, unknown> {
   const equipmentSlots: string[] = [...input.equipment_slots];
   const tags: string[] = [...input.tags];
+  const reqTags: string[] = [...input.requirement_tags];
   const body: Record<string, unknown> = {
     name: input.name,
     display_name: input.display_name || input.name,
     description: input.description,
     equipment_slots: equipmentSlots,
-    is_playable: input.is_playable,
+    requirement_tags: reqTags,
     color: input.color,
     tags: tags,
   };

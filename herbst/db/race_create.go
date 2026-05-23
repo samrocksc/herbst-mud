@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst/db/npctemplate"
 	"herbst/db/race"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -71,17 +72,9 @@ func (_c *RaceCreate) SetEquipmentSlots(v []string) *RaceCreate {
 	return _c
 }
 
-// SetIsPlayable sets the "is_playable" field.
-func (_c *RaceCreate) SetIsPlayable(v bool) *RaceCreate {
-	_c.mutation.SetIsPlayable(v)
-	return _c
-}
-
-// SetNillableIsPlayable sets the "is_playable" field if the given value is not nil.
-func (_c *RaceCreate) SetNillableIsPlayable(v *bool) *RaceCreate {
-	if v != nil {
-		_c.SetIsPlayable(*v)
-	}
+// SetRequirementTags sets the "requirement_tags" field.
+func (_c *RaceCreate) SetRequirementTags(v []string) *RaceCreate {
+	_c.mutation.SetRequirementTags(v)
 	return _c
 }
 
@@ -97,6 +90,21 @@ func (_c *RaceCreate) SetNillableColor(v *string) *RaceCreate {
 		_c.SetColor(*v)
 	}
 	return _c
+}
+
+// AddNpcTemplateIDs adds the "npc_templates" edge to the NPCTemplate entity by IDs.
+func (_c *RaceCreate) AddNpcTemplateIDs(ids ...string) *RaceCreate {
+	_c.mutation.AddNpcTemplateIDs(ids...)
+	return _c
+}
+
+// AddNpcTemplates adds the "npc_templates" edges to the NPCTemplate entity.
+func (_c *RaceCreate) AddNpcTemplates(v ...*NPCTemplate) *RaceCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNpcTemplateIDs(ids...)
 }
 
 // Mutation returns the RaceMutation object of the builder.
@@ -138,9 +146,9 @@ func (_c *RaceCreate) defaults() {
 		v := race.DefaultEquipmentSlots
 		_c.mutation.SetEquipmentSlots(v)
 	}
-	if _, ok := _c.mutation.IsPlayable(); !ok {
-		v := race.DefaultIsPlayable
-		_c.mutation.SetIsPlayable(v)
+	if _, ok := _c.mutation.RequirementTags(); !ok {
+		v := race.DefaultRequirementTags
+		_c.mutation.SetRequirementTags(v)
 	}
 }
 
@@ -158,8 +166,8 @@ func (_c *RaceCreate) check() error {
 	if _, ok := _c.mutation.EquipmentSlots(); !ok {
 		return &ValidationError{Name: "equipment_slots", err: errors.New(`db: missing required field "Race.equipment_slots"`)}
 	}
-	if _, ok := _c.mutation.IsPlayable(); !ok {
-		return &ValidationError{Name: "is_playable", err: errors.New(`db: missing required field "Race.is_playable"`)}
+	if _, ok := _c.mutation.RequirementTags(); !ok {
+		return &ValidationError{Name: "requirement_tags", err: errors.New(`db: missing required field "Race.requirement_tags"`)}
 	}
 	return nil
 }
@@ -211,13 +219,29 @@ func (_c *RaceCreate) createSpec() (*Race, *sqlgraph.CreateSpec) {
 		_spec.SetField(race.FieldEquipmentSlots, field.TypeJSON, value)
 		_node.EquipmentSlots = value
 	}
-	if value, ok := _c.mutation.IsPlayable(); ok {
-		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)
-		_node.IsPlayable = value
+	if value, ok := _c.mutation.RequirementTags(); ok {
+		_spec.SetField(race.FieldRequirementTags, field.TypeJSON, value)
+		_node.RequirementTags = value
 	}
 	if value, ok := _c.mutation.Color(); ok {
 		_spec.SetField(race.FieldColor, field.TypeString, value)
 		_node.Color = value
+	}
+	if nodes := _c.mutation.NpcTemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   race.NpcTemplatesTable,
+			Columns: []string{race.NpcTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

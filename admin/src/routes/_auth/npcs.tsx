@@ -23,12 +23,13 @@ type NPCTemplate = Readonly<{
   xp_value: number
   respawn_rooms: string[]
   respawn_cooldown: number
+  race_id: number
 }>
 
 type NPCTemplateForm = Readonly<{
   name: string
   description: string
-  race: string
+  race_id: number
   level: number
   xp_value: number
   respawn_cooldown: number
@@ -42,7 +43,7 @@ const API = `${window.location.origin}`;
 const EMPTY_FORM: NPCTemplateForm = {
   name: "",
   description: "",
-  race: "",
+  race_id: 0,
   level: 1,
   xp_value: 0,
   respawn_cooldown: 60,
@@ -57,6 +58,14 @@ function NPCTemplatesIndex() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [form, setForm] = useState<NPCTemplateForm>(EMPTY_FORM);
+
+  // Fetch races for dropdown
+  const racesQuery = useQuery({
+    queryKey: ["races"],
+    queryFn: () => apiGet<Array<{ id: number; name: string; display_name: string }>>(`${API}/api/races`),
+  });
+
+  const raceOptions = racesQuery.data ?? [];
 
   // Build query string with world_id
   const params = useMemo(() => {
@@ -99,7 +108,7 @@ function NPCTemplatesIndex() {
       return apiPost<NPCTemplate>(`${API}/api/npc-templates${qs}`, {
         name: input.name,
         description: input.description,
-        race: input.race,
+        race_id: input.race_id,
         level: input.level,
         xp_value: input.xp_value,
         respawn_cooldown: input.respawn_cooldown,
@@ -250,16 +259,19 @@ function NPCTemplatesIndex() {
             />
           </div>
 
-          {/* Race */}
+          {/* Race ID select */}
           <div>
             <label className="text-text-muted text-xs block mb-1">Race</label>
-            <input
-              type="text"
-              value={form.race}
-              onChange={(e) => setForm({ ...form, race: e.target.value })}
-              placeholder="e.g. goblin"
+            <select
+              value={form.race_id}
+              onChange={(e) => setForm({ ...form, race_id: parseInt(e.target.value) || 0 })}
               className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-            />
+            >
+              <option value="">Select race…</option>
+              {raceOptions.map((r) => (
+                <option key={r.id} value={r.id}>{r.display_name || r.name}</option>
+              ))}
+            </select>
           </div>
 
           {/* Level & XP Value */}

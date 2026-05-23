@@ -36,7 +36,7 @@ func (r *entRaceRepo) Create(ctx context.Context, input CreateRaceInput) (*db.Ra
 		SetName(input.Name).
 		SetDisplayName(input.DisplayName).
 		SetDescription(input.Description).
-		SetIsPlayable(input.IsPlayable)
+		SetRequirementTags(input.RequirementTags)
 	if input.StatModifiers != nil {
 		builder = builder.SetStatModifiers(*input.StatModifiers)
 	}
@@ -90,8 +90,8 @@ func (r *entRaceRepo) Update(ctx context.Context, id int, updates RaceUpdates) (
 	if updates.StatModifiers != nil {
 		builder = builder.SetStatModifiers(*updates.StatModifiers)
 	}
-	if updates.IsPlayable != nil {
-		builder = builder.SetIsPlayable(*updates.IsPlayable)
+	if updates.RequirementTags != nil {
+		builder = builder.SetRequirementTags(updates.RequirementTags)
 	}
 	if updates.Color != nil {
 		builder = builder.SetColor(*updates.Color)
@@ -127,20 +127,21 @@ type Race struct {
 }
 
 func (r *entRaceRepo) ListPlayable(ctx context.Context) ([]*Race, error) {
-	races, err := r.client.Race.Query().
-		Where(race.IsPlayable(true)).
+	all, err := r.client.Race.Query().
 		Order(race.ByName()).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]*Race, len(races))
-	for i, r := range races {
-		result[i] = &Race{
-			ID:          r.ID,
-			Name:        r.Name,
-			DisplayName: r.DisplayName,
+	result := make([]*Race, 0, len(all))
+	for _, item := range all {
+		if len(item.RequirementTags) == 0 {
+			result = append(result, &Race{
+				ID:          item.ID,
+				Name:        item.Name,
+				DisplayName: item.DisplayName,
+			})
 		}
 	}
 	return result, nil

@@ -28,7 +28,9 @@ func (NPCTemplate) Fields() []ent.Field {
 			Comment("World this NPC template belongs to (for multi-world support)"),
 		field.String("name"),
 		field.Text("description"),
-		field.String("race"),
+		field.Int("race_id").
+			Optional().
+			Comment("FK to Race.id — NPC's race"),
 		field.Enum("disposition").
 			Values("hostile", "friendly", "neutral").
 			Default("neutral"),
@@ -58,5 +60,6 @@ func (NPCTemplate) Edges() []ent.Edge {
 		edge.To("dialog_nodes", DialogNode.Type),
 		edge.From("characters", Character.Type).
 			Ref("npcTemplate"),
+		edge.From("race", Race.Type).Ref("npc_templates").Field("race_id").Unique(),
 	}
 }

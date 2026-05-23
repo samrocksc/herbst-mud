@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"herbst/db/npctemplate"
+	"herbst/db/race"
 	"strings"
 
 	"entgo.io/ent"
@@ -23,8 +24,8 @@ type NPCTemplate struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Race holds the value of the "race" field.
-	Race string `json:"race,omitempty"`
+	// FK to Race.id — NPC's race
+	RaceID int `json:"race_id,omitempty"`
 	// Disposition holds the value of the "disposition" field.
 	Disposition npctemplate.Disposition `json:"disposition,omitempty"`
 	// Level holds the value of the "level" field.
@@ -47,9 +48,11 @@ type NPCTemplateEdges struct {
 	Hooks []*EffectHook `json:"hooks,omitempty"`
 	// DialogNodes holds the value of the dialog_nodes edge.
 	DialogNodes []*DialogNode `json:"dialog_nodes,omitempty"`
+	// Race holds the value of the race edge.
+	Race *Race `json:"race,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // HooksOrErr returns the Hooks value or an error if the edge
@@ -70,6 +73,17 @@ func (e NPCTemplateEdges) DialogNodesOrErr() ([]*DialogNode, error) {
 	return nil, &NotLoadedError{edge: "dialog_nodes"}
 }
 
+// RaceOrErr returns the Race value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e NPCTemplateEdges) RaceOrErr() (*Race, error) {
+	if e.Race != nil {
+		return e.Race, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: race.Label}
+	}
+	return nil, &NotLoadedError{edge: "race"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -77,9 +91,9 @@ func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case npctemplate.FieldSkills, npctemplate.FieldTradesWith:
 			values[i] = new([]byte)
-		case npctemplate.FieldLevel:
+		case npctemplate.FieldRaceID, npctemplate.FieldLevel:
 			values[i] = new(sql.NullInt64)
-		case npctemplate.FieldID, npctemplate.FieldSlug, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldRace, npctemplate.FieldDisposition, npctemplate.FieldGreeting:
+		case npctemplate.FieldID, npctemplate.FieldSlug, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldDisposition, npctemplate.FieldGreeting:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -120,11 +134,11 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Description = value.String
 			}
-		case npctemplate.FieldRace:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field race", values[i])
+		case npctemplate.FieldRaceID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field race_id", values[i])
 			} else if value.Valid {
-				_m.Race = value.String
+				_m.RaceID = int(value.Int64)
 			}
 		case npctemplate.FieldDisposition:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -183,6 +197,11 @@ func (_m *NPCTemplate) QueryDialogNodes() *DialogNodeQuery {
 	return NewNPCTemplateClient(_m.config).QueryDialogNodes(_m)
 }
 
+// QueryRace queries the "race" edge of the NPCTemplate entity.
+func (_m *NPCTemplate) QueryRace() *RaceQuery {
+	return NewNPCTemplateClient(_m.config).QueryRace(_m)
+}
+
 // Update returns a builder for updating this NPCTemplate.
 // Note that you need to call NPCTemplate.Unwrap() before calling this method if this NPCTemplate
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -215,8 +234,8 @@ func (_m *NPCTemplate) String() string {
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
-	builder.WriteString("race=")
-	builder.WriteString(_m.Race)
+	builder.WriteString("race_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RaceID))
 	builder.WriteString(", ")
 	builder.WriteString("disposition=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Disposition))

@@ -30,9 +30,11 @@ func (Race) Fields() []ent.Field {
 		field.JSON("equipment_slots", []string{}).
 			Default([]string{"head", "neck", "chest", "back", "hands", "legs", "feet", "finger_left", "finger_right", "main_hand", "off_hand"}).
 			Comment(`Slots this race can equip: ["head","chest",...]`),
-		field.Bool("is_playable").
-			Default(true).
-			Comment("false = NPC-only race"),
+		field.Strings("requirement_tags").
+			Default([]string{}).
+			StorageKey("requirement_tags").
+			Optional().
+			Comment("Tags that must be satisfied for race to be selectable"),
 		field.String("color").
 			Optional().
 			Comment("Hex color for UI display, e.g. '#8b5cf6'"),
@@ -43,5 +45,6 @@ func (Race) Fields() []ent.Field {
 func (Race) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("tags", Tag.Type).Ref("races"),
+		edge.To("npc_templates", NPCTemplate.Type),
 	}
 }

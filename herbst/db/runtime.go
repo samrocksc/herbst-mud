@@ -453,10 +453,10 @@ func init() {
 	raceDescEquipmentSlots := raceFields[5].Descriptor()
 	// race.DefaultEquipmentSlots holds the default value on creation for the equipment_slots field.
 	race.DefaultEquipmentSlots = raceDescEquipmentSlots.Default.([]string)
-	// raceDescIsPlayable is the schema descriptor for is_playable field.
-	raceDescIsPlayable := raceFields[6].Descriptor()
-	// race.DefaultIsPlayable holds the default value on creation for the is_playable field.
-	race.DefaultIsPlayable = raceDescIsPlayable.Default.(bool)
+	// raceDescRequirementTags is the schema descriptor for requirement_tags field.
+	raceDescRequirementTags := raceFields[6].Descriptor()
+	// race.DefaultRequirementTags holds the default value on creation for the requirement_tags field.
+	race.DefaultRequirementTags = raceDescRequirementTags.Default.([]string)
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
 	// roomDescIsStartingRoom is the schema descriptor for isStartingRoom field.

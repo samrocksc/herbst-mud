@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/race"
 	"herbst-server/db/tag"
@@ -20,11 +21,12 @@ import (
 // RaceQuery is the builder for querying Race entities.
 type RaceQuery struct {
 	config
-	ctx        *QueryContext
-	order      []race.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Race
-	withTags   *TagQuery
+	ctx              *QueryContext
+	order            []race.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Race
+	withTags         *TagQuery
+	withNpcTemplates *NPCTemplateQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (_q *RaceQuery) QueryTags() *TagQuery {
 			sqlgraph.From(race.Table, race.FieldID, selector),
 			sqlgraph.To(tag.Table, tag.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, race.TagsTable, race.TagsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNpcTemplates chains the current query on the "npc_templates" edge.
+func (_q *RaceQuery) QueryNpcTemplates() *NPCTemplateQuery {
+	query := (&NPCTemplateClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(race.Table, race.FieldID, selector),
+			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, race.NpcTemplatesTable, race.NpcTemplatesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +294,13 @@ func (_q *RaceQuery) Clone() *RaceQuery {
 		return nil
 	}
 	return &RaceQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]race.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Race{}, _q.predicates...),
-		withTags:   _q.withTags.Clone(),
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]race.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.Race{}, _q.predicates...),
+		withTags:         _q.withTags.Clone(),
+		withNpcTemplates: _q.withNpcTemplates.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +315,17 @@ func (_q *RaceQuery) WithTags(opts ...func(*TagQuery)) *RaceQuery {
 		opt(query)
 	}
 	_q.withTags = query
+	return _q
+}
+
+// WithNpcTemplates tells the query-builder to eager-load the nodes that are connected to
+// the "npc_templates" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RaceQuery) WithNpcTemplates(opts ...func(*NPCTemplateQuery)) *RaceQuery {
+	query := (&NPCTemplateClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNpcTemplates = query
 	return _q
 }
 
@@ -371,8 +407,9 @@ func (_q *RaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Race, e
 	var (
 		nodes       = []*Race{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withTags != nil,
+			_q.withNpcTemplates != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +434,13 @@ func (_q *RaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Race, e
 		if err := _q.loadTags(ctx, query, nodes,
 			func(n *Race) { n.Edges.Tags = []*Tag{} },
 			func(n *Race, e *Tag) { n.Edges.Tags = append(n.Edges.Tags, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNpcTemplates; query != nil {
+		if err := _q.loadNpcTemplates(ctx, query, nodes,
+			func(n *Race) { n.Edges.NpcTemplates = []*NPCTemplate{} },
+			func(n *Race, e *NPCTemplate) { n.Edges.NpcTemplates = append(n.Edges.NpcTemplates, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -461,6 +505,36 @@ func (_q *RaceQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*Rac
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (_q *RaceQuery) loadNpcTemplates(ctx context.Context, query *NPCTemplateQuery, nodes []*Race, init func(*Race), assign func(*Race, *NPCTemplate)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Race)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(npctemplate.FieldRaceID)
+	}
+	query.Where(predicate.NPCTemplate(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(race.NpcTemplatesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RaceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "race_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

@@ -15,15 +15,15 @@ import (
 func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
-			Name           string   `json:"name" binding:"required"`
-			DisplayName    string   `json:"display_name"`
-			Description    string   `json:"description"`
-			StatModifiers  *string  `json:"stat_modifiers"`
-			SkillGrants    []string `json:"skill_grants"`
-			EquipmentSlots []string `json:"equipment_slots"`
-			IsPlayable     *bool    `json:"is_playable"`
-			Color          string   `json:"color"`
-			Tags           []string `json:"tags"`
+			Name            string   `json:"name" binding:"required"`
+			DisplayName     string   `json:"display_name"`
+			Description     string   `json:"description"`
+			StatModifiers   *string  `json:"stat_modifiers"`
+			SkillGrants     []string `json:"skill_grants"`
+			EquipmentSlots  []string `json:"equipment_slots"`
+			RequirementTags []string `json:"requirement_tags"`
+			Color           string   `json:"color"`
+			Tags            []string `json:"tags"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
@@ -42,10 +42,6 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			return
 		}
 
-		isPlayable := true
-		if req.IsPlayable != nil {
-			isPlayable = *req.IsPlayable
-		}
 		displayName := req.DisplayName
 		if displayName == "" {
 			displayName = req.Name
@@ -62,14 +58,14 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 		}
 
 		r, err := repos.Race.Create(c.Request.Context(), repository.CreateRaceInput{
-			Name:           req.Name,
-			DisplayName:    displayName,
-			Description:    req.Description,
-			StatModifiers:  req.StatModifiers,
-			IsPlayable:     isPlayable,
-			Color:          req.Color,
-			EquipmentSlots: req.EquipmentSlots,
-			TagIDs:         tagIDs,
+			Name:            req.Name,
+			DisplayName:     displayName,
+			Description:     req.Description,
+			StatModifiers:   req.StatModifiers,
+			RequirementTags: req.RequirementTags,
+			Color:           req.Color,
+			EquipmentSlots:  req.EquipmentSlots,
+			TagIDs:          tagIDs,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

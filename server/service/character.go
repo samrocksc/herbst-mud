@@ -63,7 +63,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	race := "human"
 	if input.Race != "" {
 		raceObj, err := s.repos.Race.GetByName(ctx, input.Race)
-		if err != nil || !raceObj.IsPlayable {
+		if err != nil || len(raceObj.RequirementTags) > 0 {
 			return nil, ErrInvalidRace
 		}
 		race = raceObj.Name

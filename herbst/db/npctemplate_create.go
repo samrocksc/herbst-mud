@@ -9,6 +9,7 @@ import (
 	"herbst/db/dialognode"
 	"herbst/db/effecthook"
 	"herbst/db/npctemplate"
+	"herbst/db/race"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -47,9 +48,17 @@ func (_c *NPCTemplateCreate) SetDescription(v string) *NPCTemplateCreate {
 	return _c
 }
 
-// SetRace sets the "race" field.
-func (_c *NPCTemplateCreate) SetRace(v string) *NPCTemplateCreate {
-	_c.mutation.SetRace(v)
+// SetRaceID sets the "race_id" field.
+func (_c *NPCTemplateCreate) SetRaceID(v int) *NPCTemplateCreate {
+	_c.mutation.SetRaceID(v)
+	return _c
+}
+
+// SetNillableRaceID sets the "race_id" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableRaceID(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetRaceID(*v)
+	}
 	return _c
 }
 
@@ -135,6 +144,11 @@ func (_c *NPCTemplateCreate) AddDialogNodes(v ...*DialogNode) *NPCTemplateCreate
 	return _c.AddDialogNodeIDs(ids...)
 }
 
+// SetRace sets the "race" edge to the Race entity.
+func (_c *NPCTemplateCreate) SetRace(v *Race) *NPCTemplateCreate {
+	return _c.SetRaceID(v.ID)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_c *NPCTemplateCreate) Mutation() *NPCTemplateMutation {
 	return _c.mutation
@@ -187,9 +201,6 @@ func (_c *NPCTemplateCreate) check() error {
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "NPCTemplate.description"`)}
-	}
-	if _, ok := _c.mutation.Race(); !ok {
-		return &ValidationError{Name: "race", err: errors.New(`db: missing required field "NPCTemplate.race"`)}
 	}
 	if _, ok := _c.mutation.Disposition(); !ok {
 		return &ValidationError{Name: "disposition", err: errors.New(`db: missing required field "NPCTemplate.disposition"`)}
@@ -258,10 +269,6 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 		_spec.SetField(npctemplate.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := _c.mutation.Race(); ok {
-		_spec.SetField(npctemplate.FieldRace, field.TypeString, value)
-		_node.Race = value
-	}
 	if value, ok := _c.mutation.Disposition(); ok {
 		_spec.SetField(npctemplate.FieldDisposition, field.TypeEnum, value)
 		_node.Disposition = value
@@ -312,6 +319,23 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   npctemplate.RaceTable,
+			Columns: []string{npctemplate.RaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RaceID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

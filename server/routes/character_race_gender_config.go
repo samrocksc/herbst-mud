@@ -18,7 +18,7 @@ func listPlayableRaces(repos *repository.Container) gin.HandlerFunc {
 		}
 		playable := make([]*db.Race, 0, len(races))
 		for _, r := range races {
-			if r.IsPlayable {
+			if len(r.RequirementTags) == 0 {
 				playable = append(playable, r)
 			}
 		}
@@ -90,7 +90,7 @@ func updateCharacterRace(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 		existingRace, err := repos.Race.GetByName(c.Request.Context(), req.Race)
-		if err != nil || !existingRace.IsPlayable {
+		if err != nil || len(existingRace.RequirementTags) > 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or non-playable race"})
 			return
 		}

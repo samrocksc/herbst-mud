@@ -22,7 +22,9 @@ func (NPCTemplate) Fields() []ent.Field {
 			Comment("Globally unique slug derived from name, e.g., goblin_scout"),
 		field.String("name"),
 		field.Text("description"),
-		field.String("race"),
+		field.Int("race_id").
+			Optional().
+			Comment("FK to Race.id — NPC's race"),
 		field.Enum("disposition").
 			Values("hostile", "friendly", "neutral").
 			Default("neutral"),
@@ -38,5 +40,6 @@ func (NPCTemplate) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("hooks", EffectHook.Type),
 		edge.To("dialog_nodes", DialogNode.Type),
+		edge.From("race", Race.Type).Ref("npc_templates").Field("race_id").Unique(),
 	}
 }

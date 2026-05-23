@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -29,9 +30,9 @@ func (Race) Fields() []ent.Field {
 		field.JSON("equipment_slots", []string{}).
 			Default([]string{"head", "neck", "chest", "back", "hands", "legs", "feet", "finger_left", "finger_right", "main_hand", "off_hand"}).
 			Comment(`Slots this race can equip: ["head","chest",...]`),
-		field.Bool("is_playable").
-			Default(true).
-			Comment("false = NPC-only race"),
+		field.Strings("requirement_tags").
+			Default([]string{}).
+			Comment("Tags that must be satisfied for race to be selectable"),
 		field.String("color").
 			Optional().
 			Comment("Hex color for UI display, e.g. '#8b5cf6'"),
@@ -40,5 +41,7 @@ func (Race) Fields() []ent.Field {
 
 // Edges of the Race.
 func (Race) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("npc_templates", NPCTemplate.Type),
+	}
 }

@@ -10,6 +10,7 @@ import (
 	"herbst/db/effecthook"
 	"herbst/db/npctemplate"
 	"herbst/db/predicate"
+	"herbst/db/race"
 	"math"
 
 	"entgo.io/ent"
@@ -27,6 +28,7 @@ type NPCTemplateQuery struct {
 	predicates      []predicate.NPCTemplate
 	withHooks       *EffectHookQuery
 	withDialogNodes *DialogNodeQuery
+	withRace        *RaceQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (_q *NPCTemplateQuery) QueryDialogNodes() *DialogNodeQuery {
 			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, selector),
 			sqlgraph.To(dialognode.Table, dialognode.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, npctemplate.DialogNodesTable, npctemplate.DialogNodesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRace chains the current query on the "race" edge.
+func (_q *NPCTemplateQuery) QueryRace() *RaceQuery {
+	query := (&RaceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, selector),
+			sqlgraph.To(race.Table, race.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, npctemplate.RaceTable, npctemplate.RaceColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +325,7 @@ func (_q *NPCTemplateQuery) Clone() *NPCTemplateQuery {
 		predicates:      append([]predicate.NPCTemplate{}, _q.predicates...),
 		withHooks:       _q.withHooks.Clone(),
 		withDialogNodes: _q.withDialogNodes.Clone(),
+		withRace:        _q.withRace.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +351,17 @@ func (_q *NPCTemplateQuery) WithDialogNodes(opts ...func(*DialogNodeQuery)) *NPC
 		opt(query)
 	}
 	_q.withDialogNodes = query
+	return _q
+}
+
+// WithRace tells the query-builder to eager-load the nodes that are connected to
+// the "race" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NPCTemplateQuery) WithRace(opts ...func(*RaceQuery)) *NPCTemplateQuery {
+	query := (&RaceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRace = query
 	return _q
 }
 
@@ -407,9 +443,10 @@ func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*NPCTemplate{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withHooks != nil,
 			_q.withDialogNodes != nil,
+			_q.withRace != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,6 +478,12 @@ func (_q *NPCTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadDialogNodes(ctx, query, nodes,
 			func(n *NPCTemplate) { n.Edges.DialogNodes = []*DialogNode{} },
 			func(n *NPCTemplate, e *DialogNode) { n.Edges.DialogNodes = append(n.Edges.DialogNodes, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRace; query != nil {
+		if err := _q.loadRace(ctx, query, nodes, nil,
+			func(n *NPCTemplate, e *Race) { n.Edges.Race = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -509,6 +552,35 @@ func (_q *NPCTemplateQuery) loadDialogNodes(ctx context.Context, query *DialogNo
 	}
 	return nil
 }
+func (_q *NPCTemplateQuery) loadRace(ctx context.Context, query *RaceQuery, nodes []*NPCTemplate, init func(*NPCTemplate), assign func(*NPCTemplate, *Race)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*NPCTemplate)
+	for i := range nodes {
+		fk := nodes[i].RaceID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(race.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "race_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *NPCTemplateQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -534,6 +606,9 @@ func (_q *NPCTemplateQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != npctemplate.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withRace != nil {
+			_spec.Node.AddColumnOnce(npctemplate.FieldRaceID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

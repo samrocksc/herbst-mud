@@ -10,6 +10,7 @@ import (
 	"herbst/db/effecthook"
 	"herbst/db/npctemplate"
 	"herbst/db/predicate"
+	"herbst/db/race"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -78,17 +79,23 @@ func (_u *NPCTemplateUpdate) SetNillableDescription(v *string) *NPCTemplateUpdat
 	return _u
 }
 
-// SetRace sets the "race" field.
-func (_u *NPCTemplateUpdate) SetRace(v string) *NPCTemplateUpdate {
-	_u.mutation.SetRace(v)
+// SetRaceID sets the "race_id" field.
+func (_u *NPCTemplateUpdate) SetRaceID(v int) *NPCTemplateUpdate {
+	_u.mutation.SetRaceID(v)
 	return _u
 }
 
-// SetNillableRace sets the "race" field if the given value is not nil.
-func (_u *NPCTemplateUpdate) SetNillableRace(v *string) *NPCTemplateUpdate {
+// SetNillableRaceID sets the "race_id" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableRaceID(v *int) *NPCTemplateUpdate {
 	if v != nil {
-		_u.SetRace(*v)
+		_u.SetRaceID(*v)
 	}
+	return _u
+}
+
+// ClearRaceID clears the value of the "race_id" field.
+func (_u *NPCTemplateUpdate) ClearRaceID() *NPCTemplateUpdate {
+	_u.mutation.ClearRaceID()
 	return _u
 }
 
@@ -189,6 +196,11 @@ func (_u *NPCTemplateUpdate) AddDialogNodes(v ...*DialogNode) *NPCTemplateUpdate
 	return _u.AddDialogNodeIDs(ids...)
 }
 
+// SetRace sets the "race" edge to the Race entity.
+func (_u *NPCTemplateUpdate) SetRace(v *Race) *NPCTemplateUpdate {
+	return _u.SetRaceID(v.ID)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_u *NPCTemplateUpdate) Mutation() *NPCTemplateMutation {
 	return _u.mutation
@@ -234,6 +246,12 @@ func (_u *NPCTemplateUpdate) RemoveDialogNodes(v ...*DialogNode) *NPCTemplateUpd
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDialogNodeIDs(ids...)
+}
+
+// ClearRace clears the "race" edge to the Race entity.
+func (_u *NPCTemplateUpdate) ClearRace() *NPCTemplateUpdate {
+	_u.mutation.ClearRace()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -296,9 +314,6 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(npctemplate.FieldDescription, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Race(); ok {
-		_spec.SetField(npctemplate.FieldRace, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Disposition(); ok {
 		_spec.SetField(npctemplate.FieldDisposition, field.TypeEnum, value)
@@ -413,6 +428,35 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.RaceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   npctemplate.RaceTable,
+			Columns: []string{npctemplate.RaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   npctemplate.RaceTable,
+			Columns: []string{npctemplate.RaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{npctemplate.Label}
@@ -481,17 +525,23 @@ func (_u *NPCTemplateUpdateOne) SetNillableDescription(v *string) *NPCTemplateUp
 	return _u
 }
 
-// SetRace sets the "race" field.
-func (_u *NPCTemplateUpdateOne) SetRace(v string) *NPCTemplateUpdateOne {
-	_u.mutation.SetRace(v)
+// SetRaceID sets the "race_id" field.
+func (_u *NPCTemplateUpdateOne) SetRaceID(v int) *NPCTemplateUpdateOne {
+	_u.mutation.SetRaceID(v)
 	return _u
 }
 
-// SetNillableRace sets the "race" field if the given value is not nil.
-func (_u *NPCTemplateUpdateOne) SetNillableRace(v *string) *NPCTemplateUpdateOne {
+// SetNillableRaceID sets the "race_id" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableRaceID(v *int) *NPCTemplateUpdateOne {
 	if v != nil {
-		_u.SetRace(*v)
+		_u.SetRaceID(*v)
 	}
+	return _u
+}
+
+// ClearRaceID clears the value of the "race_id" field.
+func (_u *NPCTemplateUpdateOne) ClearRaceID() *NPCTemplateUpdateOne {
+	_u.mutation.ClearRaceID()
 	return _u
 }
 
@@ -592,6 +642,11 @@ func (_u *NPCTemplateUpdateOne) AddDialogNodes(v ...*DialogNode) *NPCTemplateUpd
 	return _u.AddDialogNodeIDs(ids...)
 }
 
+// SetRace sets the "race" edge to the Race entity.
+func (_u *NPCTemplateUpdateOne) SetRace(v *Race) *NPCTemplateUpdateOne {
+	return _u.SetRaceID(v.ID)
+}
+
 // Mutation returns the NPCTemplateMutation object of the builder.
 func (_u *NPCTemplateUpdateOne) Mutation() *NPCTemplateMutation {
 	return _u.mutation
@@ -637,6 +692,12 @@ func (_u *NPCTemplateUpdateOne) RemoveDialogNodes(v ...*DialogNode) *NPCTemplate
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDialogNodeIDs(ids...)
+}
+
+// ClearRace clears the "race" edge to the Race entity.
+func (_u *NPCTemplateUpdateOne) ClearRace() *NPCTemplateUpdateOne {
+	_u.mutation.ClearRace()
+	return _u
 }
 
 // Where appends a list predicates to the NPCTemplateUpdate builder.
@@ -729,9 +790,6 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(npctemplate.FieldDescription, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Race(); ok {
-		_spec.SetField(npctemplate.FieldRace, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Disposition(); ok {
 		_spec.SetField(npctemplate.FieldDisposition, field.TypeEnum, value)
@@ -839,6 +897,35 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(dialognode.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RaceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   npctemplate.RaceTable,
+			Columns: []string{npctemplate.RaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RaceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   npctemplate.RaceTable,
+			Columns: []string{npctemplate.RaceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -35,7 +35,7 @@ type npcTemplateView struct {
 	Slug            string         `json:"slug"`
 	Name            string         `json:"name"`
 	Description     string         `json:"description"`
-	Race            string         `json:"race"`
+	RaceID          int            `json:"race_id"`
 	Disposition     string         `json:"disposition"`
 	Level           int            `json:"level"`
 	XpValue         int            `json:"xp_value"`
@@ -76,7 +76,7 @@ func listNPCTemplates(repos *repository.Container) gin.HandlerFunc {
 				Slug:            t.Slug,
 				Name:            t.Name,
 				Description:     t.Description,
-				Race:            t.Race,
+				RaceID:          t.RaceID,
 				Disposition:     string(t.Disposition),
 				Level:           t.Level,
 				XpValue:         t.XpValue,
@@ -111,7 +111,7 @@ func getNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Slug:            tmpl.Slug,
 			Name:            tmpl.Name,
 			Description:     tmpl.Description,
-			Race:            tmpl.Race,
+			RaceID:          tmpl.RaceID,
 			Disposition:     string(tmpl.Disposition),
 			Level:           tmpl.Level,
 			XpValue:         tmpl.XpValue,
@@ -132,7 +132,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Slug            string         `json:"slug"`
 			Name            string         `json:"name"`
 			Description     string         `json:"description"`
-			Race            string         `json:"race"`
+			RaceID          int            `json:"race_id"`
 			Disposition     string         `json:"disposition"`
 			Level           int            `json:"level"`
 			XpValue         int            `json:"xp_value"`
@@ -168,7 +168,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Slug:            req.Slug,
 			Name:            req.Name,
 			Description:     req.Description,
-			Race:            req.Race,
+			RaceID:          req.RaceID,
 			Disposition:     disposition,
 			Level:           req.Level,
 			XPValue:         req.XpValue,
@@ -188,7 +188,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Slug:            created.Slug,
 			Name:            created.Name,
 			Description:     created.Description,
-			Race:            created.Race,
+			RaceID:          created.RaceID,
 			Disposition:     string(created.Disposition),
 			Level:           created.Level,
 			XpValue:         created.XpValue,
@@ -205,9 +205,9 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 // Only non-nil fields are applied.
 type updateNPCTemplateRequest struct {
 	Name            *string         `json:"name"`
-		Slug            *string         `json:"slug"`
+	Slug            *string         `json:"slug"`
 	Description     *string         `json:"description"`
-	Race            *string         `json:"race"`
+	RaceID          *int            `json:"race_id"`
 	Disposition     *string         `json:"disposition"`
 	Level           *int            `json:"level"`
 	XpValue         *int            `json:"xp_value"`
@@ -237,7 +237,7 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Name:            req.Name,
 			Slug:            req.Slug,
 			Description:     req.Description,
-			Race:            req.Race,
+			RaceID:          req.RaceID,
 			Level:           req.Level,
 			XPValue:         req.XpValue,
 			Skills:          req.Skills,
@@ -267,7 +267,7 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Slug:            updated.Slug,
 			Name:            updated.Name,
 			Description:     updated.Description,
-			Race:            updated.Race,
+			RaceID:          updated.RaceID,
 			Disposition:     string(updated.Disposition),
 			Level:           updated.Level,
 			XpValue:         updated.XpValue,

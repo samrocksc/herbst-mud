@@ -165,6 +165,12 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 			return
 		}
 
+		// Fetch the race name for this NPC template
+		raceObj, err := repos.Race.Get(c.Request.Context(), tmpl.RaceID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "race not found for npc template"})
+			return
+		}
 		// Determine instance_number: if 0, auto-assign next available
 		instanceNum := req.InstanceNumber
 		if instanceNum == 0 {
@@ -185,7 +191,7 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 			SetNpcTemplateID(tmpl.ID).
 			SetCurrentRoomId(req.RoomID).
 			SetStartingRoomId(req.RoomID).
-			SetRace(tmpl.Race).
+			SetRace(raceObj.Name).
 			SetHitpoints(100).
 			SetMaxHitpoints(100).
 			SetStamina(50).

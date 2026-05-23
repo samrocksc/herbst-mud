@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/race"
 	"herbst-server/db/tag"
@@ -123,17 +124,21 @@ func (_u *RaceUpdate) AppendEquipmentSlots(v []string) *RaceUpdate {
 	return _u
 }
 
-// SetIsPlayable sets the "is_playable" field.
-func (_u *RaceUpdate) SetIsPlayable(v bool) *RaceUpdate {
-	_u.mutation.SetIsPlayable(v)
+// SetRequirementTags sets the "requirement_tags" field.
+func (_u *RaceUpdate) SetRequirementTags(v []string) *RaceUpdate {
+	_u.mutation.SetRequirementTags(v)
 	return _u
 }
 
-// SetNillableIsPlayable sets the "is_playable" field if the given value is not nil.
-func (_u *RaceUpdate) SetNillableIsPlayable(v *bool) *RaceUpdate {
-	if v != nil {
-		_u.SetIsPlayable(*v)
-	}
+// AppendRequirementTags appends value to the "requirement_tags" field.
+func (_u *RaceUpdate) AppendRequirementTags(v []string) *RaceUpdate {
+	_u.mutation.AppendRequirementTags(v)
+	return _u
+}
+
+// ClearRequirementTags clears the value of the "requirement_tags" field.
+func (_u *RaceUpdate) ClearRequirementTags() *RaceUpdate {
+	_u.mutation.ClearRequirementTags()
 	return _u
 }
 
@@ -172,6 +177,21 @@ func (_u *RaceUpdate) AddTags(v ...*Tag) *RaceUpdate {
 	return _u.AddTagIDs(ids...)
 }
 
+// AddNpcTemplateIDs adds the "npc_templates" edge to the NPCTemplate entity by IDs.
+func (_u *RaceUpdate) AddNpcTemplateIDs(ids ...string) *RaceUpdate {
+	_u.mutation.AddNpcTemplateIDs(ids...)
+	return _u
+}
+
+// AddNpcTemplates adds the "npc_templates" edges to the NPCTemplate entity.
+func (_u *RaceUpdate) AddNpcTemplates(v ...*NPCTemplate) *RaceUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNpcTemplateIDs(ids...)
+}
+
 // Mutation returns the RaceMutation object of the builder.
 func (_u *RaceUpdate) Mutation() *RaceMutation {
 	return _u.mutation
@@ -196,6 +216,27 @@ func (_u *RaceUpdate) RemoveTags(v ...*Tag) *RaceUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveTagIDs(ids...)
+}
+
+// ClearNpcTemplates clears all "npc_templates" edges to the NPCTemplate entity.
+func (_u *RaceUpdate) ClearNpcTemplates() *RaceUpdate {
+	_u.mutation.ClearNpcTemplates()
+	return _u
+}
+
+// RemoveNpcTemplateIDs removes the "npc_templates" edge to NPCTemplate entities by IDs.
+func (_u *RaceUpdate) RemoveNpcTemplateIDs(ids ...string) *RaceUpdate {
+	_u.mutation.RemoveNpcTemplateIDs(ids...)
+	return _u
+}
+
+// RemoveNpcTemplates removes "npc_templates" edges to NPCTemplate entities.
+func (_u *RaceUpdate) RemoveNpcTemplates(v ...*NPCTemplate) *RaceUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNpcTemplateIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -263,8 +304,16 @@ func (_u *RaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			sqljson.Append(u, race.FieldEquipmentSlots, value)
 		})
 	}
-	if value, ok := _u.mutation.IsPlayable(); ok {
-		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)
+	if value, ok := _u.mutation.RequirementTags(); ok {
+		_spec.SetField(race.FieldRequirementTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedRequirementTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, race.FieldRequirementTags, value)
+		})
+	}
+	if _u.mutation.RequirementTagsCleared() {
+		_spec.ClearField(race.FieldRequirementTags, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.Color(); ok {
 		_spec.SetField(race.FieldColor, field.TypeString, value)
@@ -310,6 +359,51 @@ func (_u *RaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NpcTemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   race.NpcTemplatesTable,
+			Columns: []string{race.NpcTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNpcTemplatesIDs(); len(nodes) > 0 && !_u.mutation.NpcTemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   race.NpcTemplatesTable,
+			Columns: []string{race.NpcTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NpcTemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   race.NpcTemplatesTable,
+			Columns: []string{race.NpcTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -431,17 +525,21 @@ func (_u *RaceUpdateOne) AppendEquipmentSlots(v []string) *RaceUpdateOne {
 	return _u
 }
 
-// SetIsPlayable sets the "is_playable" field.
-func (_u *RaceUpdateOne) SetIsPlayable(v bool) *RaceUpdateOne {
-	_u.mutation.SetIsPlayable(v)
+// SetRequirementTags sets the "requirement_tags" field.
+func (_u *RaceUpdateOne) SetRequirementTags(v []string) *RaceUpdateOne {
+	_u.mutation.SetRequirementTags(v)
 	return _u
 }
 
-// SetNillableIsPlayable sets the "is_playable" field if the given value is not nil.
-func (_u *RaceUpdateOne) SetNillableIsPlayable(v *bool) *RaceUpdateOne {
-	if v != nil {
-		_u.SetIsPlayable(*v)
-	}
+// AppendRequirementTags appends value to the "requirement_tags" field.
+func (_u *RaceUpdateOne) AppendRequirementTags(v []string) *RaceUpdateOne {
+	_u.mutation.AppendRequirementTags(v)
+	return _u
+}
+
+// ClearRequirementTags clears the value of the "requirement_tags" field.
+func (_u *RaceUpdateOne) ClearRequirementTags() *RaceUpdateOne {
+	_u.mutation.ClearRequirementTags()
 	return _u
 }
 
@@ -480,6 +578,21 @@ func (_u *RaceUpdateOne) AddTags(v ...*Tag) *RaceUpdateOne {
 	return _u.AddTagIDs(ids...)
 }
 
+// AddNpcTemplateIDs adds the "npc_templates" edge to the NPCTemplate entity by IDs.
+func (_u *RaceUpdateOne) AddNpcTemplateIDs(ids ...string) *RaceUpdateOne {
+	_u.mutation.AddNpcTemplateIDs(ids...)
+	return _u
+}
+
+// AddNpcTemplates adds the "npc_templates" edges to the NPCTemplate entity.
+func (_u *RaceUpdateOne) AddNpcTemplates(v ...*NPCTemplate) *RaceUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNpcTemplateIDs(ids...)
+}
+
 // Mutation returns the RaceMutation object of the builder.
 func (_u *RaceUpdateOne) Mutation() *RaceMutation {
 	return _u.mutation
@@ -504,6 +617,27 @@ func (_u *RaceUpdateOne) RemoveTags(v ...*Tag) *RaceUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveTagIDs(ids...)
+}
+
+// ClearNpcTemplates clears all "npc_templates" edges to the NPCTemplate entity.
+func (_u *RaceUpdateOne) ClearNpcTemplates() *RaceUpdateOne {
+	_u.mutation.ClearNpcTemplates()
+	return _u
+}
+
+// RemoveNpcTemplateIDs removes the "npc_templates" edge to NPCTemplate entities by IDs.
+func (_u *RaceUpdateOne) RemoveNpcTemplateIDs(ids ...string) *RaceUpdateOne {
+	_u.mutation.RemoveNpcTemplateIDs(ids...)
+	return _u
+}
+
+// RemoveNpcTemplates removes "npc_templates" edges to NPCTemplate entities.
+func (_u *RaceUpdateOne) RemoveNpcTemplates(v ...*NPCTemplate) *RaceUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNpcTemplateIDs(ids...)
 }
 
 // Where appends a list predicates to the RaceUpdate builder.
@@ -601,8 +735,16 @@ func (_u *RaceUpdateOne) sqlSave(ctx context.Context) (_node *Race, err error) {
 			sqljson.Append(u, race.FieldEquipmentSlots, value)
 		})
 	}
-	if value, ok := _u.mutation.IsPlayable(); ok {
-		_spec.SetField(race.FieldIsPlayable, field.TypeBool, value)
+	if value, ok := _u.mutation.RequirementTags(); ok {
+		_spec.SetField(race.FieldRequirementTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedRequirementTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, race.FieldRequirementTags, value)
+		})
+	}
+	if _u.mutation.RequirementTagsCleared() {
+		_spec.ClearField(race.FieldRequirementTags, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.Color(); ok {
 		_spec.SetField(race.FieldColor, field.TypeString, value)
@@ -648,6 +790,51 @@ func (_u *RaceUpdateOne) sqlSave(ctx context.Context) (_node *Race, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NpcTemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   race.NpcTemplatesTable,
+			Columns: []string{race.NpcTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNpcTemplatesIDs(); len(nodes) > 0 && !_u.mutation.NpcTemplatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   race.NpcTemplatesTable,
+			Columns: []string{race.NpcTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NpcTemplatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   race.NpcTemplatesTable,
+			Columns: []string{race.NpcTemplatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

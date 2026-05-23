@@ -9,6 +9,7 @@ import (
 	"herbst-server/db"
 	"herbst-server/backup/types"
 	"herbst-server/db/npctemplate"
+	"herbst-server/db/race"
 )
 
 // NPCTemplates imports NPC templates from backup
@@ -40,9 +41,15 @@ func NPCTemplates(ctx context.Context, client *db.Client, backupDir string, mapp
 			continue
 		}
 
+		raceObj, err := client.Race.Query().Where(race.NameEQ(t.Race)).Only(ctx)
+		if err != nil {
+			// If race not found, skip this template
+			continue
+		}
+
 		_, err = client.NPCTemplate.Create().
 			SetID(t.ID).SetName(t.Name).SetDescription(t.Description).
-			SetRace(t.Race).SetDisposition(npctemplate.Disposition(t.Disposition)).
+			SetRaceID(raceObj.ID).SetDisposition(npctemplate.Disposition(t.Disposition)).
 			SetLevel(t.Level).SetSkills(t.Skills).SetTradesWith(t.TradesWith).
 			SetGreeting(t.Greeting).Save(ctx)
 		if err != nil {

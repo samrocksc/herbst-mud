@@ -518,7 +518,7 @@ type CreateNPCTemplateInput struct {
 	Slug             string
 	Name             string
 	Description      string
-	Race             string
+	RaceID           int
 	Disposition      string
 	Level            int
 	XPValue          int
@@ -534,7 +534,7 @@ type NPCTemplateUpdates struct {
 	Name             *string
 	Slug             *string
 	Description      *string
-	Race             *string
+	RaceID           *int
 	Disposition      *string
 	Level            *int
 	XPValue          *int
@@ -735,7 +735,7 @@ type CreateRaceInput struct {
 	DisplayName    string
 	Description    string
 	StatModifiers  *string
-	IsPlayable     bool
+	RequirementTags []string
 	Color          string
 	EquipmentSlots []string
 	TagIDs         []int
@@ -746,7 +746,7 @@ type RaceUpdates struct {
 	DisplayName    *string
 	Description    *string
 	StatModifiers  *string
-	IsPlayable     *bool
+	RequirementTags []string
 	Color          *string
 	EquipmentSlots []string
 	ClearTags      bool

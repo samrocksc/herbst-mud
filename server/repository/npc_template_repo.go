@@ -68,7 +68,7 @@ func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplate
 		SetSlug(slug).
 		SetName(input.Name).
 		SetDescription(input.Description).
-		SetRace(input.Race).
+		SetRaceID(input.RaceID).
 		SetSkills(input.Skills).
 		SetTradesWith(input.TradesWith).
 		SetGreeting(input.Greeting).
@@ -94,8 +94,8 @@ func (r *entNPCTemplateRepo) Update(ctx context.Context, id string, updates NPCT
 	if updates.Description != nil {
 		builder = builder.SetDescription(*updates.Description)
 	}
-	if updates.Race != nil {
-		builder = builder.SetRace(*updates.Race)
+	if updates.RaceID != nil {
+		builder = builder.SetRaceID(*updates.RaceID)
 	}
 	if updates.Disposition != nil {
 		builder = builder.SetDisposition(npctemplate.Disposition(*updates.Disposition))

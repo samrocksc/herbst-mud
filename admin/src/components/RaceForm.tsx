@@ -4,7 +4,7 @@ import type { Race, RaceInput } from "../hooks/useRaces";
 import { TagInput } from "./TagInput";
 import { Button } from "./Button";
 import { SLOT_CATALOG, DEFAULT_HUMANOID_SLOTS } from "./equipConstants";
-import { FormField, TextareaField, CheckboxField, ColorField, FormError } from "./fields";
+import { FormField, TextareaField, ColorField, FormError } from "./fields";
 
 type RaceFormProps = Readonly<{
   race: Race | null
@@ -21,7 +21,7 @@ const EMPTY_FORM: RaceInput = {
   description: "",
   stat_modifiers: "",
   equipment_slots: [...DEFAULT_HUMANOID_SLOTS] as unknown as ReadonlyArray<string>,
-  is_playable: true,
+  requirement_tags: [],
   color: "",
   tags: [],
 } as const;
@@ -33,7 +33,7 @@ function raceToForm(r: Race): RaceInput {
     description: r.description ?? "",
     stat_modifiers: r.stat_modifiers ? JSON.stringify(r.stat_modifiers, null, 2) : "",
     equipment_slots: r.equipment_slots ? [...r.equipment_slots] as unknown as ReadonlyArray<string> : [...DEFAULT_HUMANOID_SLOTS] as unknown as ReadonlyArray<string>,
-    is_playable: r.is_playable,
+    requirement_tags: r.requirement_tags ? [...r.requirement_tags] as unknown as ReadonlyArray<string> : [],
     color: r.color ?? "",
     tags: r.tags ? [...r.tags] as unknown as ReadonlyArray<string> : [],
   } as const;
@@ -66,9 +66,10 @@ export function RaceForm({ race, onSubmit, onCancel, isLoading, error, available
         <TextareaField label="Stat Modifiers (JSON)" value={form.stat_modifiers} onChange={(v) => set("stat_modifiers", v)} rows={4} placeholder='e.g. {"str": 2, "dex": -1}' />
         <TagInput label="Equipment Slots" value={form.equipment_slots} onChange={(slots) => set("equipment_slots", slots)}
           availableTags={[...SLOT_CATALOG]} placeholder="Add slot..." tooltip="Slots this race can equip items into" />
+        <TagInput label="Requirement Tags" value={form.requirement_tags} onChange={(tags) => set("requirement_tags", tags)}
+          availableTags={[]} placeholder="Add requirement..." tooltip="Tags that must be satisfied for race to be selectable (empty = playable)" />
         <TagInput label="Race Tags" value={form.tags} onChange={(tags) => set("tags", tags)}
           availableTags={availableTags} placeholder="Add tag..." tooltip="Tags automatically granted to characters of this race" />
-        <CheckboxField label="Playable" checked={form.is_playable} onChange={(v) => set("is_playable", v)} />
         <ColorField label="Color" value={form.color} onChange={(v) => set("color", v)} placeholder="e.g. #8b5cf6" />
         <div className="flex gap-2 pt-1">
           <Button type="submit" variant="primary" disabled={isLoading || !form.name.trim()} fullWidth>

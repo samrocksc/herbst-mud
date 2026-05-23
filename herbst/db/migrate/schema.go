@@ -336,18 +336,26 @@ var (
 		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
-		{Name: "race", Type: field.TypeString},
 		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral"}, Default: "neutral"},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "skills", Type: field.TypeJSON},
 		{Name: "trades_with", Type: field.TypeJSON},
 		{Name: "greeting", Type: field.TypeString, Size: 2147483647},
+		{Name: "race_id", Type: field.TypeInt, Nullable: true},
 	}
 	// NpcTemplatesTable holds the schema information for the "npc_templates" table.
 	NpcTemplatesTable = &schema.Table{
 		Name:       "npc_templates",
 		Columns:    NpcTemplatesColumns,
 		PrimaryKey: []*schema.Column{NpcTemplatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "npc_templates_races_npc_templates",
+				Columns:    []*schema.Column{NpcTemplatesColumns[9]},
+				RefColumns: []*schema.Column{RacesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// QuestsColumns holds the columns for the "quests" table.
 	QuestsColumns = []*schema.Column{
@@ -408,7 +416,7 @@ var (
 		{Name: "stat_modifiers", Type: field.TypeString, Nullable: true},
 		{Name: "skill_grants", Type: field.TypeString, Nullable: true},
 		{Name: "equipment_slots", Type: field.TypeJSON},
-		{Name: "is_playable", Type: field.TypeBool, Default: true},
+		{Name: "requirement_tags", Type: field.TypeJSON},
 		{Name: "color", Type: field.TypeString, Nullable: true},
 	}
 	// RacesTable holds the schema information for the "races" table.
@@ -481,6 +489,7 @@ func init() {
 	EffectHooksTable.ForeignKeys[1].RefTable = NpcTemplatesTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTemplatesTable
 	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
+	NpcTemplatesTable.ForeignKeys[0].RefTable = RacesTable
 	QuestProgressesTable.ForeignKeys[0].RefTable = CharactersTable
 	QuestProgressesTable.ForeignKeys[1].RefTable = QuestsTable
 }

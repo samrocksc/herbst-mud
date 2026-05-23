@@ -1,7 +1,7 @@
 /* eslint-disable functional/prefer-immutable-types, functional/immutable-data, functional/no-loop-statements, react-hooks/set-state-in-effect */
 import { createFileRoute, useNavigate, Link, Outlet } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { apiGet, apiPost, apiPut, apiDelete } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
@@ -28,7 +28,7 @@ type NPCTemplate = Readonly<{
   id: string
   name: string
   description: string
-  race: string
+  race_id: number
   disposition: string
   level: number
   xp_value: number
@@ -66,7 +66,7 @@ type SpawnForm = Readonly<{
 type EditForm = Readonly<{
   name: string
   description: string
-  race: string
+  race_id: number
   disposition: string
   level: number
   xp_value: number
@@ -129,7 +129,7 @@ function templateToEditForm(t: NPCTemplate): EditForm {
   return {
     name: t.name,
     description: t.description,
-    race: t.race,
+    race_id: t.race_id,
     disposition: t.disposition,
     level: t.level,
     xp_value: t.xp_value,
@@ -158,7 +158,7 @@ function editFormToPayload(form: EditForm) {
   return {
     name: form.name,
     description: form.description,
-    race: form.race,
+    race_id: form.race_id,
     disposition: form.disposition,
     level: form.level,
     xp_value: form.xp_value,
@@ -187,7 +187,19 @@ export function NpcTemplateDetail() {
     instance_name: "",
   });
 
-   
+  // Fetch races for name resolution and dropdown
+  const racesQuery = useQuery({
+    queryKey: ["races"],
+    queryFn: () => apiGet<Array<{ id: number; name: string; display_name: string }>>(`${API}/api/races`),
+  });
+  const racesById = useMemo(() => {
+    const map: Record<number, string> = {};
+    for (const r of racesQuery.data ?? []) {
+      map[r.id] = r.display_name || r.name;
+    }
+    return map;
+  }, [racesQuery.data]);
+
   const deleteMutation = useMutation({
     mutationFn: () => apiDelete(`${API}/api/npc-templates/${npcId}`),
     onSuccess: () => {
@@ -229,6 +241,8 @@ export function NpcTemplateDetail() {
     queryKey: ["npc-templates", npcId],
     queryFn: () => apiGet<NPCTemplate>(`${API}/api/npc-templates/${npcId}`),
   });
+
+  const raceDisplayName = templateQuery.data?.race_id ? (racesById[templateQuery.data.race_id] ?? `Race #${templateQuery.data.race_id}`) : "—";
 
    
   const instancesQuery = useQuery<NPCInstance[]>({
@@ -352,6 +366,7 @@ export function NpcTemplateDetail() {
               form={form}
               onChange={setForm}
               saveError={updateMutation.isError ? (updateMutation.error as Error)?.message : null}
+              races={(racesQuery.data ?? []) as Array<{ id: number; name: string; display_name: string }>}
             />
           ) : (
             <>
@@ -359,7 +374,7 @@ export function NpcTemplateDetail() {
               <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                 <DetailField label="ID" value={template.id} />
                 <DetailField label="Name" value={template.name} />
-                <DetailField label="Race" value={template.race} />
+                <DetailField label="Race" value={raceDisplayName} />
                 <DetailField label="Disposition" value={template.disposition} />
                 <DetailField label="Level" value={String(template.level)} />
                 <DetailField label="XP Value" value={String(template.xp_value)} />
@@ -510,10 +525,11 @@ function DetailField({ label, value }: Readonly<{ label: string; value: string }
   );
 }
 
-function TemplateEditForm({ form, onChange, saveError }: Readonly<{
+function TemplateEditForm({ form, onChange, saveError, races }: Readonly<{
   form: EditForm;
   onChange: (val: EditForm) => void;
   saveError: string | null;
+  races: Array<{ id: number; name: string; display_name: string }>;
 }>) {
   return (
     <div className="space-y-4">
@@ -521,58 +537,66 @@ function TemplateEditForm({ form, onChange, saveError }: Readonly<{
         <FormField
           label="Name"
           value={form.name}
-          onChange={(val) => onChange({ ...form, name: val })}
+          onChange={(val: string) => onChange({ ...form, name: val })}
         />
-        <FormField
-          label="Race"
-          value={form.race}
-          onChange={(val) => onChange({ ...form, race: val })}
-        />
+        <div>
+          <label className="text-text-muted text-xs block mb-1">Race</label>
+          <select
+            value={form.race_id}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange({ ...form, race_id: parseInt(e.target.value) || 0 })}
+            className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+          >
+            <option value="">Select race…</option>
+            {races.map((r) => (
+              <option key={r.id} value={r.id}>{r.display_name || r.name}</option>
+            ))}
+          </select>
+        </div>
         <FormField
           label="Disposition"
           value={form.disposition}
-          onChange={(val) => onChange({ ...form, disposition: val })}
+          onChange={(val: string) => onChange({ ...form, disposition: val })}
         />
         <NumberField
           label="Level"
           value={form.level}
-          onChange={(val) => onChange({ ...form, level: val })}
+          onChange={(val: number) => onChange({ ...form, level: val })}
         />
         <NumberField
           label="XP Value"
           value={form.xp_value}
-          onChange={(val) => onChange({ ...form, xp_value: val })}
+          onChange={(val: number) => onChange({ ...form, xp_value: val })}
         />
         <NumberField
           label="Respawn Cooldown (s)"
           value={form.respawn_cooldown}
-          onChange={(val) => onChange({ ...form, respawn_cooldown: val })}
+          onChange={(val: number) => onChange({ ...form, respawn_cooldown: val })}
         />
         <TextareaField
           label="Greeting"
           value={form.greeting}
-          onChange={(val) => onChange({ ...form, greeting: val })}
+          onChange={(val: string) => onChange({ ...form, greeting: val })}
         />
         <TextareaField
           label="Trades With (one per line)"
           value={form.trades_with}
-          onChange={(val) => onChange({ ...form, trades_with: val })}
+          onChange={(val: string) => onChange({ ...form, trades_with: val })}
         />
         <TextareaField
           label="Respawn Rooms (one per line)"
           value={form.respawn_rooms}
-          onChange={(val) => onChange({ ...form, respawn_rooms: val })}
+          onChange={(val: string) => onChange({ ...form, respawn_rooms: val })}
         />
         <TextareaField
           label="Skills (skill:value, one per line)"
           value={form.skills}
-          onChange={(val) => onChange({ ...form, skills: val })}
+          onChange={(val: string) => onChange({ ...form, skills: val })}
         />
       </div>
       <TextareaField
         label="Description"
         value={form.description}
-        onChange={(val) => onChange({ ...form, description: val })}
+        onChange={(val: string) => onChange({ ...form, description: val })}
       />
       {saveError && <FormError message={saveError} />}
     </div>

@@ -29,11 +29,32 @@ type Race struct {
 	SkillGrants string `json:"skill_grants,omitempty"`
 	// Slots this race can equip: ["head","chest",...]
 	EquipmentSlots []string `json:"equipment_slots,omitempty"`
-	// false = NPC-only race
-	IsPlayable bool `json:"is_playable,omitempty"`
+	// Tags that must be satisfied for race to be selectable
+	RequirementTags []string `json:"requirement_tags,omitempty"`
 	// Hex color for UI display, e.g. '#8b5cf6'
-	Color        string `json:"color,omitempty"`
+	Color string `json:"color,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the RaceQuery when eager-loading is set.
+	Edges        RaceEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// RaceEdges holds the relations/edges for other nodes in the graph.
+type RaceEdges struct {
+	// NpcTemplates holds the value of the npc_templates edge.
+	NpcTemplates []*NPCTemplate `json:"npc_templates,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// NpcTemplatesOrErr returns the NpcTemplates value or an error if the edge
+// was not loaded in eager-loading.
+func (e RaceEdges) NpcTemplatesOrErr() ([]*NPCTemplate, error) {
+	if e.loadedTypes[0] {
+		return e.NpcTemplates, nil
+	}
+	return nil, &NotLoadedError{edge: "npc_templates"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -41,10 +62,8 @@ func (*Race) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case race.FieldEquipmentSlots:
+		case race.FieldEquipmentSlots, race.FieldRequirementTags:
 			values[i] = new([]byte)
-		case race.FieldIsPlayable:
-			values[i] = new(sql.NullBool)
 		case race.FieldID:
 			values[i] = new(sql.NullInt64)
 		case race.FieldName, race.FieldDisplayName, race.FieldDescription, race.FieldStatModifiers, race.FieldSkillGrants, race.FieldColor:
@@ -108,11 +127,13 @@ func (_m *Race) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field equipment_slots: %w", err)
 				}
 			}
-		case race.FieldIsPlayable:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_playable", values[i])
-			} else if value.Valid {
-				_m.IsPlayable = value.Bool
+		case race.FieldRequirementTags:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field requirement_tags", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.RequirementTags); err != nil {
+					return fmt.Errorf("unmarshal field requirement_tags: %w", err)
+				}
 			}
 		case race.FieldColor:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -131,6 +152,11 @@ func (_m *Race) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Race) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryNpcTemplates queries the "npc_templates" edge of the Race entity.
+func (_m *Race) QueryNpcTemplates() *NPCTemplateQuery {
+	return NewRaceClient(_m.config).QueryNpcTemplates(_m)
 }
 
 // Update returns a builder for updating this Race.
@@ -174,8 +200,8 @@ func (_m *Race) String() string {
 	builder.WriteString("equipment_slots=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EquipmentSlots))
 	builder.WriteString(", ")
-	builder.WriteString("is_playable=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsPlayable))
+	builder.WriteString("requirement_tags=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RequirementTags))
 	builder.WriteString(", ")
 	builder.WriteString("color=")
 	builder.WriteString(_m.Color)

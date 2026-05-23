@@ -25,7 +25,6 @@ func InitRaces(client *db.Client) error {
 		statModifiers  map[string]int
 		skillGrants    []string
 		equipmentSlots []string
-		isPlayable     bool
 	}{
 		{
 			name:        "human",
@@ -40,7 +39,6 @@ func InitRaces(client *db.Client) error {
 			},
 			skillGrants:    []string{},
 			equipmentSlots: []string{"head", "neck", "chest", "back", "hands", "legs", "feet", "finger_left", "finger_right", "main_hand", "off_hand"},
-			isPlayable:     true,
 		},
 		{
 			name:        "turtle",
@@ -55,7 +53,6 @@ func InitRaces(client *db.Client) error {
 			},
 			skillGrants:    []string{"shell_defense"},
 			equipmentSlots: []string{"head", "neck", "chest", "back", "hands", "legs", "feet", "finger_left", "finger_right", "main_hand", "off_hand"},
-			isPlayable:     true,
 		},
 		{
 			name:        "mutant",
@@ -70,7 +67,6 @@ func InitRaces(client *db.Client) error {
 			},
 			skillGrants:    []string{"mutant_armor"},
 			equipmentSlots: []string{"head", "neck", "chest", "back", "hands", "legs", "feet", "finger_left", "finger_right", "main_hand", "off_hand", "tail"},
-			isPlayable:     true,
 		},
 	}
 
@@ -84,7 +80,6 @@ func InitRaces(client *db.Client) error {
 			SetStatModifiers(string(statJSON)).
 			SetSkillGrants(string(skillJSON)).
 			SetEquipmentSlots(r.equipmentSlots).
-			SetIsPlayable(r.isPlayable).
 			Save(ctx)
 		if err != nil {
 			log.Printf("Warning: failed to seed race %s: %v", r.name, err)
@@ -133,9 +128,19 @@ func InitGenders(client *db.Client) error {
 	return nil
 }
 
-// GetPlayableRaces returns all races where is_playable = true.
+// GetPlayableRaces returns all races where requirement_tags is empty.
 func GetPlayableRaces(ctx context.Context, client *db.Client) ([]*db.Race, error) {
-	return client.Race.Query().Where(race.IsPlayable(true)).All(ctx)
+	all, err := client.Race.Query().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*db.Race, 0, len(all))
+	for _, r := range all {
+		if len(r.RequirementTags) == 0 {
+			result = append(result, r)
+		}
+	}
+	return result, nil
 }
 
 // GetAllGenders returns all genders.

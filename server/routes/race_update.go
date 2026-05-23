@@ -19,15 +19,15 @@ func updateRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 		}
 
 		var req struct {
-			Name           *string  `json:"name"`
-			DisplayName    *string  `json:"display_name"`
-			Description    *string  `json:"description"`
-			StatModifiers  *string  `json:"stat_modifiers"`
-			SkillGrants    []string `json:"skill_grants"`
-			EquipmentSlots []string `json:"equipment_slots"`
-			IsPlayable     *bool    `json:"is_playable"`
-			Color          *string  `json:"color"`
-			Tags           []string `json:"tags"`
+			Name            *string  `json:"name"`
+			DisplayName     *string  `json:"display_name"`
+			Description     *string  `json:"description"`
+			StatModifiers   *string  `json:"stat_modifiers"`
+			SkillGrants     []string `json:"skill_grants"`
+			EquipmentSlots  []string `json:"equipment_slots"`
+			RequirementTags []string `json:"requirement_tags"`
+			Color           *string  `json:"color"`
+			Tags            []string `json:"tags"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
@@ -48,13 +48,13 @@ func updateRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 		}
 
 		updates := repository.RaceUpdates{
-			Name:           req.Name,
-			DisplayName:    req.DisplayName,
-			Description:    req.Description,
-			StatModifiers:  req.StatModifiers,
-			IsPlayable:     req.IsPlayable,
-			Color:          req.Color,
-			EquipmentSlots: req.EquipmentSlots,
+			Name:            req.Name,
+			DisplayName:     req.DisplayName,
+			Description:     req.Description,
+			StatModifiers:   req.StatModifiers,
+			RequirementTags: req.RequirementTags,
+			Color:           req.Color,
+			EquipmentSlots:  req.EquipmentSlots,
 		}
 
 		if req.Tags != nil {

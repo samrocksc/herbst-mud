@@ -79,9 +79,9 @@ func Description(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldDescription, v))
 }
 
-// Race applies equality check predicate on the "race" field. It's identical to RaceEQ.
-func Race(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldEQ(FieldRace, v))
+// RaceID applies equality check predicate on the "race_id" field. It's identical to RaceIDEQ.
+func RaceID(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRaceID, v))
 }
 
 // Level applies equality check predicate on the "level" field. It's identical to LevelEQ.
@@ -299,69 +299,34 @@ func DescriptionContainsFold(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// RaceEQ applies the EQ predicate on the "race" field.
-func RaceEQ(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldEQ(FieldRace, v))
+// RaceIDEQ applies the EQ predicate on the "race_id" field.
+func RaceIDEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRaceID, v))
 }
 
-// RaceNEQ applies the NEQ predicate on the "race" field.
-func RaceNEQ(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldNEQ(FieldRace, v))
+// RaceIDNEQ applies the NEQ predicate on the "race_id" field.
+func RaceIDNEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldRaceID, v))
 }
 
-// RaceIn applies the In predicate on the "race" field.
-func RaceIn(vs ...string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldIn(FieldRace, vs...))
+// RaceIDIn applies the In predicate on the "race_id" field.
+func RaceIDIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldRaceID, vs...))
 }
 
-// RaceNotIn applies the NotIn predicate on the "race" field.
-func RaceNotIn(vs ...string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldNotIn(FieldRace, vs...))
+// RaceIDNotIn applies the NotIn predicate on the "race_id" field.
+func RaceIDNotIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldRaceID, vs...))
 }
 
-// RaceGT applies the GT predicate on the "race" field.
-func RaceGT(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldGT(FieldRace, v))
+// RaceIDIsNil applies the IsNil predicate on the "race_id" field.
+func RaceIDIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldRaceID))
 }
 
-// RaceGTE applies the GTE predicate on the "race" field.
-func RaceGTE(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldGTE(FieldRace, v))
-}
-
-// RaceLT applies the LT predicate on the "race" field.
-func RaceLT(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldLT(FieldRace, v))
-}
-
-// RaceLTE applies the LTE predicate on the "race" field.
-func RaceLTE(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldLTE(FieldRace, v))
-}
-
-// RaceContains applies the Contains predicate on the "race" field.
-func RaceContains(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldContains(FieldRace, v))
-}
-
-// RaceHasPrefix applies the HasPrefix predicate on the "race" field.
-func RaceHasPrefix(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldHasPrefix(FieldRace, v))
-}
-
-// RaceHasSuffix applies the HasSuffix predicate on the "race" field.
-func RaceHasSuffix(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldHasSuffix(FieldRace, v))
-}
-
-// RaceEqualFold applies the EqualFold predicate on the "race" field.
-func RaceEqualFold(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldEqualFold(FieldRace, v))
-}
-
-// RaceContainsFold applies the ContainsFold predicate on the "race" field.
-func RaceContainsFold(v string) predicate.NPCTemplate {
-	return predicate.NPCTemplate(sql.FieldContainsFold(FieldRace, v))
+// RaceIDNotNil applies the NotNil predicate on the "race_id" field.
+func RaceIDNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldRaceID))
 }
 
 // DispositionEQ applies the EQ predicate on the "disposition" field.
@@ -527,6 +492,29 @@ func HasDialogNodes() predicate.NPCTemplate {
 func HasDialogNodesWith(preds ...predicate.DialogNode) predicate.NPCTemplate {
 	return predicate.NPCTemplate(func(s *sql.Selector) {
 		step := newDialogNodesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRace applies the HasEdge predicate on the "race" edge.
+func HasRace() predicate.NPCTemplate {
+	return predicate.NPCTemplate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RaceTable, RaceColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRaceWith applies the HasEdge predicate on the "race" edge with a given conditions (other predicates).
+func HasRaceWith(preds ...predicate.Race) predicate.NPCTemplate {
+	return predicate.NPCTemplate(func(s *sql.Selector) {
+		step := newRaceStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

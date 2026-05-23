@@ -4,6 +4,7 @@ package race
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -23,12 +24,21 @@ const (
 	FieldSkillGrants = "skill_grants"
 	// FieldEquipmentSlots holds the string denoting the equipment_slots field in the database.
 	FieldEquipmentSlots = "equipment_slots"
-	// FieldIsPlayable holds the string denoting the is_playable field in the database.
-	FieldIsPlayable = "is_playable"
+	// FieldRequirementTags holds the string denoting the requirement_tags field in the database.
+	FieldRequirementTags = "requirement_tags"
 	// FieldColor holds the string denoting the color field in the database.
 	FieldColor = "color"
+	// EdgeNpcTemplates holds the string denoting the npc_templates edge name in mutations.
+	EdgeNpcTemplates = "npc_templates"
 	// Table holds the table name of the race in the database.
 	Table = "races"
+	// NpcTemplatesTable is the table that holds the npc_templates relation/edge.
+	NpcTemplatesTable = "npc_templates"
+	// NpcTemplatesInverseTable is the table name for the NPCTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "npctemplate" package.
+	NpcTemplatesInverseTable = "npc_templates"
+	// NpcTemplatesColumn is the table column denoting the npc_templates relation/edge.
+	NpcTemplatesColumn = "race_id"
 )
 
 // Columns holds all SQL columns for race fields.
@@ -40,7 +50,7 @@ var Columns = []string{
 	FieldStatModifiers,
 	FieldSkillGrants,
 	FieldEquipmentSlots,
-	FieldIsPlayable,
+	FieldRequirementTags,
 	FieldColor,
 }
 
@@ -57,8 +67,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultEquipmentSlots holds the default value on creation for the "equipment_slots" field.
 	DefaultEquipmentSlots []string
-	// DefaultIsPlayable holds the default value on creation for the "is_playable" field.
-	DefaultIsPlayable bool
+	// DefaultRequirementTags holds the default value on creation for the "requirement_tags" field.
+	DefaultRequirementTags []string
 )
 
 // OrderOption defines the ordering options for the Race queries.
@@ -94,12 +104,28 @@ func BySkillGrants(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSkillGrants, opts...).ToFunc()
 }
 
-// ByIsPlayable orders the results by the is_playable field.
-func ByIsPlayable(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsPlayable, opts...).ToFunc()
-}
-
 // ByColor orders the results by the color field.
 func ByColor(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldColor, opts...).ToFunc()
+}
+
+// ByNpcTemplatesCount orders the results by npc_templates count.
+func ByNpcTemplatesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNpcTemplatesStep(), opts...)
+	}
+}
+
+// ByNpcTemplates orders the results by npc_templates terms.
+func ByNpcTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNpcTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newNpcTemplatesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NpcTemplatesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NpcTemplatesTable, NpcTemplatesColumn),
+	)
 }

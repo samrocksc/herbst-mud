@@ -5164,6 +5164,22 @@ func (c *NPCTemplateClient) QueryCharacters(_m *NPCTemplate) *CharacterQuery {
 	return query
 }
 
+// QueryRace queries the race edge of a NPCTemplate.
+func (c *NPCTemplateClient) QueryRace(_m *NPCTemplate) *RaceQuery {
+	query := (&RaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npctemplate.Table, npctemplate.FieldID, id),
+			sqlgraph.To(race.Table, race.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, npctemplate.RaceTable, npctemplate.RaceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *NPCTemplateClient) Hooks() []Hook {
 	return c.hooks.NPCTemplate
@@ -5620,6 +5636,22 @@ func (c *RaceClient) QueryTags(_m *Race) *TagQuery {
 			sqlgraph.From(race.Table, race.FieldID, id),
 			sqlgraph.To(tag.Table, tag.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, race.TagsTable, race.TagsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNpcTemplates queries the npc_templates edge of a Race.
+func (c *RaceClient) QueryNpcTemplates(_m *Race) *NPCTemplateQuery {
+	query := (&NPCTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(race.Table, race.FieldID, id),
+			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, race.NpcTemplatesTable, race.NpcTemplatesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

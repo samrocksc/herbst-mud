@@ -12,16 +12,7 @@ export const Route = createFileRoute("/_auth/races")({
   component: RacesManagement,
 });
 
-const COLUMNS: Column<Race>[] = [
-  { header: "Name", accessor: "name", render: (_: unknown, row: Race) => <strong>{row.display_name || row.name}</strong> },
-  { header: "Tags", accessor: "tags", render: (_: unknown, row: Race) => (
-    <span className="flex flex-wrap gap-1">
-      {(row.tags ?? []).map(t => <span key={t} className="badge badge-neutral">{t}</span>)}
-    </span>
-  )},
-  { header: "Slots", accessor: "equipment_slots", render: (_: unknown, row: Race) => <span className="text-xs">{(row.equipment_slots ?? []).join(", ") || "—"}</span> },
-  { header: "Playable", accessor: "is_playable" },
-];
+const isPlayable = (r: Race) => (r.requirement_tags ?? []).length === 0;
 
 function RacesManagement() {
   const { data: races, isLoading, error } = useRaces();
@@ -68,8 +59,56 @@ function RacesManagement() {
     }
   };
 
+  const togglePlayable = async (row: Race) => {
+    const playable = isPlayable(row);
+    const input: RaceInput = {
+      name: row.name,
+      display_name: row.display_name,
+      description: row.description ?? "",
+      stat_modifiers: row.stat_modifiers ? JSON.stringify(row.stat_modifiers) : "",
+      equipment_slots: [...(row.equipment_slots ?? [])] as unknown as ReadonlyArray<string>,
+      requirement_tags: playable ? ["restricted"] as unknown as ReadonlyArray<string> : [] as unknown as ReadonlyArray<string>,
+      color: row.color ?? "",
+      tags: [...(row.tags ?? [])] as unknown as ReadonlyArray<string>,
+    };
+    try {
+      await updateMutation.mutateAsync({ id: row.id, input });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to toggle playable");
+    }
+  };
+
   const columns: Column<Race>[] = [
-    ...COLUMNS,
+    { header: "Name", accessor: "name", render: (_: unknown, row: Race) => <strong>{row.display_name || row.name}</strong> },
+    { header: "Requirement Tags", accessor: "requirement_tags", render: (_: unknown, row: Race) => (
+      <span className="flex flex-wrap gap-1">
+        {(row.requirement_tags ?? []).length === 0 ? (
+          <span className="text-xs text-muted">— (playable) —</span>
+        ) : (
+          (row.requirement_tags ?? []).map(t => <span key={t} className="badge badge-warning">{t}</span>)
+        )}
+      </span>
+    )},
+    { header: "Tags", accessor: "tags", render: (_: unknown, row: Race) => (
+      <span className="flex flex-wrap gap-1">
+        {(row.tags ?? []).map(t => <span key={t} className="badge badge-neutral">{t}</span>)}
+      </span>
+    )},
+    { header: "Slots", accessor: "equipment_slots", render: (_: unknown, row: Race) => <span className="text-xs">{(row.equipment_slots ?? []).join(", ") || "—"}</span> },
+    {
+      header: "Playable",
+      accessor: "_playable",
+      align: "center",
+      render: (_: unknown, row: Race) => (
+        <Button
+          variant={isPlayable(row) ? "primary" : "secondary"}
+          size="sm"
+          onClick={() => togglePlayable(row)}
+        >
+          {isPlayable(row) ? "✅ Playable" : "🚫 Restricted"}
+        </Button>
+      ),
+    },
     { header: "Actions", accessor: "_actions", render: (_: unknown, row: Race) => (
       <span className="inline-flex gap-2">
         <Button variant="accent" size="sm" onClick={() => { setEditingRace(row); setShowForm(false); }}>Edit</Button>
@@ -118,16 +157,10 @@ function ApplyTagsConfirmation({ race, onConfirm, onCancel, isLoading }: Readonl
       <div className="modal-content modal-sm" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header"><h3>Apply Race Tags</h3><Button variant="ghost" size="sm" onClick={onCancel} aria-label="Close">×</Button></div>
         <div className="modal-body">
-          <p>Apply tags for <strong>{race.display_name || race.name}</strong> to all characters of this race?</p>
-          {(race.tags ?? []).length > 0 && (
-            <p className="text-muted mt-2">Tags: {(race.tags ?? []).join(", ")}</p>
-          )}
-          {(race.tags ?? []).length === 0 && (
-            <p className="text-muted mt-2">This race has no tags configured yet. Edit the race first to add tags.</p>
-          )}
+          <p>Apply race tags for <strong>{race.display_name || race.name}</strong> to all characters of this race?</p>
         </div>
         <div className="modal-footer">
-          <Button variant="primary" onClick={onConfirm} disabled={isLoading || (race.tags ?? []).length === 0}>{isLoading ? "Applying..." : "Apply Tags"}</Button>
+          <Button variant="primary" onClick={onConfirm} disabled={isLoading}>{isLoading ? "Applying..." : "Apply Tags"}</Button>
           <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import (
 	"herbst/db/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -76,11 +77,6 @@ func StatModifiers(v string) predicate.Race {
 // SkillGrants applies equality check predicate on the "skill_grants" field. It's identical to SkillGrantsEQ.
 func SkillGrants(v string) predicate.Race {
 	return predicate.Race(sql.FieldEQ(FieldSkillGrants, v))
-}
-
-// IsPlayable applies equality check predicate on the "is_playable" field. It's identical to IsPlayableEQ.
-func IsPlayable(v bool) predicate.Race {
-	return predicate.Race(sql.FieldEQ(FieldIsPlayable, v))
 }
 
 // Color applies equality check predicate on the "color" field. It's identical to ColorEQ.
@@ -433,16 +429,6 @@ func SkillGrantsContainsFold(v string) predicate.Race {
 	return predicate.Race(sql.FieldContainsFold(FieldSkillGrants, v))
 }
 
-// IsPlayableEQ applies the EQ predicate on the "is_playable" field.
-func IsPlayableEQ(v bool) predicate.Race {
-	return predicate.Race(sql.FieldEQ(FieldIsPlayable, v))
-}
-
-// IsPlayableNEQ applies the NEQ predicate on the "is_playable" field.
-func IsPlayableNEQ(v bool) predicate.Race {
-	return predicate.Race(sql.FieldNEQ(FieldIsPlayable, v))
-}
-
 // ColorEQ applies the EQ predicate on the "color" field.
 func ColorEQ(v string) predicate.Race {
 	return predicate.Race(sql.FieldEQ(FieldColor, v))
@@ -516,6 +502,29 @@ func ColorEqualFold(v string) predicate.Race {
 // ColorContainsFold applies the ContainsFold predicate on the "color" field.
 func ColorContainsFold(v string) predicate.Race {
 	return predicate.Race(sql.FieldContainsFold(FieldColor, v))
+}
+
+// HasNpcTemplates applies the HasEdge predicate on the "npc_templates" edge.
+func HasNpcTemplates() predicate.Race {
+	return predicate.Race(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NpcTemplatesTable, NpcTemplatesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNpcTemplatesWith applies the HasEdge predicate on the "npc_templates" edge with a given conditions (other predicates).
+func HasNpcTemplatesWith(preds ...predicate.NPCTemplate) predicate.Race {
+	return predicate.Race(func(s *sql.Selector) {
+		step := newNpcTemplatesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

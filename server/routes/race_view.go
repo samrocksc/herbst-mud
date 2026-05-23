@@ -16,7 +16,7 @@ type raceView struct {
 	SkillGrants      []string `json:"skill_grants,omitempty"`
 	EquipmentSlots   []string `json:"equipment_slots,omitempty"`
 	AbilityModifiers []string `json:"ability_modifiers,omitempty"`
-	IsPlayable       bool     `json:"is_playable"`
+	RequirementTags  []string `json:"requirement_tags"`
 	Color            string   `json:"color,omitempty"`
 	Tags             []string `json:"tags,omitempty"`
 }
@@ -48,7 +48,7 @@ func raceToView(r *db.Race) raceView {
 		StatModifiers:  statMod,
 		SkillGrants:    skillGrants,
 		EquipmentSlots: r.EquipmentSlots,
-		IsPlayable:     r.IsPlayable,
+		RequirementTags: r.RequirementTags,
 		Color:          r.Color,
 		Tags:           tagNames,
 	}
