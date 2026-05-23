@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
@@ -45,6 +45,7 @@ function DeleteConfirmation({
 
 function RecipesManagement() {
   const [deletingRecipe, setDeletingRecipe] = useState<Recipe | null>(null);
+  const location = useLocation();
 
   const { currentWorld } = useWorldStore();
   const { data: recipes, isLoading, error } = useRecipes({ world_id: currentWorld });
@@ -110,6 +111,9 @@ function RecipesManagement() {
 
   if (isLoading) return <div className="loading">Loading recipes...</div>;
   if (error) return <div className="error">Failed to load recipes: {error.message}</div>;
+
+  const isList = location.pathname === "/recipes";
+  if (!isList) return <Outlet />;
 
   return (
     <div className="management-page">

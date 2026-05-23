@@ -17,8 +17,8 @@ function RecipeDetail() {
   const recipeQuery = useRecipe(recipeName);
   const recipe = recipeQuery.data;
 
-  // If we're on a child route (e.g., /recipes/$recipeName/edit), render outlet
-  if (location.pathname !== `/recipes/${recipeName}`) {
+  // If we're on the edit child route, render outlet so the child route handles it
+  if (location.pathname.endsWith("/edit")) {
     return <Outlet />;
   }
 
