@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
-import { useRecipe, useUpdateRecipe, type RecipeInput } from "../../hooks/useRecipes";
-import { useWorldStore } from "../../contexts/WorldStoreContext";
+import { useRecipe, useUpdateRecipe } from "../../hooks/useRecipes";
 import { RecipeForm } from "./RecipeForm";
+import type { RecipeInput } from "../../hooks/useRecipes";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeName/edit")({
   component: RecipeEditPage,
@@ -12,7 +12,6 @@ export const Route = createFileRoute("/_auth/recipes/$recipeName/edit")({
 function RecipeEditPage() {
   const { recipeName } = Route.useParams();
   const navigate = useNavigate();
-  const { currentWorld } = useWorldStore();
 
   const recipeQuery = useRecipe(recipeName);
   const recipe = recipeQuery.data;

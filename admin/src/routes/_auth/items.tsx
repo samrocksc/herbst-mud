@@ -9,6 +9,8 @@ import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { showToast } from "../../components/Toast";
 import type { EquipmentTemplate } from "../../hooks/useEquipmentTemplates";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
+import { useWorlds } from "../../hooks/useWorlds";
 
 export const Route = createFileRoute("/_auth/items")({
   component: ItemsIndex,
@@ -18,6 +20,8 @@ function ItemsIndex() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { currentWorld, setWorld } = useWorldStore();
+  const { data: worlds } = useWorlds();
 
   const templatesQuery = useEquipmentTemplates();
   const instancesQuery = useItemInstances();
@@ -92,6 +96,20 @@ function ItemsIndex() {
       <PageHeader title="Items" showBack backTo="/dashboard" actions={
         <Button variant="primary" onClick={() => navigate({ to: "/items/new" })}>+ Add Item</Button>
       } />
+
+      <div className="mb-4 flex items-center gap-4">
+        <select
+          value={currentWorld}
+          onChange={(e) => setWorld(e.target.value)}
+          className="px-3 py-2 bg-surface-muted border border-border rounded text-sm focus:outline-none focus:border-primary"
+        >
+          {worlds?.map((w) => (
+            <option key={w.id} value={String(w.id)}>
+              {w.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="mb-4">
         <input
