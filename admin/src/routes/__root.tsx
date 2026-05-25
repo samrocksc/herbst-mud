@@ -37,7 +37,7 @@ function RootComponent() {
               size="sm"
               onClick={() => setMobileSidebarOpen(true)}
               aria-label="Open menu"
-              className="fixed top-3 left-3 z-[60] p-2 bg-surface border border-border text-text-muted hover:bg-surface-muted hover:text-text md:hidden"
+              className="fixed top-3 left-3 z-40 p-2 bg-surface border border-border text-text-muted hover:bg-surface-muted hover:text-text md:hidden"
             >
               <MenuIcon stroke="currentColor" />
             </Button>
@@ -52,12 +52,12 @@ function RootComponent() {
             {/* Mobile backdrop */}
             {mobileSidebarOpen && (
               <div
-                className="fixed inset-0 bg-black/30 z-50 md:hidden"
+                className="fixed inset-0 bg-black/30 z-30 md:hidden"
                 onClick={() => setMobileSidebarOpen(false)}
               />
             )}
 
-            <main className={`flex-1 overflow-auto bg-surface-muted transition-all duration-300 ease-in-out md:ml-16 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[220px]'}`}>
+            <main className={`flex-1 overflow-auto bg-surface-muted transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-[220px]'}`}>
               <Outlet />
             </main>
           </div>

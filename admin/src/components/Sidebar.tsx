@@ -116,18 +116,14 @@ export function Sidebar({
   return (
     <nav
       className={[
-        // Base
-        "bg-surface border-r border-border flex flex-col",
-        "transition-all duration-300 ease-in-out",
-        // Mobile (<768px): conditionally shown as full dropdown
-        !mobileOpen && "hidden opacity-0 -translate-y-4 pointer-events-none",
-        mobileOpen && "absolute top-0 left-0 w-full h-screen z-40 shadow-lg opacity-100 translate-y-0",
-        // Tablet+ (>=768px): fixed left sidebar always visible
-        "md:flex md:fixed md:inset-y-0 md:left-0 md:h-screen",
-        "md:translate-y-0 md:opacity-100 md:pointer-events-auto",
-        "md:shadow-none",
-        // Widths
-        "md:w-[64px] lg:w-[220px]",
+        "fixed inset-y-0 left-0 z-50 flex flex-col bg-surface border-r border-border",
+        "transform transition-transform duration-300 ease-in-out",
+        // Mobile: slide in/out; desktop: always visible
+        !mobileOpen && "-translate-x-full md:translate-x-0",
+        mobileOpen && "translate-x-0",
+        // Width
+        "w-[260px]",
+        "md:w-[64px]",
         collapsed ? "lg:w-[64px]" : "lg:w-[220px]",
       ].filter(Boolean).join(" ")}
     >
@@ -137,13 +133,13 @@ export function Sidebar({
           className={[
             "flex-1 min-w-0 px-1 overflow-hidden",
             "transition-opacity duration-300",
-            collapsed ? "lg:opacity-0 lg:select-none" : "lg:opacity-100",
+            collapsed ? "md:opacity-0 md:select-none" : "md:opacity-100",
           ].join(" ")}
         >
           <WorldTitle />
         </div>
         <SidebarCloseButton onClose={onMobileClose} />
-        <div className="hidden lg:block">
+        <div className="hidden md:block">
           <SidebarCollapseToggle
             collapsed={collapsed}
             onToggle={onToggleCollapse}
@@ -169,7 +165,7 @@ export function Sidebar({
             className={[
               "flex items-center gap-3 px-3 py-2.5 rounded text-sm",
               "no-underline transition-colors",
-              collapsed ? "lg:justify-center lg:px-0" : "",
+              collapsed ? "md:justify-center md:px-0" : "",
             ].join(" ")}
             title={collapsed ? item.label : undefined}
             onClick={onMobileClose}
@@ -180,7 +176,7 @@ export function Sidebar({
             <span
               className={[
                 "whitespace-nowrap transition-opacity duration-300 min-w-0",
-                collapsed ? "lg:opacity-0 lg:pointer-events-none lg:w-0 lg:overflow-hidden" : "lg:opacity-100",
+                collapsed ? "md:opacity-0 md:pointer-events-none md:w-0 md:overflow-hidden" : "md:opacity-100",
               ].join(" ")}
             >
               {item.label}
