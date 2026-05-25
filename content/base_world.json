@@ -14,7 +14,7 @@
       "exits": {
         "north": "north-path",
         "south": "south-path",
-        "east": "east-path",
+        "east": "training-room",
         "west": "west-path"
       },
       "position": { "x": 0, "y": 0, "z": 0 }
@@ -34,11 +34,11 @@
       "position": { "x": 0, "y": -1, "z": 0 }
     },
     {
-      "id": "east-path",
-      "name": "Eastern Path",
-      "description": "A path leading east from the center.",
+      "id": "training-room",
+      "name": "Training Room",
+      "description": "A simple training room with padded floors and wooden dummies. This is a safe place to practice combat skills.",
       "exits": { "west": "the-hole" },
-      "position": { "x": 1, "y": 0, "z": 0 }
+      "position": { "x": 2, "y": 0, "z": 0 }
     },
     {
       "id": "west-path",
@@ -67,11 +67,12 @@
     },
     {
       "name": "Combat Dummy",
-      "description": "An immortal training dummy.",
+      "description": "A wooden training dummy. It takes damage but never dies.",
       "is_immortal": true,
       "hitpoints": 100,
       "max_hitpoints": 100,
-      "spawn_room": "the-hole"
+      "level": 1,
+      "spawn_room": "training-room"
     }
   ],
   "abilities": [
