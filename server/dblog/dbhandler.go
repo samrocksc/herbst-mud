@@ -110,9 +110,9 @@ func (h *DBHandler) Handle(_ context.Context, r slog.Record) error {
 				entry.RoomID = &v
 			}
 		case "template_id":
-			case "world_id":
-				entry.WorldID = a.Value.String()
 			entry.TemplateID = a.Value.String()
+		case "world_id":
+			entry.WorldID = a.Value.String()
 		default:
 			if entry.Metadata == nil {
 				entry.Metadata = make(map[string]interface{})

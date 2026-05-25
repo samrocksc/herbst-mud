@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"herbst-server/db"
@@ -53,6 +54,12 @@ func (r *entNPCTemplateRepo) List(ctx context.Context, worldID string) ([]*db.NP
 	return query.All(ctx)
 }
 
+func (r *entNPCTemplateRepo) slugExists(ctx context.Context, slug string) (bool, error) {
+	return r.client.NPCTemplate.Query().
+		Where(npctemplate.SlugEQ(slug)).
+		Exist(ctx)
+}
+
 func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplateInput) (*db.NPCTemplate, error) {
 	id := input.ID
 	if id == "" {
@@ -61,6 +68,23 @@ func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplate
 	slug := input.Slug
 	if slug == "" {
 		slug = slugify(input.Name)
+	}
+	exists, err := r.slugExists(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		base := slug
+		for i := 2; ; i++ {
+			slug = base + "_" + strconv.Itoa(i)
+			exists, err = r.slugExists(ctx, slug)
+			if err != nil {
+				return nil, err
+			}
+			if !exists {
+				break
+			}
+		}
 	}
 
 	builder := r.client.NPCTemplate.Create().

@@ -1,0 +1,90 @@
+- generic [ref=e5]:
+  - generic [ref=e6]:
+    - heading "Herbst MUD Admin" [level=1] [ref=e8]
+    - generic [ref=e10]:
+      - combobox [ref=e11]
+      - button "Logout" [ref=e12] [cursor=pointer]
+  - generic [ref=e13]:
+    - 'heading "Managing: default" [level=2] [ref=e14]'
+    - paragraph [ref=e15]: Welcome back! Select a world above to switch contexts.
+  - generic [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]: "0"
+      - generic [ref=e19]: Total Rooms
+    - generic [ref=e20]:
+      - generic [ref=e21]: "0"
+      - generic [ref=e22]: Active NPCs
+    - generic [ref=e23]:
+      - generic [ref=e24]: "--"
+      - generic [ref=e25]: Items
+    - generic [ref=e26]:
+      - generic [ref=e27]: "0"
+      - generic [ref=e28]: Instances
+    - generic [ref=e29]:
+      - generic [ref=e30]: "0"
+      - generic [ref=e31]: Players
+    - generic [ref=e32]:
+      - generic [ref=e33]: "0"
+      - generic [ref=e34]: Skills
+  - heading "Admin Tools" [level=3] [ref=e35]
+  - generic [ref=e36]:
+    - link "🗺️ Map Builder View and edit room layout, connections, and z-levels" [ref=e37] [cursor=pointer]:
+      - /url: /map
+      - generic [ref=e38]: 🗺️
+      - generic [ref=e39]: Map Builder
+      - generic [ref=e40]: View and edit room layout, connections, and z-levels
+    - link "👤 NPC Manager Create, edit, and manage NPCs and their locations" [ref=e41] [cursor=pointer]:
+      - /url: /npcs
+      - generic [ref=e42]: 👤
+      - generic [ref=e43]: NPC Manager
+      - generic [ref=e44]: Create, edit, and manage NPCs and their locations
+    - link "📦 Item Manager Create, edit, and manage items and equipment" [ref=e45] [cursor=pointer]:
+      - /url: /items
+      - generic [ref=e46]: 📦
+      - generic [ref=e47]: Item Manager
+      - generic [ref=e48]: Create, edit, and manage items and equipment
+    - link "💾 Export / Import Backup and restore game world data" [ref=e49] [cursor=pointer]:
+      - /url: /export
+      - generic [ref=e50]: 💾
+      - generic [ref=e51]: Export / Import
+      - generic [ref=e52]: Backup and restore game world data
+    - link "🎮 Player Manager Manage players and reset passwords" [ref=e53] [cursor=pointer]:
+      - /url: /players
+      - generic [ref=e54]: 🎮
+      - generic [ref=e55]: Player Manager
+      - generic [ref=e56]: Manage players and reset passwords
+    - link "🧙 Character Manager View and edit characters, rooms, stats, and bind points" [ref=e57] [cursor=pointer]:
+      - /url: /characters
+      - generic [ref=e58]: 🧙
+      - generic [ref=e59]: Character Manager
+      - generic [ref=e60]: View and edit characters, rooms, stats, and bind points
+    - link "⚡ Abilities Manager Create, edit, and manage abilities" [ref=e61] [cursor=pointer]:
+      - /url: /abilities
+      - generic [ref=e62]: ⚡
+      - generic [ref=e63]: Abilities Manager
+      - generic [ref=e64]: Create, edit, and manage abilities
+    - link "🍳 Recipes Manager Create, edit, and manage crafting recipes" [ref=e65] [cursor=pointer]:
+      - /url: /recipes
+      - generic [ref=e66]: 🍳
+      - generic [ref=e67]: Recipes Manager
+      - generic [ref=e68]: Create, edit, and manage crafting recipes
+    - link "📜 Quest Manager Create, edit, and manage quests and objectives" [ref=e69] [cursor=pointer]:
+      - /url: /quests
+      - generic [ref=e70]: 📜
+      - generic [ref=e71]: Quest Manager
+      - generic [ref=e72]: Create, edit, and manage quests and objectives
+    - link "📋 Log Viewer View and filter application logs with live tail" [ref=e73] [cursor=pointer]:
+      - /url: /logs
+      - generic [ref=e74]: 📋
+      - generic [ref=e75]: Log Viewer
+      - generic [ref=e76]: View and filter application logs with live tail
+    - link "🎯 Skills Manager Manage trainable skill specializations" [ref=e77] [cursor=pointer]:
+      - /url: /skills
+      - generic [ref=e78]: 🎯
+      - generic [ref=e79]: Skills Manager
+      - generic [ref=e80]: Manage trainable skill specializations
+    - link "⚔️ Factions Manager Manage factions, categories, and member standing" [ref=e81] [cursor=pointer]:
+      - /url: /factions
+      - generic [ref=e82]: ⚔️
+      - generic [ref=e83]: Factions Manager
+      - generic [ref=e84]: Manage factions, categories, and member standing

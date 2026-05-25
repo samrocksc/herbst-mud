@@ -28,8 +28,10 @@ func (r *entCharacterRepo) Create(ctx context.Context, input CreateCharacterInpu
 		SetRace(input.Race).
 		SetGender(input.Gender).
 		SetClass(input.Class).
-		SetUserID(input.UserID).
-		SetNillableNpcTemplateID(&input.NPCTemplateID)
+		SetUserID(input.UserID)
+	if input.NPCTemplateID != "" {
+		builder.SetNillableNpcTemplateID(&input.NPCTemplateID)
+	}
 	if input.StartingRoomID > 0 {
 		builder.SetStartingRoomId(input.StartingRoomID)
 	}

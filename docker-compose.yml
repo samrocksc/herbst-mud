@@ -56,6 +56,18 @@ services:
     networks:
       - herbst-network
 
+  # Web Client (web-client/) — Browser MUD frontend
+  web-client:
+    build:
+      context: ./web-client
+      dockerfile: Dockerfile
+    ports:
+      - "3001:80"
+    depends_on:
+      - web
+    networks:
+      - herbst-network
+
   # PostgreSQL Database
   postgres:
     image: postgres:15

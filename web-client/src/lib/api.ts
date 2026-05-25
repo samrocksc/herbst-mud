@@ -4,6 +4,7 @@ const API_BASE = (() => {
   // Same-origin in production (nginx reverse-proxy), port 8080 for local dev
   const { protocol, hostname, port } = window.location;
   if (port === "8080") return `${protocol}//${hostname}:8080`;
+  if (port === "5174" || port === "5173") return `${protocol}//${hostname}:8080`;
   return `${protocol}//${hostname}`;
 })();
 

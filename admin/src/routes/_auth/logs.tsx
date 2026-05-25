@@ -2,6 +2,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLogs, useLogServices, useLogWorlds } from "../../hooks/useLogs";
+import type { LogEntry } from "../../hooks/useLogs";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { PageContainer } from "../../components/PageContainer";
@@ -19,24 +20,13 @@ const LEVEL_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
 
 const LEVELS = ["ALL", "DEBUG", "INFO", "WARN", "ERROR"] as const;
 
-type LogLine = {
-  id?: number
-  level: string
-  message: string
-  service?: string
-  character_id?: number
-  room_id?: number
-  template_id?: string
-  created_at: string
-}
-
 function LogsPage() {
   const [level, setLevel] = useState<string>("");
   const [service, setService] = useState<string>("");
   const [world, setWorld] = useState<string>("");
   const [search, setSearch] = useState<string>("");
   const [live, setLive] = useState(false);
-  const [liveLines, setLiveLines] = useState<LogLine[]>([]);
+  const [liveLines, setLiveLines] = useState<LogEntry[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const filters = { level: level || undefined, service: service || undefined, world_id: world || undefined, limit: 200 };
@@ -66,7 +56,7 @@ function LogsPage() {
     const es = new EventSource(`${window.location.origin}/api/logs/stream?token=${encodeURIComponent(token)}`);
     es.onmessage = (e) => {
       try {
-        const entry = JSON.parse(e.data) as LogLine;
+        const entry = JSON.parse(e.data) as LogEntry;
         setLiveLines((prev) => [entry, ...prev].slice(0, 500));
       } catch { /* skip malformed */ }
     };
@@ -192,6 +182,13 @@ function LogsPage() {
               <div className="flex-1 text-sm text-text break-all min-w-0">
                 {log.message}
               </div>
+
+              {/* Metadata (rendered inline for error diagnostics) */}
+              {log.metadata && Object.keys(log.metadata).length > 0 && (
+                <div className="flex-1 text-xs text-text-muted/80 break-all min-w-0 pl-2 border-l border-border/30">
+                  {JSON.stringify(log.metadata)}
+                </div>
+              )}
 
               {/* Context badges */}
               <div className="flex-shrink-0 flex items-center gap-2 text-xs text-text-muted/60 pt-0.5">

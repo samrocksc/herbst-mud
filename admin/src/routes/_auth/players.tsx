@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useUsers, useResetPassword, type User } from "../../hooks/useUsers";
+import { useUsers, useResetPassword, useDeleteCharacter, type User } from "../../hooks/useUsers";
 import { apiGet } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
@@ -24,14 +24,23 @@ type Character = Readonly<{
   currentRoomId: number
 }>
 
+type UserCharacter = Readonly<{
+  id: number
+  name: string
+  hitpoints: number
+  max_hitpoints: number
+}>
+
 function PlayersManagement() {
   const { data: users, isLoading, error } = useUsers();
   const resetPassword = useResetPassword();
+  const deleteCharacter = useDeleteCharacter();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showCharacters, setShowCharacters] = useState(false);
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
   const [resetError, setResetError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const charactersQuery = useQuery<Character[]>({
     queryKey: ["characters"],
@@ -39,10 +48,25 @@ function PlayersManagement() {
     enabled: showCharacters,
   });
 
+  const userCharactersQuery = useQuery<UserCharacter[]>({
+    queryKey: ["user-characters", selectedUser?.id],
+    queryFn: () => {
+      if (!selectedUser) return Promise.resolve([]);
+      return apiGet<UserCharacter[]>(`${window.location.origin}/user-characters/${selectedUser.id}`);
+    },
+    enabled: !!selectedUser && showDetail,
+  });
+
   const handleReset = async (user: User) => {
     setResetSuccess(null); setResetError(null);
     try { await resetPassword.mutateAsync(user.id); setResetSuccess(`Password reset for ${user.email}`); }
     catch { setResetError(`Failed to reset password for ${user.email}`); }
+  };
+
+  const handleDelete = async (id: number) => {
+    setDeleteError(null);
+    try { await deleteCharacter.mutateAsync(id); }
+    catch { setDeleteError("Failed to delete character"); }
   };
 
   const formatDate = (dateStr: string) =>
@@ -69,6 +93,9 @@ function PlayersManagement() {
     { header: "Level", accessor: "level" },
     { header: "HP", accessor: "hitpoints", render: (_: unknown, row: Character) => `${row.hitpoints}/${row.max_hitpoints}` },
     { header: "Room", accessor: "currentRoomId" },
+    { header: "Actions", accessor: "_actions", render: (_: unknown, row: Character) => (
+      <Button variant="danger" size="sm" onClick={() => handleDelete(row.id)} disabled={deleteCharacter.isPending}>Delete</Button>
+    )},
   ];
 
   if (isLoading) return <div className="loading">Loading players...</div>;
@@ -79,6 +106,7 @@ function PlayersManagement() {
       <PageHeader title="Players Management" backTo="/dashboard" />
       {resetSuccess && <div className="success-message">{resetSuccess}</div>}
       {resetError && <div className="error-message">{resetError}</div>}
+      {deleteError && <div className="error-message">{deleteError}</div>}
       <DataTable columns={userColumns} data={users ?? []} getKey={(row: User) => row.id}
         onRowClick={(row: User) => { setSelectedUser(row); setShowDetail(true); }} emptyMessage="No players found." />
 
@@ -107,8 +135,26 @@ function PlayersManagement() {
               <div className="detail-row"><label>ID:</label><span>{selectedUser.id}</span></div>
               <div className="detail-row"><label>Email:</label><span>{selectedUser.email}</span></div>
               <div className="detail-row"><label>Admin:</label><span>{selectedUser.is_admin ? "Yes" : "No"}</span></div>
-              <div className="detail-row"><label>Character:</label><span>{selectedUser.character_name || "No character"}</span></div>
               <div className="detail-row"><label>Created:</label><span>{formatDate(selectedUser.created_at)}</span></div>
+
+              <div className="mt-4">
+                <h4 className="text-text text-base font-semibold mb-2">Characters</h4>
+                {userCharactersQuery.isLoading ? <div className="text-text-muted text-sm">Loading...</div> :
+                 userCharactersQuery.isError ? <div className="text-danger text-sm">Failed to load characters</div> :
+                 (userCharactersQuery.data?.length ?? 0) === 0 ? <div className="text-text-muted text-sm">No characters</div> :
+                 <div className="space-y-2">
+                   {userCharactersQuery.data!.map((char) => (
+                     <div key={char.id} className="flex items-center justify-between bg-surface-muted rounded px-3 py-2">
+                       <div>
+                         <span className="font-semibold text-text">{char.name}</span>
+                         <span className="text-text-muted text-sm ml-2">HP {char.hitpoints}/{char.max_hitpoints}</span>
+                       </div>
+                       <Button variant="danger" size="sm" onClick={() => handleDelete(char.id)} disabled={deleteCharacter.isPending}>Delete</Button>
+                     </div>
+                   ))}
+                 </div>
+                }
+              </div>
             </div>
             <div className="modal-footer">
               <Button variant="secondary" size="sm" onClick={() => handleReset(selectedUser)}>Reset Password</Button>

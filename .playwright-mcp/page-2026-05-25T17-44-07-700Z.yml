@@ -1,0 +1,69 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - button "Dashboard" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+        - generic [ref=e12]: Dashboard
+      - button "Content" [ref=e13] [cursor=pointer]:
+        - img [ref=e14]
+        - generic [ref=e18]: Content
+      - button "Players" [ref=e19] [cursor=pointer]:
+        - img [ref=e20]
+        - generic [ref=e25]: Players
+      - button "Social" [ref=e26] [cursor=pointer]:
+        - img [ref=e27]
+        - generic [ref=e30]: Social
+      - button "System" [ref=e31] [cursor=pointer]:
+        - img [ref=e32]
+        - generic [ref=e35]: System
+  - generic [ref=e36]:
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - link "← Dashboard" [ref=e39] [cursor=pointer]:
+          - /url: /dashboard
+        - heading "NPC Templates" [level=1] [ref=e40]
+      - button "+ Add Template" [ref=e42] [cursor=pointer]
+    - textbox "Search templates by name..." [ref=e44]
+    - generic [ref=e45]: Loading NPC templates...
+  - navigation [ref=e46]:
+    - generic [ref=e47]:
+      - link "NPCs" [ref=e48] [cursor=pointer]:
+        - /url: /npcs
+        - img [ref=e49]
+        - generic [ref=e54]: NPCs
+      - link "Items" [ref=e55] [cursor=pointer]:
+        - /url: /items
+        - img [ref=e56]
+        - generic [ref=e60]: Items
+      - link "Abilities" [ref=e61] [cursor=pointer]:
+        - /url: /abilities
+        - img [ref=e62]
+        - generic [ref=e64]: Abilities
+      - link "Effects" [ref=e65] [cursor=pointer]:
+        - /url: /effects
+        - img [ref=e66]
+        - generic [ref=e70]: Effects
+      - link "Skills" [ref=e71] [cursor=pointer]:
+        - /url: /skills
+        - img [ref=e72]
+        - generic [ref=e74]: Skills
+      - link "Quests" [ref=e75] [cursor=pointer]:
+        - /url: /quests
+        - img [ref=e76]
+        - generic [ref=e79]: Quests
+      - link "Recipes" [ref=e80] [cursor=pointer]:
+        - /url: /recipes
+        - img [ref=e81]
+        - generic [ref=e84]: Recipes
+      - link "Races" [ref=e85] [cursor=pointer]:
+        - /url: /races
+        - img [ref=e86]
+        - generic [ref=e91]: Races
+      - link "Factions" [ref=e92] [cursor=pointer]:
+        - /url: /factions
+        - img [ref=e93]
+        - generic [ref=e95]: Factions
+      - link "Map" [ref=e96] [cursor=pointer]:
+        - /url: /map
+        - img [ref=e97]
+        - generic [ref=e99]: Map

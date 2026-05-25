@@ -17,6 +17,12 @@ type NPCTemplate = Readonly<{
   respawn_cooldown: number
 }>
 
+type Race = Readonly<{
+  id: number
+  name: string
+  display_name: string
+}>
+
 export const Route = createFileRoute("/npc-templates")({
   component: NPCTemplatePage,
 });
@@ -29,6 +35,7 @@ const DISPOSITION_OPTS = [
 
 function NPCTemplatePage() {
   const [templates, setTemplates] = useState<NPCTemplate[]>([]);
+  const [races, setRaces] = useState<Race[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingID, setEditingID] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -36,15 +43,19 @@ function NPCTemplatePage() {
   const [cooldownInput, setCooldownInput] = useState("60");
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({
-    id: "", name: "", description: "", race: "", disposition: "neutral",
+    id: "", name: "", description: "", race_id: "", disposition: "neutral",
     level: 1, xp_value: 0, greeting: "", respawn_cooldown: 60, respawn_rooms: "",
   });
   const [createError, setCreateError] = useState("");
 
   const load = useCallback(async () => {
     try {
-      const data = await apiGet<NPCTemplate[]>(`${window.location.origin}/api/npc-templates`);
+      const [data, raceData] = await Promise.all([
+        apiGet<NPCTemplate[]>(`${window.location.origin}/api/npc-templates`),
+        apiGet<{ races: Race[] }>(`${window.location.origin}/api/races`).then(r => r.races ?? []).catch(() => [] as Race[]),
+      ]);
       setTemplates(data);
+      setRaces(raceData);
     } catch { showToast("Failed to load NPC templates", "error"); }
     finally { setLoading(false); }
   }, []);
@@ -70,20 +81,24 @@ function NPCTemplatePage() {
     setCreateError("");
     try {
       const rooms = createForm.respawn_rooms.split(",").map((s) => s.trim().replace(/^r/i, "")).filter(Boolean);
-      await apiPost(`${window.location.origin}/api/npc-templates`, {
+      const payload: Record<string, unknown> = {
         id: createForm.id, name: createForm.name, description: createForm.description,
-        race: createForm.race, disposition: createForm.disposition, level: createForm.level,
+        disposition: createForm.disposition, level: createForm.level,
         xp_value: createForm.xp_value, greeting: createForm.greeting,
         respawn_cooldown: createForm.respawn_cooldown, respawn_rooms: rooms, skills: {}, trades_with: [],
-      });
+      };
+      if (createForm.race_id !== "") payload.race_id = Number(createForm.race_id);
+      await apiPost(`${window.location.origin}/api/npc-templates`, payload);
       await load(); setShowCreate(false);
-      setCreateForm({ id: "", name: "", description: "", race: "", disposition: "neutral", level: 1, xp_value: 0, greeting: "", respawn_cooldown: 60, respawn_rooms: "" });
+      setCreateForm({ id: "", name: "", description: "", race_id: "", disposition: "neutral", level: 1, xp_value: 0, greeting: "", respawn_cooldown: 60, respawn_rooms: "" });
     } catch (e: unknown) { setCreateError(e instanceof Error ? e.message : String(e)); }
   }
 
   function startEdit(t: NPCTemplate) {
     setEditingID(t.id); setRoomsInput(t.respawn_rooms?.join(", ") ?? ""); setCooldownInput(String(t.respawn_cooldown ?? 60));
   }
+
+  const raceOpts = races.map(r => ({ value: String(r.id), label: r.display_name || r.name }));
 
   if (loading) return <div className="min-h-screen bg-surface p-6"><PageHeader title="NPC Templates" backTo="/dashboard" /><p className="text-text-muted">Loading templates...</p></div>;
 
@@ -122,7 +137,7 @@ function NPCTemplatePage() {
           <FormField label="Name" value={createForm.name} onChange={(v) => setCreateForm({...createForm, name: v})} placeholder="Display name" />
           <TextareaField label="Description" value={createForm.description} onChange={(v) => setCreateForm({...createForm, description: v})} rows={2} placeholder="Flavor text..." />
           <div className="flex gap-3">
-            <div className="flex-1"><FormField label="Race" value={createForm.race} onChange={(v) => setCreateForm({...createForm, race: v})} placeholder="e.g. goblin" /></div>
+            <div className="flex-1"><SelectField label="Race" value={createForm.race_id} onChange={(v) => setCreateForm({...createForm, race_id: v})} options={raceOpts} /></div>
             <div className="flex-1"><SelectField label="Disposition" value={createForm.disposition} onChange={(v) => setCreateForm({...createForm, disposition: v})} options={DISPOSITION_OPTS} /></div>
           </div>
           <div className="flex gap-3">
