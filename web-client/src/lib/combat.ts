@@ -1,5 +1,5 @@
 /**
- * Pure combat utility functions.
+ * Combat utility functions.
  * Mirrors the SSH client's dice logic in herbst/dice/ and game_combat.go.
  */
 
@@ -35,7 +35,7 @@ export function calculatePlayerDamage(strength: number): number {
 
 /** Base enemy damage: level + 2 */
 export function calculateEnemyDamage(level: number, isCrit = false): number {
-  const dmg = level + 2;
+  const dmg = Math.max(1, level + 2);
   return isCrit ? dmg * 2 : dmg;
 }
 
