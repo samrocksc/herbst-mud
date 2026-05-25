@@ -57,7 +57,7 @@ function RootComponent() {
               />
             )}
 
-            <main className={`flex-1 overflow-auto bg-surface-muted transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-[220px]'}`}>
+            <main className={`flex-1 overflow-auto bg-surface-muted pl-14 pt-3 md:pl-0 md:pt-0 md:ml-16 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[220px]'}`}>
               <Outlet />
             </main>
           </div>

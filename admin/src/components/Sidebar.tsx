@@ -122,7 +122,7 @@ export function Sidebar({
         !mobileOpen && "-translate-x-full md:translate-x-0",
         mobileOpen && "translate-x-0",
         // Width
-        "w-[260px]",
+        "w-full",
         "md:w-[64px]",
         collapsed ? "lg:w-[64px]" : "lg:w-[220px]",
       ].filter(Boolean).join(" ")}
