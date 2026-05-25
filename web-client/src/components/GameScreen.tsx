@@ -7,6 +7,7 @@ import { Button } from "../ui";
 import Scrollback from "./Scrollback";
 import RoomScreen from "./RoomScreen";
 import HotkeyBar from "./HotkeyBar";
+import CombatHUD from "./CombatHUD";
 import InputBar from "./InputBar";
 import CharacterPanel from "./CharacterPanel";
 
@@ -57,6 +58,11 @@ export default function GameScreen({
   const [panelTab, setPanelTab] = useState<CharacterPanelTab>("inventory");
   const [skills, setSkills] = useState<readonly CharacterSkill[]>(INITIAL_SKILLS);
   const [availableAbilities, setAvailableAbilities] = useState<readonly Ability[]>([]);
+  const [combatMode, setCombatMode] = useState(false);
+  const combatModeRef = useRef(combatMode);
+  combatModeRef.current = combatMode;
+  const [potionCount, setPotionCount] = useState(0);
+  void setPotionCount;
 
   const loadAbilities = useCallback(async () => {
     try {
@@ -111,7 +117,7 @@ export default function GameScreen({
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const { hostname, port } = window.location;
     // Same-origin in production (nginx proxy), port 8080 for local dev
-    const wsHost = port === "8080" ? `${hostname}:8080` : hostname;
+    const wsHost = port === "8080" || port === "5174" || port === "5173" ? `${hostname}:8080` : hostname;
     const url = `${protocol}//${wsHost}/ws?token=${encodeURIComponent(token)}&character_id=${character.id}`;
     connect(url);
     return () => disconnect();
@@ -188,6 +194,19 @@ export default function GameScreen({
       if (key === "a") {
         e.preventDefault();
         openPanel("abilities");
+        return;
+      }
+      if (key === "tab") {
+        e.preventDefault();
+        setCombatMode((v) => !v);
+        return;
+      }
+      if (key >= "1" && key <= "5") {
+        // CombatHUD handles 1-5; pass through only in adventurer mode
+        if (!combatModeRef.current) {
+          e.preventDefault();
+          handleSubmit(HOTKEY_BINDINGS[key] ?? "");
+        }
         return;
       }
       if (HOTKEY_BINDINGS[key]) {
@@ -270,6 +289,9 @@ export default function GameScreen({
                 ? "\u25d0 connecting..."
                 : "\u25cb offline"}
           </span>
+          <Button variant="ghost" size="sm" onClick={() => setCombatMode((v) => !v)} title="Toggle combat mode (Tab)">
+            {combatMode ? "⚔️" : "🛡️"}
+          </Button>
           <Button variant="ghost" size="sm" onClick={toggle}>
             {theme === "dark" ? "\uD83C\uDF19" : "\u2600\uFE0F"}
           </Button>
@@ -352,7 +374,19 @@ export default function GameScreen({
         </div>
       )}
 
-      <HotkeyBar onActivate={handleHotkey} skills={skills} />
+      {combatMode ? (
+        <CombatHUD
+          skills={skills}
+          potionCount={potionCount}
+          onSkill={(slot) => {
+            const sk = skills.find((s) => s.slot === slot);
+            if (sk?.name) handleSubmit(sk.name);
+          }}
+          onPotion={() => handleSubmit("use potion")}
+        />
+      ) : (
+        <HotkeyBar onActivate={handleHotkey} skills={skills} />
+      )}
 
       <InputBar
         onSubmit={handleSubmit}
