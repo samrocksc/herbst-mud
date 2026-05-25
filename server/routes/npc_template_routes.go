@@ -141,6 +141,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting        string         `json:"greeting"`
 			RespawnRooms    []string       `json:"respawn_rooms"`
 			RespawnCooldown int            `json:"respawn_cooldown"`
+			WorldID         string         `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -149,6 +150,9 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 		if req.Name == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
+		}
+		if req.WorldID == "" {
+			req.WorldID = c.Query("world_id")
 		}
 
 		disposition := "neutral"
@@ -177,6 +181,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting:        req.Greeting,
 			RespawnRooms:    req.RespawnRooms,
 			RespawnCooldown: &cooldown,
+			WorldID:         req.WorldID,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -197,6 +202,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting:        created.Greeting,
 			RespawnRooms:    created.RespawnRooms,
 			RespawnCooldown: created.RespawnCooldown,
+			WorldID:         created.WorldID,
 		})
 	}
 }

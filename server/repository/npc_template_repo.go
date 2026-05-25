@@ -68,7 +68,6 @@ func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplate
 		SetSlug(slug).
 		SetName(input.Name).
 		SetDescription(input.Description).
-		SetRaceID(input.RaceID).
 		SetSkills(input.Skills).
 		SetTradesWith(input.TradesWith).
 		SetGreeting(input.Greeting).
@@ -77,6 +76,9 @@ func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplate
 		SetXpValue(input.XPValue).
 		SetDisposition(npctemplate.Disposition(input.Disposition)).
 		SetWorldID(input.WorldID)
+	if input.RaceID > 0 {
+		builder = builder.SetRaceID(input.RaceID)
+	}
 	if input.RespawnCooldown != nil {
 		builder = builder.SetNillableRespawnCooldown(input.RespawnCooldown)
 	}
