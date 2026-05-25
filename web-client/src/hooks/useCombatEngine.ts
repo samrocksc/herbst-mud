@@ -47,6 +47,7 @@ export function useCombatEngine({
   const roundRef = useRef(round);
   const queuedRef = useRef(queuedAction);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isProcessingRef = useRef(false);
 
   targetsRef.current = targets;
   playerHPRef.current = playerHP;
@@ -95,9 +96,11 @@ export function useCombatEngine({
 
       const newHP = await fetchTargetHP(target.id);
       if (newHP != null) {
-        setTargets((prev) =>
-          prev.map((t) => (t.id === target.id ? { ...t, hp: newHP } : t))
+        const updated = targetsRef.current.map((t) =>
+          t.id === target.id ? { ...t, hp: newHP } : t
         );
+        targetsRef.current = updated;
+        setTargets(updated);
       }
 
       if (isCrit) {
@@ -226,7 +229,11 @@ export function useCombatEngine({
 
       if (tickRef.current) clearInterval(tickRef.current);
       tickRef.current = setInterval(() => {
-        processTick();
+        if (isProcessingRef.current) return;
+        isProcessingRef.current = true;
+        processTick().catch((err) => console.error("Combat tick failed:", err)).finally(() => {
+          isProcessingRef.current = false;
+        });
       }, TICK_MS);
     },
     [addLog, processTick]
@@ -255,6 +262,7 @@ export function useCombatEngine({
   useEffect(() => {
     return () => {
       if (tickRef.current) clearInterval(tickRef.current);
+      tickRef.current = null;
     };
   }, []);
 

@@ -13,6 +13,7 @@ function kindColor(kind: CombatLogEntry["kind"]): string {
     case "flee": return "text-info";
     case "defeat": return "text-danger";
     case "queue": return "text-accent";
+    case "system": return "text-muted";
     default: return "text-muted";
   }
 }
