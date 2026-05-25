@@ -1,9 +1,10 @@
 const API_BASE = (() => {
-  // If built with explicit override, use it
+  // Production build override (set at docker build time)
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  // Detect hostname from current page origin — works for local dev and LAN
-  const { protocol, hostname } = window.location;
-  return `${protocol}//${hostname}:8080`;
+  // Same-origin in production (nginx reverse-proxy), port 8080 for local dev
+  const { protocol, hostname, port } = window.location;
+  if (port === "8080") return `${protocol}//${hostname}:8080`;
+  return `${protocol}//${hostname}`;
 })();
 
 function getToken(): string | null {

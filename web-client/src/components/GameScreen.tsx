@@ -109,8 +109,10 @@ export default function GameScreen({
   void worldName;
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.hostname;
-    const url = `${protocol}//${host}:8080/ws?token=${encodeURIComponent(token)}&character_id=${character.id}`;
+    const { hostname, port } = window.location;
+    // Same-origin in production (nginx proxy), port 8080 for local dev
+    const wsHost = port === "8080" ? `${hostname}:8080` : hostname;
+    const url = `${protocol}//${wsHost}/ws?token=${encodeURIComponent(token)}&character_id=${character.id}`;
     connect(url);
     return () => disconnect();
   }, [connect, disconnect, token, character.id]);

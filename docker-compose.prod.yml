@@ -1,0 +1,136 @@
+#
+# HerbSt MUD — Production Docker Compose
+# All-In-One: drop on a server, docker compose up, it's live.
+#
+# Prerequisites:
+#   1. Docker + Docker Compose installed
+#   2. .env file with DB_PASSWORD, JWT_SECRET, CF_TUNNEL_TOKEN
+#   3. Cloudflare Tunnel configured (Zero Trust dashboard) with routes:
+#      - game.yourdomain.com → http://web-client:80
+#      - admin.yourdomain.com → http://admin:80
+#
+# Data persistence:
+#   - PostgreSQL data saved to ./data/postgres on the host
+#   - Recreate the droplet, remount the volume, data survives
+#
+# Exposed ports:
+#   - 4444 (host) → SSH MUD client
+#   - Everything else is internal-only; Cloudflare Tunnel handles HTTPS ingress
+#
+
+services:
+  # ── PostgreSQL ────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: herbst-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-herbst}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+      POSTGRES_DB: ${DB_NAME:-herbst_mud}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - herbst
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-herbst} -d ${DB_NAME:-herbst_mud}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── REST API (Go/Gin) ─────────────────────────────────────────────
+  web:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: herbst-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://${DB_USER:-herbst}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-herbst}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-herbst_mud}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET required}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost}
+      - SERVER_PORT=8080
+      - SERVER_HOST=0.0.0.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - herbst
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── SSH MUD Server ────────────────────────────────────────────────
+  mud-ssh:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: herbst-ssh
+    restart: unless-stopped
+    ports:
+      - "4444:4444"
+    environment:
+      - DATABASE_URL=postgres://${DB_USER:-herbst}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-herbst}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-herbst_mud}
+      - API_BASE_URL=http://web:8080
+      - GODEBUG=netdns=go
+    depends_on:
+      - web
+    networks:
+      - herbst
+
+  # ── Web Client (browser MUD) ───────────────────────────────────────
+  web-client:
+    build:
+      context: ./web-client
+      dockerfile: Dockerfile
+    container_name: herbst-web-client
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=/api
+    depends_on:
+      - web
+    networks:
+      - herbst
+
+  # ── Admin Panel ────────────────────────────────────────────────────
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: herbst-admin
+    restart: unless-stopped
+    depends_on:
+      - web
+    networks:
+      - herbst
+
+  # ── Cloudflare Tunnel (HTTPS ingress) ──────────────────────────────
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: herbst-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN:?CF_TUNNEL_TOKEN required}
+    depends_on:
+      - web
+      - web-client
+      - admin
+    networks:
+      - herbst
+
+networks:
+  herbst:
+    driver: bridge
