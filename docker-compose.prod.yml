@@ -17,6 +17,12 @@
 #   - 4444 (host) → SSH MUD client
 #   - Everything else is internal-only; Cloudflare Tunnel handles HTTPS ingress
 #
+# Images pulled from GHCR:
+#   - ghcr.io/samrocksc/herbst-mud-ssh:latest
+#   - ghcr.io/samrocksc/herbst-mud-api:latest
+#   - ghcr.io/samrocksc/herbst-mud-web:latest
+#   - ghcr.io/samrocksc/herbst-mud-admin:latest
+#
 
 services:
   # ── PostgreSQL ────────────────────────────────────────────────────
@@ -41,22 +47,19 @@ services:
 
   # ── REST API (Go/Gin) ─────────────────────────────────────────────
   web:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
+    image: ghcr.io/samrocksc/herbst-mud-api:latest
     container_name: herbst-api
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgres://${DB_USER:-herbst}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
+      - DATABASE_URL=postgres://${DB_USER:***@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=${DB_USER:-herbst}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=***
       - DB_NAME=${DB_NAME:-herbst_mud}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET required}
+      - JWT_SECRET=${JWT_...CRET required}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost}
-      - SERVER_PORT=8080
-      - SERVER_HOST=0.0.0.0
+      - API_BASE_URL=http://web:8080
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,19 +74,17 @@ services:
 
   # ── SSH MUD Server ────────────────────────────────────────────────
   mud-ssh:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/samrocksc/herbst-mud-ssh:latest
     container_name: herbst-ssh
     restart: unless-stopped
     ports:
       - "4444:4444"
     environment:
-      - DATABASE_URL=postgres://${DB_USER:-herbst}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
+      - DATABASE_URL=postgres://${DB_USER:***@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=${DB_USER:-herbst}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=***
       - DB_NAME=${DB_NAME:-herbst_mud}
       - API_BASE_URL=http://web:8080
       - GODEBUG=netdns=go
@@ -94,13 +95,9 @@ services:
 
   # ── Web Client (browser MUD) ───────────────────────────────────────
   web-client:
-    build:
-      context: ./web-client
-      dockerfile: Dockerfile
+    image: ghcr.io/samrocksc/herbst-mud-web:latest
     container_name: herbst-web-client
     restart: unless-stopped
-    environment:
-      - VITE_API_URL=/api
     depends_on:
       - web
     networks:
@@ -108,9 +105,7 @@ services:
 
   # ── Admin Panel ────────────────────────────────────────────────────
   admin:
-    build:
-      context: ./admin
-      dockerfile: Dockerfile
+    image: ghcr.io/samrocksc/herbst-mud-admin:latest
     container_name: herbst-admin
     restart: unless-stopped
     depends_on:

@@ -6,7 +6,6 @@ import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { FormField, NumberField, SelectField, CheckboxField, TextareaField } from "../../components/FormFields";
 import { showToast } from "../../components/Toast";
-import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
 import { PageContainer } from "../../components/PageContainer";
 

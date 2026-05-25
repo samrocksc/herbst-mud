@@ -16,7 +16,7 @@ export type SearchableSelectOption = Readonly<{
 }>
 
 type SearchableSelectProps = Readonly<{
-  options: SearchableSelectOption[]
+  options: ReadonlyArray<SearchableSelectOption>
   value: string
   onChange: (id: string) => void
   placeholder?: string

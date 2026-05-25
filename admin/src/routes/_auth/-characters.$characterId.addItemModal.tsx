@@ -41,7 +41,7 @@ export function AddItemModal({ open, onClose, onSpawn, isLoading, error }: Reado
               <button
                 key={t.id}
                 className="w-full text-left px-3 py-2 rounded text-sm hover:bg-surface-muted text-text"
-                onClick={() => onSpawn(t.id)}
+                onClick={() => onSpawn(String(t.id))}
                 disabled={isLoading}
               >
                 <span className="font-medium">{t.name}</span>

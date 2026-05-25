@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { navGroups, findActiveGroup } from "./navConfig";
+import { findActiveGroup } from "./navConfig";
 
 export function BottomBar() {
   const { pathname } = useLocation();

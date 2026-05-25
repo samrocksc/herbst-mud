@@ -1,22 +1,21 @@
 #!/bin/bash
 #
-# HerbSt MUD — Production Deploy Script
+# HerbSt MUD — Production Deploy Script (GHCR Edition)
 # One-command drop onto a fresh DigitalOcean droplet (Ubuntu 22.04+).
 #
-# Usage:
-#   scp deploy/setup.sh root@DROPLET_IP:/root/
-#   ssh root@DROPLET_IP 'bash /root/setup.sh'
+# Prerequisites: .env file with secrets copied to the droplet first.
 #
-# Or pipe directly:
-#   curl -sL https://raw.githubusercontent.com/samrocksc/herbst-mud/main/deploy/setup.sh | bash
+# Usage:
+#   scp .env deploy/docker-compose.prod.yml root@DROPLET_IP:/opt/herbst-mud/
+#   ssh root@DROPLET_IP 'bash /opt/herbst-mud/setup.sh'
 #
 
 set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────────
-REPO_URL="https://github.com/samrocksc/herbst-mud.git"
 INSTALL_DIR="/opt/herbst-mud"
 DATA_DIR="${INSTALL_DIR}/data/postgres"
+COMPOSE_URL="https://raw.githubusercontent.com/samrocksc/herbst-mud/main/docker-compose.prod.yml"
 
 # ── Helpers ─────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -53,61 +52,35 @@ if ! docker compose version &>/dev/null; then
   fail "docker compose plugin missing — installation failed?"
 fi
 
-# ── Clone / update repo ─────────────────────────────────────────────
-if [[ -d "${INSTALL_DIR}/.git" ]]; then
-  log "Updating existing repo at ${INSTALL_DIR}..."
-  cd "${INSTALL_DIR}"
-  git fetch origin main
-  git reset --hard origin/main
-else
-  log "Cloning repo to ${INSTALL_DIR}..."
-  git clone --depth 1 "${REPO_URL}" "${INSTALL_DIR}"
-  cd "${INSTALL_DIR}"
-fi
-ok "Repo ready"
+# ── Directories ─────────────────────────────────────────────────────
+mkdir -p "${INSTALL_DIR}" "${DATA_DIR}"
+cd "${INSTALL_DIR}"
 
-# ── Environment ─────────────────────────────────────────────────────
+# ── Environment validation ──────────────────────────────────────────
 ENV_FILE="${INSTALL_DIR}/.env"
 if [[ ! -f "${ENV_FILE}" ]]; then
-  warn "No .env file found — creating template"
-  cat > "${ENV_FILE}" <<'EOF'
-# ── Database ──
-DB_USER=herbst
-DB_PASSWORD=CHANGE_ME_NOW
-DB_NAME=herbst_mud
-
-# ── Auth ──
-JWT_SECRET=CHANGE_ME_NOW
-
-# ── CORS (comma-separated public domains) ──
-# Example: https://game.yourdomain.com,https://admin.yourdomain.com
-CORS_ORIGINS=http://localhost
-
-# ── Cloudflare Tunnel ──
-# Get token from: https://one.dash.cloudflare.com/ → Access → Tunnels
-CF_TUNNEL_TOKEN=your-token-here
-EOF
-  chmod 600 "${ENV_FILE}"
-  fail "Please edit ${ENV_FILE} with real secrets, then re-run this script"
+  fail "No .env file found at ${ENV_FILE}. Create it first and scp it over."
 fi
 
-# Validate required vars
+# Source .env for validation (set +a to restore after)
+set -a
 source "${ENV_FILE}"
-[[ "${DB_PASSWORD}" != "CHANGE_ME_NOW" ]] || fail "DB_PASSWORD is still default in .env"
-[[ "${JWT_SECRET}" != "CHANGE_ME_NOW" ]]   || fail "JWT_SECRET is still default in .env"
-[[ -n "${CF_TUNNEL_TOKEN}" ]]               || fail "CF_TUNNEL_TOKEN missing in .env"
+set +a
+
+[[ "${DB_PASSWORD:-}" != "" ]]     || fail "DB_PASSWORD missing in .env"
+[[ "${JWT_SECRET:-}" != "" ]]     || fail "JWT_SECRET missing in .env"
+[[ "${CF_TUNNEL_TOKEN:-}" != "" ]] || fail "CF_TUNNEL_TOKEN missing in .env"
 
 ok "Environment validated"
 
-# ── Data volume ─────────────────────────────────────────────────────
-mkdir -p "${DATA_DIR}"
-ok "Data directory: ${DATA_DIR}"
+# ── Fetch compose file ──────────────────────────────────────────────
+log "Fetching docker-compose.prod.yml..."
+curl -fsSL "${COMPOSE_URL}" -o "${INSTALL_DIR}/docker-compose.prod.yml"
+ok "Compose file downloaded"
 
-# ── Build & start ───────────────────────────────────────────────────
-log "Building containers (this takes a few minutes)..."
-cd "${INSTALL_DIR}"
+# ── Pull and start ──────────────────────────────────────────────────
+log "Pulling images from GHCR (this takes a few minutes)..."
 docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml build --no-cache
 docker compose -f docker-compose.prod.yml up -d
 
 ok "All services started"
@@ -125,23 +98,22 @@ fi
 # ── Summary ─────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}══════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}  HerbSt MUD deployed and running                      ${NC}"
+echo -e "${GREEN}  HerbSt MUD deployed and running (GHCR edition)       ${NC}"
 echo -e "${GREEN}══════════════════════════════════════════════════════${NC}"
 echo ""
 echo "  Install dir: ${INSTALL_DIR}"
 echo "  Data dir:    ${DATA_DIR}"
 echo "  SSH port:    4444 (host)"
+echo "  Images:      ghcr.io/samrocksc/herbst-mud-*:latest"
 echo ""
 echo "  Useful commands:"
 echo "    cd ${INSTALL_DIR}"
 echo "    docker compose -f docker-compose.prod.yml logs -f"
 echo "    docker compose -f docker-compose.prod.yml down"
 echo "    docker compose -f docker-compose.prod.yml up -d"
+echo "    docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d"
 echo ""
-echo "  Next steps:"
-echo "    1. Configure Cloudflare Tunnel routes in Zero Trust dashboard:"
-echo "       game.yourdomain.com  → http://web-client:80"
-echo "       admin.yourdomain.com → http://admin:80"
-echo "    2. Update CORS_ORIGINS in .env to your public domains"
-echo "    3. Test: ssh -p 4444 root@YOUR_DROPLET_IP"
+echo "  Update (pull latest images):"
+echo "    docker compose -f docker-compose.prod.yml pull"
+echo "    docker compose -f docker-compose.prod.yml up -d"
 echo ""

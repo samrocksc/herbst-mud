@@ -1,6 +1,6 @@
  
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost } from "../utils/apiFetch";
+import { apiGet, apiPost, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}`;
 
@@ -33,5 +33,16 @@ export function useResetPassword() {
     mutationFn: (id: number) =>
       apiPost<{ message: string }>(`${API}/users/${id}/reset-password`, {}),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+export function useDeleteCharacter() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => apiDelete<void>(`${API}/characters/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["characters"] });
+      qc.invalidateQueries({ queryKey: ["user-characters"] });
+    },
   });
 }

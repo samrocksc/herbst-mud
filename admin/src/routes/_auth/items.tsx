@@ -32,7 +32,10 @@ function ItemsIndex() {
     const counts: Record<number, number> = {};
     for (const inst of instancesQuery.data ?? []) {
       const tid = inst.equipment_template_id;
-      if (tid) counts[tid] = (counts[tid] ?? 0) + 1;
+      if (tid != null) {
+        const n = Number(tid);
+        counts[n] = (counts[n] ?? 0) + 1;
+      }
     }
     return counts;
   }, [instancesQuery.data]);

@@ -1,9 +1,8 @@
-import { createFileRoute, Link, useNavigate, Outlet, useLocation } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useLocation, Outlet } from "@tanstack/react-router";
 import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
 import { PageContainer } from "../../components/PageContainer";
 import { useRecipe } from "../../hooks/useRecipes";
-import { useWorldStore } from "../../contexts/WorldStoreContext";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeName")({
   component: RecipeDetail,
@@ -13,7 +12,6 @@ function RecipeDetail() {
   const { recipeName } = Route.useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentWorld } = useWorldStore();
 
   const recipeQuery = useRecipe(recipeName);
   const recipe = recipeQuery.data;
