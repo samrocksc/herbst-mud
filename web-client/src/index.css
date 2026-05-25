@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "./themes/themes.css";
+
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
