@@ -150,7 +150,6 @@ function NPCTemplatesIndex() {
 
   const columns = useMemo<Column<NPCTemplate>[]>(
     () => [
-      { header: "ID", accessor: "id" },
       { header: "Slug", accessor: "slug" },
       {
         header: "Name",
