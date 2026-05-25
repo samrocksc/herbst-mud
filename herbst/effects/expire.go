@@ -18,11 +18,10 @@ type expiredEffect struct {
 // expires_at is in the past, deactivates them, and fires on_effect_end events.
 func (s *Service) CheckExpiredEffects(ctx context.Context) error {
 	// Fetch expired effects for all characters
-	url := fmt.Sprintf("%s/api/effects/expired", s.restBase)
 	var result struct {
 		Expired []expiredEffect `json:"expired"`
 	}
-	if err := s.getJSON(ctx, url, &result); err != nil {
+	if err := s.getJSON(ctx, "/api/effects/expired", &result); err != nil {
 		return fmt.Errorf("check expired effects: %w", err)
 	}
 

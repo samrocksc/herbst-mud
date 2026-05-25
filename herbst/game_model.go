@@ -89,7 +89,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Viewport scrolling
-		if m.screen == ScreenPlaying {
+		if m.screen == ScreenPlaying || m.screen == ScreenCombat {
 			vp, vpCmd := m.viewport.Update(msg)
 			m.viewport = vp
 			if cmd == nil {
@@ -98,7 +98,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Message history scrolling (ctrl+p up, ctrl+n down)
-		if m.screen == ScreenPlaying {
+		if m.screen == ScreenPlaying || m.screen == ScreenCombat {
 			switch key {
 			case "ctrl+p":
 				if !m.isScrolling {
@@ -221,6 +221,17 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.createCursor = numFactions - 1
 					}
 				}
+				return m, nil
+			}
+		}
+
+		// Tab toggles between ScreenPlaying and ScreenCombat
+		if key == "tab" {
+			if m.screen == ScreenPlaying && m.inCombat {
+				m.screen = ScreenCombat
+				return m, nil
+			} else if m.screen == ScreenCombat {
+				m.screen = ScreenPlaying
 				return m, nil
 			}
 		}

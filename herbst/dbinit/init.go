@@ -221,7 +221,6 @@ func InitGizmo(client *db.Client) error {
 		SetID("gizmo").
 		SetName("Gizmo").
 		SetDescription("A friendly half-dog creature with soulful eyes and wagging tail.").
-		SetRace("half-dog").
 		SetDisposition(npctemplate.DispositionFriendly).
 		SetLevel(1).
 		SetSkills(map[string]int{}).

@@ -7,7 +7,47 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// renderCombatScreen renders the combat UI with layout matching the playing screen
+// getSkillCooldown returns the remaining cooldown for a given skill slot,
+// or 0 if not on cooldown.
+func (m *model) getSkillCooldown(slot int) int {
+	if m.combatSkills == nil || slot < 1 || slot > 5 {
+		return 0
+	}
+	skill := m.combatSkills.EquippedSkill[slot-1]
+	if skill.ID == 0 {
+		return 0
+	}
+	if cd, ok := m.combatSkills.Cooldowns[skill.ID]; ok {
+		return cd
+	}
+	return 0
+}
+
+// formatSkillSlot builds a display string for one skill slot in the HUD.
+// Shows skill name, cooldown indicator, and resource cost.
+func (m *model) formatSkillSlot(slot int) string {
+	if m.combatSkills == nil || slot < 1 || slot > 5 {
+		return "[Attack]"
+	}
+	skill := m.combatSkills.EquippedSkill[slot-1]
+	if skill.ID == 0 {
+		return "[Empty]"
+	}
+
+	name := skill.Name
+	if len(name) > 10 {
+		name = name[:10]
+	}
+
+	cd := m.getSkillCooldown(slot)
+	if cd > 0 {
+		return fmt.Sprintf("%s (%d)", name, cd)
+	}
+	return name
+}
+
+// renderCombatScreen renders the combat UI with a bottom HUD for
+// 4 skill slots + 1 potion slot, and a scrollable combat log above.
 func (m *model) renderCombatScreen() string {
 	var s strings.Builder
 
@@ -20,20 +60,17 @@ func (m *model) renderCombatScreen() string {
 		height = 24
 	}
 
-	inputHeight := height * 20 / 100
+	inputHeight := height * 15 / 100
 	if inputHeight < 3 {
 		inputHeight = 3
 	}
-	statusHeight := height * 10 / 100
-	if statusHeight < 3 {
-		statusHeight = 3
-	}
-	vpHeight := height - statusHeight - inputHeight
+	hudHeight := 7
+	vpHeight := height - hudHeight - inputHeight
 	if vpHeight < 5 {
 		vpHeight = 5
 	}
 
-	// Build combat content for viewport
+	// Build combat log content for viewport
 	var content strings.Builder
 
 	// Combat header
@@ -43,7 +80,7 @@ func (m *model) renderCombatScreen() string {
 		Background(lipgloss.Color("#2d2d2d")).
 		Padding(0, 1).
 		Width(width)
-	content.WriteString(headerStyle.Render("[ COMBAT ]"))
+	content.WriteString(headerStyle.Render(" COMBAT "))
 	content.WriteString("\n\n")
 
 	// Target info
@@ -54,11 +91,11 @@ func (m *model) renderCombatScreen() string {
 		targetMaxHP := m.combatTarget.MaxHP
 
 		targetStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#ff9f43"))
-		content.WriteString(fmt.Sprintf("You are fighting: %s (Level %d)\n",
+		content.WriteString(fmt.Sprintf("%s (Level %d)\n",
 			targetStyle.Render(targetName), targetLevel))
 
 		// Target HP bar
-		hpBar := m.renderHPBar(targetHP, targetMaxHP, width-20)
+		hpBar := m.renderHPBar(targetHP, targetMaxHP, width-24)
 		content.WriteString(fmt.Sprintf("HP: %s %d/%d\n", hpBar, targetHP, targetMaxHP))
 	}
 
@@ -69,54 +106,41 @@ func (m *model) renderCombatScreen() string {
 	playerMaxHP := m.characterMaxHP
 	playerStamina := m.characterStamina
 	playerMaxStamina := m.characterMaxStamina
+	playerMana := m.characterMana
+	playerMaxMana := m.characterMaxMana
 
 	statsStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#74b9ff"))
-	content.WriteString(fmt.Sprintf("Your HP: %s\n", statsStyle.Render(fmt.Sprintf("%d/%d", playerHP, playerMaxHP))))
-	content.WriteString(fmt.Sprintf("Stamina: %s\n\n", statsStyle.Render(fmt.Sprintf("%d/%d", playerStamina, playerMaxStamina))))
-
-	// Combat actions
-	actionStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#a29bfe"))
-	actionBox := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#636e72")).
-		Padding(0, 1).
-		Width(width - 4)
-
-	// Build action display with equipped abilities
-	slot1 := m.getAbilitySlotName(1)
-	slot2 := m.getAbilitySlotName(2)
-	slot3 := m.getAbilitySlotName(3)
-	slot4 := m.getAbilitySlotName(4)
-	potionSlot := m.getPotionSlotName()
-
-	actions := fmt.Sprintf("[1] %-10s  [2] %-10s\n[3] %-10s  [4] %-10s\n[R] %-12s  [Q] Flee",
-		slot1, slot2, slot3, slot4, potionSlot)
-	content.WriteString(actionBox.Render(actionStyle.Render(actions)))
+	hpBar := m.renderHPBar(playerHP, playerMaxHP, width-24)
+	staBar := m.renderHPBar(playerStamina, playerMaxStamina, width-24)
+	manaBar := m.renderHPBar(playerMana, playerMaxMana, width-24)
+	content.WriteString(fmt.Sprintf("HP:   %s %d/%d\n", hpBar, playerHP, playerMaxHP))
+	content.WriteString(fmt.Sprintf("STA:  %s %d/%d\n", staBar, playerStamina, playerMaxStamina))
+	content.WriteString(fmt.Sprintf("MANA: %s %d/%d\n", statsStyle.Render(manaBar), playerMana, playerMaxMana))
 	content.WriteString("\n")
 
 	// Queued action indicator
 	if m.combatQueuedAction != "" {
 		queueStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#00b894")).Bold(true)
-		content.WriteString(queueStyle.Render(fmt.Sprintf("  > Queued: %s", m.combatQueuedAction)))
-		content.WriteString("\n")
+		content.WriteString(queueStyle.Render(fmt.Sprintf("> Queued: %s", m.combatQueuedAction)))
+		content.WriteString("\n\n")
 	}
-
-	// Tick indicator
-	tickStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#fdcb6e"))
-	content.WriteString(tickStyle.Render("  > Tick combat active (1.5s intervals)"))
-	content.WriteString("\n\n")
 
 	// Combat log
 	if len(m.combatLog) > 0 {
 		logStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#dfe6e9"))
 		content.WriteString(logStyle.Render("Combat Log:"))
 		content.WriteString("\n")
-		for i := len(m.combatLog) - 1; i >= 0 && i >= len(m.combatLog)-8; i-- {
+		maxLines := 10
+		startIdx := len(m.combatLog) - maxLines
+		if startIdx < 0 {
+			startIdx = 0
+		}
+		for i := startIdx; i < len(m.combatLog); i++ {
 			content.WriteString(fmt.Sprintf("  %s\n", m.combatLog[i]))
 		}
 	}
 
-	// Render viewport with combat content
+	// Render viewport
 	viewportStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(pink).
@@ -132,20 +156,8 @@ func (m *model) renderCombatScreen() string {
 	s.WriteString(viewportStyle.Render(m.viewport.View()))
 	s.WriteString("\n")
 
-	// Status bar (use red heart always in combat)
-	statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana, false)
-	debugInfo := ""
-	if m.debugMode {
-		debugInfo = " " + lipgloss.NewStyle().Foreground(yellow).Bold(true).Render(fmt.Sprintf("[Combat: %d]", m.combatID))
-	}
-	statusBarStyle := lipgloss.NewStyle().
-		Foreground(pink).
-		Background(lipgloss.Color("235")).
-		Bold(true).
-		Width(width).
-		Padding(0, 1)
-	s.WriteString(statusBarStyle.Render(statsLine + debugInfo))
-	s.WriteString("\n")
+	// Skill HUD bar
+	s.WriteString(m.renderCombatHUD(width))
 
 	// Input area
 	inputStyle := lipgloss.NewStyle().
@@ -154,9 +166,65 @@ func (m *model) renderCombatScreen() string {
 		Padding(0, 1).
 		Width(width).
 		Height(inputHeight - 2)
-	s.WriteString(inputStyle.Render(promptStyle.Render("Action: ") + m.textInput.View()))
+	actionPrompt := lipgloss.NewStyle().Foreground(lipgloss.Color("#ff6b6b")).Render("Action: ")
+	s.WriteString(inputStyle.Render(actionPrompt + m.textInput.View()))
 
 	return s.String()
+}
+
+// renderCombatHUD builds the skill + potion HUD bar shown during combat.
+// Layout: [1 Skill1] [2 Skill2] [3 Skill3] [4 Skill4] | [5 Potion]
+func (m *model) renderCombatHUD(width int) string {
+	hudStyle := lipgloss.NewStyle().
+		Background(lipgloss.Color("236")).
+		Foreground(lipgloss.Color("252")).
+		Width(width).
+		Padding(0, 1)
+
+	// Build each skill slot
+	slots := make([]string, 4)
+	for i := 1; i <= 4; i++ {
+		name := m.formatSkillSlot(i)
+		cd := m.getSkillCooldown(i)
+		keyLabel := fmt.Sprintf("%d", i)
+
+		var slotStr string
+		if cd > 0 {
+			// On cooldown: dim the slot
+			slotStr = fmt.Sprintf("[%s] %s (CD:%d)", keyLabel, lipgloss.NewStyle().Foreground(lipgloss.Color("244")).Render(name), cd)
+		} else if m.combatSkills != nil && m.combatSkills.EquippedSkill[i-1].ID != 0 {
+			// Available: bright
+			slotStr = fmt.Sprintf("[%s] %s", lipgloss.NewStyle().Foreground(lipgloss.Color("#74b9ff")).Bold(true).Render(keyLabel), lipgloss.NewStyle().Foreground(lipgloss.Color("#00b894")).Render(name))
+		} else {
+			// Empty
+			slotStr = fmt.Sprintf("[%s] %s", lipgloss.NewStyle().Foreground(lipgloss.Color("243")).Render(keyLabel), lipgloss.NewStyle().Foreground(lipgloss.Color("243")).Render(name))
+		}
+		slots[i-1] = slotStr
+	}
+
+	// Potion slot (key 5)
+	potionName := m.getPotionSlotName()
+	potionStr := fmt.Sprintf("[5] %s", lipgloss.NewStyle().Foreground(lipgloss.Color("#fdcb6e")).Render(potionName))
+
+	// Separator
+	sep := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("|")
+
+	// Assemble: skills | potion | Tab hint
+	hudLine := fmt.Sprintf("%s  %s  %s  %s  %s  %s",
+		slots[0], slots[1], slots[2], slots[3], sep, potionStr)
+
+	// Tab toggle hint
+	tabHint := lipgloss.NewStyle().Foreground(lipgloss.Color("243")).Render("Tab:room")
+	hudLine += "  " + tabHint
+
+	// Flee hint
+	fleeHint := lipgloss.NewStyle().Foreground(lipgloss.Color("#ff6b6b")).Render("Q:flee")
+	hudLine += " " + fleeHint
+
+	// Second line: prompt hint
+	promptLine := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("1-5:use skill  R:potion  Tab:switch view  Q:flee")
+
+	return hudStyle.Render(hudLine) + "\n" + hudStyle.Render(promptLine)
 }
 
 // renderHPBar renders a visual HP bar

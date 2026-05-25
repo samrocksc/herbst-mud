@@ -720,9 +720,14 @@ func (m *model) handleCombatInput(key string) {
 		m.useAbilitySlot(3)
 	case "4":
 		m.useAbilitySlot(4)
+	case "5":
+		// Slot 5 is potion shortcut
+		m.useHealthPotion()
 	case "r":
 		m.useHealthPotion()
 	case "q":
 		m.combatFlee()
+	case "tab":
+		m.screen = ScreenPlaying
 	}
 }
