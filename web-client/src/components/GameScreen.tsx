@@ -4,10 +4,11 @@ import { type Character, type Ability, getCharacterAbilities, listClasslessAbili
 import { type CharacterSkill, type CharacterPanelTab, type InventoryItem, type RoomScreenPayload } from "../lib/types";
 import { useMUDSocket } from "../hooks/useMUDSocket";
 import { Button } from "../ui";
+import { useCombatEngine } from "../hooks/useCombatEngine";
+import CombatScreen from "./CombatScreen";
 import Scrollback from "./Scrollback";
 import RoomScreen from "./RoomScreen";
 import HotkeyBar from "./HotkeyBar";
-import CombatHUD from "./CombatHUD";
 import InputBar from "./InputBar";
 import CharacterPanel from "./CharacterPanel";
 
@@ -19,14 +20,8 @@ export type GameScreenProps = {
 };
 
 const HOTKEY_BINDINGS: Record<string, string> = {
-  1: "attack",
-  2: "flee",
-  3: "hide",
-  4: "backstab",
-  5: "concentrate",
   l: "look",
   e: "examine",
-  q: "quit",
   r: "use potion",
 };
 
@@ -63,6 +58,38 @@ export default function GameScreen({
   combatModeRef.current = combatMode;
   const [pendingTargets, setPendingTargets] = useState<Set<number>>(new Set());
   const [potionCount] = useState(0);
+
+  const {
+    inCombat,
+    targets: combatTargets,
+    combatLog,
+    round: combatRound,
+    queuedAction,
+    playerHP: combatPlayerHP,
+    startCombat,
+    queueAction,
+  } = useCombatEngine({
+    characterID: character.id,
+    characterLevel: character.level,
+    characterStrength: 10, // TODO: fetch from server
+    initialHP: character.hitpoints,
+    initialMaxHP: character.max_hitpoints,
+    skills,
+    onLog: (text, kind) => {
+      const styleMap: Record<string, "system" | "output" | "error" | "input" | "ping"> = {
+        hit: "output", crit: "output", miss: "output", heal: "output",
+        system: "system", queue: "system", flee: "output", defeat: "error",
+      };
+      pushLocal(text, styleMap[kind] ?? "output");
+    },
+    onCombatEnd: () => {
+      pushLocal("Combat ended.", "system");
+      handleSubmit("look");
+    },
+    onPlayerHPChange: (hp) => {
+      void hp;
+    },
+  });
 
   const loadAbilities = useCallback(async () => {
     try {
@@ -124,16 +151,17 @@ export default function GameScreen({
     });
   }, []);
 
-  const handleConfirmAttack = useCallback((char: RoomScreenPayload["characters"][number]) => {
-    const cmd = `attack ${char.name}`;
-    pushLocal(`> ${cmd}`, "input");
-    send("command", cmd);
-    setPendingTargets((prev) => {
-      const next = new Set(prev);
-      next.delete(char.id);
-      return next;
-    });
-  }, [send, pushLocal]);
+  const handleConfirmAttack = useCallback(
+    async (char: RoomScreenPayload["characters"][number]) => {
+      setPendingTargets((prev) => {
+        const next = new Set(prev);
+        next.delete(char.id);
+        return next;
+      });
+      await startCombat([{ id: char.id, name: char.name, hp: 0, maxHp: 0 }]);
+    },
+    [startCombat]
+  );
 
   void worldName;
 
@@ -205,42 +233,38 @@ export default function GameScreen({
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
       const key = e.key.toLowerCase();
-      if (key === "i") {
-        e.preventDefault();
-        openPanel("inventory");
-        return;
-      }
-      if (key === "s") {
-        e.preventDefault();
-        openPanel("skills");
-        return;
-      }
-      if (key === "a") {
-        e.preventDefault();
-        openPanel("abilities");
-        return;
-      }
-      if (key === "tab") {
-        e.preventDefault();
-        setCombatMode((v) => !v);
-        return;
-      }
-      if (key >= "1" && key <= "5") {
-        // CombatHUD handles 1-5; pass through only in adventurer mode
-        if (!combatModeRef.current) {
+
+      if (inCombat) {
+        if (key >= "1" && key <= "4") {
           e.preventDefault();
-          handleSubmit(HOTKEY_BINDINGS[key] ?? "");
+          const sk = skills.find((s) => s.slot === Number(key));
+          queueAction(sk?.name ?? "attack");
+          return;
         }
-        return;
+        if (key === "5" || key === "r") {
+          e.preventDefault();
+          queueAction("use potion");
+          return;
+        }
+        if (key === "f") {
+          e.preventDefault();
+          queueAction("flee");
+          return;
+        }
+        return; // block all other keys in combat
       }
-      if (HOTKEY_BINDINGS[key]) {
-        e.preventDefault();
-        handleSubmit(HOTKEY_BINDINGS[key]);
-      }
+
+      if (key === "i") { e.preventDefault(); openPanel("inventory"); return; }
+      if (key === "s") { e.preventDefault(); openPanel("skills"); return; }
+      if (key === "a") { e.preventDefault(); openPanel("abilities"); return; }
+      if (key === "tab") { e.preventDefault(); setCombatMode((v) => !v); return; }
+      if (key === "l") { e.preventDefault(); handleSubmit("look"); return; }
+      if (key === "e") { e.preventDefault(); handleSubmit("examine"); return; }
+      if (HOTKEY_BINDINGS[key]) { e.preventDefault(); handleSubmit(HOTKEY_BINDINGS[key]); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [handleSubmit, openPanel]);
+  }, [handleSubmit, openPanel, inCombat, queueAction, skills]);
 
   const handleHotkey = useCallback(
     (slot: string) => {
@@ -313,7 +337,7 @@ export default function GameScreen({
                 ? "\u25d0 connecting..."
                 : "\u25cb offline"}
           </span>
-          <Button variant="ghost" size="sm" onClick={() => setCombatMode((v) => !v)} title="Toggle combat mode (Tab)">
+          <Button variant="ghost" size="sm" onClick={() => setCombatMode((v) => !v)} disabled={inCombat} title="Toggle combat mode (Tab)">
             {combatMode ? "⚔️" : "🛡️"}
           </Button>
           <Button variant="ghost" size="sm" onClick={toggle}>
@@ -341,7 +365,28 @@ export default function GameScreen({
             <Scrollback lines={lines} />
           </div>
 
-          {roomScreen ? (
+          {inCombat ? (
+            <CombatScreen
+              round={combatRound}
+              targets={combatTargets}
+              combatLog={combatLog}
+              queuedAction={queuedAction}
+              playerHP={combatPlayerHP}
+              playerMaxHP={character.max_hitpoints}
+              playerStamina={character.stamina}
+              playerMaxStamina={character.max_stamina}
+              playerMana={character.mana}
+              playerMaxMana={character.max_mana}
+              skills={skills}
+              potionCount={potionCount}
+              onSkill={(slot) => {
+                const sk = skills.find((s) => s.slot === slot);
+                queueAction(sk?.name ?? "attack");
+              }}
+              onPotion={() => queueAction("use potion")}
+              onFlee={() => queueAction("flee")}
+            />
+          ) : roomScreen ? (
             <RoomScreen
               room={roomScreen}
               onTapExit={handleTapExit}
@@ -401,17 +446,7 @@ export default function GameScreen({
         </div>
       )}
 
-      {combatMode ? (
-        <CombatHUD
-          skills={skills}
-          potionCount={potionCount}
-          onSkill={(slot) => {
-            const sk = skills.find((s) => s.slot === slot);
-            if (sk?.name) handleSubmit(sk.name);
-          }}
-          onPotion={() => handleSubmit("use potion")}
-        />
-      ) : (
+      {!inCombat && (
         <HotkeyBar onActivate={handleHotkey} skills={skills} />
       )}
 
