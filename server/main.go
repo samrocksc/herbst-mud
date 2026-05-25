@@ -100,9 +100,17 @@ func main() {
 	// Initialize async log handler (LOGS-002, LOGS-003)
 	dbLogHandler := dblog.NewDBHandler(client, nil)
 	dbLogHandler.SetBroadcastFunc(routes.BroadcastLogLine)
-	multiHandler := slogmulti{stdout: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}), db: dbLogHandler}
+	minLevel := slog.LevelError
+	if isDev := os.Getenv("DATABASE_URL") == ""; isDev {
+		minLevel = slog.LevelDebug
+	}
+	multiHandler := slogmulti{
+		stdout: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: minLevel}),
+		db:     dbLogHandler,
+	}
 	multiLogger := slog.New(multiHandler)
 	slog.SetDefault(multiLogger)
+	dblog.Logger = multiLogger
 	defer dbLogHandler.GracefulShutdown()
 
 	// Apply database fixes (converts old data types, sets invincible NPCs, etc.)
@@ -168,7 +176,8 @@ func main() {
 	router.Use(func(c *gin.Context) {
 		c.Next()
 		if c.Writer.Status() >= 500 {
-			slog.Error("server error",
+			msg := fmt.Sprintf("%s %s returned %d", c.Request.Method, c.Request.URL.Path, c.Writer.Status())
+			slog.Error(msg,
 				"path", c.Request.URL.Path,
 				"method", c.Request.Method,
 				"status", c.Writer.Status(),
@@ -177,14 +186,20 @@ func main() {
 	})
 
 	// CORS middleware - configurable origins for security
-	allowedOrigins := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")
+	// Empty CORS_ORIGINS = development mode: mirror any origin back
+	allowedOrigins := getEnv("CORS_ORIGINS", "")
 	router.Use(func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 		allowed := false
-		for _, o := range strings.Split(allowedOrigins, ",") {
-			if strings.TrimSpace(o) == origin || origin == "" {
-				allowed = true
-				break
+		if allowedOrigins == "" {
+			// Dev mode: echo back whatever origin the client sends
+			allowed = origin != ""
+		} else {
+			for _, o := range strings.Split(allowedOrigins, ",") {
+				if strings.TrimSpace(o) == origin || origin == "" {
+					allowed = true
+					break
+				}
 			}
 		}
 		if allowed {
@@ -192,6 +207,7 @@ func main() {
 		}
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
@@ -261,8 +277,7 @@ func main() {
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware(client))
 	{
-		// Add protected character routes here
-		// Example: protected.PUT("/characters/:id", ...)
+		routes.RegisterMeRoutes(protected, services, repos)
 	}
 
 	// Register equipment routes (GitHub #89 - Item system)
@@ -407,6 +422,9 @@ func main() {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(http.StatusOK, swaggerUI)
 	})
+
+	// Register WebSocket endpoint (Phase 4)
+	routes.RegisterWSRoutes(router, repos, client)
 
 	// Start the server
 	router.Run("0.0.0.0:8080")

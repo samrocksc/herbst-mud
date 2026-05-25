@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/db/character"
 	"herbst-server/db/room"
 )
@@ -86,7 +87,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		// Query all worlds from the database
 		worlds, err := client.World.Query().All(c.Request.Context())
 		if err != nil {
-			slog.Error("Failed to fetch worlds", "error", err.Error(), "path", "/admin/export/worlds")
+			dblog.Error("Failed to fetch worlds", err, slog.String("path", "/admin/export/worlds"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch worlds: " + err.Error()})
 			return
 		}
@@ -159,7 +160,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		}
 		rooms, err := roomsQuery.All(c.Request.Context())
 		if err != nil {
-			slog.Error("Failed to fetch rooms for export", "error", err.Error(), "path", "/admin/export")
+			dblog.Error("Failed to fetch rooms for export", err, slog.String("path", "/admin/export"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch rooms: " + err.Error()})
 			return
 		}

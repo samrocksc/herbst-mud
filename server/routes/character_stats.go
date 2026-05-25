@@ -2,11 +2,12 @@ package routes
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/constants"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 	"herbst-server/service"
 )
@@ -212,7 +213,7 @@ func getCharacterSkills(repos *repository.Container, svc *service.Container) gin
 		}
 		abilitiesWithElig, err := svc.AbilityEligibility.AbilitiesForCharacterWithEligibility(c.Request.Context(), id)
 		if err != nil {
-			log.Printf("[abilities] eligibility check failed for character %d: %v", id, err)
+			dblog.Error("eligibility check failed", err, slog.Int("character_id", id))
 		}
 		factionAbilities := make([]gin.H, 0)
 		if err == nil {

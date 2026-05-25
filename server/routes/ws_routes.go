@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -139,7 +140,7 @@ func buildRoomScreen(ctx context.Context, roomID int, worldID string, repos *rep
 	var chars []CharInfo
 	rmChars, err := repos.Character.ListByRoom(ctx, roomID)
 	if err != nil {
-		slog.Error("buildRoomScreen: failed to list characters", "error", err, "room_id", roomID)
+		dblog.Error("buildRoomScreen: failed to list characters", err, slog.Int("room_id", roomID))
 	} else {
 		for _, ch := range rmChars {
 			chType := "player"
@@ -166,7 +167,7 @@ func buildRoomScreen(ctx context.Context, roomID int, worldID string, repos *rep
 	var items []ItemInfo = []ItemInfo{}
 	rmItems, err := repos.Equipment.ListByRoom(ctx, roomID)
 	if err != nil {
-		slog.Error("buildRoomScreen: failed to list equipment", "error", err, "room_id", roomID)
+		dblog.Error("buildRoomScreen: failed to list equipment", err, slog.Int("room_id", roomID))
 	} else {
 		for _, it := range rmItems {
 			items = append(items, ItemInfo{
@@ -252,7 +253,7 @@ func wsHandler(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 		// Upgrade to WebSocket
 		ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			slog.Error("ws upgrade failed", "error", err)
+			dblog.Error("ws upgrade failed", err)
 			return
 		}
 		defer ws.Close()
@@ -447,12 +448,12 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 		ctx := context.Background()
 		char, err := repos.Character.Get(ctx, wsc.CharacterID)
 		if err != nil {
-			slog.Error("look command: failed to get character", "error", err, "character_id", wsc.CharacterID)
+			dblog.Error("look command: failed to get character", err, slog.Int("character_id", wsc.CharacterID))
 			return "You look around, but your surroundings refuse to come into focus."
 		}
 		roomScreen, err := buildRoomScreen(ctx, char.CurrentRoomId, char.CurrentWorld, repos)
 		if err != nil {
-			slog.Error("look command: failed to build room screen", "error", err, "room_id", char.CurrentRoomId)
+			dblog.Error("look command: failed to build room screen", err, slog.Int("room_id", char.CurrentRoomId))
 		} else {
 			sendScreen(wsc, roomScreen)
 		}
@@ -477,13 +478,13 @@ func tryMove(dir string, wsc *WSConn, repos *repository.Container, client *db.Cl
 
 	char, err := repos.Character.Get(ctx, wsc.CharacterID)
 	if err != nil {
-		slog.Error("tryMove: failed to get character", "error", err, "character_id", wsc.CharacterID)
+		dblog.Error("tryMove: failed to get character", err, slog.Int("character_id", wsc.CharacterID))
 		return "Cannot find your character."
 	}
 
 	rm, err := repos.Room.Get(ctx, char.CurrentRoomId)
 	if err != nil {
-		slog.Error("tryMove: failed to get room", "error", err, "room_id", char.CurrentRoomId)
+		dblog.Error("tryMove: failed to get room", err, slog.Int("room_id", char.CurrentRoomId))
 		return "You can't figure out where you are."
 	}
 
@@ -498,14 +499,14 @@ func tryMove(dir string, wsc *WSConn, repos *repository.Container, client *db.Cl
 		CurrentRoomID: &targetID,
 	})
 	if err != nil {
-		slog.Error("tryMove: failed to update character room", "error", err, "character_id", char.ID, "target_room", targetID)
+		dblog.Error("tryMove: failed to update character room", err, slog.Int("character_id", char.ID), slog.Int("target_room", targetID))
 		return "Something prevents you from moving."
 	}
 
 	// Send new room screen
 	roomScreen, err := buildRoomScreen(ctx, targetID, char.CurrentWorld, repos)
 	if err != nil {
-		slog.Error("tryMove: failed to build new room screen", "error", err, "room_id", targetID)
+		dblog.Error("tryMove: failed to build new room screen", err, slog.Int("room_id", targetID))
 		return fmt.Sprintf("You move %s, but the new room refuses to resolve.", dir)
 	}
 
@@ -519,14 +520,14 @@ func tryTalk(targetName string, wsc *WSConn, repos *repository.Container) string
 	ctx := context.Background()
 	char, err := repos.Character.Get(ctx, wsc.CharacterID)
 	if err != nil {
-		slog.Error("tryTalk: failed to get character", "error", err, "character_id", wsc.CharacterID)
+		dblog.Error("tryTalk: failed to get character", err, slog.Int("character_id", wsc.CharacterID))
 		return "You try to talk, but something is wrong with your character."
 	}
 
 	// Find NPC by name in current room (case-insensitive contains match)
 	roomChars, err := repos.Character.ListByRoom(ctx, char.CurrentRoomId)
 	if err != nil {
-		slog.Error("tryTalk: failed to list room characters", "error", err, "room_id", char.CurrentRoomId)
+		dblog.Error("tryTalk: failed to list room characters", err, slog.Int("room_id", char.CurrentRoomId))
 		return fmt.Sprintf("You try to talk to %s, but can't see anyone here.", targetName)
 	}
 
@@ -548,7 +549,7 @@ func tryTalk(targetName string, wsc *WSConn, repos *repository.Container) string
 
 	tmpl, err := repos.NPCTemplate.Get(ctx, targetNPC.NpcTemplateID)
 	if err != nil {
-		slog.Error("tryTalk: failed to get NPC template", "error", err, "template_id", targetNPC.NpcTemplateID)
+		dblog.Error("tryTalk: failed to get NPC template", err, slog.String("template_id", targetNPC.NpcTemplateID))
 		return fmt.Sprintf("%s seems unable to speak right now.", targetNPC.Name)
 	}
 
@@ -564,14 +565,14 @@ func tryAttack(targetName string, wsc *WSConn, repos *repository.Container, clie
 	ctx := context.Background()
 	char, err := repos.Character.Get(ctx, wsc.CharacterID)
 	if err != nil {
-		slog.Error("tryAttack: failed to get character", "error", err, "character_id", wsc.CharacterID)
+		dblog.Error("tryAttack: failed to get character", err, slog.Int("character_id", wsc.CharacterID))
 		return "You try to attack, but something is wrong with your character."
 	}
 
 	// Find NPC by name in current room
 	roomChars, err := repos.Character.ListByRoom(ctx, char.CurrentRoomId)
 	if err != nil {
-		slog.Error("tryAttack: failed to list room characters", "error", err, "room_id", char.CurrentRoomId)
+		dblog.Error("tryAttack: failed to list room characters", err, slog.Int("room_id", char.CurrentRoomId))
 		return fmt.Sprintf("You swing at empty air — %s is not here.", targetName)
 	}
 
@@ -619,7 +620,7 @@ func tryAttack(targetName string, wsc *WSConn, repos *repository.Container, clie
 		Hitpoints: &newHP,
 	})
 	if err != nil {
-		slog.Error("tryAttack: failed to apply damage", "error", err, "npc_id", targetNPC.ID, "damage", damage)
+		dblog.Error("tryAttack: failed to apply damage", err, slog.Int("npc_id", targetNPC.ID), slog.Int("damage", damage))
 		return fmt.Sprintf("You swing your weapon, but your blow seems to pass through %s!", targetNPC.Name)
 	}
 
@@ -630,7 +631,7 @@ func tryAttack(targetName string, wsc *WSConn, repos *repository.Container, clie
 			full := maxHP
 			_, healErr := repos.Character.Update(context.Background(), npcID, repository.CharacterUpdates{Hitpoints: &full})
 			if healErr != nil {
-				slog.Error("training dummy auto-heal failed", "error", healErr, "npc_id", npcID)
+				dblog.Error("training dummy auto-heal failed", healErr, slog.Int("npc_id", npcID))
 			}
 		}(targetNPC.ID, targetNPC.MaxHitpoints)
 	}
