@@ -116,16 +116,13 @@ export function Sidebar({
   return (
     <nav
       className={[
-        "fixed inset-y-0 z-50 flex flex-col bg-surface",
-        // Position: right edge on mobile, left edge on desktop
-        "right-0 md:left-0 md:right-auto",
-        // Border: left border on mobile (drawer's left edge), right on desktop
-        "border-l border-border md:border-r md:border-l-0",
+        "fixed inset-y-0 left-0 z-50 flex flex-col bg-surface",
+        "border-r border-border",
         "transform transition-transform duration-300 ease-in-out",
-        // Mobile: slide from right; desktop: always visible
-        !mobileOpen && "translate-x-full md:translate-x-0",
+        // Mobile: slide from left; desktop: always visible
+        !mobileOpen && "-translate-x-full md:translate-x-0",
         mobileOpen && "translate-x-0",
-        // Width: mobile full-screen, desktop sidebar
+        // Width
         "w-full md:w-[64px]",
         collapsed ? "lg:w-[64px]" : "lg:w-[220px]",
       ].filter(Boolean).join(" ")}
