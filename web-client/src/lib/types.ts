@@ -91,3 +91,17 @@ export type ErrorMessage = {
 };
 
 export type ServerMessage = OutputMessage | ScreenMessage | EventMessage | ErrorMessage;
+
+export type CombatTarget = {
+  readonly id: number;
+  readonly name: string;
+  readonly hp: number;
+  readonly maxHp: number;
+  readonly level?: number;
+};
+
+export type CombatLogEntry = {
+  readonly timestamp: number;
+  readonly text: string;
+  readonly kind: "hit" | "miss" | "crit" | "heal" | "system" | "queue" | "flee" | "defeat";
+};

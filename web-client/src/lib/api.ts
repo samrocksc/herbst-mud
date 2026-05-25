@@ -205,3 +205,38 @@ export async function unequipAbility(charID: number, slot: number): Promise<void
     throw new Error(err.error || "Failed to unequip ability");
   }
 }
+
+export async function getCombatStatus(charID: number): Promise<{ hp: number; maxHp: number; isNPC: boolean }> {
+  const res = await fetch(`${API_BASE}/characters/${charID}/combat-status`, { headers: headers() });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to load combat status" }));
+    throw new Error(err.error || "Failed to load combat status");
+  }
+  return res.json();
+}
+
+export async function applyDamage(charID: number, damage: number, attackerID?: number): Promise<void> {
+  const body: Record<string, unknown> = { damage };
+  if (attackerID != null && attackerID > 0) body.attacker_id = attackerID;
+  const res = await fetch(`${API_BASE}/characters/${charID}/damage`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to apply damage" }));
+    throw new Error(err.error || "Failed to apply damage");
+  }
+}
+
+export async function healCharacter(charID: number, amount: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/characters/${charID}/heal`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ amount }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to heal" }));
+    throw new Error(err.error || "Failed to heal");
+  }
+}
