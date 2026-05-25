@@ -7,40 +7,26 @@ type Props = {
 };
 
 const STATIC_SLOTS = [
-  { key: "5", label: "concentrate", color: "text-accent" },
   { key: "L", label: "look", color: "text-muted" },
   { key: "E", label: "examine", color: "text-muted" },
-  { key: "Q", label: "quit", color: "text-danger" },
   { key: "R", label: "use potion", color: "text-success" },
 ];
-
-const SKILL_SLOT_KEYS = ["1", "2", "3", "4"];
 
 function buildSlots(skills?: readonly CharacterSkill[]) {
   const skillMap = new Map(
     skills?.map((sk) => [sk.slot, sk] as const) ?? [],
   );
 
-  const skillSlots = SKILL_SLOT_KEYS.map((key, idx) => {
-    const slot = idx + 1;
+  const skillSlots = [1, 2, 3, 4].map((slot) => {
     const sk = skillMap.get(slot);
     return {
-      key,
+      key: String(slot),
       label: sk?.name ?? "\u2014",
       color: sk?.name ? "text-accent" : "text-muted",
     };
   });
 
-  const staticSlots = STATIC_SLOTS.map((s) => {
-    const numKey = Number(s.key);
-    const sk = Number.isNaN(numKey) ? undefined : skillMap.get(numKey);
-    if (sk?.name) {
-      return { key: s.key, label: sk.name, color: "text-accent" };
-    }
-    return s;
-  });
-
-  return [...skillSlots, ...staticSlots];
+  return [...skillSlots, ...STATIC_SLOTS];
 }
 
 export default function HotkeyBar({ onActivate, skills }: Readonly<Props>) {
