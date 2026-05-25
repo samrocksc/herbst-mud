@@ -37,7 +37,7 @@ function RootComponent() {
               size="sm"
               onClick={() => setMobileSidebarOpen(true)}
               aria-label="Open menu"
-              className="fixed top-3 left-3 z-40 p-2 bg-surface border border-border text-text-muted hover:bg-surface-muted hover:text-text md:hidden"
+              className="fixed top-3 right-3 z-40 p-2 bg-surface border border-border text-text-muted hover:bg-surface-muted hover:text-text md:hidden"
             >
               <MenuIcon stroke="currentColor" />
             </Button>
@@ -57,9 +57,9 @@ function RootComponent() {
               />
             )}
 
-            <main className={`flex-1 overflow-auto bg-surface-muted pl-14 pt-3 md:pl-0 md:pt-0 md:ml-16 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[220px]'}`}>
+            <div className={`min-h-[100dvh] bg-surface-muted pt-14 px-4 md:pt-0 md:px-0 md:ml-16 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[220px]'}`}>
               <Outlet />
-            </main>
+            </div>
           </div>
         </ErrorBoundary>
       </ToastProvider>
