@@ -7,6 +7,9 @@ type Props = {
   onCommand: (cmd: string) => void
   expandedId: string | null
   onToggleExpand: (id: string) => void
+  pendingTargets: Set<number>
+  onTogglePending: (id: number) => void
+  onConfirmAttack: (char: RoomScreenPayload["characters"][number]) => void
 };
 
 export default function RoomScreen({
@@ -15,17 +18,38 @@ export default function RoomScreen({
   onCommand,
   expandedId,
   onToggleExpand,
+  pendingTargets,
+  onTogglePending,
+  onConfirmAttack,
 }: Props) {
   const characterActions = (char: RoomScreenPayload["characters"][number]): EntityAction[] => {
-    const actions: EntityAction[] = [];
-    if (char.hostile) {
-      actions.push({ label: "Attack", variant: "danger", onClick: () => onCommand(`attack ${char.name}`) });
+  const actions: EntityAction[] = [];
+
+  if (char.hostile) {
+    actions.push({
+      label: "Attack",
+      variant: "danger",
+      onClick: () => onConfirmAttack(char),
+    });
+  } else {
+    if (pendingTargets.has(char.id)) {
+      actions.push({
+        label: "Confirm",
+        variant: "danger",
+        onClick: () => onConfirmAttack(char),
+      });
     } else {
-      actions.push({ label: "Talk", variant: "success", onClick: () => onCommand(`talk ${char.name}`) });
+      actions.push({
+        label: "Attack",
+        variant: "danger",
+        onClick: () => onTogglePending(char.id),
+      });
     }
-    actions.push({ label: "Examine", variant: "secondary", onClick: () => onCommand(`examine ${char.name}`) });
-    return actions;
-  };
+    actions.push({ label: "Talk", variant: "success", onClick: () => onCommand(`talk ${char.name}`) });
+  }
+  actions.push({ label: "Examine", variant: "secondary", onClick: () => onCommand(`examine ${char.name}`) });
+  return actions;
+};
 
   const itemActions = (item: RoomScreenPayload["items"][number]): EntityAction[] => {
     const actions: EntityAction[] = [

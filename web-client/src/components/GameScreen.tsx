@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useTheme } from "../lib/theme";
 import { type Character, type Ability, getCharacterAbilities, listClasslessAbilities, equipAbility, unequipAbility } from "../lib/api";
-import { type CharacterSkill, type CharacterPanelTab, type InventoryItem } from "../lib/types";
+import { type CharacterSkill, type CharacterPanelTab, type InventoryItem, type RoomScreenPayload } from "../lib/types";
 import { useMUDSocket } from "../hooks/useMUDSocket";
 import { Button } from "../ui";
 import Scrollback from "./Scrollback";
@@ -61,8 +61,8 @@ export default function GameScreen({
   const [combatMode, setCombatMode] = useState(false);
   const combatModeRef = useRef(combatMode);
   combatModeRef.current = combatMode;
-  const [potionCount, setPotionCount] = useState(0);
-  void setPotionCount;
+  const [pendingTargets, setPendingTargets] = useState<Set<number>>(new Set());
+  const [potionCount] = useState(0);
 
   const loadAbilities = useCallback(async () => {
     try {
@@ -112,7 +112,31 @@ export default function GameScreen({
     setExpandedRoomId((prev) => (prev === id ? null : id));
   }, []);
 
+  const handleTogglePending = useCallback((id: number) => {
+    setPendingTargets((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleConfirmAttack = useCallback((char: RoomScreenPayload["characters"][number]) => {
+    const cmd = `attack ${char.name}`;
+    pushLocal(`> ${cmd}`, "input");
+    send("command", cmd);
+    setPendingTargets((prev) => {
+      const next = new Set(prev);
+      next.delete(char.id);
+      return next;
+    });
+  }, [send, pushLocal]);
+
   void worldName;
+
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const { hostname, port } = window.location;
@@ -324,6 +348,9 @@ export default function GameScreen({
               onCommand={handleSubmit}
               expandedId={expandedRoomId}
               onToggleExpand={handleToggleExpand}
+              pendingTargets={pendingTargets}
+              onTogglePending={handleTogglePending}
+              onConfirmAttack={handleConfirmAttack}
             />
           ) : (
             <div className="shrink-0 bg-surface border-t border-border px-3 py-4 text-center text-xs text-muted">
