@@ -24,19 +24,20 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <ErrorBoundary>
-          <div className="flex h-screen bg-white">
-            {/* Mobile hamburger button — Opens top-down sidebar/nav */}
+          <div className="flex min-h-[100dvh] bg-surface-muted">
+            {/* Mobile hamburger button */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setMobileSidebarOpen(true)}
               aria-label="Open menu"
-              className="fixed top-3 left-3 z-50 p-2 bg-surface border border-border text-text-muted hover:bg-surface-muted hover:text-text md:hidden"
+              className="fixed top-3 left-3 z-[60] p-2 bg-surface border border-border text-text-muted hover:bg-surface-muted hover:text-text md:hidden"
             >
               <MenuIcon stroke="currentColor" />
             </Button>
@@ -44,17 +45,19 @@ function RootComponent() {
             <Sidebar
               mobileOpen={mobileSidebarOpen}
               onMobileClose={() => setMobileSidebarOpen(false)}
+              collapsed={sidebarCollapsed}
+              onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
             />
 
             {/* Mobile backdrop */}
             {mobileSidebarOpen && (
               <div
-                className="fixed inset-0 bg-black/30 z-30 md:hidden"
+                className="fixed inset-0 bg-black/30 z-50 md:hidden"
                 onClick={() => setMobileSidebarOpen(false)}
               />
             )}
 
-            <main className="flex-1 overflow-auto bg-surface-muted">
+            <main className={`flex-1 overflow-auto bg-surface-muted transition-all duration-300 ease-in-out md:ml-16 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[220px]'}`}>
               <Outlet />
             </main>
           </div>

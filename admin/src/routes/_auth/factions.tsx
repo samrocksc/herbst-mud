@@ -61,8 +61,8 @@ function FactionsManagement() {
   if (loading) return <div className="p-8 text-text">Loading...</div>;
 
   return (
-    <div className="flex h-screen bg-surface">
-      <div className="w-[280px] bg-surface-muted border-r border-border flex flex-col">
+    <div className="flex h-full min-h-[100dvh] bg-surface">
+      <div className="w-[280px] bg-surface-muted border-r border-border flex flex-col shrink-0 overflow-y-auto">
         <TabBar tab={tab} setTab={setTab} />
         {tab === "factions" && (
           <FactionSidebar factions={factions} searchQuery={searchQuery} setSearchQuery={setSearchQuery}

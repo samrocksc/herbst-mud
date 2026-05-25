@@ -8,8 +8,6 @@ import { MapToolbar } from "../components/map/MapToolbar";
 import { MapCanvas } from "../components/map/MapCanvas";
 import { RoomDetailPanel } from "../components/map/RoomDetailPanel";
 import { RoomEditor } from "../components/map/RoomEditor";
-import { MenuIcon } from "../components/icons/MenuIcon";
-import { Button } from "../components/Button";
 
 export const Route = createFileRoute("/map/")({
   component: MapBuilder,
@@ -28,33 +26,24 @@ function MapBuilder() {
   if (state.roomsLoading) return <div className="p-8 text-text">Loading map...</div>;
 
   return (
-    <div className="flex h-screen bg-surface">
-      <Button
-        variant="ghost" size="sm"
-        onClick={() => state.setSidebarOpen(true)}
-        aria-label="Open map sidebar"
-        className="fixed top-3 left-3 z-50 p-2 bg-surface border border-border text-text-muted hover:bg-surface-muted hover:text-text lg:hidden"
-      >
-        <MenuIcon stroke="currentColor" />
-      </Button>
-
-      <div className={["lg:block lg:relative lg:inset-auto lg:z-auto", state.sidebarOpen ? "block" : "hidden"].join(" ")}>
-        <div className="fixed inset-y-0 left-0 z-40 lg:static">
-          <MapSidebar
-            rooms={state.rooms}
-            npcs={state.npcs}
-            zLevels={state.zLevels}
-            currentZLevel={state.currentZLevel}
-            selectedRoom={state.selectedRoom}
-            setCurrentZLevel={state.setCurrentZLevel}
-            setSelectedRoom={state.setSelectedRoom}
-          />
-        </div>
-      </div>
-
+    <div className="flex h-[100dvh] bg-surface">
       {state.sidebarOpen && (
-        <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => state.setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
+          onClick={() => state.setSidebarOpen(false)}
+        />
       )}
+      <div className={`shrink-0 lg:relative ${state.sidebarOpen ? 'fixed inset-y-0 left-0 z-40 w-[220px]' : 'hidden'} lg:block lg:inset-auto lg:z-auto lg:w-auto`}>
+        <MapSidebar
+          rooms={state.rooms}
+          npcs={state.npcs}
+          zLevels={state.zLevels}
+          currentZLevel={state.currentZLevel}
+          selectedRoom={state.selectedRoom}
+          setCurrentZLevel={state.setCurrentZLevel}
+          setSelectedRoom={state.setSelectedRoom}
+        />
+      </div>
 
       <div className="flex-1 overflow-hidden relative">
         <MapToolbar

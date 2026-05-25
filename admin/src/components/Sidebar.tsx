@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { WorldTitle } from "./WorldTitle";
 
@@ -93,43 +93,24 @@ function SidebarCloseButton({ onClose }: Readonly<{ onClose: () => void }>) {
   );
 }
 
-const COLLAPSED_KEY = "sidebar-collapsed";
-
 export function Sidebar({
   mobileOpen,
   onMobileClose,
+  collapsed,
+  onToggleCollapse,
 }: Readonly<{
   mobileOpen: boolean;
   onMobileClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }>) {
-  const [collapsed, setCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(COLLAPSED_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
-
+  // Sync collapsed prop to localStorage for persistence
   useEffect(() => {
     try {
-      localStorage.setItem(COLLAPSED_KEY, String(collapsed));
+      localStorage.setItem("sidebar-collapsed", String(collapsed));
     } catch {
       // ignore
     }
-  }, [collapsed]);
-
-  // Auto-collapse sidebar on narrow viewports to prevent content cramping.
-  useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth < 1280 && !collapsed) {
-        setCollapsed(true);
-      } else if (window.innerWidth >= 1280 && collapsed) {
-        setCollapsed(false);
-      }
-    }
-    handleResize(); // run once on mount
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
   }, [collapsed]);
 
   return (
@@ -165,7 +146,7 @@ export function Sidebar({
         <div className="hidden lg:block">
           <SidebarCollapseToggle
             collapsed={collapsed}
-            onToggle={() => setCollapsed((c) => !c)}
+            onToggle={onToggleCollapse}
           />
         </div>
       </div>

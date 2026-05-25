@@ -29,7 +29,16 @@ export function MapSidebar({
   const roomsOnFloor = Array.from(zLevels.values()).filter((z) => z === currentZLevel).length;
 
   return (
-    <div className="w-[220px] bg-surface-muted border-r border-border flex flex-col flex-shrink-0">
+    <div className="w-[220px] h-full bg-surface-muted border-r border-border flex flex-col flex-shrink-0">
+      {/* Mobile close + sidebar toggle on top — shown only on mobile */}
+      <div className="flex items-center justify-between p-3 border-b border-border lg:hidden">
+        <Button variant="ghost" size="sm" onClick={() => { /* handled by parent backdrop */ }} aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </Button>
+      </div>
       {/* Dashboard + secondary nav */}
       <div className="p-3 border-b border-border flex flex-col gap-1">
         <Link
