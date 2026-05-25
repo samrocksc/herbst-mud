@@ -54,8 +54,6 @@ export default function GameScreen({
   const [skills, setSkills] = useState<readonly CharacterSkill[]>(INITIAL_SKILLS);
   const [availableAbilities, setAvailableAbilities] = useState<readonly Ability[]>([]);
   const [combatMode, setCombatMode] = useState(false);
-  const combatModeRef = useRef(combatMode);
-  combatModeRef.current = combatMode;
   const [pendingTargets, setPendingTargets] = useState<Set<number>>(new Set());
   const [potionCount] = useState(0);
 
