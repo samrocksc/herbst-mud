@@ -109,6 +109,7 @@ This ensures the screen never breaks.
 
 - API errors render as an inline banner at the top of the overlay: `bg-danger/20 text-danger text-xs px-3 py-2`
 - Equip/unequip failures show the error inline and do not close the overlay.
+- **All server-side errors (5xx, 4xx, network failures) are logged to `console.error` with structured context `{ endpoint, status, body, characterID }` so they can be forwarded to the admin for triage.**
 
 ## Keyboard
 

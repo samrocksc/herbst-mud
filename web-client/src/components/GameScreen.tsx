@@ -9,8 +9,9 @@ import CombatScreen from "./CombatScreen";
 import Scrollback from "./Scrollback";
 import RoomScreen from "./RoomScreen";
 import HotkeyBar from "./HotkeyBar";
-import InputBar from "./InputBar";
+import InputBar, { type InputBarHandle } from "./InputBar";
 import CharacterPanel from "./CharacterPanel";
+import EquipmentScreen from "./EquipmentScreen";
 
 export type GameScreenProps = {
   worldName: string;
@@ -44,6 +45,7 @@ export default function GameScreen({
     useMUDSocket();
   const { theme, toggle } = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputBarRef = useRef<InputBarHandle>(null);
 
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -56,6 +58,7 @@ export default function GameScreen({
   const [combatMode, setCombatMode] = useState(false);
   const [pendingTargets, setPendingTargets] = useState<Set<number>>(new Set());
   const [potionCount] = useState(0);
+  const [equipmentOpen, setEquipmentOpen] = useState(false);
 
   const {
     inCombat,
@@ -96,18 +99,16 @@ export default function GameScreen({
         listClasslessAbilities(),
       ]);
       setAvailableAbilities(classless);
-      const newSlots = new Map<number, Ability>();
       const newSkills: CharacterSkill[] = [];
-      for (let i = 0; i < 6; i++) {
-        const entry = charAbilities.slots[i] as (Ability & { slot?: number }) | null;
-        if (entry?.slot != null && entry.name) {
-          newSlots.set(entry.slot, entry);
-          newSkills.push({ slot: entry.slot, name: entry.name });
+      for (let slot = 1; slot <= 4; slot++) {
+        const entry = charAbilities.slots[slot - 1] as (Ability & { slot?: number }) | null;
+        if (entry?.name) {
+          newSkills.push({ slot, name: entry.name });
+        } else {
+          newSkills.push({ slot, name: null });
         }
       }
-      if (newSkills.length > 0) {
-        setSkills(newSkills);
-      }
+      setSkills(newSkills);
     } catch (err) {
       pushLocal(`Failed to load abilities: ${err instanceof Error ? err.message : String(err)}`, "error");
     }
@@ -197,18 +198,6 @@ export default function GameScreen({
     [send, pushLocal],
   );
 
-  const openPanel = useCallback(
-    (tab: CharacterPanelTab) => {
-      if (panelOpen && panelTab === tab) {
-        setPanelOpen(false);
-      } else {
-        setPanelTab(tab);
-        setPanelOpen(true);
-      }
-    },
-    [panelOpen, panelTab],
-  );
-
   const closePanel = useCallback(() => {
     setPanelOpen(false);
   }, []);
@@ -232,6 +221,12 @@ export default function GameScreen({
       if (e.target instanceof HTMLInputElement) return;
       const key = e.key.toLowerCase();
 
+      if (key === "/") {
+        e.preventDefault();
+        inputBarRef.current?.focus();
+        return;
+      }
+
       if (inCombat) {
         if (key >= "1" && key <= "4") {
           e.preventDefault();
@@ -252,9 +247,6 @@ export default function GameScreen({
         return; // block all other keys in combat
       }
 
-      if (key === "i") { e.preventDefault(); openPanel("inventory"); return; }
-      if (key === "s") { e.preventDefault(); openPanel("skills"); return; }
-      if (key === "a") { e.preventDefault(); openPanel("abilities"); return; }
       if (key === "tab") { e.preventDefault(); setCombatMode((v) => !v); return; }
       if (key === "l") { e.preventDefault(); handleSubmit("look"); return; }
       if (key === "e") { e.preventDefault(); handleSubmit("examine"); return; }
@@ -262,7 +254,7 @@ export default function GameScreen({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [handleSubmit, openPanel, inCombat, queueAction, skills]);
+  }, [handleSubmit, inCombat, queueAction, skills]);
 
   const handleHotkey = useCallback(
     (slot: string) => {
@@ -292,7 +284,14 @@ export default function GameScreen({
     <div className="flex flex-col h-screen w-full bg-background text-foreground font-mono overflow-hidden">
       <header className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border bg-surface">
         <div className="flex items-center gap-2 text-xs">
-          <span className="font-bold text-accent">{character.name}</span>
+          <button
+            type="button"
+            onClick={() => setEquipmentOpen(true)}
+            className="font-bold text-accent hover:underline cursor-pointer bg-transparent border-0 p-0"
+            title="Open equipment"
+          >
+            {character.name}
+          </button>
           <span className="text-muted">&bull;</span>
           <span className="text-muted">Lv.{character.level}</span>
           <span className="text-muted">&bull;</span>
@@ -309,14 +308,8 @@ export default function GameScreen({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => openPanel("inventory")}>
-            I
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => openPanel("skills")}>
-            S
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => openPanel("abilities")}>
-            A
+          <Button variant="ghost" size="sm" onClick={() => setPanelOpen(v => !v)} title="Toggle character panel">
+            {panelOpen ? "❮" : "❯"}
           </Button>
           <span
             className="px-2 py-0.5 rounded border border-border text-[10px]"
@@ -449,11 +442,19 @@ export default function GameScreen({
       )}
 
       <InputBar
+        ref={inputBarRef}
         onSubmit={handleSubmit}
         history={commandHistory}
         historyIndex={historyIndex}
         setHistoryIndex={setHistoryIndex}
       />
+
+      {equipmentOpen && (
+        <EquipmentScreen
+          character={character}
+          onClose={() => setEquipmentOpen(false)}
+        />
+      )}
 
       {showDebug && (
         <div

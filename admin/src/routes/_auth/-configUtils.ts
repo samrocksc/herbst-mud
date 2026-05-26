@@ -6,6 +6,7 @@ const KEY_LABELS: Readonly<Record<string, string>> = {
   xp_per_kill: "XP Per Kill", respawn_room_id: "Respawn Room ID", max_inventory_size: "Max Inventory Size",
   pvp_enabled: "PvP Enabled", death_penalty_type: "Death Penalty Type", starting_hp: "Starting HP",
   starting_mana: "Starting Mana", starting_gold: "Starting Gold", regen_tick_seconds: "Regen Tick (seconds)",
+  fountain_room_id: "Fountain Room ID",
 };
 
 export function humanizeKey(raw: string): string {
@@ -16,6 +17,11 @@ export function humanizeKey(raw: string): string {
 export function tryParseJSON(value: string): unknown | null {
   try { const p = JSON.parse(value); return typeof p === "object" && p !== null ? p : null; }
   catch { return null; }
+}
+
+export const ROOM_ID_KEYS = ["fountain_room_id", "starting_room_id", "respawn_room_id"] as const;
+export function isRoomIdKey(key: string): boolean {
+  return (ROOM_ID_KEYS as ReadonlyArray<string>).includes(key);
 }
 
 export const PRESETS = [

@@ -1,5 +1,7 @@
-import { useRef, useCallback } from "react";
+import { useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import { Button } from "../ui";
+
+export type InputBarHandle = { focus: () => void };
 
 type Props = {
   onSubmit: (cmd: string) => void
@@ -8,8 +10,12 @@ type Props = {
   setHistoryIndex: (i: number) => void
 };
 
-export default function InputBar({ onSubmit, history, historyIndex, setHistoryIndex }: Props) {
+const InputBar = forwardRef<InputBarHandle, Props>(function InputBar({ onSubmit, history, historyIndex, setHistoryIndex }, ref) {
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+  }));
 
   const handleSubmit = useCallback(() => {
     const val = inputRef.current?.value || "";
@@ -77,4 +83,6 @@ export default function InputBar({ onSubmit, history, historyIndex, setHistoryIn
       <Button variant="secondary" size="sm" onClick={handleSubmit}>SEND</Button>
     </div>
   );
-}
+});
+
+export default InputBar;

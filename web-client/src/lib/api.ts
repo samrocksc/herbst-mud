@@ -70,7 +70,28 @@ export type Race = {
   readonly description: string;
   readonly stat_modifiers: Readonly<Record<string, unknown>>;
   readonly skill_grants: Readonly<Record<string, unknown>>;
-  readonly equipment_slots: Readonly<Record<string, unknown>>;
+  readonly equipment_slots: readonly string[];
+};
+
+export type EquipmentItem = {
+  readonly id: number;
+  readonly name: string;
+  readonly description: string;
+  readonly slot: string;
+  readonly level: number;
+  readonly weight: number;
+  readonly isEquipped: boolean;
+  readonly rarity: string;
+  readonly color: string;
+  readonly armor_rating: number;
+  readonly armor_type: string;
+  readonly damage_dice_count: number;
+  readonly damage_dice_sides: number;
+  readonly damage_bonus: number;
+  readonly damage_type: string;
+  readonly weapon_type: string;
+  readonly is_two_handed: boolean;
+  readonly ownerId: number | null;
 };
 
 export type Gender = {
@@ -238,5 +259,41 @@ export async function healCharacter(charID: number, amount: number): Promise<voi
   if (!res.ok) {
     const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to heal" }));
     throw new Error(err.error || "Failed to heal");
+  }
+}
+
+export async function getCharacterEquipment(charID: number): Promise<readonly EquipmentItem[]> {
+  const res = await fetch(`${API_BASE}/equipment?ownerId=${charID}`, { headers: headers() });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to load equipment" }));
+    console.error({ endpoint: `/equipment?ownerId=${charID}`, status: res.status, body: err, characterID: charID });
+    throw new Error(err.error || "Failed to load equipment");
+  }
+  return res.json();
+}
+
+export async function equipItem(itemID: number, charID: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/equipment/${itemID}/equip`, {
+    method: "PUT",
+    headers: headers(),
+    body: JSON.stringify({ character_id: charID }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to equip item" }));
+    console.error({ endpoint: `/equipment/${itemID}/equip`, status: res.status, body: err, characterID: charID });
+    throw new Error(err.error || "Failed to equip item");
+  }
+}
+
+export async function unequipItem(itemID: number, charID: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/equipment/${itemID}/unequip`, {
+    method: "PUT",
+    headers: headers(),
+    body: JSON.stringify({ character_id: charID }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to unequip item" }));
+    console.error({ endpoint: `/equipment/${itemID}/unequip`, status: res.status, body: err, characterID: charID });
+    throw new Error(err.error || "Failed to unequip item");
   }
 }

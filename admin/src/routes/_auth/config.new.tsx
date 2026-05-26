@@ -1,12 +1,16 @@
 /* eslint-disable functional/prefer-immutable-types */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "../../components/Button";
 import { FormField, TextareaField, FormError } from "../../components/FormFields";
+import { FieldLabel } from "../../components/fields/FieldLabel";
 import { PageHeader } from "../../components/PageHeader";
-import { apiPost } from "../../utils/apiFetch";
+import { apiGet, apiPost } from "../../utils/apiFetch";
 import { showToast } from "../../components/Toast";
-import { tryParseJSON, PRESETS } from "./-configUtils";
+import { tryParseJSON, PRESETS, isRoomIdKey } from "./-configUtils";
+
+type RoomOption = Readonly<{ id: number; name: string }>;
 
 export const Route = createFileRoute("/_auth/config/new")({
   component: CreateConfigPage,
@@ -36,6 +40,17 @@ function CreateConfigPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
+  const roomsQuery = useQuery<RoomOption[]>({
+    queryKey: ["rooms-list"],
+    queryFn: () => apiGet<RoomOption[]>("/api/rooms"),
+    enabled: isRoomIdKey(form.key),
+  });
+
+  const roomOptions = useMemo(() => {
+    if (!roomsQuery.data) return [];
+    return roomsQuery.data.map((r) => ({ id: r.id, name: r.name }));
+  }, [roomsQuery.data]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -63,9 +78,30 @@ function CreateConfigPage() {
               <FormField label="" value={form.key} onChange={v => setForm(f => ({ ...f, key: v }))} placeholder="e.g. xp_thresholds" required />
             </div>
             <div>
-              <label className="block text-text-muted text-sm mb-1">Value (JSON or plain)</label>
+              <label className="block text-text-muted text-sm mb-1">Value {isRoomIdKey(form.key) ? "(Room ID)" : "(JSON or plain)"}</label>
               <CollapsibleJSONPreview value={form.value} />
-              <TextareaField label="" value={form.value} onChange={v => setForm(f => ({ ...f, value: v }))} rows={6} placeholder='{"key": "value"} or plain text' required />
+              {isRoomIdKey(form.key) ? (
+                <div>
+                  <FieldLabel>Room</FieldLabel>
+                  <select
+                    value={form.value}
+                    onChange={(e) => setForm(f => ({ ...f, value: e.target.value }))}
+                    className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+                  >
+                    <option value="">-- Select a room --</option>
+                    {roomOptions.map((r) => (
+                      <option key={r.id} value={String(r.id)}>
+                        {r.name} (#{r.id})
+                      </option>
+                    ))}
+                  </select>
+                  {roomsQuery.isLoading && (
+                    <div className="text-xs text-text-muted mt-1">Loading rooms...</div>
+                  )}
+                </div>
+              ) : (
+                <TextareaField label="" value={form.value} onChange={v => setForm(f => ({ ...f, value: v }))} rows={6} placeholder='{"key": "value"} or plain text' required />
+              )}
             </div>
             <div>
               <label className="block text-text-muted text-sm mb-1">Presets</label>

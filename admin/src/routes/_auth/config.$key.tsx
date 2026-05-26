@@ -1,13 +1,17 @@
 /* eslint-disable functional/prefer-immutable-types */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "../../components/Button";
 import { TextareaField, FormError } from "../../components/FormFields";
+import { FieldLabel } from "../../components/fields/FieldLabel";
 import { PageHeader } from "../../components/PageHeader";
 import { apiGet, apiPut, apiDelete } from "../../utils/apiFetch";
 import { showToast } from "../../components/Toast";
-import { humanizeKey, tryParseJSON } from "./-configUtils";
+import { humanizeKey, tryParseJSON, isRoomIdKey } from "./-configUtils";
 import type { GameConfig } from "./-configUtils";
+
+type RoomOption = Readonly<{ id: number; name: string }>;
 
 export const Route = createFileRoute("/_auth/config/$key")({
   component: ConfigDetailPage,
@@ -56,6 +60,17 @@ function ConfigDetailPage() {
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load config"))
       .finally(() => setLoading(false));
   }, [key]);
+
+  const roomsQuery = useQuery<RoomOption[]>({
+    queryKey: ["rooms-list"],
+    queryFn: () => apiGet<RoomOption[]>("/api/rooms"),
+    enabled: isRoomIdKey(key),
+  });
+
+  const roomOptions = useMemo(() => {
+    if (!roomsQuery.data) return [];
+    return roomsQuery.data.map((r) => ({ id: r.id, name: r.name }));
+  }, [roomsQuery.data]);
 
   const handleSave = async () => {
     if (!config) return;
@@ -110,7 +125,28 @@ function ConfigDetailPage() {
             <div>
               <label className="text-text-muted text-sm block mb-1">Value</label>
               <CollapsibleJSONPreview value={value} />
-              <TextareaField label="" value={value} onChange={setValue} rows={6} />
+              {isRoomIdKey(config.key) ? (
+                <div>
+                  <FieldLabel>Room</FieldLabel>
+                  <select
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+                  >
+                    <option value="">-- Select a room --</option>
+                    {roomOptions.map((r) => (
+                      <option key={r.id} value={String(r.id)}>
+                        {r.name} (#{r.id})
+                      </option>
+                    ))}
+                  </select>
+                  {roomsQuery.isLoading && (
+                    <div className="text-xs text-text-muted mt-1">Loading rooms...</div>
+                  )}
+                </div>
+              ) : (
+                <TextareaField label="" value={value} onChange={setValue} rows={6} />
+              )}
               <div className="flex gap-2 mt-3">
                 <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
                   {saving ? "Saving..." : "Save"}

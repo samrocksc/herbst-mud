@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { type RoomScreenPayload } from "../lib/types";
 import { ActionExpand, type EntityAction } from "../ui";
 
@@ -22,6 +23,8 @@ export default function RoomScreen({
   onTogglePending,
   onConfirmAttack,
 }: Props) {
+  const [descHidden, setDescHidden] = useState(false);
+
   const characterActions = (char: RoomScreenPayload["characters"][number]): EntityAction[] => {
   const actions: EntityAction[] = [];
 
@@ -64,8 +67,18 @@ export default function RoomScreen({
   return (
     <div className="shrink-0 bg-surface border-t border-border">
       <div className="px-3 py-2">
-        <h2 className="font-bold text-sm text-accent mb-1">{room.title}</h2>
-        <p className="text-[11px] text-muted leading-relaxed">{room.description}</p>
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-sm text-accent">{room.title}</h2>
+          <button
+            type="button"
+            onClick={() => setDescHidden(v => !v)}
+            className="text-[10px] text-muted hover:text-foreground px-1"
+            title={descHidden ? "Show description" : "Hide description"}
+          >
+            {descHidden ? "[+]" : "[-]"}
+          </button>
+        </div>
+        {!descHidden && <p className="text-[11px] text-muted leading-relaxed">{room.description}</p>}
       </div>
 
       {/* Exits stay simple — tap = go */}
