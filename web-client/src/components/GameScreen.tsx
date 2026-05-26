@@ -220,6 +220,54 @@ export default function GameScreen({
     setTouchStartX(null);
   }, [touchStartX, closePanel]);
 
+  // Resizable mobile sidebar
+  const [panelWidth, setPanelWidth] = useState(320);
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStartXRef = useRef(0);
+  const resizeStartWidthRef = useRef(320);
+
+  const startResize = useCallback((clientX: number) => {
+    setIsResizing(true);
+    resizeStartXRef.current = clientX;
+    resizeStartWidthRef.current = panelWidth;
+  }, [panelWidth]);
+
+  const handleResizeTouchStart = useCallback((e: React.TouchEvent) => {
+    startResize(e.touches[0].clientX);
+  }, [startResize]);
+
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
+    startResize(e.clientX);
+  }, [startResize]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+    const handleMove = (clientX: number) => {
+      const delta = resizeStartXRef.current - clientX;
+      const next = Math.max(200, Math.min(window.innerWidth - 40, resizeStartWidthRef.current + delta));
+      setPanelWidth(next);
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      handleMove(e.touches[0].clientX);
+    };
+    const onMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      handleMove(e.clientX);
+    };
+    const onEnd = () => setIsResizing(false);
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("touchend", onEnd);
+    window.addEventListener("mouseup", onEnd);
+    return () => {
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("touchend", onEnd);
+      window.removeEventListener("mouseup", onEnd);
+    };
+  }, [isResizing]);
+
   const handleSkillSwap = useCallback((from: number, to: number) => {
     setSkills((prev) => {
       const arr = prev.map((s) => ({ ...s }));
@@ -440,10 +488,19 @@ export default function GameScreen({
         <div className="flex md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50" onClick={closePanel} />
           <div
-            className="relative ml-auto w-full max-w-xs bg-surface border-l border-border flex flex-col"
+            className="relative ml-auto bg-surface border-l border-border flex flex-col"
+            style={{ width: panelWidth }}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
+            {/* Resize handle */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-4 -ml-2 z-10 flex items-center justify-center cursor-ew-resize touch-none"
+              onTouchStart={handleResizeTouchStart}
+              onMouseDown={handleResizeMouseDown}
+            >
+              <div className="w-1 h-8 rounded-full bg-border" />
+            </div>
             <CharacterPanel
               activeTab={panelTab}
               onTabChange={setPanelTab}
