@@ -177,12 +177,12 @@ export default function CharacterPanel({
 }: Readonly<CharacterPanelProps>) {
   return (
     <div className="flex flex-col h-full bg-surface border-l border-border">
-      <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border md:border-b-0">
-        <div className="flex gap-1">
+      <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border md:border-b-0 gap-2">
+        <div className="flex-1 min-w-0 overflow-x-auto flex gap-1 scrollbar-thin">
           <button
             type="button"
             onClick={() => onTabChange("skills")}
-            className={`px-2 py-1 text-xs font-mono rounded transition-colors ${
+            className={`shrink-0 whitespace-nowrap px-2 py-1 text-xs font-mono rounded transition-colors ${
               activeTab === "skills"
                 ? "bg-accent text-background"
                 : "text-muted hover:text-foreground"
@@ -193,7 +193,7 @@ export default function CharacterPanel({
           <button
             type="button"
             onClick={() => onTabChange("abilities")}
-            className={`px-2 py-1 text-xs font-mono rounded transition-colors ${
+            className={`shrink-0 whitespace-nowrap px-2 py-1 text-xs font-mono rounded transition-colors ${
               activeTab === "abilities"
                 ? "bg-accent text-background"
                 : "text-muted hover:text-foreground"
@@ -204,7 +204,7 @@ export default function CharacterPanel({
           <button
             type="button"
             onClick={() => onTabChange("inventory")}
-            className={`px-2 py-1 text-xs font-mono rounded transition-colors ${
+            className={`shrink-0 whitespace-nowrap px-2 py-1 text-xs font-mono rounded transition-colors ${
               activeTab === "inventory"
                 ? "bg-accent text-background"
                 : "text-muted hover:text-foreground"
@@ -213,7 +213,7 @@ export default function CharacterPanel({
             Inventory
           </button>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose}>
+        <Button variant="ghost" size="sm" onClick={onClose} className="shrink-0 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0">
           &#x2715;
         </Button>
       </div>

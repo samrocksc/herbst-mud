@@ -204,6 +204,22 @@ export default function GameScreen({
     setPanelOpen(false);
   }, []);
 
+  // Swipe-to-close for mobile panel
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX == null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX;
+    if (deltaX > 80) {
+      closePanel();
+    }
+    setTouchStartX(null);
+  }, [touchStartX, closePanel]);
+
   const handleSkillSwap = useCallback((from: number, to: number) => {
     setSkills((prev) => {
       const arr = prev.map((s) => ({ ...s }));
@@ -310,7 +326,7 @@ export default function GameScreen({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setPanelOpen(v => !v)} title="Toggle character panel">
+          <Button variant="ghost" size="sm" onClick={() => setPanelOpen(v => !v)} title="Toggle character panel" className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0">
             {panelOpen ? "❮" : "❯"}
           </Button>
           <span
@@ -423,7 +439,11 @@ export default function GameScreen({
       {panelOpen && (
         <div className="flex md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50" onClick={closePanel} />
-          <div className="relative ml-auto w-full max-w-xs bg-surface border-l border-border flex flex-col">
+          <div
+            className="relative ml-auto w-full max-w-xs bg-surface border-l border-border flex flex-col"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <CharacterPanel
               activeTab={panelTab}
               onTabChange={setPanelTab}
