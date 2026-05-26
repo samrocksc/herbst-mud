@@ -66,7 +66,7 @@ export default function GameScreen({
     combatLog,
     round: combatRound,
     queuedAction,
-    playerHP: vitals?.hp ?? combatPlayerHP,
+    playerHP: combatPlayerHP,
     startCombat,
     queueAction,
   } = useCombatEngine({
