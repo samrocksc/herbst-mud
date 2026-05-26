@@ -8,7 +8,6 @@ import { useCombatEngine } from "../hooks/useCombatEngine";
 import CombatScreen from "./CombatScreen";
 import Scrollback from "./Scrollback";
 import RoomScreen from "./RoomScreen";
-import HotkeyBar from "./HotkeyBar";
 import InputBar, { type InputBarHandle } from "./InputBar";
 import CharacterPanel from "./CharacterPanel";
 import EquipmentScreen from "./EquipmentScreen";
@@ -322,21 +321,6 @@ export default function GameScreen({
     return () => window.removeEventListener("keydown", handler);
   }, [handleSubmit, inCombat, queueAction, skills]);
 
-  const handleHotkey = useCallback(
-    (slot: string) => {
-      const num = Number(slot);
-      if (!Number.isNaN(num)) {
-        const ability = skills.find((s) => s.slot === num);
-        if (ability?.name) {
-          handleSubmit(ability.name);
-          return;
-        }
-      }
-      if (HOTKEY_BINDINGS[slot]) handleSubmit(HOTKEY_BINDINGS[slot]);
-    },
-    [handleSubmit, skills],
-  );
-
   const handleTapExit = useCallback(
     (exit: { direction: string; label: string }) => {
       pushLocal(`Moving ${exit.direction} toward ${exit.label}...`, "system");
@@ -514,10 +498,6 @@ export default function GameScreen({
             />
           </div>
         </div>
-      )}
-
-      {!inCombat && (
-        <HotkeyBar onActivate={handleHotkey} skills={skills} />
       )}
 
       <InputBar
