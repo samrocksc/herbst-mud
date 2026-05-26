@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { RoomScreenPayload } from "../lib/types";
+import type { RoomScreenPayload, VitalsPayload } from "../lib/types";
 
 export type ConnectionState = "idle" | "connecting" | "connected" | "error" | "closed";
 
@@ -25,6 +25,7 @@ export function useMUDSocket() {
   const [state, setState] = useState<ConnectionState>("idle");
   const [lines, setLines] = useState<WSLine[]>([]);
   const [roomScreen, setRoomScreen] = useState<RoomScreenPayload | null>(null);
+  const [vitals, setVitals] = useState<VitalsPayload | null>(null);
   const [debugLog, setDebugLog] = useState<DebugEntry[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -67,6 +68,12 @@ export function useMUDSocket() {
         if (msg.type === "screen" && msg.data) {
           logDebug("state", "screen payload received");
           setRoomScreen(msg.data as RoomScreenPayload);
+          return;
+        }
+
+        if (msg.type === "vitals" && msg.data) {
+          logDebug("state", "vitals payload received");
+          setVitals(msg.data as VitalsPayload);
           return;
         }
 
@@ -137,5 +144,5 @@ export function useMUDSocket() {
     return () => clearInterval(id);
   }, [state, send]);
 
-  return { state, lines, roomScreen, debugLog, connect, send, disconnect, pushLocal };
+  return { state, lines, roomScreen, vitals, debugLog, connect, send, disconnect, pushLocal };
 }

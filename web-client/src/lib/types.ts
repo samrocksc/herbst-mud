@@ -105,3 +105,12 @@ export type CombatLogEntry = {
   readonly text: string;
   readonly kind: "hit" | "miss" | "crit" | "heal" | "system" | "queue" | "flee" | "defeat";
 };
+
+export type VitalsPayload = {
+  readonly hp: number;
+  readonly max_hp: number;
+  readonly stamina: number;
+  readonly max_stamina: number;
+  readonly mana: number;
+  readonly max_mana: number;
+};

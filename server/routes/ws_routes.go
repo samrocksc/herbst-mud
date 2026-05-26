@@ -30,7 +30,7 @@ type ClientMessage struct {
 
 // ServerMessage is sent to the WebSocket client.
 type ServerMessage struct {
-	Type      string      `json:"type"`      // "output" | "system" | "error" | "ping" | "screen"
+	Type      string      `json:"type"`      // "output" | "system" | "error" | "ping" | "screen" | "vitals"
 	Text      string      `json:"text"`      // human-readable content
 	Data      interface{} `json:"data,omitempty"` // structured data (e.g. screen payload)
 	Timestamp int64       `json:"timestamp"` // Unix ms
@@ -42,7 +42,18 @@ const (
 	MsgError  = "error"
 	MsgPing   = "ping"
 	MsgScreen = "screen"
+	MsgVitals = "vitals"
 )
+
+// VitalsPayload represents character vitality stats
+type VitalsPayload struct {
+	HP         int `json:"hp"`
+	MaxHP      int `json:"max_hp"`
+	Stamina    int `json:"stamina"`
+	MaxStamina int `json:"max_stamina"`
+	Mana       int `json:"mana"`
+	MaxMana    int `json:"max_mana"`
+}
 
 // ─── Screen payload types ──────────────────────────────────────────────────────
 
@@ -110,6 +121,15 @@ func sendScreen(wsc *WSConn, payload RoomScreenPayload) {
 	wsc.send(ServerMessage{
 		Type:      MsgScreen,
 		Text:      payload.Title,
+		Data:      payload,
+		Timestamp: time.Now().UnixMilli(),
+	})
+}
+
+func sendVitals(wsc *WSConn, payload VitalsPayload) {
+	wsc.send(ServerMessage{
+		Type:      MsgVitals,
+		Text:      "vitals",
 		Data:      payload,
 		Timestamp: time.Now().UnixMilli(),
 	})
@@ -384,6 +404,33 @@ func (wsc *WSConn) send(msg ServerMessage) {
 	select {
 	case wsc.Send <- msg:
 	case <-wsc.done:
+	}
+}
+
+// GetConnections returns a copy of the current connections map
+func GetConnections() map[uint]*WSConn {
+	connMu.RLock()
+	defer connMu.RUnlock()
+
+	// Create a copy to avoid race conditions
+	connectionsCopy := make(map[uint]*WSConn)
+	for k, v := range connections {
+		connectionsCopy[k] = v
+	}
+	return connectionsCopy
+}
+
+// SendVitalsToCharacter sends vitals update to a specific character if connected
+func SendVitalsToCharacter(characterID int, payload VitalsPayload) {
+	connMu.RLock()
+	defer connMu.RUnlock()
+
+	// Find connection for this character
+	for _, wsc := range connections {
+		if wsc.CharacterID == characterID {
+			sendVitals(wsc, payload)
+			return
+		}
 	}
 }
 

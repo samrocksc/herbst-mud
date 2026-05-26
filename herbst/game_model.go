@@ -20,13 +20,8 @@ import (
 // ============================================================
 
 func (m model) Init() tea.Cmd {
-	// Start both text input blink and regen tick timer
-	return tea.Batch(
-		textinput.Blink,
-		tea.Tick(regenConfig.TickInterval, func(t time.Time) tea.Msg {
-			return regenTickMsg(t)
-		}),
-	)
+	// Start text input blink
+	return textinput.Blink
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -59,15 +54,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-	case regenTickMsg:
-		// Perform HP regeneration if conditions are met
-		if m.screen == ScreenPlaying && !m.inCombat {
-			m.performRegen()
-		}
-		// Always schedule next regen tick
-		return m, tea.Tick(regenConfig.TickInterval, func(t time.Time) tea.Msg {
-			return regenTickMsg(t)
-		})
 
 	case combatTickMsg:
 		if m.inCombat {
@@ -658,8 +644,7 @@ func (m *model) View() string {
 		s.WriteString("\n")
 
 		// Status bar
-		regenActive := !m.inCombat && m.characterHP < m.characterMaxHP && m.characterHP > 0
-		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana, regenActive)
+		statsLine := MiniStatusBar(m.characterHP, m.characterMaxHP, m.characterStamina, m.characterMaxStamina, m.characterMana, m.characterMaxMana, false)
 		debugInfo := ""
 		if m.debugMode {
 			debugInfo = " " + lipgloss.NewStyle().Foreground(StatusYellow).Bold(true).Render(fmt.Sprintf("[Room: %d]", m.currentRoom))

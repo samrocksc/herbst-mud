@@ -385,6 +385,9 @@ func main() {
 	// Start corpse cleanup background goroutine (GitHub #22)
 	startCorpseCleanup(client)
 
+	// Start regeneration service
+	StartRegenService(repos, services, client)
+
 	// Healthz endpoint
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

@@ -41,7 +41,7 @@ export default function GameScreen({
   onDisconnect,
   token,
 }: Readonly<GameScreenProps>) {
-  const { state, lines, roomScreen, debugLog, connect, send, disconnect, pushLocal } =
+  const { state, lines, roomScreen, vitals, debugLog, connect, send, disconnect, pushLocal } =
     useMUDSocket();
   const { theme, toggle } = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -66,7 +66,7 @@ export default function GameScreen({
     combatLog,
     round: combatRound,
     queuedAction,
-    playerHP: combatPlayerHP,
+    playerHP: vitals?.hp ?? combatPlayerHP,
     startCombat,
     queueAction,
   } = useCombatEngine({
@@ -88,6 +88,8 @@ export default function GameScreen({
       handleSubmit("look");
     },
     onPlayerHPChange: (hp) => {
+      // With server-side regen, we don't need to manually update HP
+      // The vitals updates from WebSocket will handle this
       void hp;
     },
   });
@@ -296,15 +298,15 @@ export default function GameScreen({
           <span className="text-muted">Lv.{character.level}</span>
           <span className="text-muted">&bull;</span>
           <span className="text-danger">
-            HP {character.hitpoints}/{character.max_hitpoints}
+            HP {vitals?.hp ?? character.hitpoints}/{vitals?.max_hp ?? character.max_hitpoints}
           </span>
           <span className="text-muted">&bull;</span>
           <span className="text-warning">
-            STA {character.stamina}/{character.max_stamina}
+            STA {vitals?.stamina ?? character.stamina}/{vitals?.max_stamina ?? character.max_stamina}
           </span>
           <span className="text-muted">&bull;</span>
           <span className="text-info">
-            MANA {character.mana}/{character.max_mana}
+            MANA {vitals?.mana ?? character.mana}/{vitals?.max_mana ?? character.max_mana}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -362,12 +364,12 @@ export default function GameScreen({
               targets={combatTargets}
               combatLog={combatLog}
               queuedAction={queuedAction}
-              playerHP={combatPlayerHP}
-              playerMaxHP={character.max_hitpoints}
-              playerStamina={character.stamina}
-              playerMaxStamina={character.max_stamina}
-              playerMana={character.mana}
-              playerMaxMana={character.max_mana}
+              playerHP={vitals?.hp ?? combatPlayerHP}
+              playerMaxHP={vitals?.max_hp ?? character.max_hitpoints}
+              playerStamina={vitals?.stamina ?? character.stamina}
+              playerMaxStamina={vitals?.max_stamina ?? character.max_stamina}
+              playerMana={vitals?.mana ?? character.mana}
+              playerMaxMana={vitals?.max_mana ?? character.max_mana}
               skills={skills}
               potionCount={potionCount}
               onSkill={(slot) => {
