@@ -28,7 +28,11 @@ export default function RoomScreen({
   const characterActions = (char: RoomScreenPayload["characters"][number]): EntityAction[] => {
     const actions: EntityAction[] = [];
     if (char.hostile) {
-      actions.push({ label: "Attack", variant: "danger", onClick: () => onConfirmAttack(char) });
+      if (pendingTargets.has(char.id)) {
+        actions.push({ label: "Confirm", variant: "danger", onClick: () => onConfirmAttack(char) });
+      } else {
+        actions.push({ label: "Attack", variant: "danger", onClick: () => onTogglePending(char.id) });
+      }
     } else {
       if (pendingTargets.has(char.id)) {
         actions.push({ label: "Confirm", variant: "danger", onClick: () => onConfirmAttack(char) });
@@ -72,7 +76,7 @@ export default function RoomScreen({
       {/* 2x2 Quadrant Grid */}
       <div className="grid grid-cols-2 grid-rows-2 gap-px bg-border">
         {/* Top Left: Characters */}
-        <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "140px" }}>
+        <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "154px" }}>
           <div className="text-[10px] text-muted mb-1 uppercase tracking-wider">Characters</div>
           {room.characters.length > 0 ? (
             <div className="flex gap-2 flex-wrap">
@@ -93,7 +97,7 @@ export default function RoomScreen({
         </div>
 
         {/* Top Right: Exits */}
-        <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "140px" }}>
+        <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "154px" }}>
           <div className="text-[10px] text-muted mb-1 uppercase tracking-wider">Exits</div>
           {room.exits.length > 0 ? (
             <div className="flex gap-2 flex-wrap">
@@ -114,7 +118,7 @@ export default function RoomScreen({
         </div>
 
         {/* Bottom Left: Items */}
-        <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "140px" }}>
+        <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "200px" }}>
           <div className="text-[10px] text-muted mb-1 uppercase tracking-wider">Items</div>
           {room.items.length > 0 ? (
             <div className="flex gap-2 flex-wrap">
@@ -135,7 +139,7 @@ export default function RoomScreen({
         </div>
 
         {/* Bottom Right: Functions */}
-        <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "140px" }}>
+        <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "200px" }}>
           <div className="text-[10px] text-muted mb-1 uppercase tracking-wider">Functions</div>
           <div className="flex gap-2 flex-wrap">
             <button

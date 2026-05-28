@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ActionChip, Button } from "./Button";
 
 export type EntityAction = {
@@ -16,7 +16,7 @@ type ActionExpandProps = {
   readonly defaultOpen?: boolean;
 };
 
-/** Inline-expandable entity action chip. Single-select when used inside RoomScreen. */
+/** Inline-expandable entity action chip. */
 export function ActionExpand({
   label,
   triggerClassName = "",
@@ -27,34 +27,82 @@ export function ActionExpand({
 }: Readonly<ActionExpandProps>) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const open = isOpen !== undefined ? isOpen : internalOpen;
-  const setOpen = (v: boolean) => {
+  const setOpen = useCallback((v: boolean) => {
     if (!onToggle) setInternalOpen(v);
-  };
+  }, [onToggle]);
 
-  const handleToggle = () => {
+  const handleToggle = useCallback(() => {
     if (onToggle) onToggle();
     else setInternalOpen((v) => !v);
-  };
+  }, [onToggle]);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClick = (e: MouseEvent) => {
+      const container = containerRef.current;
+      const menu = menuRef.current;
+      if (!container || !menu) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+
+      const isTriggerClick =
+        x >= containerRect.left &&
+        x <= containerRect.right &&
+        y >= containerRect.top &&
+        y <= containerRect.bottom;
+
+      const isMenuClick =
+        x >= menuRect.left &&
+        x <= menuRect.right &&
+        y >= menuRect.top &&
+        y <= menuRect.bottom;
+
+      if (!isTriggerClick && !isMenuClick) {
+        if (onToggle) onToggle();
+        else setOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, [open, setOpen]);
 
   return (
-    <div className="flex flex-col gap-1">
+    <div ref={containerRef} className="relative inline-flex flex-col min-w-0">
       <ActionChip
         onClick={handleToggle}
-        className={`${triggerClassName} ${open ? "border-accent bg-surface-alt" : ""}`}
+        className={`${triggerClassName} ${open ? "border-accent bg-surface-alt" : ""} flex-1 min-w-0`}
       >
-        <span className={open ? "text-accent font-bold" : ""}>{label}</span>
+        <span className={open ? "text-accent font-bold" : ""} title={label}>
+          {label}
+        </span>
       </ActionChip>
       {open && (
-        <div className="flex gap-1 flex-wrap animate-in fade-in slide-in-from-top-1 duration-150">
+        <div
+          ref={menuRef}
+          className="fixed z-50 bg-surface border border-border rounded shadow-lg p-1 flex flex-col gap-1 min-w-[100px] animate-in fade-in slide-in-from-top-2 duration-200"
+        >
           {actions.map((a) => (
             <Button
               key={a.label}
               variant={a.variant || "secondary"}
               size="sm"
+              fullWidth
               onClick={(e) => {
                 e.stopPropagation();
                 a.onClick();
-                setOpen(false);
+                if (onToggle) onToggle();
+                else setOpen(false);
               }}
             >
               {a.label}
