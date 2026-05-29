@@ -44,7 +44,7 @@ func NewContainer(client *db.Client, repos *repository.Container, logger *slog.L
 		Combat:             NewCombatService(repos.Character, repos.DamageLog, repos.NPCTemplate, logger),
 		Ability:            NewAbilityService(repos.CharacterAbility, repos.Ability, repos.Character),
 		Chat:               NewChatService(repos.Character, repos.ChannelSubscription, repos.OfflineTell, repos.Ignore),
+		NPC:                NewNPCService(repos.NPCTemplate),
 		Client:             client,
-		// Remaining services will be implemented in later phases
 	}
 }
