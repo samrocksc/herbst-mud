@@ -155,5 +155,4 @@ See `deploy/README.md` for platform-specific configuration.
 ## Next Steps
 
 - **[Developer Guide](DEVELOPER-GUIDE/INDEX.md)** — build, test, contribute
-- **[Admin Guide](ADMIN-GUIDE/INDEX.md)** — create worlds, rooms, items, NPCs
-- **[Architecture Overview](ARCHITECTURE/INDEX.md)** — system design, data flow, tech stack
+- **[Installation & Upgrade](INSTALL.md)** — Docker Compose install, upgrades, migrations

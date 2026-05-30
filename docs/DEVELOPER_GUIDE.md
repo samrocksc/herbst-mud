@@ -9,29 +9,21 @@
 
 ### 🚀 Quick Start & Operations
 *   **[Getting Started](./DEVELOPER_GUIDE.md)**: Local setup, prerequisites, and environment variables.
-*   **[Deployment](./ops/DEPLOYMENT.md)**: Digital Ocean specs and deployment pipeline.
-*   **[Infrastructure](./ops/SSH_SERVER.md)**: SSH server implementation and port mapping.
-*   **[Dependencies](./ops/DEPENDENCIES.md)**: Project-wide library requirements.
+*   **[Installation & Upgrade](./OPERATIONS/INSTALL.md)**: Docker Compose deployment, migrations, and upgrades.
+*   **[Operations Manual](./OPERATIONS/INDEX.md)**: Running the stack, logs, health checks, and backups.
 
 ### 🏗️ Architecture & Specifications
-*   **[Technical Specs](./specs/)**: All RFCs (Request for Comments) and deep-dives.
-    *   `RFC-001` through `RFC-009` covering Web Arch, Effects, Quests, Dialog Trees, LLM NPCs, and the Messaging system.
-    *   **[Character System Deep-dive](./specs/CHARACTER-SYSTEM-DEEPDIVE.md)**: Core logic for attributes and progression.
-*   **[Feature Set](./specs/FEATURES.md)**: List of implemented and planned features.
+*   **[Technical Specs](./SPECS/)**: All RFCs and deep-dives.
+    *   **[Character System Deep-dive](./SPECS/CHARACTER-SYSTEM-DEEPDIVE.md)**: Core logic for attributes and progression.
+*   **[Feature Set](./SPECS/FEATURES.md)**: List of implemented and planned features.
+*   **[World System Overview](./SPECS/WORLD-SYSTEM.md)**: Multi-world architecture, `world_id` filtering, and whitelist-based access control.
+*   **[Effects System](./SPECS/effects-system.md)**: Ability effects, hooks, and active effects system.
 
 ### 🛠️ Development Standards
-*   **[Go Standards](./docs/GO_BEST_PRACTICES.md)**: Minimalist Go, Gin patterns, and the 100-line file rule.
-*   **[Frontend Standards](./docs/REACT.md)**: TanStack Router, React Query, and Tailwind CSS usage.
-*   **[Testing Protocol](./guides/TESTING.md)**: TDD approach and Gherkin feature testing.
-*   **[Contribution Workflow](./docs/GITHUB_ETIQUETTE.md)**: PR standards and commit etiquette.
-
-### 🌍 Worlds & Multi-Tenancy
-*   **[World System Overview](./specs/WORLD-SYSTEM.md)**: Multi-world architecture, `world_id` filtering, and whitelist-based access control.
-*   **[Effects System](./effects-system.md)**: Ability effects, hooks, and active effects system.
+*   **[Developer Guide](./DEVELOPER-GUIDE/INDEX.md)**: Build, test, and codebase conventions.
 
 ### 📖 User & Admin Manuals
-*   **[Admin Panel Guide](./guides/ADMINISTRATION.md)**: How to manage the world via the web UI.
-*   **[Player's Guide](./guides/PLAYER_GUIDE.md)**: Game mechanics and user interface instructions.
+*   **[Admin Panel Guide](./ADMIN-GUIDE/)**: World management via the web UI (coming soon).
 
 ---
 

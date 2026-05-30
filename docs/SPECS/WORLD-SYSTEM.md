@@ -239,8 +239,7 @@ curl -H "Authorization: Bearer <token>" \
 
 ## Related Docs
 
-- [RFC-002: Send Message Effect](../specs/RFC-002-send-message-effect.md)
-- [Effects System](../effects-system.md)
+- [Effects System](./effects-system.md)
 - [Character System Deep-dive](./CHARACTER-SYSTEM-DEEPDIVE.md)
 
 ---

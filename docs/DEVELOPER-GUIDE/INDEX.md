@@ -164,4 +164,4 @@ cd server && go test ./...     # Go unit tests
 4. Run `make build-all && make test`
 5. Open PR
 
-See `docs/OPERATIONS/INDEX.md` for deployment and `docs/ARCHITECTURE/INDEX.md` for system design.
+See `docs/OPERATIONS/INDEX.md` for deployment operations and `docs/OPERATIONS/INSTALL.md` for installation and upgrades.
