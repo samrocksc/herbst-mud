@@ -51,13 +51,13 @@ services:
     container_name: herbst-api
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgres://${DB_USER:***@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
+      - DATABASE_URL=postgres://${DB_USER:-herbst}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=${DB_USER:-herbst}
-      - DB_PASSWORD=***
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME:-herbst_mud}
-      - JWT_SECRET=${JWT_...CRET required}
+      - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost}
       - API_BASE_URL=http://web:8080
     depends_on:
@@ -80,11 +80,11 @@ services:
     ports:
       - "4444:4444"
     environment:
-      - DATABASE_URL=postgres://${DB_USER:***@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
+      - DATABASE_URL=postgres://${DB_USER:-herbst}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=${DB_USER:-herbst}
-      - DB_PASSWORD=***
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME:-herbst_mud}
       - API_BASE_URL=http://web:8080
       - GODEBUG=netdns=go
