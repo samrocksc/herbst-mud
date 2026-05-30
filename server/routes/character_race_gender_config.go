@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db"
 	"herbst-server/repository"
 )
@@ -13,6 +15,7 @@ func listPlayableRaces(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		races, err := repos.Race.List(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list races", err, slog.String("service", "characters"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -42,6 +45,7 @@ func listGenders(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		genders, err := repos.Gender.List(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list genders", err, slog.String("service", "characters"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -86,11 +90,13 @@ func updateCharacterRace(repos *repository.Container) gin.HandlerFunc {
 			Race string `json:"race" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid update race request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		existingRace, err := repos.Race.GetByName(c.Request.Context(), req.Race)
 		if err != nil || len(existingRace.RequirementTags) > 0 {
+			slog.Warn("bad request: invalid or non-playable race", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("race", req.Race))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or non-playable race"})
 			return
 		}
@@ -99,6 +105,7 @@ func updateCharacterRace(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
 			return
 		}
+		slog.Info("character race updated", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("race", char.Race))
 		c.JSON(http.StatusOK, gin.H{"id": char.ID, "name": char.Name, "race": char.Race})
 	}
 }
@@ -124,14 +131,17 @@ func setGameConfig(repos *repository.Container) gin.HandlerFunc {
 			Value string `json:"value" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid set game config request", slog.String("service", "characters"), slog.String("key", key), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		cfg, err := repos.GameConfig.Set(c.Request.Context(), key, req.Value)
 		if err != nil {
+			dblog.Error("failed to set game config", err, slog.String("service", "characters"), slog.String("key", key))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("game config set", slog.String("service", "characters"), slog.String("key", cfg.Key), slog.String("value", cfg.Value))
 		c.JSON(http.StatusOK, gin.H{"key": cfg.Key, "value": cfg.Value})
 	}
 }

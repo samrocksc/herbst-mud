@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -60,10 +62,12 @@ func handleEquipSlotLogic(c *gin.Context, repos *repository.Container, id int, i
 		OwnerID:    &ownerID,
 	})
 	if err != nil {
+		dblog.Error("failed to equip item", err, slog.String("service", "equipment"), slog.Int("item_id", id), slog.String("slot", slot))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to equip item"})
 		return
 	}
 
+	slog.Info("item equipped", slog.String("service", "equipment"), slog.Int("item_id", id), slog.String("slot", slot))
 	response := gin.H{
 		"message":  "Equipped " + item.Name + " in " + slot,
 		"item_id":  id,

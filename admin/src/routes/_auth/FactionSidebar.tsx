@@ -1,5 +1,5 @@
 import { Button } from "../../components/Button";
-import { EMPTY_FORM, type Faction, type FactionForm } from "./factionTypes";
+import { EMPTY_FORM, type Faction, type FactionForm } from "./-factionTypes";
 
 export function FactionSidebar({
   factions,
@@ -40,7 +40,7 @@ export function FactionSidebar({
                 selectedFaction?.id === f.id ? "text-primary bg-primary/20 font-medium" : "text-text"
               }`}>
               <div className="font-bold">{f.display_name || f.name}</div>
-              <div className="text-text-muted">{f.is_universal ? "universal" : `standing: ${f.standing ?? 0}`}</div>
+              <div className="text-text-muted">{f.member_count != null ? `${f.member_count} members` : ""}</div>
             </div>
           ))}
           {filteredFactions.length === 0 && <div className="text-text-muted text-center py-4">No factions found</div>}

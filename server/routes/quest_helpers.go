@@ -44,7 +44,7 @@ func questToView(q *db.Quest) questView {
 		achIDs = []int{}
 	}
 	return questView{
-		ID: q.ID, Name: q.Name, Description: q.Description,
+		ID: q.ID, Name: q.Name, WorldID: q.WorldID, Description: q.Description,
 		PrerequisiteQuestIDs: prereqs, Objectives: objs,
 		Rewards: questRewardsInput{
 			XP: r.XP, ItemIDs: itemIDs, EffectIDs: effIDs,

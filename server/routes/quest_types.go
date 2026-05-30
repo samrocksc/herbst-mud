@@ -8,6 +8,7 @@ import (
 type questView struct {
 	ID                   int                  `json:"id"`
 	Name                 string               `json:"name"`
+	WorldID              string               `json:"world_id"`
 	Description          string               `json:"description"`
 	PrerequisiteQuestIDs []string             `json:"prerequisite_quest_ids"`
 	Objectives           []questObjectiveInput `json:"objectives"`
@@ -41,6 +42,7 @@ type questRewardsInput struct {
 type questInput struct {
 	Name                 *string                `json:"name"`
 	Description          *string                `json:"description"`
+	WorldID              *string                `json:"world_id"`
 	PrerequisiteQuestIDs *[]string              `json:"prerequisite_quest_ids"`
 	Objectives           *[]questObjectiveInput `json:"objectives"`
 	Rewards              *questRewardsInput     `json:"rewards"`

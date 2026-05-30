@@ -11,8 +11,10 @@ import (
 	"herbst-server/db/charactertag"
 	"herbst-server/db/faction"
 	"herbst-server/db/factionrequiredtag"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
+	"log/slog"
 )
 
 // RegisterTagRoutes registers REST endpoints for tags.
@@ -58,6 +60,7 @@ func listTags(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tags, err := repos.Tag.List(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list tags", err, slog.String("service", "tags"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query tags"})
 			return
 		}
@@ -77,6 +80,7 @@ func createTag(repos *repository.Container) gin.HandlerFunc {
 			Color string `json:"color"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("invalid create tag request", slog.String("service", "tags"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
@@ -86,9 +90,11 @@ func createTag(repos *repository.Container) gin.HandlerFunc {
 			Color: input.Color,
 		})
 		if err != nil {
+			dblog.Error("failed to create tag", err, slog.String("service", "tags"), slog.String("name", input.Name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create tag"})
 			return
 		}
+		slog.Info("tag created", slog.String("service", "tags"), slog.Int("tag_id", t.ID), slog.String("name", t.Name))
 		c.JSON(http.StatusCreated, tagView{ID: t.ID, Name: t.Name, Color: t.Color})
 	}
 }
@@ -99,6 +105,7 @@ func updateTag(repos *repository.Container) gin.HandlerFunc {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
+			slog.Warn("invalid tag id", slog.String("service", "tags"), slog.String("id", idStr))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 			return
 		}
@@ -108,6 +115,7 @@ func updateTag(repos *repository.Container) gin.HandlerFunc {
 			Color *string `json:"color"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("invalid update tag request", slog.String("service", "tags"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 			return
 		}
@@ -121,6 +129,7 @@ func updateTag(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
+		slog.Info("tag updated", slog.String("service", "tags"), slog.Int("tag_id", t.ID), slog.String("name", t.Name))
 		c.JSON(http.StatusOK, tagView{ID: t.ID, Name: t.Name, Color: t.Color})
 	}
 }
@@ -131,6 +140,7 @@ func deleteTag(repos *repository.Container) gin.HandlerFunc {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
+			slog.Warn("invalid tag id", slog.String("service", "tags"), slog.String("id", idStr))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 			return
 		}
@@ -139,6 +149,7 @@ func deleteTag(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
 			return
 		}
+		slog.Info("tag deleted", slog.String("service", "tags"), slog.Int("tag_id", id))
 		c.Status(http.StatusNoContent)
 	}
 }
@@ -150,6 +161,7 @@ func tagUsages(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
+			slog.Warn("invalid tag id for usages", slog.String("service", "tags"), slog.String("id", idStr))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 			return
 		}
@@ -169,6 +181,7 @@ func tagUsages(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 			Where(ability.RequiredTag(tagEntity.Name)).
 			All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to query abilities for tag usages", err, slog.String("service", "tags"), slog.String("tag_name", tagEntity.Name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query abilities"})
 			return
 		}
@@ -186,6 +199,7 @@ func tagUsages(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 			}).
 			All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to query faction tags", err, slog.String("service", "tags"), slog.String("tag_name", tagEntity.Name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query faction tags"})
 			return
 		}
@@ -209,6 +223,7 @@ func tagUsages(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 			}).
 			All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to query character tags", err, slog.String("service", "tags"), slog.String("tag_name", tagEntity.Name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query character tags"})
 			return
 		}

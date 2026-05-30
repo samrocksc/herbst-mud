@@ -112,7 +112,7 @@ export function AbilityEditForm({
         <TextareaField label="Description" value={formData.description} onChange={(v) => set({ description: v })} rows={3} />
 
         <div className="grid grid-cols-3 gap-4">
-          <FormField label="Level Req" value={formData.requirements} onChange={(v) => set({ requirements: v })} />
+          <FormField label="Unlock Tags (JSON)" value={formData.requirements} onChange={(v) => set({ requirements: v })} tooltip='e.g. {"tags":["level:5"]}' />
           <NumberField label="Cost" value={formData.cost} onChange={(v) => set({ cost: v })} />
           <NumberField label="Cooldown (s)" value={formData.cooldown_seconds} onChange={(v) => set({ cooldown_seconds: v })} />
         </div>

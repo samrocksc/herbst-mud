@@ -1,0 +1,82 @@
+<h2>Refined Adventure Layout</h2>
+<p class="subtitle">Abilities removed from main screen — combat-only. Clean 2x2 quadrant.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Adventure Screen (Non-Combat)</div>
+  <div class="mockup-body">
+    <div style="display:flex;flex-direction:column;height:100%;font-family:monospace;font-size:10px;">
+      <!-- Header -->
+      <div style="padding:4px 8px;border-bottom:1px solid #444;display:flex;justify-content:space-between;">
+        <span>CharacterName • Lv.5 • HP 50/50 • STA 30/30 • MANA 20/20</span>
+        <span>[panel] [theme] [debug] Disconnect</span>
+      </div>
+      <!-- Scrollback -->
+      <div style="flex:1;overflow:auto;padding:8px;background:#0a0a0a;">
+        <div style="color:#666;">You enter the Grand Hall...</div>
+        <div style="color:#888;">A torch flickers on the wall.</div>
+      </div>
+      <!-- Room Panel: 2x2 Grid -->
+      <div style="border-top:1px solid #444;background:#111;">
+        <!-- Room title/description spans full width -->
+        <div style="padding:6px 8px;border-bottom:1px solid #333;">
+          <div style="font-weight:bold;color:#7c6f91;">Grand Hall</div>
+          <div style="color:#666;">A vast hall with stone pillars.</div>
+        </div>
+        <!-- 2x2 Grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;background:#333;">
+          <!-- Top Left: Characters -->
+          <div style="background:#111;padding:6px 8px;">
+            <div style="color:#555;margin-bottom:4px;text-transform:uppercase;font-size:9px;">Characters</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="border:1px solid #444;padding:2px 6px;">Guard ▾</span>
+              <span style="border:1px solid #444;padding:2px 6px;">Merchant ▾</span>
+            </div>
+          </div>
+          <!-- Top Right: Exits -->
+          <div style="background:#111;padding:6px 8px;">
+            <div style="color:#555;margin-bottom:4px;text-transform:uppercase;font-size:9px;">Exits</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="border:1px solid #444;padding:2px 6px;"><b style="color:#7c6f91;">N</b> North Passage</span>
+              <span style="border:1px solid #444;padding:2px 6px;"><b style="color:#7c6f91;">S</b> Courtyard</span>
+            </div>
+          </div>
+          <!-- Bottom Left: Items -->
+          <div style="background:#111;padding:6px 8px;">
+            <div style="color:#555;margin-bottom:4px;text-transform:uppercase;font-size:9px;">Items</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="border:1px solid #444;padding:2px 6px;">Iron Sword ▾</span>
+              <span style="border:1px solid #444;padding:2px 6px;">Health Potion ▾</span>
+            </div>
+          </div>
+          <!-- Bottom Right: Functions -->
+          <div style="background:#111;padding:6px 8px;">
+            <div style="color:#555;margin-bottom:4px;text-transform:uppercase;font-size:9px;">Functions</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="border:1px solid #444;padding:2px 6px;"><b style="color:#7c6f91;">L</b> look</span>
+              <span style="border:1px solid #444;padding:2px 6px;"><b style="color:#7c6f91;">E</b> examine</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Input -->
+      <div style="border-top:1px solid #444;padding:4px 8px;background:#111;">&gt; _</div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="yes" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Looks Good — Ship It</h3>
+      <p>Exactly what I had in mind. Room description across the top, 2x2 grid below, no abilities outside combat.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="adjust" onclick="toggleSelect(this)">
+    <div class="letter">↺</div>
+    <div class="content">
+      <h3>Needs Adjustment</h3>
+      <p>Something about the layout isn't quite right. I'll tell you what to change.</p>
+    </div>
+  </div>
+</div>

@@ -5,7 +5,7 @@ import { FormError } from "../../components/fields/FormError";
 import { showToast } from "../../components/Toast";
 import { apiPut, apiDelete } from "../../utils/apiFetch";
 import { FactionFormFields } from "./FactionFormFields";
-import { factionToForm, type Faction, type FactionForm, type FactionCategory } from "./factionTypes";
+import { factionToForm, type Faction, type FactionForm, type FactionCategory } from "./-factionTypes";
 
 export function FactionDetail({
   faction,
@@ -74,8 +74,6 @@ export function FactionDetail({
         <DetailRow label="Name" value={faction.name} />
         <DetailRow label="Display Name" value={faction.display_name || "—"} />
         <DetailRow label="Description" value={faction.description || "—"} />
-        <DetailRow label="Standing" value={String(faction.standing ?? 0)} />
-        <DetailRow label="Universal" value={faction.is_universal ? "Yes" : "No"} />
         <DetailRow label="Members" value={faction.member_count != null ? String(faction.member_count) : "0"} />
         {memberTags.length > 0 && (
           <div className="detail-row">

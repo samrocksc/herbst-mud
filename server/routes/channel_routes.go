@@ -6,7 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/channelconfig"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
+	"log/slog"
 )
 
 // RegisterChannelRoutes registers REST endpoints for global channel configurations.
@@ -33,6 +35,7 @@ func listChannels(client *db.Client) gin.HandlerFunc {
 		}
 		configs, err := query.All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list channel configs", err, slog.String("service", "channels"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -69,6 +72,7 @@ func createChannel(client *db.Client) gin.HandlerFunc {
 			AdminOnly       bool   `json:"admin_only"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("invalid create channel request", slog.String("service", "channels"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -81,9 +85,11 @@ func createChannel(client *db.Client) gin.HandlerFunc {
 			SetAdminOnly(req.AdminOnly).
 			Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to create channel config", err, slog.String("service", "channels"), slog.String("name", req.Name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("channel config created", slog.String("service", "channels"), slog.String("name", created.Name))
 		c.JSON(http.StatusCreated, channelConfigToJSON(created))
 	}
 }
@@ -99,6 +105,7 @@ func updateChannel(client *db.Client) gin.HandlerFunc {
 			AdminOnly       *bool   `json:"admin_only"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("invalid update channel request", slog.String("service", "channels"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -121,6 +128,7 @@ func updateChannel(client *db.Client) gin.HandlerFunc {
 		}
 		count, err := builder.Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to update channel config", err, slog.String("service", "channels"), slog.String("name", name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -134,9 +142,11 @@ func updateChannel(client *db.Client) gin.HandlerFunc {
 			Where(channelconfig.NameEQ(name)).
 			Only(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to fetch updated channel config", err, slog.String("service", "channels"), slog.String("name", name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("channel config updated", slog.String("service", "channels"), slog.String("name", name))
 		c.JSON(http.StatusOK, channelConfigToJSON(updated))
 	}
 }
@@ -148,9 +158,11 @@ func deleteChannel(client *db.Client) gin.HandlerFunc {
 			Where(channelconfig.NameEQ(name)).
 			Exec(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to delete channel config", err, slog.String("service", "channels"), slog.String("name", name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("channel config deleted", slog.String("service", "channels"), slog.String("name", name))
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

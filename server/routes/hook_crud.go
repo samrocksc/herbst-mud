@@ -5,13 +5,16 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
+	"log/slog"
 )
 
 func listHooks(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		hooks, err := repos.EffectHook.ListWithEdges(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list hooks", err, slog.String("service", "hooks"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -42,11 +45,13 @@ func listTemplateHooks(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		templateID := c.Param("id")
 		if templateID == "" {
+			slog.Warn("invalid template id for hooks", slog.String("service", "hooks"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
 		hooks, err := repos.EffectHook.ListByTemplateWithEdges(c.Request.Context(), templateID)
 		if err != nil {
+			dblog.Error("failed to list template hooks", err, slog.String("service", "hooks"), slog.String("template_id", templateID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -62,23 +67,28 @@ func createTemplateHook(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		templateID := c.Param("id")
 		if templateID == "" {
+			slog.Warn("invalid template id for hook creation", slog.String("service", "hooks"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
 		var input hookInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("invalid create hook request", slog.String("service", "hooks"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if input.Name == nil || *input.Name == "" {
+			slog.Warn("hook name missing", slog.String("service", "hooks"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
 		if input.Event == nil || !validHookEvents[*input.Event] {
+			slog.Warn("hook invalid event", slog.String("service", "hooks"), slog.String("event", *input.Event))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event"})
 			return
 		}
 		if input.EffectID == nil {
+			slog.Warn("hook effect_id missing", slog.String("service", "hooks"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "effect_id is required"})
 			return
 		}
@@ -89,6 +99,7 @@ func createTemplateHook(repos *repository.Container) gin.HandlerFunc {
 		target := ""
 		if input.Target != nil {
 			if !validHookTargets[*input.Target] {
+				slog.Warn("hook invalid target", slog.String("service", "hooks"), slog.String("target", *input.Target))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid target"})
 				return
 			}
@@ -108,11 +119,13 @@ func createTemplateHook(repos *repository.Container) gin.HandlerFunc {
 			NPCTemplateID: &templateID,
 		})
 		if err != nil {
+			dblog.Error("failed to create hook", err, slog.String("service", "hooks"), slog.String("name", *input.Name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		// Re-fetch with edges for response
 		h, _ = repos.EffectHook.GetWithEdges(c.Request.Context(), h.ID)
+		slog.Info("hook created", slog.String("service", "hooks"), slog.Int("hook_id", h.ID), slog.String("name", h.Name))
 		c.JSON(http.StatusCreated, hookToView(h))
 	}
 }
@@ -131,6 +144,7 @@ func updateHook(repos *repository.Container) gin.HandlerFunc {
 		}
 		var input hookInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("invalid update hook request", slog.String("service", "hooks"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -146,11 +160,13 @@ func updateHook(repos *repository.Container) gin.HandlerFunc {
 
 		_, err = repos.EffectHook.Update(c.Request.Context(), id, updates)
 		if err != nil {
+			dblog.Error("failed to update hook", err, slog.String("service", "hooks"), slog.Int("hook_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		// Re-fetch with edges for response
 		updated, _ := repos.EffectHook.GetWithEdges(c.Request.Context(), id)
+		slog.Info("hook updated", slog.String("service", "hooks"), slog.Int("hook_id", id))
 		c.JSON(http.StatusOK, hookToView(updated))
 	}
 }
@@ -166,6 +182,7 @@ func deleteHook(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "hook not found"})
 			return
 		}
+		slog.Info("hook deleted", slog.String("service", "hooks"), slog.Int("hook_id", id))
 		c.Status(http.StatusNoContent)
 	}
 }
@@ -173,6 +190,7 @@ func deleteHook(repos *repository.Container) gin.HandlerFunc {
 func parseHookID(c *gin.Context) (int, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		slog.Warn("invalid hook id", slog.String("service", "hooks"), slog.String("error", err.Error()))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hook id"})
 		return 0, err
 	}

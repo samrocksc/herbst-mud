@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/service"
 )
 
@@ -17,6 +19,7 @@ func getCharacterAbilities(svc *service.Container) gin.HandlerFunc {
 		}
 		charAbilities, err := svc.Ability.GetAbilitiesWithDetails(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to get character abilities", err, slog.String("service", "characters"), slog.Int("character_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -47,18 +50,22 @@ func equipAbility(svc *service.Container) gin.HandlerFunc {
 			Slot      int `json:"slot"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid equip ability request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if err := svc.Ability.EquipAbility(c.Request.Context(), id, req.AbilityID, req.Slot); err != nil {
 			switch {
 			case isErr(err, service.ErrSlotOutOfRange):
+				slog.Warn("bad request: slot out of range", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			case isErr(err, service.ErrAbilityNotFound):
 				c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			case isErr(err, service.ErrMaxAbilities):
+				slog.Warn("bad request: max abilities reached", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			default:
+				dblog.Error("failed to equip ability", err, slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("ability_id", req.AbilityID), slog.Int("slot", req.Slot))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			}
 			return
@@ -68,6 +75,7 @@ func equipAbility(svc *service.Container) gin.HandlerFunc {
 		if abilityObj != nil {
 			abilityName = abilityObj.Name
 		}
+		slog.Info("ability equipped", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("ability_id", req.AbilityID), slog.Int("slot", req.Slot))
 		c.JSON(http.StatusCreated, gin.H{
 			"success":      true,
 			"slot":         req.Slot,
@@ -86,6 +94,7 @@ func unequipAbility(svc *service.Container) gin.HandlerFunc {
 		}
 		slot, err := strconv.Atoi(c.Param("slot"))
 		if err != nil || slot < 1 || slot > 5 {
+			slog.Warn("bad request: invalid slot", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("slot", c.Param("slot")))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid slot"})
 			return
 		}
@@ -93,6 +102,7 @@ func unequipAbility(svc *service.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("ability unequipped", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("slot", slot))
 		c.JSON(http.StatusOK, gin.H{"success": true, "slot": slot})
 	}
 }
@@ -109,14 +119,17 @@ func swapAbilities(svc *service.Container) gin.HandlerFunc {
 			Slot2 int `json:"slot2"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid swap request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		result, err := svc.Ability.SwapAbilities(c.Request.Context(), id, req.Slot1, req.Slot2)
 		if err != nil {
+			slog.Warn("bad request: failed to swap abilities", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("abilities swapped", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("slot1", req.Slot1), slog.Int("slot2", req.Slot2))
 		c.JSON(http.StatusOK, gin.H{"success": true, "slot1": req.Slot1, "slot2": req.Slot2, "result": result})
 	}
 }
@@ -131,6 +144,7 @@ func listPassiveAbilities(svc *service.Container) gin.HandlerFunc {
 		// Verify character exists via repos (service doesn't have simple Get)
 		passives, err := svc.Ability.ListPassiveAbilities(c.Request.Context(), "")
 		if err != nil {
+			dblog.Error("failed to list passive abilities", err, slog.String("service", "characters"), slog.Int("character_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -153,6 +167,7 @@ func unlockPassiveAbility(svc *service.Container) gin.HandlerFunc {
 			AbilityID int `json:"ability_id" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid unlock passive request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -162,12 +177,15 @@ func unlockPassiveAbility(svc *service.Container) gin.HandlerFunc {
 			case isErr(err, service.ErrAbilityNotFound):
 				c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			case isErr(err, service.ErrNotPassive):
+				slog.Warn("bad request: ability is not passive", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			case isErr(err, service.ErrAlreadyEquipped):
 				c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 			case isErr(err, service.ErrNoAvailableSlots):
+				slog.Warn("bad request: no available slots", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			default:
+				dblog.Error("failed to unlock passive ability", err, slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("ability_id", req.AbilityID))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			}
 			return
@@ -177,6 +195,7 @@ func unlockPassiveAbility(svc *service.Container) gin.HandlerFunc {
 		if abilityObj != nil {
 			abilityName = abilityObj.Name
 		}
+		slog.Info("passive ability unlocked", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("ability_id", req.AbilityID), slog.Int("slot", charAbility.Slot))
 		c.JSON(http.StatusCreated, gin.H{
 			"success":      true,
 			"id":           charAbility.ID,
@@ -196,6 +215,7 @@ func removePassiveAbility(svc *service.Container) gin.HandlerFunc {
 		}
 		abilityId, err := strconv.Atoi(c.Param("abilityId"))
 		if err != nil {
+			slog.Warn("bad request: invalid ability ID", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("ability_id", c.Param("abilityId")))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ability ID"})
 			return
 		}
@@ -203,6 +223,7 @@ func removePassiveAbility(svc *service.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("passive ability removed", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("ability_id", abilityId))
 		c.JSON(http.StatusOK, gin.H{"success": true, "ability_id": abilityId})
 	}
 }
@@ -216,6 +237,7 @@ func getClasslessSkills(svc *service.Container) gin.HandlerFunc {
 		}
 		charAbilities, err := svc.Ability.GetAbilitiesWithDetails(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to get classless skills", err, slog.String("service", "characters"), slog.Int("character_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -265,6 +287,7 @@ func equipClasslessSkill(svc *service.Container) gin.HandlerFunc {
 			Slot    int `json:"slot" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid classless skill request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -273,9 +296,11 @@ func equipClasslessSkill(svc *service.Container) gin.HandlerFunc {
 			if isErr(err, service.ErrAbilityNotFound) {
 				status = http.StatusNotFound
 			}
+			slog.Warn("bad request: failed to equip classless skill", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(status, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("classless skill equipped", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("skill_id", req.SkillID), slog.Int("slot", req.Slot))
 		c.JSON(http.StatusOK, gin.H{
 			"message":      "Skill equipped",
 			"skill_id":     req.SkillID,
@@ -297,13 +322,16 @@ func swapClasslessSkills(svc *service.Container) gin.HandlerFunc {
 			Slot2 int `json:"slot2" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid classless skill swap request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if err := svc.Ability.SwapClasslessSkills(c.Request.Context(), id, req.Slot1, req.Slot2); err != nil {
+			slog.Warn("bad request: failed to swap classless skills", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("classless skills swapped", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("slot1", req.Slot1), slog.Int("slot2", req.Slot2))
 		c.JSON(http.StatusOK, gin.H{
 			"message":      "Skills swapped",
 			"slot1":        req.Slot1,

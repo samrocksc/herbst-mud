@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -13,11 +15,13 @@ func listActiveEffects(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "active_effects"), slog.String("reason", "invalid character id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid character id"})
 			return
 		}
 		effects, err := repos.ActiveEffect.ListActiveByCharacter(c.Request.Context(), charID)
 		if err != nil {
+			dblog.Error("failed to list active effects", err, slog.String("service", "active_effects"), slog.Int("character_id", charID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -33,6 +37,7 @@ func removeActiveEffect(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		effectID, err := strconv.Atoi(c.Param("effect_id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "active_effects"), slog.String("reason", "invalid effect id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect id"})
 			return
 		}
@@ -43,6 +48,7 @@ func removeActiveEffect(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "active effect not found"})
 			return
 		}
+		slog.Info("active effect removed", slog.Int("effect_id", effectID), slog.String("user_email", c.GetString("email")), slog.String("service", "active_effects"))
 		c.Status(http.StatusNoContent)
 	}
 }
@@ -51,11 +57,13 @@ func applyEffect(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "active_effects"), slog.String("reason", "invalid character id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid character id"})
 			return
 		}
 		var input applyEffectInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "active_effects"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -94,6 +102,7 @@ func applyEffect(repos *repository.Container) gin.HandlerFunc {
 				}
 			}
 			updated, _ := repos.ActiveEffect.GetWithEffect(c.Request.Context(), existing.ID)
+			slog.Info("active effect updated", slog.Int("active_effect_id", updated.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "active_effects"))
 			c.JSON(http.StatusOK, activeEffectToView(updated))
 			return
 		}
@@ -114,10 +123,12 @@ func applyEffect(repos *repository.Container) gin.HandlerFunc {
 			ExpiresAt:   expiresAt,
 		})
 		if err != nil {
+			dblog.Error("failed to create active effect", err, slog.String("service", "active_effects"), slog.Int("character_id", charID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		ae, _ = repos.ActiveEffect.GetWithEffect(c.Request.Context(), ae.ID)
+		slog.Info("active effect applied", slog.Int("active_effect_id", ae.ID), slog.Int("character_id", charID), slog.String("user_email", c.GetString("email")), slog.String("service", "active_effects"))
 		c.JSON(http.StatusCreated, activeEffectToView(ae))
 	}
 }

@@ -25,7 +25,7 @@ func (Room) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
 		field.String("world_id").
-			Default("default").
+			Default("1").
 			Comment("World this room belongs to (for multi-world support)"),
 		field.String("description"),
 		field.Bool("isStartingRoom").

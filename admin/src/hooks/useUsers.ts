@@ -1,6 +1,6 @@
  
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost, apiDelete } from "../utils/apiFetch";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}`;
 
@@ -32,6 +32,36 @@ export function useResetPassword() {
   return useMutation({
     mutationFn: (id: number) =>
       apiPost<{ message: string }>(`${API}/users/${id}/reset-password`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+export type CreateUserInput = Readonly<{
+  email: string
+  password: string
+  isAdmin?: boolean
+}>
+
+export type UpdateUserInput = Readonly<{
+  email?: string
+  password?: string
+  isAdmin?: boolean
+}>
+
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateUserInput) =>
+      apiPost<User>(`${API}/users`, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+export function useUpdateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number; input: UpdateUserInput }) =>
+      apiPut<User>(`${API}/users/${id}`, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });
 }

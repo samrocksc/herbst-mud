@@ -50,6 +50,7 @@ import { Route as AuthPlayersRouteImport } from './routes/_auth/players'
 import { Route as AuthNpcsRouteImport } from './routes/_auth/npcs'
 import { Route as AuthLogsRouteImport } from './routes/_auth/logs'
 import { Route as AuthItemsRouteImport } from './routes/_auth/items'
+import { Route as AuthHooksRouteImport } from './routes/_auth/hooks'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthEffectsRouteImport } from './routes/_auth/effects'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
@@ -63,7 +64,9 @@ import { Route as AuthWorldsWorldIdRouteImport } from './routes/_auth/worlds.$wo
 import { Route as AuthSocialsNewRouteImport } from './routes/_auth/socials.new'
 import { Route as AuthSocialsSocialIdRouteImport } from './routes/_auth/socials.$socialId'
 import { Route as AuthRecipesRecipeNameRouteImport } from './routes/_auth/recipes.$recipeName'
+import { Route as AuthQuestsNewRouteImport } from './routes/_auth/quests.new'
 import { Route as AuthQuestsQuestIdRouteImport } from './routes/_auth/quests.$questId'
+import { Route as AuthNpcsNewRouteImport } from './routes/_auth/npcs.new'
 import { Route as AuthNpcsNpcIdRouteImport } from './routes/_auth/npcs.$npcId'
 import { Route as AuthItemsNewRouteImport } from './routes/_auth/items.new'
 import { Route as AuthItemsItemIdRouteImport } from './routes/_auth/items.$itemId'
@@ -284,6 +287,11 @@ const AuthItemsRoute = AuthItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthHooksRoute = AuthHooksRouteImport.update({
+  id: '/hooks',
+  path: '/hooks',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthFactionsRoute = AuthFactionsRouteImport.update({
   id: '/factions',
   path: '/factions',
@@ -349,10 +357,20 @@ const AuthRecipesRecipeNameRoute = AuthRecipesRecipeNameRouteImport.update({
   path: '/$recipeName',
   getParentRoute: () => AuthRecipesRoute,
 } as any)
+const AuthQuestsNewRoute = AuthQuestsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthQuestsRoute,
+} as any)
 const AuthQuestsQuestIdRoute = AuthQuestsQuestIdRouteImport.update({
   id: '/$questId',
   path: '/$questId',
   getParentRoute: () => AuthQuestsRoute,
+} as any)
+const AuthNpcsNewRoute = AuthNpcsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthNpcsRoute,
 } as any)
 const AuthNpcsNpcIdRoute = AuthNpcsNpcIdRouteImport.update({
   id: '/$npcId',
@@ -450,6 +468,7 @@ export interface FileRoutesByFullPath {
   '/config': typeof AuthConfigRouteWithChildren
   '/effects': typeof AuthEffectsRoute
   '/factions': typeof AuthFactionsRoute
+  '/hooks': typeof AuthHooksRoute
   '/items': typeof AuthItemsRouteWithChildren
   '/logs': typeof AuthLogsRoute
   '/npcs': typeof AuthNpcsRouteWithChildren
@@ -491,7 +510,9 @@ export interface FileRoutesByFullPath {
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/items/new': typeof AuthItemsNewRoute
   '/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
+  '/npcs/new': typeof AuthNpcsNewRoute
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/quests/new': typeof AuthQuestsNewRoute
   '/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
@@ -519,6 +540,7 @@ export interface FileRoutesByTo {
   '/config': typeof AuthConfigRouteWithChildren
   '/effects': typeof AuthEffectsRoute
   '/factions': typeof AuthFactionsRoute
+  '/hooks': typeof AuthHooksRoute
   '/items': typeof AuthItemsRouteWithChildren
   '/logs': typeof AuthLogsRoute
   '/npcs': typeof AuthNpcsRouteWithChildren
@@ -559,7 +581,9 @@ export interface FileRoutesByTo {
   '/config/new': typeof AuthConfigNewRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/items/new': typeof AuthItemsNewRoute
+  '/npcs/new': typeof AuthNpcsNewRoute
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/quests/new': typeof AuthQuestsNewRoute
   '/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
@@ -591,6 +615,7 @@ export interface FileRoutesById {
   '/_auth/config': typeof AuthConfigRouteWithChildren
   '/_auth/effects': typeof AuthEffectsRoute
   '/_auth/factions': typeof AuthFactionsRoute
+  '/_auth/hooks': typeof AuthHooksRoute
   '/_auth/items': typeof AuthItemsRouteWithChildren
   '/_auth/logs': typeof AuthLogsRoute
   '/_auth/npcs': typeof AuthNpcsRouteWithChildren
@@ -632,7 +657,9 @@ export interface FileRoutesById {
   '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
   '/_auth/items/new': typeof AuthItemsNewRoute
   '/_auth/npcs/$npcId': typeof AuthNpcsNpcIdRouteWithChildren
+  '/_auth/npcs/new': typeof AuthNpcsNewRoute
   '/_auth/quests/$questId': typeof AuthQuestsQuestIdRoute
+  '/_auth/quests/new': typeof AuthQuestsNewRoute
   '/_auth/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/_auth/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/_auth/socials/new': typeof AuthSocialsNewRoute
@@ -664,6 +691,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/effects'
     | '/factions'
+    | '/hooks'
     | '/items'
     | '/logs'
     | '/npcs'
@@ -705,7 +733,9 @@ export interface FileRouteTypes {
     | '/items/$itemId'
     | '/items/new'
     | '/npcs/$npcId'
+    | '/npcs/new'
     | '/quests/$questId'
+    | '/quests/new'
     | '/recipes/$recipeName'
     | '/socials/$socialId'
     | '/socials/new'
@@ -733,6 +763,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/effects'
     | '/factions'
+    | '/hooks'
     | '/items'
     | '/logs'
     | '/npcs'
@@ -773,7 +804,9 @@ export interface FileRouteTypes {
     | '/config/new'
     | '/items/$itemId'
     | '/items/new'
+    | '/npcs/new'
     | '/quests/$questId'
+    | '/quests/new'
     | '/recipes/$recipeName'
     | '/socials/$socialId'
     | '/socials/new'
@@ -804,6 +837,7 @@ export interface FileRouteTypes {
     | '/_auth/config'
     | '/_auth/effects'
     | '/_auth/factions'
+    | '/_auth/hooks'
     | '/_auth/items'
     | '/_auth/logs'
     | '/_auth/npcs'
@@ -845,7 +879,9 @@ export interface FileRouteTypes {
     | '/_auth/items/$itemId'
     | '/_auth/items/new'
     | '/_auth/npcs/$npcId'
+    | '/_auth/npcs/new'
     | '/_auth/quests/$questId'
+    | '/_auth/quests/new'
     | '/_auth/recipes/$recipeName'
     | '/_auth/socials/$socialId'
     | '/_auth/socials/new'
@@ -1161,6 +1197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthItemsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/hooks': {
+      id: '/_auth/hooks'
+      path: '/hooks'
+      fullPath: '/hooks'
+      preLoaderRoute: typeof AuthHooksRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/factions': {
       id: '/_auth/factions'
       path: '/factions'
@@ -1252,12 +1295,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRecipesRecipeNameRouteImport
       parentRoute: typeof AuthRecipesRoute
     }
+    '/_auth/quests/new': {
+      id: '/_auth/quests/new'
+      path: '/new'
+      fullPath: '/quests/new'
+      preLoaderRoute: typeof AuthQuestsNewRouteImport
+      parentRoute: typeof AuthQuestsRoute
+    }
     '/_auth/quests/$questId': {
       id: '/_auth/quests/$questId'
       path: '/$questId'
       fullPath: '/quests/$questId'
       preLoaderRoute: typeof AuthQuestsQuestIdRouteImport
       parentRoute: typeof AuthQuestsRoute
+    }
+    '/_auth/npcs/new': {
+      id: '/_auth/npcs/new'
+      path: '/new'
+      fullPath: '/npcs/new'
+      preLoaderRoute: typeof AuthNpcsNewRouteImport
+      parentRoute: typeof AuthNpcsRoute
     }
     '/_auth/npcs/$npcId': {
       id: '/_auth/npcs/$npcId'
@@ -1452,10 +1509,12 @@ const AuthNpcsNpcIdRouteWithChildren = AuthNpcsNpcIdRoute._addFileChildren(
 
 interface AuthNpcsRouteChildren {
   AuthNpcsNpcIdRoute: typeof AuthNpcsNpcIdRouteWithChildren
+  AuthNpcsNewRoute: typeof AuthNpcsNewRoute
 }
 
 const AuthNpcsRouteChildren: AuthNpcsRouteChildren = {
   AuthNpcsNpcIdRoute: AuthNpcsNpcIdRouteWithChildren,
+  AuthNpcsNewRoute: AuthNpcsNewRoute,
 }
 
 const AuthNpcsRouteWithChildren = AuthNpcsRoute._addFileChildren(
@@ -1464,10 +1523,12 @@ const AuthNpcsRouteWithChildren = AuthNpcsRoute._addFileChildren(
 
 interface AuthQuestsRouteChildren {
   AuthQuestsQuestIdRoute: typeof AuthQuestsQuestIdRoute
+  AuthQuestsNewRoute: typeof AuthQuestsNewRoute
 }
 
 const AuthQuestsRouteChildren: AuthQuestsRouteChildren = {
   AuthQuestsQuestIdRoute: AuthQuestsQuestIdRoute,
+  AuthQuestsNewRoute: AuthQuestsNewRoute,
 }
 
 const AuthQuestsRouteWithChildren = AuthQuestsRoute._addFileChildren(
@@ -1535,6 +1596,7 @@ interface AuthRouteChildren {
   AuthConfigRoute: typeof AuthConfigRouteWithChildren
   AuthEffectsRoute: typeof AuthEffectsRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
+  AuthHooksRoute: typeof AuthHooksRoute
   AuthItemsRoute: typeof AuthItemsRouteWithChildren
   AuthLogsRoute: typeof AuthLogsRoute
   AuthNpcsRoute: typeof AuthNpcsRouteWithChildren
@@ -1558,6 +1620,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthConfigRoute: AuthConfigRouteWithChildren,
   AuthEffectsRoute: AuthEffectsRoute,
   AuthFactionsRoute: AuthFactionsRoute,
+  AuthHooksRoute: AuthHooksRoute,
   AuthItemsRoute: AuthItemsRouteWithChildren,
   AuthLogsRoute: AuthLogsRoute,
   AuthNpcsRoute: AuthNpcsRouteWithChildren,

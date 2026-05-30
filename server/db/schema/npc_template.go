@@ -24,7 +24,7 @@ func (NPCTemplate) Fields() []ent.Field {
 			Optional().
 			Comment("Globally unique slug derived from name, e.g., goblin_scout"),
 		field.String("world_id").
-			Default("default").
+			Default("1").
 			Comment("World this NPC template belongs to (for multi-world support)"),
 		field.String("name"),
 		field.Text("description"),

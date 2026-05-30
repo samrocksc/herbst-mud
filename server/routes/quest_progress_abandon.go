@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/quest"
@@ -18,11 +20,13 @@ func abandonQuest(repos *repository.Container, client *db.Client) gin.HandlerFun
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "quests"), slog.String("reason", "invalid character id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid character id"})
 			return
 		}
 		questID, err := strconv.Atoi(c.Param("questId"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "quests"), slog.String("reason", "invalid quest id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid quest id"})
 			return
 		}
@@ -47,6 +51,7 @@ func abandonQuest(repos *repository.Container, client *db.Client) gin.HandlerFun
 			SetStatus(questprogress.StatusAbandoned).
 			Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to abandon quest", err, slog.String("service", "quests"), slog.Int("quest_id", questID), slog.Int("character_id", charID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -54,6 +59,7 @@ func abandonQuest(repos *repository.Container, client *db.Client) gin.HandlerFun
 			Where(questprogress.IDEQ(updated.ID)).
 			WithQuest().WithCharacter().
 			Only(c.Request.Context())
+		slog.Info("quest abandoned", slog.Int("quest_id", questID), slog.Int("character_id", charID), slog.String("user_email", c.GetString("email")), slog.String("service", "quests"))
 		c.JSON(http.StatusOK, questProgressToView(updated))
 	}
 }

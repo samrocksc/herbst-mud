@@ -2,11 +2,13 @@ package routes
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
 	"herbst-server/middleware"
@@ -162,6 +164,7 @@ func listItemInstances(repos *repository.Container, client *db.Client) gin.Handl
 
 		items, err := query.All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list item instances", err, slog.String("service", "items"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -220,6 +223,7 @@ func createItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 			IsTwoHanded           bool           `json:"is_two_handed"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "items"), slog.String("reason", "invalid request body"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -293,6 +297,7 @@ func createItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 		} else {
 			// Bare item — name is required
 			if req.Name == "" {
+				slog.Warn("bad request", slog.String("service", "items"), slog.String("reason", "name is required when no template is provided"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "name is required when no template is provided"})
 				return
 			}
@@ -364,10 +369,12 @@ func createItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 
 		eq, err := builder.Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to create item instance", err, slog.String("service", "items"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("item instance created", slog.String("service", "items"), slog.Int("item_instance_id", eq.ID))
 		c.JSON(http.StatusCreated, toItemInstanceView(eq))
 	}
 }
@@ -378,6 +385,7 @@ func getItemInstance(repos *repository.Container, client *db.Client) gin.Handler
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "items"), slog.String("reason", "invalid item instance id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid item instance id"})
 			return
 		}
@@ -400,6 +408,7 @@ func updateItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "items"), slog.String("reason", "invalid item instance id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid item instance id"})
 			return
 		}
@@ -442,6 +451,7 @@ func updateItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 			IsTwoHanded           *bool           `json:"is_two_handed"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "items"), slog.String("reason", "invalid request body"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -556,6 +566,7 @@ func updateItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 			return
 		}
 
+		slog.Info("item instance updated", slog.String("service", "items"), slog.Int("item_instance_id", updated.ID))
 		c.JSON(http.StatusOK, toItemInstanceView(updated))
 	}
 }
@@ -565,6 +576,7 @@ func deleteItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "items"), slog.String("reason", "invalid item instance id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid item instance id"})
 			return
 		}
@@ -576,6 +588,7 @@ func deleteItemInstance(repos *repository.Container, client *db.Client) gin.Hand
 			return
 		}
 
+		slog.Info("item instance deleted", slog.String("service", "items"), slog.Int("item_instance_id", id))
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

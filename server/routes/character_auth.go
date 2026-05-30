@@ -1,19 +1,21 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
-
 
 // getUserCharacters handles GET /user-characters/:id.
 func getUserCharacters(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, err := parseIntParam(c, "id")
 		if err != nil {
+			slog.Warn("bad request: invalid user ID", slog.String("service", "characters"), slog.String("user_id", c.Param("id")))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 			return
 		}
@@ -23,6 +25,7 @@ func getUserCharacters(repos *repository.Container) gin.HandlerFunc {
 		}
 		characters, err := repos.Character.ListByUser(c.Request.Context(), userID)
 		if err != nil {
+			dblog.Error("failed to list user characters", err, slog.String("service", "characters"), slog.Int("user_id", userID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -52,6 +55,7 @@ func needsCharacter(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, err := parseIntParam(c, "id")
 		if err != nil {
+			slog.Warn("bad request: invalid user ID", slog.String("service", "characters"), slog.String("user_id", c.Param("id")))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 			return
 		}
@@ -61,6 +65,7 @@ func needsCharacter(repos *repository.Container) gin.HandlerFunc {
 		}
 		count, err := repos.Character.CountByUser(c.Request.Context(), userID)
 		if err != nil {
+			dblog.Error("failed to count user characters", err, slog.String("service", "characters"), slog.Int("user_id", userID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

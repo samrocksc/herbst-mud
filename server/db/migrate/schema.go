@@ -12,7 +12,7 @@ var (
 	AbilitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "world_id", Type: field.TypeString, Default: "default"},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "description", Type: field.TypeString},
 		{Name: "ability_type", Type: field.TypeString},
 		{Name: "cost", Type: field.TypeInt, Default: 0},
@@ -462,7 +462,7 @@ var (
 		{Name: "inputs", Type: field.TypeJSON},
 		{Name: "outputs", Type: field.TypeJSON},
 		{Name: "craft_time_secs", Type: field.TypeInt, Default: 3},
-		{Name: "world_id", Type: field.TypeString, Default: "default"},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 	}
 	// CraftingRecipesTable holds the schema information for the "crafting_recipes" table.
 	CraftingRecipesTable = &schema.Table{
@@ -487,7 +487,7 @@ var (
 	// DialogNodesColumns holds the columns for the "dialog_nodes" table.
 	DialogNodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "world_id", Type: field.TypeString, Default: "default"},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "npc_text", Type: field.TypeString},
 		{Name: "responses", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_entry", Type: field.TypeBool, Default: false},
@@ -628,7 +628,7 @@ var (
 	EquipmentTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "slug", Type: field.TypeString},
-		{Name: "world_id", Type: field.TypeString, Default: "default"},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "slot", Type: field.TypeString},
@@ -677,7 +677,7 @@ var (
 	FactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "world_id", Type: field.TypeString, Default: "default"},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "display_name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "member_tags", Type: field.TypeJSON, Nullable: true},
@@ -775,7 +775,7 @@ var (
 	NpcTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
-		{Name: "world_id", Type: field.TypeString, Default: "default"},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral"}, Default: "neutral"},
@@ -806,7 +806,7 @@ var (
 	QuestsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "world_id", Type: field.TypeString, Default: "default"},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "description", Type: field.TypeString},
 		{Name: "prerequisite_quest_ids", Type: field.TypeJSON, Nullable: true},
 		{Name: "objectives", Type: field.TypeJSON},
@@ -875,7 +875,7 @@ var (
 	RoomsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
-		{Name: "world_id", Type: field.TypeString, Default: "default"},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "description", Type: field.TypeString},
 		{Name: "is_starting_room", Type: field.TypeBool, Default: false},
 		{Name: "is_root_room", Type: field.TypeBool, Default: false},

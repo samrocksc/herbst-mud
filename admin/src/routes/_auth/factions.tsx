@@ -8,7 +8,7 @@ import { CategoryManager, CreateCategoryForm } from "./CategoryManager";
 import { FactionSidebar } from "./FactionSidebar";
 import { CategorySidebar } from "./CategorySidebar";
 import { TabBar } from "./FactionsTabBar";
-import { EMPTY_FORM, type Faction, type FactionCategory, type FactionForm } from "./factionTypes";
+import { EMPTY_FORM, type Faction, type FactionCategory, type FactionForm } from "./-factionTypes";
 
 export const Route = createFileRoute("/_auth/factions")({
   component: FactionsManagement,

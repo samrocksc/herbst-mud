@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -25,6 +27,7 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, repos *repository.Contain
 	router.GET("/game-configs", func(c *gin.Context) {
 		configs, err := repos.GameConfig.List(c.Request.Context())
 		if err != nil {
+			dblog.Error("Failed to list game configs", err, slog.String("service", "game"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -42,14 +45,17 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, repos *repository.Contain
 			Value string `json:"value" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("Invalid create game config request", "error", err, slog.String("service", "game"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		created, err := repos.GameConfig.GetOrCreate(c.Request.Context(), req.Key, req.Value)
 		if err != nil {
+			dblog.Error("Failed to create game config", err, slog.String("service", "game"), slog.String("key", req.Key))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("Game config created", slog.String("service", "game"), slog.String("key", created.Key))
 		c.JSON(http.StatusCreated, GameConfigResponse{ID: created.ID, Key: created.Key, Value: created.Value})
 	})
 
@@ -71,6 +77,7 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, repos *repository.Contain
 			Value string `json:"value" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("Invalid update game config request", "error", err, slog.String("service", "game"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -79,6 +86,7 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, repos *repository.Contain
 			c.JSON(http.StatusNotFound, gin.H{"error": "config key not found"})
 			return
 		}
+		slog.Info("Game config updated", slog.String("service", "game"), slog.String("key", updated.Key))
 		c.JSON(http.StatusOK, GameConfigResponse{ID: updated.ID, Key: updated.Key, Value: updated.Value})
 	})
 
@@ -89,6 +97,7 @@ func RegisterGameConfigRoutes(router *gin.RouterGroup, repos *repository.Contain
 			c.JSON(http.StatusNotFound, gin.H{"error": "config key not found"})
 			return
 		}
+		slog.Info("Game config deleted", slog.String("service", "game"), slog.String("key", key))
 		c.JSON(http.StatusOK, gin.H{"deleted": key})
 	})
 }

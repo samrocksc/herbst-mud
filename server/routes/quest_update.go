@@ -29,6 +29,7 @@ func updateQuest(svc *service.Container) gin.HandlerFunc {
 		updateInput := service.UpdateQuestInput{
 			Name:                 input.Name,
 			Description:          input.Description,
+				WorldID:              input.WorldID,
 			PrerequisiteQuestIDs: input.PrerequisiteQuestIDs,
 			CooldownHours:       input.CooldownHours,
 			IsActive:            input.IsActive,

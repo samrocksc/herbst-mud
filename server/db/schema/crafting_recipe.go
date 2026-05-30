@@ -32,6 +32,6 @@ func (CraftingRecipe) Fields() []ent.Field {
 		field.JSON("inputs", []CraftingInput{}),
 		field.JSON("outputs", []CraftingOutput{}),
 		field.Int("craft_time_secs").Default(3),
-		field.String("world_id").Default("default"),
+		field.String("world_id").Default("1"),
 	}
 }

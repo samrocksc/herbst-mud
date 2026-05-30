@@ -6,7 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/dialognode"
+	"herbst-server/dblog"
 	"herbst-server/repository"
+	"log/slog"
 )
 
 // updateDialogNode updates an existing dialog node definition.
@@ -14,6 +16,7 @@ func updateDialogNode(repos *repository.Container, client *db.Client) gin.Handle
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
+			slog.Warn("bad request", slog.String("service", "dialog_nodes"), slog.String("reason", "invalid dialog node id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid dialog node id"})
 			return
 		}
@@ -25,6 +28,7 @@ func updateDialogNode(repos *repository.Container, client *db.Client) gin.Handle
 		}
 		var input dialogNodeInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "dialog_nodes"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -47,6 +51,7 @@ func updateDialogNode(repos *repository.Container, client *db.Client) gin.Handle
 
 		_, err = repos.DialogNode.Update(c.Request.Context(), id, updates)
 		if err != nil {
+			dblog.Error("update dialog node failed", err, slog.String("service", "dialog_nodes"), slog.String("dialog_node_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -56,9 +61,11 @@ func updateDialogNode(repos *repository.Container, client *db.Client) gin.Handle
 			WithNpcTemplate().
 			Only(c.Request.Context())
 		if err != nil {
+			dblog.Error("reload dialog node failed", err, slog.String("service", "dialog_nodes"), slog.String("dialog_node_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("dialog node updated", slog.String("dialog_node_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "dialog_nodes"))
 		c.JSON(http.StatusOK, dialogNodeToView(updated))
 	}
 }

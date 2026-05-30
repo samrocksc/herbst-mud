@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db"
 	"herbst-server/service"
 )
@@ -13,8 +15,9 @@ import (
 // listQuests returns all quests, optionally filtered by name.
 func listQuests(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		quests, err := svc.Quest.ListQuests(c.Request.Context(), "")
+		quests, err := svc.Quest.ListQuests(c.Request.Context(), c.Query("world_id"))
 		if err != nil {
+			dblog.Error("failed to list quests", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -41,6 +44,7 @@ func getQuest(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "quests"), slog.String("reason", "invalid quest id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid quest id"})
 			return
 		}

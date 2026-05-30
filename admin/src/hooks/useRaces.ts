@@ -23,6 +23,7 @@ export type RaceInput = Readonly<{
   display_name: string
   description: string
   stat_modifiers: string
+  skill_grants: ReadonlyArray<string>
   equipment_slots: ReadonlyArray<string>
   requirement_tags: ReadonlyArray<string>
   color: string
@@ -33,10 +34,12 @@ function parseRaceForApi(input: RaceInput): Record<string, unknown> {
   const equipmentSlots: string[] = [...input.equipment_slots];
   const tags: string[] = [...input.tags];
   const reqTags: string[] = [...input.requirement_tags];
+  const skillGrants: string[] = [...input.skill_grants];
   const body: Record<string, unknown> = {
     name: input.name,
     display_name: input.display_name || input.name,
     description: input.description,
+    skill_grants: skillGrants,
     equipment_slots: equipmentSlots,
     requirement_tags: reqTags,
     color: input.color,

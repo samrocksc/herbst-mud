@@ -2,12 +2,14 @@ package routes
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/character"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -106,6 +108,7 @@ func listNPCInstances(repos *repository.Container, client *db.Client) gin.Handle
 
 		instances, err := query.All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list npc instances", err, slog.String("service", "npcs"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -140,14 +143,17 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 			WorldID        string `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", err.Error()), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if req.TemplateID == "" {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "template_id is required"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "template_id is required"})
 			return
 		}
 		if req.RoomID == 0 {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "room_id is required"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "room_id is required"})
 			return
 		}
@@ -168,6 +174,7 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 		// Fetch the race name for this NPC template
 		raceObj, err := repos.Race.Get(c.Request.Context(), tmpl.RaceID)
 		if err != nil {
+			dblog.Error("race not found for npc template", err, slog.String("service", "npcs"), slog.String("npc_template_id", tmpl.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "race not found for npc template"})
 			return
 		}
@@ -176,6 +183,7 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 		if instanceNum == 0 {
 			instanceNum, err = nextInstanceNumber(client, c.Request.Context(), tmpl.ID, worldID)
 			if err != nil {
+				dblog.Error("failed to get next instance number", err, slog.String("service", "npcs"), slog.String("npc_template_id", tmpl.ID))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
@@ -202,10 +210,12 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 
 		created, err := builder.Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to create npc instance", err, slog.String("service", "npcs"), slog.String("npc_template_id", tmpl.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("npc instance created", slog.Int("npc_instance_id", created.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "npcs"))
 		c.JSON(http.StatusCreated, toView(created))
 	}
 }
@@ -215,6 +225,7 @@ func getNPCInstance(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid instance id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid instance id"})
 			return
 		}
@@ -235,6 +246,7 @@ func updateNPCInstance(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid instance id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid instance id"})
 			return
 		}
@@ -247,6 +259,7 @@ func updateNPCInstance(client *db.Client) gin.HandlerFunc {
 			InstanceNumber *int  `json:"instance_number"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", err.Error()), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -276,6 +289,7 @@ func updateNPCInstance(client *db.Client) gin.HandlerFunc {
 			return
 		}
 
+		slog.Info("npc instance updated", slog.Int("npc_instance_id", updated.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "npcs"))
 		c.JSON(http.StatusOK, toView(updated))
 	}
 }
@@ -294,6 +308,7 @@ func deleteNPCInstance(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
+		slog.Info("npc instance deleted", slog.Int("npc_instance_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "npcs"))
 		c.JSON(http.StatusNoContent, nil)
 	}
 }
@@ -314,12 +329,14 @@ func listNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid instance id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid instance id"})
 			return
 		}
 
 		items, err := repos.Equipment.ListByOwner(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to list npc instance equipment", err, slog.String("service", "npcs"), slog.Int("npc_instance_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -344,6 +361,7 @@ func addNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid instance id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid instance id"})
 			return
 		}
@@ -360,6 +378,7 @@ func addNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 			SlotOverride         string `json:"slot,omitempty"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", err.Error()), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -397,10 +416,12 @@ func addNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 			EquipmentTemplateID:   &eqTmpl.ID,
 		})
 		if err != nil {
+			dblog.Error("failed to add equipment to npc instance", err, slog.String("service", "npcs"), slog.Int("npc_instance_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("equipment added to npc instance", slog.Int("equipment_id", eqItem.ID), slog.Int("npc_instance_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "npcs"))
 		c.JSON(http.StatusCreated, equipmentItemView{
 			ID:         eqItem.ID,
 			Name:       eqItem.Name,
@@ -416,11 +437,13 @@ func removeNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		instID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid instance id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid instance id"})
 			return
 		}
 		eqID, err := strconv.Atoi(c.Param("eqid"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid equipment id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid equipment id"})
 			return
 		}
@@ -433,10 +456,12 @@ func removeNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 		}
 
 		if err := repos.Equipment.Delete(c.Request.Context(), eqID); err != nil {
+			dblog.Error("failed to remove equipment from npc instance", err, slog.String("service", "npcs"), slog.Int("npc_instance_id", instID), slog.Int("equipment_id", eqID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("equipment removed from npc instance", slog.Int("equipment_id", eqID), slog.Int("npc_instance_id", instID), slog.String("user_email", c.GetString("email")), slog.String("service", "npcs"))
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

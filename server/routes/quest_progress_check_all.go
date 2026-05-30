@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/questprogress"
@@ -25,11 +27,13 @@ func checkAllQuests(repos *repository.Container, client *db.Client) gin.HandlerF
 	return func(c *gin.Context) {
 		charID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "quests"), slog.String("reason", "invalid character id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid character id"})
 			return
 		}
 		var input checkAllInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "quests"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -46,6 +50,7 @@ func checkAllQuests(repos *repository.Container, client *db.Client) gin.HandlerF
 			WithQuest().
 			All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list active quest progress", err, slog.String("service", "quests"), slog.Int("character_id", charID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -92,6 +97,7 @@ func checkAllQuests(repos *repository.Container, client *db.Client) gin.HandlerF
 				Counts:     counts,
 			})
 		}
+		slog.Info("quest progress checked", slog.Int("character_id", charID), slog.Int("updated_count", len(results)), slog.String("user_email", c.GetString("email")), slog.String("service", "quests"))
 		c.JSON(http.StatusOK, gin.H{"updated": results, "count": len(results)})
 	}
 }

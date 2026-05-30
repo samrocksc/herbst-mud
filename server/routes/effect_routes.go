@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db"
 	"herbst-server/db/ability"
 	"herbst-server/db/abilityeffect"
@@ -71,6 +73,7 @@ func listEffects(repos *repository.Container, client *db.Client) gin.HandlerFunc
 	return func(c *gin.Context) {
 		abilityID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid ability id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
@@ -91,6 +94,7 @@ func listEffects(repos *repository.Container, client *db.Client) gin.HandlerFunc
 			Order(abilityeffect.BySortOrder()).
 			All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list effects", err, slog.String("service", "effects"), slog.Int("ability_id", abilityID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -107,6 +111,7 @@ func createEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 	return func(c *gin.Context) {
 		abilityID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid ability id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
@@ -118,11 +123,13 @@ func createEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 
 		var input effectInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		if input.EffectType == "" {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "effect_type is required"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "effect_type is required"})
 			return
 		}
@@ -152,6 +159,7 @@ func createEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 
 		e, err := mut.Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to create effect", err, slog.String("service", "effects"), slog.Int("ability_id", abilityID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -160,6 +168,7 @@ func createEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 			Where(abilityeffect.ID(e.ID)).
 			WithAbility().
 			Only(c.Request.Context())
+		slog.Info("effect created", slog.Int("effect_id", e.ID), slog.Int("ability_id", abilityID), slog.String("service", "effects"), slog.String("user_email", c.GetString("email")))
 		c.JSON(http.StatusCreated, effectToView(e))
 	}
 }
@@ -169,6 +178,7 @@ func updateEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid effect id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect id"})
 			return
 		}
@@ -181,6 +191,7 @@ func updateEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 
 		var input effectInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -208,6 +219,7 @@ func updateEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 
 		updated, err := mut.Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to update effect", err, slog.String("service", "effects"), slog.Int("effect_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -216,6 +228,7 @@ func updateEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 			Where(abilityeffect.ID(updated.ID)).
 			WithAbility().
 			Only(c.Request.Context())
+		slog.Info("effect updated", slog.Int("effect_id", updated.ID), slog.String("service", "effects"), slog.String("user_email", c.GetString("email")))
 		c.JSON(http.StatusOK, effectToView(updated))
 	}
 }
@@ -225,6 +238,7 @@ func deleteEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid effect id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect id"})
 			return
 		}
@@ -234,6 +248,7 @@ func deleteEffect(repos *repository.Container, client *db.Client) gin.HandlerFun
 			c.JSON(http.StatusNotFound, gin.H{"error": "effect not found"})
 			return
 		}
+		slog.Info("effect deleted", slog.Int("effect_id", id), slog.String("service", "effects"), slog.String("user_email", c.GetString("email")))
 		c.Status(http.StatusNoContent)
 	}
 }

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"sort"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/ability"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -144,6 +146,7 @@ func listAbilities(client *db.Client) gin.HandlerFunc {
 		}
 		abilities, err := query.Order(ability.ByName()).All(c.Request.Context())
 		if err != nil {
+			dblog.Error("list abilities failed", err, slog.String("service", "abilities"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -159,6 +162,7 @@ func getAbility(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "abilities"), slog.String("reason", "invalid ability id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
@@ -176,10 +180,12 @@ func createAbility(repos *repository.Container, client *db.Client) gin.HandlerFu
 	return func(c *gin.Context) {
 		var input abilityInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "abilities"), slog.String("reason", "invalid request body"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if input.Name == "" {
+			slog.Warn("bad request", slog.String("service", "abilities"), slog.String("reason", "name is required"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
@@ -203,11 +209,13 @@ func createAbility(repos *repository.Container, client *db.Client) gin.HandlerFu
 			WorldID:         input.WorldID,
 		})
 		if err != nil {
+			dblog.Error("create ability failed", err, slog.String("service", "abilities"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		// Reload with faction edge for response.
 		s, _ = client.Ability.Query().WithFaction().Where(ability.ID(s.ID)).Only(c.Request.Context())
+		slog.Info("ability created", slog.Int("ability_id", s.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "abilities"))
 		c.JSON(http.StatusCreated, abilityToView(s))
 	}
 }
@@ -216,6 +224,7 @@ func updateAbility(repos *repository.Container, client *db.Client) gin.HandlerFu
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "abilities"), slog.String("reason", "invalid ability id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
@@ -226,6 +235,7 @@ func updateAbility(repos *repository.Container, client *db.Client) gin.HandlerFu
 		}
 		var input abilityInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "abilities"), slog.String("reason", "invalid request body"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -249,11 +259,13 @@ func updateAbility(repos *repository.Container, client *db.Client) gin.HandlerFu
 			WorldID:         &input.WorldID,
 		})
 		if err != nil {
+			dblog.Error("update ability failed", err, slog.Int("ability_id", id), slog.String("service", "abilities"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		// Reload with faction edge for response.
 		updated, _ := client.Ability.Query().WithFaction().Where(ability.ID(id)).Only(c.Request.Context())
+		slog.Info("ability updated", slog.Int("ability_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "abilities"))
 		c.JSON(http.StatusOK, abilityToView(updated))
 	}
 }
@@ -263,6 +275,7 @@ func deleteAbility(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "abilities"), slog.String("reason", "invalid ability id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ability id"})
 			return
 		}
@@ -270,6 +283,7 @@ func deleteAbility(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
 			return
 		}
+		slog.Info("ability deleted", slog.Int("ability_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "abilities"))
 		c.Status(http.StatusNoContent)
 	}
 }
@@ -278,6 +292,7 @@ func listClasslessAbilities(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		abilities, err := repos.Ability.ListByClass(c.Request.Context(), "", "active")
 		if err != nil {
+			dblog.Error("list classless abilities failed", err, slog.String("service", "abilities"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

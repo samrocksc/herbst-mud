@@ -11,7 +11,7 @@ export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
         <DetailField label="Class" value={ability.ability_class} />
         <DetailField label="Slug" value={ability.slug} />
         <DetailField label="Required Tag" value={ability.required_tag || "—"} />
-        <DetailField label="Level Req" value={ability.requirements || "—"} />
+        <DetailField label="Unlock Tags" value={ability.requirements || "—"} />
         <DetailField label="Cost" value={String(ability.cost)} />
         <DetailField label="Cooldown" value={ability.cooldown_seconds > 0 ? `${ability.cooldown_seconds}s` : "—"} />
         <DetailField label="Mana Cost" value={ability.mana_cost > 0 ? String(ability.mana_cost) : "—"} />

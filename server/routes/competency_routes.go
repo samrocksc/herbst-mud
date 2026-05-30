@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -10,6 +11,7 @@ import (
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -31,6 +33,7 @@ func listCompetencyCategories(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cats, err := repos.Competency.ListCategories(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list competency categories", err, slog.String("service", "competencies"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -58,6 +61,7 @@ func createCompetencyCategory(repos *repository.Container, client *db.Client) gi
 	}
 	return func(c *gin.Context) {
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "competencies"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -67,6 +71,7 @@ func createCompetencyCategory(repos *repository.Container, client *db.Client) gi
 			XPMultiplier: req.XpMultiplier,
 		})
 		if err != nil {
+			dblog.Error("failed to create competency category", err, slog.String("service", "competencies"), slog.String("category_id", req.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -80,6 +85,7 @@ func createCompetencyCategory(repos *repository.Container, client *db.Client) gi
 				SetCategoryID(cat.ID).
 				Save(c.Request.Context())
 			if err != nil {
+				dblog.Error("failed to create competency threshold", err, slog.String("service", "competencies"), slog.String("threshold_id", req.ID+"-"+strconv.Itoa(t.Level)))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
@@ -90,9 +96,11 @@ func createCompetencyCategory(repos *repository.Container, client *db.Client) gi
 			WithThresholds().
 			Only(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to reload competency category", err, slog.String("service", "competencies"), slog.String("category_id", cat.ID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("competency category created", slog.String("category_id", cat.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "competencies"))
 		c.JSON(http.StatusCreated, compCatToJSON(cat))
 	}
 }
@@ -111,6 +119,7 @@ func updateCompetencyCategory(repos *repository.Container, client *db.Client) gi
 			return
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "competencies"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -120,6 +129,7 @@ func updateCompetencyCategory(repos *repository.Container, client *db.Client) gi
 			XPMultiplier: req.XpMultiplier,
 		})
 		if err != nil {
+			dblog.Error("failed to update competency category", err, slog.String("service", "competencies"), slog.String("category_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -129,6 +139,7 @@ func updateCompetencyCategory(repos *repository.Container, client *db.Client) gi
 				Where(competencylevelthreshold.HasCategoryWith(competencycategory.ID(id))).
 				Exec(c.Request.Context())
 			if err != nil {
+				dblog.Error("failed to delete competency thresholds", err, slog.String("service", "competencies"), slog.String("category_id", id))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
@@ -142,6 +153,7 @@ func updateCompetencyCategory(repos *repository.Container, client *db.Client) gi
 					SetCategoryID(id).
 					Save(c.Request.Context())
 				if err != nil {
+					dblog.Error("failed to create competency threshold", err, slog.String("service", "competencies"), slog.String("threshold_id", id+"-"+strconv.Itoa(t.Level)))
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
 				}
@@ -150,9 +162,11 @@ func updateCompetencyCategory(repos *repository.Container, client *db.Client) gi
 		// Reload with thresholds
 		cat, err = repos.Competency.GetCategoryWithThresholds(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to reload competency category", err, slog.String("service", "competencies"), slog.String("category_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("competency category updated", slog.String("category_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "competencies"))
 		c.JSON(http.StatusOK, compCatToJSON(cat))
 	}
 }
@@ -162,6 +176,7 @@ func deleteCompetencyCategory(repos *repository.Container, client *db.Client) gi
 		id := c.Param("id")
 		count, err := repos.Competency.CountCompetenciesByCategory(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to count competencies by category", err, slog.String("service", "competencies"), slog.String("category_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -173,6 +188,7 @@ func deleteCompetencyCategory(repos *repository.Container, client *db.Client) gi
 			c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
 			return
 		}
+		slog.Info("competency category deleted", slog.String("category_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "competencies"))
 		c.Status(http.StatusNoContent)
 	}
 }
@@ -182,6 +198,7 @@ func listCharacterCompetencies(repos *repository.Container, client *db.Client) g
 		charIDStr := c.Param("id")
 		charID, err := strconv.Atoi(charIDStr)
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "competencies"), slog.String("reason", "invalid character id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid character id"})
 			return
 		}
@@ -197,6 +214,7 @@ func listCharacterCompetencies(repos *repository.Container, client *db.Client) g
 			}).
 			All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list character competencies", err, slog.String("service", "competencies"), slog.String("character_id", strconv.Itoa(charID)))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

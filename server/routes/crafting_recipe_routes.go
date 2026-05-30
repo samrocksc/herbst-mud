@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -59,6 +61,7 @@ func listRecipes(repos *repository.Container) gin.HandlerFunc {
 		stationTag := c.Query("station_tag")
 		recipes, err := repos.CraftingRecipe.List(c.Request.Context(), worldID, stationTag)
 		if err != nil {
+			dblog.Error("failed to list recipes", err, slog.String("service", "crafting"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -86,10 +89,12 @@ func createRecipe(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input recipeInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "crafting"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if input.Name == "" {
+			slog.Warn("bad request", slog.String("service", "crafting"), slog.String("reason", "name is required"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
@@ -107,9 +112,11 @@ func createRecipe(repos *repository.Container) gin.HandlerFunc {
 			WorldID:            input.WorldID,
 		})
 		if err != nil {
+			dblog.Error("failed to create recipe", err, slog.String("service", "crafting"), slog.String("recipe_name", input.Name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("recipe created", slog.String("recipe_name", r.Name), slog.String("user_email", c.GetString("email")), slog.String("service", "crafting"))
 		c.JSON(http.StatusCreated, recipeToMap(r))
 	}
 }
@@ -124,6 +131,7 @@ func updateRecipe(repos *repository.Container) gin.HandlerFunc {
 		}
 		var input recipeInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "crafting"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -162,9 +170,11 @@ func updateRecipe(repos *repository.Container) gin.HandlerFunc {
 		}
 		updated, err := repos.CraftingRecipe.Update(c.Request.Context(), name, updates)
 		if err != nil {
+			dblog.Error("failed to update recipe", err, slog.String("service", "crafting"), slog.String("recipe_name", name))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("recipe updated", slog.String("recipe_name", name), slog.String("user_email", c.GetString("email")), slog.String("service", "crafting"))
 		c.JSON(http.StatusOK, recipeToMap(updated))
 	}
 }
@@ -177,6 +187,7 @@ func deleteRecipe(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "recipe not found"})
 			return
 		}
+		slog.Info("recipe deleted", slog.String("recipe_name", name), slog.String("user_email", c.GetString("email")), slog.String("service", "crafting"))
 		c.Status(http.StatusNoContent)
 	}
 }

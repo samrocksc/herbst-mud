@@ -7,7 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/repository"
+	"log/slog"
 )
 
 func RegisterCraftRoutes(r *gin.Engine, repos *repository.Container) {
@@ -35,11 +37,13 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 
 		var req craftRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("invalid craft request", slog.String("service", "crafting"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid request"})
 			return
 		}
 
 		if req.Recipe == "" {
+			slog.Warn("craft recipe name missing", slog.String("service", "crafting"))
 			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "recipe name is required"})
 			return
 		}
@@ -48,28 +52,33 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 
 		recipe, err := repos.CraftingRecipe.Get(ctx, req.Recipe)
 		if err != nil {
+			slog.Warn("craft recipe not found", slog.String("service", "crafting"), slog.String("recipe", req.Recipe))
 			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "recipe not found"})
 			return
 		}
 
 		char, err := repos.Character.Get(ctx, charID)
 		if err != nil {
+			slog.Warn("craft character not found", slog.String("service", "crafting"), slog.Int("character_id", charID))
 			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "character not found"})
 			return
 		}
 
 		room, err := repos.Room.Get(ctx, char.CurrentRoomId)
 		if err != nil {
+			slog.Warn("craft room not found", slog.String("service", "crafting"), slog.Int("character_id", charID))
 			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "room not found"})
 			return
 		}
 
 		if !roomHasTag(room, recipe.RequiredStationTag) {
+			slog.Warn("craft missing station", slog.String("service", "crafting"), slog.String("required_tag", recipe.RequiredStationTag))
 			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "this room does not have a " + recipe.RequiredStationTag})
 			return
 		}
 
 		if recipe.RequiredClass != "" && char.Class != recipe.RequiredClass {
+			slog.Warn("craft wrong class", slog.String("service", "crafting"), slog.String("required_class", recipe.RequiredClass))
 			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "you don't have the required class: " + recipe.RequiredClass})
 			return
 		}
@@ -81,6 +90,7 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 				if comp != nil {
 					level = comp.Level
 				}
+				slog.Warn("craft insufficient skill", slog.String("service", "crafting"), slog.String("skill", recipe.RequiredSkill), slog.Int("required_level", recipe.RequiredSkillLevel), slog.Int("current_level", level))
 				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": fmt.Sprintf("you don't have enough skill in %s (need %d, have %d)", recipe.RequiredSkill, recipe.RequiredSkillLevel, level)})
 				return
 			}
@@ -88,6 +98,7 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 
 		inventory, err := repos.Equipment.ListByOwner(ctx, charID)
 		if err != nil {
+			dblog.Error("failed to check inventory for crafting", err, slog.String("service", "crafting"), slog.Int("character_id", charID))
 			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to check inventory"})
 			return
 		}
@@ -109,10 +120,12 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 		for _, input := range recipe.Inputs {
 			tmpl, err := repos.EquipmentTemplate.GetBySlug(ctx, input.EquipmentTemplateSlug, "")
 			if err != nil {
+				slog.Warn("craft missing ingredient template", slog.String("service", "crafting"), slog.String("slug", input.EquipmentTemplateSlug))
 				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "missing ingredient template: " + input.EquipmentTemplateSlug})
 				return
 			}
 			if available[tmpl.ID] < input.Quantity {
+				slog.Warn("craft missing ingredient", slog.String("service", "crafting"), slog.String("name", tmpl.Name))
 				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "missing ingredient: " + tmpl.Name})
 				return
 			}
@@ -141,6 +154,7 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 		for _, output := range recipe.Outputs {
 			template, err := repos.EquipmentTemplate.GetBySlug(ctx, output.EquipmentTemplateSlug, "")
 			if err != nil {
+				dblog.Error("failed to load output template for crafting", err, slog.String("service", "crafting"), slog.String("slug", output.EquipmentTemplateSlug))
 				c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to load template: " + output.EquipmentTemplateSlug})
 				return
 			}
@@ -177,6 +191,7 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 					OwnerID:               &ownerID,
 				})
 				if err != nil {
+					dblog.Error("failed to create crafted item", err, slog.String("service", "crafting"), slog.String("name", template.Name))
 					c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to create item: " + template.Name})
 					return
 				}
@@ -187,6 +202,7 @@ func craftHandler(repos *repository.Container) gin.HandlerFunc {
 			}
 		}
 
+		slog.Info("item crafted", slog.String("service", "crafting"), slog.Int("character_id", charID), slog.Int("output_count", len(outputs)))
 		c.JSON(http.StatusOK, gin.H{"success": true, "outputs": outputs})
 	}
 }
@@ -203,6 +219,7 @@ func roomHasTag(room *db.Room, tag string) bool {
 func parseIDParam(c *gin.Context) (int, bool) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		slog.Warn("invalid character id", slog.String("service", "crafting"), slog.String("error", err.Error()))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return 0, false
 	}

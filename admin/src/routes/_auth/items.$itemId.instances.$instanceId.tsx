@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { apiGet, apiDelete } from "../../utils/apiFetch";
+import { apiGet, apiDelete, API_BASE } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
@@ -13,8 +13,6 @@ export const Route = createFileRoute("/_auth/items/$itemId/instances/$instanceId
   component: ItemInstanceDetail,
 });
 
-const API = `${window.location.origin}`;
-
 function ItemInstanceDetail() {
   const { itemId, instanceId } = Route.useParams();
   const navigate = useNavigate();
@@ -24,11 +22,11 @@ function ItemInstanceDetail() {
 
   const { data: instance, isLoading, error } = useQuery<ItemInstance>({
     queryKey: ["item-instances", instanceId],
-    queryFn: () => apiGet<ItemInstance>(`${API}/api/item-instances/${instanceId}`),
+    queryFn: () => apiGet<ItemInstance>(`${API_BASE}/api/item-instances/${instanceId}`),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => apiDelete(`${API}/api/item-instances/${instanceId}`),
+    mutationFn: () => apiDelete(`${API_BASE}/api/item-instances/${instanceId}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["item-instances"] }); navigate({ to: "/items/$itemId", params: { itemId } }); },
   });
 

@@ -1,12 +1,14 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"sort"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -53,6 +55,7 @@ func listNPCTemplates(repos *repository.Container) gin.HandlerFunc {
 		worldID := c.Query("world_id")
 		templates, err := repos.NPCTemplate.List(c.Request.Context(), worldID)
 		if err != nil {
+			dblog.Error("failed to list npc templates", err, slog.String("service", "npcs"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -96,6 +99,7 @@ func getNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid npc template id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid npc template id"})
 			return
 		}
@@ -144,10 +148,12 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			WorldID         string         `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid request body"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if req.Name == "" {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "name is required"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
@@ -161,6 +167,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			case "hostile", "friendly", "neutral":
 				disposition = req.Disposition
 			default:
+				slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid disposition"), slog.String("disposition", req.Disposition))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid disposition: " + req.Disposition})
 				return
 			}
@@ -184,10 +191,12 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			WorldID:         req.WorldID,
 		})
 		if err != nil {
+			dblog.Error("failed to create npc template", err, slog.String("service", "npcs"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("npc template created", slog.String("service", "npcs"), slog.String("npc_template_id", created.ID))
 		c.JSON(http.StatusCreated, npcTemplateView{
 			ID:              created.ID,
 			Slug:            created.Slug,
@@ -229,12 +238,14 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid npc template id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid npc template id"})
 			return
 		}
 
 		var req updateNPCTemplateRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid request body"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -257,6 +268,7 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			case "hostile", "friendly", "neutral":
 				updates.Disposition = req.Disposition
 			default:
+				slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid disposition"), slog.String("disposition", *req.Disposition))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid disposition: " + *req.Disposition})
 				return
 			}
@@ -264,10 +276,12 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 
 		updated, err := repos.NPCTemplate.Update(c.Request.Context(), id, updates)
 		if err != nil {
+			dblog.Error("failed to update npc template", err, slog.String("service", "npcs"), slog.String("npc_template_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("npc template updated", slog.String("service", "npcs"), slog.String("npc_template_id", updated.ID))
 		c.JSON(http.StatusOK, npcTemplateView{
 			ID:              updated.ID,
 			Slug:            updated.Slug,
@@ -291,6 +305,7 @@ func deleteNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		if id == "" {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid npc template id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid npc template id"})
 			return
 		}
@@ -301,6 +316,7 @@ func deleteNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
+		slog.Info("npc template deleted", slog.String("service", "npcs"), slog.String("npc_template_id", id))
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

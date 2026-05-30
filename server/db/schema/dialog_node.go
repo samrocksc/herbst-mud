@@ -27,7 +27,7 @@ func (DialogNode) Fields() []ent.Field {
 		field.String("id").Unique().
 			Comment("Unique node identifier, e.g. node_001_greeting"),
 		field.String("world_id").
-			Default("default").
+			Default("1").
 			Comment("World this dialog node belongs to (for multi-world support)"),
 		field.String("npc_text").
 			Comment("What the NPC says at this node"),

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -35,6 +37,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("invalid create user request", slog.String("error", err.Error()), slog.String("service", "users"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -42,6 +45,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		// Hash the password with bcrypt
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
+			dblog.Error("failed to hash password", err, slog.String("service", "users"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
@@ -54,15 +58,17 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		})
 
 		if err != nil {
+			dblog.Error("failed to create user", err, slog.String("service", "users"), slog.String("email", req.Email))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		// Return user without password
+		slog.Info("user created", slog.Int("user_id", user.ID), slog.String("service", "users"))
 		c.JSON(http.StatusCreated, gin.H{
-			"id":            user.ID,
-			"email":         user.Email,
-			"is_admin":      user.IsAdmin,
+			"id":             user.ID,
+			"email":          user.Email,
+			"is_admin":       user.IsAdmin,
 			"allowed_worlds": user.AllowedWorlds,
 		})
 	})
@@ -75,6 +81,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("invalid login request", slog.String("error", err.Error()), slog.String("service", "users"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -103,14 +110,16 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 
 		tokenString, err := token.SignedString(getJWTSecret())
 		if err != nil {
+			dblog.Error("failed to sign token", err, slog.String("service", "users"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return
 		}
 
+		slog.Info("user logged in", slog.Int("user_id", user.ID), slog.String("service", "users"))
 		c.JSON(http.StatusOK, gin.H{
-			"id":        user.ID,
-			"email":     user.Email,
-			"is_admin":  user.IsAdmin,
+			"id":         user.ID,
+			"email":      user.Email,
+			"is_admin":   user.IsAdmin,
 			"token":      tokenString,
 			"expires_in": 86400,
 		})
@@ -171,6 +180,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 	router.GET("/users", func(c *gin.Context) {
 		users, err := repos.User.List(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list users", err, slog.String("service", "users"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -192,6 +202,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 	router.GET("/users/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("invalid user id", slog.String("error", err.Error()), slog.String("service", "users"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 			return
 		}
@@ -214,6 +225,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 	router.PUT("/users/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("invalid user id", slog.String("error", err.Error()), slog.String("service", "users"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 			return
 		}
@@ -226,6 +238,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("invalid update user request", slog.String("error", err.Error()), slog.String("service", "users"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -241,6 +254,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			// Hash the new password with bcrypt
 			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 			if err != nil {
+				dblog.Error("failed to hash password", err, slog.String("service", "users"), slog.Int("user_id", id))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 				return
 			}
@@ -264,6 +278,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			return
 		}
 
+		slog.Info("user updated", slog.Int("user_id", user.ID), slog.String("service", "users"))
 		c.JSON(http.StatusOK, gin.H{
 			"id":             user.ID,
 			"email":          user.Email,
@@ -276,6 +291,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 	router.POST("/users/:id/reset-password", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("invalid user id", slog.String("error", err.Error()), slog.String("service", "users"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 			return
 		}
@@ -283,6 +299,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		// Hash the default password with bcrypt
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 		if err != nil {
+			dblog.Error("failed to hash password", err, slog.String("service", "users"), slog.Int("user_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
@@ -295,6 +312,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			return
 		}
 
+		slog.Info("user password reset", slog.Int("user_id", user.ID), slog.String("service", "users"))
 		c.JSON(http.StatusOK, gin.H{
 			"id":             user.ID,
 			"email":          user.Email,
@@ -307,6 +325,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 	router.DELETE("/users/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("invalid user id", slog.String("error", err.Error()), slog.String("service", "users"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 			return
 		}
@@ -316,6 +335,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			return
 		}
 
+		slog.Info("user deleted", slog.Int("user_id", id), slog.String("service", "users"))
 		c.JSON(http.StatusNoContent, nil)
 	})
 }

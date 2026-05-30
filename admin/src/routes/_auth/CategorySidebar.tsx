@@ -1,5 +1,5 @@
 import { Button } from "../../components/Button";
-import type { FactionCategory } from "./factionTypes";
+import type { FactionCategory } from "./-factionTypes";
 
 export function CategorySidebar({
   categories,

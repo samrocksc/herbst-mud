@@ -1,6 +1,6 @@
 /* eslint-disable functional/prefer-immutable-types */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPut } from "../utils/apiFetch";
+import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
 
 const API = `${window.location.origin}/api`;
 
@@ -34,6 +34,24 @@ export function useUpdateChannel() {
   return useMutation({
     mutationFn: ({ name, input }: { name: string; input: ChannelInput }) =>
       apiPut<ChannelConfig>(`${API}/channels/${name}`, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["channels"] }),
+  });
+}
+
+export function useCreateChannel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ChannelInput) =>
+      apiPost<ChannelConfig>(`${API}/channels`, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["channels"] }),
+  });
+}
+
+export function useDeleteChannel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) =>
+      apiDelete(`${API}/channels/${name}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["channels"] }),
   });
 }

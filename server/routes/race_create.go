@@ -2,11 +2,13 @@ package routes
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/constants"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/db/tag"
 	"herbst-server/repository"
 )
@@ -26,11 +28,13 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			Tags            []string `json:"tags"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "races"), slog.String("reason", "invalid request body"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
 
 		if err := validateSlots(req.EquipmentSlots); err != nil {
+			slog.Warn("bad request", slog.String("service", "races"), slog.String("reason", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -52,6 +56,7 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 		if len(req.Tags) > 0 {
 			tagIDs, err = resolveTagIDs(c, client, req.Tags)
 			if err != nil {
+				slog.Warn("bad request", slog.String("service", "races"), slog.String("reason", err.Error()))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
@@ -68,10 +73,12 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			TagIDs:          tagIDs,
 		})
 		if err != nil {
+			dblog.Error("failed to create race", err, slog.String("service", "races"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("race created", slog.String("service", "races"), slog.String("race_name", r.Name))
 		c.JSON(http.StatusCreated, raceToView(r))
 	}
 }

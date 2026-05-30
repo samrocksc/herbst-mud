@@ -51,7 +51,6 @@ export type CharacterUpdate = Partial<{
   maxStamina: number
   mana: number
   maxMana: number
-  currentWorld: string
 }>
 
 const API = `${window.location.origin}`;

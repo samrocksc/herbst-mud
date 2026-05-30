@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 	"herbst-server/service"
 )
@@ -21,6 +23,7 @@ func RegisterMeRoutes(group *gin.RouterGroup, svc *service.Container, repos *rep
 
 		characters, err := repos.Character.ListByUser(c.Request.Context(), userID)
 		if err != nil {
+			dblog.Error("failed to list characters", err, slog.String("service", "me"), slog.Int("user_id", userID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -65,15 +68,16 @@ func RegisterMeRoutes(group *gin.RouterGroup, svc *service.Container, repos *rep
 			World  string `json:"world" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("invalid create character request", slog.String("error", err.Error()), slog.String("service", "me"), slog.Int("user_id", userID))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		char, err := svc.Character.CreateCharacter(c.Request.Context(), service.CreateCharacterInput{
-			UserID: userID,
-			Name:   req.Name,
-			Race:   req.Race,
-			Gender: req.Gender,
+			UserID:  userID,
+			Name:    req.Name,
+			Race:    req.Race,
+			Gender:  req.Gender,
 			WorldID: req.World,
 		})
 		if err != nil {
@@ -81,13 +85,16 @@ func RegisterMeRoutes(group *gin.RouterGroup, svc *service.Container, repos *rep
 			case err == service.ErrCharacterNameTaken:
 				c.JSON(http.StatusConflict, gin.H{"error": "Name already taken"})
 			case err == service.ErrTooManyCharacters:
+				slog.Warn("too many characters", slog.String("error", err.Error()), slog.String("service", "me"), slog.Int("user_id", userID))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Maximum 3 characters per user"})
 			default:
+				slog.Warn("failed to create character", slog.String("error", err.Error()), slog.String("service", "me"), slog.Int("user_id", userID))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			}
 			return
 		}
 
+		slog.Info("character created", slog.Int("character_id", char.ID), slog.String("service", "me"), slog.Int("user_id", userID))
 		c.JSON(http.StatusCreated, gin.H{
 			"id":            char.ID,
 			"name":          char.Name,

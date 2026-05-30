@@ -1,6 +1,6 @@
 import { FormError } from "../../components/fields/FormError";
 import { FactionFormFields } from "./FactionFormFields";
-import type { FactionCategory, FactionForm } from "./factionTypes";
+import type { FactionCategory, FactionForm } from "./-factionTypes";
 
 export function CreateFactionView({ form, setForm, categories, createError, saving, onCreate, onCancel }: Readonly<{
   form: FactionForm; setForm: (f: FactionForm) => void; categories: FactionCategory[]

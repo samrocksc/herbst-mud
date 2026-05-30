@@ -1,12 +1,14 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -31,6 +33,7 @@ func listRaces(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		races, err := repos.Race.ListWithTags(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list races", err, slog.String("service", "races"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -57,6 +60,7 @@ func getRace(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "races"), slog.String("reason", "invalid race id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid race id"})
 			return
 		}

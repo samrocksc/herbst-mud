@@ -2,15 +2,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost } from "../../utils/apiFetch";
+import { apiGet, apiPost, API_BASE } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { FormError } from "../../components/fields/FormError";
 import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
 import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import type { EquipmentTemplate as ItemTemplate } from "../../hooks/useEquipmentTemplates";
-
-const API = `${window.location.origin}`;
 
 export const Route = createFileRoute("/_auth/items/$itemId/spawn")({
   component: ItemSpawnPage,
@@ -25,7 +23,7 @@ function ItemSpawnPage() {
 
   const templateQuery = useQuery({
     queryKey: ["item-template", itemId],
-    queryFn: () => apiGet<ItemTemplate>(`${API}/api/equipment-templates/${itemId}`),
+    queryFn: () => apiGet<ItemTemplate>(`${API_BASE}/api/equipment-templates/${itemId}`),
   });
 
   const spawnMutation = useMutation({
@@ -33,7 +31,7 @@ function ItemSpawnPage() {
       const body: Record<string, unknown> = { equipment_template_id: Number(itemId) };
       if (targetType === "room") body.room_id = targetId;
       else body.ownerId = targetId;
-      return apiPost(`${API}/api/item-instances`, body);
+      return apiPost(`${API_BASE}/api/item-instances`, body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["item-instances", "template", itemId] });

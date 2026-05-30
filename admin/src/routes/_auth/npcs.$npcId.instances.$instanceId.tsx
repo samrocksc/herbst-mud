@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { apiGet, apiPut, apiDelete } from "../../utils/apiFetch";
+import { apiGet, apiPut, apiDelete, API_BASE } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
@@ -29,8 +29,6 @@ type EditForm = {
   hitpoints: number
 }
 
-const API = `${window.location.origin}`;
-
 // ─── Route ─────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute("/_auth/npcs/$npcId/instances/$instanceId")({
@@ -52,14 +50,14 @@ function NpcInstanceDetail() {
 
   const { data: instance, isLoading, error } = useQuery<NPCInstance>({
     queryKey: ["npc-instances", instanceId],
-    queryFn: () => apiGet<NPCInstance>(`${API}/api/npc-instances/${instanceId}`),
+    queryFn: () => apiGet<NPCInstance>(`${API_BASE}/api/npc-instances/${instanceId}`),
   });
 
   // ── Mutations ──────────────────────────────────────────────────────────────
 
   const updateMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
-      apiPut(`${API}/api/npc-instances/${instanceId}`, body),
+      apiPut(`${API_BASE}/api/npc-instances/${instanceId}`, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["npc-instances", instanceId] });
       queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
@@ -68,7 +66,7 @@ function NpcInstanceDetail() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => apiDelete(`${API}/api/npc-instances/${instanceId}`),
+    mutationFn: () => apiDelete(`${API_BASE}/api/npc-instances/${instanceId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
       navigate({ to: "/npcs/$npcId", params: { npcId } });

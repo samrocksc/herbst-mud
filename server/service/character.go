@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"herbst-server/constants"
 	"herbst-server/db"
@@ -122,10 +123,10 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	}
 	char, _ = dbinit.ApplyRaceToCharacter(ctx, s.client, char)
 	if grantErr := s.GrantTag(ctx, char.ID, "first_class", "system"); grantErr != nil {
-		fmt.Printf("Warning: failed to grant first_class tag to character %d: %v\n", char.ID, grantErr)
+		slog.Warn("failed to grant first_class tag", slog.Int("character_id", char.ID), slog.String("error", grantErr.Error()))
 	}
 	if syncErr := s.SyncRaceTags(ctx, char.ID, char.Race); syncErr != nil {
-		fmt.Printf("Warning: failed to sync race tags for character %d: %v\n", char.ID, syncErr)
+		slog.Warn("failed to sync race tags", slog.Int("character_id", char.ID), slog.String("error", syncErr.Error()))
 	}
 	// Add initial faction memberships
 	for _, factionStr := range input.Factions {
@@ -133,7 +134,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 		fmt.Sscanf(factionStr, "%d", &factionID)
 		if factionID > 0 {
 			if _, cfErr := s.repos.CharacterFaction.Create(ctx, char.ID, factionID, 0); cfErr != nil {
-				fmt.Printf("Warning: failed to add faction %d to character %d: %v\n", factionID, char.ID, cfErr)
+				slog.Warn("failed to add faction to character", slog.Int("character_id", char.ID), slog.Int("faction_id", factionID), slog.String("error", cfErr.Error()))
 			}
 		}
 	}

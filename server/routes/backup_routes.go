@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/backup"
 	"herbst-server/db"
+	"herbst-server/dblog"
+	"log/slog"
 )
 
 // RegisterBackupRoutes registers backup-related API endpoints
@@ -27,9 +29,11 @@ func createBackupHandler(client *db.Client, backupDir string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		result, err := backup.CreateBackup(client, backupDir)
 		if err != nil {
+			dblog.Error("failed to create backup", err, slog.String("service", "backup"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("backup created", slog.String("service", "backup"), slog.String("path", result.Path))
 		c.JSON(http.StatusCreated, gin.H{
 			"message":  "Backup created successfully",
 			"path":     result.Path,
@@ -42,9 +46,11 @@ func listBackupsHandler(backupDir string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		backups, err := backup.ListBackups(backupDir)
 		if err != nil {
+			dblog.Error("failed to list backups", err, slog.String("service", "backup"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("backups listed", slog.String("service", "backup"), slog.Int("count", len(backups)))
 		c.JSON(http.StatusOK, gin.H{"backups": backups})
 	}
 }
@@ -53,6 +59,7 @@ func validateBackupHandler(backupDir string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		backupID := c.Param("id")
 		if strings.Contains(backupID, "..") {
+			slog.Warn("invalid backup id", slog.String("service", "backup"), slog.String("backup_id", backupID))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid backup ID"})
 			return
 		}
@@ -65,9 +72,11 @@ func validateBackupHandler(backupDir string) gin.HandlerFunc {
 
 		result, err := backup.ValidateBackup(backupPath)
 		if err != nil {
+			dblog.Error("failed to validate backup", err, slog.String("service", "backup"), slog.String("backup_id", backupID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("backup validated", slog.String("service", "backup"), slog.String("backup_id", backupID))
 		c.JSON(http.StatusOK, result)
 	}
 }

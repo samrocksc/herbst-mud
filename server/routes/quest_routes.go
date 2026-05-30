@@ -2,10 +2,12 @@ package routes
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sort"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/service"
 )
@@ -59,6 +61,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		// NPCs for kill targets
 		npcs, err := svc.NPC.ListTemplates(ctx, "")
 		if err != nil {
+			dblog.Error("failed to load NPCs", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load NPCs"})
 			return
 		}
@@ -71,6 +74,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		// Rooms for explore targets
 		rooms, err := svc.Room.ListRooms(ctx, "")
 		if err != nil {
+			dblog.Error("failed to load rooms", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load rooms"})
 			return
 		}
@@ -83,6 +87,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		// Effects - use EffectRepo directly
 		effects, err := svc.Client.Effect.Query().All(ctx)
 		if err != nil {
+			dblog.Error("failed to load effects", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load effects"})
 			return
 		}
@@ -95,6 +100,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		// Tags - use TagRepo directly
 		tags, err := svc.Client.Tag.Query().All(ctx)
 		if err != nil {
+			dblog.Error("failed to load tags", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load tags"})
 			return
 		}
@@ -107,6 +113,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		// Achievements - use AchievementRepo directly
 		achievements, err := svc.Client.Achievement.Query().All(ctx)
 		if err != nil {
+			dblog.Error("failed to load achievements", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load achievements"})
 			return
 		}
@@ -119,6 +126,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		// Items - from EquipmentTemplate (item definitions)
 		items, err := svc.Client.EquipmentTemplate.Query().All(ctx)
 		if err != nil {
+			dblog.Error("failed to load items", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load items"})
 			return
 		}
@@ -131,6 +139,7 @@ func getQuestLookups(svc *service.Container) gin.HandlerFunc {
 		// Prerequisite quests
 		allQuests, err := svc.Quest.ListQuests(ctx, "")
 		if err != nil {
+			dblog.Error("failed to load quests", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load quests"})
 			return
 		}

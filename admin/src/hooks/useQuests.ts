@@ -45,7 +45,6 @@ export type QuestInput = Readonly<{
   repeat_mode?: string
   cooldown_hours?: number
   is_active?: boolean
-  main_type?: string
 }>
 
 const EMPTY_REWARDS: QuestRewards = {
@@ -64,8 +63,7 @@ export function useQuests() {
   return useQuery({
     queryKey: ["quests", currentWorld],
     queryFn: async (): Promise<Quest[]> => {
-      const data = await apiGet<{ quests: Quest[] }>(`${API}/api/quests${qs}`);
-      return data.quests ?? [];
+      return apiGet<Quest[]>(`${API}/api/quests${qs}`);
     },
   });
 }

@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -18,6 +20,7 @@ func listPlayableRacesHandler(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		races, err := repos.Race.ListPlayable(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list playable races", err, slog.String("service", "races"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

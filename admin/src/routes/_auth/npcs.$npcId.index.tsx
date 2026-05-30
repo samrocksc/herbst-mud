@@ -3,7 +3,8 @@ import { createFileRoute, useNavigate, Link, Outlet } from "@tanstack/react-rout
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "@tanstack/react-router";
-import { apiGet, apiPost, apiPut, apiDelete } from "../../utils/apiFetch";
+import { apiGet, apiPost, apiPut, apiDelete, API_BASE } from "../../utils/apiFetch";
+import { useRaces } from "../../hooks/useRaces";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
@@ -76,8 +77,6 @@ type EditForm = Readonly<{
   respawn_rooms: string
   respawn_cooldown: number
 }>
-
-const API = `${window.location.origin}`;
 
 // ─── Instance table columns factory ─────────────────────────────────────────
 
@@ -187,21 +186,17 @@ export function NpcTemplateDetail() {
     instance_name: "",
   });
 
-  // Fetch races for name resolution and dropdown
-  const racesQuery = useQuery({
-    queryKey: ["races"],
-    queryFn: () => apiGet<Array<{ id: number; name: string; display_name: string }>>(`${API}/api/races`),
-  });
+  const { data: races } = useRaces();
   const racesById = useMemo(() => {
     const map: Record<number, string> = {};
-    for (const r of racesQuery.data ?? []) {
+    for (const r of races ?? []) {
       map[r.id] = r.display_name || r.name;
     }
     return map;
-  }, [racesQuery.data]);
+  }, [races]);
 
   const deleteMutation = useMutation({
-    mutationFn: () => apiDelete(`${API}/api/npc-templates/${npcId}`),
+    mutationFn: () => apiDelete(`${API_BASE}/api/npc-templates/${npcId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["npc-templates"] });
       navigate({ to: "/npcs" });
@@ -211,7 +206,7 @@ export function NpcTemplateDetail() {
    
   const updateMutation = useMutation({
     mutationFn: (body: ReturnType<typeof editFormToPayload>) =>
-      apiPut(`${API}/api/npc-templates/${npcId}`, body),
+      apiPut(`${API_BASE}/api/npc-templates/${npcId}`, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["npc-templates", npcId] });
       queryClient.invalidateQueries({ queryKey: ["npc-templates"] });
@@ -223,7 +218,7 @@ export function NpcTemplateDetail() {
    
   const spawnMutation = useMutation({
     mutationFn: (input: SpawnForm) =>
-      apiPost<NPCInstance>(`${API}/api/npc-instances`, {
+      apiPost<NPCInstance>(`${API_BASE}/api/npc-instances`, {
         template_id: npcId,
         room_id: input.room_id,
         instance_number: input.instance_number,
@@ -239,7 +234,7 @@ export function NpcTemplateDetail() {
    
   const templateQuery = useQuery<NPCTemplate>({
     queryKey: ["npc-templates", npcId],
-    queryFn: () => apiGet<NPCTemplate>(`${API}/api/npc-templates/${npcId}`),
+    queryFn: () => apiGet<NPCTemplate>(`${API_BASE}/api/npc-templates/${npcId}`),
   });
 
   const raceDisplayName = templateQuery.data?.race_id ? (racesById[templateQuery.data.race_id] ?? `Race #${templateQuery.data.race_id}`) : "—";
@@ -247,7 +242,7 @@ export function NpcTemplateDetail() {
    
   const instancesQuery = useQuery<NPCInstance[]>({
     queryKey: ["npc-instances"],
-    queryFn: () => apiGet<NPCInstance[]>(`${API}/api/npc-instances`),
+    queryFn: () => apiGet<NPCInstance[]>(`${API_BASE}/api/npc-instances`),
   });
 
    
@@ -366,7 +361,7 @@ export function NpcTemplateDetail() {
               form={form}
               onChange={setForm}
               saveError={updateMutation.isError ? (updateMutation.error as Error)?.message : null}
-              races={(racesQuery.data ?? []) as Array<{ id: number; name: string; display_name: string }>}
+              races={races ?? []}
             />
           ) : (
             <>

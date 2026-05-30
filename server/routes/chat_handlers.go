@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/service"
 )
 
@@ -24,14 +25,17 @@ func sendSay(svc *service.Container) gin.HandlerFunc {
 			Message     string `json:"message"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		result, err := svc.Chat.SendSay(c.Request.Context(), input.CharacterID, input.RoomID, input.Message)
 		if err != nil {
+			dblog.Error("failed to send say", err, slog.String("service", "chat"), slog.Int("character_id", input.CharacterID), slog.Int("room_id", input.RoomID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("say sent", slog.Int("character_id", input.CharacterID), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -44,14 +48,17 @@ func sendYell(svc *service.Container) gin.HandlerFunc {
 			Message     string `json:"message"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		result, err := svc.Chat.SendYell(c.Request.Context(), input.CharacterID, input.RoomID, input.Message)
 		if err != nil {
+			dblog.Error("failed to send yell", err, slog.String("service", "chat"), slog.Int("character_id", input.CharacterID), slog.Int("room_id", input.RoomID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("yell sent", slog.Int("character_id", input.CharacterID), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -63,14 +70,17 @@ func sendShout(svc *service.Container) gin.HandlerFunc {
 			Message    string `json:"message"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		result, err := svc.Chat.SendShout(c.Request.Context(), input.CharacterID, input.Message)
 		if err != nil {
+			dblog.Error("failed to send shout", err, slog.String("service", "chat"), slog.Int("character_id", input.CharacterID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("shout sent", slog.Int("character_id", input.CharacterID), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -87,6 +97,7 @@ func sendTell(svc *service.Container) gin.HandlerFunc {
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
 			logRequest(c, "sendTell: JSON bind error: %v", err)
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -111,6 +122,7 @@ func sendTell(svc *service.Container) gin.HandlerFunc {
 		result, err := svc.Chat.SendTell(c.Request.Context(), input.FromID, input.ToID, input.Message)
 		if err != nil {
 			logRequest(c, "sendTell: SendTell error: %v", err)
+			dblog.Error("failed to send tell", err, slog.String("service", "chat"), slog.Int("from_id", input.FromID), slog.Int("to_id", input.ToID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -123,6 +135,7 @@ func sendTell(svc *service.Container) gin.HandlerFunc {
 			result.DisplayMessage = fmt.Sprintf("You tell %s, \"%s\"", result.FromCharacterName, input.Message)
 		}
 
+		slog.Info("tell sent", slog.Int("from_id", input.FromID), slog.Int("to_id", input.ToID), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -135,14 +148,17 @@ func sendWhisper(svc *service.Container) gin.HandlerFunc {
 			Message string `json:"message"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		result, err := svc.Chat.SendWhisper(c.Request.Context(), input.FromID, input.ToID, input.Message)
 		if err != nil {
+			dblog.Error("failed to send whisper", err, slog.String("service", "chat"), slog.Int("from_id", input.FromID), slog.Int("to_id", input.ToID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("whisper sent", slog.Int("from_id", input.FromID), slog.Int("to_id", input.ToID), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -154,14 +170,17 @@ func sendEmote(svc *service.Container) gin.HandlerFunc {
 			Action      string `json:"action"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		result, err := svc.Chat.SendEmote(c.Request.Context(), input.CharacterID, input.Action)
 		if err != nil {
+			dblog.Error("failed to send emote", err, slog.String("service", "chat"), slog.Int("character_id", input.CharacterID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("emote sent", slog.Int("character_id", input.CharacterID), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -174,14 +193,17 @@ func sendChannel(svc *service.Container) gin.HandlerFunc {
 			Message    string `json:"message"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		result, err := svc.Chat.SendChannel(c.Request.Context(), input.Channel, input.Message, input.CharacterID)
 		if err != nil {
+			dblog.Error("failed to send channel message", err, slog.String("service", "chat"), slog.Int("character_id", input.CharacterID), slog.String("channel", input.Channel))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("channel message sent", slog.Int("character_id", input.CharacterID), slog.String("channel", input.Channel), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -197,6 +219,7 @@ func getChannels(svc *service.Container) gin.HandlerFunc {
 		}
 		channels, err := svc.Chat.GetChannels(charID)
 		if err != nil {
+			dblog.Error("failed to get channels", err, slog.String("service", "chat"), slog.Int("character_id", charID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -216,14 +239,17 @@ func setChannelEnabled(svc *service.Container) gin.HandlerFunc {
 			Enabled bool `json:"enabled"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		err := svc.Chat.SetChannelEnabled(c.Request.Context(), charID, channel, input.Enabled)
 		if err != nil {
+			dblog.Error("failed to set channel enabled", err, slog.String("service", "chat"), slog.Int("character_id", charID), slog.String("channel", channel))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("channel enabled updated", slog.Int("character_id", charID), slog.String("channel", channel), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	}
 }
@@ -240,14 +266,17 @@ func setChannelColor(svc *service.Container) gin.HandlerFunc {
 			Color string `json:"color"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		err := svc.Chat.SetChannelColor(c.Request.Context(), charID, channel, input.Color)
 		if err != nil {
+			dblog.Error("failed to set channel color", err, slog.String("service", "chat"), slog.Int("character_id", charID), slog.String("channel", channel))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("channel color updated", slog.Int("character_id", charID), slog.String("channel", channel), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	}
 }
@@ -263,9 +292,11 @@ func ignorePlayer(svc *service.Container) gin.HandlerFunc {
 		}
 		ignoredID := c.GetInt("characterId")
 		if err := svc.Chat.IgnorePlayer(c.Request.Context(), charID, ignoredID); err != nil {
+			dblog.Error("failed to ignore player", err, slog.String("service", "chat"), slog.Int("character_id", charID), slog.Int("ignored_id", ignoredID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("player ignored", slog.Int("character_id", charID), slog.Int("ignored_id", ignoredID), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	}
 }
@@ -279,9 +310,11 @@ func unignorePlayer(svc *service.Container) gin.HandlerFunc {
 		}
 		ignoredID := c.GetInt("characterId")
 		if err := svc.Chat.UnignorePlayer(c.Request.Context(), charID, ignoredID); err != nil {
+			dblog.Error("failed to unignore player", err, slog.String("service", "chat"), slog.Int("character_id", charID), slog.Int("ignored_id", ignoredID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("player unignored", slog.Int("character_id", charID), slog.Int("ignored_id", ignoredID), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	}
 }
@@ -295,6 +328,7 @@ func getIgnoredPlayers(svc *service.Container) gin.HandlerFunc {
 		}
 		ids, err := svc.Chat.GetIgnoredPlayers(c.Request.Context(), charID)
 		if err != nil {
+			dblog.Error("failed to get ignored players", err, slog.String("service", "chat"), slog.Int("character_id", charID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -312,13 +346,16 @@ func queueOfflineTell(svc *service.Container) gin.HandlerFunc {
 			Message       string `json:"message"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "chat"), slog.String("reason", "invalid input"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if err := svc.Chat.QueueOfflineTell(c.Request.Context(), input.FromID, input.RecipientName, input.Message); err != nil {
+			dblog.Error("failed to queue offline tell", err, slog.String("service", "chat"), slog.Int("from_id", input.FromID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("offline tell queued", slog.Int("from_id", input.FromID), slog.String("recipient", input.RecipientName), slog.String("user_email", c.GetString("email")), slog.String("service", "chat"))
 		c.JSON(http.StatusOK, gin.H{"status": "queued"})
 	}
 }
@@ -332,6 +369,7 @@ func deliverQueuedTells(svc *service.Container) gin.HandlerFunc {
 		}
 		tells, err := svc.Chat.DeliverQueuedTells(c.Request.Context(), charID)
 		if err != nil {
+			dblog.Error("failed to deliver queued tells", err, slog.String("service", "chat"), slog.Int("character_id", charID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "@tanstack/react-router";
-import { apiGet } from "../../utils/apiFetch";
+import { apiGet, API_BASE } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
@@ -29,8 +29,6 @@ const instanceColumns: Column<ItemInstance>[] = [
   }},
 ];
 
-const API = `${window.location.origin}`;
-
 function ItemDetail() {
   const { itemId } = Route.useParams();
   const location = useLocation();
@@ -38,12 +36,12 @@ function ItemDetail() {
 
   const templateQuery = useQuery({
     queryKey: ["item-template", itemId],
-    queryFn: () => apiGet<ItemTemplate>(`${API}/api/equipment-templates/${itemId}`),
+    queryFn: () => apiGet<ItemTemplate>(`${API_BASE}/api/equipment-templates/${itemId}`),
   });
 
   const instancesQuery = useQuery({
     queryKey: ["item-instances", "template", itemId],
-    queryFn: () => apiGet<ItemInstance[]>(`${API}/api/item-instances?templateId=${itemId}`),
+    queryFn: () => apiGet<ItemInstance[]>(`${API_BASE}/api/item-instances?templateId=${itemId}`),
   });
 
   const template = templateQuery.data;

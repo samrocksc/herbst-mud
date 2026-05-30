@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db"
 	"herbst-server/repository"
 )
@@ -14,6 +16,7 @@ func listEffectDefs(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		effects, err := repos.Effect.ListWithHooks(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list effect definitions", err, slog.String("service", "effects"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -39,6 +42,7 @@ func getEffectDef(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid effect id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect id"})
 			return
 		}

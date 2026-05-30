@@ -20,6 +20,7 @@ const EMPTY_FORM: RaceInput = {
   display_name: "",
   description: "",
   stat_modifiers: "",
+  skill_grants: [],
   equipment_slots: [...DEFAULT_HUMANOID_SLOTS] as unknown as ReadonlyArray<string>,
   requirement_tags: [],
   color: "",
@@ -32,6 +33,7 @@ function raceToForm(r: Race): RaceInput {
     display_name: r.display_name,
     description: r.description ?? "",
     stat_modifiers: r.stat_modifiers ? JSON.stringify(r.stat_modifiers, null, 2) : "",
+    skill_grants: r.skill_grants ? [...r.skill_grants] as unknown as ReadonlyArray<string> : [],
     equipment_slots: r.equipment_slots ? [...r.equipment_slots] as unknown as ReadonlyArray<string> : [...DEFAULT_HUMANOID_SLOTS] as unknown as ReadonlyArray<string>,
     requirement_tags: r.requirement_tags ? [...r.requirement_tags] as unknown as ReadonlyArray<string> : [],
     color: r.color ?? "",
@@ -64,6 +66,8 @@ export function RaceForm({ race, onSubmit, onCancel, isLoading, error, available
         <FormField label="Display Name" value={form.display_name} onChange={(v) => set("display_name", v)} placeholder="Defaults to name if blank" />
         <TextareaField label="Description" value={form.description} onChange={(v) => set("description", v)} rows={3} />
         <TextareaField label="Stat Modifiers (JSON)" value={form.stat_modifiers} onChange={(v) => set("stat_modifiers", v)} rows={4} placeholder='e.g. {"str": 2, "dex": -1}' />
+        <TagInput label="Skill Grants" value={form.skill_grants} onChange={(slots) => set("skill_grants", slots)}
+          availableTags={[]} placeholder="Add skill..." tooltip="Skills automatically granted to characters of this race" />
         <TagInput label="Equipment Slots" value={form.equipment_slots} onChange={(slots) => set("equipment_slots", slots)}
           availableTags={[...SLOT_CATALOG]} placeholder="Add slot..." tooltip="Slots this race can equip items into" />
         <TagInput label="Requirement Tags" value={form.requirement_tags} onChange={(tags) => set("requirement_tags", tags)}

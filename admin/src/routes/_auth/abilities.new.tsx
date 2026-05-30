@@ -51,6 +51,7 @@ const EMPTY_ABILITY: AbilityInput = {
   proc_event: "",
   ability_class: "active",
   required_tag: "",
+  slug: "",
 };
 
 function CreateAbilityPage() {
@@ -84,6 +85,7 @@ function CreateAbilityPage() {
           <h3 className="text-text font-semibold mb-4">Basic Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Name *" value={formData.name} onChange={(v) => set({ name: v })} required />
+            <FormField label="Slug (optional)" value={formData.slug ?? ""} onChange={(v) => set({ slug: v })} placeholder="Auto-generated from name if empty" />
             <SelectField label="Ability Type" value={formData.ability_type} onChange={(v) => set({ ability_type: v })} options={ABILITY_TYPE_OPTS} />
             <TagInput
               label="Required Tag (optional)"
@@ -100,7 +102,7 @@ function CreateAbilityPage() {
           <div className="grid grid-cols-3 gap-4">
             <NumberField label="Cost" value={formData.cost} onChange={(v) => set({ cost: v })} />
             <NumberField label="Cooldown (s)" value={formData.cooldown_seconds} onChange={(v) => set({ cooldown_seconds: v })} />
-            <FormField label="Level Req" value={formData.requirements} onChange={(v) => set({ requirements: v })} />
+            <FormField label="Unlock Tags (JSON)" value={formData.requirements} onChange={(v) => set({ requirements: v })} placeholder='{"tags":["level:5"]}' />
           </div>
           <div className="grid grid-cols-3 gap-4">
             <NumberField label="Mana Cost" value={formData.mana_cost} onChange={(v) => set({ mana_cost: v })} />

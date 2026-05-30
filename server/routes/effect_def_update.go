@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -12,6 +14,7 @@ func updateEffectDef(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid effect id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect id"})
 			return
 		}
@@ -22,10 +25,12 @@ func updateEffectDef(repos *repository.Container) gin.HandlerFunc {
 		}
 		var input effectDefInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if input.EffectType != nil && !validEffectTypes[*input.EffectType] {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid effect_type"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect_type"})
 			return
 		}
@@ -42,11 +47,13 @@ func updateEffectDef(repos *repository.Container) gin.HandlerFunc {
 			Messages:     input.Messages,
 		})
 		if err != nil {
+			dblog.Error("failed to update effect definition", err, slog.String("service", "effects"), slog.Int("effect_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		// Re-fetch with hooks edge loaded for hook count in response
 		updated, _ = repos.Effect.GetWithHooks(c.Request.Context(), updated.ID)
+		slog.Info("effect definition updated", slog.Int("effect_id", updated.ID), slog.String("service", "effects"), slog.String("user_email", c.GetString("email")))
 		c.JSON(http.StatusOK, effectDefToView(updated))
 	}
 }

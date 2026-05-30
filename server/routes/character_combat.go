@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db"
 	"herbst-server/repository"
 	"herbst-server/service"
@@ -21,6 +23,7 @@ func applyDamage(svc *service.Container) gin.HandlerFunc {
 			AttackerID int `json:"attacker_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid damage request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -42,6 +45,7 @@ func applyDamage(svc *service.Container) gin.HandlerFunc {
 			resp["immortal"] = true
 			resp["message"] = result.Message
 		}
+		slog.Info("damage applied", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("damage", req.Damage), slog.Int("attacker_id", req.AttackerID))
 		c.JSON(http.StatusOK, resp)
 	}
 }
@@ -57,6 +61,7 @@ func healCharacter(svc *service.Container) gin.HandlerFunc {
 			Amount int `json:"amount" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid heal request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -66,9 +71,11 @@ func healCharacter(svc *service.Container) gin.HandlerFunc {
 			if err.Error() == "character not found" {
 				status = http.StatusNotFound
 			}
+			dblog.Error("failed to heal character", err, slog.String("service", "characters"), slog.Int("character_id", id))
 			c.JSON(status, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("character healed", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("amount", req.Amount))
 		c.JSON(http.StatusOK, gin.H{"id": result.ID, "hp": result.HP, "maxHp": result.MaxHP})
 	}
 }
@@ -84,6 +91,7 @@ func adjustStamina(svc *service.Container) gin.HandlerFunc {
 			Amount int `json:"amount" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid stamina request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -93,9 +101,11 @@ func adjustStamina(svc *service.Container) gin.HandlerFunc {
 			if err.Error() == "character not found" {
 				status = http.StatusNotFound
 			}
+			dblog.Error("failed to adjust stamina", err, slog.String("service", "characters"), slog.Int("character_id", id))
 			c.JSON(status, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("stamina adjusted", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("amount", req.Amount))
 		c.JSON(http.StatusOK, gin.H{"id": result.ID, "stamina": result.Current, "maxStamina": result.Max})
 	}
 }
@@ -111,6 +121,7 @@ func adjustMana(svc *service.Container) gin.HandlerFunc {
 			Amount int `json:"amount" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid mana request", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -120,9 +131,11 @@ func adjustMana(svc *service.Container) gin.HandlerFunc {
 			if err.Error() == "character not found" {
 				status = http.StatusNotFound
 			}
+			dblog.Error("failed to adjust mana", err, slog.String("service", "characters"), slog.Int("character_id", id))
 			c.JSON(status, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("mana adjusted", slog.String("service", "characters"), slog.Int("character_id", id), slog.Int("amount", req.Amount))
 		c.JSON(http.StatusOK, gin.H{"id": result.ID, "mana": result.Current, "maxMana": result.Max})
 	}
 }
@@ -148,6 +161,7 @@ func healNPCsInRoom(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roomID, err := parseIntParam(c, "id")
 		if err != nil {
+			slog.Warn("bad request: invalid room ID", slog.String("service", "characters"), slog.String("room_id", c.Param("id")))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 			return
 		}
@@ -155,14 +169,17 @@ func healNPCsInRoom(svc *service.Container) gin.HandlerFunc {
 			Amount int `json:"amount" binding:"required"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid heal NPCs request", slog.String("service", "characters"), slog.Int("room_id", roomID), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		healed, err := svc.Combat.HealNPCsInRoom(c.Request.Context(), roomID, req.Amount)
 		if err != nil {
+			dblog.Error("failed to heal NPCs in room", err, slog.String("service", "characters"), slog.Int("room_id", roomID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("NPCs healed in room", slog.String("service", "characters"), slog.Int("room_id", roomID), slog.Int("amount", req.Amount), slog.Int("healed_count", healed))
 		c.JSON(http.StatusOK, gin.H{"healed": healed, "amount": req.Amount})
 	}
 }
@@ -172,14 +189,17 @@ func passiveHealNPCsInRoom(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roomID, err := parseIntParam(c, "id")
 		if err != nil {
+			slog.Warn("bad request: invalid room ID", slog.String("service", "characters"), slog.String("room_id", c.Param("id")))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 			return
 		}
 		result, err := svc.Combat.PassiveHealNPCsInRoom(c.Request.Context(), roomID)
 		if err != nil {
+			dblog.Error("failed to passive heal NPCs in room", err, slog.String("service", "characters"), slog.Int("room_id", roomID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("NPCs passive healed in room", slog.String("service", "characters"), slog.Int("room_id", roomID), slog.Int("healed_count", result.Healed))
 		c.JSON(http.StatusOK, gin.H{"healed": result.Healed, "room": roomID})
 	}
 }
@@ -189,11 +209,13 @@ func getNPCsByRoom(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roomID, err := parseIntParam(c, "id")
 		if err != nil {
+			slog.Warn("bad request: invalid room ID", slog.String("service", "characters"), slog.String("room_id", c.Param("id")))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 			return
 		}
 		npcs, err := repos.Character.ListNPCsByRoom(c.Request.Context(), roomID)
 		if err != nil {
+			dblog.Error("failed to list NPCs by room", err, slog.String("service", "characters"), slog.Int("room_id", roomID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -235,6 +257,7 @@ func listAllNPCs(repos *repository.Container) gin.HandlerFunc {
 			npcs, err = repos.Character.ListAllNPCs(c.Request.Context())
 		}
 		if err != nil {
+			dblog.Error("failed to list all NPCs", err, slog.String("service", "characters"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

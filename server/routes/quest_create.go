@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db/schema"
 	"herbst-server/service"
 )
@@ -13,10 +15,12 @@ func createQuest(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input questInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "quests"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if input.Name == nil || *input.Name == "" {
+			slog.Warn("bad request", slog.String("service", "quests"), slog.String("reason", "missing name"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
@@ -40,6 +44,7 @@ func createQuest(svc *service.Container) gin.HandlerFunc {
 		repeatMode := "none"
 		if input.RepeatMode != nil {
 			if !validRepeatModes[*input.RepeatMode] {
+				slog.Warn("bad request", slog.String("service", "quests"), slog.String("reason", "invalid repeat_mode"), slog.String("client_ip", c.ClientIP()))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid repeat_mode"})
 				return
 			}
@@ -50,12 +55,17 @@ func createQuest(svc *service.Container) gin.HandlerFunc {
 			cooldownHours = *input.CooldownHours
 		}
 		isActive := true
+		worldID := "default"
+		if input.WorldID != nil {
+			worldID = *input.WorldID
+		}
 		if input.IsActive != nil {
 			isActive = *input.IsActive
 		}
 		q, err := svc.Quest.CreateQuest(c.Request.Context(), service.CreateQuestInput{
 			Name:                 name,
 			Description:          description,
+			WorldID:              worldID,
 			PrerequisiteQuestIDs: prereqs,
 			Objectives:           objectives,
 			Rewards:              rewards,
@@ -64,9 +74,11 @@ func createQuest(svc *service.Container) gin.HandlerFunc {
 			IsActive:             isActive,
 		})
 		if err != nil {
+			dblog.Error("failed to create quest", err, slog.String("service", "quests"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("quest created", slog.Int("quest_id", q.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "quests"))
 		c.JSON(http.StatusCreated, questToView(q))
 	}
 }

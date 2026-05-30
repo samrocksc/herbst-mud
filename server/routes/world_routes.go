@@ -2,11 +2,13 @@ package routes
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/content"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -22,14 +24,17 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 		worlds.POST("/worlds", func(c *gin.Context) {
 			var input repository.CreateWorldInput
 			if err := c.ShouldBindJSON(&input); err != nil {
+				slog.Warn("invalid create world request", slog.String("error", err.Error()), slog.String("service", "worlds"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
 			world, err := repos.World.Create(c.Request.Context(), input)
 			if err != nil {
+				dblog.Error("failed to create world", err, slog.String("service", "worlds"))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
+			slog.Info("world created", slog.Int("world_id", world.ID), slog.String("service", "worlds"))
 			c.JSON(http.StatusCreated, world)
 		})
 
@@ -37,6 +42,7 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 		worlds.GET("/worlds/db", func(c *gin.Context) {
 			worlds, err := repos.World.List(c.Request.Context())
 			if err != nil {
+				dblog.Error("failed to list worlds", err, slog.String("service", "worlds"))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
@@ -47,6 +53,7 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 		worlds.GET("/worlds/:id", func(c *gin.Context) {
 			id, err := strconv.Atoi(c.Param("id"))
 			if err != nil {
+				slog.Warn("invalid world id", slog.String("error", err.Error()), slog.String("service", "worlds"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid world ID"})
 				return
 			}
@@ -62,19 +69,23 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 		worlds.PUT("/worlds/:id", func(c *gin.Context) {
 			id, err := strconv.Atoi(c.Param("id"))
 			if err != nil {
+				slog.Warn("invalid world id", slog.String("error", err.Error()), slog.String("service", "worlds"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid world ID"})
 				return
 			}
 			var updates repository.WorldUpdates
 			if err := c.ShouldBindJSON(&updates); err != nil {
+				slog.Warn("invalid update world request", slog.String("error", err.Error()), slog.String("service", "worlds"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
 			world, err := repos.World.Update(c.Request.Context(), id, updates)
 			if err != nil {
+				dblog.Error("failed to update world", err, slog.String("service", "worlds"), slog.Int("world_id", id))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
+			slog.Info("world updated", slog.Int("world_id", world.ID), slog.String("service", "worlds"))
 			c.JSON(http.StatusOK, world)
 		})
 
@@ -82,13 +93,16 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 		worlds.DELETE("/worlds/:id", func(c *gin.Context) {
 			id, err := strconv.Atoi(c.Param("id"))
 			if err != nil {
+				slog.Warn("invalid world id", slog.String("error", err.Error()), slog.String("service", "worlds"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid world ID"})
 				return
 			}
 			if err := repos.World.Delete(c.Request.Context(), id); err != nil {
+				dblog.Error("failed to delete world", err, slog.String("service", "worlds"), slog.Int("world_id", id))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
+			slog.Info("world deleted", slog.Int("world_id", id), slog.String("service", "worlds"))
 			c.JSON(http.StatusOK, gin.H{"message": "World deleted"})
 		})
 
@@ -96,6 +110,7 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 		worlds.GET("/worlds/active", func(c *gin.Context) {
 			worlds, err := repos.World.GetActive(c.Request.Context())
 			if err != nil {
+				dblog.Error("failed to get active worlds", err, slog.String("service", "worlds"))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}

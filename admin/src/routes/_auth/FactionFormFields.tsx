@@ -1,13 +1,11 @@
 import {
   FormField,
-  NumberField,
   TextareaField,
   SelectField,
-  CheckboxField,
 } from "../../components/FormFields";
 import { TagInput } from "../../components/TagInput";
 import { useTags } from "../../hooks/useTags";
-import type { FactionCategory, FactionForm } from "./factionTypes";
+import type { FactionCategory, FactionForm } from "./-factionTypes";
 
 export function FactionFormFields({
   form,
@@ -46,24 +44,12 @@ export function FactionFormFields({
         onChange={(v) => set({ description: v })}
         rows={3}
       />
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField
+      <SelectField
           label="Category"
           value={String(form.category_id)}
           onChange={(v) => set({ category_id: v ? Number(v) : "" })}
           options={catOptions}
         />
-        <NumberField
-          label="Standing"
-          value={form.standing}
-          onChange={(v) => set({ standing: v })}
-        />
-      </div>
-      <CheckboxField
-        label="Universal (applies to all characters)"
-        checked={form.is_universal}
-        onChange={(v) => set({ is_universal: v })}
-      />
       <TagInput
         label="Member Tags"
         value={form.member_tags}

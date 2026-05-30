@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { apiPut, apiDelete } from "../../utils/apiFetch";
+import { apiPut, apiDelete, API_BASE } from "../../utils/apiFetch";
 import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { CombatFieldsEditor, type CombatFields } from "../../components/CombatFieldsEditor";
@@ -43,15 +43,13 @@ export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
 
   const [form, setForm] = useState<TemplateEditForm>(() => ({ ...template, stats: parseStats(template.stats) }));
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const API = `${window.location.origin}`;
-
   const updateMutation = useMutation({
-    mutationFn: (body: Record<string, unknown>) => apiPut(`${API}/api/equipment-templates/${itemId}`, body),
+    mutationFn: (body: Record<string, unknown>) => apiPut(`${API_BASE}/api/equipment-templates/${itemId}`, body),
     onSuccess: (data) => { queryClient.setQueryData(["item-template", itemId], data); onDone(); },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => apiDelete(`${API}/api/equipment-templates/${itemId}`),
+    mutationFn: () => apiDelete(`${API_BASE}/api/equipment-templates/${itemId}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["item-templates"] }); navigate({ to: "/items" }); },
   });
 

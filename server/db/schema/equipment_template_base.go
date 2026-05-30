@@ -13,7 +13,7 @@ func equipmentTemplateBaseFields() []ent.Field {
 		field.String("slug").
 			Comment("URL-friendly unique identifier, e.g. 'pizza_dough' (unique per world_id)"),
 		field.String("world_id").
-			Default("default").
+			Default("1").
 			Comment("World this item template belongs to (for multi-world support)"),
 		field.String("name"),
 		field.String("description"),

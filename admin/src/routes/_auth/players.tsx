@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useUsers, useResetPassword, useDeleteCharacter, type User } from "../../hooks/useUsers";
+import { useUsers, useCreateUser, useUpdateUser, useResetPassword, useDeleteCharacter, type User } from "../../hooks/useUsers";
 import { apiGet } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
+import { Modal } from "../../components/Modal";
+import { FormField, CheckboxField } from "../../components/FormFields";
+import { showToast } from "../../components/Toast";
 import { PageContainer } from "../../components/PageContainer";
 
 export const Route = createFileRoute("/_auth/players")({
@@ -35,12 +38,18 @@ function PlayersManagement() {
   const { data: users, isLoading, error } = useUsers();
   const resetPassword = useResetPassword();
   const deleteCharacter = useDeleteCharacter();
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showCharacters, setShowCharacters] = useState(false);
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
   const [resetError, setResetError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [createForm, setCreateForm] = useState({ email: "", password: "", isAdmin: false });
+  const [editForm, setEditForm] = useState({ email: "", isAdmin: false });
 
   const charactersQuery = useQuery<Character[]>({
     queryKey: ["characters"],
@@ -69,6 +78,30 @@ function PlayersManagement() {
     catch { setDeleteError("Failed to delete character"); }
   };
 
+  const handleCreateUser = async () => {
+    if (!createForm.email.trim() || !createForm.password.trim()) return;
+    try {
+      await createUser.mutateAsync(createForm);
+      showToast("User created", "success");
+      setShowCreate(false);
+      setCreateForm({ email: "", password: "", isAdmin: false });
+    } catch { /* toasted globally */ }
+  };
+
+  const handleEditUser = async () => {
+    if (!editUser) return;
+    try {
+      await updateUser.mutateAsync({ id: editUser.id, input: editForm });
+      showToast("User updated", "success");
+      setEditUser(null);
+    } catch { /* toasted globally */ }
+  };
+
+  const startEdit = (user: User) => {
+    setEditUser(user);
+    setEditForm({ email: user.email, isAdmin: user.is_admin });
+  };
+
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
@@ -79,7 +112,10 @@ function PlayersManagement() {
       val ? <span className="badge badge-admin">Admin</span> : <span className="badge badge-player">Player</span> },
     { header: "Created", accessor: "created_at", render: (val: unknown) => formatDate(String(val ?? "")) },
     { header: "Actions", accessor: "_actions", render: (_: unknown, row: User) => (
-      <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); handleReset(row); }} disabled={resetPassword.isPending}>Reset Password</Button>
+      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+        <Button variant="ghost" size="sm" onClick={() => startEdit(row)}>Edit</Button>
+        <Button variant="secondary" size="sm" onClick={() => handleReset(row)} disabled={resetPassword.isPending}>Reset Password</Button>
+      </div>
     )},
   ];
 
@@ -103,7 +139,9 @@ function PlayersManagement() {
 
   return (
     <PageContainer>
-      <PageHeader title="Players Management" backTo="/dashboard" />
+      <PageHeader title="Players Management" backTo="/dashboard" actions={
+        <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>+ Add User</Button>
+      } />
       {resetSuccess && <div className="success-message">{resetSuccess}</div>}
       {resetError && <div className="error-message">{resetError}</div>}
       {deleteError && <div className="error-message">{deleteError}</div>}
@@ -123,6 +161,36 @@ function PlayersManagement() {
           <DataTable columns={charColumns} data={charactersQuery.data ?? []} getKey={(row: Character) => row.id} emptyMessage="No characters found." />
         )}
       </div>
+
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create User">
+        <div className="flex flex-col gap-4">
+          <FormField label="Email" value={createForm.email} onChange={(v) => setCreateForm({ ...createForm, email: v })} placeholder="user@example.com" />
+          <FormField label="Password" value={createForm.password} onChange={(v) => setCreateForm({ ...createForm, password: v })} type="password" placeholder="Minimum 8 characters" />
+          <CheckboxField label="Admin" checked={createForm.isAdmin} onChange={(v) => setCreateForm({ ...createForm, isAdmin: v })} />
+          <div className="flex gap-2">
+            <Button variant="primary" onClick={handleCreateUser} disabled={createUser.isPending} fullWidth>
+              {createUser.isPending ? "Creating..." : "Create User"}
+            </Button>
+            <Button variant="secondary" onClick={() => setShowCreate(false)} fullWidth>Cancel</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={editUser !== null} onClose={() => setEditUser(null)} title="Edit User">
+        {editUser && (
+          <div className="flex flex-col gap-4">
+            <div className="detail-row"><label>ID:</label><span>{editUser.id}</span></div>
+            <FormField label="Email" value={editForm.email} onChange={(v) => setEditForm({ ...editForm, email: v })} />
+            <CheckboxField label="Admin" checked={editForm.isAdmin} onChange={(v) => setEditForm({ ...editForm, isAdmin: v })} />
+            <div className="flex gap-2">
+              <Button variant="primary" onClick={handleEditUser} disabled={updateUser.isPending} fullWidth>
+                {updateUser.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button variant="secondary" onClick={() => setEditUser(null)} fullWidth>Cancel</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {showDetail && selectedUser && (
         <div className="modal-overlay" onClick={() => setShowDetail(false)}>

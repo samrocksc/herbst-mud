@@ -51,6 +51,14 @@ async function apiFetch<T = unknown>(input: RequestInfo, init?: RequestInit): Pr
   }
 }
 
+export const API_BASE = window.location.origin;
+
+export const buildWorldParams = (worldId: string | null): string => {
+  const p = new URLSearchParams();
+  if (worldId) p.append("world_id", worldId);
+  return p.toString();
+};
+
 export const apiGet = <T>(url: string): Promise<T> => apiFetch<T>(url);
 export const apiPost = <T>(url: string, body: unknown): Promise<T> =>
   apiFetch<T>(url, { method: "POST", body: JSON.stringify(body) });

@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -58,6 +60,7 @@ func listAchievements(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		achievements, err := repos.Achievement.List(c.Request.Context())
 		if err != nil {
+			dblog.Error("list achievements failed", err, slog.String("service", "achievements"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -73,11 +76,13 @@ func createAchievement(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input achievementInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "achievements"), slog.String("reason", "invalid request body"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		if input.Name == "" {
+			slog.Warn("bad request", slog.String("service", "achievements"), slog.String("reason", "name is required"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
@@ -95,10 +100,12 @@ func createAchievement(repos *repository.Container) gin.HandlerFunc {
 			Criteria:    input.Criteria,
 		})
 		if err != nil {
+			dblog.Error("create achievement failed", err, slog.String("service", "achievements"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("achievement created", slog.Int("achievement_id", a.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "achievements"))
 		c.JSON(http.StatusCreated, achievementToView(a))
 	}
 }
@@ -107,6 +114,7 @@ func getAchievement(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "achievements"), slog.String("reason", "invalid achievement id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid achievement id"})
 			return
 		}
@@ -125,6 +133,7 @@ func updateAchievement(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "achievements"), slog.String("reason", "invalid achievement id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid achievement id"})
 			return
 		}
@@ -137,6 +146,7 @@ func updateAchievement(repos *repository.Container) gin.HandlerFunc {
 
 		var input achievementInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "achievements"), slog.String("reason", "invalid request body"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -155,10 +165,12 @@ func updateAchievement(repos *repository.Container) gin.HandlerFunc {
 
 		updated, err := repos.Achievement.Update(c.Request.Context(), id, updates)
 		if err != nil {
+			dblog.Error("update achievement failed", err, slog.Int("achievement_id", id), slog.String("service", "achievements"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("achievement updated", slog.Int("achievement_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "achievements"))
 		c.JSON(http.StatusOK, achievementToView(updated))
 	}
 }
@@ -167,6 +179,7 @@ func deleteAchievement(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "achievements"), slog.String("reason", "invalid achievement id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid achievement id"})
 			return
 		}
@@ -176,6 +189,7 @@ func deleteAchievement(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
+		slog.Info("achievement deleted", slog.Int("achievement_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "achievements"))
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

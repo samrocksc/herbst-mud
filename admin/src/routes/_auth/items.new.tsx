@@ -5,6 +5,7 @@ import { useCreateTemplate } from "../../hooks/useEquipmentTemplates";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { FormField, NumberField, SelectField, CheckboxField, TextareaField } from "../../components/FormFields";
+import { CombatFieldsEditor, type CombatFields } from "../../components/CombatFieldsEditor";
 import { showToast } from "../../components/Toast";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
 import { PageContainer } from "../../components/PageContainer";
@@ -32,7 +33,14 @@ function CreateItemPage() {
   const { currentWorld } = useWorldStore();
   const { mutate: createTemplate, isPending } = useCreateTemplate();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    name: string; description: string; slot: string; level: number; weight: number
+    item_type: string; color: string; is_visible: boolean; is_immovable: boolean
+    effect_type: string; effect_value: number; effect_duration: number
+    is_container: boolean; container_capacity: number; is_locked: boolean
+    key_item_id: string; reveal_condition: string
+    world_id: string
+  } & CombatFields>({
     name: "",
     description: "",
     slot: "",
@@ -45,6 +53,22 @@ function CreateItemPage() {
     effect_type: "",
     effect_value: 0,
     effect_duration: 0,
+    is_container: false,
+    container_capacity: 0,
+    is_locked: false,
+    key_item_id: "",
+    reveal_condition: "",
+    armor_rating: 0,
+    armor_type: "",
+    rarity: "",
+    skill_requirement: "",
+    skill_requirement_level: 0,
+    damage_dice_count: 0,
+    damage_dice_sides: 0,
+    damage_bonus: 0,
+    damage_type: "",
+    weapon_type: "",
+    is_two_handed: false,
     world_id: currentWorld || "default",
   });
 
@@ -90,6 +114,17 @@ function CreateItemPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CheckboxField label="Visible" checked={form.is_visible} onChange={(v) => setForm({ ...form, is_visible: v })} />
             <CheckboxField label="Immovable" checked={form.is_immovable} onChange={(v) => setForm({ ...form, is_immovable: v })} />
+            <CheckboxField label="Container" checked={form.is_container} onChange={(v) => setForm({ ...form, is_container: v })} />
+          </div>
+          {form.is_container && (
+            <div className="grid grid-cols-3 gap-4 mt-2">
+              <NumberField label="Container Capacity" value={form.container_capacity} onChange={(v) => setForm({ ...form, container_capacity: v })} min={0} />
+              <CheckboxField label="Locked" checked={form.is_locked} onChange={(v) => setForm({ ...form, is_locked: v })} />
+              <FormField label="Key Item ID" value={form.key_item_id} onChange={(v) => setForm({ ...form, key_item_id: v })} placeholder="Template ID of the key" />
+            </div>
+          )}
+          <div className="mt-2">
+            <FormField label="Reveal Condition" value={form.reveal_condition} onChange={(v) => setForm({ ...form, reveal_condition: v })} placeholder='e.g. {"type":"examine","minLevel":3}' tooltip="JSON condition for revealing hidden details" />
           </div>
 
           <h3 className="text-text font-semibold mt-6 mb-4">Effect</h3>
@@ -97,6 +132,10 @@ function CreateItemPage() {
             <SelectField label="Effect Type" value={form.effect_type} onChange={(v) => setForm({ ...form, effect_type: v })} options={EFFECT_TYPE_OPTS} />
             <NumberField label="Effect Value" value={form.effect_value} onChange={(v) => setForm({ ...form, effect_value: v })} min={0} />
             <NumberField label="Duration (ticks)" value={form.effect_duration} onChange={(v) => setForm({ ...form, effect_duration: v })} min={0} tooltip="0 = instant" />
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-border">
+            <CombatFieldsEditor form={form} onChange={(u) => setForm(prev => ({ ...prev, ...u }))} slot={form.slot} />
           </div>
 
           <div className="flex gap-2 justify-end mt-6">

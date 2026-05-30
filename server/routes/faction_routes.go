@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/factioncategory"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -41,6 +43,7 @@ func listFactions(repos *repository.Container) gin.HandlerFunc {
 		worldID := c.Query("world_id")
 		factions, err := repos.Faction.List(c.Request.Context(), worldID)
 		if err != nil {
+			dblog.Error("failed to list factions", err, slog.String("service", "factions"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -66,6 +69,7 @@ func getFaction(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "factions"), slog.String("reason", "invalid faction id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid faction id"})
 			return
 		}
@@ -88,6 +92,7 @@ func createFaction(repos *repository.Container) gin.HandlerFunc {
 			MemberTags  []string `json:"member_tags"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "factions"), slog.String("reason", err.Error()), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -99,9 +104,11 @@ func createFaction(repos *repository.Container) gin.HandlerFunc {
 			MemberTags:  req.MemberTags,
 		})
 		if err != nil {
+			dblog.Error("failed to create faction", err, slog.String("service", "factions"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("faction created", slog.Int("faction_id", created.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "factions"))
 		c.JSON(http.StatusCreated, factionToJSON(created))
 	}
 }
@@ -110,6 +117,7 @@ func updateFaction(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "factions"), slog.String("reason", "invalid faction id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid faction id"})
 			return
 		}
@@ -120,6 +128,7 @@ func updateFaction(repos *repository.Container) gin.HandlerFunc {
 			MemberTags  []string `json:"member_tags"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "factions"), slog.String("reason", err.Error()), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -132,15 +141,18 @@ func updateFaction(repos *repository.Container) gin.HandlerFunc {
 		}
 		_, err = repos.Faction.Update(c.Request.Context(), id, updates)
 		if err != nil {
+			dblog.Error("failed to update faction", err, slog.String("service", "factions"), slog.Int("faction_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		// Reload with edges for response
 		f, err := repos.Faction.GetWithEdges(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to reload faction after update", err, slog.String("service", "factions"), slog.Int("faction_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("faction updated", slog.Int("faction_id", f.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "factions"))
 		c.JSON(http.StatusOK, factionToJSON(f))
 	}
 }
@@ -153,9 +165,11 @@ func deleteFaction(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 		if err := repos.Faction.Delete(c.Request.Context(), id); err != nil {
+			dblog.Error("failed to delete faction", err, slog.String("service", "factions"), slog.Int("faction_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("faction deleted", slog.Int("faction_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "factions"))
 		c.JSON(http.StatusNoContent, nil)
 	}
 }
@@ -164,11 +178,13 @@ func getFactionMembers(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "factions"), slog.String("reason", "invalid faction id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid faction id"})
 			return
 		}
 		memberships, err := repos.CharacterFaction.ListByFactionWithDetails(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to list faction members", err, slog.String("service", "factions"), slog.Int("faction_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -204,6 +220,7 @@ func listFactionCategories(client *db.Client) gin.HandlerFunc {
 		}
 		cats, err := query.WithFactions().All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list faction categories", err, slog.String("service", "factions"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -226,6 +243,7 @@ func createFactionCategory(client *db.Client) gin.HandlerFunc {
 			InitialConfig  bool   `json:"initial_config"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "factions"), slog.String("reason", err.Error()), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -238,9 +256,11 @@ func createFactionCategory(client *db.Client) gin.HandlerFunc {
 			SetInitialConfig(req.InitialConfig).
 			Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to create faction category", err, slog.String("service", "factions"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("faction category created", slog.Int("category_id", created.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "factions"))
 		c.JSON(http.StatusCreated, categoryToJSON(created))
 	}
 }
@@ -249,13 +269,16 @@ func deleteFactionCategory(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := parseIntParam(c, "id")
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "factions"), slog.String("reason", "invalid category id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
 			return
 		}
 		if err := client.FactionCategory.DeleteOneID(id).Exec(c.Request.Context()); err != nil {
+			dblog.Error("failed to delete faction category", err, slog.String("service", "factions"), slog.Int("category_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("faction category deleted", slog.Int("category_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "factions"))
 		c.JSON(http.StatusOK, gin.H{"deleted": id})
 	}
 }

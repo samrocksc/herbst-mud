@@ -87,6 +87,21 @@ function AbilitiesManagement() {
         showClear={!!(filterType || filterClass)}
         onClear={() => { setFilterType(""); setFilterClass(""); }}
       >
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-text-muted font-medium mr-1">Quick:</span>
+          <button onClick={() => { setFilterClass("passive"); setFilterType(""); }}
+            className={`px-2 py-1 text-xs rounded border ${filterClass === "passive" ? "bg-primary/20 border-primary text-text" : "bg-surface border-border text-muted hover:border-primary"}`}>
+            Weapon Skills (Passive)
+          </button>
+          <button onClick={() => { setFilterClass("active"); setFilterType(""); }}
+            className={`px-2 py-1 text-xs rounded border ${filterClass === "active" ? "bg-primary/20 border-primary text-text" : "bg-surface border-border text-muted hover:border-primary"}`}>
+            Active Abilities
+          </button>
+          <button onClick={() => { setFilterClass(""); setFilterType(""); }}
+            className={`px-2 py-1 text-xs rounded border ${filterClass === "" && filterType === "" ? "bg-primary/20 border-primary text-text" : "bg-surface border-border text-muted hover:border-primary"}`}>
+            All
+          </button>
+        </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-text-muted">Type:</label>
           <select

@@ -16,7 +16,7 @@ func (Faction) Fields() []ent.Field {
 		field.String("name").
 			Unique(),
 		field.String("world_id").
-			Default("default").
+			Default("1").
 			Comment("World this faction belongs to (for multi-world support)"),
 		field.String("display_name").
 			Comment("e.g., Ninja, Foot Clan, Surf Warden"),

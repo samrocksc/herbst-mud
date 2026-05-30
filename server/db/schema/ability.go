@@ -19,7 +19,7 @@ func (Ability) Fields() []ent.Field {
 		field.String("name").
 			Unique(),
 		field.String("world_id").
-			Default("default").
+			Default("1").
 			Comment("World this ability belongs to (for multi-world support)"),
 		field.String("description"),
 		field.String("ability_type").

@@ -8,9 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
-	"herbst-server/dblog"
 	"herbst-server/db/character"
 	"herbst-server/db/room"
+	"herbst-server/dblog"
 )
 
 // GameExport represents the full game data export
@@ -124,9 +124,9 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"worlds": worldList,
+			"worlds":  worldList,
 			"default": "default",
-			"count":  len(worldList),
+			"count":   len(worldList),
 		})
 	})
 
@@ -191,6 +191,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		}
 		npcs, err := npcsQuery.All(c.Request.Context())
 		if err != nil {
+			dblog.Error("Failed to fetch NPCs for export", err, slog.String("service", "export"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch NPCs: " + err.Error()})
 			return
 		}
@@ -285,12 +286,14 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 	router.POST("/admin/import", func(c *gin.Context) {
 		var importData GameExport
 		if err := c.ShouldBindJSON(&importData); err != nil {
+			slog.Warn("Invalid import JSON", "error", err, slog.String("service", "export"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON: " + err.Error()})
 			return
 		}
 
 		// Validate version
 		if importData.Version != "1.0" {
+			slog.Warn("Unsupported import version", "version", importData.Version, slog.String("service", "export"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported version: " + importData.Version})
 			return
 		}
@@ -340,6 +343,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 					firstRoom, err := client.Room.Query().
 						First(c.Request.Context())
 					if err != nil {
+						slog.Warn("Import room fallback failed", "error", err, slog.String("service", "export"))
 						c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Room %d does not exist", r.ID)})
 						return
 					}
@@ -406,6 +410,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 					firstRoom, err := client.Room.Query().
 						First(c.Request.Context())
 					if err != nil {
+						slog.Warn("Import NPC room fallback failed", "error", err, slog.String("service", "export"))
 						c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Room %d does not exist", npc.CurrentRoomID)})
 						return
 					}
@@ -443,6 +448,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 		// Skills are hardcoded in registry, so we just validate they're recognized
 		imported.Skills = len(importData.Skills)
 
+		slog.Info("Game world imported", slog.String("service", "export"), slog.Int("rooms", imported.Rooms), slog.Int("npcs", imported.NPCs))
 		c.JSON(http.StatusOK, gin.H{
 			"success":     true,
 			"imported":    imported,
@@ -455,6 +461,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 	router.POST("/admin/import/validate", func(c *gin.Context) {
 		var importData GameExport
 		if err := c.ShouldBindJSON(&importData); err != nil {
+			slog.Warn("Invalid validate import JSON", "error", err, slog.String("service", "export"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON: " + err.Error()})
 			return
 		}
@@ -483,6 +490,7 @@ func RegisterGameExportRoutes(router *gin.Engine, client *db.Client) {
 			validation.Errors = append(validation.Errors, "No rooms found in import")
 		}
 
+		slog.Info("Import validation completed", slog.String("service", "export"))
 		c.JSON(http.StatusOK, validation)
 	})
 }

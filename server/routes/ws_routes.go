@@ -30,10 +30,10 @@ type ClientMessage struct {
 
 // ServerMessage is sent to the WebSocket client.
 type ServerMessage struct {
-	Type      string      `json:"type"`      // "output" | "system" | "error" | "ping" | "screen" | "vitals"
-	Text      string      `json:"text"`      // human-readable content
+	Type      string      `json:"type"`           // "output" | "system" | "error" | "ping" | "screen" | "vitals"
+	Text      string      `json:"text"`           // human-readable content
 	Data      interface{} `json:"data,omitempty"` // structured data (e.g. screen payload)
-	Timestamp int64       `json:"timestamp"` // Unix ms
+	Timestamp int64       `json:"timestamp"`      // Unix ms
 }
 
 const (
@@ -60,7 +60,7 @@ type VitalsPayload struct {
 // CharInfo represents a visible character in a room.
 type CharInfo struct {
 	Name    string `json:"name"`
-	Type    string `json:"type"`    // "npc" | "player"
+	Type    string `json:"type"` // "npc" | "player"
 	ID      int    `json:"id"`
 	Hostile bool   `json:"hostile"`
 }
@@ -95,7 +95,7 @@ type RoomScreenPayload struct {
 
 var (
 	upgrader = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool { return true }, // CORS handled by Gin
+		CheckOrigin:     func(r *http.Request) bool { return true }, // CORS handled by Gin
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
@@ -247,6 +247,7 @@ func wsHandler(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 		// Verify character ownership via ListByUser (safer than ent edge methods)
 		userChars, err := repos.Character.ListByUser(c.Request.Context(), int(userID))
 		if err != nil {
+			dblog.Error("Failed to load user characters for WS", err, slog.String("service", "ws"), slog.Int("user_id", int(userID)))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load characters"})
 			return
 		}
@@ -318,7 +319,7 @@ func wsHandler(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 		if err == nil {
 			sendScreen(wsc, roomScreen)
 		} else {
-			slog.Warn("failed to load room screen", "error", err)
+			slog.Warn("failed to load room screen", "error", err, slog.String("service", "ws"))
 			wsc.send(ServerMessage{
 				Type:      MsgSystem,
 				Text:      fmt.Sprintf("\nRoom %d\n(Unable to load room details)", char.CurrentRoomId),
@@ -345,7 +346,7 @@ func (wsc *WSConn) readPump(repos *repository.Container, client *db.Client) {
 		_, msgBytes, err := wsc.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				slog.Warn("ws read error", "user", wsc.UserID, "error", err)
+				slog.Warn("ws read error", "user", wsc.UserID, "error", err, slog.String("service", "ws"))
 			}
 			return
 		}

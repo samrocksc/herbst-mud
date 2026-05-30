@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -18,14 +20,17 @@ func createEffectDef(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input effectDefInput
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if input.EffectType == nil || !validEffectTypes[*input.EffectType] {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "invalid effect_type"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid effect_type"})
 			return
 		}
 		if input.Name == nil || *input.Name == "" {
+			slog.Warn("bad request", slog.String("service", "effects"), slog.String("reason", "name is required"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
 			return
 		}
@@ -62,11 +67,13 @@ func createEffectDef(repos *repository.Container) gin.HandlerFunc {
 			Messages:     msgs,
 		})
 		if err != nil {
+			dblog.Error("failed to create effect definition", err, slog.String("service", "effects"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		// Re-fetch with hooks edge loaded for hook count in response
 		e, _ = repos.Effect.GetWithHooks(c.Request.Context(), e.ID)
+		slog.Info("effect definition created", slog.Int("effect_id", e.ID), slog.String("service", "effects"), slog.String("user_email", c.GetString("email")))
 		c.JSON(http.StatusCreated, effectDefToView(e))
 	}
 }

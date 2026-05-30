@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -17,6 +19,7 @@ func expireEffects(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		deactivated, err := repos.ActiveEffect.DeactivateExpired(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to deactivate expired effects", err, slog.String("service", "active_effects"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

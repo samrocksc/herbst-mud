@@ -41,9 +41,11 @@ export type AbilityInput = Readonly<{
   proc_event: string
   ability_class: string
   required_tag: string
+  slug?: string
+  world_id?: string
 }>
 
-function parseForApi(input: AbilityInput): Record<string, unknown> {
+function parseForApi(input: AbilityInput, worldId?: string): Record<string, unknown> {
   return {
     name: input.name,
     description: input.description,
@@ -59,6 +61,8 @@ function parseForApi(input: AbilityInput): Record<string, unknown> {
     proc_event: input.proc_event,
     ability_class: input.ability_class,
     required_tag: input.required_tag,
+    slug: input.slug || undefined,
+    world_id: worldId || undefined,
   };
 }
 
@@ -98,18 +102,20 @@ export function useAbility(id: number | null) {
 
 export function useCreateAbility() {
   const qc = useQueryClient();
+  const { currentWorld } = useWorldStore();
   return useMutation({
     mutationFn: (input: AbilityInput) =>
-      apiPost<Ability>(API, parseForApi(input)),
+      apiPost<Ability>(API, parseForApi(input, currentWorld)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["abilities"] }),
   });
 }
 
 export function useUpdateAbility() {
   const qc = useQueryClient();
+  const { currentWorld } = useWorldStore();
   return useMutation({
     mutationFn: ({ id, input }: { readonly id: number; readonly input: AbilityInput }) =>
-      apiPut<Ability>(`${API}/${id}`, parseForApi(input)),
+      apiPut<Ability>(`${API}/${id}`, parseForApi(input, currentWorld)),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["abilities"] });
       qc.invalidateQueries({ queryKey: ["ability", id] });

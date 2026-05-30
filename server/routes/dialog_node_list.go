@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/db/dialognode"
 	"herbst-server/repository"
 )
@@ -17,6 +19,7 @@ func listDialogNodes(repos *repository.Container, client *db.Client) gin.Handler
 			Order(dialognode.ByID()).
 			All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list dialog nodes", err, slog.String("service", "dialog_nodes"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

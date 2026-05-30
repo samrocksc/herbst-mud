@@ -1,12 +1,14 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
 )
@@ -31,6 +33,7 @@ func listEquipmentTemplates(repos *repository.Container) gin.HandlerFunc {
 		worldID := c.Query("world_id")
 		templates, err := repos.EquipmentTemplate.List(c.Request.Context(), worldID)
 		if err != nil {
+			dblog.Error("failed to list equipment templates", err, slog.String("service", "equipment"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -47,6 +50,7 @@ func getEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid template id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
@@ -94,6 +98,7 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			WorldID             string         `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -181,10 +186,12 @@ func createEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			WorldID:               worldID,
 		})
 		if err != nil {
+			dblog.Error("failed to create equipment template", err, slog.String("service", "equipment"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
+		slog.Info("equipment template created", slog.String("service", "equipment"), slog.Int("template_id", t.ID))
 		c.JSON(http.StatusCreated, templateToMap(t))
 	}
 }
@@ -194,6 +201,7 @@ func updateEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid template id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
@@ -230,6 +238,7 @@ func updateEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			IsTwoHanded         *bool           `json:"is_two_handed"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -270,6 +279,7 @@ func updateEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
+		slog.Info("equipment template updated", slog.String("service", "equipment"), slog.Int("template_id", t.ID))
 		c.JSON(http.StatusOK, templateToMap(t))
 	}
 }
@@ -279,6 +289,7 @@ func deleteEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid template id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid template id"})
 			return
 		}
@@ -286,6 +297,7 @@ func deleteEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 		// Check if any instances reference this template
 		count, err := repos.Equipment.CountByTemplateID(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to count equipment by template", err, slog.String("service", "equipment"), slog.Int("template_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -299,6 +311,7 @@ func deleteEquipmentTemplate(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
+		slog.Info("equipment template deleted", slog.String("service", "equipment"), slog.Int("template_id", id))
 		c.JSON(http.StatusOK, gin.H{"deleted": id})
 	}
 }

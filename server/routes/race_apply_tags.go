@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/db/character"
 	"herbst-server/db/charactertag"
 	"herbst-server/repository"
@@ -17,6 +19,7 @@ func applyRaceTags(repos *repository.Container, client *db.Client) gin.HandlerFu
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "races"), slog.String("reason", "invalid race id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid race id"})
 			return
 		}
@@ -36,6 +39,7 @@ func applyRaceTags(repos *repository.Container, client *db.Client) gin.HandlerFu
 			Where(character.RaceEQ(r.Name)).
 			All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list characters for race tag application", err, slog.String("service", "races"), slog.Int("race_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -65,6 +69,7 @@ func applyRaceTags(repos *repository.Container, client *db.Client) gin.HandlerFu
 			updated++
 		}
 
+		slog.Info("race tags applied", slog.String("service", "races"), slog.String("race", r.Name), slog.Int("characters_updated", updated), slog.Any("tags", tagNames))
 		c.JSON(http.StatusOK, gin.H{
 			"race":               r.Name,
 			"characters_updated": updated,

@@ -1,12 +1,11 @@
 /* eslint-disable functional/immutable-data, functional/no-loop-statements */
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost } from "../../utils/apiFetch";
+import { useQuery } from "@tanstack/react-query";
+import { apiGet, API_BASE, buildWorldParams } from "../../utils/apiFetch";
 import { useWorldStore } from "../../contexts/WorldStoreContext";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
-import { Modal } from "../../components/Modal";
 import { Button } from "../../components/Button";
 import { PageContainer } from "../../components/PageContainer";
 
@@ -27,66 +26,26 @@ type NPCTemplate = Readonly<{
   race_id: number
 }>
 
-type NPCTemplateForm = Readonly<{
-  name: string
-  description: string
-  race_id: number
-  level: number
-  xp_value: number
-  respawn_cooldown: number
-  respawn_rooms: string
-}>
-
-const API = `${window.location.origin}`;
-
-// ─── Empty form ─────────────────────────────────────────────────────────────
-
-const EMPTY_FORM: NPCTemplateForm = {
-  name: "",
-  description: "",
-  race_id: 0,
-  level: 1,
-  xp_value: 0,
-  respawn_cooldown: 60,
-  respawn_rooms: "",
-};
-
 // ─── Component ──────────────────────────────────────────────────────────────
 
 function NPCTemplatesIndex() {
   const { currentWorld } = useWorldStore();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [form, setForm] = useState<NPCTemplateForm>(EMPTY_FORM);
 
-  // Fetch races for dropdown
-  const racesQuery = useQuery({
-    queryKey: ["races"],
-    queryFn: () => apiGet<Array<{ id: number; name: string; display_name: string }>>(`${API}/api/races`),
-  });
-
-  const raceOptions = racesQuery.data ?? [];
-
-  // Build query string with world_id
-  const params = useMemo(() => {
-    const p = new URLSearchParams();
-    if (currentWorld) p.append("world_id", currentWorld);
-    return p.toString();
-  }, [currentWorld]);
+  const params = buildWorldParams(currentWorld);
   const qs = params ? `?${params}` : "";
 
   // ── Query ────────────────────────────────────────────────────────────────
 
   const templatesQuery = useQuery({
     queryKey: ["npc-templates", currentWorld],
-    queryFn: () => apiGet<NPCTemplate[]>(`${API}/api/npc-templates${qs}`),
+    queryFn: () => apiGet<NPCTemplate[]>(`${API_BASE}/api/npc-templates${qs}`),
   });
 
   // Fetch instances once to count by template
   const instancesQuery = useQuery({
     queryKey: ["npc-instances-count", currentWorld],
-    queryFn: () => apiGet<Array<{ npc_template_id: string }>>(`${API}/api/npc-instances${qs}`),
+    queryFn: () => apiGet<Array<{ npc_template_id: string }>>(`${API_BASE}/api/npc-instances${qs}`),
   });
 
   const instanceCounts = useMemo(() => {
@@ -98,50 +57,11 @@ function NPCTemplatesIndex() {
     return counts;
   }, [instancesQuery.data]);
 
-  // ── Create mutation ──────────────────────────────────────────────────────
-
-  const createMutation = useMutation({
-    mutationFn: (input: NPCTemplateForm) => {
-      const rooms = input.respawn_rooms
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s) => s !== "");
-      return apiPost<NPCTemplate>(`${API}/api/npc-templates${qs}`, {
-        name: input.name,
-        description: input.description,
-        race_id: input.race_id,
-        level: input.level,
-        xp_value: input.xp_value,
-        respawn_cooldown: input.respawn_cooldown,
-        respawn_rooms: rooms,
-        skills: {},
-        trades_with: [],
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["npc-templates"] });
-      setShowCreateModal(false);
-      setForm(EMPTY_FORM);
-    },
-  });
-
   // ── Search filter ────────────────────────────────────────────────────────
 
   const filteredTemplates = (templatesQuery.data ?? []).filter((template) =>
     template.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-
-  // ── Handlers ─────────────────────────────────────────────────────────────
-
-  const handleCreate = () => {
-    if (!form.name.trim()) return;
-    createMutation.mutate(form);
-  };
-
-  const handleModalClose = () => {
-    setShowCreateModal(false);
-    setForm(EMPTY_FORM);
-  };
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -192,9 +112,11 @@ function NPCTemplatesIndex() {
         showBack
         backTo="/dashboard"
         actions={
-          <Button variant="primary" size="sm" onClick={() => setShowCreateModal(true)}>
-            + Add Template
-          </Button>
+          <Link to="/npcs/new">
+            <Button variant="primary" size="sm">
+              + Add Template
+            </Button>
+          </Link>
         }
       />
 
@@ -231,125 +153,6 @@ function NPCTemplatesIndex() {
           variant="dark"
         />
       )}
-
-      {/* Create modal */}
-      <Modal isOpen={showCreateModal} onClose={handleModalClose} title="Add NPC Template">
-        <div className="flex flex-col gap-4">
-          {/* Name */}
-          <div>
-            <label className="text-text-muted text-xs block mb-1">Name *</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Display name"
-              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="text-text-muted text-xs block mb-1">Description</label>
-            <textarea
-              value={form.description}
-              rows={3}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Flavor text..."
-              className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y"
-            />
-          </div>
-
-          {/* Race ID select */}
-          <div>
-            <label className="text-text-muted text-xs block mb-1">Race</label>
-            <select
-              value={form.race_id}
-              onChange={(e) => setForm({ ...form, race_id: parseInt(e.target.value) || 0 })}
-              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-            >
-              <option value="">Select race…</option>
-              {raceOptions.map((r) => (
-                <option key={r.id} value={r.id}>{r.display_name || r.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Level & XP Value */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-text-muted text-xs block mb-1">Level *</label>
-              <input
-                type="number"
-                value={form.level}
-                onChange={(e) => setForm({ ...form, level: parseInt(e.target.value) || 1 })}
-                min={1}
-                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-text-muted text-xs block mb-1">XP Value *</label>
-              <input
-                type="number"
-                value={form.xp_value}
-                onChange={(e) => setForm({ ...form, xp_value: parseInt(e.target.value) || 0 })}
-                min={0}
-                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Respawn Cooldown & Respawn Rooms */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-text-muted text-xs block mb-1">
-                Respawn Cooldown <span className="text-text-muted">(seconds)</span>
-              </label>
-              <input
-                type="number"
-                value={form.respawn_cooldown}
-                onChange={(e) => setForm({ ...form, respawn_cooldown: parseInt(e.target.value) || 0 })}
-                min={0}
-                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-text-muted text-xs block mb-1">
-                Respawn Rooms <span className="text-text-muted">(comma-separated)</span>
-              </label>
-              <input
-                type="text"
-                value={form.respawn_rooms}
-                onChange={(e) => setForm({ ...form, respawn_rooms: e.target.value })}
-                placeholder="1, 2, 3"
-                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Error display */}
-          {createMutation.isError && (
-            <div className="p-2 bg-danger/10 border border-danger rounded text-danger text-xs">
-              Failed to create template: {createMutation.error?.message ?? "Unknown error"}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            <Button
-              variant="primary"
-              size="md"
-              fullWidth
-              onClick={handleCreate}
-              disabled={!form.name.trim() || createMutation.isPending}
-            >
-              {createMutation.isPending ? "Creating..." : "Create Template"}
-            </Button>
-            <Button variant="secondary" size="md" fullWidth onClick={handleModalClose}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </PageContainer>
   );
 }

@@ -7,7 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/service"
+	"log/slog"
 )
 
 // createRoom creates a new room.
@@ -25,6 +27,7 @@ func createRoom(svc *service.Container) gin.HandlerFunc {
 			PosZ           int            `json:"posZ"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "rooms"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -41,9 +44,11 @@ func createRoom(svc *service.Container) gin.HandlerFunc {
 			WorldID:        c.Query("world_id"),
 		})
 		if err != nil {
+			dblog.Error("create room failed", err, slog.String("service", "rooms"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("room created", slog.Int("room_id", room.ID), slog.String("user_email", c.GetString("email")), slog.String("service", "rooms"))
 		c.JSON(http.StatusCreated, room)
 	}
 }
@@ -55,6 +60,7 @@ func listRooms(svc *service.Container) gin.HandlerFunc {
 		worldID := c.Query("world_id")
 		rooms, err := svc.Room.ListRooms(c.Request.Context(), worldID)
 		if err != nil {
+			dblog.Error("list rooms failed", err, slog.String("service", "rooms"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -77,6 +83,7 @@ func getRoom(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "rooms"), slog.String("reason", "invalid room id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
 			return
 		}
@@ -94,6 +101,7 @@ func updateRoom(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "rooms"), slog.String("reason", "invalid room id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
 			return
 		}
@@ -110,6 +118,7 @@ func updateRoom(svc *service.Container) gin.HandlerFunc {
 			Version        *int            `json:"version"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
+			slog.Warn("bad request", slog.String("service", "rooms"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -130,9 +139,11 @@ func updateRoom(svc *service.Container) gin.HandlerFunc {
 				c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 				return
 			}
+			slog.Warn("bad request", slog.String("service", "rooms"), slog.String("reason", err.Error()), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("room updated", slog.Int("room_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "rooms"))
 		c.JSON(http.StatusOK, room)
 	}
 }
@@ -142,13 +153,16 @@ func deleteRoom(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "rooms"), slog.String("reason", "invalid room id"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
 			return
 		}
 		if err := svc.Room.DeleteRoom(c.Request.Context(), id); err != nil {
+			dblog.Error("delete room failed", err, slog.String("service", "rooms"), slog.Int("room_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("room deleted", slog.Int("room_id", id), slog.String("user_email", c.GetString("email")), slog.String("service", "rooms"))
 		c.Status(http.StatusNoContent)
 	}
 }

@@ -1,12 +1,14 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/character"
+	"herbst-server/dblog"
 	"herbst-server/service"
 )
 
@@ -28,6 +30,7 @@ func getRoomCharacters(svc *service.Container) gin.HandlerFunc {
 func (rc *roomClient) getCharacters(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		slog.Warn("Invalid room id", "error", err, slog.String("service", "rooms"))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
 		return
 	}
@@ -35,6 +38,7 @@ func (rc *roomClient) getCharacters(c *gin.Context) {
 		Where(character.CurrentRoomId(id)).
 		All(c.Request.Context())
 	if err != nil {
+		dblog.Error("Failed to get room characters", err, slog.String("service", "rooms"), slog.Int("room_id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -84,6 +88,7 @@ func getRoomLook(svc *service.Container) gin.HandlerFunc {
 func (rc *roomClient) getLook(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		slog.Warn("Invalid room id for look", "error", err, slog.String("service", "rooms"))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
 		return
 	}
@@ -98,13 +103,13 @@ func (rc *roomClient) getLook(c *gin.Context) {
 	var npcs, players []interface{}
 	for _, ch := range characters {
 		entry := map[string]interface{}{
-			"id":     ch.ID,
-			"name":   ch.Name,
-			"level":  ch.Level,
-			"class":  ch.Class,
-			"race":   ch.Race,
-			"hp":     ch.Hitpoints,
-			"maxHp":  ch.MaxHitpoints,
+			"id":    ch.ID,
+			"name":  ch.Name,
+			"level": ch.Level,
+			"class": ch.Class,
+			"race":  ch.Race,
+			"hp":    ch.Hitpoints,
+			"maxHp": ch.MaxHitpoints,
 		}
 		if ch.IsNPC {
 			if ch.NpcTemplateID != "" {

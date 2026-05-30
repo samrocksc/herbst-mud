@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"sync"
@@ -12,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/applog"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
 )
 
@@ -86,12 +88,12 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 	router.GET("/api/logs/stream", streamLogsWithTokenAuth(client))
 	// GET /api/logs — query with pagination and filters
 	protected.GET("/logs", func(c *gin.Context) {
-		level := c.Query("level")       // DEBUG, INFO, WARN, ERROR
-		service := c.Query("service")   // filter by service name
+		level := c.Query("level")     // DEBUG, INFO, WARN, ERROR
+		service := c.Query("service") // filter by service name
 		charID := c.Query("character_id")
 		roomID := c.Query("room_id")
 		templateID := c.Query("template_id")
-	worldID := c.Query("world_id")
+		worldID := c.Query("world_id")
 		limitStr := c.DefaultQuery("limit", "100")
 		offsetStr := c.DefaultQuery("offset", "0")
 
@@ -135,11 +137,11 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 				})
 			}
 		}
-	if worldID != "" {
-		conditions = append(conditions, func(q *db.AppLogQuery) *db.AppLogQuery {
-			return q.Where(applog.WorldIDEQ(worldID))
-		})
-	}
+		if worldID != "" {
+			conditions = append(conditions, func(q *db.AppLogQuery) *db.AppLogQuery {
+				return q.Where(applog.WorldIDEQ(worldID))
+			})
+		}
 		if templateID != "" {
 			conditions = append(conditions, func(q *db.AppLogQuery) *db.AppLogQuery {
 				return q.Where(applog.TemplateIDEQ(templateID))
@@ -158,12 +160,14 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 		}
 		total, err := countQ.Count(context.Background())
 		if err != nil {
+			dblog.Error("Failed to count logs", err, slog.String("service", "logs"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to count logs"})
 			return
 		}
 
 		entries, err := query.Limit(limit).Offset(offset).All(context.Background())
 		if err != nil {
+			dblog.Error("Failed to query logs", err, slog.String("service", "logs"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query logs"})
 			return
 		}
@@ -226,6 +230,7 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 			Where(applog.ServiceNotNil()).
 			All(context.Background())
 		if err != nil {
+			dblog.Error("Failed to list log services", err, slog.String("service", "logs"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list services"})
 			return
 		}
@@ -241,27 +246,28 @@ func RegisterLogRoutes(router *gin.Engine, protected *gin.RouterGroup, client *d
 		c.JSON(http.StatusOK, gin.H{"services": services})
 	})
 
-		// GET /api/logs/worlds -- distinct world IDs
-		protected.GET("/logs/worlds", func(c *gin.Context) {
-			entries, err := client.AppLog.Query().
-				Select(applog.FieldWorldID).
-				Where(applog.WorldIDNotNil()).
-				All(context.Background())
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list worlds"})
-				return
-			}
+	// GET /api/logs/worlds -- distinct world IDs
+	protected.GET("/logs/worlds", func(c *gin.Context) {
+		entries, err := client.AppLog.Query().
+			Select(applog.FieldWorldID).
+			Where(applog.WorldIDNotNil()).
+			All(context.Background())
+		if err != nil {
+			dblog.Error("Failed to list log worlds", err, slog.String("service", "logs"))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list worlds"})
+			return
+		}
 
-			seen := make(map[string]bool)
-			worlds := make([]string, 0)
-			for _, e := range entries {
-				if e.WorldID != "" && !seen[e.WorldID] {
-					seen[e.WorldID] = true
-					worlds = append(worlds, e.WorldID)
-				}
+		seen := make(map[string]bool)
+		worlds := make([]string, 0)
+		for _, e := range entries {
+			if e.WorldID != "" && !seen[e.WorldID] {
+				seen[e.WorldID] = true
+				worlds = append(worlds, e.WorldID)
 			}
-			c.JSON(http.StatusOK, gin.H{"worlds": worlds})
-		})
+		}
+		c.JSON(http.StatusOK, gin.H{"worlds": worlds})
+	})
 }
 
 // streamLogsWithTokenAuth validates a token from the query string and serves SSE.

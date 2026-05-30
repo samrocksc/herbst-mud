@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/db"
 	"herbst-server/repository"
 	"herbst-server/service"
@@ -23,15 +25,18 @@ func createCharacter(svc *service.Container, repos *repository.Container) gin.Ha
 			IsAdmin      bool   `json:"isAdmin"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request: invalid create character request", slog.String("service", "characters"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if len(req.Name) < 1 || len(req.Name) > 23 {
+			slog.Warn("bad request: character name length invalid", slog.String("service", "characters"), slog.String("name", req.Name))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Character name must be 1-23 characters"})
 			return
 		}
 		for _, ch := range req.Name {
 			if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
+				slog.Warn("bad request: character name contains invalid characters", slog.String("service", "characters"), slog.String("name", req.Name))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Character name can only contain letters (a-z, A-Z)"})
 				return
 			}
@@ -39,6 +44,7 @@ func createCharacter(svc *service.Container, repos *repository.Container) gin.Ha
 		if req.UserID > 0 {
 			count, err := repos.Character.CountByUser(c.Request.Context(), req.UserID)
 			if err == nil && count >= 3 {
+				slog.Warn("bad request: max characters per user reached", slog.String("service", "characters"), slog.Int("user_id", req.UserID))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Maximum of 3 characters per user reached"})
 				return
 			}
@@ -58,9 +64,11 @@ func createCharacter(svc *service.Container, repos *repository.Container) gin.Ha
 			Level:     1,
 		})
 		if err != nil {
+			dblog.Error("failed to create character", err, slog.String("service", "characters"), slog.String("name", req.Name), slog.Int("user_id", req.UserID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		slog.Info("character created", slog.String("service", "characters"), slog.Int("character_id", char.ID), slog.String("name", char.Name))
 		c.JSON(http.StatusCreated, gin.H{
 			"id":             char.ID,
 			"name":           char.Name,
@@ -80,6 +88,7 @@ func listCharacters(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		characters, err := repos.Character.ListAll(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list characters", err, slog.String("service", "characters"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -127,6 +136,7 @@ func deleteCharacter(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
 			return
 		}
+		slog.Info("character deleted", slog.String("service", "characters"), slog.Int("character_id", id))
 		c.JSON(http.StatusNoContent, nil)
 	}
 }

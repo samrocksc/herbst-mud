@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 )
 
@@ -63,6 +65,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -136,6 +139,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 
 		eq, err := builder.Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to create equipment", err, slog.String("service", "equipment"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -147,6 +151,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			revealMutex.Unlock()
 		}
 
+		slog.Info("equipment created", slog.String("service", "equipment"), slog.Int("equipment_id", eq.ID))
 		c.JSON(http.StatusCreated, eq)
 	})
 
@@ -178,6 +183,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 
 		items, err := query.All(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to list equipment", err, slog.String("service", "equipment"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -256,6 +262,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 	router.GET("/rooms/:id/equipment", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid room id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 			return
 		}
@@ -264,6 +271,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 
 		allItems, err := repos.Equipment.ListByRoom(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("failed to list room equipment", err, slog.String("service", "equipment"), slog.Int("room_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -324,6 +332,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 	router.GET("/equipment/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid equipment id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID"})
 			return
 		}
@@ -404,6 +413,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 	router.PUT("/equipment/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid equipment id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID"})
 			return
 		}
@@ -440,6 +450,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -547,6 +558,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			return
 		}
 
+		slog.Info("equipment updated", slog.String("service", "equipment"), slog.Int("equipment_id", eq.ID))
 		c.JSON(http.StatusOK, eq)
 	})
 
@@ -554,6 +566,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 	router.DELETE("/equipment/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid equipment id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID"})
 			return
 		}
@@ -569,6 +582,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		delete(revealConditions, id)
 		revealMutex.Unlock()
 
+		slog.Info("equipment deleted", slog.String("service", "equipment"), slog.Int("equipment_id", id))
 		c.JSON(http.StatusNoContent, nil)
 	})
 
@@ -576,6 +590,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 	router.GET("/equipment/:id/examine", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid equipment id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID"})
 			return
 		}
@@ -625,6 +640,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 	router.POST("/equipment/:id/reveal", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid equipment id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID"})
 			return
 		}
@@ -636,6 +652,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		}
 
 		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -659,6 +676,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		revealMutex.RUnlock()
 
 		if !exists || revealCond == nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "item has no reveal condition"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Item has no reveal condition"})
 			return
 		}
@@ -666,6 +684,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		// Check if the reveal type matches
 		condType, _ := revealCond["type"].(string)
 		if condType != req.RevealType {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid reveal type"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid reveal type for this item"})
 			return
 		}
@@ -673,6 +692,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		// Check target if required
 		if target, ok := revealCond["target"].(string); ok && target != "" {
 			if req.Target != target {
+				slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid target"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target"})
 				return
 			}
@@ -693,6 +713,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			SetIsVisible(visible).
 			Save(c.Request.Context())
 		if err != nil {
+			dblog.Error("failed to reveal equipment", err, slog.String("service", "equipment"), slog.Int("equipment_id", id))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -702,6 +723,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		delete(revealConditions, id)
 		revealMutex.Unlock()
 
+		slog.Info("equipment revealed", slog.String("service", "equipment"), slog.Int("equipment_id", updated.ID))
 		c.JSON(http.StatusOK, updated)
 	})
 
@@ -709,6 +731,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 	router.GET("/equipment/:id/reveal", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
+			slog.Warn("bad request", slog.String("service", "equipment"), slog.String("reason", "invalid equipment id"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid equipment ID"})
 			return
 		}
