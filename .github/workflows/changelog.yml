@@ -17,10 +17,12 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout with write permissions
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
 
       - name: Generate Changelog
         id: changelog
@@ -28,19 +30,18 @@ jobs:
         with:
           myToken: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Changelog
+      - name: Update and commit CHANGELOG.md
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           echo "${{ steps.changelog.outputs.changelog }}" > CHANGELOG.md
-
-      - name: Create Pull Request
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: Update changelog
-          title: 'chore: Update CHANGELOG.md'
-          body: |
-            Automated changelog update.
-          branch: chore/update-changelog-${{ github.run_id }}
-          delete-branch: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "CHANGELOG.md unchanged — nothing to commit"
+            exit 0
+          fi
+          git commit -m "chore: auto-update CHANGELOG.md"
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
