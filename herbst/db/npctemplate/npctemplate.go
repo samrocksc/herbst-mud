@@ -36,8 +36,6 @@ const (
 	EdgeHooks = "hooks"
 	// EdgeDialogNodes holds the string denoting the dialog_nodes edge name in mutations.
 	EdgeDialogNodes = "dialog_nodes"
-	// EdgeRace holds the string denoting the race edge name in mutations.
-	EdgeRace = "race"
 	// Table holds the table name of the npctemplate in the database.
 	Table = "npc_templates"
 	// HooksTable is the table that holds the hooks relation/edge.
@@ -54,13 +52,6 @@ const (
 	DialogNodesInverseTable = "dialog_nodes"
 	// DialogNodesColumn is the table column denoting the dialog_nodes relation/edge.
 	DialogNodesColumn = "npc_template_dialog_nodes"
-	// RaceTable is the table that holds the race relation/edge.
-	RaceTable = "npc_templates"
-	// RaceInverseTable is the table name for the Race entity.
-	// It exists in this package in order to avoid circular dependency with the "race" package.
-	RaceInverseTable = "races"
-	// RaceColumn is the table column denoting the race relation/edge.
-	RaceColumn = "race_id"
 )
 
 // Columns holds all SQL columns for npctemplate fields.
@@ -189,13 +180,6 @@ func ByDialogNodes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newDialogNodesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-
-// ByRaceField orders the results by race field.
-func ByRaceField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRaceStep(), sql.OrderByField(field, opts...))
-	}
-}
 func newHooksStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -208,12 +192,5 @@ func newDialogNodesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DialogNodesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, DialogNodesTable, DialogNodesColumn),
-	)
-}
-func newRaceStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RaceInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, RaceTable, RaceColumn),
 	)
 }

@@ -10,6 +10,7 @@ import (
 	"herbst-server/db/predicate"
 	"herbst-server/db/race"
 	"herbst-server/db/tag"
+	"herbst-server/db/world"
 	"math"
 
 	"entgo.io/ent"
@@ -25,6 +26,7 @@ type RaceQuery struct {
 	order            []race.OrderOption
 	inters           []Interceptor
 	predicates       []predicate.Race
+	withWorld        *WorldQuery
 	withTags         *TagQuery
 	withNpcTemplates *NPCTemplateQuery
 	// intermediate query (i.e. traversal path).
@@ -61,6 +63,28 @@ func (_q *RaceQuery) Unique(unique bool) *RaceQuery {
 func (_q *RaceQuery) Order(o ...race.OrderOption) *RaceQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryWorld chains the current query on the "world" edge.
+func (_q *RaceQuery) QueryWorld() *WorldQuery {
+	query := (&WorldClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(race.Table, race.FieldID, selector),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, race.WorldTable, race.WorldPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryTags chains the current query on the "tags" edge.
@@ -299,12 +323,24 @@ func (_q *RaceQuery) Clone() *RaceQuery {
 		order:            append([]race.OrderOption{}, _q.order...),
 		inters:           append([]Interceptor{}, _q.inters...),
 		predicates:       append([]predicate.Race{}, _q.predicates...),
+		withWorld:        _q.withWorld.Clone(),
 		withTags:         _q.withTags.Clone(),
 		withNpcTemplates: _q.withNpcTemplates.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithWorld tells the query-builder to eager-load the nodes that are connected to
+// the "world" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RaceQuery) WithWorld(opts ...func(*WorldQuery)) *RaceQuery {
+	query := (&WorldClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withWorld = query
+	return _q
 }
 
 // WithTags tells the query-builder to eager-load the nodes that are connected to
@@ -335,12 +371,12 @@ func (_q *RaceQuery) WithNpcTemplates(opts ...func(*NPCTemplateQuery)) *RaceQuer
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Race.Query().
-//		GroupBy(race.FieldName).
+//		GroupBy(race.FieldWorldID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *RaceQuery) GroupBy(field string, fields ...string) *RaceGroupBy {
@@ -358,11 +394,11 @@ func (_q *RaceQuery) GroupBy(field string, fields ...string) *RaceGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //	}
 //
 //	client.Race.Query().
-//		Select(race.FieldName).
+//		Select(race.FieldWorldID).
 //		Scan(ctx, &v)
 func (_q *RaceQuery) Select(fields ...string) *RaceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -407,7 +443,8 @@ func (_q *RaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Race, e
 	var (
 		nodes       = []*Race{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			_q.withWorld != nil,
 			_q.withTags != nil,
 			_q.withNpcTemplates != nil,
 		}
@@ -430,6 +467,13 @@ func (_q *RaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Race, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withWorld; query != nil {
+		if err := _q.loadWorld(ctx, query, nodes,
+			func(n *Race) { n.Edges.World = []*World{} },
+			func(n *Race, e *World) { n.Edges.World = append(n.Edges.World, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withTags; query != nil {
 		if err := _q.loadTags(ctx, query, nodes,
 			func(n *Race) { n.Edges.Tags = []*Tag{} },
@@ -447,6 +491,67 @@ func (_q *RaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Race, e
 	return nodes, nil
 }
 
+func (_q *RaceQuery) loadWorld(ctx context.Context, query *WorldQuery, nodes []*Race, init func(*Race), assign func(*Race, *World)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Race)
+	nids := make(map[int]map[*Race]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(race.WorldTable)
+		s.Join(joinT).On(s.C(world.FieldID), joinT.C(race.WorldPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(race.WorldPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(race.WorldPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Race]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*World](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "world" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (_q *RaceQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*Race, init func(*Race), assign func(*Race, *Tag)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*Race)

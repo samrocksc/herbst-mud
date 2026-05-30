@@ -58,7 +58,12 @@ func equipItemHandler(c *gin.Context, repos *repository.Container) {
 		return
 	}
 
-	raceObj, err := repos.Race.GetByName(c.Request.Context(), char.Race)
+	// Get the character's world for race lookup
+	worldID := char.CurrentWorld
+	if worldID == "" {
+		worldID = "1"
+	}
+	raceObj, err := repos.Race.GetByName(c.Request.Context(), char.Race, worldID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Race not found: " + char.Race,

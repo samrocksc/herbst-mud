@@ -7,7 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/character"
+	"herbst-server/db/effecthook"
+	"herbst-server/db/factioncategory"
+	"herbst-server/db/gender"
 	"herbst-server/db/predicate"
+	"herbst-server/db/race"
+	"herbst-server/db/socialcommand"
+	"herbst-server/db/tag"
 	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql"
@@ -105,6 +111,96 @@ func (_u *WorldUpdate) AddCharacters(v ...*Character) *WorldUpdate {
 	return _u.AddCharacterIDs(ids...)
 }
 
+// AddRaceIDs adds the "races" edge to the Race entity by IDs.
+func (_u *WorldUpdate) AddRaceIDs(ids ...int) *WorldUpdate {
+	_u.mutation.AddRaceIDs(ids...)
+	return _u
+}
+
+// AddRaces adds the "races" edges to the Race entity.
+func (_u *WorldUpdate) AddRaces(v ...*Race) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRaceIDs(ids...)
+}
+
+// AddGenderIDs adds the "genders" edge to the Gender entity by IDs.
+func (_u *WorldUpdate) AddGenderIDs(ids ...int) *WorldUpdate {
+	_u.mutation.AddGenderIDs(ids...)
+	return _u
+}
+
+// AddGenders adds the "genders" edges to the Gender entity.
+func (_u *WorldUpdate) AddGenders(v ...*Gender) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddGenderIDs(ids...)
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (_u *WorldUpdate) AddTagIDs(ids ...int) *WorldUpdate {
+	_u.mutation.AddTagIDs(ids...)
+	return _u
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (_u *WorldUpdate) AddTags(v ...*Tag) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTagIDs(ids...)
+}
+
+// AddSocialCommandIDs adds the "social_commands" edge to the SocialCommand entity by IDs.
+func (_u *WorldUpdate) AddSocialCommandIDs(ids ...int) *WorldUpdate {
+	_u.mutation.AddSocialCommandIDs(ids...)
+	return _u
+}
+
+// AddSocialCommands adds the "social_commands" edges to the SocialCommand entity.
+func (_u *WorldUpdate) AddSocialCommands(v ...*SocialCommand) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSocialCommandIDs(ids...)
+}
+
+// AddFactionCategoryIDs adds the "faction_categories" edge to the FactionCategory entity by IDs.
+func (_u *WorldUpdate) AddFactionCategoryIDs(ids ...int) *WorldUpdate {
+	_u.mutation.AddFactionCategoryIDs(ids...)
+	return _u
+}
+
+// AddFactionCategories adds the "faction_categories" edges to the FactionCategory entity.
+func (_u *WorldUpdate) AddFactionCategories(v ...*FactionCategory) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFactionCategoryIDs(ids...)
+}
+
+// AddEffectHookIDs adds the "effect_hooks" edge to the EffectHook entity by IDs.
+func (_u *WorldUpdate) AddEffectHookIDs(ids ...int) *WorldUpdate {
+	_u.mutation.AddEffectHookIDs(ids...)
+	return _u
+}
+
+// AddEffectHooks adds the "effect_hooks" edges to the EffectHook entity.
+func (_u *WorldUpdate) AddEffectHooks(v ...*EffectHook) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEffectHookIDs(ids...)
+}
+
 // Mutation returns the WorldMutation object of the builder.
 func (_u *WorldUpdate) Mutation() *WorldMutation {
 	return _u.mutation
@@ -129,6 +225,132 @@ func (_u *WorldUpdate) RemoveCharacters(v ...*Character) *WorldUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearRaces clears all "races" edges to the Race entity.
+func (_u *WorldUpdate) ClearRaces() *WorldUpdate {
+	_u.mutation.ClearRaces()
+	return _u
+}
+
+// RemoveRaceIDs removes the "races" edge to Race entities by IDs.
+func (_u *WorldUpdate) RemoveRaceIDs(ids ...int) *WorldUpdate {
+	_u.mutation.RemoveRaceIDs(ids...)
+	return _u
+}
+
+// RemoveRaces removes "races" edges to Race entities.
+func (_u *WorldUpdate) RemoveRaces(v ...*Race) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRaceIDs(ids...)
+}
+
+// ClearGenders clears all "genders" edges to the Gender entity.
+func (_u *WorldUpdate) ClearGenders() *WorldUpdate {
+	_u.mutation.ClearGenders()
+	return _u
+}
+
+// RemoveGenderIDs removes the "genders" edge to Gender entities by IDs.
+func (_u *WorldUpdate) RemoveGenderIDs(ids ...int) *WorldUpdate {
+	_u.mutation.RemoveGenderIDs(ids...)
+	return _u
+}
+
+// RemoveGenders removes "genders" edges to Gender entities.
+func (_u *WorldUpdate) RemoveGenders(v ...*Gender) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveGenderIDs(ids...)
+}
+
+// ClearTags clears all "tags" edges to the Tag entity.
+func (_u *WorldUpdate) ClearTags() *WorldUpdate {
+	_u.mutation.ClearTags()
+	return _u
+}
+
+// RemoveTagIDs removes the "tags" edge to Tag entities by IDs.
+func (_u *WorldUpdate) RemoveTagIDs(ids ...int) *WorldUpdate {
+	_u.mutation.RemoveTagIDs(ids...)
+	return _u
+}
+
+// RemoveTags removes "tags" edges to Tag entities.
+func (_u *WorldUpdate) RemoveTags(v ...*Tag) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTagIDs(ids...)
+}
+
+// ClearSocialCommands clears all "social_commands" edges to the SocialCommand entity.
+func (_u *WorldUpdate) ClearSocialCommands() *WorldUpdate {
+	_u.mutation.ClearSocialCommands()
+	return _u
+}
+
+// RemoveSocialCommandIDs removes the "social_commands" edge to SocialCommand entities by IDs.
+func (_u *WorldUpdate) RemoveSocialCommandIDs(ids ...int) *WorldUpdate {
+	_u.mutation.RemoveSocialCommandIDs(ids...)
+	return _u
+}
+
+// RemoveSocialCommands removes "social_commands" edges to SocialCommand entities.
+func (_u *WorldUpdate) RemoveSocialCommands(v ...*SocialCommand) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSocialCommandIDs(ids...)
+}
+
+// ClearFactionCategories clears all "faction_categories" edges to the FactionCategory entity.
+func (_u *WorldUpdate) ClearFactionCategories() *WorldUpdate {
+	_u.mutation.ClearFactionCategories()
+	return _u
+}
+
+// RemoveFactionCategoryIDs removes the "faction_categories" edge to FactionCategory entities by IDs.
+func (_u *WorldUpdate) RemoveFactionCategoryIDs(ids ...int) *WorldUpdate {
+	_u.mutation.RemoveFactionCategoryIDs(ids...)
+	return _u
+}
+
+// RemoveFactionCategories removes "faction_categories" edges to FactionCategory entities.
+func (_u *WorldUpdate) RemoveFactionCategories(v ...*FactionCategory) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFactionCategoryIDs(ids...)
+}
+
+// ClearEffectHooks clears all "effect_hooks" edges to the EffectHook entity.
+func (_u *WorldUpdate) ClearEffectHooks() *WorldUpdate {
+	_u.mutation.ClearEffectHooks()
+	return _u
+}
+
+// RemoveEffectHookIDs removes the "effect_hooks" edge to EffectHook entities by IDs.
+func (_u *WorldUpdate) RemoveEffectHookIDs(ids ...int) *WorldUpdate {
+	_u.mutation.RemoveEffectHookIDs(ids...)
+	return _u
+}
+
+// RemoveEffectHooks removes "effect_hooks" edges to EffectHook entities.
+func (_u *WorldUpdate) RemoveEffectHooks(v ...*EffectHook) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEffectHookIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -220,6 +442,276 @@ func (_u *WorldUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.RacesTable,
+			Columns: world.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRacesIDs(); len(nodes) > 0 && !_u.mutation.RacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.RacesTable,
+			Columns: world.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.RacesTable,
+			Columns: world.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.GendersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.GendersTable,
+			Columns: []string{world.GendersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(gender.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedGendersIDs(); len(nodes) > 0 && !_u.mutation.GendersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.GendersTable,
+			Columns: []string{world.GendersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(gender.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GendersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.GendersTable,
+			Columns: []string{world.GendersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(gender.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.TagsTable,
+			Columns: world.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTagsIDs(); len(nodes) > 0 && !_u.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.TagsTable,
+			Columns: world.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.TagsTable,
+			Columns: world.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SocialCommandsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.SocialCommandsTable,
+			Columns: world.SocialCommandsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(socialcommand.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSocialCommandsIDs(); len(nodes) > 0 && !_u.mutation.SocialCommandsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.SocialCommandsTable,
+			Columns: world.SocialCommandsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(socialcommand.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SocialCommandsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.SocialCommandsTable,
+			Columns: world.SocialCommandsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(socialcommand.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FactionCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.FactionCategoriesTable,
+			Columns: world.FactionCategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(factioncategory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFactionCategoriesIDs(); len(nodes) > 0 && !_u.mutation.FactionCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.FactionCategoriesTable,
+			Columns: world.FactionCategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(factioncategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FactionCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.FactionCategoriesTable,
+			Columns: world.FactionCategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(factioncategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EffectHooksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.EffectHooksTable,
+			Columns: world.EffectHooksPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEffectHooksIDs(); len(nodes) > 0 && !_u.mutation.EffectHooksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.EffectHooksTable,
+			Columns: world.EffectHooksPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EffectHooksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.EffectHooksTable,
+			Columns: world.EffectHooksPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -324,6 +816,96 @@ func (_u *WorldUpdateOne) AddCharacters(v ...*Character) *WorldUpdateOne {
 	return _u.AddCharacterIDs(ids...)
 }
 
+// AddRaceIDs adds the "races" edge to the Race entity by IDs.
+func (_u *WorldUpdateOne) AddRaceIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.AddRaceIDs(ids...)
+	return _u
+}
+
+// AddRaces adds the "races" edges to the Race entity.
+func (_u *WorldUpdateOne) AddRaces(v ...*Race) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRaceIDs(ids...)
+}
+
+// AddGenderIDs adds the "genders" edge to the Gender entity by IDs.
+func (_u *WorldUpdateOne) AddGenderIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.AddGenderIDs(ids...)
+	return _u
+}
+
+// AddGenders adds the "genders" edges to the Gender entity.
+func (_u *WorldUpdateOne) AddGenders(v ...*Gender) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddGenderIDs(ids...)
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (_u *WorldUpdateOne) AddTagIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.AddTagIDs(ids...)
+	return _u
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (_u *WorldUpdateOne) AddTags(v ...*Tag) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTagIDs(ids...)
+}
+
+// AddSocialCommandIDs adds the "social_commands" edge to the SocialCommand entity by IDs.
+func (_u *WorldUpdateOne) AddSocialCommandIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.AddSocialCommandIDs(ids...)
+	return _u
+}
+
+// AddSocialCommands adds the "social_commands" edges to the SocialCommand entity.
+func (_u *WorldUpdateOne) AddSocialCommands(v ...*SocialCommand) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSocialCommandIDs(ids...)
+}
+
+// AddFactionCategoryIDs adds the "faction_categories" edge to the FactionCategory entity by IDs.
+func (_u *WorldUpdateOne) AddFactionCategoryIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.AddFactionCategoryIDs(ids...)
+	return _u
+}
+
+// AddFactionCategories adds the "faction_categories" edges to the FactionCategory entity.
+func (_u *WorldUpdateOne) AddFactionCategories(v ...*FactionCategory) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFactionCategoryIDs(ids...)
+}
+
+// AddEffectHookIDs adds the "effect_hooks" edge to the EffectHook entity by IDs.
+func (_u *WorldUpdateOne) AddEffectHookIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.AddEffectHookIDs(ids...)
+	return _u
+}
+
+// AddEffectHooks adds the "effect_hooks" edges to the EffectHook entity.
+func (_u *WorldUpdateOne) AddEffectHooks(v ...*EffectHook) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEffectHookIDs(ids...)
+}
+
 // Mutation returns the WorldMutation object of the builder.
 func (_u *WorldUpdateOne) Mutation() *WorldMutation {
 	return _u.mutation
@@ -348,6 +930,132 @@ func (_u *WorldUpdateOne) RemoveCharacters(v ...*Character) *WorldUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterIDs(ids...)
+}
+
+// ClearRaces clears all "races" edges to the Race entity.
+func (_u *WorldUpdateOne) ClearRaces() *WorldUpdateOne {
+	_u.mutation.ClearRaces()
+	return _u
+}
+
+// RemoveRaceIDs removes the "races" edge to Race entities by IDs.
+func (_u *WorldUpdateOne) RemoveRaceIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.RemoveRaceIDs(ids...)
+	return _u
+}
+
+// RemoveRaces removes "races" edges to Race entities.
+func (_u *WorldUpdateOne) RemoveRaces(v ...*Race) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRaceIDs(ids...)
+}
+
+// ClearGenders clears all "genders" edges to the Gender entity.
+func (_u *WorldUpdateOne) ClearGenders() *WorldUpdateOne {
+	_u.mutation.ClearGenders()
+	return _u
+}
+
+// RemoveGenderIDs removes the "genders" edge to Gender entities by IDs.
+func (_u *WorldUpdateOne) RemoveGenderIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.RemoveGenderIDs(ids...)
+	return _u
+}
+
+// RemoveGenders removes "genders" edges to Gender entities.
+func (_u *WorldUpdateOne) RemoveGenders(v ...*Gender) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveGenderIDs(ids...)
+}
+
+// ClearTags clears all "tags" edges to the Tag entity.
+func (_u *WorldUpdateOne) ClearTags() *WorldUpdateOne {
+	_u.mutation.ClearTags()
+	return _u
+}
+
+// RemoveTagIDs removes the "tags" edge to Tag entities by IDs.
+func (_u *WorldUpdateOne) RemoveTagIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.RemoveTagIDs(ids...)
+	return _u
+}
+
+// RemoveTags removes "tags" edges to Tag entities.
+func (_u *WorldUpdateOne) RemoveTags(v ...*Tag) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTagIDs(ids...)
+}
+
+// ClearSocialCommands clears all "social_commands" edges to the SocialCommand entity.
+func (_u *WorldUpdateOne) ClearSocialCommands() *WorldUpdateOne {
+	_u.mutation.ClearSocialCommands()
+	return _u
+}
+
+// RemoveSocialCommandIDs removes the "social_commands" edge to SocialCommand entities by IDs.
+func (_u *WorldUpdateOne) RemoveSocialCommandIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.RemoveSocialCommandIDs(ids...)
+	return _u
+}
+
+// RemoveSocialCommands removes "social_commands" edges to SocialCommand entities.
+func (_u *WorldUpdateOne) RemoveSocialCommands(v ...*SocialCommand) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSocialCommandIDs(ids...)
+}
+
+// ClearFactionCategories clears all "faction_categories" edges to the FactionCategory entity.
+func (_u *WorldUpdateOne) ClearFactionCategories() *WorldUpdateOne {
+	_u.mutation.ClearFactionCategories()
+	return _u
+}
+
+// RemoveFactionCategoryIDs removes the "faction_categories" edge to FactionCategory entities by IDs.
+func (_u *WorldUpdateOne) RemoveFactionCategoryIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.RemoveFactionCategoryIDs(ids...)
+	return _u
+}
+
+// RemoveFactionCategories removes "faction_categories" edges to FactionCategory entities.
+func (_u *WorldUpdateOne) RemoveFactionCategories(v ...*FactionCategory) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFactionCategoryIDs(ids...)
+}
+
+// ClearEffectHooks clears all "effect_hooks" edges to the EffectHook entity.
+func (_u *WorldUpdateOne) ClearEffectHooks() *WorldUpdateOne {
+	_u.mutation.ClearEffectHooks()
+	return _u
+}
+
+// RemoveEffectHookIDs removes the "effect_hooks" edge to EffectHook entities by IDs.
+func (_u *WorldUpdateOne) RemoveEffectHookIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.RemoveEffectHookIDs(ids...)
+	return _u
+}
+
+// RemoveEffectHooks removes "effect_hooks" edges to EffectHook entities.
+func (_u *WorldUpdateOne) RemoveEffectHooks(v ...*EffectHook) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEffectHookIDs(ids...)
 }
 
 // Where appends a list predicates to the WorldUpdate builder.
@@ -469,6 +1177,276 @@ func (_u *WorldUpdateOne) sqlSave(ctx context.Context) (_node *World, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.RacesTable,
+			Columns: world.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRacesIDs(); len(nodes) > 0 && !_u.mutation.RacesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.RacesTable,
+			Columns: world.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.RacesTable,
+			Columns: world.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.GendersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.GendersTable,
+			Columns: []string{world.GendersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(gender.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedGendersIDs(); len(nodes) > 0 && !_u.mutation.GendersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.GendersTable,
+			Columns: []string{world.GendersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(gender.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GendersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.GendersTable,
+			Columns: []string{world.GendersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(gender.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.TagsTable,
+			Columns: world.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTagsIDs(); len(nodes) > 0 && !_u.mutation.TagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.TagsTable,
+			Columns: world.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.TagsTable,
+			Columns: world.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SocialCommandsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.SocialCommandsTable,
+			Columns: world.SocialCommandsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(socialcommand.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSocialCommandsIDs(); len(nodes) > 0 && !_u.mutation.SocialCommandsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.SocialCommandsTable,
+			Columns: world.SocialCommandsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(socialcommand.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SocialCommandsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.SocialCommandsTable,
+			Columns: world.SocialCommandsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(socialcommand.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FactionCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.FactionCategoriesTable,
+			Columns: world.FactionCategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(factioncategory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFactionCategoriesIDs(); len(nodes) > 0 && !_u.mutation.FactionCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.FactionCategoriesTable,
+			Columns: world.FactionCategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(factioncategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FactionCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.FactionCategoriesTable,
+			Columns: world.FactionCategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(factioncategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EffectHooksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.EffectHooksTable,
+			Columns: world.EffectHooksPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEffectHooksIDs(); len(nodes) > 0 && !_u.mutation.EffectHooksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.EffectHooksTable,
+			Columns: world.EffectHooksPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EffectHooksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.EffectHooksTable,
+			Columns: world.EffectHooksPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

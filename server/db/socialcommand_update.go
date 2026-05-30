@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"herbst-server/db/predicate"
 	"herbst-server/db/socialcommand"
+	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -24,6 +25,20 @@ type SocialCommandUpdate struct {
 // Where appends a list predicates to the SocialCommandUpdate builder.
 func (_u *SocialCommandUpdate) Where(ps ...predicate.SocialCommand) *SocialCommandUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *SocialCommandUpdate) SetWorldID(v string) *SocialCommandUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *SocialCommandUpdate) SetNillableWorldID(v *string) *SocialCommandUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
 	return _u
 }
 
@@ -153,9 +168,45 @@ func (_u *SocialCommandUpdate) SetNillableIsEmote(v *bool) *SocialCommandUpdate 
 	return _u
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_u *SocialCommandUpdate) AddWorldIDs(ids ...int) *SocialCommandUpdate {
+	_u.mutation.AddWorldIDs(ids...)
+	return _u
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_u *SocialCommandUpdate) AddWorld(v ...*World) *SocialCommandUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddWorldIDs(ids...)
+}
+
 // Mutation returns the SocialCommandMutation object of the builder.
 func (_u *SocialCommandUpdate) Mutation() *SocialCommandMutation {
 	return _u.mutation
+}
+
+// ClearWorld clears all "world" edges to the World entity.
+func (_u *SocialCommandUpdate) ClearWorld() *SocialCommandUpdate {
+	_u.mutation.ClearWorld()
+	return _u
+}
+
+// RemoveWorldIDs removes the "world" edge to World entities by IDs.
+func (_u *SocialCommandUpdate) RemoveWorldIDs(ids ...int) *SocialCommandUpdate {
+	_u.mutation.RemoveWorldIDs(ids...)
+	return _u
+}
+
+// RemoveWorld removes "world" edges to World entities.
+func (_u *SocialCommandUpdate) RemoveWorld(v ...*World) *SocialCommandUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveWorldIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -194,6 +245,9 @@ func (_u *SocialCommandUpdate) sqlSave(ctx context.Context) (_node int, err erro
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(socialcommand.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(socialcommand.FieldName, field.TypeString, value)
 	}
@@ -221,6 +275,51 @@ func (_u *SocialCommandUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if value, ok := _u.mutation.IsEmote(); ok {
 		_spec.SetField(socialcommand.FieldIsEmote, field.TypeBool, value)
 	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   socialcommand.WorldTable,
+			Columns: socialcommand.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedWorldIDs(); len(nodes) > 0 && !_u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   socialcommand.WorldTable,
+			Columns: socialcommand.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   socialcommand.WorldTable,
+			Columns: socialcommand.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{socialcommand.Label}
@@ -239,6 +338,20 @@ type SocialCommandUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *SocialCommandMutation
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *SocialCommandUpdateOne) SetWorldID(v string) *SocialCommandUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *SocialCommandUpdateOne) SetNillableWorldID(v *string) *SocialCommandUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
 }
 
 // SetName sets the "name" field.
@@ -367,9 +480,45 @@ func (_u *SocialCommandUpdateOne) SetNillableIsEmote(v *bool) *SocialCommandUpda
 	return _u
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_u *SocialCommandUpdateOne) AddWorldIDs(ids ...int) *SocialCommandUpdateOne {
+	_u.mutation.AddWorldIDs(ids...)
+	return _u
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_u *SocialCommandUpdateOne) AddWorld(v ...*World) *SocialCommandUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddWorldIDs(ids...)
+}
+
 // Mutation returns the SocialCommandMutation object of the builder.
 func (_u *SocialCommandUpdateOne) Mutation() *SocialCommandMutation {
 	return _u.mutation
+}
+
+// ClearWorld clears all "world" edges to the World entity.
+func (_u *SocialCommandUpdateOne) ClearWorld() *SocialCommandUpdateOne {
+	_u.mutation.ClearWorld()
+	return _u
+}
+
+// RemoveWorldIDs removes the "world" edge to World entities by IDs.
+func (_u *SocialCommandUpdateOne) RemoveWorldIDs(ids ...int) *SocialCommandUpdateOne {
+	_u.mutation.RemoveWorldIDs(ids...)
+	return _u
+}
+
+// RemoveWorld removes "world" edges to World entities.
+func (_u *SocialCommandUpdateOne) RemoveWorld(v ...*World) *SocialCommandUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveWorldIDs(ids...)
 }
 
 // Where appends a list predicates to the SocialCommandUpdate builder.
@@ -438,6 +587,9 @@ func (_u *SocialCommandUpdateOne) sqlSave(ctx context.Context) (_node *SocialCom
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(socialcommand.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(socialcommand.FieldName, field.TypeString, value)
 	}
@@ -464,6 +616,51 @@ func (_u *SocialCommandUpdateOne) sqlSave(ctx context.Context) (_node *SocialCom
 	}
 	if value, ok := _u.mutation.IsEmote(); ok {
 		_spec.SetField(socialcommand.FieldIsEmote, field.TypeBool, value)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   socialcommand.WorldTable,
+			Columns: socialcommand.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedWorldIDs(); len(nodes) > 0 && !_u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   socialcommand.WorldTable,
+			Columns: socialcommand.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   socialcommand.WorldTable,
+			Columns: socialcommand.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &SocialCommand{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -10,11 +10,11 @@ import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import {
   FormField,
-  NumberField,
   TextareaField,
   SelectField,
   CheckboxField,
 } from "../../components/FormFields";
+import { ResourceIdField } from "../../components/ResourceIdField";
 import { showToast } from "../../components/Toast";
 
 const TRIGGER_TYPE_OPTS = [
@@ -50,7 +50,7 @@ export function TriggerEditForm({
     world_id: trigger.world_id,
     trigger_type: trigger.trigger_type,
     target_type: trigger.target_type,
-    target_id: trigger.target_id,
+    target_id: typeof trigger.target_id === 'number' ? trigger.target_id : 0,
     room_id: trigger.room_id,
     equipment_id: trigger.equipment_id,
     condition: trigger.condition,
@@ -89,13 +89,31 @@ export function TriggerEditForm({
           <FormField label="World ID" value={formData.world_id} onChange={(v) => set({ world_id: v })} />
           <SelectField label="Trigger Type" value={formData.trigger_type} onChange={(v) => set({ trigger_type: v })} options={TRIGGER_TYPE_OPTS} />
           <SelectField label="Target Type" value={formData.target_type} onChange={(v) => set({ target_type: v })} options={TARGET_TYPE_OPTS} />
-          <NumberField label="Target ID" value={formData.target_id} onChange={(v) => set({ target_id: v })} />
+          <ResourceIdField
+            label="Target ID"
+            value={formData.target_id ?? ""}
+            onChange={(v) => set({ target_id: Number(v ?? 0) })}
+            resourceType="targets"
+            apiBase=""
+          />
         </div>
 
         <h3 className="text-text font-semibold mt-6 mb-4">Target Object</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <NumberField label="Room ID (optional)" value={formData.room_id ?? 0} onChange={(v) => set({ room_id: v > 0 ? v : null })} placeholder="0 = none" />
-          <NumberField label="Equipment ID (optional)" value={formData.equipment_id ?? 0} onChange={(v) => set({ equipment_id: v > 0 ? v : null })} placeholder="0 = none" />
+          <ResourceIdField
+            label="Room ID (optional)"
+            value={formData.room_id ?? ""}
+            onChange={(v) => set({ room_id: v === null || v === "" ? null : Number(v) > 0 ? Number(v) : null })}
+            resourceType="rooms"
+            apiBase={window.location.origin}
+          />
+          <ResourceIdField
+            label="Equipment ID (optional)"
+            value={formData.equipment_id ?? ""}
+            onChange={(v) => set({ equipment_id: v === null || v === "" ? null : Number(v) > 0 ? Number(v) : null })}
+            resourceType="equipment"
+            apiBase={window.location.origin}
+          />
         </div>
 
         <h3 className="text-text font-semibold mt-6 mb-4">Conditions & Settings</h3>

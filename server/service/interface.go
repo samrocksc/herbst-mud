@@ -12,7 +12,7 @@ type CharacterService interface {
 	CreateCharacter(ctx context.Context, input CreateCharacterInput) (*db.Character, error)
 	DeleteCharacter(ctx context.Context, charID int) error
 	GrantTag(ctx context.Context, charID int, tag, source string) error
-	SyncRaceTags(ctx context.Context, charID int, raceName string) error
+	SyncRaceTags(ctx context.Context, charID int, raceName, worldID string) error
 	QueryCharacterByName(ctx context.Context, name string) (*db.Character, error)
 }
 

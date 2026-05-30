@@ -4,9 +4,7 @@ package db
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
-	"herbst/db/npctemplate"
 	"herbst/db/predicate"
 	"herbst/db/race"
 	"math"
@@ -20,11 +18,10 @@ import (
 // RaceQuery is the builder for querying Race entities.
 type RaceQuery struct {
 	config
-	ctx              *QueryContext
-	order            []race.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.Race
-	withNpcTemplates *NPCTemplateQuery
+	ctx        *QueryContext
+	order      []race.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Race
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,28 +56,6 @@ func (_q *RaceQuery) Unique(unique bool) *RaceQuery {
 func (_q *RaceQuery) Order(o ...race.OrderOption) *RaceQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryNpcTemplates chains the current query on the "npc_templates" edge.
-func (_q *RaceQuery) QueryNpcTemplates() *NPCTemplateQuery {
-	query := (&NPCTemplateClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(race.Table, race.FieldID, selector),
-			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, race.NpcTemplatesTable, race.NpcTemplatesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first Race entity from the query.
@@ -270,27 +245,15 @@ func (_q *RaceQuery) Clone() *RaceQuery {
 		return nil
 	}
 	return &RaceQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]race.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.Race{}, _q.predicates...),
-		withNpcTemplates: _q.withNpcTemplates.Clone(),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]race.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Race{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithNpcTemplates tells the query-builder to eager-load the nodes that are connected to
-// the "npc_templates" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *RaceQuery) WithNpcTemplates(opts ...func(*NPCTemplateQuery)) *RaceQuery {
-	query := (&NPCTemplateClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withNpcTemplates = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -299,12 +262,12 @@ func (_q *RaceQuery) WithNpcTemplates(opts ...func(*NPCTemplateQuery)) *RaceQuer
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Race.Query().
-//		GroupBy(race.FieldName).
+//		GroupBy(race.FieldWorldID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *RaceQuery) GroupBy(field string, fields ...string) *RaceGroupBy {
@@ -322,11 +285,11 @@ func (_q *RaceQuery) GroupBy(field string, fields ...string) *RaceGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //	}
 //
 //	client.Race.Query().
-//		Select(race.FieldName).
+//		Select(race.FieldWorldID).
 //		Scan(ctx, &v)
 func (_q *RaceQuery) Select(fields ...string) *RaceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -369,11 +332,8 @@ func (_q *RaceQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *RaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Race, error) {
 	var (
-		nodes       = []*Race{}
-		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
-			_q.withNpcTemplates != nil,
-		}
+		nodes = []*Race{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Race).scanValues(nil, columns)
@@ -381,7 +341,6 @@ func (_q *RaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Race, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Race{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -393,45 +352,7 @@ func (_q *RaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Race, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withNpcTemplates; query != nil {
-		if err := _q.loadNpcTemplates(ctx, query, nodes,
-			func(n *Race) { n.Edges.NpcTemplates = []*NPCTemplate{} },
-			func(n *Race, e *NPCTemplate) { n.Edges.NpcTemplates = append(n.Edges.NpcTemplates, e) }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *RaceQuery) loadNpcTemplates(ctx context.Context, query *NPCTemplateQuery, nodes []*Race, init func(*Race), assign func(*Race, *NPCTemplate)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Race)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(npctemplate.FieldRaceID)
-	}
-	query.Where(predicate.NPCTemplate(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(race.NpcTemplatesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.RaceID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "race_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
 }
 
 func (_q *RaceQuery) sqlCount(ctx context.Context) (int, error) {

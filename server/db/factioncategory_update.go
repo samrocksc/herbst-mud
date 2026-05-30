@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/predicate"
+	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,20 @@ type FactionCategoryUpdate struct {
 // Where appends a list predicates to the FactionCategoryUpdate builder.
 func (_u *FactionCategoryUpdate) Where(ps ...predicate.FactionCategory) *FactionCategoryUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *FactionCategoryUpdate) SetWorldID(v string) *FactionCategoryUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *FactionCategoryUpdate) SetNillableWorldID(v *string) *FactionCategoryUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
 	return _u
 }
 
@@ -125,6 +140,21 @@ func (_u *FactionCategoryUpdate) SetNillableInitialConfig(v *bool) *FactionCateg
 	return _u
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_u *FactionCategoryUpdate) AddWorldIDs(ids ...int) *FactionCategoryUpdate {
+	_u.mutation.AddWorldIDs(ids...)
+	return _u
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_u *FactionCategoryUpdate) AddWorld(v ...*World) *FactionCategoryUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddWorldIDs(ids...)
+}
+
 // AddFactionIDs adds the "factions" edge to the Faction entity by IDs.
 func (_u *FactionCategoryUpdate) AddFactionIDs(ids ...int) *FactionCategoryUpdate {
 	_u.mutation.AddFactionIDs(ids...)
@@ -143,6 +173,27 @@ func (_u *FactionCategoryUpdate) AddFactions(v ...*Faction) *FactionCategoryUpda
 // Mutation returns the FactionCategoryMutation object of the builder.
 func (_u *FactionCategoryUpdate) Mutation() *FactionCategoryMutation {
 	return _u.mutation
+}
+
+// ClearWorld clears all "world" edges to the World entity.
+func (_u *FactionCategoryUpdate) ClearWorld() *FactionCategoryUpdate {
+	_u.mutation.ClearWorld()
+	return _u
+}
+
+// RemoveWorldIDs removes the "world" edge to World entities by IDs.
+func (_u *FactionCategoryUpdate) RemoveWorldIDs(ids ...int) *FactionCategoryUpdate {
+	_u.mutation.RemoveWorldIDs(ids...)
+	return _u
+}
+
+// RemoveWorld removes "world" edges to World entities.
+func (_u *FactionCategoryUpdate) RemoveWorld(v ...*World) *FactionCategoryUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveWorldIDs(ids...)
 }
 
 // ClearFactions clears all "factions" edges to the Faction entity.
@@ -202,6 +253,9 @@ func (_u *FactionCategoryUpdate) sqlSave(ctx context.Context) (_node int, err er
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(factioncategory.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(factioncategory.FieldName, field.TypeString, value)
 	}
@@ -225,6 +279,51 @@ func (_u *FactionCategoryUpdate) sqlSave(ctx context.Context) (_node int, err er
 	}
 	if value, ok := _u.mutation.InitialConfig(); ok {
 		_spec.SetField(factioncategory.FieldInitialConfig, field.TypeBool, value)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   factioncategory.WorldTable,
+			Columns: factioncategory.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedWorldIDs(); len(nodes) > 0 && !_u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   factioncategory.WorldTable,
+			Columns: factioncategory.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   factioncategory.WorldTable,
+			Columns: factioncategory.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.FactionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -289,6 +388,20 @@ type FactionCategoryUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *FactionCategoryMutation
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *FactionCategoryUpdateOne) SetWorldID(v string) *FactionCategoryUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *FactionCategoryUpdateOne) SetNillableWorldID(v *string) *FactionCategoryUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
 }
 
 // SetName sets the "name" field.
@@ -388,6 +501,21 @@ func (_u *FactionCategoryUpdateOne) SetNillableInitialConfig(v *bool) *FactionCa
 	return _u
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_u *FactionCategoryUpdateOne) AddWorldIDs(ids ...int) *FactionCategoryUpdateOne {
+	_u.mutation.AddWorldIDs(ids...)
+	return _u
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_u *FactionCategoryUpdateOne) AddWorld(v ...*World) *FactionCategoryUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddWorldIDs(ids...)
+}
+
 // AddFactionIDs adds the "factions" edge to the Faction entity by IDs.
 func (_u *FactionCategoryUpdateOne) AddFactionIDs(ids ...int) *FactionCategoryUpdateOne {
 	_u.mutation.AddFactionIDs(ids...)
@@ -406,6 +534,27 @@ func (_u *FactionCategoryUpdateOne) AddFactions(v ...*Faction) *FactionCategoryU
 // Mutation returns the FactionCategoryMutation object of the builder.
 func (_u *FactionCategoryUpdateOne) Mutation() *FactionCategoryMutation {
 	return _u.mutation
+}
+
+// ClearWorld clears all "world" edges to the World entity.
+func (_u *FactionCategoryUpdateOne) ClearWorld() *FactionCategoryUpdateOne {
+	_u.mutation.ClearWorld()
+	return _u
+}
+
+// RemoveWorldIDs removes the "world" edge to World entities by IDs.
+func (_u *FactionCategoryUpdateOne) RemoveWorldIDs(ids ...int) *FactionCategoryUpdateOne {
+	_u.mutation.RemoveWorldIDs(ids...)
+	return _u
+}
+
+// RemoveWorld removes "world" edges to World entities.
+func (_u *FactionCategoryUpdateOne) RemoveWorld(v ...*World) *FactionCategoryUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveWorldIDs(ids...)
 }
 
 // ClearFactions clears all "factions" edges to the Faction entity.
@@ -495,6 +644,9 @@ func (_u *FactionCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Faction
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(factioncategory.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(factioncategory.FieldName, field.TypeString, value)
 	}
@@ -518,6 +670,51 @@ func (_u *FactionCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Faction
 	}
 	if value, ok := _u.mutation.InitialConfig(); ok {
 		_spec.SetField(factioncategory.FieldInitialConfig, field.TypeBool, value)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   factioncategory.WorldTable,
+			Columns: factioncategory.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedWorldIDs(); len(nodes) > 0 && !_u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   factioncategory.WorldTable,
+			Columns: factioncategory.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   factioncategory.WorldTable,
+			Columns: factioncategory.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.FactionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

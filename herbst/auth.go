@@ -275,11 +275,13 @@ type RaceInfo struct {
 
 // GenderInfo represents a gender/pronoun option from the server response
 type GenderInfo struct {
+	ID                 int    `json:"id"`
 	Name               string `json:"name"`
 	DisplayName        string `json:"display_name"`
 	SubjectPronoun     string `json:"subject_pronoun"`
 	ObjectPronoun      string `json:"object_pronoun"`
 	PossessivePronoun  string `json:"possessive_pronoun"`
+	WorldID            string `json:"world_id"`
 }
 
 // FactionInfo represents a faction from the server response

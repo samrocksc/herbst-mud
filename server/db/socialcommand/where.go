@@ -6,6 +6,7 @@ import (
 	"herbst-server/db/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -53,6 +54,11 @@ func IDLTE(id int) predicate.SocialCommand {
 	return predicate.SocialCommand(sql.FieldLTE(FieldID, id))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldEQ(FieldWorldID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.SocialCommand {
 	return predicate.SocialCommand(sql.FieldEQ(FieldName, v))
@@ -96,6 +102,71 @@ func RequiresTarget(v bool) predicate.SocialCommand {
 // IsEmote applies equality check predicate on the "isEmote" field. It's identical to IsEmoteEQ.
 func IsEmote(v bool) predicate.SocialCommand {
 	return predicate.SocialCommand(sql.FieldEQ(FieldIsEmote, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.SocialCommand {
+	return predicate.SocialCommand(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -571,6 +642,29 @@ func IsEmoteEQ(v bool) predicate.SocialCommand {
 // IsEmoteNEQ applies the NEQ predicate on the "isEmote" field.
 func IsEmoteNEQ(v bool) predicate.SocialCommand {
 	return predicate.SocialCommand(sql.FieldNEQ(FieldIsEmote, v))
+}
+
+// HasWorld applies the HasEdge predicate on the "world" edge.
+func HasWorld() predicate.SocialCommand {
+	return predicate.SocialCommand(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, WorldTable, WorldPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorldWith applies the HasEdge predicate on the "world" edge with a given conditions (other predicates).
+func HasWorldWith(preds ...predicate.World) predicate.SocialCommand {
+	return predicate.SocialCommand(func(s *sql.Selector) {
+		step := newWorldStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -12,6 +12,8 @@ const (
 	Label = "faction_category"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDisplayName holds the string denoting the display_name field in the database.
@@ -24,10 +26,17 @@ const (
 	FieldAutoJoin = "auto_join"
 	// FieldInitialConfig holds the string denoting the initial_config field in the database.
 	FieldInitialConfig = "initial_config"
+	// EdgeWorld holds the string denoting the world edge name in mutations.
+	EdgeWorld = "world"
 	// EdgeFactions holds the string denoting the factions edge name in mutations.
 	EdgeFactions = "factions"
 	// Table holds the table name of the factioncategory in the database.
 	Table = "faction_categories"
+	// WorldTable is the table that holds the world relation/edge. The primary key declared below.
+	WorldTable = "world_faction_categories"
+	// WorldInverseTable is the table name for the World entity.
+	// It exists in this package in order to avoid circular dependency with the "world" package.
+	WorldInverseTable = "worlds"
 	// FactionsTable is the table that holds the factions relation/edge.
 	FactionsTable = "factions"
 	// FactionsInverseTable is the table name for the Faction entity.
@@ -40,6 +49,7 @@ const (
 // Columns holds all SQL columns for factioncategory fields.
 var Columns = []string{
 	FieldID,
+	FieldWorldID,
 	FieldName,
 	FieldDisplayName,
 	FieldDescription,
@@ -47,6 +57,12 @@ var Columns = []string{
 	FieldAutoJoin,
 	FieldInitialConfig,
 }
+
+var (
+	// WorldPrimaryKey and WorldColumn2 are the table columns denoting the
+	// primary key for the world relation (M2M).
+	WorldPrimaryKey = []string{"world_id", "faction_category_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -59,6 +75,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
 	// DefaultMaxMemberships holds the default value on creation for the "max_memberships" field.
 	DefaultMaxMemberships int
 	// DefaultAutoJoin holds the default value on creation for the "auto_join" field.
@@ -73,6 +91,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -105,6 +128,20 @@ func ByInitialConfig(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldInitialConfig, opts...).ToFunc()
 }
 
+// ByWorldCount orders the results by world count.
+func ByWorldCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorldStep(), opts...)
+	}
+}
+
+// ByWorld orders the results by world terms.
+func ByWorld(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorldStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByFactionsCount orders the results by factions count.
 func ByFactionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -117,6 +154,13 @@ func ByFactions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newFactionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
+}
+func newWorldStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorldInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, WorldTable, WorldPrimaryKey...),
+	)
 }
 func newFactionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

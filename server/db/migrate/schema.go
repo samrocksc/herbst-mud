@@ -11,8 +11,8 @@ var (
 	// AbilitiesColumns holds the columns for the "abilities" table.
 	AbilitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "ability_type", Type: field.TypeString},
 		{Name: "cost", Type: field.TypeInt, Default: 0},
@@ -21,7 +21,7 @@ var (
 		{Name: "mana_cost", Type: field.TypeInt, Default: 0},
 		{Name: "stamina_cost", Type: field.TypeInt, Default: 0},
 		{Name: "hp_cost", Type: field.TypeInt, Default: 0},
-		{Name: "slug", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "slug", Type: field.TypeString, Nullable: true},
 		{Name: "required_tag", Type: field.TypeString, Nullable: true},
 		{Name: "ability_class", Type: field.TypeString, Default: "active"},
 		{Name: "proc_chance", Type: field.TypeFloat64, Default: 0},
@@ -531,6 +531,7 @@ var (
 	// EffectHooksColumns holds the columns for the "effect_hooks" table.
 	EffectHooksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "event", Type: field.TypeString},
 		{Name: "target", Type: field.TypeString, Default: "self"},
@@ -547,15 +548,22 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "effect_hooks_effects_hooks",
-				Columns:    []*schema.Column{EffectHooksColumns[6]},
+				Columns:    []*schema.Column{EffectHooksColumns[7]},
 				RefColumns: []*schema.Column{EffectsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "effect_hooks_npc_templates_hooks",
-				Columns:    []*schema.Column{EffectHooksColumns[7]},
+				Columns:    []*schema.Column{EffectHooksColumns[8]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "effecthook_name_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{EffectHooksColumns[2], EffectHooksColumns[1]},
 			},
 		},
 	}
@@ -700,7 +708,8 @@ var (
 	// FactionCategoriesColumns holds the columns for the "faction_categories" table.
 	FactionCategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "name", Type: field.TypeString},
 		{Name: "display_name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "max_memberships", Type: field.TypeInt, Default: 1},
@@ -712,6 +721,13 @@ var (
 		Name:       "faction_categories",
 		Columns:    FactionCategoriesColumns,
 		PrimaryKey: []*schema.Column{FactionCategoriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "factioncategory_name_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{FactionCategoriesColumns[2], FactionCategoriesColumns[1]},
+			},
+		},
 	}
 	// FactionRequiredTagsColumns holds the columns for the "faction_required_tags" table.
 	FactionRequiredTagsColumns = []*schema.Column{
@@ -753,12 +769,22 @@ var (
 		{Name: "subject_pronoun", Type: field.TypeString},
 		{Name: "object_pronoun", Type: field.TypeString},
 		{Name: "possessive_pronoun", Type: field.TypeString},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "world_genders", Type: field.TypeInt, Nullable: true},
 	}
 	// GendersTable holds the schema information for the "genders" table.
 	GendersTable = &schema.Table{
 		Name:       "genders",
 		Columns:    GendersColumns,
 		PrimaryKey: []*schema.Column{GendersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "genders_worlds_genders",
+				Columns:    []*schema.Column{GendersColumns[7]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// NpcAbilitiesColumns holds the columns for the "npc_abilities" table.
 	NpcAbilitiesColumns = []*schema.Column{
@@ -856,7 +882,8 @@ var (
 	// RacesColumns holds the columns for the "races" table.
 	RacesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "name", Type: field.TypeString},
 		{Name: "display_name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "stat_modifiers", Type: field.TypeString, Nullable: true},
@@ -870,6 +897,13 @@ var (
 		Name:       "races",
 		Columns:    RacesColumns,
 		PrimaryKey: []*schema.Column{RacesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "race_name_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{RacesColumns[2], RacesColumns[1]},
+			},
+		},
 	}
 	// RoomsColumns holds the columns for the "rooms" table.
 	RoomsColumns = []*schema.Column{
@@ -896,6 +930,7 @@ var (
 	// SocialCommandsColumns holds the columns for the "social_commands" table.
 	SocialCommandsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "display_name", Type: field.TypeString},
 		{Name: "self_text", Type: field.TypeString},
@@ -911,11 +946,19 @@ var (
 		Name:       "social_commands",
 		Columns:    SocialCommandsColumns,
 		PrimaryKey: []*schema.Column{SocialCommandsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "socialcommand_name_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{SocialCommandsColumns[2], SocialCommandsColumns[1]},
+			},
+		},
 	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "name", Type: field.TypeString},
 		{Name: "color", Type: field.TypeString, Nullable: true},
 	}
 	// TagsTable holds the schema information for the "tags" table.
@@ -923,6 +966,13 @@ var (
 		Name:       "tags",
 		Columns:    TagsColumns,
 		PrimaryKey: []*schema.Column{TagsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "tag_name_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{TagsColumns[2], TagsColumns[1]},
+			},
+		},
 	}
 	// TellQueuesColumns holds the columns for the "tell_queues" table.
 	TellQueuesColumns = []*schema.Column{
@@ -1095,6 +1145,131 @@ var (
 			},
 		},
 	}
+	// WorldRacesColumns holds the columns for the "world_races" table.
+	WorldRacesColumns = []*schema.Column{
+		{Name: "world_id", Type: field.TypeInt},
+		{Name: "race_id", Type: field.TypeInt},
+	}
+	// WorldRacesTable holds the schema information for the "world_races" table.
+	WorldRacesTable = &schema.Table{
+		Name:       "world_races",
+		Columns:    WorldRacesColumns,
+		PrimaryKey: []*schema.Column{WorldRacesColumns[0], WorldRacesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "world_races_world_id",
+				Columns:    []*schema.Column{WorldRacesColumns[0]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "world_races_race_id",
+				Columns:    []*schema.Column{WorldRacesColumns[1]},
+				RefColumns: []*schema.Column{RacesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// WorldTagsColumns holds the columns for the "world_tags" table.
+	WorldTagsColumns = []*schema.Column{
+		{Name: "world_id", Type: field.TypeInt},
+		{Name: "tag_id", Type: field.TypeInt},
+	}
+	// WorldTagsTable holds the schema information for the "world_tags" table.
+	WorldTagsTable = &schema.Table{
+		Name:       "world_tags",
+		Columns:    WorldTagsColumns,
+		PrimaryKey: []*schema.Column{WorldTagsColumns[0], WorldTagsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "world_tags_world_id",
+				Columns:    []*schema.Column{WorldTagsColumns[0]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "world_tags_tag_id",
+				Columns:    []*schema.Column{WorldTagsColumns[1]},
+				RefColumns: []*schema.Column{TagsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// WorldSocialCommandsColumns holds the columns for the "world_social_commands" table.
+	WorldSocialCommandsColumns = []*schema.Column{
+		{Name: "world_id", Type: field.TypeInt},
+		{Name: "social_command_id", Type: field.TypeInt},
+	}
+	// WorldSocialCommandsTable holds the schema information for the "world_social_commands" table.
+	WorldSocialCommandsTable = &schema.Table{
+		Name:       "world_social_commands",
+		Columns:    WorldSocialCommandsColumns,
+		PrimaryKey: []*schema.Column{WorldSocialCommandsColumns[0], WorldSocialCommandsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "world_social_commands_world_id",
+				Columns:    []*schema.Column{WorldSocialCommandsColumns[0]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "world_social_commands_social_command_id",
+				Columns:    []*schema.Column{WorldSocialCommandsColumns[1]},
+				RefColumns: []*schema.Column{SocialCommandsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// WorldFactionCategoriesColumns holds the columns for the "world_faction_categories" table.
+	WorldFactionCategoriesColumns = []*schema.Column{
+		{Name: "world_id", Type: field.TypeInt},
+		{Name: "faction_category_id", Type: field.TypeInt},
+	}
+	// WorldFactionCategoriesTable holds the schema information for the "world_faction_categories" table.
+	WorldFactionCategoriesTable = &schema.Table{
+		Name:       "world_faction_categories",
+		Columns:    WorldFactionCategoriesColumns,
+		PrimaryKey: []*schema.Column{WorldFactionCategoriesColumns[0], WorldFactionCategoriesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "world_faction_categories_world_id",
+				Columns:    []*schema.Column{WorldFactionCategoriesColumns[0]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "world_faction_categories_faction_category_id",
+				Columns:    []*schema.Column{WorldFactionCategoriesColumns[1]},
+				RefColumns: []*schema.Column{FactionCategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// WorldEffectHooksColumns holds the columns for the "world_effect_hooks" table.
+	WorldEffectHooksColumns = []*schema.Column{
+		{Name: "world_id", Type: field.TypeInt},
+		{Name: "effect_hook_id", Type: field.TypeInt},
+	}
+	// WorldEffectHooksTable holds the schema information for the "world_effect_hooks" table.
+	WorldEffectHooksTable = &schema.Table{
+		Name:       "world_effect_hooks",
+		Columns:    WorldEffectHooksColumns,
+		PrimaryKey: []*schema.Column{WorldEffectHooksColumns[0], WorldEffectHooksColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "world_effect_hooks_world_id",
+				Columns:    []*schema.Column{WorldEffectHooksColumns[0]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "world_effect_hooks_effect_hook_id",
+				Columns:    []*schema.Column{WorldEffectHooksColumns[1]},
+				RefColumns: []*schema.Column{EffectHooksColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AbilitiesTable,
@@ -1139,6 +1314,11 @@ var (
 		AbilityNpcAbilitiesTable,
 		NpcTemplateNpcAbilitiesTable,
 		TagRacesTable,
+		WorldRacesTable,
+		WorldTagsTable,
+		WorldSocialCommandsTable,
+		WorldFactionCategoriesTable,
+		WorldEffectHooksTable,
 	}
 )
 
@@ -1169,6 +1349,7 @@ func init() {
 	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
 	FactionsTable.ForeignKeys[0].RefTable = FactionCategoriesTable
 	FactionRequiredTagsTable.ForeignKeys[0].RefTable = FactionsTable
+	GendersTable.ForeignKeys[0].RefTable = WorldsTable
 	NpcTemplatesTable.ForeignKeys[0].RefTable = RacesTable
 	QuestProgressesTable.ForeignKeys[0].RefTable = CharactersTable
 	QuestProgressesTable.ForeignKeys[1].RefTable = QuestsTable
@@ -1182,4 +1363,14 @@ func init() {
 	NpcTemplateNpcAbilitiesTable.ForeignKeys[1].RefTable = NpcAbilitiesTable
 	TagRacesTable.ForeignKeys[0].RefTable = TagsTable
 	TagRacesTable.ForeignKeys[1].RefTable = RacesTable
+	WorldRacesTable.ForeignKeys[0].RefTable = WorldsTable
+	WorldRacesTable.ForeignKeys[1].RefTable = RacesTable
+	WorldTagsTable.ForeignKeys[0].RefTable = WorldsTable
+	WorldTagsTable.ForeignKeys[1].RefTable = TagsTable
+	WorldSocialCommandsTable.ForeignKeys[0].RefTable = WorldsTable
+	WorldSocialCommandsTable.ForeignKeys[1].RefTable = SocialCommandsTable
+	WorldFactionCategoriesTable.ForeignKeys[0].RefTable = WorldsTable
+	WorldFactionCategoriesTable.ForeignKeys[1].RefTable = FactionCategoriesTable
+	WorldEffectHooksTable.ForeignKeys[0].RefTable = WorldsTable
+	WorldEffectHooksTable.ForeignKeys[1].RefTable = EffectHooksTable
 }

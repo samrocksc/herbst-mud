@@ -4,6 +4,7 @@ package socialcommand
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -11,6 +12,8 @@ const (
 	Label = "social_command"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDisplayName holds the string denoting the displayname field in the database.
@@ -29,13 +32,21 @@ const (
 	FieldRequiresTarget = "requires_target"
 	// FieldIsEmote holds the string denoting the isemote field in the database.
 	FieldIsEmote = "is_emote"
+	// EdgeWorld holds the string denoting the world edge name in mutations.
+	EdgeWorld = "world"
 	// Table holds the table name of the socialcommand in the database.
 	Table = "social_commands"
+	// WorldTable is the table that holds the world relation/edge. The primary key declared below.
+	WorldTable = "world_social_commands"
+	// WorldInverseTable is the table name for the World entity.
+	// It exists in this package in order to avoid circular dependency with the "world" package.
+	WorldInverseTable = "worlds"
 )
 
 // Columns holds all SQL columns for socialcommand fields.
 var Columns = []string{
 	FieldID,
+	FieldWorldID,
 	FieldName,
 	FieldDisplayName,
 	FieldSelfText,
@@ -46,6 +57,12 @@ var Columns = []string{
 	FieldRequiresTarget,
 	FieldIsEmote,
 }
+
+var (
+	// WorldPrimaryKey and WorldColumn2 are the table columns denoting the
+	// primary key for the world relation (M2M).
+	WorldPrimaryKey = []string{"world_id", "social_command_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -58,6 +75,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
 	// DefaultRequiresTarget holds the default value on creation for the "requiresTarget" field.
 	DefaultRequiresTarget bool
 	// DefaultIsEmote holds the default value on creation for the "isEmote" field.
@@ -70,6 +89,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -115,4 +139,25 @@ func ByRequiresTarget(opts ...sql.OrderTermOption) OrderOption {
 // ByIsEmote orders the results by the isEmote field.
 func ByIsEmote(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsEmote, opts...).ToFunc()
+}
+
+// ByWorldCount orders the results by world count.
+func ByWorldCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorldStep(), opts...)
+	}
+}
+
+// ByWorld orders the results by world terms.
+func ByWorld(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorldStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newWorldStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorldInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, WorldTable, WorldPrimaryKey...),
+	)
 }

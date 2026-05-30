@@ -28,5 +28,11 @@ func (World) Fields() []ent.Field {
 func (World) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("characters", Character.Type),
+		edge.To("races", Race.Type),
+		edge.To("genders", Gender.Type),
+		edge.To("tags", Tag.Type),
+		edge.To("social_commands", SocialCommand.Type),
+		edge.To("faction_categories", FactionCategory.Type),
+		edge.To("effect_hooks", EffectHook.Type),
 	}
 }

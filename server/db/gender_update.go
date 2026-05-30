@@ -97,6 +97,20 @@ func (_u *GenderUpdate) SetNillablePossessivePronoun(v *string) *GenderUpdate {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *GenderUpdate) SetWorldID(v string) *GenderUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *GenderUpdate) SetNillableWorldID(v *string) *GenderUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the GenderMutation object of the builder.
 func (_u *GenderUpdate) Mutation() *GenderMutation {
 	return _u.mutation
@@ -152,6 +166,9 @@ func (_u *GenderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.PossessivePronoun(); ok {
 		_spec.SetField(gender.FieldPossessivePronoun, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(gender.FieldWorldID, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -243,6 +260,20 @@ func (_u *GenderUpdateOne) SetNillablePossessivePronoun(v *string) *GenderUpdate
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *GenderUpdateOne) SetWorldID(v string) *GenderUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *GenderUpdateOne) SetNillableWorldID(v *string) *GenderUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the GenderMutation object of the builder.
 func (_u *GenderUpdateOne) Mutation() *GenderMutation {
 	return _u.mutation
@@ -328,6 +359,9 @@ func (_u *GenderUpdateOne) sqlSave(ctx context.Context) (_node *Gender, err erro
 	}
 	if value, ok := _u.mutation.PossessivePronoun(); ok {
 		_spec.SetField(gender.FieldPossessivePronoun, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(gender.FieldWorldID, field.TypeString, value)
 	}
 	_node = &Gender{config: _u.config}
 	_spec.Assign = _node.assignValues

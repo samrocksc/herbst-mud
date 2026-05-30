@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/effect"
 	"herbst-server/db/effecthook"
 	"herbst-server/db/npctemplate"
+	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,6 +20,20 @@ type EffectHookCreate struct {
 	config
 	mutation *EffectHookMutation
 	hooks    []Hook
+}
+
+// SetWorldID sets the "world_id" field.
+func (_c *EffectHookCreate) SetWorldID(v string) *EffectHookCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *EffectHookCreate) SetNillableWorldID(v *string) *EffectHookCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
 }
 
 // SetName sets the "name" field.
@@ -73,6 +88,21 @@ func (_c *EffectHookCreate) SetNillableEnabled(v *bool) *EffectHookCreate {
 		_c.SetEnabled(*v)
 	}
 	return _c
+}
+
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_c *EffectHookCreate) AddWorldIDs(ids ...int) *EffectHookCreate {
+	_c.mutation.AddWorldIDs(ids...)
+	return _c
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_c *EffectHookCreate) AddWorld(v ...*World) *EffectHookCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddWorldIDs(ids...)
 }
 
 // SetEffectID sets the "effect" edge to the Effect entity by ID.
@@ -140,6 +170,10 @@ func (_c *EffectHookCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *EffectHookCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := effecthook.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.Target(); !ok {
 		v := effecthook.DefaultTarget
 		_c.mutation.SetTarget(v)
@@ -152,6 +186,9 @@ func (_c *EffectHookCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *EffectHookCreate) check() error {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "EffectHook.world_id"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "EffectHook.name"`)}
 	}
@@ -193,6 +230,10 @@ func (_c *EffectHookCreate) createSpec() (*EffectHook, *sqlgraph.CreateSpec) {
 		_node = &EffectHook{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(effecthook.Table, sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt))
 	)
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(effecthook.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
+	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(effecthook.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -212,6 +253,22 @@ func (_c *EffectHookCreate) createSpec() (*EffectHook, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(effecthook.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if nodes := _c.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   effecthook.WorldTable,
+			Columns: effecthook.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.EffectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

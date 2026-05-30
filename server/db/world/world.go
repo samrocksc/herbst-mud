@@ -22,6 +22,18 @@ const (
 	FieldActive = "active"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
+	// EdgeRaces holds the string denoting the races edge name in mutations.
+	EdgeRaces = "races"
+	// EdgeGenders holds the string denoting the genders edge name in mutations.
+	EdgeGenders = "genders"
+	// EdgeTags holds the string denoting the tags edge name in mutations.
+	EdgeTags = "tags"
+	// EdgeSocialCommands holds the string denoting the social_commands edge name in mutations.
+	EdgeSocialCommands = "social_commands"
+	// EdgeFactionCategories holds the string denoting the faction_categories edge name in mutations.
+	EdgeFactionCategories = "faction_categories"
+	// EdgeEffectHooks holds the string denoting the effect_hooks edge name in mutations.
+	EdgeEffectHooks = "effect_hooks"
 	// Table holds the table name of the world in the database.
 	Table = "worlds"
 	// CharactersTable is the table that holds the characters relation/edge.
@@ -31,6 +43,38 @@ const (
 	CharactersInverseTable = "characters"
 	// CharactersColumn is the table column denoting the characters relation/edge.
 	CharactersColumn = "world_characters"
+	// RacesTable is the table that holds the races relation/edge. The primary key declared below.
+	RacesTable = "world_races"
+	// RacesInverseTable is the table name for the Race entity.
+	// It exists in this package in order to avoid circular dependency with the "race" package.
+	RacesInverseTable = "races"
+	// GendersTable is the table that holds the genders relation/edge.
+	GendersTable = "genders"
+	// GendersInverseTable is the table name for the Gender entity.
+	// It exists in this package in order to avoid circular dependency with the "gender" package.
+	GendersInverseTable = "genders"
+	// GendersColumn is the table column denoting the genders relation/edge.
+	GendersColumn = "world_genders"
+	// TagsTable is the table that holds the tags relation/edge. The primary key declared below.
+	TagsTable = "world_tags"
+	// TagsInverseTable is the table name for the Tag entity.
+	// It exists in this package in order to avoid circular dependency with the "tag" package.
+	TagsInverseTable = "tags"
+	// SocialCommandsTable is the table that holds the social_commands relation/edge. The primary key declared below.
+	SocialCommandsTable = "world_social_commands"
+	// SocialCommandsInverseTable is the table name for the SocialCommand entity.
+	// It exists in this package in order to avoid circular dependency with the "socialcommand" package.
+	SocialCommandsInverseTable = "social_commands"
+	// FactionCategoriesTable is the table that holds the faction_categories relation/edge. The primary key declared below.
+	FactionCategoriesTable = "world_faction_categories"
+	// FactionCategoriesInverseTable is the table name for the FactionCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "factioncategory" package.
+	FactionCategoriesInverseTable = "faction_categories"
+	// EffectHooksTable is the table that holds the effect_hooks relation/edge. The primary key declared below.
+	EffectHooksTable = "world_effect_hooks"
+	// EffectHooksInverseTable is the table name for the EffectHook entity.
+	// It exists in this package in order to avoid circular dependency with the "effecthook" package.
+	EffectHooksInverseTable = "effect_hooks"
 )
 
 // Columns holds all SQL columns for world fields.
@@ -41,6 +85,24 @@ var Columns = []string{
 	FieldDescription,
 	FieldActive,
 }
+
+var (
+	// RacesPrimaryKey and RacesColumn2 are the table columns denoting the
+	// primary key for the races relation (M2M).
+	RacesPrimaryKey = []string{"world_id", "race_id"}
+	// TagsPrimaryKey and TagsColumn2 are the table columns denoting the
+	// primary key for the tags relation (M2M).
+	TagsPrimaryKey = []string{"world_id", "tag_id"}
+	// SocialCommandsPrimaryKey and SocialCommandsColumn2 are the table columns denoting the
+	// primary key for the social_commands relation (M2M).
+	SocialCommandsPrimaryKey = []string{"world_id", "social_command_id"}
+	// FactionCategoriesPrimaryKey and FactionCategoriesColumn2 are the table columns denoting the
+	// primary key for the faction_categories relation (M2M).
+	FactionCategoriesPrimaryKey = []string{"world_id", "faction_category_id"}
+	// EffectHooksPrimaryKey and EffectHooksColumn2 are the table columns denoting the
+	// primary key for the effect_hooks relation (M2M).
+	EffectHooksPrimaryKey = []string{"world_id", "effect_hook_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -98,10 +160,136 @@ func ByCharacters(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCharactersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByRacesCount orders the results by races count.
+func ByRacesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRacesStep(), opts...)
+	}
+}
+
+// ByRaces orders the results by races terms.
+func ByRaces(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRacesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByGendersCount orders the results by genders count.
+func ByGendersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGendersStep(), opts...)
+	}
+}
+
+// ByGenders orders the results by genders terms.
+func ByGenders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGendersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTagsCount orders the results by tags count.
+func ByTagsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTagsStep(), opts...)
+	}
+}
+
+// ByTags orders the results by tags terms.
+func ByTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySocialCommandsCount orders the results by social_commands count.
+func BySocialCommandsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSocialCommandsStep(), opts...)
+	}
+}
+
+// BySocialCommands orders the results by social_commands terms.
+func BySocialCommands(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSocialCommandsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFactionCategoriesCount orders the results by faction_categories count.
+func ByFactionCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFactionCategoriesStep(), opts...)
+	}
+}
+
+// ByFactionCategories orders the results by faction_categories terms.
+func ByFactionCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFactionCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEffectHooksCount orders the results by effect_hooks count.
+func ByEffectHooksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEffectHooksStep(), opts...)
+	}
+}
+
+// ByEffectHooks orders the results by effect_hooks terms.
+func ByEffectHooks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEffectHooksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CharactersInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CharactersTable, CharactersColumn),
+	)
+}
+func newRacesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RacesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, RacesTable, RacesPrimaryKey...),
+	)
+}
+func newGendersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GendersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GendersTable, GendersColumn),
+	)
+}
+func newTagsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TagsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, TagsTable, TagsPrimaryKey...),
+	)
+}
+func newSocialCommandsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SocialCommandsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, SocialCommandsTable, SocialCommandsPrimaryKey...),
+	)
+}
+func newFactionCategoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FactionCategoriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, FactionCategoriesTable, FactionCategoriesPrimaryKey...),
+	)
+}
+func newEffectHooksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EffectHooksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, EffectHooksTable, EffectHooksPrimaryKey...),
 	)
 }

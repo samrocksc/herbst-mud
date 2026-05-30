@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/socialcommand"
+	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -17,6 +18,20 @@ type SocialCommandCreate struct {
 	config
 	mutation *SocialCommandMutation
 	hooks    []Hook
+}
+
+// SetWorldID sets the "world_id" field.
+func (_c *SocialCommandCreate) SetWorldID(v string) *SocialCommandCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *SocialCommandCreate) SetNillableWorldID(v *string) *SocialCommandCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
 }
 
 // SetName sets the "name" field.
@@ -89,6 +104,21 @@ func (_c *SocialCommandCreate) SetNillableIsEmote(v *bool) *SocialCommandCreate 
 	return _c
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_c *SocialCommandCreate) AddWorldIDs(ids ...int) *SocialCommandCreate {
+	_c.mutation.AddWorldIDs(ids...)
+	return _c
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_c *SocialCommandCreate) AddWorld(v ...*World) *SocialCommandCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddWorldIDs(ids...)
+}
+
 // Mutation returns the SocialCommandMutation object of the builder.
 func (_c *SocialCommandCreate) Mutation() *SocialCommandMutation {
 	return _c.mutation
@@ -124,6 +154,10 @@ func (_c *SocialCommandCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *SocialCommandCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := socialcommand.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.RequiresTarget(); !ok {
 		v := socialcommand.DefaultRequiresTarget
 		_c.mutation.SetRequiresTarget(v)
@@ -136,6 +170,9 @@ func (_c *SocialCommandCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *SocialCommandCreate) check() error {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "SocialCommand.world_id"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "SocialCommand.name"`)}
 	}
@@ -189,6 +226,10 @@ func (_c *SocialCommandCreate) createSpec() (*SocialCommand, *sqlgraph.CreateSpe
 		_node = &SocialCommand{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(socialcommand.Table, sqlgraph.NewFieldSpec(socialcommand.FieldID, field.TypeInt))
 	)
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(socialcommand.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
+	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(socialcommand.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -224,6 +265,22 @@ func (_c *SocialCommandCreate) createSpec() (*SocialCommand, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.IsEmote(); ok {
 		_spec.SetField(socialcommand.FieldIsEmote, field.TypeBool, value)
 		_node.IsEmote = value
+	}
+	if nodes := _c.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   socialcommand.WorldTable,
+			Columns: socialcommand.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

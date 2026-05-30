@@ -78,6 +78,11 @@ func PossessivePronoun(v string) predicate.Gender {
 	return predicate.Gender(sql.FieldEQ(FieldPossessivePronoun, v))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldEQ(FieldWorldID, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Gender {
 	return predicate.Gender(sql.FieldEQ(FieldName, v))
@@ -401,6 +406,71 @@ func PossessivePronounEqualFold(v string) predicate.Gender {
 // PossessivePronounContainsFold applies the ContainsFold predicate on the "possessive_pronoun" field.
 func PossessivePronounContainsFold(v string) predicate.Gender {
 	return predicate.Gender(sql.FieldContainsFold(FieldPossessivePronoun, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.Gender {
+	return predicate.Gender(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.Gender {
+	return predicate.Gender(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.Gender {
+	return predicate.Gender(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // And groups predicates with the AND operator between them.

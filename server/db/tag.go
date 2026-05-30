@@ -16,6 +16,8 @@ type Tag struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// World this tag belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// Display name for the tag, e.g. 'fire', 'magic', 'warrior'
 	Name string `json:"name,omitempty"`
 	// Hex color for UI display, e.g. '#ff6b6b'. Defaults handled in UI layer.
@@ -28,17 +30,28 @@ type Tag struct {
 
 // TagEdges holds the relations/edges for other nodes in the graph.
 type TagEdges struct {
+	// World holds the value of the world edge.
+	World []*World `json:"world,omitempty"`
 	// Races holds the value of the races edge.
 	Races []*Race `json:"races,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
+}
+
+// WorldOrErr returns the World value or an error if the edge
+// was not loaded in eager-loading.
+func (e TagEdges) WorldOrErr() ([]*World, error) {
+	if e.loadedTypes[0] {
+		return e.World, nil
+	}
+	return nil, &NotLoadedError{edge: "world"}
 }
 
 // RacesOrErr returns the Races value or an error if the edge
 // was not loaded in eager-loading.
 func (e TagEdges) RacesOrErr() ([]*Race, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Races, nil
 	}
 	return nil, &NotLoadedError{edge: "races"}
@@ -51,7 +64,7 @@ func (*Tag) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case tag.FieldID:
 			values[i] = new(sql.NullInt64)
-		case tag.FieldName, tag.FieldColor:
+		case tag.FieldWorldID, tag.FieldName, tag.FieldColor:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -74,6 +87,12 @@ func (_m *Tag) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case tag.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
+			}
 		case tag.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -97,6 +116,11 @@ func (_m *Tag) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Tag) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryWorld queries the "world" edge of the Tag entity.
+func (_m *Tag) QueryWorld() *WorldQuery {
+	return NewTagClient(_m.config).QueryWorld(_m)
 }
 
 // QueryRaces queries the "races" edge of the Tag entity.
@@ -127,6 +151,9 @@ func (_m *Tag) String() string {
 	var builder strings.Builder
 	builder.WriteString("Tag(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

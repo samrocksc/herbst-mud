@@ -63,7 +63,8 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	}
 	race := "human"
 	if input.Race != "" {
-		raceObj, err := s.repos.Race.GetByName(ctx, input.Race)
+		// Use default world for character creation (or the character's world)
+		raceObj, err := s.repos.Race.GetByName(ctx, input.Race, input.WorldID)
 		if err != nil || len(raceObj.RequirementTags) > 0 {
 			return nil, ErrInvalidRace
 		}
@@ -71,7 +72,8 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	}
 	gen := "he_him"
 	if input.Gender != "" {
-		genderObj, err := s.repos.Gender.GetByName(ctx, input.Gender)
+		// Use default world for character creation
+		genderObj, err := s.repos.Gender.GetByWorld(ctx, input.Gender, input.WorldID)
 		if err != nil {
 			return nil, ErrInvalidGender
 		}
@@ -125,7 +127,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	if grantErr := s.GrantTag(ctx, char.ID, "first_class", "system"); grantErr != nil {
 		slog.Warn("failed to grant first_class tag", slog.Int("character_id", char.ID), slog.String("error", grantErr.Error()))
 	}
-	if syncErr := s.SyncRaceTags(ctx, char.ID, char.Race); syncErr != nil {
+	if syncErr := s.SyncRaceTags(ctx, char.ID, char.Race, char.CurrentWorld); syncErr != nil {
 		slog.Warn("failed to sync race tags", slog.Int("character_id", char.ID), slog.String("error", syncErr.Error()))
 	}
 	// Add initial faction memberships
@@ -158,8 +160,8 @@ func (s *characterService) GrantTag(ctx context.Context, characterID int, tag, s
 	return err
 }
 
-func (s *characterService) SyncRaceTags(ctx context.Context, characterID int, raceName string) error {
-	raceObj, err := s.repos.Race.GetByName(ctx, raceName)
+func (s *characterService) SyncRaceTags(ctx context.Context, characterID int, raceName, worldID string) error {
+	raceObj, err := s.repos.Race.GetByName(ctx, raceName, worldID)
 	if err != nil {
 		return err
 	}

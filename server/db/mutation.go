@@ -110,8 +110,8 @@ type AbilityMutation struct {
 	op                   Op
 	typ                  string
 	id                   *int
-	name                 *string
 	world_id             *string
+	name                 *string
 	description          *string
 	ability_type         *string
 	cost                 *int
@@ -248,42 +248,6 @@ func (m *AbilityMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
-// SetName sets the "name" field.
-func (m *AbilityMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *AbilityMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the Ability entity.
-// If the Ability object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AbilityMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *AbilityMutation) ResetName() {
-	m.name = nil
-}
-
 // SetWorldID sets the "world_id" field.
 func (m *AbilityMutation) SetWorldID(s string) {
 	m.world_id = &s
@@ -318,6 +282,42 @@ func (m *AbilityMutation) OldWorldID(ctx context.Context) (v string, err error) 
 // ResetWorldID resets all changes to the "world_id" field.
 func (m *AbilityMutation) ResetWorldID() {
 	m.world_id = nil
+}
+
+// SetName sets the "name" field.
+func (m *AbilityMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AbilityMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Ability entity.
+// If the Ability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbilityMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AbilityMutation) ResetName() {
+	m.name = nil
 }
 
 // SetDescription sets the "description" field.
@@ -1252,11 +1252,11 @@ func (m *AbilityMutation) Type() string {
 // AddedFields().
 func (m *AbilityMutation) Fields() []string {
 	fields := make([]string, 0, 16)
-	if m.name != nil {
-		fields = append(fields, ability.FieldName)
-	}
 	if m.world_id != nil {
 		fields = append(fields, ability.FieldWorldID)
+	}
+	if m.name != nil {
+		fields = append(fields, ability.FieldName)
 	}
 	if m.description != nil {
 		fields = append(fields, ability.FieldDescription)
@@ -1308,10 +1308,10 @@ func (m *AbilityMutation) Fields() []string {
 // schema.
 func (m *AbilityMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case ability.FieldName:
-		return m.Name()
 	case ability.FieldWorldID:
 		return m.WorldID()
+	case ability.FieldName:
+		return m.Name()
 	case ability.FieldDescription:
 		return m.Description()
 	case ability.FieldAbilityType:
@@ -1349,10 +1349,10 @@ func (m *AbilityMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AbilityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case ability.FieldName:
-		return m.OldName(ctx)
 	case ability.FieldWorldID:
 		return m.OldWorldID(ctx)
+	case ability.FieldName:
+		return m.OldName(ctx)
 	case ability.FieldDescription:
 		return m.OldDescription(ctx)
 	case ability.FieldAbilityType:
@@ -1390,19 +1390,19 @@ func (m *AbilityMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *AbilityMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case ability.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
 	case ability.FieldWorldID:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetWorldID(v)
+		return nil
+	case ability.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
 		return nil
 	case ability.FieldDescription:
 		v, ok := value.(string)
@@ -1665,11 +1665,11 @@ func (m *AbilityMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AbilityMutation) ResetField(name string) error {
 	switch name {
-	case ability.FieldName:
-		m.ResetName()
-		return nil
 	case ability.FieldWorldID:
 		m.ResetWorldID()
+		return nil
+	case ability.FieldName:
+		m.ResetName()
 		return nil
 	case ability.FieldDescription:
 		m.ResetDescription()
@@ -18970,12 +18970,16 @@ type EffectHookMutation struct {
 	op                  Op
 	typ                 string
 	id                  *int
+	world_id            *string
 	name                *string
 	event               *string
 	target              *string
 	condition           *string
 	enabled             *bool
 	clearedFields       map[string]struct{}
+	world               map[int]struct{}
+	removedworld        map[int]struct{}
+	clearedworld        bool
 	effect              *int
 	clearedeffect       bool
 	npc_template        *string
@@ -19081,6 +19085,42 @@ func (m *EffectHookMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *EffectHookMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *EffectHookMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the EffectHook entity.
+// If the EffectHook object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EffectHookMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *EffectHookMutation) ResetWorldID() {
+	m.world_id = nil
 }
 
 // SetName sets the "name" field.
@@ -19276,6 +19316,60 @@ func (m *EffectHookMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by ids.
+func (m *EffectHookMutation) AddWorldIDs(ids ...int) {
+	if m.world == nil {
+		m.world = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.world[ids[i]] = struct{}{}
+	}
+}
+
+// ClearWorld clears the "world" edge to the World entity.
+func (m *EffectHookMutation) ClearWorld() {
+	m.clearedworld = true
+}
+
+// WorldCleared reports if the "world" edge to the World entity was cleared.
+func (m *EffectHookMutation) WorldCleared() bool {
+	return m.clearedworld
+}
+
+// RemoveWorldIDs removes the "world" edge to the World entity by IDs.
+func (m *EffectHookMutation) RemoveWorldIDs(ids ...int) {
+	if m.removedworld == nil {
+		m.removedworld = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.world, ids[i])
+		m.removedworld[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWorld returns the removed IDs of the "world" edge to the World entity.
+func (m *EffectHookMutation) RemovedWorldIDs() (ids []int) {
+	for id := range m.removedworld {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WorldIDs returns the "world" edge IDs in the mutation.
+func (m *EffectHookMutation) WorldIDs() (ids []int) {
+	for id := range m.world {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWorld resets all changes to the "world" edge.
+func (m *EffectHookMutation) ResetWorld() {
+	m.world = nil
+	m.clearedworld = false
+	m.removedworld = nil
+}
+
 // SetEffectID sets the "effect" edge to the Effect entity by id.
 func (m *EffectHookMutation) SetEffectID(id int) {
 	m.effect = &id
@@ -19388,7 +19482,10 @@ func (m *EffectHookMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EffectHookMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
+	if m.world_id != nil {
+		fields = append(fields, effecthook.FieldWorldID)
+	}
 	if m.name != nil {
 		fields = append(fields, effecthook.FieldName)
 	}
@@ -19412,6 +19509,8 @@ func (m *EffectHookMutation) Fields() []string {
 // schema.
 func (m *EffectHookMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case effecthook.FieldWorldID:
+		return m.WorldID()
 	case effecthook.FieldName:
 		return m.Name()
 	case effecthook.FieldEvent:
@@ -19431,6 +19530,8 @@ func (m *EffectHookMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *EffectHookMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case effecthook.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case effecthook.FieldName:
 		return m.OldName(ctx)
 	case effecthook.FieldEvent:
@@ -19450,6 +19551,13 @@ func (m *EffectHookMutation) OldField(ctx context.Context, name string) (ent.Val
 // type.
 func (m *EffectHookMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case effecthook.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
 	case effecthook.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -19543,6 +19651,9 @@ func (m *EffectHookMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *EffectHookMutation) ResetField(name string) error {
 	switch name {
+	case effecthook.FieldWorldID:
+		m.ResetWorldID()
+		return nil
 	case effecthook.FieldName:
 		m.ResetName()
 		return nil
@@ -19564,7 +19675,10 @@ func (m *EffectHookMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EffectHookMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.world != nil {
+		edges = append(edges, effecthook.EdgeWorld)
+	}
 	if m.effect != nil {
 		edges = append(edges, effecthook.EdgeEffect)
 	}
@@ -19578,6 +19692,12 @@ func (m *EffectHookMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *EffectHookMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case effecthook.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.world))
+		for id := range m.world {
+			ids = append(ids, id)
+		}
+		return ids
 	case effecthook.EdgeEffect:
 		if id := m.effect; id != nil {
 			return []ent.Value{*id}
@@ -19592,19 +19712,33 @@ func (m *EffectHookMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EffectHookMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedworld != nil {
+		edges = append(edges, effecthook.EdgeWorld)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *EffectHookMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case effecthook.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.removedworld))
+		for id := range m.removedworld {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EffectHookMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedworld {
+		edges = append(edges, effecthook.EdgeWorld)
+	}
 	if m.clearedeffect {
 		edges = append(edges, effecthook.EdgeEffect)
 	}
@@ -19618,6 +19752,8 @@ func (m *EffectHookMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *EffectHookMutation) EdgeCleared(name string) bool {
 	switch name {
+	case effecthook.EdgeWorld:
+		return m.clearedworld
 	case effecthook.EdgeEffect:
 		return m.clearedeffect
 	case effecthook.EdgeNpcTemplate:
@@ -19644,6 +19780,9 @@ func (m *EffectHookMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *EffectHookMutation) ResetEdge(name string) error {
 	switch name {
+	case effecthook.EdgeWorld:
+		m.ResetWorld()
+		return nil
 	case effecthook.EdgeEffect:
 		m.ResetEffect()
 		return nil
@@ -26176,6 +26315,7 @@ type FactionCategoryMutation struct {
 	op                 Op
 	typ                string
 	id                 *int
+	world_id           *string
 	name               *string
 	display_name       *string
 	description        *string
@@ -26184,6 +26324,9 @@ type FactionCategoryMutation struct {
 	auto_join          *bool
 	initial_config     *bool
 	clearedFields      map[string]struct{}
+	world              map[int]struct{}
+	removedworld       map[int]struct{}
+	clearedworld       bool
 	factions           map[int]struct{}
 	removedfactions    map[int]struct{}
 	clearedfactions    bool
@@ -26288,6 +26431,42 @@ func (m *FactionCategoryMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *FactionCategoryMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *FactionCategoryMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the FactionCategory entity.
+// If the FactionCategory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FactionCategoryMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *FactionCategoryMutation) ResetWorldID() {
+	m.world_id = nil
 }
 
 // SetName sets the "name" field.
@@ -26539,6 +26718,60 @@ func (m *FactionCategoryMutation) ResetInitialConfig() {
 	m.initial_config = nil
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by ids.
+func (m *FactionCategoryMutation) AddWorldIDs(ids ...int) {
+	if m.world == nil {
+		m.world = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.world[ids[i]] = struct{}{}
+	}
+}
+
+// ClearWorld clears the "world" edge to the World entity.
+func (m *FactionCategoryMutation) ClearWorld() {
+	m.clearedworld = true
+}
+
+// WorldCleared reports if the "world" edge to the World entity was cleared.
+func (m *FactionCategoryMutation) WorldCleared() bool {
+	return m.clearedworld
+}
+
+// RemoveWorldIDs removes the "world" edge to the World entity by IDs.
+func (m *FactionCategoryMutation) RemoveWorldIDs(ids ...int) {
+	if m.removedworld == nil {
+		m.removedworld = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.world, ids[i])
+		m.removedworld[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWorld returns the removed IDs of the "world" edge to the World entity.
+func (m *FactionCategoryMutation) RemovedWorldIDs() (ids []int) {
+	for id := range m.removedworld {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WorldIDs returns the "world" edge IDs in the mutation.
+func (m *FactionCategoryMutation) WorldIDs() (ids []int) {
+	for id := range m.world {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWorld resets all changes to the "world" edge.
+func (m *FactionCategoryMutation) ResetWorld() {
+	m.world = nil
+	m.clearedworld = false
+	m.removedworld = nil
+}
+
 // AddFactionIDs adds the "factions" edge to the Faction entity by ids.
 func (m *FactionCategoryMutation) AddFactionIDs(ids ...int) {
 	if m.factions == nil {
@@ -26627,7 +26860,10 @@ func (m *FactionCategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FactionCategoryMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
+	if m.world_id != nil {
+		fields = append(fields, factioncategory.FieldWorldID)
+	}
 	if m.name != nil {
 		fields = append(fields, factioncategory.FieldName)
 	}
@@ -26654,6 +26890,8 @@ func (m *FactionCategoryMutation) Fields() []string {
 // schema.
 func (m *FactionCategoryMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case factioncategory.FieldWorldID:
+		return m.WorldID()
 	case factioncategory.FieldName:
 		return m.Name()
 	case factioncategory.FieldDisplayName:
@@ -26675,6 +26913,8 @@ func (m *FactionCategoryMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *FactionCategoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case factioncategory.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case factioncategory.FieldName:
 		return m.OldName(ctx)
 	case factioncategory.FieldDisplayName:
@@ -26696,6 +26936,13 @@ func (m *FactionCategoryMutation) OldField(ctx context.Context, name string) (en
 // type.
 func (m *FactionCategoryMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case factioncategory.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
 	case factioncategory.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -26811,6 +27058,9 @@ func (m *FactionCategoryMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *FactionCategoryMutation) ResetField(name string) error {
 	switch name {
+	case factioncategory.FieldWorldID:
+		m.ResetWorldID()
+		return nil
 	case factioncategory.FieldName:
 		m.ResetName()
 		return nil
@@ -26835,7 +27085,10 @@ func (m *FactionCategoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FactionCategoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.world != nil {
+		edges = append(edges, factioncategory.EdgeWorld)
+	}
 	if m.factions != nil {
 		edges = append(edges, factioncategory.EdgeFactions)
 	}
@@ -26846,6 +27099,12 @@ func (m *FactionCategoryMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *FactionCategoryMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case factioncategory.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.world))
+		for id := range m.world {
+			ids = append(ids, id)
+		}
+		return ids
 	case factioncategory.EdgeFactions:
 		ids := make([]ent.Value, 0, len(m.factions))
 		for id := range m.factions {
@@ -26858,7 +27117,10 @@ func (m *FactionCategoryMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FactionCategoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedworld != nil {
+		edges = append(edges, factioncategory.EdgeWorld)
+	}
 	if m.removedfactions != nil {
 		edges = append(edges, factioncategory.EdgeFactions)
 	}
@@ -26869,6 +27131,12 @@ func (m *FactionCategoryMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *FactionCategoryMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case factioncategory.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.removedworld))
+		for id := range m.removedworld {
+			ids = append(ids, id)
+		}
+		return ids
 	case factioncategory.EdgeFactions:
 		ids := make([]ent.Value, 0, len(m.removedfactions))
 		for id := range m.removedfactions {
@@ -26881,7 +27149,10 @@ func (m *FactionCategoryMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FactionCategoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.clearedworld {
+		edges = append(edges, factioncategory.EdgeWorld)
+	}
 	if m.clearedfactions {
 		edges = append(edges, factioncategory.EdgeFactions)
 	}
@@ -26892,6 +27163,8 @@ func (m *FactionCategoryMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *FactionCategoryMutation) EdgeCleared(name string) bool {
 	switch name {
+	case factioncategory.EdgeWorld:
+		return m.clearedworld
 	case factioncategory.EdgeFactions:
 		return m.clearedfactions
 	}
@@ -26910,6 +27183,9 @@ func (m *FactionCategoryMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *FactionCategoryMutation) ResetEdge(name string) error {
 	switch name {
+	case factioncategory.EdgeWorld:
+		m.ResetWorld()
+		return nil
 	case factioncategory.EdgeFactions:
 		m.ResetFactions()
 		return nil
@@ -27701,6 +27977,7 @@ type GenderMutation struct {
 	subject_pronoun    *string
 	object_pronoun     *string
 	possessive_pronoun *string
+	world_id           *string
 	clearedFields      map[string]struct{}
 	done               bool
 	oldValue           func(context.Context) (*Gender, error)
@@ -27985,6 +28262,42 @@ func (m *GenderMutation) ResetPossessivePronoun() {
 	m.possessive_pronoun = nil
 }
 
+// SetWorldID sets the "world_id" field.
+func (m *GenderMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *GenderMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the Gender entity.
+// If the Gender object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenderMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *GenderMutation) ResetWorldID() {
+	m.world_id = nil
+}
+
 // Where appends a list predicates to the GenderMutation builder.
 func (m *GenderMutation) Where(ps ...predicate.Gender) {
 	m.predicates = append(m.predicates, ps...)
@@ -28019,7 +28332,7 @@ func (m *GenderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenderMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, gender.FieldName)
 	}
@@ -28034,6 +28347,9 @@ func (m *GenderMutation) Fields() []string {
 	}
 	if m.possessive_pronoun != nil {
 		fields = append(fields, gender.FieldPossessivePronoun)
+	}
+	if m.world_id != nil {
+		fields = append(fields, gender.FieldWorldID)
 	}
 	return fields
 }
@@ -28053,6 +28369,8 @@ func (m *GenderMutation) Field(name string) (ent.Value, bool) {
 		return m.ObjectPronoun()
 	case gender.FieldPossessivePronoun:
 		return m.PossessivePronoun()
+	case gender.FieldWorldID:
+		return m.WorldID()
 	}
 	return nil, false
 }
@@ -28072,6 +28390,8 @@ func (m *GenderMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldObjectPronoun(ctx)
 	case gender.FieldPossessivePronoun:
 		return m.OldPossessivePronoun(ctx)
+	case gender.FieldWorldID:
+		return m.OldWorldID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Gender field %s", name)
 }
@@ -28115,6 +28435,13 @@ func (m *GenderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPossessivePronoun(v)
+		return nil
+	case gender.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Gender field %s", name)
@@ -28179,6 +28506,9 @@ func (m *GenderMutation) ResetField(name string) error {
 		return nil
 	case gender.FieldPossessivePronoun:
 		m.ResetPossessivePronoun()
+		return nil
+	case gender.FieldWorldID:
+		m.ResetWorldID()
 		return nil
 	}
 	return fmt.Errorf("unknown Gender field %s", name)
@@ -32081,6 +32411,7 @@ type RaceMutation struct {
 	op                     Op
 	typ                    string
 	id                     *int
+	world_id               *string
 	name                   *string
 	display_name           *string
 	description            *string
@@ -32092,6 +32423,9 @@ type RaceMutation struct {
 	appendrequirement_tags []string
 	color                  *string
 	clearedFields          map[string]struct{}
+	world                  map[int]struct{}
+	removedworld           map[int]struct{}
+	clearedworld           bool
 	tags                   map[int]struct{}
 	removedtags            map[int]struct{}
 	clearedtags            bool
@@ -32199,6 +32533,42 @@ func (m *RaceMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *RaceMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *RaceMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the Race entity.
+// If the Race object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RaceMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *RaceMutation) ResetWorldID() {
+	m.world_id = nil
 }
 
 // SetName sets the "name" field.
@@ -32572,6 +32942,60 @@ func (m *RaceMutation) ResetColor() {
 	delete(m.clearedFields, race.FieldColor)
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by ids.
+func (m *RaceMutation) AddWorldIDs(ids ...int) {
+	if m.world == nil {
+		m.world = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.world[ids[i]] = struct{}{}
+	}
+}
+
+// ClearWorld clears the "world" edge to the World entity.
+func (m *RaceMutation) ClearWorld() {
+	m.clearedworld = true
+}
+
+// WorldCleared reports if the "world" edge to the World entity was cleared.
+func (m *RaceMutation) WorldCleared() bool {
+	return m.clearedworld
+}
+
+// RemoveWorldIDs removes the "world" edge to the World entity by IDs.
+func (m *RaceMutation) RemoveWorldIDs(ids ...int) {
+	if m.removedworld == nil {
+		m.removedworld = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.world, ids[i])
+		m.removedworld[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWorld returns the removed IDs of the "world" edge to the World entity.
+func (m *RaceMutation) RemovedWorldIDs() (ids []int) {
+	for id := range m.removedworld {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WorldIDs returns the "world" edge IDs in the mutation.
+func (m *RaceMutation) WorldIDs() (ids []int) {
+	for id := range m.world {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWorld resets all changes to the "world" edge.
+func (m *RaceMutation) ResetWorld() {
+	m.world = nil
+	m.clearedworld = false
+	m.removedworld = nil
+}
+
 // AddTagIDs adds the "tags" edge to the Tag entity by ids.
 func (m *RaceMutation) AddTagIDs(ids ...int) {
 	if m.tags == nil {
@@ -32714,7 +33138,10 @@ func (m *RaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RaceMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
+	if m.world_id != nil {
+		fields = append(fields, race.FieldWorldID)
+	}
 	if m.name != nil {
 		fields = append(fields, race.FieldName)
 	}
@@ -32747,6 +33174,8 @@ func (m *RaceMutation) Fields() []string {
 // schema.
 func (m *RaceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case race.FieldWorldID:
+		return m.WorldID()
 	case race.FieldName:
 		return m.Name()
 	case race.FieldDisplayName:
@@ -32772,6 +33201,8 @@ func (m *RaceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *RaceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case race.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case race.FieldName:
 		return m.OldName(ctx)
 	case race.FieldDisplayName:
@@ -32797,6 +33228,13 @@ func (m *RaceMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *RaceMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case race.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
 	case race.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -32929,6 +33367,9 @@ func (m *RaceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *RaceMutation) ResetField(name string) error {
 	switch name {
+	case race.FieldWorldID:
+		m.ResetWorldID()
+		return nil
 	case race.FieldName:
 		m.ResetName()
 		return nil
@@ -32959,7 +33400,10 @@ func (m *RaceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RaceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.world != nil {
+		edges = append(edges, race.EdgeWorld)
+	}
 	if m.tags != nil {
 		edges = append(edges, race.EdgeTags)
 	}
@@ -32973,6 +33417,12 @@ func (m *RaceMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *RaceMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case race.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.world))
+		for id := range m.world {
+			ids = append(ids, id)
+		}
+		return ids
 	case race.EdgeTags:
 		ids := make([]ent.Value, 0, len(m.tags))
 		for id := range m.tags {
@@ -32991,7 +33441,10 @@ func (m *RaceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RaceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedworld != nil {
+		edges = append(edges, race.EdgeWorld)
+	}
 	if m.removedtags != nil {
 		edges = append(edges, race.EdgeTags)
 	}
@@ -33005,6 +33458,12 @@ func (m *RaceMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *RaceMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case race.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.removedworld))
+		for id := range m.removedworld {
+			ids = append(ids, id)
+		}
+		return ids
 	case race.EdgeTags:
 		ids := make([]ent.Value, 0, len(m.removedtags))
 		for id := range m.removedtags {
@@ -33023,7 +33482,10 @@ func (m *RaceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RaceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedworld {
+		edges = append(edges, race.EdgeWorld)
+	}
 	if m.clearedtags {
 		edges = append(edges, race.EdgeTags)
 	}
@@ -33037,6 +33499,8 @@ func (m *RaceMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *RaceMutation) EdgeCleared(name string) bool {
 	switch name {
+	case race.EdgeWorld:
+		return m.clearedworld
 	case race.EdgeTags:
 		return m.clearedtags
 	case race.EdgeNpcTemplates:
@@ -33057,6 +33521,9 @@ func (m *RaceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *RaceMutation) ResetEdge(name string) error {
 	switch name {
+	case race.EdgeWorld:
+		m.ResetWorld()
+		return nil
 	case race.EdgeTags:
 		m.ResetTags()
 		return nil
@@ -34403,6 +34870,7 @@ type SocialCommandMutation struct {
 	op             Op
 	typ            string
 	id             *int
+	world_id       *string
 	name           *string
 	displayName    *string
 	selfText       *string
@@ -34413,6 +34881,9 @@ type SocialCommandMutation struct {
 	requiresTarget *bool
 	isEmote        *bool
 	clearedFields  map[string]struct{}
+	world          map[int]struct{}
+	removedworld   map[int]struct{}
+	clearedworld   bool
 	done           bool
 	oldValue       func(context.Context) (*SocialCommand, error)
 	predicates     []predicate.SocialCommand
@@ -34514,6 +34985,42 @@ func (m *SocialCommandMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *SocialCommandMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *SocialCommandMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the SocialCommand entity.
+// If the SocialCommand object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SocialCommandMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *SocialCommandMutation) ResetWorldID() {
+	m.world_id = nil
 }
 
 // SetName sets the "name" field.
@@ -34840,6 +35347,60 @@ func (m *SocialCommandMutation) ResetIsEmote() {
 	m.isEmote = nil
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by ids.
+func (m *SocialCommandMutation) AddWorldIDs(ids ...int) {
+	if m.world == nil {
+		m.world = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.world[ids[i]] = struct{}{}
+	}
+}
+
+// ClearWorld clears the "world" edge to the World entity.
+func (m *SocialCommandMutation) ClearWorld() {
+	m.clearedworld = true
+}
+
+// WorldCleared reports if the "world" edge to the World entity was cleared.
+func (m *SocialCommandMutation) WorldCleared() bool {
+	return m.clearedworld
+}
+
+// RemoveWorldIDs removes the "world" edge to the World entity by IDs.
+func (m *SocialCommandMutation) RemoveWorldIDs(ids ...int) {
+	if m.removedworld == nil {
+		m.removedworld = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.world, ids[i])
+		m.removedworld[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWorld returns the removed IDs of the "world" edge to the World entity.
+func (m *SocialCommandMutation) RemovedWorldIDs() (ids []int) {
+	for id := range m.removedworld {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WorldIDs returns the "world" edge IDs in the mutation.
+func (m *SocialCommandMutation) WorldIDs() (ids []int) {
+	for id := range m.world {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWorld resets all changes to the "world" edge.
+func (m *SocialCommandMutation) ResetWorld() {
+	m.world = nil
+	m.clearedworld = false
+	m.removedworld = nil
+}
+
 // Where appends a list predicates to the SocialCommandMutation builder.
 func (m *SocialCommandMutation) Where(ps ...predicate.SocialCommand) {
 	m.predicates = append(m.predicates, ps...)
@@ -34874,7 +35435,10 @@ func (m *SocialCommandMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SocialCommandMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
+	if m.world_id != nil {
+		fields = append(fields, socialcommand.FieldWorldID)
+	}
 	if m.name != nil {
 		fields = append(fields, socialcommand.FieldName)
 	}
@@ -34910,6 +35474,8 @@ func (m *SocialCommandMutation) Fields() []string {
 // schema.
 func (m *SocialCommandMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case socialcommand.FieldWorldID:
+		return m.WorldID()
 	case socialcommand.FieldName:
 		return m.Name()
 	case socialcommand.FieldDisplayName:
@@ -34937,6 +35503,8 @@ func (m *SocialCommandMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *SocialCommandMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case socialcommand.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case socialcommand.FieldName:
 		return m.OldName(ctx)
 	case socialcommand.FieldDisplayName:
@@ -34964,6 +35532,13 @@ func (m *SocialCommandMutation) OldField(ctx context.Context, name string) (ent.
 // type.
 func (m *SocialCommandMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case socialcommand.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
 	case socialcommand.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -35076,6 +35651,9 @@ func (m *SocialCommandMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *SocialCommandMutation) ResetField(name string) error {
 	switch name {
+	case socialcommand.FieldWorldID:
+		m.ResetWorldID()
+		return nil
 	case socialcommand.FieldName:
 		m.ResetName()
 		return nil
@@ -35109,49 +35687,85 @@ func (m *SocialCommandMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SocialCommandMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.world != nil {
+		edges = append(edges, socialcommand.EdgeWorld)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *SocialCommandMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case socialcommand.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.world))
+		for id := range m.world {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SocialCommandMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedworld != nil {
+		edges = append(edges, socialcommand.EdgeWorld)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SocialCommandMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case socialcommand.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.removedworld))
+		for id := range m.removedworld {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SocialCommandMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedworld {
+		edges = append(edges, socialcommand.EdgeWorld)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *SocialCommandMutation) EdgeCleared(name string) bool {
+	switch name {
+	case socialcommand.EdgeWorld:
+		return m.clearedworld
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *SocialCommandMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown SocialCommand unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *SocialCommandMutation) ResetEdge(name string) error {
+	switch name {
+	case socialcommand.EdgeWorld:
+		m.ResetWorld()
+		return nil
+	}
 	return fmt.Errorf("unknown SocialCommand edge %s", name)
 }
 
@@ -35161,9 +35775,13 @@ type TagMutation struct {
 	op            Op
 	typ           string
 	id            *int
+	world_id      *string
 	name          *string
 	color         *string
 	clearedFields map[string]struct{}
+	world         map[int]struct{}
+	removedworld  map[int]struct{}
+	clearedworld  bool
 	races         map[int]struct{}
 	removedraces  map[int]struct{}
 	clearedraces  bool
@@ -35270,6 +35888,42 @@ func (m *TagMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetWorldID sets the "world_id" field.
+func (m *TagMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *TagMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the Tag entity.
+// If the Tag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TagMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *TagMutation) ResetWorldID() {
+	m.world_id = nil
+}
+
 // SetName sets the "name" field.
 func (m *TagMutation) SetName(s string) {
 	m.name = &s
@@ -35353,6 +36007,60 @@ func (m *TagMutation) ColorCleared() bool {
 func (m *TagMutation) ResetColor() {
 	m.color = nil
 	delete(m.clearedFields, tag.FieldColor)
+}
+
+// AddWorldIDs adds the "world" edge to the World entity by ids.
+func (m *TagMutation) AddWorldIDs(ids ...int) {
+	if m.world == nil {
+		m.world = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.world[ids[i]] = struct{}{}
+	}
+}
+
+// ClearWorld clears the "world" edge to the World entity.
+func (m *TagMutation) ClearWorld() {
+	m.clearedworld = true
+}
+
+// WorldCleared reports if the "world" edge to the World entity was cleared.
+func (m *TagMutation) WorldCleared() bool {
+	return m.clearedworld
+}
+
+// RemoveWorldIDs removes the "world" edge to the World entity by IDs.
+func (m *TagMutation) RemoveWorldIDs(ids ...int) {
+	if m.removedworld == nil {
+		m.removedworld = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.world, ids[i])
+		m.removedworld[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWorld returns the removed IDs of the "world" edge to the World entity.
+func (m *TagMutation) RemovedWorldIDs() (ids []int) {
+	for id := range m.removedworld {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WorldIDs returns the "world" edge IDs in the mutation.
+func (m *TagMutation) WorldIDs() (ids []int) {
+	for id := range m.world {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWorld resets all changes to the "world" edge.
+func (m *TagMutation) ResetWorld() {
+	m.world = nil
+	m.clearedworld = false
+	m.removedworld = nil
 }
 
 // AddRaceIDs adds the "races" edge to the Race entity by ids.
@@ -35443,7 +36151,10 @@ func (m *TagMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TagMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
+	if m.world_id != nil {
+		fields = append(fields, tag.FieldWorldID)
+	}
 	if m.name != nil {
 		fields = append(fields, tag.FieldName)
 	}
@@ -35458,6 +36169,8 @@ func (m *TagMutation) Fields() []string {
 // schema.
 func (m *TagMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case tag.FieldWorldID:
+		return m.WorldID()
 	case tag.FieldName:
 		return m.Name()
 	case tag.FieldColor:
@@ -35471,6 +36184,8 @@ func (m *TagMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *TagMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case tag.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case tag.FieldName:
 		return m.OldName(ctx)
 	case tag.FieldColor:
@@ -35484,6 +36199,13 @@ func (m *TagMutation) OldField(ctx context.Context, name string) (ent.Value, err
 // type.
 func (m *TagMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case tag.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
 	case tag.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -35556,6 +36278,9 @@ func (m *TagMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *TagMutation) ResetField(name string) error {
 	switch name {
+	case tag.FieldWorldID:
+		m.ResetWorldID()
+		return nil
 	case tag.FieldName:
 		m.ResetName()
 		return nil
@@ -35568,7 +36293,10 @@ func (m *TagMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TagMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.world != nil {
+		edges = append(edges, tag.EdgeWorld)
+	}
 	if m.races != nil {
 		edges = append(edges, tag.EdgeRaces)
 	}
@@ -35579,6 +36307,12 @@ func (m *TagMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *TagMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case tag.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.world))
+		for id := range m.world {
+			ids = append(ids, id)
+		}
+		return ids
 	case tag.EdgeRaces:
 		ids := make([]ent.Value, 0, len(m.races))
 		for id := range m.races {
@@ -35591,7 +36325,10 @@ func (m *TagMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TagMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedworld != nil {
+		edges = append(edges, tag.EdgeWorld)
+	}
 	if m.removedraces != nil {
 		edges = append(edges, tag.EdgeRaces)
 	}
@@ -35602,6 +36339,12 @@ func (m *TagMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *TagMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case tag.EdgeWorld:
+		ids := make([]ent.Value, 0, len(m.removedworld))
+		for id := range m.removedworld {
+			ids = append(ids, id)
+		}
+		return ids
 	case tag.EdgeRaces:
 		ids := make([]ent.Value, 0, len(m.removedraces))
 		for id := range m.removedraces {
@@ -35614,7 +36357,10 @@ func (m *TagMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TagMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.clearedworld {
+		edges = append(edges, tag.EdgeWorld)
+	}
 	if m.clearedraces {
 		edges = append(edges, tag.EdgeRaces)
 	}
@@ -35625,6 +36371,8 @@ func (m *TagMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *TagMutation) EdgeCleared(name string) bool {
 	switch name {
+	case tag.EdgeWorld:
+		return m.clearedworld
 	case tag.EdgeRaces:
 		return m.clearedraces
 	}
@@ -35643,6 +36391,9 @@ func (m *TagMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *TagMutation) ResetEdge(name string) error {
 	switch name {
+	case tag.EdgeWorld:
+		m.ResetWorld()
+		return nil
 	case tag.EdgeRaces:
 		m.ResetRaces()
 		return nil
@@ -38116,20 +38867,38 @@ func (m *UserMutation) ResetEdge(name string) error {
 // WorldMutation represents an operation that mutates the World nodes in the graph.
 type WorldMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	name              *string
-	title             *string
-	description       *string
-	active            *bool
-	clearedFields     map[string]struct{}
-	characters        map[int]struct{}
-	removedcharacters map[int]struct{}
-	clearedcharacters bool
-	done              bool
-	oldValue          func(context.Context) (*World, error)
-	predicates        []predicate.World
+	op                        Op
+	typ                       string
+	id                        *int
+	name                      *string
+	title                     *string
+	description               *string
+	active                    *bool
+	clearedFields             map[string]struct{}
+	characters                map[int]struct{}
+	removedcharacters         map[int]struct{}
+	clearedcharacters         bool
+	races                     map[int]struct{}
+	removedraces              map[int]struct{}
+	clearedraces              bool
+	genders                   map[int]struct{}
+	removedgenders            map[int]struct{}
+	clearedgenders            bool
+	tags                      map[int]struct{}
+	removedtags               map[int]struct{}
+	clearedtags               bool
+	social_commands           map[int]struct{}
+	removedsocial_commands    map[int]struct{}
+	clearedsocial_commands    bool
+	faction_categories        map[int]struct{}
+	removedfaction_categories map[int]struct{}
+	clearedfaction_categories bool
+	effect_hooks              map[int]struct{}
+	removedeffect_hooks       map[int]struct{}
+	clearedeffect_hooks       bool
+	done                      bool
+	oldValue                  func(context.Context) (*World, error)
+	predicates                []predicate.World
 }
 
 var _ ent.Mutation = (*WorldMutation)(nil)
@@ -38441,6 +39210,330 @@ func (m *WorldMutation) ResetCharacters() {
 	m.removedcharacters = nil
 }
 
+// AddRaceIDs adds the "races" edge to the Race entity by ids.
+func (m *WorldMutation) AddRaceIDs(ids ...int) {
+	if m.races == nil {
+		m.races = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.races[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRaces clears the "races" edge to the Race entity.
+func (m *WorldMutation) ClearRaces() {
+	m.clearedraces = true
+}
+
+// RacesCleared reports if the "races" edge to the Race entity was cleared.
+func (m *WorldMutation) RacesCleared() bool {
+	return m.clearedraces
+}
+
+// RemoveRaceIDs removes the "races" edge to the Race entity by IDs.
+func (m *WorldMutation) RemoveRaceIDs(ids ...int) {
+	if m.removedraces == nil {
+		m.removedraces = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.races, ids[i])
+		m.removedraces[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRaces returns the removed IDs of the "races" edge to the Race entity.
+func (m *WorldMutation) RemovedRacesIDs() (ids []int) {
+	for id := range m.removedraces {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RacesIDs returns the "races" edge IDs in the mutation.
+func (m *WorldMutation) RacesIDs() (ids []int) {
+	for id := range m.races {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRaces resets all changes to the "races" edge.
+func (m *WorldMutation) ResetRaces() {
+	m.races = nil
+	m.clearedraces = false
+	m.removedraces = nil
+}
+
+// AddGenderIDs adds the "genders" edge to the Gender entity by ids.
+func (m *WorldMutation) AddGenderIDs(ids ...int) {
+	if m.genders == nil {
+		m.genders = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.genders[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGenders clears the "genders" edge to the Gender entity.
+func (m *WorldMutation) ClearGenders() {
+	m.clearedgenders = true
+}
+
+// GendersCleared reports if the "genders" edge to the Gender entity was cleared.
+func (m *WorldMutation) GendersCleared() bool {
+	return m.clearedgenders
+}
+
+// RemoveGenderIDs removes the "genders" edge to the Gender entity by IDs.
+func (m *WorldMutation) RemoveGenderIDs(ids ...int) {
+	if m.removedgenders == nil {
+		m.removedgenders = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.genders, ids[i])
+		m.removedgenders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGenders returns the removed IDs of the "genders" edge to the Gender entity.
+func (m *WorldMutation) RemovedGendersIDs() (ids []int) {
+	for id := range m.removedgenders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GendersIDs returns the "genders" edge IDs in the mutation.
+func (m *WorldMutation) GendersIDs() (ids []int) {
+	for id := range m.genders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGenders resets all changes to the "genders" edge.
+func (m *WorldMutation) ResetGenders() {
+	m.genders = nil
+	m.clearedgenders = false
+	m.removedgenders = nil
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by ids.
+func (m *WorldMutation) AddTagIDs(ids ...int) {
+	if m.tags == nil {
+		m.tags = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.tags[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTags clears the "tags" edge to the Tag entity.
+func (m *WorldMutation) ClearTags() {
+	m.clearedtags = true
+}
+
+// TagsCleared reports if the "tags" edge to the Tag entity was cleared.
+func (m *WorldMutation) TagsCleared() bool {
+	return m.clearedtags
+}
+
+// RemoveTagIDs removes the "tags" edge to the Tag entity by IDs.
+func (m *WorldMutation) RemoveTagIDs(ids ...int) {
+	if m.removedtags == nil {
+		m.removedtags = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.tags, ids[i])
+		m.removedtags[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTags returns the removed IDs of the "tags" edge to the Tag entity.
+func (m *WorldMutation) RemovedTagsIDs() (ids []int) {
+	for id := range m.removedtags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TagsIDs returns the "tags" edge IDs in the mutation.
+func (m *WorldMutation) TagsIDs() (ids []int) {
+	for id := range m.tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTags resets all changes to the "tags" edge.
+func (m *WorldMutation) ResetTags() {
+	m.tags = nil
+	m.clearedtags = false
+	m.removedtags = nil
+}
+
+// AddSocialCommandIDs adds the "social_commands" edge to the SocialCommand entity by ids.
+func (m *WorldMutation) AddSocialCommandIDs(ids ...int) {
+	if m.social_commands == nil {
+		m.social_commands = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.social_commands[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSocialCommands clears the "social_commands" edge to the SocialCommand entity.
+func (m *WorldMutation) ClearSocialCommands() {
+	m.clearedsocial_commands = true
+}
+
+// SocialCommandsCleared reports if the "social_commands" edge to the SocialCommand entity was cleared.
+func (m *WorldMutation) SocialCommandsCleared() bool {
+	return m.clearedsocial_commands
+}
+
+// RemoveSocialCommandIDs removes the "social_commands" edge to the SocialCommand entity by IDs.
+func (m *WorldMutation) RemoveSocialCommandIDs(ids ...int) {
+	if m.removedsocial_commands == nil {
+		m.removedsocial_commands = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.social_commands, ids[i])
+		m.removedsocial_commands[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSocialCommands returns the removed IDs of the "social_commands" edge to the SocialCommand entity.
+func (m *WorldMutation) RemovedSocialCommandsIDs() (ids []int) {
+	for id := range m.removedsocial_commands {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SocialCommandsIDs returns the "social_commands" edge IDs in the mutation.
+func (m *WorldMutation) SocialCommandsIDs() (ids []int) {
+	for id := range m.social_commands {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSocialCommands resets all changes to the "social_commands" edge.
+func (m *WorldMutation) ResetSocialCommands() {
+	m.social_commands = nil
+	m.clearedsocial_commands = false
+	m.removedsocial_commands = nil
+}
+
+// AddFactionCategoryIDs adds the "faction_categories" edge to the FactionCategory entity by ids.
+func (m *WorldMutation) AddFactionCategoryIDs(ids ...int) {
+	if m.faction_categories == nil {
+		m.faction_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.faction_categories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFactionCategories clears the "faction_categories" edge to the FactionCategory entity.
+func (m *WorldMutation) ClearFactionCategories() {
+	m.clearedfaction_categories = true
+}
+
+// FactionCategoriesCleared reports if the "faction_categories" edge to the FactionCategory entity was cleared.
+func (m *WorldMutation) FactionCategoriesCleared() bool {
+	return m.clearedfaction_categories
+}
+
+// RemoveFactionCategoryIDs removes the "faction_categories" edge to the FactionCategory entity by IDs.
+func (m *WorldMutation) RemoveFactionCategoryIDs(ids ...int) {
+	if m.removedfaction_categories == nil {
+		m.removedfaction_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.faction_categories, ids[i])
+		m.removedfaction_categories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFactionCategories returns the removed IDs of the "faction_categories" edge to the FactionCategory entity.
+func (m *WorldMutation) RemovedFactionCategoriesIDs() (ids []int) {
+	for id := range m.removedfaction_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FactionCategoriesIDs returns the "faction_categories" edge IDs in the mutation.
+func (m *WorldMutation) FactionCategoriesIDs() (ids []int) {
+	for id := range m.faction_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFactionCategories resets all changes to the "faction_categories" edge.
+func (m *WorldMutation) ResetFactionCategories() {
+	m.faction_categories = nil
+	m.clearedfaction_categories = false
+	m.removedfaction_categories = nil
+}
+
+// AddEffectHookIDs adds the "effect_hooks" edge to the EffectHook entity by ids.
+func (m *WorldMutation) AddEffectHookIDs(ids ...int) {
+	if m.effect_hooks == nil {
+		m.effect_hooks = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.effect_hooks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEffectHooks clears the "effect_hooks" edge to the EffectHook entity.
+func (m *WorldMutation) ClearEffectHooks() {
+	m.clearedeffect_hooks = true
+}
+
+// EffectHooksCleared reports if the "effect_hooks" edge to the EffectHook entity was cleared.
+func (m *WorldMutation) EffectHooksCleared() bool {
+	return m.clearedeffect_hooks
+}
+
+// RemoveEffectHookIDs removes the "effect_hooks" edge to the EffectHook entity by IDs.
+func (m *WorldMutation) RemoveEffectHookIDs(ids ...int) {
+	if m.removedeffect_hooks == nil {
+		m.removedeffect_hooks = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.effect_hooks, ids[i])
+		m.removedeffect_hooks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEffectHooks returns the removed IDs of the "effect_hooks" edge to the EffectHook entity.
+func (m *WorldMutation) RemovedEffectHooksIDs() (ids []int) {
+	for id := range m.removedeffect_hooks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EffectHooksIDs returns the "effect_hooks" edge IDs in the mutation.
+func (m *WorldMutation) EffectHooksIDs() (ids []int) {
+	for id := range m.effect_hooks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEffectHooks resets all changes to the "effect_hooks" edge.
+func (m *WorldMutation) ResetEffectHooks() {
+	m.effect_hooks = nil
+	m.clearedeffect_hooks = false
+	m.removedeffect_hooks = nil
+}
+
 // Where appends a list predicates to the WorldMutation builder.
 func (m *WorldMutation) Where(ps ...predicate.World) {
 	m.predicates = append(m.predicates, ps...)
@@ -38634,9 +39727,27 @@ func (m *WorldMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WorldMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 7)
 	if m.characters != nil {
 		edges = append(edges, world.EdgeCharacters)
+	}
+	if m.races != nil {
+		edges = append(edges, world.EdgeRaces)
+	}
+	if m.genders != nil {
+		edges = append(edges, world.EdgeGenders)
+	}
+	if m.tags != nil {
+		edges = append(edges, world.EdgeTags)
+	}
+	if m.social_commands != nil {
+		edges = append(edges, world.EdgeSocialCommands)
+	}
+	if m.faction_categories != nil {
+		edges = append(edges, world.EdgeFactionCategories)
+	}
+	if m.effect_hooks != nil {
+		edges = append(edges, world.EdgeEffectHooks)
 	}
 	return edges
 }
@@ -38651,15 +39762,69 @@ func (m *WorldMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case world.EdgeRaces:
+		ids := make([]ent.Value, 0, len(m.races))
+		for id := range m.races {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeGenders:
+		ids := make([]ent.Value, 0, len(m.genders))
+		for id := range m.genders {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeTags:
+		ids := make([]ent.Value, 0, len(m.tags))
+		for id := range m.tags {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeSocialCommands:
+		ids := make([]ent.Value, 0, len(m.social_commands))
+		for id := range m.social_commands {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeFactionCategories:
+		ids := make([]ent.Value, 0, len(m.faction_categories))
+		for id := range m.faction_categories {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeEffectHooks:
+		ids := make([]ent.Value, 0, len(m.effect_hooks))
+		for id := range m.effect_hooks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WorldMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 7)
 	if m.removedcharacters != nil {
 		edges = append(edges, world.EdgeCharacters)
+	}
+	if m.removedraces != nil {
+		edges = append(edges, world.EdgeRaces)
+	}
+	if m.removedgenders != nil {
+		edges = append(edges, world.EdgeGenders)
+	}
+	if m.removedtags != nil {
+		edges = append(edges, world.EdgeTags)
+	}
+	if m.removedsocial_commands != nil {
+		edges = append(edges, world.EdgeSocialCommands)
+	}
+	if m.removedfaction_categories != nil {
+		edges = append(edges, world.EdgeFactionCategories)
+	}
+	if m.removedeffect_hooks != nil {
+		edges = append(edges, world.EdgeEffectHooks)
 	}
 	return edges
 }
@@ -38674,15 +39839,69 @@ func (m *WorldMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case world.EdgeRaces:
+		ids := make([]ent.Value, 0, len(m.removedraces))
+		for id := range m.removedraces {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeGenders:
+		ids := make([]ent.Value, 0, len(m.removedgenders))
+		for id := range m.removedgenders {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeTags:
+		ids := make([]ent.Value, 0, len(m.removedtags))
+		for id := range m.removedtags {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeSocialCommands:
+		ids := make([]ent.Value, 0, len(m.removedsocial_commands))
+		for id := range m.removedsocial_commands {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeFactionCategories:
+		ids := make([]ent.Value, 0, len(m.removedfaction_categories))
+		for id := range m.removedfaction_categories {
+			ids = append(ids, id)
+		}
+		return ids
+	case world.EdgeEffectHooks:
+		ids := make([]ent.Value, 0, len(m.removedeffect_hooks))
+		for id := range m.removedeffect_hooks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WorldMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 7)
 	if m.clearedcharacters {
 		edges = append(edges, world.EdgeCharacters)
+	}
+	if m.clearedraces {
+		edges = append(edges, world.EdgeRaces)
+	}
+	if m.clearedgenders {
+		edges = append(edges, world.EdgeGenders)
+	}
+	if m.clearedtags {
+		edges = append(edges, world.EdgeTags)
+	}
+	if m.clearedsocial_commands {
+		edges = append(edges, world.EdgeSocialCommands)
+	}
+	if m.clearedfaction_categories {
+		edges = append(edges, world.EdgeFactionCategories)
+	}
+	if m.clearedeffect_hooks {
+		edges = append(edges, world.EdgeEffectHooks)
 	}
 	return edges
 }
@@ -38693,6 +39912,18 @@ func (m *WorldMutation) EdgeCleared(name string) bool {
 	switch name {
 	case world.EdgeCharacters:
 		return m.clearedcharacters
+	case world.EdgeRaces:
+		return m.clearedraces
+	case world.EdgeGenders:
+		return m.clearedgenders
+	case world.EdgeTags:
+		return m.clearedtags
+	case world.EdgeSocialCommands:
+		return m.clearedsocial_commands
+	case world.EdgeFactionCategories:
+		return m.clearedfaction_categories
+	case world.EdgeEffectHooks:
+		return m.clearedeffect_hooks
 	}
 	return false
 }
@@ -38711,6 +39942,24 @@ func (m *WorldMutation) ResetEdge(name string) error {
 	switch name {
 	case world.EdgeCharacters:
 		m.ResetCharacters()
+		return nil
+	case world.EdgeRaces:
+		m.ResetRaces()
+		return nil
+	case world.EdgeGenders:
+		m.ResetGenders()
+		return nil
+	case world.EdgeTags:
+		m.ResetTags()
+		return nil
+	case world.EdgeSocialCommands:
+		m.ResetSocialCommands()
+		return nil
+	case world.EdgeFactionCategories:
+		m.ResetFactionCategories()
+		return nil
+	case world.EdgeEffectHooks:
+		m.ResetEffectHooks()
 		return nil
 	}
 	return fmt.Errorf("unknown World edge %s", name)

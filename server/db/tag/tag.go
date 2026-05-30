@@ -12,14 +12,23 @@ const (
 	Label = "tag"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldColor holds the string denoting the color field in the database.
 	FieldColor = "color"
+	// EdgeWorld holds the string denoting the world edge name in mutations.
+	EdgeWorld = "world"
 	// EdgeRaces holds the string denoting the races edge name in mutations.
 	EdgeRaces = "races"
 	// Table holds the table name of the tag in the database.
 	Table = "tags"
+	// WorldTable is the table that holds the world relation/edge. The primary key declared below.
+	WorldTable = "world_tags"
+	// WorldInverseTable is the table name for the World entity.
+	// It exists in this package in order to avoid circular dependency with the "world" package.
+	WorldInverseTable = "worlds"
 	// RacesTable is the table that holds the races relation/edge. The primary key declared below.
 	RacesTable = "tag_races"
 	// RacesInverseTable is the table name for the Race entity.
@@ -30,11 +39,15 @@ const (
 // Columns holds all SQL columns for tag fields.
 var Columns = []string{
 	FieldID,
+	FieldWorldID,
 	FieldName,
 	FieldColor,
 }
 
 var (
+	// WorldPrimaryKey and WorldColumn2 are the table columns denoting the
+	// primary key for the world relation (M2M).
+	WorldPrimaryKey = []string{"world_id", "tag_id"}
 	// RacesPrimaryKey and RacesColumn2 are the table columns denoting the
 	// primary key for the races relation (M2M).
 	RacesPrimaryKey = []string{"tag_id", "race_id"}
@@ -50,12 +63,22 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
+)
+
 // OrderOption defines the ordering options for the Tag queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -66,6 +89,20 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByColor orders the results by the color field.
 func ByColor(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldColor, opts...).ToFunc()
+}
+
+// ByWorldCount orders the results by world count.
+func ByWorldCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorldStep(), opts...)
+	}
+}
+
+// ByWorld orders the results by world terms.
+func ByWorld(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorldStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
 }
 
 // ByRacesCount orders the results by races count.
@@ -80,6 +117,13 @@ func ByRaces(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newRacesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
+}
+func newWorldStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorldInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, WorldTable, WorldPrimaryKey...),
+	)
 }
 func newRacesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

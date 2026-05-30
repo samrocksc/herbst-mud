@@ -20,15 +20,15 @@ func (r *entRaceRepo) Get(ctx context.Context, id int) (*db.Race, error) {
 	return r.client.Race.Get(ctx, id)
 }
 
-func (r *entRaceRepo) GetByName(ctx context.Context, name string) (*db.Race, error) {
+func (r *entRaceRepo) GetByName(ctx context.Context, name, worldID string) (*db.Race, error) {
 	return r.client.Race.Query().
-		Where(race.NameEQ(name)).
+		Where(race.Name(name), race.WorldID(worldID)).
 		WithTags().
 		Only(ctx)
 }
 
-func (r *entRaceRepo) List(ctx context.Context) ([]*db.Race, error) {
-	return r.client.Race.Query().All(ctx)
+func (r *entRaceRepo) List(ctx context.Context, worldID string) ([]*db.Race, error) {
+	return r.client.Race.Query().Where(race.WorldID(worldID)).All(ctx)
 }
 
 func (r *entRaceRepo) Create(ctx context.Context, input CreateRaceInput) (*db.Race, error) {
@@ -59,7 +59,7 @@ func (r *entRaceRepo) Create(ctx context.Context, input CreateRaceInput) (*db.Ra
 		Only(ctx)
 }
 
-func (r *entRaceRepo) CountCharactersByRaceName(ctx context.Context, raceName string) (int, error) {
+func (r *entRaceRepo) CountCharactersByRaceName(ctx context.Context, raceName, worldID string) (int, error) {
 	return r.client.Character.Query().
 		Where(character.RaceEQ(raceName)).
 		Count(ctx)
@@ -72,8 +72,8 @@ func (r *entRaceRepo) GetWithTags(ctx context.Context, id int) (*db.Race, error)
 		Only(ctx)
 }
 
-func (r *entRaceRepo) ListWithTags(ctx context.Context) ([]*db.Race, error) {
-	return r.client.Race.Query().WithTags().All(ctx)
+func (r *entRaceRepo) ListWithTags(ctx context.Context, worldID string) ([]*db.Race, error) {
+	return r.client.Race.Query().Where(race.WorldID(worldID)).WithTags().All(ctx)
 }
 
 func (r *entRaceRepo) Update(ctx context.Context, id int, updates RaceUpdates) (*db.Race, error) {
@@ -124,10 +124,12 @@ type Race struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+	WorldID     string `json:"world_id"`
 }
 
-func (r *entRaceRepo) ListPlayable(ctx context.Context) ([]*Race, error) {
+func (r *entRaceRepo) ListPlayable(ctx context.Context, worldID string) ([]*Race, error) {
 	all, err := r.client.Race.Query().
+		Where(race.WorldID(worldID)).
 		Order(race.ByName()).
 		All(ctx)
 	if err != nil {
@@ -141,6 +143,7 @@ func (r *entRaceRepo) ListPlayable(ctx context.Context) ([]*Race, error) {
 				ID:          item.ID,
 				Name:        item.Name,
 				DisplayName: item.DisplayName,
+				WorldID:     item.WorldID,
 			})
 		}
 	}

@@ -16,6 +16,8 @@ type SocialCommand struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// World this social command belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// Social command name, e.g., smile, bow, wave
 	Name string `json:"name,omitempty"`
 	// Display name for the social
@@ -33,8 +35,29 @@ type SocialCommand struct {
 	// True if social requires a target character
 	RequiresTarget bool `json:"requiresTarget,omitempty"`
 	// True if this is an emote (displayed with *text*)
-	IsEmote      bool `json:"isEmote,omitempty"`
+	IsEmote bool `json:"isEmote,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SocialCommandQuery when eager-loading is set.
+	Edges        SocialCommandEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// SocialCommandEdges holds the relations/edges for other nodes in the graph.
+type SocialCommandEdges struct {
+	// World holds the value of the world edge.
+	World []*World `json:"world,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// WorldOrErr returns the World value or an error if the edge
+// was not loaded in eager-loading.
+func (e SocialCommandEdges) WorldOrErr() ([]*World, error) {
+	if e.loadedTypes[0] {
+		return e.World, nil
+	}
+	return nil, &NotLoadedError{edge: "world"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -46,7 +69,7 @@ func (*SocialCommand) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case socialcommand.FieldID:
 			values[i] = new(sql.NullInt64)
-		case socialcommand.FieldName, socialcommand.FieldDisplayName, socialcommand.FieldSelfText, socialcommand.FieldRoomText, socialcommand.FieldTargetSelfText, socialcommand.FieldTargetText, socialcommand.FieldTargetRoomText:
+		case socialcommand.FieldWorldID, socialcommand.FieldName, socialcommand.FieldDisplayName, socialcommand.FieldSelfText, socialcommand.FieldRoomText, socialcommand.FieldTargetSelfText, socialcommand.FieldTargetText, socialcommand.FieldTargetRoomText:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -69,6 +92,12 @@ func (_m *SocialCommand) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case socialcommand.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
+			}
 		case socialcommand.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -136,6 +165,11 @@ func (_m *SocialCommand) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryWorld queries the "world" edge of the SocialCommand entity.
+func (_m *SocialCommand) QueryWorld() *WorldQuery {
+	return NewSocialCommandClient(_m.config).QueryWorld(_m)
+}
+
 // Update returns a builder for updating this SocialCommand.
 // Note that you need to call SocialCommand.Unwrap() before calling this method if this SocialCommand
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -159,6 +193,9 @@ func (_m *SocialCommand) String() string {
 	var builder strings.Builder
 	builder.WriteString("SocialCommand(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

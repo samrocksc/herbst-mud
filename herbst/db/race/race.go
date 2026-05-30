@@ -4,7 +4,6 @@ package race
 
 import (
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -12,6 +11,8 @@ const (
 	Label = "race"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDisplayName holds the string denoting the display_name field in the database.
@@ -28,22 +29,14 @@ const (
 	FieldRequirementTags = "requirement_tags"
 	// FieldColor holds the string denoting the color field in the database.
 	FieldColor = "color"
-	// EdgeNpcTemplates holds the string denoting the npc_templates edge name in mutations.
-	EdgeNpcTemplates = "npc_templates"
 	// Table holds the table name of the race in the database.
 	Table = "races"
-	// NpcTemplatesTable is the table that holds the npc_templates relation/edge.
-	NpcTemplatesTable = "npc_templates"
-	// NpcTemplatesInverseTable is the table name for the NPCTemplate entity.
-	// It exists in this package in order to avoid circular dependency with the "npctemplate" package.
-	NpcTemplatesInverseTable = "npc_templates"
-	// NpcTemplatesColumn is the table column denoting the npc_templates relation/edge.
-	NpcTemplatesColumn = "race_id"
 )
 
 // Columns holds all SQL columns for race fields.
 var Columns = []string{
 	FieldID,
+	FieldWorldID,
 	FieldName,
 	FieldDisplayName,
 	FieldDescription,
@@ -65,6 +58,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
 	// DefaultEquipmentSlots holds the default value on creation for the "equipment_slots" field.
 	DefaultEquipmentSlots []string
 	// DefaultRequirementTags holds the default value on creation for the "requirement_tags" field.
@@ -77,6 +72,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -107,25 +107,4 @@ func BySkillGrants(opts ...sql.OrderTermOption) OrderOption {
 // ByColor orders the results by the color field.
 func ByColor(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldColor, opts...).ToFunc()
-}
-
-// ByNpcTemplatesCount orders the results by npc_templates count.
-func ByNpcTemplatesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newNpcTemplatesStep(), opts...)
-	}
-}
-
-// ByNpcTemplates orders the results by npc_templates terms.
-func ByNpcTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newNpcTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-func newNpcTemplatesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(NpcTemplatesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, NpcTemplatesTable, NpcTemplatesColumn),
-	)
 }

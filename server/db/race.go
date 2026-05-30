@@ -17,6 +17,8 @@ type Race struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// World this race belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// Internal ID: human, turtle, mutant
 	Name string `json:"name,omitempty"`
 	// Shown in UI: Human, Turtle, Mutant
@@ -41,19 +43,30 @@ type Race struct {
 
 // RaceEdges holds the relations/edges for other nodes in the graph.
 type RaceEdges struct {
+	// World holds the value of the world edge.
+	World []*World `json:"world,omitempty"`
 	// Tags holds the value of the tags edge.
 	Tags []*Tag `json:"tags,omitempty"`
 	// NpcTemplates holds the value of the npc_templates edge.
 	NpcTemplates []*NPCTemplate `json:"npc_templates,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// WorldOrErr returns the World value or an error if the edge
+// was not loaded in eager-loading.
+func (e RaceEdges) WorldOrErr() ([]*World, error) {
+	if e.loadedTypes[0] {
+		return e.World, nil
+	}
+	return nil, &NotLoadedError{edge: "world"}
 }
 
 // TagsOrErr returns the Tags value or an error if the edge
 // was not loaded in eager-loading.
 func (e RaceEdges) TagsOrErr() ([]*Tag, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Tags, nil
 	}
 	return nil, &NotLoadedError{edge: "tags"}
@@ -62,7 +75,7 @@ func (e RaceEdges) TagsOrErr() ([]*Tag, error) {
 // NpcTemplatesOrErr returns the NpcTemplates value or an error if the edge
 // was not loaded in eager-loading.
 func (e RaceEdges) NpcTemplatesOrErr() ([]*NPCTemplate, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.NpcTemplates, nil
 	}
 	return nil, &NotLoadedError{edge: "npc_templates"}
@@ -77,7 +90,7 @@ func (*Race) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case race.FieldID:
 			values[i] = new(sql.NullInt64)
-		case race.FieldName, race.FieldDisplayName, race.FieldDescription, race.FieldStatModifiers, race.FieldSkillGrants, race.FieldColor:
+		case race.FieldWorldID, race.FieldName, race.FieldDisplayName, race.FieldDescription, race.FieldStatModifiers, race.FieldSkillGrants, race.FieldColor:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -100,6 +113,12 @@ func (_m *Race) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case race.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
+			}
 		case race.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -165,6 +184,11 @@ func (_m *Race) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryWorld queries the "world" edge of the Race entity.
+func (_m *Race) QueryWorld() *WorldQuery {
+	return NewRaceClient(_m.config).QueryWorld(_m)
+}
+
 // QueryTags queries the "tags" edge of the Race entity.
 func (_m *Race) QueryTags() *TagQuery {
 	return NewRaceClient(_m.config).QueryTags(_m)
@@ -198,6 +222,9 @@ func (_m *Race) String() string {
 	var builder strings.Builder
 	builder.WriteString("Race(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

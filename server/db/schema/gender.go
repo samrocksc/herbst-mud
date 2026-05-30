@@ -24,6 +24,9 @@ func (Gender) Fields() []ent.Field {
 			Comment("him, her, them"),
 		field.String("possessive_pronoun").
 			Comment("his, hers, theirs"),
+		field.String("world_id").
+			Default("1").
+			Comment("World this gender belongs to (for multi-world support)"),
 	}
 }
 

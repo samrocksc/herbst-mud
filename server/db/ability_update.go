@@ -31,20 +31,6 @@ func (_u *AbilityUpdate) Where(ps ...predicate.Ability) *AbilityUpdate {
 	return _u
 }
 
-// SetName sets the "name" field.
-func (_u *AbilityUpdate) SetName(v string) *AbilityUpdate {
-	_u.mutation.SetName(v)
-	return _u
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *AbilityUpdate) SetNillableName(v *string) *AbilityUpdate {
-	if v != nil {
-		_u.SetName(*v)
-	}
-	return _u
-}
-
 // SetWorldID sets the "world_id" field.
 func (_u *AbilityUpdate) SetWorldID(v string) *AbilityUpdate {
 	_u.mutation.SetWorldID(v)
@@ -55,6 +41,20 @@ func (_u *AbilityUpdate) SetWorldID(v string) *AbilityUpdate {
 func (_u *AbilityUpdate) SetNillableWorldID(v *string) *AbilityUpdate {
 	if v != nil {
 		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
+// SetName sets the "name" field.
+func (_u *AbilityUpdate) SetName(v string) *AbilityUpdate {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *AbilityUpdate) SetNillableName(v *string) *AbilityUpdate {
+	if v != nil {
+		_u.SetName(*v)
 	}
 	return _u
 }
@@ -502,11 +502,11 @@ func (_u *AbilityUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(ability.FieldName, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.WorldID(); ok {
 		_spec.SetField(ability.FieldWorldID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(ability.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(ability.FieldDescription, field.TypeString, value)
@@ -767,20 +767,6 @@ type AbilityUpdateOne struct {
 	mutation *AbilityMutation
 }
 
-// SetName sets the "name" field.
-func (_u *AbilityUpdateOne) SetName(v string) *AbilityUpdateOne {
-	_u.mutation.SetName(v)
-	return _u
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *AbilityUpdateOne) SetNillableName(v *string) *AbilityUpdateOne {
-	if v != nil {
-		_u.SetName(*v)
-	}
-	return _u
-}
-
 // SetWorldID sets the "world_id" field.
 func (_u *AbilityUpdateOne) SetWorldID(v string) *AbilityUpdateOne {
 	_u.mutation.SetWorldID(v)
@@ -791,6 +777,20 @@ func (_u *AbilityUpdateOne) SetWorldID(v string) *AbilityUpdateOne {
 func (_u *AbilityUpdateOne) SetNillableWorldID(v *string) *AbilityUpdateOne {
 	if v != nil {
 		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
+// SetName sets the "name" field.
+func (_u *AbilityUpdateOne) SetName(v string) *AbilityUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *AbilityUpdateOne) SetNillableName(v *string) *AbilityUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
 	}
 	return _u
 }
@@ -1268,11 +1268,11 @@ func (_u *AbilityUpdateOne) sqlSave(ctx context.Context) (_node *Ability, err er
 			}
 		}
 	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(ability.FieldName, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.WorldID(); ok {
 		_spec.SetField(ability.FieldWorldID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(ability.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(ability.FieldDescription, field.TypeString, value)

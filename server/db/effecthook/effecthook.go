@@ -12,6 +12,8 @@ const (
 	Label = "effect_hook"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldEvent holds the string denoting the event field in the database.
@@ -22,12 +24,19 @@ const (
 	FieldCondition = "condition"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
+	// EdgeWorld holds the string denoting the world edge name in mutations.
+	EdgeWorld = "world"
 	// EdgeEffect holds the string denoting the effect edge name in mutations.
 	EdgeEffect = "effect"
 	// EdgeNpcTemplate holds the string denoting the npc_template edge name in mutations.
 	EdgeNpcTemplate = "npc_template"
 	// Table holds the table name of the effecthook in the database.
 	Table = "effect_hooks"
+	// WorldTable is the table that holds the world relation/edge. The primary key declared below.
+	WorldTable = "world_effect_hooks"
+	// WorldInverseTable is the table name for the World entity.
+	// It exists in this package in order to avoid circular dependency with the "world" package.
+	WorldInverseTable = "worlds"
 	// EffectTable is the table that holds the effect relation/edge.
 	EffectTable = "effect_hooks"
 	// EffectInverseTable is the table name for the Effect entity.
@@ -47,6 +56,7 @@ const (
 // Columns holds all SQL columns for effecthook fields.
 var Columns = []string{
 	FieldID,
+	FieldWorldID,
 	FieldName,
 	FieldEvent,
 	FieldTarget,
@@ -60,6 +70,12 @@ var ForeignKeys = []string{
 	"effect_hooks",
 	"npc_template_hooks",
 }
+
+var (
+	// WorldPrimaryKey and WorldColumn2 are the table columns denoting the
+	// primary key for the world relation (M2M).
+	WorldPrimaryKey = []string{"world_id", "effect_hook_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -77,6 +93,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
 	// DefaultTarget holds the default value on creation for the "target" field.
 	DefaultTarget string
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
@@ -89,6 +107,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -116,6 +139,20 @@ func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
 }
 
+// ByWorldCount orders the results by world count.
+func ByWorldCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorldStep(), opts...)
+	}
+}
+
+// ByWorld orders the results by world terms.
+func ByWorld(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorldStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByEffectField orders the results by effect field.
 func ByEffectField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -128,6 +165,13 @@ func ByNpcTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newNpcTemplateStep(), sql.OrderByField(field, opts...))
 	}
+}
+func newWorldStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorldInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, WorldTable, WorldPrimaryKey...),
+	)
 }
 func newEffectStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

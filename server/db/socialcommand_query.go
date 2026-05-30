@@ -4,9 +4,11 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"herbst-server/db/predicate"
 	"herbst-server/db/socialcommand"
+	"herbst-server/db/world"
 	"math"
 
 	"entgo.io/ent"
@@ -22,6 +24,7 @@ type SocialCommandQuery struct {
 	order      []socialcommand.OrderOption
 	inters     []Interceptor
 	predicates []predicate.SocialCommand
+	withWorld  *WorldQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (_q *SocialCommandQuery) Unique(unique bool) *SocialCommandQuery {
 func (_q *SocialCommandQuery) Order(o ...socialcommand.OrderOption) *SocialCommandQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryWorld chains the current query on the "world" edge.
+func (_q *SocialCommandQuery) QueryWorld() *WorldQuery {
+	query := (&WorldClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(socialcommand.Table, socialcommand.FieldID, selector),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, socialcommand.WorldTable, socialcommand.WorldPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first SocialCommand entity from the query.
@@ -250,10 +275,22 @@ func (_q *SocialCommandQuery) Clone() *SocialCommandQuery {
 		order:      append([]socialcommand.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.SocialCommand{}, _q.predicates...),
+		withWorld:  _q.withWorld.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithWorld tells the query-builder to eager-load the nodes that are connected to
+// the "world" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SocialCommandQuery) WithWorld(opts ...func(*WorldQuery)) *SocialCommandQuery {
+	query := (&WorldClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withWorld = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -262,12 +299,12 @@ func (_q *SocialCommandQuery) Clone() *SocialCommandQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.SocialCommand.Query().
-//		GroupBy(socialcommand.FieldName).
+//		GroupBy(socialcommand.FieldWorldID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *SocialCommandQuery) GroupBy(field string, fields ...string) *SocialCommandGroupBy {
@@ -285,11 +322,11 @@ func (_q *SocialCommandQuery) GroupBy(field string, fields ...string) *SocialCom
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //	}
 //
 //	client.SocialCommand.Query().
-//		Select(socialcommand.FieldName).
+//		Select(socialcommand.FieldWorldID).
 //		Scan(ctx, &v)
 func (_q *SocialCommandQuery) Select(fields ...string) *SocialCommandSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -332,8 +369,11 @@ func (_q *SocialCommandQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *SocialCommandQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*SocialCommand, error) {
 	var (
-		nodes = []*SocialCommand{}
-		_spec = _q.querySpec()
+		nodes       = []*SocialCommand{}
+		_spec       = _q.querySpec()
+		loadedTypes = [1]bool{
+			_q.withWorld != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*SocialCommand).scanValues(nil, columns)
@@ -341,6 +381,7 @@ func (_q *SocialCommandQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &SocialCommand{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +393,76 @@ func (_q *SocialCommandQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withWorld; query != nil {
+		if err := _q.loadWorld(ctx, query, nodes,
+			func(n *SocialCommand) { n.Edges.World = []*World{} },
+			func(n *SocialCommand, e *World) { n.Edges.World = append(n.Edges.World, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *SocialCommandQuery) loadWorld(ctx context.Context, query *WorldQuery, nodes []*SocialCommand, init func(*SocialCommand), assign func(*SocialCommand, *World)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*SocialCommand)
+	nids := make(map[int]map[*SocialCommand]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(socialcommand.WorldTable)
+		s.Join(joinT).On(s.C(world.FieldID), joinT.C(socialcommand.WorldPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(socialcommand.WorldPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(socialcommand.WorldPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*SocialCommand]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*World](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "world" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (_q *SocialCommandQuery) sqlCount(ctx context.Context) (int, error) {

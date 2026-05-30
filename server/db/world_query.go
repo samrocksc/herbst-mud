@@ -7,7 +7,13 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"herbst-server/db/character"
+	"herbst-server/db/effecthook"
+	"herbst-server/db/factioncategory"
+	"herbst-server/db/gender"
 	"herbst-server/db/predicate"
+	"herbst-server/db/race"
+	"herbst-server/db/socialcommand"
+	"herbst-server/db/tag"
 	"herbst-server/db/world"
 	"math"
 
@@ -20,11 +26,17 @@ import (
 // WorldQuery is the builder for querying World entities.
 type WorldQuery struct {
 	config
-	ctx            *QueryContext
-	order          []world.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.World
-	withCharacters *CharacterQuery
+	ctx                   *QueryContext
+	order                 []world.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.World
+	withCharacters        *CharacterQuery
+	withRaces             *RaceQuery
+	withGenders           *GenderQuery
+	withTags              *TagQuery
+	withSocialCommands    *SocialCommandQuery
+	withFactionCategories *FactionCategoryQuery
+	withEffectHooks       *EffectHookQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +88,138 @@ func (_q *WorldQuery) QueryCharacters() *CharacterQuery {
 			sqlgraph.From(world.Table, world.FieldID, selector),
 			sqlgraph.To(character.Table, character.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, world.CharactersTable, world.CharactersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRaces chains the current query on the "races" edge.
+func (_q *WorldQuery) QueryRaces() *RaceQuery {
+	query := (&RaceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, selector),
+			sqlgraph.To(race.Table, race.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.RacesTable, world.RacesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGenders chains the current query on the "genders" edge.
+func (_q *WorldQuery) QueryGenders() *GenderQuery {
+	query := (&GenderClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, selector),
+			sqlgraph.To(gender.Table, gender.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, world.GendersTable, world.GendersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTags chains the current query on the "tags" edge.
+func (_q *WorldQuery) QueryTags() *TagQuery {
+	query := (&TagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, selector),
+			sqlgraph.To(tag.Table, tag.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.TagsTable, world.TagsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySocialCommands chains the current query on the "social_commands" edge.
+func (_q *WorldQuery) QuerySocialCommands() *SocialCommandQuery {
+	query := (&SocialCommandClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, selector),
+			sqlgraph.To(socialcommand.Table, socialcommand.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.SocialCommandsTable, world.SocialCommandsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFactionCategories chains the current query on the "faction_categories" edge.
+func (_q *WorldQuery) QueryFactionCategories() *FactionCategoryQuery {
+	query := (&FactionCategoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, selector),
+			sqlgraph.To(factioncategory.Table, factioncategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.FactionCategoriesTable, world.FactionCategoriesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEffectHooks chains the current query on the "effect_hooks" edge.
+func (_q *WorldQuery) QueryEffectHooks() *EffectHookQuery {
+	query := (&EffectHookClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, selector),
+			sqlgraph.To(effecthook.Table, effecthook.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.EffectHooksTable, world.EffectHooksPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +414,18 @@ func (_q *WorldQuery) Clone() *WorldQuery {
 		return nil
 	}
 	return &WorldQuery{
-		config:         _q.config,
-		ctx:            _q.ctx.Clone(),
-		order:          append([]world.OrderOption{}, _q.order...),
-		inters:         append([]Interceptor{}, _q.inters...),
-		predicates:     append([]predicate.World{}, _q.predicates...),
-		withCharacters: _q.withCharacters.Clone(),
+		config:                _q.config,
+		ctx:                   _q.ctx.Clone(),
+		order:                 append([]world.OrderOption{}, _q.order...),
+		inters:                append([]Interceptor{}, _q.inters...),
+		predicates:            append([]predicate.World{}, _q.predicates...),
+		withCharacters:        _q.withCharacters.Clone(),
+		withRaces:             _q.withRaces.Clone(),
+		withGenders:           _q.withGenders.Clone(),
+		withTags:              _q.withTags.Clone(),
+		withSocialCommands:    _q.withSocialCommands.Clone(),
+		withFactionCategories: _q.withFactionCategories.Clone(),
+		withEffectHooks:       _q.withEffectHooks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +440,72 @@ func (_q *WorldQuery) WithCharacters(opts ...func(*CharacterQuery)) *WorldQuery 
 		opt(query)
 	}
 	_q.withCharacters = query
+	return _q
+}
+
+// WithRaces tells the query-builder to eager-load the nodes that are connected to
+// the "races" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorldQuery) WithRaces(opts ...func(*RaceQuery)) *WorldQuery {
+	query := (&RaceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRaces = query
+	return _q
+}
+
+// WithGenders tells the query-builder to eager-load the nodes that are connected to
+// the "genders" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorldQuery) WithGenders(opts ...func(*GenderQuery)) *WorldQuery {
+	query := (&GenderClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withGenders = query
+	return _q
+}
+
+// WithTags tells the query-builder to eager-load the nodes that are connected to
+// the "tags" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorldQuery) WithTags(opts ...func(*TagQuery)) *WorldQuery {
+	query := (&TagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTags = query
+	return _q
+}
+
+// WithSocialCommands tells the query-builder to eager-load the nodes that are connected to
+// the "social_commands" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorldQuery) WithSocialCommands(opts ...func(*SocialCommandQuery)) *WorldQuery {
+	query := (&SocialCommandClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSocialCommands = query
+	return _q
+}
+
+// WithFactionCategories tells the query-builder to eager-load the nodes that are connected to
+// the "faction_categories" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorldQuery) WithFactionCategories(opts ...func(*FactionCategoryQuery)) *WorldQuery {
+	query := (&FactionCategoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFactionCategories = query
+	return _q
+}
+
+// WithEffectHooks tells the query-builder to eager-load the nodes that are connected to
+// the "effect_hooks" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorldQuery) WithEffectHooks(opts ...func(*EffectHookQuery)) *WorldQuery {
+	query := (&EffectHookClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEffectHooks = query
 	return _q
 }
 
@@ -371,8 +587,14 @@ func (_q *WorldQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*World,
 	var (
 		nodes       = []*World{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [7]bool{
 			_q.withCharacters != nil,
+			_q.withRaces != nil,
+			_q.withGenders != nil,
+			_q.withTags != nil,
+			_q.withSocialCommands != nil,
+			_q.withFactionCategories != nil,
+			_q.withEffectHooks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +619,48 @@ func (_q *WorldQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*World,
 		if err := _q.loadCharacters(ctx, query, nodes,
 			func(n *World) { n.Edges.Characters = []*Character{} },
 			func(n *World, e *Character) { n.Edges.Characters = append(n.Edges.Characters, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRaces; query != nil {
+		if err := _q.loadRaces(ctx, query, nodes,
+			func(n *World) { n.Edges.Races = []*Race{} },
+			func(n *World, e *Race) { n.Edges.Races = append(n.Edges.Races, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withGenders; query != nil {
+		if err := _q.loadGenders(ctx, query, nodes,
+			func(n *World) { n.Edges.Genders = []*Gender{} },
+			func(n *World, e *Gender) { n.Edges.Genders = append(n.Edges.Genders, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTags; query != nil {
+		if err := _q.loadTags(ctx, query, nodes,
+			func(n *World) { n.Edges.Tags = []*Tag{} },
+			func(n *World, e *Tag) { n.Edges.Tags = append(n.Edges.Tags, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSocialCommands; query != nil {
+		if err := _q.loadSocialCommands(ctx, query, nodes,
+			func(n *World) { n.Edges.SocialCommands = []*SocialCommand{} },
+			func(n *World, e *SocialCommand) { n.Edges.SocialCommands = append(n.Edges.SocialCommands, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFactionCategories; query != nil {
+		if err := _q.loadFactionCategories(ctx, query, nodes,
+			func(n *World) { n.Edges.FactionCategories = []*FactionCategory{} },
+			func(n *World, e *FactionCategory) { n.Edges.FactionCategories = append(n.Edges.FactionCategories, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEffectHooks; query != nil {
+		if err := _q.loadEffectHooks(ctx, query, nodes,
+			func(n *World) { n.Edges.EffectHooks = []*EffectHook{} },
+			func(n *World, e *EffectHook) { n.Edges.EffectHooks = append(n.Edges.EffectHooks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -431,6 +695,342 @@ func (_q *WorldQuery) loadCharacters(ctx context.Context, query *CharacterQuery,
 			return fmt.Errorf(`unexpected referenced foreign-key "world_characters" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (_q *WorldQuery) loadRaces(ctx context.Context, query *RaceQuery, nodes []*World, init func(*World), assign func(*World, *Race)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*World)
+	nids := make(map[int]map[*World]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(world.RacesTable)
+		s.Join(joinT).On(s.C(race.FieldID), joinT.C(world.RacesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(world.RacesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(world.RacesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*World]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Race](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "races" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *WorldQuery) loadGenders(ctx context.Context, query *GenderQuery, nodes []*World, init func(*World), assign func(*World, *Gender)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*World)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Gender(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(world.GendersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.world_genders
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "world_genders" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "world_genders" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *WorldQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*World, init func(*World), assign func(*World, *Tag)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*World)
+	nids := make(map[int]map[*World]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(world.TagsTable)
+		s.Join(joinT).On(s.C(tag.FieldID), joinT.C(world.TagsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(world.TagsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(world.TagsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*World]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Tag](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "tags" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *WorldQuery) loadSocialCommands(ctx context.Context, query *SocialCommandQuery, nodes []*World, init func(*World), assign func(*World, *SocialCommand)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*World)
+	nids := make(map[int]map[*World]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(world.SocialCommandsTable)
+		s.Join(joinT).On(s.C(socialcommand.FieldID), joinT.C(world.SocialCommandsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(world.SocialCommandsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(world.SocialCommandsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*World]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*SocialCommand](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "social_commands" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *WorldQuery) loadFactionCategories(ctx context.Context, query *FactionCategoryQuery, nodes []*World, init func(*World), assign func(*World, *FactionCategory)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*World)
+	nids := make(map[int]map[*World]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(world.FactionCategoriesTable)
+		s.Join(joinT).On(s.C(factioncategory.FieldID), joinT.C(world.FactionCategoriesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(world.FactionCategoriesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(world.FactionCategoriesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*World]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*FactionCategory](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "faction_categories" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *WorldQuery) loadEffectHooks(ctx context.Context, query *EffectHookQuery, nodes []*World, init func(*World), assign func(*World, *EffectHook)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*World)
+	nids := make(map[int]map[*World]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(world.EffectHooksTable)
+		s.Join(joinT).On(s.C(effecthook.FieldID), joinT.C(world.EffectHooksPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(world.EffectHooksPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(world.EffectHooksPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*World]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*EffectHook](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "effect_hooks" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

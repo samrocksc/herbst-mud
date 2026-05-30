@@ -312,6 +312,9 @@ func main() {
 	// Register playable race routes (public endpoint for character creation)
 	routes.RegisterPlayableRaceRoutes(router, repos)
 
+	// Register gender routes (GENDERS-001)
+	routes.RegisterGenderRoutes(router, repos, client)
+
 	// Register character tag routes
 	routes.RegisterCharacterTagRoutes(router, repos)
 

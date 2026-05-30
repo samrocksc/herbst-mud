@@ -312,6 +312,144 @@ func HasCharactersWith(preds ...predicate.Character) predicate.World {
 	})
 }
 
+// HasRaces applies the HasEdge predicate on the "races" edge.
+func HasRaces() predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RacesTable, RacesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRacesWith applies the HasEdge predicate on the "races" edge with a given conditions (other predicates).
+func HasRacesWith(preds ...predicate.Race) predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := newRacesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGenders applies the HasEdge predicate on the "genders" edge.
+func HasGenders() predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GendersTable, GendersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGendersWith applies the HasEdge predicate on the "genders" edge with a given conditions (other predicates).
+func HasGendersWith(preds ...predicate.Gender) predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := newGendersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTags applies the HasEdge predicate on the "tags" edge.
+func HasTags() predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, TagsTable, TagsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTagsWith applies the HasEdge predicate on the "tags" edge with a given conditions (other predicates).
+func HasTagsWith(preds ...predicate.Tag) predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := newTagsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSocialCommands applies the HasEdge predicate on the "social_commands" edge.
+func HasSocialCommands() predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, SocialCommandsTable, SocialCommandsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSocialCommandsWith applies the HasEdge predicate on the "social_commands" edge with a given conditions (other predicates).
+func HasSocialCommandsWith(preds ...predicate.SocialCommand) predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := newSocialCommandsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFactionCategories applies the HasEdge predicate on the "faction_categories" edge.
+func HasFactionCategories() predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, FactionCategoriesTable, FactionCategoriesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFactionCategoriesWith applies the HasEdge predicate on the "faction_categories" edge with a given conditions (other predicates).
+func HasFactionCategoriesWith(preds ...predicate.FactionCategory) predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := newFactionCategoriesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEffectHooks applies the HasEdge predicate on the "effect_hooks" edge.
+func HasEffectHooks() predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, EffectHooksTable, EffectHooksPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEffectHooksWith applies the HasEdge predicate on the "effect_hooks" edge with a given conditions (other predicates).
+func HasEffectHooksWith(preds ...predicate.EffectHook) predicate.World {
+	return predicate.World(func(s *sql.Selector) {
+		step := newEffectHooksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.World) predicate.World {
 	return predicate.World(sql.AndPredicates(predicates...))

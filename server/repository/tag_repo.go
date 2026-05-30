@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"herbst-server/db"
+	"herbst-server/db/tag"
 )
 
 type entTagRepo struct {
@@ -18,8 +19,14 @@ func (r *entTagRepo) Get(ctx context.Context, id int) (*db.Tag, error) {
 	return r.client.Tag.Get(ctx, id)
 }
 
-func (r *entTagRepo) List(ctx context.Context) ([]*db.Tag, error) {
-	return r.client.Tag.Query().All(ctx)
+func (r *entTagRepo) GetByName(ctx context.Context, name, worldID string) (*db.Tag, error) {
+	return r.client.Tag.Query().
+		Where(tag.Name(name), tag.WorldID(worldID)).
+		Only(ctx)
+}
+
+func (r *entTagRepo) List(ctx context.Context, worldID string) ([]*db.Tag, error) {
+	return r.client.Tag.Query().Where(tag.WorldID(worldID)).All(ctx)
 }
 
 func (r *entTagRepo) Create(ctx context.Context, input CreateTagInput) (*db.Tag, error) {

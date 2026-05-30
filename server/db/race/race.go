@@ -12,6 +12,8 @@ const (
 	Label = "race"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDisplayName holds the string denoting the display_name field in the database.
@@ -28,12 +30,19 @@ const (
 	FieldRequirementTags = "requirement_tags"
 	// FieldColor holds the string denoting the color field in the database.
 	FieldColor = "color"
+	// EdgeWorld holds the string denoting the world edge name in mutations.
+	EdgeWorld = "world"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
 	// EdgeNpcTemplates holds the string denoting the npc_templates edge name in mutations.
 	EdgeNpcTemplates = "npc_templates"
 	// Table holds the table name of the race in the database.
 	Table = "races"
+	// WorldTable is the table that holds the world relation/edge. The primary key declared below.
+	WorldTable = "world_races"
+	// WorldInverseTable is the table name for the World entity.
+	// It exists in this package in order to avoid circular dependency with the "world" package.
+	WorldInverseTable = "worlds"
 	// TagsTable is the table that holds the tags relation/edge. The primary key declared below.
 	TagsTable = "tag_races"
 	// TagsInverseTable is the table name for the Tag entity.
@@ -51,6 +60,7 @@ const (
 // Columns holds all SQL columns for race fields.
 var Columns = []string{
 	FieldID,
+	FieldWorldID,
 	FieldName,
 	FieldDisplayName,
 	FieldDescription,
@@ -62,6 +72,9 @@ var Columns = []string{
 }
 
 var (
+	// WorldPrimaryKey and WorldColumn2 are the table columns denoting the
+	// primary key for the world relation (M2M).
+	WorldPrimaryKey = []string{"world_id", "race_id"}
 	// TagsPrimaryKey and TagsColumn2 are the table columns denoting the
 	// primary key for the tags relation (M2M).
 	TagsPrimaryKey = []string{"tag_id", "race_id"}
@@ -78,6 +91,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
 	// DefaultEquipmentSlots holds the default value on creation for the "equipment_slots" field.
 	DefaultEquipmentSlots []string
 	// DefaultRequirementTags holds the default value on creation for the "requirement_tags" field.
@@ -90,6 +105,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -122,6 +142,20 @@ func ByColor(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldColor, opts...).ToFunc()
 }
 
+// ByWorldCount orders the results by world count.
+func ByWorldCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorldStep(), opts...)
+	}
+}
+
+// ByWorld orders the results by world terms.
+func ByWorld(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorldStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByTagsCount orders the results by tags count.
 func ByTagsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -148,6 +182,13 @@ func ByNpcTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newNpcTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
+}
+func newWorldStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorldInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, WorldTable, WorldPrimaryKey...),
+	)
 }
 func newTagsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

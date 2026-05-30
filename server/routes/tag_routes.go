@@ -24,8 +24,8 @@ func RegisterTagRoutes(r *gin.Engine, repos *repository.Container, client *db.Cl
 	tags.Use(middleware.AdminMiddleware())
 	{
 		tags.GET("", listTags(repos))
-		tags.POST("", createTag(repos))
-		tags.PUT("/:id", updateTag(repos))
+		tags.POST("", createTag(repos, client))
+		tags.PUT("/:id", updateTag(repos, client))
 		tags.DELETE("/:id", deleteTag(repos))
 		// TODO: migrate tagUsages to repo methods for cross-entity queries
 		tags.GET("/:id/usages", tagUsages(repos, client))
@@ -34,9 +34,10 @@ func RegisterTagRoutes(r *gin.Engine, repos *repository.Container, client *db.Cl
 
 // tagView is the JSON shape returned by the API.
 type tagView struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Color string `json:"color,omitempty"`
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Color   string `json:"color,omitempty"`
+	WorldID string `json:"world_id"`
 }
 
 // tagUsageView is a single reference to an entity that uses a tag.
@@ -55,33 +56,45 @@ type tagUsageReport struct {
 	Characters  []tagUsageView `json:"characters"`
 }
 
-// listTags returns all tags.
+// listTags returns all tags for the specified world.
 func listTags(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tags, err := repos.Tag.List(c.Request.Context())
+		worldID := c.Query("world_id")
+		if worldID == "" {
+			worldID = "1"
+		}
+		tags, err := repos.Tag.List(c.Request.Context(), worldID)
 		if err != nil {
-			dblog.Error("failed to list tags", err, slog.String("service", "tags"))
+			dblog.Error("failed to list tags", err, slog.String("service", "tags"), slog.String("world_id", worldID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query tags"})
 			return
 		}
 		views := make([]tagView, len(tags))
 		for i, t := range tags {
-			views[i] = tagView{ID: t.ID, Name: t.Name, Color: t.Color}
+			views[i] = tagView{ID: t.ID, Name: t.Name, Color: t.Color, WorldID: t.WorldID}
 		}
 		c.JSON(http.StatusOK, gin.H{"tags": views})
 	}
 }
 
-// createTag creates a new tag.
-func createTag(repos *repository.Container) gin.HandlerFunc {
+// createTag creates a new tag in the specified world.
+func createTag(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input struct {
-			Name  string `json:"name" binding:"required"`
-			Color string `json:"color"`
+			Name    string `json:"name" binding:"required"`
+			Color   string `json:"color"`
+			WorldID string `json:"world_id" default:"1"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
 			slog.Warn("invalid create tag request", slog.String("service", "tags"), slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
+			return
+		}
+
+		// Check for duplicate name in this world
+		existing, err := repos.Tag.GetByName(c.Request.Context(), input.Name, input.WorldID)
+		if err == nil && existing != nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "a tag with this name already exists in this world"})
 			return
 		}
 
@@ -94,13 +107,13 @@ func createTag(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create tag"})
 			return
 		}
-		slog.Info("tag created", slog.String("service", "tags"), slog.Int("tag_id", t.ID), slog.String("name", t.Name))
-		c.JSON(http.StatusCreated, tagView{ID: t.ID, Name: t.Name, Color: t.Color})
+		slog.Info("tag created", slog.String("service", "tags"), slog.Int("tag_id", t.ID), slog.String("name", input.Name), slog.String("world_id", input.WorldID))
+		c.JSON(http.StatusCreated, tagView{ID: t.ID, Name: t.Name, Color: t.Color, WorldID: input.WorldID})
 	}
 }
 
 // updateTag updates an existing tag.
-func updateTag(repos *repository.Container) gin.HandlerFunc {
+func updateTag(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
 		id, err := strconv.Atoi(idStr)
@@ -129,8 +142,16 @@ func updateTag(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
-		slog.Info("tag updated", slog.String("service", "tags"), slog.Int("tag_id", t.ID), slog.String("name", t.Name))
-		c.JSON(http.StatusOK, tagView{ID: t.ID, Name: t.Name, Color: t.Color})
+		// Get world_id for the response
+		tagWithWorld, err := repos.Tag.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
+			return
+		}
+
+		name := *input.Name
+		slog.Info("tag updated", slog.String("service", "tags"), slog.Int("tag_id", id), slog.String("name", name))
+		c.JSON(http.StatusOK, tagView{ID: t.ID, Name: t.Name, Color: t.Color, WorldID: tagWithWorld.WorldID})
 	}
 }
 

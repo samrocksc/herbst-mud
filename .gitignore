@@ -62,3 +62,7 @@ memory/
 
 # Honcho preload context (ephemeral, generated per Claude Code session)
 HONCHO_CONTEXT.md
+
+# Ticket workflow directories
+tickets/
+done/

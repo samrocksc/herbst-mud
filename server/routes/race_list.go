@@ -28,12 +28,17 @@ func RegisterRaceRoutes(r *gin.Engine, repos *repository.Container, client *db.C
 	}
 }
 
-// listRaces returns all races.
+// listRaces returns all races for the specified world.
 func listRaces(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		races, err := repos.Race.ListWithTags(c.Request.Context())
+		// Default to world "1" if not specified
+		worldID := c.Query("world_id")
+		if worldID == "" {
+			worldID = "1"
+		}
+		races, err := repos.Race.ListWithTags(c.Request.Context(), worldID)
 		if err != nil {
-			dblog.Error("failed to list races", err, slog.String("service", "races"))
+			dblog.Error("failed to list races", err, slog.String("service", "races"), slog.String("world_id", worldID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Race holds the schema definition for the Race entity.
@@ -14,8 +15,10 @@ type Race struct {
 // Fields of the Race.
 func (Race) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("world_id").
+			Default("1").
+			Comment("World this race belongs to (for multi-world support)"),
 		field.String("name").
-			Unique().
 			Comment("Internal ID: human, turtle, mutant"),
 		field.String("display_name").
 			Comment("Shown in UI: Human, Turtle, Mutant"),
@@ -44,7 +47,15 @@ func (Race) Fields() []ent.Field {
 // Edges of the Race.
 func (Race) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("world", World.Type).Ref("races"),
 		edge.From("tags", Tag.Type).Ref("races"),
 		edge.To("npc_templates", NPCTemplate.Type),
+	}
+}
+
+// Indexes of the Race.
+func (Race) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name", "world_id").Unique(),
 	}
 }

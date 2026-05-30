@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
+	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +19,20 @@ type FactionCategoryCreate struct {
 	config
 	mutation *FactionCategoryMutation
 	hooks    []Hook
+}
+
+// SetWorldID sets the "world_id" field.
+func (_c *FactionCategoryCreate) SetWorldID(v string) *FactionCategoryCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *FactionCategoryCreate) SetNillableWorldID(v *string) *FactionCategoryCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
 }
 
 // SetName sets the "name" field.
@@ -88,6 +103,21 @@ func (_c *FactionCategoryCreate) SetNillableInitialConfig(v *bool) *FactionCateg
 	return _c
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_c *FactionCategoryCreate) AddWorldIDs(ids ...int) *FactionCategoryCreate {
+	_c.mutation.AddWorldIDs(ids...)
+	return _c
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_c *FactionCategoryCreate) AddWorld(v ...*World) *FactionCategoryCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddWorldIDs(ids...)
+}
+
 // AddFactionIDs adds the "factions" edge to the Faction entity by IDs.
 func (_c *FactionCategoryCreate) AddFactionIDs(ids ...int) *FactionCategoryCreate {
 	_c.mutation.AddFactionIDs(ids...)
@@ -138,6 +168,10 @@ func (_c *FactionCategoryCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *FactionCategoryCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := factioncategory.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.MaxMemberships(); !ok {
 		v := factioncategory.DefaultMaxMemberships
 		_c.mutation.SetMaxMemberships(v)
@@ -154,6 +188,9 @@ func (_c *FactionCategoryCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *FactionCategoryCreate) check() error {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "FactionCategory.world_id"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "FactionCategory.name"`)}
 	}
@@ -195,6 +232,10 @@ func (_c *FactionCategoryCreate) createSpec() (*FactionCategory, *sqlgraph.Creat
 		_node = &FactionCategory{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(factioncategory.Table, sqlgraph.NewFieldSpec(factioncategory.FieldID, field.TypeInt))
 	)
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(factioncategory.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
+	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(factioncategory.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -218,6 +259,22 @@ func (_c *FactionCategoryCreate) createSpec() (*FactionCategory, *sqlgraph.Creat
 	if value, ok := _c.mutation.InitialConfig(); ok {
 		_spec.SetField(factioncategory.FieldInitialConfig, field.TypeBool, value)
 		_node.InitialConfig = value
+	}
+	if nodes := _c.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   factioncategory.WorldTable,
+			Columns: factioncategory.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.FactionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

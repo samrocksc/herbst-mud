@@ -40,6 +40,5 @@ func (NPCTemplate) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("hooks", EffectHook.Type),
 		edge.To("dialog_nodes", DialogNode.Type),
-		edge.From("race", Race.Type).Ref("npc_templates").Field("race_id").Unique(),
 	}
 }

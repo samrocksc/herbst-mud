@@ -19,6 +19,7 @@ type raceView struct {
 	RequirementTags  []string `json:"requirement_tags"`
 	Color            string   `json:"color,omitempty"`
 	Tags             []string `json:"tags,omitempty"`
+	WorldID          string   `json:"world_id,omitempty"`
 }
 
 // raceToView converts a Race ent model to a raceView.
@@ -51,5 +52,6 @@ func raceToView(r *db.Race) raceView {
 		RequirementTags: r.RequirementTags,
 		Color:          r.Color,
 		Tags:           tagNames,
+		WorldID:        r.WorldID,
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"herbst/db/npctemplate"
-	"herbst/db/race"
 	"strings"
 
 	"entgo.io/ent"
@@ -48,11 +47,9 @@ type NPCTemplateEdges struct {
 	Hooks []*EffectHook `json:"hooks,omitempty"`
 	// DialogNodes holds the value of the dialog_nodes edge.
 	DialogNodes []*DialogNode `json:"dialog_nodes,omitempty"`
-	// Race holds the value of the race edge.
-	Race *Race `json:"race,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
 // HooksOrErr returns the Hooks value or an error if the edge
@@ -71,17 +68,6 @@ func (e NPCTemplateEdges) DialogNodesOrErr() ([]*DialogNode, error) {
 		return e.DialogNodes, nil
 	}
 	return nil, &NotLoadedError{edge: "dialog_nodes"}
-}
-
-// RaceOrErr returns the Race value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e NPCTemplateEdges) RaceOrErr() (*Race, error) {
-	if e.Race != nil {
-		return e.Race, nil
-	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: race.Label}
-	}
-	return nil, &NotLoadedError{edge: "race"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -195,11 +181,6 @@ func (_m *NPCTemplate) QueryHooks() *EffectHookQuery {
 // QueryDialogNodes queries the "dialog_nodes" edge of the NPCTemplate entity.
 func (_m *NPCTemplate) QueryDialogNodes() *DialogNodeQuery {
 	return NewNPCTemplateClient(_m.config).QueryDialogNodes(_m)
-}
-
-// QueryRace queries the "race" edge of the NPCTemplate entity.
-func (_m *NPCTemplate) QueryRace() *RaceQuery {
-	return NewNPCTemplateClient(_m.config).QueryRace(_m)
 }
 
 // Update returns a builder for updating this NPCTemplate.

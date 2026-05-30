@@ -22,6 +22,7 @@ type GenderQuery struct {
 	order      []gender.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Gender
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -332,9 +333,13 @@ func (_q *GenderQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *GenderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Gender, error) {
 	var (
-		nodes = []*Gender{}
-		_spec = _q.querySpec()
+		nodes   = []*Gender{}
+		withFKs = _q.withFKs
+		_spec   = _q.querySpec()
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, gender.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Gender).scanValues(nil, columns)
 	}

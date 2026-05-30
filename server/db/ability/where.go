@@ -54,14 +54,14 @@ func IDLTE(id int) predicate.Ability {
 	return predicate.Ability(sql.FieldLTE(FieldID, id))
 }
 
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldEQ(FieldName, v))
-}
-
 // WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
 func WorldID(v string) predicate.Ability {
 	return predicate.Ability(sql.FieldEQ(FieldWorldID, v))
+}
+
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldEQ(FieldName, v))
 }
 
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
@@ -134,71 +134,6 @@ func CooldownSeconds(v int) predicate.Ability {
 	return predicate.Ability(sql.FieldEQ(FieldCooldownSeconds, v))
 }
 
-// NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldEQ(FieldName, v))
-}
-
-// NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldNEQ(FieldName, v))
-}
-
-// NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.Ability {
-	return predicate.Ability(sql.FieldIn(FieldName, vs...))
-}
-
-// NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.Ability {
-	return predicate.Ability(sql.FieldNotIn(FieldName, vs...))
-}
-
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldGT(FieldName, v))
-}
-
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldGTE(FieldName, v))
-}
-
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldLT(FieldName, v))
-}
-
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldLTE(FieldName, v))
-}
-
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldContains(FieldName, v))
-}
-
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldHasPrefix(FieldName, v))
-}
-
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldHasSuffix(FieldName, v))
-}
-
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldEqualFold(FieldName, v))
-}
-
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.Ability {
-	return predicate.Ability(sql.FieldContainsFold(FieldName, v))
-}
-
 // WorldIDEQ applies the EQ predicate on the "world_id" field.
 func WorldIDEQ(v string) predicate.Ability {
 	return predicate.Ability(sql.FieldEQ(FieldWorldID, v))
@@ -262,6 +197,71 @@ func WorldIDEqualFold(v string) predicate.Ability {
 // WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
 func WorldIDContainsFold(v string) predicate.Ability {
 	return predicate.Ability(sql.FieldContainsFold(FieldWorldID, v))
+}
+
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldEQ(FieldName, v))
+}
+
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.Ability {
+	return predicate.Ability(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.Ability {
+	return predicate.Ability(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.Ability {
+	return predicate.Ability(sql.FieldContainsFold(FieldName, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.

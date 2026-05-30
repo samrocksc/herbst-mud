@@ -13135,6 +13135,8 @@ type NPCTemplateMutation struct {
 	slug                *string
 	name                *string
 	description         *string
+	race_id             *int
+	addrace_id          *int
 	disposition         *npctemplate.Disposition
 	level               *int
 	addlevel            *int
@@ -13149,8 +13151,6 @@ type NPCTemplateMutation struct {
 	dialog_nodes        map[string]struct{}
 	removeddialog_nodes map[string]struct{}
 	cleareddialog_nodes bool
-	race                *int
-	clearedrace         bool
 	done                bool
 	oldValue            func(context.Context) (*NPCTemplate, error)
 	predicates          []predicate.NPCTemplate
@@ -13383,12 +13383,13 @@ func (m *NPCTemplateMutation) ResetDescription() {
 
 // SetRaceID sets the "race_id" field.
 func (m *NPCTemplateMutation) SetRaceID(i int) {
-	m.race = &i
+	m.race_id = &i
+	m.addrace_id = nil
 }
 
 // RaceID returns the value of the "race_id" field in the mutation.
 func (m *NPCTemplateMutation) RaceID() (r int, exists bool) {
-	v := m.race
+	v := m.race_id
 	if v == nil {
 		return
 	}
@@ -13412,9 +13413,28 @@ func (m *NPCTemplateMutation) OldRaceID(ctx context.Context) (v int, err error) 
 	return oldValue.RaceID, nil
 }
 
+// AddRaceID adds i to the "race_id" field.
+func (m *NPCTemplateMutation) AddRaceID(i int) {
+	if m.addrace_id != nil {
+		*m.addrace_id += i
+	} else {
+		m.addrace_id = &i
+	}
+}
+
+// AddedRaceID returns the value that was added to the "race_id" field in this mutation.
+func (m *NPCTemplateMutation) AddedRaceID() (r int, exists bool) {
+	v := m.addrace_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ClearRaceID clears the value of the "race_id" field.
 func (m *NPCTemplateMutation) ClearRaceID() {
-	m.race = nil
+	m.race_id = nil
+	m.addrace_id = nil
 	m.clearedFields[npctemplate.FieldRaceID] = struct{}{}
 }
 
@@ -13426,7 +13446,8 @@ func (m *NPCTemplateMutation) RaceIDCleared() bool {
 
 // ResetRaceID resets all changes to the "race_id" field.
 func (m *NPCTemplateMutation) ResetRaceID() {
-	m.race = nil
+	m.race_id = nil
+	m.addrace_id = nil
 	delete(m.clearedFields, npctemplate.FieldRaceID)
 }
 
@@ -13753,33 +13774,6 @@ func (m *NPCTemplateMutation) ResetDialogNodes() {
 	m.removeddialog_nodes = nil
 }
 
-// ClearRace clears the "race" edge to the Race entity.
-func (m *NPCTemplateMutation) ClearRace() {
-	m.clearedrace = true
-	m.clearedFields[npctemplate.FieldRaceID] = struct{}{}
-}
-
-// RaceCleared reports if the "race" edge to the Race entity was cleared.
-func (m *NPCTemplateMutation) RaceCleared() bool {
-	return m.RaceIDCleared() || m.clearedrace
-}
-
-// RaceIDs returns the "race" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// RaceID instead. It exists only for internal usage by the builders.
-func (m *NPCTemplateMutation) RaceIDs() (ids []int) {
-	if id := m.race; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetRace resets all changes to the "race" edge.
-func (m *NPCTemplateMutation) ResetRace() {
-	m.race = nil
-	m.clearedrace = false
-}
-
 // Where appends a list predicates to the NPCTemplateMutation builder.
 func (m *NPCTemplateMutation) Where(ps ...predicate.NPCTemplate) {
 	m.predicates = append(m.predicates, ps...)
@@ -13824,7 +13818,7 @@ func (m *NPCTemplateMutation) Fields() []string {
 	if m.description != nil {
 		fields = append(fields, npctemplate.FieldDescription)
 	}
-	if m.race != nil {
+	if m.race_id != nil {
 		fields = append(fields, npctemplate.FieldRaceID)
 	}
 	if m.disposition != nil {
@@ -13975,6 +13969,9 @@ func (m *NPCTemplateMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *NPCTemplateMutation) AddedFields() []string {
 	var fields []string
+	if m.addrace_id != nil {
+		fields = append(fields, npctemplate.FieldRaceID)
+	}
 	if m.addlevel != nil {
 		fields = append(fields, npctemplate.FieldLevel)
 	}
@@ -13986,6 +13983,8 @@ func (m *NPCTemplateMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *NPCTemplateMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case npctemplate.FieldRaceID:
+		return m.AddedRaceID()
 	case npctemplate.FieldLevel:
 		return m.AddedLevel()
 	}
@@ -13997,6 +13996,13 @@ func (m *NPCTemplateMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case npctemplate.FieldRaceID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRaceID(v)
+		return nil
 	case npctemplate.FieldLevel:
 		v, ok := value.(int)
 		if !ok {
@@ -14079,15 +14085,12 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NPCTemplateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m._hooks != nil {
 		edges = append(edges, npctemplate.EdgeHooks)
 	}
 	if m.dialog_nodes != nil {
 		edges = append(edges, npctemplate.EdgeDialogNodes)
-	}
-	if m.race != nil {
-		edges = append(edges, npctemplate.EdgeRace)
 	}
 	return edges
 }
@@ -14108,17 +14111,13 @@ func (m *NPCTemplateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case npctemplate.EdgeRace:
-		if id := m.race; id != nil {
-			return []ent.Value{*id}
-		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NPCTemplateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.removed_hooks != nil {
 		edges = append(edges, npctemplate.EdgeHooks)
 	}
@@ -14150,15 +14149,12 @@ func (m *NPCTemplateMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NPCTemplateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.cleared_hooks {
 		edges = append(edges, npctemplate.EdgeHooks)
 	}
 	if m.cleareddialog_nodes {
 		edges = append(edges, npctemplate.EdgeDialogNodes)
-	}
-	if m.clearedrace {
-		edges = append(edges, npctemplate.EdgeRace)
 	}
 	return edges
 }
@@ -14171,8 +14167,6 @@ func (m *NPCTemplateMutation) EdgeCleared(name string) bool {
 		return m.cleared_hooks
 	case npctemplate.EdgeDialogNodes:
 		return m.cleareddialog_nodes
-	case npctemplate.EdgeRace:
-		return m.clearedrace
 	}
 	return false
 }
@@ -14181,9 +14175,6 @@ func (m *NPCTemplateMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *NPCTemplateMutation) ClearEdge(name string) error {
 	switch name {
-	case npctemplate.EdgeRace:
-		m.ClearRace()
-		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate unique edge %s", name)
 }
@@ -14197,9 +14188,6 @@ func (m *NPCTemplateMutation) ResetEdge(name string) error {
 		return nil
 	case npctemplate.EdgeDialogNodes:
 		m.ResetDialogNodes()
-		return nil
-	case npctemplate.EdgeRace:
-		m.ResetRace()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate edge %s", name)
@@ -15879,6 +15867,7 @@ type RaceMutation struct {
 	op                     Op
 	typ                    string
 	id                     *int
+	world_id               *string
 	name                   *string
 	display_name           *string
 	description            *string
@@ -15890,9 +15879,6 @@ type RaceMutation struct {
 	appendrequirement_tags []string
 	color                  *string
 	clearedFields          map[string]struct{}
-	npc_templates          map[string]struct{}
-	removednpc_templates   map[string]struct{}
-	clearednpc_templates   bool
 	done                   bool
 	oldValue               func(context.Context) (*Race, error)
 	predicates             []predicate.Race
@@ -15994,6 +15980,42 @@ func (m *RaceMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *RaceMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *RaceMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the Race entity.
+// If the Race object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RaceMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *RaceMutation) ResetWorldID() {
+	m.world_id = nil
 }
 
 // SetName sets the "name" field.
@@ -16353,60 +16375,6 @@ func (m *RaceMutation) ResetColor() {
 	delete(m.clearedFields, race.FieldColor)
 }
 
-// AddNpcTemplateIDs adds the "npc_templates" edge to the NPCTemplate entity by ids.
-func (m *RaceMutation) AddNpcTemplateIDs(ids ...string) {
-	if m.npc_templates == nil {
-		m.npc_templates = make(map[string]struct{})
-	}
-	for i := range ids {
-		m.npc_templates[ids[i]] = struct{}{}
-	}
-}
-
-// ClearNpcTemplates clears the "npc_templates" edge to the NPCTemplate entity.
-func (m *RaceMutation) ClearNpcTemplates() {
-	m.clearednpc_templates = true
-}
-
-// NpcTemplatesCleared reports if the "npc_templates" edge to the NPCTemplate entity was cleared.
-func (m *RaceMutation) NpcTemplatesCleared() bool {
-	return m.clearednpc_templates
-}
-
-// RemoveNpcTemplateIDs removes the "npc_templates" edge to the NPCTemplate entity by IDs.
-func (m *RaceMutation) RemoveNpcTemplateIDs(ids ...string) {
-	if m.removednpc_templates == nil {
-		m.removednpc_templates = make(map[string]struct{})
-	}
-	for i := range ids {
-		delete(m.npc_templates, ids[i])
-		m.removednpc_templates[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedNpcTemplates returns the removed IDs of the "npc_templates" edge to the NPCTemplate entity.
-func (m *RaceMutation) RemovedNpcTemplatesIDs() (ids []string) {
-	for id := range m.removednpc_templates {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// NpcTemplatesIDs returns the "npc_templates" edge IDs in the mutation.
-func (m *RaceMutation) NpcTemplatesIDs() (ids []string) {
-	for id := range m.npc_templates {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetNpcTemplates resets all changes to the "npc_templates" edge.
-func (m *RaceMutation) ResetNpcTemplates() {
-	m.npc_templates = nil
-	m.clearednpc_templates = false
-	m.removednpc_templates = nil
-}
-
 // Where appends a list predicates to the RaceMutation builder.
 func (m *RaceMutation) Where(ps ...predicate.Race) {
 	m.predicates = append(m.predicates, ps...)
@@ -16441,7 +16409,10 @@ func (m *RaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RaceMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
+	if m.world_id != nil {
+		fields = append(fields, race.FieldWorldID)
+	}
 	if m.name != nil {
 		fields = append(fields, race.FieldName)
 	}
@@ -16474,6 +16445,8 @@ func (m *RaceMutation) Fields() []string {
 // schema.
 func (m *RaceMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case race.FieldWorldID:
+		return m.WorldID()
 	case race.FieldName:
 		return m.Name()
 	case race.FieldDisplayName:
@@ -16499,6 +16472,8 @@ func (m *RaceMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *RaceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case race.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case race.FieldName:
 		return m.OldName(ctx)
 	case race.FieldDisplayName:
@@ -16524,6 +16499,13 @@ func (m *RaceMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *RaceMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case race.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
 	case race.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -16650,6 +16632,9 @@ func (m *RaceMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *RaceMutation) ResetField(name string) error {
 	switch name {
+	case race.FieldWorldID:
+		m.ResetWorldID()
+		return nil
 	case race.FieldName:
 		m.ResetName()
 		return nil
@@ -16680,85 +16665,49 @@ func (m *RaceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RaceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.npc_templates != nil {
-		edges = append(edges, race.EdgeNpcTemplates)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *RaceMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case race.EdgeNpcTemplates:
-		ids := make([]ent.Value, 0, len(m.npc_templates))
-		for id := range m.npc_templates {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RaceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.removednpc_templates != nil {
-		edges = append(edges, race.EdgeNpcTemplates)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *RaceMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case race.EdgeNpcTemplates:
-		ids := make([]ent.Value, 0, len(m.removednpc_templates))
-		for id := range m.removednpc_templates {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RaceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearednpc_templates {
-		edges = append(edges, race.EdgeNpcTemplates)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *RaceMutation) EdgeCleared(name string) bool {
-	switch name {
-	case race.EdgeNpcTemplates:
-		return m.clearednpc_templates
-	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *RaceMutation) ClearEdge(name string) error {
-	switch name {
-	}
 	return fmt.Errorf("unknown Race unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *RaceMutation) ResetEdge(name string) error {
-	switch name {
-	case race.EdgeNpcTemplates:
-		m.ResetNpcTemplates()
-		return nil
-	}
 	return fmt.Errorf("unknown Race edge %s", name)
 }
 

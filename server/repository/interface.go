@@ -206,7 +206,8 @@ type CharacterTagRepo interface {
 // TagRepo defines data access for tags.
 type TagRepo interface {
 	Get(ctx context.Context, id int) (*db.Tag, error)
-	List(ctx context.Context) ([]*db.Tag, error)
+	GetByName(ctx context.Context, name, worldID string) (*db.Tag, error)
+	List(ctx context.Context, worldID string) ([]*db.Tag, error)
 	Create(ctx context.Context, input CreateTagInput) (*db.Tag, error)
 	Update(ctx context.Context, id int, updates TagUpdates) (*db.Tag, error)
 	Delete(ctx context.Context, id int) error
@@ -253,21 +254,25 @@ type CompetencyRepo interface {
 type RaceRepo interface {
 	Get(ctx context.Context, id int) (*db.Race, error)
 	GetWithTags(ctx context.Context, id int) (*db.Race, error)
-	GetByName(ctx context.Context, name string) (*db.Race, error)
-	List(ctx context.Context) ([]*db.Race, error)
-	ListWithTags(ctx context.Context) ([]*db.Race, error)
+	GetByName(ctx context.Context, name, worldID string) (*db.Race, error)
+	List(ctx context.Context, worldID string) ([]*db.Race, error)
+	ListWithTags(ctx context.Context, worldID string) ([]*db.Race, error)
+	ListPlayable(ctx context.Context, worldID string) ([]*Race, error)
 	Create(ctx context.Context, input CreateRaceInput) (*db.Race, error)
 	Update(ctx context.Context, id int, updates RaceUpdates) (*db.Race, error)
 	Delete(ctx context.Context, id int) error
-	CountCharactersByRaceName(ctx context.Context, raceName string) (int, error)
-	ListPlayable(ctx context.Context) ([]*Race, error)
+	CountCharactersByRaceName(ctx context.Context, raceName, worldID string) (int, error)
 }
 
 // GenderRepo defines data access for genders.
 type GenderRepo interface {
 	Get(ctx context.Context, id int) (*db.Gender, error)
 	GetByName(ctx context.Context, name string) (*db.Gender, error)
-	List(ctx context.Context) ([]*db.Gender, error)
+	GetByWorld(ctx context.Context, name, worldID string) (*db.Gender, error)
+	List(ctx context.Context, worldID string) ([]*db.Gender, error)
+	Create(ctx context.Context, input CreateGenderInput) (*db.Gender, error)
+	Update(ctx context.Context, id int, updates GenderUpdates) (*db.Gender, error)
+	Delete(ctx context.Context, id int) error
 }
 
 // WorldRepo defines data access for worlds.
@@ -883,4 +888,22 @@ type TriggerUpdates struct {
 	EquipmentID *int
 	Condition   *string
 	Enabled     *bool
+}
+
+type CreateGenderInput struct {
+	Name             string
+	DisplayName      string
+	SubjectPronoun   string
+	ObjectPronoun    string
+	PossessivePronoun string
+	WorldID          string
+}
+
+type GenderUpdates struct {
+	Name             *string
+	DisplayName      *string
+	SubjectPronoun   *string
+	ObjectPronoun    *string
+	PossessivePronoun *string
+	WorldID          *string
 }

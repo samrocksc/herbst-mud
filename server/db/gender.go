@@ -26,7 +26,10 @@ type Gender struct {
 	ObjectPronoun string `json:"object_pronoun,omitempty"`
 	// his, hers, theirs
 	PossessivePronoun string `json:"possessive_pronoun,omitempty"`
-	selectValues      sql.SelectValues
+	// World this gender belongs to (for multi-world support)
+	WorldID       string `json:"world_id,omitempty"`
+	world_genders *int
+	selectValues  sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -36,8 +39,10 @@ func (*Gender) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case gender.FieldID:
 			values[i] = new(sql.NullInt64)
-		case gender.FieldName, gender.FieldDisplayName, gender.FieldSubjectPronoun, gender.FieldObjectPronoun, gender.FieldPossessivePronoun:
+		case gender.FieldName, gender.FieldDisplayName, gender.FieldSubjectPronoun, gender.FieldObjectPronoun, gender.FieldPossessivePronoun, gender.FieldWorldID:
 			values[i] = new(sql.NullString)
+		case gender.ForeignKeys[0]: // world_genders
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -89,6 +94,19 @@ func (_m *Gender) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PossessivePronoun = value.String
 			}
+		case gender.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
+			}
+		case gender.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field world_genders", value)
+			} else if value.Valid {
+				_m.world_genders = new(int)
+				*_m.world_genders = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -139,6 +157,9 @@ func (_m *Gender) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("possessive_pronoun=")
 	builder.WriteString(_m.PossessivePronoun)
+	builder.WriteString(", ")
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
 	builder.WriteByte(')')
 	return builder.String()
 }

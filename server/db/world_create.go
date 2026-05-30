@@ -7,6 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"herbst-server/db/character"
+	"herbst-server/db/effecthook"
+	"herbst-server/db/factioncategory"
+	"herbst-server/db/gender"
+	"herbst-server/db/race"
+	"herbst-server/db/socialcommand"
+	"herbst-server/db/tag"
 	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -73,6 +79,96 @@ func (_c *WorldCreate) AddCharacters(v ...*Character) *WorldCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddCharacterIDs(ids...)
+}
+
+// AddRaceIDs adds the "races" edge to the Race entity by IDs.
+func (_c *WorldCreate) AddRaceIDs(ids ...int) *WorldCreate {
+	_c.mutation.AddRaceIDs(ids...)
+	return _c
+}
+
+// AddRaces adds the "races" edges to the Race entity.
+func (_c *WorldCreate) AddRaces(v ...*Race) *WorldCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRaceIDs(ids...)
+}
+
+// AddGenderIDs adds the "genders" edge to the Gender entity by IDs.
+func (_c *WorldCreate) AddGenderIDs(ids ...int) *WorldCreate {
+	_c.mutation.AddGenderIDs(ids...)
+	return _c
+}
+
+// AddGenders adds the "genders" edges to the Gender entity.
+func (_c *WorldCreate) AddGenders(v ...*Gender) *WorldCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddGenderIDs(ids...)
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (_c *WorldCreate) AddTagIDs(ids ...int) *WorldCreate {
+	_c.mutation.AddTagIDs(ids...)
+	return _c
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (_c *WorldCreate) AddTags(v ...*Tag) *WorldCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTagIDs(ids...)
+}
+
+// AddSocialCommandIDs adds the "social_commands" edge to the SocialCommand entity by IDs.
+func (_c *WorldCreate) AddSocialCommandIDs(ids ...int) *WorldCreate {
+	_c.mutation.AddSocialCommandIDs(ids...)
+	return _c
+}
+
+// AddSocialCommands adds the "social_commands" edges to the SocialCommand entity.
+func (_c *WorldCreate) AddSocialCommands(v ...*SocialCommand) *WorldCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSocialCommandIDs(ids...)
+}
+
+// AddFactionCategoryIDs adds the "faction_categories" edge to the FactionCategory entity by IDs.
+func (_c *WorldCreate) AddFactionCategoryIDs(ids ...int) *WorldCreate {
+	_c.mutation.AddFactionCategoryIDs(ids...)
+	return _c
+}
+
+// AddFactionCategories adds the "faction_categories" edges to the FactionCategory entity.
+func (_c *WorldCreate) AddFactionCategories(v ...*FactionCategory) *WorldCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFactionCategoryIDs(ids...)
+}
+
+// AddEffectHookIDs adds the "effect_hooks" edge to the EffectHook entity by IDs.
+func (_c *WorldCreate) AddEffectHookIDs(ids ...int) *WorldCreate {
+	_c.mutation.AddEffectHookIDs(ids...)
+	return _c
+}
+
+// AddEffectHooks adds the "effect_hooks" edges to the EffectHook entity.
+func (_c *WorldCreate) AddEffectHooks(v ...*EffectHook) *WorldCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEffectHookIDs(ids...)
 }
 
 // Mutation returns the WorldMutation object of the builder.
@@ -178,6 +274,102 @@ func (_c *WorldCreate) createSpec() (*World, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(character.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RacesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.RacesTable,
+			Columns: world.RacesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.GendersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.GendersTable,
+			Columns: []string{world.GendersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(gender.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.TagsTable,
+			Columns: world.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SocialCommandsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.SocialCommandsTable,
+			Columns: world.SocialCommandsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(socialcommand.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FactionCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.FactionCategoriesTable,
+			Columns: world.FactionCategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(factioncategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EffectHooksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   world.EffectHooksTable,
+			Columns: world.EffectHooksPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -13,9 +13,14 @@ import (
 // listPlayableRaces handles GET /races (public, playable races only).
 func listPlayableRaces(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		races, err := repos.Race.List(c.Request.Context())
+		// Default to world "1" for public API
+		worldID := c.Query("world_id")
+		if worldID == "" {
+			worldID = "1"
+		}
+		races, err := repos.Race.List(c.Request.Context(), worldID)
 		if err != nil {
-			dblog.Error("failed to list races", err, slog.String("service", "characters"))
+			dblog.Error("failed to list races", err, slog.String("service", "characters"), slog.String("world_id", worldID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -40,10 +45,10 @@ func listPlayableRaces(repos *repository.Container) gin.HandlerFunc {
 	}
 }
 
-// listGenders handles GET /genders.
-func listGenders(repos *repository.Container) gin.HandlerFunc {
+// listGendersPublic handles GET /genders (public endpoint for SSH client).
+func listGendersPublic(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		genders, err := repos.Gender.List(c.Request.Context())
+		genders, err := repos.Gender.List(c.Request.Context(), "1")
 		if err != nil {
 			dblog.Error("failed to list genders", err, slog.String("service", "characters"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -52,11 +57,13 @@ func listGenders(repos *repository.Container) gin.HandlerFunc {
 		result := make([]gin.H, len(genders))
 		for i, g := range genders {
 			result[i] = gin.H{
+				"id":                 g.ID,
 				"name":               g.Name,
 				"display_name":       g.DisplayName,
 				"subject_pronoun":    g.SubjectPronoun,
 				"object_pronoun":     g.ObjectPronoun,
 				"possessive_pronoun": g.PossessivePronoun,
+				"world_id":           g.WorldID,
 			}
 		}
 		c.JSON(http.StatusOK, result)
@@ -94,13 +101,24 @@ func updateCharacterRace(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		existingRace, err := repos.Race.GetByName(c.Request.Context(), req.Race)
+		// Get the character's world for race lookup
+		char, err := repos.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
+		}
+		// Use default world if not set
+		worldID := char.CurrentWorld
+		if worldID == "" {
+			worldID = "1"
+		}
+		existingRace, err := repos.Race.GetByName(c.Request.Context(), req.Race, worldID)
 		if err != nil || len(existingRace.RequirementTags) > 0 {
 			slog.Warn("bad request: invalid or non-playable race", slog.String("service", "characters"), slog.Int("character_id", id), slog.String("race", req.Race))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or non-playable race"})
 			return
 		}
-		char, err := repos.Character.Update(c.Request.Context(), id, repository.CharacterUpdates{Race: &req.Race})
+		char, err = repos.Character.Update(c.Request.Context(), id, repository.CharacterUpdates{Race: &req.Race})
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
 			return

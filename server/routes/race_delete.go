@@ -23,7 +23,8 @@ func deleteRace(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 
-		count, err := repos.Race.CountCharactersByRaceName(c.Request.Context(), r.Name)
+		// Use the race's world ID for the character count check
+		count, err := repos.Race.CountCharactersByRaceName(c.Request.Context(), r.Name, r.WorldID)
 		if err == nil && count > 0 {
 			c.JSON(http.StatusConflict, gin.H{"error": "cannot delete: race is in use by characters"})
 			return

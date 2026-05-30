@@ -28,6 +28,7 @@ func updateRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			RequirementTags []string `json:"requirement_tags"`
 			Color           *string  `json:"color"`
 			Tags            []string `json:"tags"`
+			WorldID         *string  `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
@@ -40,10 +41,14 @@ func updateRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 		}
 
 		if req.Name != nil {
-			existing, err := repos.Race.GetByName(c.Request.Context(), *req.Name)
-			if err == nil && existing != nil && existing.ID != id {
-				c.JSON(http.StatusConflict, gin.H{"error": "a race with this name already exists"})
-				return
+			// Get the existing race to get its world_id for duplicate check
+			existingRace, err := repos.Race.Get(c.Request.Context(), id)
+			if err == nil {
+				existing, err := repos.Race.GetByName(c.Request.Context(), *req.Name, existingRace.WorldID)
+				if err == nil && existing != nil && existing.ID != id {
+					c.JSON(http.StatusConflict, gin.H{"error": "a race with this name already exists in this world"})
+					return
+				}
 			}
 		}
 

@@ -18,6 +18,8 @@ type EffectHook struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// World this effect hook belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// Display name, e.g., 'Death Drain — XP from killer'
 	Name string `json:"name,omitempty"`
 	// on_death|on_hit_received|on_hit_dealt|on_kill|on_enter_room|on_leave_room|on_equip|on_unequip|on_login|on_effect_start|on_effect_end
@@ -38,13 +40,24 @@ type EffectHook struct {
 
 // EffectHookEdges holds the relations/edges for other nodes in the graph.
 type EffectHookEdges struct {
+	// World holds the value of the world edge.
+	World []*World `json:"world,omitempty"`
 	// Effect holds the value of the effect edge.
 	Effect *Effect `json:"effect,omitempty"`
 	// NpcTemplate holds the value of the npc_template edge.
 	NpcTemplate *NPCTemplate `json:"npc_template,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// WorldOrErr returns the World value or an error if the edge
+// was not loaded in eager-loading.
+func (e EffectHookEdges) WorldOrErr() ([]*World, error) {
+	if e.loadedTypes[0] {
+		return e.World, nil
+	}
+	return nil, &NotLoadedError{edge: "world"}
 }
 
 // EffectOrErr returns the Effect value or an error if the edge
@@ -52,7 +65,7 @@ type EffectHookEdges struct {
 func (e EffectHookEdges) EffectOrErr() (*Effect, error) {
 	if e.Effect != nil {
 		return e.Effect, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: effect.Label}
 	}
 	return nil, &NotLoadedError{edge: "effect"}
@@ -63,7 +76,7 @@ func (e EffectHookEdges) EffectOrErr() (*Effect, error) {
 func (e EffectHookEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
 	if e.NpcTemplate != nil {
 		return e.NpcTemplate, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: npctemplate.Label}
 	}
 	return nil, &NotLoadedError{edge: "npc_template"}
@@ -78,7 +91,7 @@ func (*EffectHook) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case effecthook.FieldID:
 			values[i] = new(sql.NullInt64)
-		case effecthook.FieldName, effecthook.FieldEvent, effecthook.FieldTarget, effecthook.FieldCondition:
+		case effecthook.FieldWorldID, effecthook.FieldName, effecthook.FieldEvent, effecthook.FieldTarget, effecthook.FieldCondition:
 			values[i] = new(sql.NullString)
 		case effecthook.ForeignKeys[0]: // effect_hooks
 			values[i] = new(sql.NullInt64)
@@ -105,6 +118,12 @@ func (_m *EffectHook) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case effecthook.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
+			}
 		case effecthook.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -162,6 +181,11 @@ func (_m *EffectHook) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryWorld queries the "world" edge of the EffectHook entity.
+func (_m *EffectHook) QueryWorld() *WorldQuery {
+	return NewEffectHookClient(_m.config).QueryWorld(_m)
+}
+
 // QueryEffect queries the "effect" edge of the EffectHook entity.
 func (_m *EffectHook) QueryEffect() *EffectQuery {
 	return NewEffectHookClient(_m.config).QueryEffect(_m)
@@ -195,6 +219,9 @@ func (_m *EffectHook) String() string {
 	var builder strings.Builder
 	builder.WriteString("EffectHook(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

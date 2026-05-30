@@ -49,6 +49,20 @@ func (_c *GenderCreate) SetPossessivePronoun(v string) *GenderCreate {
 	return _c
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *GenderCreate) SetWorldID(v string) *GenderCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *GenderCreate) SetNillableWorldID(v *string) *GenderCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the GenderMutation object of the builder.
 func (_c *GenderCreate) Mutation() *GenderMutation {
 	return _c.mutation
@@ -56,6 +70,7 @@ func (_c *GenderCreate) Mutation() *GenderMutation {
 
 // Save creates the Gender in the database.
 func (_c *GenderCreate) Save(ctx context.Context) (*Gender, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -81,6 +96,14 @@ func (_c *GenderCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *GenderCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := gender.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *GenderCreate) check() error {
 	if _, ok := _c.mutation.Name(); !ok {
@@ -97,6 +120,9 @@ func (_c *GenderCreate) check() error {
 	}
 	if _, ok := _c.mutation.PossessivePronoun(); !ok {
 		return &ValidationError{Name: "possessive_pronoun", err: errors.New(`db: missing required field "Gender.possessive_pronoun"`)}
+	}
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "Gender.world_id"`)}
 	}
 	return nil
 }
@@ -144,6 +170,10 @@ func (_c *GenderCreate) createSpec() (*Gender, *sqlgraph.CreateSpec) {
 		_spec.SetField(gender.FieldPossessivePronoun, field.TypeString, value)
 		_node.PossessivePronoun = value
 	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(gender.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
+	}
 	return _node, _spec
 }
 
@@ -165,6 +195,7 @@ func (_c *GenderCreateBulk) Save(ctx context.Context) ([]*Gender, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*GenderMutation)
 				if !ok {

@@ -10,6 +10,7 @@ import (
 	"herbst-server/db/effecthook"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
+	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -26,6 +27,20 @@ type EffectHookUpdate struct {
 // Where appends a list predicates to the EffectHookUpdate builder.
 func (_u *EffectHookUpdate) Where(ps ...predicate.EffectHook) *EffectHookUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *EffectHookUpdate) SetWorldID(v string) *EffectHookUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *EffectHookUpdate) SetNillableWorldID(v *string) *EffectHookUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
 	return _u
 }
 
@@ -105,6 +120,21 @@ func (_u *EffectHookUpdate) SetNillableEnabled(v *bool) *EffectHookUpdate {
 	return _u
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_u *EffectHookUpdate) AddWorldIDs(ids ...int) *EffectHookUpdate {
+	_u.mutation.AddWorldIDs(ids...)
+	return _u
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_u *EffectHookUpdate) AddWorld(v ...*World) *EffectHookUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddWorldIDs(ids...)
+}
+
 // SetEffectID sets the "effect" edge to the Effect entity by ID.
 func (_u *EffectHookUpdate) SetEffectID(id int) *EffectHookUpdate {
 	_u.mutation.SetEffectID(id)
@@ -138,6 +168,27 @@ func (_u *EffectHookUpdate) SetNpcTemplate(v *NPCTemplate) *EffectHookUpdate {
 // Mutation returns the EffectHookMutation object of the builder.
 func (_u *EffectHookUpdate) Mutation() *EffectHookMutation {
 	return _u.mutation
+}
+
+// ClearWorld clears all "world" edges to the World entity.
+func (_u *EffectHookUpdate) ClearWorld() *EffectHookUpdate {
+	_u.mutation.ClearWorld()
+	return _u
+}
+
+// RemoveWorldIDs removes the "world" edge to World entities by IDs.
+func (_u *EffectHookUpdate) RemoveWorldIDs(ids ...int) *EffectHookUpdate {
+	_u.mutation.RemoveWorldIDs(ids...)
+	return _u
+}
+
+// RemoveWorld removes "world" edges to World entities.
+func (_u *EffectHookUpdate) RemoveWorld(v ...*World) *EffectHookUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveWorldIDs(ids...)
 }
 
 // ClearEffect clears the "effect" edge to the Effect entity.
@@ -199,6 +250,9 @@ func (_u *EffectHookUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(effecthook.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(effecthook.FieldName, field.TypeString, value)
 	}
@@ -216,6 +270,51 @@ func (_u *EffectHookUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(effecthook.FieldEnabled, field.TypeBool, value)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   effecthook.WorldTable,
+			Columns: effecthook.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedWorldIDs(); len(nodes) > 0 && !_u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   effecthook.WorldTable,
+			Columns: effecthook.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   effecthook.WorldTable,
+			Columns: effecthook.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.EffectCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -295,6 +394,20 @@ type EffectHookUpdateOne struct {
 	mutation *EffectHookMutation
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *EffectHookUpdateOne) SetWorldID(v string) *EffectHookUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *EffectHookUpdateOne) SetNillableWorldID(v *string) *EffectHookUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *EffectHookUpdateOne) SetName(v string) *EffectHookUpdateOne {
 	_u.mutation.SetName(v)
@@ -371,6 +484,21 @@ func (_u *EffectHookUpdateOne) SetNillableEnabled(v *bool) *EffectHookUpdateOne 
 	return _u
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_u *EffectHookUpdateOne) AddWorldIDs(ids ...int) *EffectHookUpdateOne {
+	_u.mutation.AddWorldIDs(ids...)
+	return _u
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_u *EffectHookUpdateOne) AddWorld(v ...*World) *EffectHookUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddWorldIDs(ids...)
+}
+
 // SetEffectID sets the "effect" edge to the Effect entity by ID.
 func (_u *EffectHookUpdateOne) SetEffectID(id int) *EffectHookUpdateOne {
 	_u.mutation.SetEffectID(id)
@@ -404,6 +532,27 @@ func (_u *EffectHookUpdateOne) SetNpcTemplate(v *NPCTemplate) *EffectHookUpdateO
 // Mutation returns the EffectHookMutation object of the builder.
 func (_u *EffectHookUpdateOne) Mutation() *EffectHookMutation {
 	return _u.mutation
+}
+
+// ClearWorld clears all "world" edges to the World entity.
+func (_u *EffectHookUpdateOne) ClearWorld() *EffectHookUpdateOne {
+	_u.mutation.ClearWorld()
+	return _u
+}
+
+// RemoveWorldIDs removes the "world" edge to World entities by IDs.
+func (_u *EffectHookUpdateOne) RemoveWorldIDs(ids ...int) *EffectHookUpdateOne {
+	_u.mutation.RemoveWorldIDs(ids...)
+	return _u
+}
+
+// RemoveWorld removes "world" edges to World entities.
+func (_u *EffectHookUpdateOne) RemoveWorld(v ...*World) *EffectHookUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveWorldIDs(ids...)
 }
 
 // ClearEffect clears the "effect" edge to the Effect entity.
@@ -495,6 +644,9 @@ func (_u *EffectHookUpdateOne) sqlSave(ctx context.Context) (_node *EffectHook, 
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(effecthook.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(effecthook.FieldName, field.TypeString, value)
 	}
@@ -512,6 +664,51 @@ func (_u *EffectHookUpdateOne) sqlSave(ctx context.Context) (_node *EffectHook, 
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(effecthook.FieldEnabled, field.TypeBool, value)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   effecthook.WorldTable,
+			Columns: effecthook.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedWorldIDs(); len(nodes) > 0 && !_u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   effecthook.WorldTable,
+			Columns: effecthook.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   effecthook.WorldTable,
+			Columns: effecthook.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.EffectCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -21,6 +21,8 @@ const (
 	FieldObjectPronoun = "object_pronoun"
 	// FieldPossessivePronoun holds the string denoting the possessive_pronoun field in the database.
 	FieldPossessivePronoun = "possessive_pronoun"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// Table holds the table name of the gender in the database.
 	Table = "genders"
 )
@@ -33,6 +35,13 @@ var Columns = []string{
 	FieldSubjectPronoun,
 	FieldObjectPronoun,
 	FieldPossessivePronoun,
+	FieldWorldID,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "genders"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"world_genders",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -42,8 +51,18 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
+
+var (
+	// DefaultWorldID holds the default value on creation for the "world_id" field.
+	DefaultWorldID string
+)
 
 // OrderOption defines the ordering options for the Gender queries.
 type OrderOption func(*sql.Selector)
@@ -76,4 +95,9 @@ func ByObjectPronoun(opts ...sql.OrderTermOption) OrderOption {
 // ByPossessivePronoun orders the results by the possessive_pronoun field.
 func ByPossessivePronoun(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPossessivePronoun, opts...).ToFunc()
+}
+
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
 }

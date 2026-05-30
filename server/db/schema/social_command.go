@@ -2,7 +2,9 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // SocialCommand holds social commands like smile, bow, wave with variants.
@@ -12,6 +14,9 @@ type SocialCommand struct {
 
 func (SocialCommand) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("world_id").
+			Default("1").
+			Comment("World this social command belongs to (for multi-world support)"),
 		field.String("name").
 			Comment("Social command name, e.g., smile, bow, wave"),
 		field.String("displayName").
@@ -37,6 +42,13 @@ func (SocialCommand) Fields() []ent.Field {
 
 func (SocialCommand) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Future: aliases edge to SocialAlias entity
+		edge.From("world", World.Type).Ref("social_commands"),
+	}
+}
+
+// Indexes of the SocialCommand.
+func (SocialCommand) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name", "world_id").Unique(),
 	}
 }

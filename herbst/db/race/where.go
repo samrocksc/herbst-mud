@@ -6,7 +6,6 @@ import (
 	"herbst/db/predicate"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -54,6 +53,11 @@ func IDLTE(id int) predicate.Race {
 	return predicate.Race(sql.FieldLTE(FieldID, id))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.Race {
+	return predicate.Race(sql.FieldEQ(FieldWorldID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Race {
 	return predicate.Race(sql.FieldEQ(FieldName, v))
@@ -82,6 +86,71 @@ func SkillGrants(v string) predicate.Race {
 // Color applies equality check predicate on the "color" field. It's identical to ColorEQ.
 func Color(v string) predicate.Race {
 	return predicate.Race(sql.FieldEQ(FieldColor, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.Race {
+	return predicate.Race(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.Race {
+	return predicate.Race(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.Race {
+	return predicate.Race(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.Race {
+	return predicate.Race(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.Race {
+	return predicate.Race(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.Race {
+	return predicate.Race(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.Race {
+	return predicate.Race(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.Race {
+	return predicate.Race(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.Race {
+	return predicate.Race(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.Race {
+	return predicate.Race(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.Race {
+	return predicate.Race(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.Race {
+	return predicate.Race(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.Race {
+	return predicate.Race(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -502,29 +571,6 @@ func ColorEqualFold(v string) predicate.Race {
 // ColorContainsFold applies the ContainsFold predicate on the "color" field.
 func ColorContainsFold(v string) predicate.Race {
 	return predicate.Race(sql.FieldContainsFold(FieldColor, v))
-}
-
-// HasNpcTemplates applies the HasEdge predicate on the "npc_templates" edge.
-func HasNpcTemplates() predicate.Race {
-	return predicate.Race(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, NpcTemplatesTable, NpcTemplatesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasNpcTemplatesWith applies the HasEdge predicate on the "npc_templates" edge with a given conditions (other predicates).
-func HasNpcTemplatesWith(preds ...predicate.NPCTemplate) predicate.Race {
-	return predicate.Race(func(s *sql.Selector) {
-		step := newNpcTemplatesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

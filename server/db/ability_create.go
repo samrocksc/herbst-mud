@@ -23,12 +23,6 @@ type AbilityCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (_c *AbilityCreate) SetName(v string) *AbilityCreate {
-	_c.mutation.SetName(v)
-	return _c
-}
-
 // SetWorldID sets the "world_id" field.
 func (_c *AbilityCreate) SetWorldID(v string) *AbilityCreate {
 	_c.mutation.SetWorldID(v)
@@ -40,6 +34,12 @@ func (_c *AbilityCreate) SetNillableWorldID(v *string) *AbilityCreate {
 	if v != nil {
 		_c.SetWorldID(*v)
 	}
+	return _c
+}
+
+// SetName sets the "name" field.
+func (_c *AbilityCreate) SetName(v string) *AbilityCreate {
+	_c.mutation.SetName(v)
 	return _c
 }
 
@@ -362,11 +362,11 @@ func (_c *AbilityCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *AbilityCreate) check() error {
-	if _, ok := _c.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "Ability.name"`)}
-	}
 	if _, ok := _c.mutation.WorldID(); !ok {
 		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "Ability.world_id"`)}
+	}
+	if _, ok := _c.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "Ability.name"`)}
 	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Ability.description"`)}
@@ -424,13 +424,13 @@ func (_c *AbilityCreate) createSpec() (*Ability, *sqlgraph.CreateSpec) {
 		_node = &Ability{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(ability.Table, sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt))
 	)
-	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(ability.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
 	if value, ok := _c.mutation.WorldID(); ok {
 		_spec.SetField(ability.FieldWorldID, field.TypeString, value)
 		_node.WorldID = value
+	}
+	if value, ok := _c.mutation.Name(); ok {
+		_spec.SetField(ability.FieldName, field.TypeString, value)
+		_node.Name = value
 	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(ability.FieldDescription, field.TypeString, value)

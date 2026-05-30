@@ -16,11 +16,11 @@ type Ability struct {
 // Fields of the Ability.
 func (Ability) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").
-			Unique(),
 		field.String("world_id").
 			Default("1").
 			Comment("World this ability belongs to (for multi-world support)"),
+		field.String("name").
+			Comment("Name of the ability, unique within each world"),
 		field.String("description"),
 		field.String("ability_type").
 			Comment("e.g., combat, magic, utility, defensive"),
@@ -41,9 +41,8 @@ func (Ability) Fields() []ent.Field {
 			Default(0).
 			Comment("HP sacrificed to use ability"),
 		field.String("slug").
-			Unique().
 			Optional().
-			Comment("Globally unique ability identifier e.g., foot_clan_power_strike"),
+			Comment("World-unique ability identifier e.g., foot_clan_power_strike"),
 		field.String("required_tag").
 			Optional().
 			Comment("Tag required to unlock beyond faction membership"),

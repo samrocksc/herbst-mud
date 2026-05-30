@@ -449,12 +449,16 @@ func init() {
 	questprogress.DefaultCurrentStep = questprogressDescCurrentStep.Default.(int)
 	raceFields := schema.Race{}.Fields()
 	_ = raceFields
+	// raceDescWorldID is the schema descriptor for world_id field.
+	raceDescWorldID := raceFields[0].Descriptor()
+	// race.DefaultWorldID holds the default value on creation for the world_id field.
+	race.DefaultWorldID = raceDescWorldID.Default.(string)
 	// raceDescEquipmentSlots is the schema descriptor for equipment_slots field.
-	raceDescEquipmentSlots := raceFields[5].Descriptor()
+	raceDescEquipmentSlots := raceFields[6].Descriptor()
 	// race.DefaultEquipmentSlots holds the default value on creation for the equipment_slots field.
 	race.DefaultEquipmentSlots = raceDescEquipmentSlots.Default.([]string)
 	// raceDescRequirementTags is the schema descriptor for requirement_tags field.
-	raceDescRequirementTags := raceFields[6].Descriptor()
+	raceDescRequirementTags := raceFields[7].Descriptor()
 	// race.DefaultRequirementTags holds the default value on creation for the requirement_tags field.
 	race.DefaultRequirementTags = raceDescRequirementTags.Default.([]string)
 	roomFields := schema.Room{}.Fields()

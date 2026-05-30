@@ -16,6 +16,8 @@ type FactionCategory struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// World this faction category belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// e.g., class, alignment
 	Name string `json:"name,omitempty"`
 	// e.g., Class, Alignment
@@ -36,17 +38,28 @@ type FactionCategory struct {
 
 // FactionCategoryEdges holds the relations/edges for other nodes in the graph.
 type FactionCategoryEdges struct {
+	// World holds the value of the world edge.
+	World []*World `json:"world,omitempty"`
 	// Factions holds the value of the factions edge.
 	Factions []*Faction `json:"factions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
+}
+
+// WorldOrErr returns the World value or an error if the edge
+// was not loaded in eager-loading.
+func (e FactionCategoryEdges) WorldOrErr() ([]*World, error) {
+	if e.loadedTypes[0] {
+		return e.World, nil
+	}
+	return nil, &NotLoadedError{edge: "world"}
 }
 
 // FactionsOrErr returns the Factions value or an error if the edge
 // was not loaded in eager-loading.
 func (e FactionCategoryEdges) FactionsOrErr() ([]*Faction, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Factions, nil
 	}
 	return nil, &NotLoadedError{edge: "factions"}
@@ -61,7 +74,7 @@ func (*FactionCategory) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case factioncategory.FieldID, factioncategory.FieldMaxMemberships:
 			values[i] = new(sql.NullInt64)
-		case factioncategory.FieldName, factioncategory.FieldDisplayName, factioncategory.FieldDescription:
+		case factioncategory.FieldWorldID, factioncategory.FieldName, factioncategory.FieldDisplayName, factioncategory.FieldDescription:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -84,6 +97,12 @@ func (_m *FactionCategory) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case factioncategory.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
+			}
 		case factioncategory.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -133,6 +152,11 @@ func (_m *FactionCategory) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryWorld queries the "world" edge of the FactionCategory entity.
+func (_m *FactionCategory) QueryWorld() *WorldQuery {
+	return NewFactionCategoryClient(_m.config).QueryWorld(_m)
+}
+
 // QueryFactions queries the "factions" edge of the FactionCategory entity.
 func (_m *FactionCategory) QueryFactions() *FactionQuery {
 	return NewFactionCategoryClient(_m.config).QueryFactions(_m)
@@ -161,6 +185,9 @@ func (_m *FactionCategory) String() string {
 	var builder strings.Builder
 	builder.WriteString("FactionCategory(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

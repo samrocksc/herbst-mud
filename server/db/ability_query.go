@@ -408,12 +408,12 @@ func (_q *AbilityQuery) WithFaction(opts ...func(*FactionQuery)) *AbilityQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Ability.Query().
-//		GroupBy(ability.FieldName).
+//		GroupBy(ability.FieldWorldID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *AbilityQuery) GroupBy(field string, fields ...string) *AbilityGroupBy {
@@ -431,11 +431,11 @@ func (_q *AbilityQuery) GroupBy(field string, fields ...string) *AbilityGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //	}
 //
 //	client.Ability.Query().
-//		Select(ability.FieldName).
+//		Select(ability.FieldWorldID).
 //		Scan(ctx, &v)
 func (_q *AbilityQuery) Select(fields ...string) *AbilitySelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

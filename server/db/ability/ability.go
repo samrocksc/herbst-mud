@@ -12,10 +12,10 @@ const (
 	Label = "ability"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
 	// FieldWorldID holds the string denoting the world_id field in the database.
 	FieldWorldID = "world_id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldAbilityType holds the string denoting the ability_type field in the database.
@@ -85,8 +85,8 @@ const (
 // Columns holds all SQL columns for ability fields.
 var Columns = []string{
 	FieldID,
-	FieldName,
 	FieldWorldID,
+	FieldName,
 	FieldDescription,
 	FieldAbilityType,
 	FieldCost,
@@ -159,14 +159,14 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
-}
-
 // ByWorldID orders the results by the world_id field.
 func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.

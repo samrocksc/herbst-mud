@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/predicate"
 	"herbst-server/db/race"
 	"herbst-server/db/tag"
+	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,20 @@ type TagUpdate struct {
 // Where appends a list predicates to the TagUpdate builder.
 func (_u *TagUpdate) Where(ps ...predicate.Tag) *TagUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *TagUpdate) SetWorldID(v string) *TagUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *TagUpdate) SetNillableWorldID(v *string) *TagUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
 	return _u
 }
 
@@ -62,6 +77,21 @@ func (_u *TagUpdate) ClearColor() *TagUpdate {
 	return _u
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_u *TagUpdate) AddWorldIDs(ids ...int) *TagUpdate {
+	_u.mutation.AddWorldIDs(ids...)
+	return _u
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_u *TagUpdate) AddWorld(v ...*World) *TagUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddWorldIDs(ids...)
+}
+
 // AddRaceIDs adds the "races" edge to the Race entity by IDs.
 func (_u *TagUpdate) AddRaceIDs(ids ...int) *TagUpdate {
 	_u.mutation.AddRaceIDs(ids...)
@@ -80,6 +110,27 @@ func (_u *TagUpdate) AddRaces(v ...*Race) *TagUpdate {
 // Mutation returns the TagMutation object of the builder.
 func (_u *TagUpdate) Mutation() *TagMutation {
 	return _u.mutation
+}
+
+// ClearWorld clears all "world" edges to the World entity.
+func (_u *TagUpdate) ClearWorld() *TagUpdate {
+	_u.mutation.ClearWorld()
+	return _u
+}
+
+// RemoveWorldIDs removes the "world" edge to World entities by IDs.
+func (_u *TagUpdate) RemoveWorldIDs(ids ...int) *TagUpdate {
+	_u.mutation.RemoveWorldIDs(ids...)
+	return _u
+}
+
+// RemoveWorld removes "world" edges to World entities.
+func (_u *TagUpdate) RemoveWorld(v ...*World) *TagUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveWorldIDs(ids...)
 }
 
 // ClearRaces clears all "races" edges to the Race entity.
@@ -139,6 +190,9 @@ func (_u *TagUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(tag.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(tag.FieldName, field.TypeString, value)
 	}
@@ -147,6 +201,51 @@ func (_u *TagUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ColorCleared() {
 		_spec.ClearField(tag.FieldColor, field.TypeString)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tag.WorldTable,
+			Columns: tag.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedWorldIDs(); len(nodes) > 0 && !_u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tag.WorldTable,
+			Columns: tag.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tag.WorldTable,
+			Columns: tag.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.RacesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -213,6 +312,20 @@ type TagUpdateOne struct {
 	mutation *TagMutation
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *TagUpdateOne) SetWorldID(v string) *TagUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *TagUpdateOne) SetNillableWorldID(v *string) *TagUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *TagUpdateOne) SetName(v string) *TagUpdateOne {
 	_u.mutation.SetName(v)
@@ -247,6 +360,21 @@ func (_u *TagUpdateOne) ClearColor() *TagUpdateOne {
 	return _u
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_u *TagUpdateOne) AddWorldIDs(ids ...int) *TagUpdateOne {
+	_u.mutation.AddWorldIDs(ids...)
+	return _u
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_u *TagUpdateOne) AddWorld(v ...*World) *TagUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddWorldIDs(ids...)
+}
+
 // AddRaceIDs adds the "races" edge to the Race entity by IDs.
 func (_u *TagUpdateOne) AddRaceIDs(ids ...int) *TagUpdateOne {
 	_u.mutation.AddRaceIDs(ids...)
@@ -265,6 +393,27 @@ func (_u *TagUpdateOne) AddRaces(v ...*Race) *TagUpdateOne {
 // Mutation returns the TagMutation object of the builder.
 func (_u *TagUpdateOne) Mutation() *TagMutation {
 	return _u.mutation
+}
+
+// ClearWorld clears all "world" edges to the World entity.
+func (_u *TagUpdateOne) ClearWorld() *TagUpdateOne {
+	_u.mutation.ClearWorld()
+	return _u
+}
+
+// RemoveWorldIDs removes the "world" edge to World entities by IDs.
+func (_u *TagUpdateOne) RemoveWorldIDs(ids ...int) *TagUpdateOne {
+	_u.mutation.RemoveWorldIDs(ids...)
+	return _u
+}
+
+// RemoveWorld removes "world" edges to World entities.
+func (_u *TagUpdateOne) RemoveWorld(v ...*World) *TagUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveWorldIDs(ids...)
 }
 
 // ClearRaces clears all "races" edges to the Race entity.
@@ -354,6 +503,9 @@ func (_u *TagUpdateOne) sqlSave(ctx context.Context) (_node *Tag, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(tag.FieldWorldID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(tag.FieldName, field.TypeString, value)
 	}
@@ -362,6 +514,51 @@ func (_u *TagUpdateOne) sqlSave(ctx context.Context) (_node *Tag, err error) {
 	}
 	if _u.mutation.ColorCleared() {
 		_spec.ClearField(tag.FieldColor, field.TypeString)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tag.WorldTable,
+			Columns: tag.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedWorldIDs(); len(nodes) > 0 && !_u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tag.WorldTable,
+			Columns: tag.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tag.WorldTable,
+			Columns: tag.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.RacesCleared() {
 		edge := &sqlgraph.EdgeSpec{

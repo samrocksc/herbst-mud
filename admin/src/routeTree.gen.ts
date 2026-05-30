@@ -52,6 +52,7 @@ import { Route as AuthNpcsRouteImport } from './routes/_auth/npcs'
 import { Route as AuthLogsRouteImport } from './routes/_auth/logs'
 import { Route as AuthItemsRouteImport } from './routes/_auth/items'
 import { Route as AuthHooksRouteImport } from './routes/_auth/hooks'
+import { Route as AuthGendersRouteImport } from './routes/_auth/genders'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthEffectsRouteImport } from './routes/_auth/effects'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
@@ -300,6 +301,11 @@ const AuthHooksRoute = AuthHooksRouteImport.update({
   path: '/hooks',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthGendersRoute = AuthGendersRouteImport.update({
+  id: '/genders',
+  path: '/genders',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthFactionsRoute = AuthFactionsRouteImport.update({
   id: '/factions',
   path: '/factions',
@@ -486,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/config': typeof AuthConfigRouteWithChildren
   '/effects': typeof AuthEffectsRoute
   '/factions': typeof AuthFactionsRoute
+  '/genders': typeof AuthGendersRoute
   '/hooks': typeof AuthHooksRoute
   '/items': typeof AuthItemsRouteWithChildren
   '/logs': typeof AuthLogsRoute
@@ -561,6 +568,7 @@ export interface FileRoutesByTo {
   '/config': typeof AuthConfigRouteWithChildren
   '/effects': typeof AuthEffectsRoute
   '/factions': typeof AuthFactionsRoute
+  '/genders': typeof AuthGendersRoute
   '/hooks': typeof AuthHooksRoute
   '/items': typeof AuthItemsRouteWithChildren
   '/logs': typeof AuthLogsRoute
@@ -639,6 +647,7 @@ export interface FileRoutesById {
   '/_auth/config': typeof AuthConfigRouteWithChildren
   '/_auth/effects': typeof AuthEffectsRoute
   '/_auth/factions': typeof AuthFactionsRoute
+  '/_auth/genders': typeof AuthGendersRoute
   '/_auth/hooks': typeof AuthHooksRoute
   '/_auth/items': typeof AuthItemsRouteWithChildren
   '/_auth/logs': typeof AuthLogsRoute
@@ -718,6 +727,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/effects'
     | '/factions'
+    | '/genders'
     | '/hooks'
     | '/items'
     | '/logs'
@@ -793,6 +803,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/effects'
     | '/factions'
+    | '/genders'
     | '/hooks'
     | '/items'
     | '/logs'
@@ -870,6 +881,7 @@ export interface FileRouteTypes {
     | '/_auth/config'
     | '/_auth/effects'
     | '/_auth/factions'
+    | '/_auth/genders'
     | '/_auth/hooks'
     | '/_auth/items'
     | '/_auth/logs'
@@ -1245,6 +1257,13 @@ declare module '@tanstack/react-router' {
       path: '/hooks'
       fullPath: '/hooks'
       preLoaderRoute: typeof AuthHooksRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/genders': {
+      id: '/_auth/genders'
+      path: '/genders'
+      fullPath: '/genders'
+      preLoaderRoute: typeof AuthGendersRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/factions': {
@@ -1667,6 +1686,7 @@ interface AuthRouteChildren {
   AuthConfigRoute: typeof AuthConfigRouteWithChildren
   AuthEffectsRoute: typeof AuthEffectsRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
+  AuthGendersRoute: typeof AuthGendersRoute
   AuthHooksRoute: typeof AuthHooksRoute
   AuthItemsRoute: typeof AuthItemsRouteWithChildren
   AuthLogsRoute: typeof AuthLogsRoute
@@ -1692,6 +1712,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthConfigRoute: AuthConfigRouteWithChildren,
   AuthEffectsRoute: AuthEffectsRoute,
   AuthFactionsRoute: AuthFactionsRoute,
+  AuthGendersRoute: AuthGendersRoute,
   AuthHooksRoute: AuthHooksRoute,
   AuthItemsRoute: AuthItemsRouteWithChildren,
   AuthLogsRoute: AuthLogsRoute,

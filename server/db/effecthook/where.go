@@ -54,6 +54,11 @@ func IDLTE(id int) predicate.EffectHook {
 	return predicate.EffectHook(sql.FieldLTE(FieldID, id))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldEQ(FieldWorldID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.EffectHook {
 	return predicate.EffectHook(sql.FieldEQ(FieldName, v))
@@ -77,6 +82,71 @@ func Condition(v string) predicate.EffectHook {
 // Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
 func Enabled(v bool) predicate.EffectHook {
 	return predicate.EffectHook(sql.FieldEQ(FieldEnabled, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.EffectHook {
+	return predicate.EffectHook(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -357,6 +427,29 @@ func EnabledEQ(v bool) predicate.EffectHook {
 // EnabledNEQ applies the NEQ predicate on the "enabled" field.
 func EnabledNEQ(v bool) predicate.EffectHook {
 	return predicate.EffectHook(sql.FieldNEQ(FieldEnabled, v))
+}
+
+// HasWorld applies the HasEdge predicate on the "world" edge.
+func HasWorld() predicate.EffectHook {
+	return predicate.EffectHook(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, WorldTable, WorldPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorldWith applies the HasEdge predicate on the "world" edge with a given conditions (other predicates).
+func HasWorldWith(preds ...predicate.World) predicate.EffectHook {
+	return predicate.EffectHook(func(s *sql.Selector) {
+		step := newWorldStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasEffect applies the HasEdge predicate on the "effect" edge.

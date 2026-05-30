@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/predicate"
+	"herbst-server/db/world"
 	"math"
 
 	"entgo.io/ent"
@@ -24,6 +25,7 @@ type FactionCategoryQuery struct {
 	order        []factioncategory.OrderOption
 	inters       []Interceptor
 	predicates   []predicate.FactionCategory
+	withWorld    *WorldQuery
 	withFactions *FactionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -59,6 +61,28 @@ func (_q *FactionCategoryQuery) Unique(unique bool) *FactionCategoryQuery {
 func (_q *FactionCategoryQuery) Order(o ...factioncategory.OrderOption) *FactionCategoryQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryWorld chains the current query on the "world" edge.
+func (_q *FactionCategoryQuery) QueryWorld() *WorldQuery {
+	query := (&WorldClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(factioncategory.Table, factioncategory.FieldID, selector),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, factioncategory.WorldTable, factioncategory.WorldPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryFactions chains the current query on the "factions" edge.
@@ -275,11 +299,23 @@ func (_q *FactionCategoryQuery) Clone() *FactionCategoryQuery {
 		order:        append([]factioncategory.OrderOption{}, _q.order...),
 		inters:       append([]Interceptor{}, _q.inters...),
 		predicates:   append([]predicate.FactionCategory{}, _q.predicates...),
+		withWorld:    _q.withWorld.Clone(),
 		withFactions: _q.withFactions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithWorld tells the query-builder to eager-load the nodes that are connected to
+// the "world" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FactionCategoryQuery) WithWorld(opts ...func(*WorldQuery)) *FactionCategoryQuery {
+	query := (&WorldClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withWorld = query
+	return _q
 }
 
 // WithFactions tells the query-builder to eager-load the nodes that are connected to
@@ -299,12 +335,12 @@ func (_q *FactionCategoryQuery) WithFactions(opts ...func(*FactionQuery)) *Facti
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.FactionCategory.Query().
-//		GroupBy(factioncategory.FieldName).
+//		GroupBy(factioncategory.FieldWorldID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (_q *FactionCategoryQuery) GroupBy(field string, fields ...string) *FactionCategoryGroupBy {
@@ -322,11 +358,11 @@ func (_q *FactionCategoryQuery) GroupBy(field string, fields ...string) *Faction
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		WorldID string `json:"world_id,omitempty"`
 //	}
 //
 //	client.FactionCategory.Query().
-//		Select(factioncategory.FieldName).
+//		Select(factioncategory.FieldWorldID).
 //		Scan(ctx, &v)
 func (_q *FactionCategoryQuery) Select(fields ...string) *FactionCategorySelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -371,7 +407,8 @@ func (_q *FactionCategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*FactionCategory{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
+			_q.withWorld != nil,
 			_q.withFactions != nil,
 		}
 	)
@@ -393,6 +430,13 @@ func (_q *FactionCategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withWorld; query != nil {
+		if err := _q.loadWorld(ctx, query, nodes,
+			func(n *FactionCategory) { n.Edges.World = []*World{} },
+			func(n *FactionCategory, e *World) { n.Edges.World = append(n.Edges.World, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withFactions; query != nil {
 		if err := _q.loadFactions(ctx, query, nodes,
 			func(n *FactionCategory) { n.Edges.Factions = []*Faction{} },
@@ -403,6 +447,67 @@ func (_q *FactionCategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	return nodes, nil
 }
 
+func (_q *FactionCategoryQuery) loadWorld(ctx context.Context, query *WorldQuery, nodes []*FactionCategory, init func(*FactionCategory), assign func(*FactionCategory, *World)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*FactionCategory)
+	nids := make(map[int]map[*FactionCategory]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(factioncategory.WorldTable)
+		s.Join(joinT).On(s.C(world.FieldID), joinT.C(factioncategory.WorldPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(factioncategory.WorldPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(factioncategory.WorldPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*FactionCategory]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*World](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "world" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (_q *FactionCategoryQuery) loadFactions(ctx context.Context, query *FactionQuery, nodes []*FactionCategory, init func(*FactionCategory), assign func(*FactionCategory, *Faction)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*FactionCategory)

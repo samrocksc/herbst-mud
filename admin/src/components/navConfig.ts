@@ -8,6 +8,8 @@ import { SkillsIcon } from "./icons/SkillsIcon";
 import { QuestsIcon } from "./icons/QuestsIcon";
 import { CraftingIcon } from "./icons/CraftingIcon";
 import { RacesIcon } from "./icons/RacesIcon";
+import { GendersIcon } from "./icons/GendersIcon";
+import { TriggersIcon } from "./icons/TriggersIcon";
 import { FactionsIcon } from "./icons/FactionsIcon";
 import { MapIcon } from "./icons/MapIcon";
 import { PlayersIcon } from "./icons/PlayersIcon";
@@ -51,6 +53,8 @@ export const navGroups: NavGroup[] = [
       { label: "Quests", path: "/quests", Icon: QuestsIcon },
       { label: "Recipes", path: "/recipes", Icon: CraftingIcon },
       { label: "Races", path: "/races", Icon: RacesIcon },
+      { label: "Genders", path: "/genders", Icon: GendersIcon },
+      { label: "Triggers", path: "/triggers", Icon: TriggersIcon },
       { label: "Factions", path: "/factions", Icon: FactionsIcon },
       { label: "Map", path: "/map", Icon: MapIcon },
     ],

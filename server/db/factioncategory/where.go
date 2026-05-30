@@ -54,6 +54,11 @@ func IDLTE(id int) predicate.FactionCategory {
 	return predicate.FactionCategory(sql.FieldLTE(FieldID, id))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldEQ(FieldWorldID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.FactionCategory {
 	return predicate.FactionCategory(sql.FieldEQ(FieldName, v))
@@ -82,6 +87,71 @@ func AutoJoin(v bool) predicate.FactionCategory {
 // InitialConfig applies equality check predicate on the "initial_config" field. It's identical to InitialConfigEQ.
 func InitialConfig(v bool) predicate.FactionCategory {
 	return predicate.FactionCategory(sql.FieldEQ(FieldInitialConfig, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldLTE(FieldWorldID, v))
+}
+
+// WorldIDContains applies the Contains predicate on the "world_id" field.
+func WorldIDContains(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldContains(FieldWorldID, v))
+}
+
+// WorldIDHasPrefix applies the HasPrefix predicate on the "world_id" field.
+func WorldIDHasPrefix(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldHasPrefix(FieldWorldID, v))
+}
+
+// WorldIDHasSuffix applies the HasSuffix predicate on the "world_id" field.
+func WorldIDHasSuffix(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldHasSuffix(FieldWorldID, v))
+}
+
+// WorldIDEqualFold applies the EqualFold predicate on the "world_id" field.
+func WorldIDEqualFold(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldEqualFold(FieldWorldID, v))
+}
+
+// WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
+func WorldIDContainsFold(v string) predicate.FactionCategory {
+	return predicate.FactionCategory(sql.FieldContainsFold(FieldWorldID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -347,6 +417,29 @@ func InitialConfigEQ(v bool) predicate.FactionCategory {
 // InitialConfigNEQ applies the NEQ predicate on the "initial_config" field.
 func InitialConfigNEQ(v bool) predicate.FactionCategory {
 	return predicate.FactionCategory(sql.FieldNEQ(FieldInitialConfig, v))
+}
+
+// HasWorld applies the HasEdge predicate on the "world" edge.
+func HasWorld() predicate.FactionCategory {
+	return predicate.FactionCategory(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, WorldTable, WorldPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorldWith applies the HasEdge predicate on the "world" edge with a given conditions (other predicates).
+func HasWorldWith(preds ...predicate.World) predicate.FactionCategory {
+	return predicate.FactionCategory(func(s *sql.Selector) {
+		step := newWorldStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasFactions applies the HasEdge predicate on the "factions" edge.

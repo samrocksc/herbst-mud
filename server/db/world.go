@@ -34,9 +34,21 @@ type World struct {
 type WorldEdges struct {
 	// Characters holds the value of the characters edge.
 	Characters []*Character `json:"characters,omitempty"`
+	// Races holds the value of the races edge.
+	Races []*Race `json:"races,omitempty"`
+	// Genders holds the value of the genders edge.
+	Genders []*Gender `json:"genders,omitempty"`
+	// Tags holds the value of the tags edge.
+	Tags []*Tag `json:"tags,omitempty"`
+	// SocialCommands holds the value of the social_commands edge.
+	SocialCommands []*SocialCommand `json:"social_commands,omitempty"`
+	// FactionCategories holds the value of the faction_categories edge.
+	FactionCategories []*FactionCategory `json:"faction_categories,omitempty"`
+	// EffectHooks holds the value of the effect_hooks edge.
+	EffectHooks []*EffectHook `json:"effect_hooks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [7]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -46,6 +58,60 @@ func (e WorldEdges) CharactersOrErr() ([]*Character, error) {
 		return e.Characters, nil
 	}
 	return nil, &NotLoadedError{edge: "characters"}
+}
+
+// RacesOrErr returns the Races value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorldEdges) RacesOrErr() ([]*Race, error) {
+	if e.loadedTypes[1] {
+		return e.Races, nil
+	}
+	return nil, &NotLoadedError{edge: "races"}
+}
+
+// GendersOrErr returns the Genders value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorldEdges) GendersOrErr() ([]*Gender, error) {
+	if e.loadedTypes[2] {
+		return e.Genders, nil
+	}
+	return nil, &NotLoadedError{edge: "genders"}
+}
+
+// TagsOrErr returns the Tags value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorldEdges) TagsOrErr() ([]*Tag, error) {
+	if e.loadedTypes[3] {
+		return e.Tags, nil
+	}
+	return nil, &NotLoadedError{edge: "tags"}
+}
+
+// SocialCommandsOrErr returns the SocialCommands value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorldEdges) SocialCommandsOrErr() ([]*SocialCommand, error) {
+	if e.loadedTypes[4] {
+		return e.SocialCommands, nil
+	}
+	return nil, &NotLoadedError{edge: "social_commands"}
+}
+
+// FactionCategoriesOrErr returns the FactionCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorldEdges) FactionCategoriesOrErr() ([]*FactionCategory, error) {
+	if e.loadedTypes[5] {
+		return e.FactionCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "faction_categories"}
+}
+
+// EffectHooksOrErr returns the EffectHooks value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorldEdges) EffectHooksOrErr() ([]*EffectHook, error) {
+	if e.loadedTypes[6] {
+		return e.EffectHooks, nil
+	}
+	return nil, &NotLoadedError{edge: "effect_hooks"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -120,6 +186,36 @@ func (_m *World) Value(name string) (ent.Value, error) {
 // QueryCharacters queries the "characters" edge of the World entity.
 func (_m *World) QueryCharacters() *CharacterQuery {
 	return NewWorldClient(_m.config).QueryCharacters(_m)
+}
+
+// QueryRaces queries the "races" edge of the World entity.
+func (_m *World) QueryRaces() *RaceQuery {
+	return NewWorldClient(_m.config).QueryRaces(_m)
+}
+
+// QueryGenders queries the "genders" edge of the World entity.
+func (_m *World) QueryGenders() *GenderQuery {
+	return NewWorldClient(_m.config).QueryGenders(_m)
+}
+
+// QueryTags queries the "tags" edge of the World entity.
+func (_m *World) QueryTags() *TagQuery {
+	return NewWorldClient(_m.config).QueryTags(_m)
+}
+
+// QuerySocialCommands queries the "social_commands" edge of the World entity.
+func (_m *World) QuerySocialCommands() *SocialCommandQuery {
+	return NewWorldClient(_m.config).QuerySocialCommands(_m)
+}
+
+// QueryFactionCategories queries the "faction_categories" edge of the World entity.
+func (_m *World) QueryFactionCategories() *FactionCategoryQuery {
+	return NewWorldClient(_m.config).QueryFactionCategories(_m)
+}
+
+// QueryEffectHooks queries the "effect_hooks" edge of the World entity.
+func (_m *World) QueryEffectHooks() *EffectHookQuery {
+	return NewWorldClient(_m.config).QueryEffectHooks(_m)
 }
 
 // Update returns a builder for updating this World.

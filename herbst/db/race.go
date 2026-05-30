@@ -17,6 +17,8 @@ type Race struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// World this race belongs to (for multi-world support)
+	WorldID string `json:"world_id,omitempty"`
 	// Internal ID: human, turtle, mutant
 	Name string `json:"name,omitempty"`
 	// Shown in UI: Human, Turtle, Mutant
@@ -32,29 +34,8 @@ type Race struct {
 	// Tags that must be satisfied for race to be selectable
 	RequirementTags []string `json:"requirement_tags,omitempty"`
 	// Hex color for UI display, e.g. '#8b5cf6'
-	Color string `json:"color,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the RaceQuery when eager-loading is set.
-	Edges        RaceEdges `json:"edges"`
+	Color        string `json:"color,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// RaceEdges holds the relations/edges for other nodes in the graph.
-type RaceEdges struct {
-	// NpcTemplates holds the value of the npc_templates edge.
-	NpcTemplates []*NPCTemplate `json:"npc_templates,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// NpcTemplatesOrErr returns the NpcTemplates value or an error if the edge
-// was not loaded in eager-loading.
-func (e RaceEdges) NpcTemplatesOrErr() ([]*NPCTemplate, error) {
-	if e.loadedTypes[0] {
-		return e.NpcTemplates, nil
-	}
-	return nil, &NotLoadedError{edge: "npc_templates"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -66,7 +47,7 @@ func (*Race) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case race.FieldID:
 			values[i] = new(sql.NullInt64)
-		case race.FieldName, race.FieldDisplayName, race.FieldDescription, race.FieldStatModifiers, race.FieldSkillGrants, race.FieldColor:
+		case race.FieldWorldID, race.FieldName, race.FieldDisplayName, race.FieldDescription, race.FieldStatModifiers, race.FieldSkillGrants, race.FieldColor:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -89,6 +70,12 @@ func (_m *Race) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case race.FieldWorldID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = value.String
+			}
 		case race.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -154,11 +141,6 @@ func (_m *Race) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryNpcTemplates queries the "npc_templates" edge of the Race entity.
-func (_m *Race) QueryNpcTemplates() *NPCTemplateQuery {
-	return NewRaceClient(_m.config).QueryNpcTemplates(_m)
-}
-
 // Update returns a builder for updating this Race.
 // Note that you need to call Race.Unwrap() before calling this method if this Race
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -182,6 +164,9 @@ func (_m *Race) String() string {
 	var builder strings.Builder
 	builder.WriteString("Race(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("world_id=")
+	builder.WriteString(_m.WorldID)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")

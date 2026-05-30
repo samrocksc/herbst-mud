@@ -3753,6 +3753,22 @@ func (c *EffectHookClient) GetX(ctx context.Context, id int) *EffectHook {
 	return obj
 }
 
+// QueryWorld queries the world edge of a EffectHook.
+func (c *EffectHookClient) QueryWorld(_m *EffectHook) *WorldQuery {
+	query := (&WorldClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(effecthook.Table, effecthook.FieldID, id),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, effecthook.WorldTable, effecthook.WorldPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryEffect queries the effect edge of a EffectHook.
 func (c *EffectHookClient) QueryEffect(_m *EffectHook) *EffectQuery {
 	query := (&EffectClient{config: c.config}).Query()
@@ -4427,6 +4443,22 @@ func (c *FactionCategoryClient) GetX(ctx context.Context, id int) *FactionCatego
 		panic(err)
 	}
 	return obj
+}
+
+// QueryWorld queries the world edge of a FactionCategory.
+func (c *FactionCategoryClient) QueryWorld(_m *FactionCategory) *WorldQuery {
+	query := (&WorldClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(factioncategory.Table, factioncategory.FieldID, id),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, factioncategory.WorldTable, factioncategory.WorldPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryFactions queries the factions edge of a FactionCategory.
@@ -5685,6 +5717,22 @@ func (c *RaceClient) GetX(ctx context.Context, id int) *Race {
 	return obj
 }
 
+// QueryWorld queries the world edge of a Race.
+func (c *RaceClient) QueryWorld(_m *Race) *WorldQuery {
+	query := (&WorldClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(race.Table, race.FieldID, id),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, race.WorldTable, race.WorldPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryTags queries the tags edge of a Race.
 func (c *RaceClient) QueryTags(_m *Race) *TagQuery {
 	query := (&TagClient{config: c.config}).Query()
@@ -6015,6 +6063,22 @@ func (c *SocialCommandClient) GetX(ctx context.Context, id int) *SocialCommand {
 	return obj
 }
 
+// QueryWorld queries the world edge of a SocialCommand.
+func (c *SocialCommandClient) QueryWorld(_m *SocialCommand) *WorldQuery {
+	query := (&WorldClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(socialcommand.Table, socialcommand.FieldID, id),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, socialcommand.WorldTable, socialcommand.WorldPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SocialCommandClient) Hooks() []Hook {
 	return c.hooks.SocialCommand
@@ -6146,6 +6210,22 @@ func (c *TagClient) GetX(ctx context.Context, id int) *Tag {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryWorld queries the world edge of a Tag.
+func (c *TagClient) QueryWorld(_m *Tag) *WorldQuery {
+	query := (&WorldClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tag.Table, tag.FieldID, id),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, tag.WorldTable, tag.WorldPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryRaces queries the races edge of a Tag.
@@ -6785,6 +6865,102 @@ func (c *WorldClient) QueryCharacters(_m *World) *CharacterQuery {
 			sqlgraph.From(world.Table, world.FieldID, id),
 			sqlgraph.To(character.Table, character.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, world.CharactersTable, world.CharactersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRaces queries the races edge of a World.
+func (c *WorldClient) QueryRaces(_m *World) *RaceQuery {
+	query := (&RaceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, id),
+			sqlgraph.To(race.Table, race.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.RacesTable, world.RacesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGenders queries the genders edge of a World.
+func (c *WorldClient) QueryGenders(_m *World) *GenderQuery {
+	query := (&GenderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, id),
+			sqlgraph.To(gender.Table, gender.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, world.GendersTable, world.GendersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTags queries the tags edge of a World.
+func (c *WorldClient) QueryTags(_m *World) *TagQuery {
+	query := (&TagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, id),
+			sqlgraph.To(tag.Table, tag.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.TagsTable, world.TagsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySocialCommands queries the social_commands edge of a World.
+func (c *WorldClient) QuerySocialCommands(_m *World) *SocialCommandQuery {
+	query := (&SocialCommandClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, id),
+			sqlgraph.To(socialcommand.Table, socialcommand.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.SocialCommandsTable, world.SocialCommandsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFactionCategories queries the faction_categories edge of a World.
+func (c *WorldClient) QueryFactionCategories(_m *World) *FactionCategoryQuery {
+	query := (&FactionCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, id),
+			sqlgraph.To(factioncategory.Table, factioncategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.FactionCategoriesTable, world.FactionCategoriesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEffectHooks queries the effect_hooks edge of a World.
+func (c *WorldClient) QueryEffectHooks(_m *World) *EffectHookQuery {
+	query := (&EffectHookClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, id),
+			sqlgraph.To(effecthook.Table, effecthook.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, world.EffectHooksTable, world.EffectHooksPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

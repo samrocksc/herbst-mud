@@ -26,6 +26,7 @@ import (
 	"herbst-server/db/equipmenttemplate"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
+	"herbst-server/db/gender"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/quest"
 	"herbst-server/db/questprogress"
@@ -33,6 +34,7 @@ import (
 	"herbst-server/db/room"
 	"herbst-server/db/schema"
 	"herbst-server/db/socialcommand"
+	"herbst-server/db/tag"
 	"herbst-server/db/tellqueue"
 	"herbst-server/db/trigger"
 	"herbst-server/db/user"
@@ -47,7 +49,7 @@ func init() {
 	abilityFields := schema.Ability{}.Fields()
 	_ = abilityFields
 	// abilityDescWorldID is the schema descriptor for world_id field.
-	abilityDescWorldID := abilityFields[1].Descriptor()
+	abilityDescWorldID := abilityFields[0].Descriptor()
 	// ability.DefaultWorldID holds the default value on creation for the world_id field.
 	ability.DefaultWorldID = abilityDescWorldID.Default.(string)
 	// abilityDescCost is the schema descriptor for cost field.
@@ -462,12 +464,16 @@ func init() {
 	effect.DefaultMessages = effectDescMessages.Default.(map[string]string)
 	effecthookFields := schema.EffectHook{}.Fields()
 	_ = effecthookFields
+	// effecthookDescWorldID is the schema descriptor for world_id field.
+	effecthookDescWorldID := effecthookFields[0].Descriptor()
+	// effecthook.DefaultWorldID holds the default value on creation for the world_id field.
+	effecthook.DefaultWorldID = effecthookDescWorldID.Default.(string)
 	// effecthookDescTarget is the schema descriptor for target field.
-	effecthookDescTarget := effecthookFields[2].Descriptor()
+	effecthookDescTarget := effecthookFields[3].Descriptor()
 	// effecthook.DefaultTarget holds the default value on creation for the target field.
 	effecthook.DefaultTarget = effecthookDescTarget.Default.(string)
 	// effecthookDescEnabled is the schema descriptor for enabled field.
-	effecthookDescEnabled := effecthookFields[4].Descriptor()
+	effecthookDescEnabled := effecthookFields[5].Descriptor()
 	// effecthook.DefaultEnabled holds the default value on creation for the enabled field.
 	effecthook.DefaultEnabled = effecthookDescEnabled.Default.(bool)
 	equipmentFields := schema.Equipment{}.Fields()
@@ -714,18 +720,28 @@ func init() {
 	faction.DefaultWorldID = factionDescWorldID.Default.(string)
 	factioncategoryFields := schema.FactionCategory{}.Fields()
 	_ = factioncategoryFields
+	// factioncategoryDescWorldID is the schema descriptor for world_id field.
+	factioncategoryDescWorldID := factioncategoryFields[0].Descriptor()
+	// factioncategory.DefaultWorldID holds the default value on creation for the world_id field.
+	factioncategory.DefaultWorldID = factioncategoryDescWorldID.Default.(string)
 	// factioncategoryDescMaxMemberships is the schema descriptor for max_memberships field.
-	factioncategoryDescMaxMemberships := factioncategoryFields[3].Descriptor()
+	factioncategoryDescMaxMemberships := factioncategoryFields[4].Descriptor()
 	// factioncategory.DefaultMaxMemberships holds the default value on creation for the max_memberships field.
 	factioncategory.DefaultMaxMemberships = factioncategoryDescMaxMemberships.Default.(int)
 	// factioncategoryDescAutoJoin is the schema descriptor for auto_join field.
-	factioncategoryDescAutoJoin := factioncategoryFields[4].Descriptor()
+	factioncategoryDescAutoJoin := factioncategoryFields[5].Descriptor()
 	// factioncategory.DefaultAutoJoin holds the default value on creation for the auto_join field.
 	factioncategory.DefaultAutoJoin = factioncategoryDescAutoJoin.Default.(bool)
 	// factioncategoryDescInitialConfig is the schema descriptor for initial_config field.
-	factioncategoryDescInitialConfig := factioncategoryFields[5].Descriptor()
+	factioncategoryDescInitialConfig := factioncategoryFields[6].Descriptor()
 	// factioncategory.DefaultInitialConfig holds the default value on creation for the initial_config field.
 	factioncategory.DefaultInitialConfig = factioncategoryDescInitialConfig.Default.(bool)
+	genderFields := schema.Gender{}.Fields()
+	_ = genderFields
+	// genderDescWorldID is the schema descriptor for world_id field.
+	genderDescWorldID := genderFields[5].Descriptor()
+	// gender.DefaultWorldID holds the default value on creation for the world_id field.
+	gender.DefaultWorldID = genderDescWorldID.Default.(string)
 	npctemplateFields := schema.NPCTemplate{}.Fields()
 	_ = npctemplateFields
 	// npctemplateDescWorldID is the schema descriptor for world_id field.
@@ -766,12 +782,16 @@ func init() {
 	questprogress.DefaultCurrentStep = questprogressDescCurrentStep.Default.(int)
 	raceFields := schema.Race{}.Fields()
 	_ = raceFields
+	// raceDescWorldID is the schema descriptor for world_id field.
+	raceDescWorldID := raceFields[0].Descriptor()
+	// race.DefaultWorldID holds the default value on creation for the world_id field.
+	race.DefaultWorldID = raceDescWorldID.Default.(string)
 	// raceDescEquipmentSlots is the schema descriptor for equipment_slots field.
-	raceDescEquipmentSlots := raceFields[5].Descriptor()
+	raceDescEquipmentSlots := raceFields[6].Descriptor()
 	// race.DefaultEquipmentSlots holds the default value on creation for the equipment_slots field.
 	race.DefaultEquipmentSlots = raceDescEquipmentSlots.Default.([]string)
 	// raceDescRequirementTags is the schema descriptor for requirement_tags field.
-	raceDescRequirementTags := raceFields[6].Descriptor()
+	raceDescRequirementTags := raceFields[7].Descriptor()
 	// race.DefaultRequirementTags holds the default value on creation for the requirement_tags field.
 	race.DefaultRequirementTags = raceDescRequirementTags.Default.([]string)
 	roomFields := schema.Room{}.Fields()
@@ -806,14 +826,24 @@ func init() {
 	room.DefaultVersion = roomDescVersion.Default.(int)
 	socialcommandFields := schema.SocialCommand{}.Fields()
 	_ = socialcommandFields
+	// socialcommandDescWorldID is the schema descriptor for world_id field.
+	socialcommandDescWorldID := socialcommandFields[0].Descriptor()
+	// socialcommand.DefaultWorldID holds the default value on creation for the world_id field.
+	socialcommand.DefaultWorldID = socialcommandDescWorldID.Default.(string)
 	// socialcommandDescRequiresTarget is the schema descriptor for requiresTarget field.
-	socialcommandDescRequiresTarget := socialcommandFields[7].Descriptor()
+	socialcommandDescRequiresTarget := socialcommandFields[8].Descriptor()
 	// socialcommand.DefaultRequiresTarget holds the default value on creation for the requiresTarget field.
 	socialcommand.DefaultRequiresTarget = socialcommandDescRequiresTarget.Default.(bool)
 	// socialcommandDescIsEmote is the schema descriptor for isEmote field.
-	socialcommandDescIsEmote := socialcommandFields[8].Descriptor()
+	socialcommandDescIsEmote := socialcommandFields[9].Descriptor()
 	// socialcommand.DefaultIsEmote holds the default value on creation for the isEmote field.
 	socialcommand.DefaultIsEmote = socialcommandDescIsEmote.Default.(bool)
+	tagFields := schema.Tag{}.Fields()
+	_ = tagFields
+	// tagDescWorldID is the schema descriptor for world_id field.
+	tagDescWorldID := tagFields[0].Descriptor()
+	// tag.DefaultWorldID holds the default value on creation for the world_id field.
+	tag.DefaultWorldID = tagDescWorldID.Default.(string)
 	tellqueueFields := schema.TellQueue{}.Fields()
 	_ = tellqueueFields
 	// tellqueueDescSentAt is the schema descriptor for sentAt field.

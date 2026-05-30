@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/race"
 	"herbst-server/db/tag"
+	"herbst-server/db/world"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,6 +20,20 @@ type RaceCreate struct {
 	config
 	mutation *RaceMutation
 	hooks    []Hook
+}
+
+// SetWorldID sets the "world_id" field.
+func (_c *RaceCreate) SetWorldID(v string) *RaceCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *RaceCreate) SetNillableWorldID(v *string) *RaceCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
+	}
+	return _c
 }
 
 // SetName sets the "name" field.
@@ -93,6 +108,21 @@ func (_c *RaceCreate) SetNillableColor(v *string) *RaceCreate {
 	return _c
 }
 
+// AddWorldIDs adds the "world" edge to the World entity by IDs.
+func (_c *RaceCreate) AddWorldIDs(ids ...int) *RaceCreate {
+	_c.mutation.AddWorldIDs(ids...)
+	return _c
+}
+
+// AddWorld adds the "world" edges to the World entity.
+func (_c *RaceCreate) AddWorld(v ...*World) *RaceCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddWorldIDs(ids...)
+}
+
 // AddTagIDs adds the "tags" edge to the Tag entity by IDs.
 func (_c *RaceCreate) AddTagIDs(ids ...int) *RaceCreate {
 	_c.mutation.AddTagIDs(ids...)
@@ -158,6 +188,10 @@ func (_c *RaceCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *RaceCreate) defaults() {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		v := race.DefaultWorldID
+		_c.mutation.SetWorldID(v)
+	}
 	if _, ok := _c.mutation.EquipmentSlots(); !ok {
 		v := race.DefaultEquipmentSlots
 		_c.mutation.SetEquipmentSlots(v)
@@ -170,6 +204,9 @@ func (_c *RaceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *RaceCreate) check() error {
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "Race.world_id"`)}
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "Race.name"`)}
 	}
@@ -208,6 +245,10 @@ func (_c *RaceCreate) createSpec() (*Race, *sqlgraph.CreateSpec) {
 		_node = &Race{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(race.Table, sqlgraph.NewFieldSpec(race.FieldID, field.TypeInt))
 	)
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(race.FieldWorldID, field.TypeString, value)
+		_node.WorldID = value
+	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(race.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -239,6 +280,22 @@ func (_c *RaceCreate) createSpec() (*Race, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Color(); ok {
 		_spec.SetField(race.FieldColor, field.TypeString, value)
 		_node.Color = value
+	}
+	if nodes := _c.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   race.WorldTable,
+			Columns: race.WorldPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.TagsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

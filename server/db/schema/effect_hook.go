@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // EffectHook binds an event to an Effect on a character/NPC template.
@@ -15,6 +16,9 @@ type EffectHook struct {
 
 func (EffectHook) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("world_id").
+			Default("1").
+			Comment("World this effect hook belongs to (for multi-world support)"),
 		field.String("name").
 			Comment("Display name, e.g., 'Death Drain — XP from killer'"),
 		field.String("event").
@@ -32,6 +36,7 @@ func (EffectHook) Fields() []ent.Field {
 
 func (EffectHook) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("world", World.Type).Ref("effect_hooks"),
 		edge.From("effect", Effect.Type).
 			Ref("hooks").
 			Unique().
@@ -39,5 +44,12 @@ func (EffectHook) Edges() []ent.Edge {
 		edge.From("npc_template", NPCTemplate.Type).
 			Ref("hooks").
 			Unique(),
+	}
+}
+
+// Indexes of the EffectHook.
+func (EffectHook) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name", "world_id").Unique(),
 	}
 }

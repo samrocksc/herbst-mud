@@ -13,7 +13,7 @@ import (
 	"herbst-server/repository"
 )
 
-// createRace creates a new race.
+// createRace creates a new race in the specified world.
 func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
@@ -26,6 +26,7 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			RequirementTags []string `json:"requirement_tags"`
 			Color           string   `json:"color"`
 			Tags            []string `json:"tags"`
+			WorldID         string   `json:"world_id" default:"1"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			slog.Warn("bad request", slog.String("service", "races"), slog.String("reason", "invalid request body"), slog.String("error", err.Error()))
@@ -39,10 +40,10 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			return
 		}
 
-		// Check for duplicate name
-		existing, err := repos.Race.GetByName(c.Request.Context(), req.Name)
+		// Check for duplicate name in this world
+		existing, err := repos.Race.GetByName(c.Request.Context(), req.Name, req.WorldID)
 		if err == nil && existing != nil {
-			c.JSON(http.StatusConflict, gin.H{"error": "a race with this name already exists"})
+			c.JSON(http.StatusConflict, gin.H{"error": "a race with this name already exists in this world"})
 			return
 		}
 
@@ -73,12 +74,12 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			TagIDs:          tagIDs,
 		})
 		if err != nil {
-			dblog.Error("failed to create race", err, slog.String("service", "races"))
+			dblog.Error("failed to create race", err, slog.String("service", "races"), slog.String("world_id", req.WorldID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		slog.Info("race created", slog.String("service", "races"), slog.String("race_name", r.Name))
+		slog.Info("race created", slog.String("service", "races"), slog.String("race_name", req.Name), slog.String("world_id", req.WorldID))
 		c.JSON(http.StatusCreated, raceToView(r))
 	}
 }
