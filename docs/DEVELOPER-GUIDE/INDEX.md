@@ -13,19 +13,20 @@
 │ SSH TUI     │              │ REST API     │            │ React Admin │
 │ (BubbleTea) │              │ (Gin + ent)  │            │ (Vite)      │
 └─────────────┘              └──────────────┘            └─────────────┘
-                                    │
-                                    ▼
-                           ┌─────────────────┐
-                           │   PostgreSQL    │
-                           │   (ent ORM)     │
-                           └─────────────────┘
+                                    │                            ▲
+                                    ▼                            │
+                           ┌─────────────────┐     ┌─────────────┐
+                           │   PostgreSQL    │     │ web-client/ │ 3001
+                           │   (ent ORM)     │     │ Browser MUD │
+                           └─────────────────┘     └─────────────┘
 ```
 
-**Three independent Go modules:**
+**Two Go binaries + two React frontends:**
+
 | Module | Directory | Entry Point | Role |
 |--------|-----------|-------------|------|
-| SSH Client | `herbst/` | `herbst/main.go` | TUI MUD client |
-| REST Server | `server/` | `server/main.go` | REST API + WebSocket |
+| SSH Client | `herbst/` | `herbst/main.go` | TUI MUD client (Go) |
+| REST Server | `server/` | `server/main.go` | REST API + WebSocket (Go) |
 | Admin Panel | `admin/` | `admin/src/main.tsx` | Vite/React SPA |
 | Web Client | `web-client/` | `web-client/src/main.tsx` | Browser game client |
 

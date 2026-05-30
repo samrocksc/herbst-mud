@@ -154,5 +154,5 @@ See `deploy/README.md` for platform-specific configuration.
 
 ## Next Steps
 
-- **[Developer Guide](DEVELOPER-GUIDE/INDEX.md)** — build, test, contribute
-- **[Installation & Upgrade](INSTALL.md)** — Docker Compose install, upgrades, migrations
+- **[Developer Guide](../DEVELOPER-GUIDE/INDEX.md)** — build, test, contribute
+- **[Installation & Upgrade](./INSTALL.md)** — Docker Compose install, upgrades, migrations
