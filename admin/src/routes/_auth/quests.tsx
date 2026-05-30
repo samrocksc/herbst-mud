@@ -25,7 +25,7 @@ const COLUMNS: Column<Quest>[] = [
   { header: "XP", accessor: "rewards", render: (val) => (val as { xp?: number })?.xp ?? 0 },
 ];
 
-function QuestsManagement() {
+export function QuestsManagement() {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: quests, isLoading, error } = useQuests();

@@ -56,7 +56,7 @@ const COLUMNS: Column<Ability>[] = [
   },
 ];
 
-function AbilitiesManagement() {
+export function AbilitiesManagement() {
   const [filterType, setFilterType] = useState<string>("");
   const [filterClass, setFilterClass] = useState<string>("");
   const navigate = useNavigate();

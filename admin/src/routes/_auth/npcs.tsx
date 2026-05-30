@@ -28,7 +28,7 @@ type NPCTemplate = Readonly<{
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-function NPCTemplatesIndex() {
+export function NPCTemplatesIndex() {
   const { currentWorld } = useWorldStore();
   const [searchQuery, setSearchQuery] = useState("");
 

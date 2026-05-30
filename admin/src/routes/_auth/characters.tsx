@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_auth/characters")({
   component: CharactersIndex,
 });
 
-function CharactersIndex() {
+export function CharactersIndex() {
   const { data: characters, isLoading, isError, error } = useCharacters();
   const [searchQuery, setSearchQuery] = useState("");
   const [showNPCs, setShowNPCs] = useState(false);

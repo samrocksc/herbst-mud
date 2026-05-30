@@ -31,7 +31,7 @@ const COLUMNS: Column<SocialCommand>[] = [
   { header: "Room Text", accessor: "room_text" },
 ];
 
-function SocialsManagement() {
+export function SocialsManagement() {
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const navigate = useNavigate();

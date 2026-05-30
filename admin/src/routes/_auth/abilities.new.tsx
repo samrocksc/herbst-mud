@@ -7,7 +7,7 @@ import {
 import { useTags } from "../../hooks/useTags";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
-import { TagInput } from "../../components/TagInput";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import {
   FormField,
   NumberField,
@@ -54,15 +54,11 @@ const EMPTY_ABILITY: AbilityInput = {
   slug: "",
 };
 
-function CreateAbilityPage() {
+export function CreateAbilityPage() {
   const navigate = useNavigate();
   const createAbility = useCreateAbility();
   const { data: availableTags } = useTags();
   const [formData, setFormData] = useState<AbilityInput>(EMPTY_ABILITY);
-
-  const selectedTags = formData.required_tag
-    ? formData.required_tag.split(",").map((t) => t.trim()).filter(Boolean)
-    : [];
 
   const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }));
 
@@ -87,12 +83,12 @@ function CreateAbilityPage() {
             <FormField label="Name *" value={formData.name} onChange={(v) => set({ name: v })} required />
             <FormField label="Slug (optional)" value={formData.slug ?? ""} onChange={(v) => set({ slug: v })} placeholder="Auto-generated from name if empty" />
             <SelectField label="Ability Type" value={formData.ability_type} onChange={(v) => set({ ability_type: v })} options={ABILITY_TYPE_OPTS} />
-            <TagInput
+            <SearchableSelect
               label="Required Tag (optional)"
-              value={selectedTags}
-              onChange={(tags) => set({ required_tag: tags.join(", ") })}
-              availableTags={(availableTags ?? []).map((t) => t.name)}
-              placeholder="e.g., sword, fire, healing"
+              options={(availableTags ?? []).map((t) => ({ id: t.name, name: t.name }))}
+              value={formData.required_tag || ""}
+              onChange={(v) => set({ required_tag: v })}
+              placeholder="Select a tag..."
             />
             <SelectField label="Ability Class" value={formData.ability_class} onChange={(v) => set({ ability_class: v })} options={ABILITY_CLASS_OPTS} />
           </div>

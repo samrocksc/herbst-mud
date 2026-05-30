@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_auth/items")({
   component: ItemsIndex,
 });
 
-function ItemsIndex() {
+export function ItemsIndex() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const navigate = useNavigate();

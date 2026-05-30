@@ -61,7 +61,7 @@ function ActiveToggle({ world }: { world: World }) {
   );
 }
 
-function WorldsManagement() {
+export function WorldsManagement() {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: worlds, isLoading, error } = useWorlds();
