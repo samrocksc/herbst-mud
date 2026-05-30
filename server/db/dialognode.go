@@ -43,9 +43,11 @@ type DialogNode struct {
 type DialogNodeEdges struct {
 	// NpcTemplate holds the value of the npc_template edge.
 	NpcTemplate *NPCTemplate `json:"npc_template,omitempty"`
+	// Triggers holds the value of the triggers edge.
+	Triggers []*Trigger `json:"triggers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // NpcTemplateOrErr returns the NpcTemplate value or an error if the edge
@@ -57,6 +59,15 @@ func (e DialogNodeEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
 		return nil, &NotFoundError{label: npctemplate.Label}
 	}
 	return nil, &NotLoadedError{edge: "npc_template"}
+}
+
+// TriggersOrErr returns the Triggers value or an error if the edge
+// was not loaded in eager-loading.
+func (e DialogNodeEdges) TriggersOrErr() ([]*Trigger, error) {
+	if e.loadedTypes[1] {
+		return e.Triggers, nil
+	}
+	return nil, &NotLoadedError{edge: "triggers"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -156,6 +167,11 @@ func (_m *DialogNode) Value(name string) (ent.Value, error) {
 // QueryNpcTemplate queries the "npc_template" edge of the DialogNode entity.
 func (_m *DialogNode) QueryNpcTemplate() *NPCTemplateQuery {
 	return NewDialogNodeClient(_m.config).QueryNpcTemplate(_m)
+}
+
+// QueryTriggers queries the "triggers" edge of the DialogNode entity.
+func (_m *DialogNode) QueryTriggers() *TriggerQuery {
+	return NewDialogNodeClient(_m.config).QueryTriggers(_m)
 }
 
 // Update returns a builder for updating this DialogNode.

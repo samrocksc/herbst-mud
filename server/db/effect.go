@@ -47,9 +47,11 @@ type EffectEdges struct {
 	Hooks []*EffectHook `json:"hooks,omitempty"`
 	// ActiveEffectInstances holds the value of the active_effect_instances edge.
 	ActiveEffectInstances []*ActiveEffect `json:"active_effect_instances,omitempty"`
+	// Triggers holds the value of the triggers edge.
+	Triggers []*Trigger `json:"triggers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // HooksOrErr returns the Hooks value or an error if the edge
@@ -68,6 +70,15 @@ func (e EffectEdges) ActiveEffectInstancesOrErr() ([]*ActiveEffect, error) {
 		return e.ActiveEffectInstances, nil
 	}
 	return nil, &NotLoadedError{edge: "active_effect_instances"}
+}
+
+// TriggersOrErr returns the Triggers value or an error if the edge
+// was not loaded in eager-loading.
+func (e EffectEdges) TriggersOrErr() ([]*Trigger, error) {
+	if e.loadedTypes[2] {
+		return e.Triggers, nil
+	}
+	return nil, &NotLoadedError{edge: "triggers"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -183,6 +194,11 @@ func (_m *Effect) QueryHooks() *EffectHookQuery {
 // QueryActiveEffectInstances queries the "active_effect_instances" edge of the Effect entity.
 func (_m *Effect) QueryActiveEffectInstances() *ActiveEffectQuery {
 	return NewEffectClient(_m.config).QueryActiveEffectInstances(_m)
+}
+
+// QueryTriggers queries the "triggers" edge of the Effect entity.
+func (_m *Effect) QueryTriggers() *TriggerQuery {
+	return NewEffectClient(_m.config).QueryTriggers(_m)
 }
 
 // Update returns a builder for updating this Effect.

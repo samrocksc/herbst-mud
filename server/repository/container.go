@@ -38,6 +38,7 @@ type Container struct {
 	Ignore               IgnoreRepo
 	World                WorldRepo
 	CraftingRecipe       CraftingRecipeRepo
+	Trigger              TriggerRepo
 }
 
 // NewContainer creates all ent-backed repositories.
@@ -75,5 +76,6 @@ func NewContainer(client *db.Client) *Container {
 		Ignore:               NewEntIgnoreRepo(client),
 		World:                NewEntWorldRepo(client),
 		CraftingRecipe:       NewEntCraftingRecipeRepo(client),
+		Trigger:              NewEntTriggerRepo(client),
 	}
 }

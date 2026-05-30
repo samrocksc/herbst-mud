@@ -42,6 +42,7 @@ import (
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
 	"herbst-server/db/tellqueue"
+	"herbst-server/db/trigger"
 	"herbst-server/db/user"
 	"herbst-server/db/world"
 	"reflect"
@@ -146,6 +147,7 @@ func checkColumn(t, c string) error {
 			socialcommand.Table:            socialcommand.ValidColumn,
 			tag.Table:                      tag.ValidColumn,
 			tellqueue.Table:                tellqueue.ValidColumn,
+			trigger.Table:                  trigger.ValidColumn,
 			user.Table:                     user.ValidColumn,
 			world.Table:                    world.ValidColumn,
 		})

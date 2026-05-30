@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -33,5 +34,11 @@ func (CraftingRecipe) Fields() []ent.Field {
 		field.JSON("outputs", []CraftingOutput{}),
 		field.Int("craft_time_secs").Default(3),
 		field.String("world_id").Default("1"),
+	}
+}
+
+func (CraftingRecipe) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("triggers", Trigger.Type),
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"herbst-server/db/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -661,6 +662,29 @@ func WorldIDEqualFold(v string) predicate.CraftingRecipe {
 // WorldIDContainsFold applies the ContainsFold predicate on the "world_id" field.
 func WorldIDContainsFold(v string) predicate.CraftingRecipe {
 	return predicate.CraftingRecipe(sql.FieldContainsFold(FieldWorldID, v))
+}
+
+// HasTriggers applies the HasEdge predicate on the "triggers" edge.
+func HasTriggers() predicate.CraftingRecipe {
+	return predicate.CraftingRecipe(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TriggersTable, TriggersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTriggersWith applies the HasEdge predicate on the "triggers" edge with a given conditions (other predicates).
+func HasTriggersWith(preds ...predicate.Trigger) predicate.CraftingRecipe {
+	return predicate.CraftingRecipe(func(s *sql.Selector) {
+		step := newTriggersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

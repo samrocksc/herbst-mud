@@ -7,6 +7,7 @@ import { useRaces } from "../../hooks/useRaces";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { PageContainer } from "../../components/PageContainer";
+import { SearchableSelect } from "../../components/SearchableSelect";
 
 export const Route = createFileRoute("/_auth/npcs/new")({
   component: CreateNPCPage,
@@ -87,8 +88,6 @@ function CreateNPCPage() {
     },
   });
 
-  const raceOptions = races ?? [];
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
@@ -130,16 +129,12 @@ function CreateNPCPage() {
           {/* Race */}
           <div>
             <label className="text-text-muted text-xs block mb-1">Race</label>
-            <select
-              value={form.race_id}
-              onChange={(e) => set({ race_id: parseInt(e.target.value) || 0 })}
-              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-            >
-              <option value="">Select race…</option>
-              {raceOptions.map((r) => (
-                <option key={r.id} value={r.id}>{r.display_name || r.name}</option>
-              ))}
-            </select>
+            <SearchableSelect
+              options={(races ?? []).map((r) => ({ id: String(r.id), name: r.display_name || r.name }))}
+              value={String(form.race_id || "")}
+              onChange={(v) => set({ race_id: Number(v) || 0 })}
+              placeholder="Select race..."
+            />
           </div>
 
           {/* Level & XP Value */}

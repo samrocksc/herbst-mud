@@ -44,6 +44,7 @@ import (
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
 	"herbst-server/db/tellqueue"
+	"herbst-server/db/trigger"
 	"herbst-server/db/user"
 	"herbst-server/db/world"
 	"sync"
@@ -98,6 +99,7 @@ const (
 	TypeSocialCommand            = "SocialCommand"
 	TypeTag                      = "Tag"
 	TypeTellQueue                = "TellQueue"
+	TypeTrigger                  = "Trigger"
 	TypeUser                     = "User"
 	TypeWorld                    = "World"
 )
@@ -15340,6 +15342,9 @@ type CraftingRecipeMutation struct {
 	addcraft_time_secs      *int
 	world_id                *string
 	clearedFields           map[string]struct{}
+	triggers                map[int]struct{}
+	removedtriggers         map[int]struct{}
+	clearedtriggers         bool
 	done                    bool
 	oldValue                func(context.Context) (*CraftingRecipe, error)
 	predicates              []predicate.CraftingRecipe
@@ -15948,6 +15953,60 @@ func (m *CraftingRecipeMutation) ResetWorldID() {
 	m.world_id = nil
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by ids.
+func (m *CraftingRecipeMutation) AddTriggerIDs(ids ...int) {
+	if m.triggers == nil {
+		m.triggers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.triggers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTriggers clears the "triggers" edge to the Trigger entity.
+func (m *CraftingRecipeMutation) ClearTriggers() {
+	m.clearedtriggers = true
+}
+
+// TriggersCleared reports if the "triggers" edge to the Trigger entity was cleared.
+func (m *CraftingRecipeMutation) TriggersCleared() bool {
+	return m.clearedtriggers
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to the Trigger entity by IDs.
+func (m *CraftingRecipeMutation) RemoveTriggerIDs(ids ...int) {
+	if m.removedtriggers == nil {
+		m.removedtriggers = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.triggers, ids[i])
+		m.removedtriggers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTriggers returns the removed IDs of the "triggers" edge to the Trigger entity.
+func (m *CraftingRecipeMutation) RemovedTriggersIDs() (ids []int) {
+	for id := range m.removedtriggers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TriggersIDs returns the "triggers" edge IDs in the mutation.
+func (m *CraftingRecipeMutation) TriggersIDs() (ids []int) {
+	for id := range m.triggers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTriggers resets all changes to the "triggers" edge.
+func (m *CraftingRecipeMutation) ResetTriggers() {
+	m.triggers = nil
+	m.clearedtriggers = false
+	m.removedtriggers = nil
+}
+
 // Where appends a list predicates to the CraftingRecipeMutation builder.
 func (m *CraftingRecipeMutation) Where(ps ...predicate.CraftingRecipe) {
 	m.predicates = append(m.predicates, ps...)
@@ -16299,49 +16358,85 @@ func (m *CraftingRecipeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CraftingRecipeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.triggers != nil {
+		edges = append(edges, craftingrecipe.EdgeTriggers)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *CraftingRecipeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case craftingrecipe.EdgeTriggers:
+		ids := make([]ent.Value, 0, len(m.triggers))
+		for id := range m.triggers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CraftingRecipeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedtriggers != nil {
+		edges = append(edges, craftingrecipe.EdgeTriggers)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CraftingRecipeMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case craftingrecipe.EdgeTriggers:
+		ids := make([]ent.Value, 0, len(m.removedtriggers))
+		for id := range m.removedtriggers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CraftingRecipeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedtriggers {
+		edges = append(edges, craftingrecipe.EdgeTriggers)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *CraftingRecipeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case craftingrecipe.EdgeTriggers:
+		return m.clearedtriggers
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *CraftingRecipeMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown CraftingRecipe unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *CraftingRecipeMutation) ResetEdge(name string) error {
+	switch name {
+	case craftingrecipe.EdgeTriggers:
+		m.ResetTriggers()
+		return nil
+	}
 	return fmt.Errorf("unknown CraftingRecipe edge %s", name)
 }
 
@@ -16952,6 +17047,9 @@ type DialogNodeMutation struct {
 	clearedFields          map[string]struct{}
 	npc_template           *string
 	clearednpc_template    bool
+	triggers               map[int]struct{}
+	removedtriggers        map[int]struct{}
+	clearedtriggers        bool
 	done                   bool
 	oldValue               func(context.Context) (*DialogNode, error)
 	predicates             []predicate.DialogNode
@@ -17387,6 +17485,60 @@ func (m *DialogNodeMutation) ResetNpcTemplate() {
 	m.clearednpc_template = false
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by ids.
+func (m *DialogNodeMutation) AddTriggerIDs(ids ...int) {
+	if m.triggers == nil {
+		m.triggers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.triggers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTriggers clears the "triggers" edge to the Trigger entity.
+func (m *DialogNodeMutation) ClearTriggers() {
+	m.clearedtriggers = true
+}
+
+// TriggersCleared reports if the "triggers" edge to the Trigger entity was cleared.
+func (m *DialogNodeMutation) TriggersCleared() bool {
+	return m.clearedtriggers
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to the Trigger entity by IDs.
+func (m *DialogNodeMutation) RemoveTriggerIDs(ids ...int) {
+	if m.removedtriggers == nil {
+		m.removedtriggers = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.triggers, ids[i])
+		m.removedtriggers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTriggers returns the removed IDs of the "triggers" edge to the Trigger entity.
+func (m *DialogNodeMutation) RemovedTriggersIDs() (ids []int) {
+	for id := range m.removedtriggers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TriggersIDs returns the "triggers" edge IDs in the mutation.
+func (m *DialogNodeMutation) TriggersIDs() (ids []int) {
+	for id := range m.triggers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTriggers resets all changes to the "triggers" edge.
+func (m *DialogNodeMutation) ResetTriggers() {
+	m.triggers = nil
+	m.clearedtriggers = false
+	m.removedtriggers = nil
+}
+
 // Where appends a list predicates to the DialogNodeMutation builder.
 func (m *DialogNodeMutation) Where(ps ...predicate.DialogNode) {
 	m.predicates = append(m.predicates, ps...)
@@ -17626,9 +17778,12 @@ func (m *DialogNodeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DialogNodeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.npc_template != nil {
 		edges = append(edges, dialognode.EdgeNpcTemplate)
+	}
+	if m.triggers != nil {
+		edges = append(edges, dialognode.EdgeTriggers)
 	}
 	return edges
 }
@@ -17641,27 +17796,47 @@ func (m *DialogNodeMutation) AddedIDs(name string) []ent.Value {
 		if id := m.npc_template; id != nil {
 			return []ent.Value{*id}
 		}
+	case dialognode.EdgeTriggers:
+		ids := make([]ent.Value, 0, len(m.triggers))
+		for id := range m.triggers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DialogNodeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedtriggers != nil {
+		edges = append(edges, dialognode.EdgeTriggers)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *DialogNodeMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case dialognode.EdgeTriggers:
+		ids := make([]ent.Value, 0, len(m.removedtriggers))
+		for id := range m.removedtriggers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DialogNodeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearednpc_template {
 		edges = append(edges, dialognode.EdgeNpcTemplate)
+	}
+	if m.clearedtriggers {
+		edges = append(edges, dialognode.EdgeTriggers)
 	}
 	return edges
 }
@@ -17672,6 +17847,8 @@ func (m *DialogNodeMutation) EdgeCleared(name string) bool {
 	switch name {
 	case dialognode.EdgeNpcTemplate:
 		return m.clearednpc_template
+	case dialognode.EdgeTriggers:
+		return m.clearedtriggers
 	}
 	return false
 }
@@ -17693,6 +17870,9 @@ func (m *DialogNodeMutation) ResetEdge(name string) error {
 	switch name {
 	case dialognode.EdgeNpcTemplate:
 		m.ResetNpcTemplate()
+		return nil
+	case dialognode.EdgeTriggers:
+		m.ResetTriggers()
 		return nil
 	}
 	return fmt.Errorf("unknown DialogNode edge %s", name)
@@ -17722,6 +17902,9 @@ type EffectMutation struct {
 	active_effect_instances        map[int]struct{}
 	removedactive_effect_instances map[int]struct{}
 	clearedactive_effect_instances bool
+	triggers                       map[int]struct{}
+	removedtriggers                map[int]struct{}
+	clearedtriggers                bool
 	done                           bool
 	oldValue                       func(context.Context) (*Effect, error)
 	predicates                     []predicate.Effect
@@ -18297,6 +18480,60 @@ func (m *EffectMutation) ResetActiveEffectInstances() {
 	m.removedactive_effect_instances = nil
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by ids.
+func (m *EffectMutation) AddTriggerIDs(ids ...int) {
+	if m.triggers == nil {
+		m.triggers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.triggers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTriggers clears the "triggers" edge to the Trigger entity.
+func (m *EffectMutation) ClearTriggers() {
+	m.clearedtriggers = true
+}
+
+// TriggersCleared reports if the "triggers" edge to the Trigger entity was cleared.
+func (m *EffectMutation) TriggersCleared() bool {
+	return m.clearedtriggers
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to the Trigger entity by IDs.
+func (m *EffectMutation) RemoveTriggerIDs(ids ...int) {
+	if m.removedtriggers == nil {
+		m.removedtriggers = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.triggers, ids[i])
+		m.removedtriggers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTriggers returns the removed IDs of the "triggers" edge to the Trigger entity.
+func (m *EffectMutation) RemovedTriggersIDs() (ids []int) {
+	for id := range m.removedtriggers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TriggersIDs returns the "triggers" edge IDs in the mutation.
+func (m *EffectMutation) TriggersIDs() (ids []int) {
+	for id := range m.triggers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTriggers resets all changes to the "triggers" edge.
+func (m *EffectMutation) ResetTriggers() {
+	m.triggers = nil
+	m.clearedtriggers = false
+	m.removedtriggers = nil
+}
+
 // Where appends a list predicates to the EffectMutation builder.
 func (m *EffectMutation) Where(ps ...predicate.Effect) {
 	m.predicates = append(m.predicates, ps...)
@@ -18593,12 +18830,15 @@ func (m *EffectMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EffectMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m._hooks != nil {
 		edges = append(edges, effect.EdgeHooks)
 	}
 	if m.active_effect_instances != nil {
 		edges = append(edges, effect.EdgeActiveEffectInstances)
+	}
+	if m.triggers != nil {
+		edges = append(edges, effect.EdgeTriggers)
 	}
 	return edges
 }
@@ -18619,18 +18859,27 @@ func (m *EffectMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case effect.EdgeTriggers:
+		ids := make([]ent.Value, 0, len(m.triggers))
+		for id := range m.triggers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EffectMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removed_hooks != nil {
 		edges = append(edges, effect.EdgeHooks)
 	}
 	if m.removedactive_effect_instances != nil {
 		edges = append(edges, effect.EdgeActiveEffectInstances)
+	}
+	if m.removedtriggers != nil {
+		edges = append(edges, effect.EdgeTriggers)
 	}
 	return edges
 }
@@ -18651,18 +18900,27 @@ func (m *EffectMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case effect.EdgeTriggers:
+		ids := make([]ent.Value, 0, len(m.removedtriggers))
+		for id := range m.removedtriggers {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EffectMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.cleared_hooks {
 		edges = append(edges, effect.EdgeHooks)
 	}
 	if m.clearedactive_effect_instances {
 		edges = append(edges, effect.EdgeActiveEffectInstances)
+	}
+	if m.clearedtriggers {
+		edges = append(edges, effect.EdgeTriggers)
 	}
 	return edges
 }
@@ -18675,6 +18933,8 @@ func (m *EffectMutation) EdgeCleared(name string) bool {
 		return m.cleared_hooks
 	case effect.EdgeActiveEffectInstances:
 		return m.clearedactive_effect_instances
+	case effect.EdgeTriggers:
+		return m.clearedtriggers
 	}
 	return false
 }
@@ -18696,6 +18956,9 @@ func (m *EffectMutation) ResetEdge(name string) error {
 		return nil
 	case effect.EdgeActiveEffectInstances:
 		m.ResetActiveEffectInstances()
+		return nil
+	case effect.EdgeTriggers:
+		m.ResetTriggers()
 		return nil
 	}
 	return fmt.Errorf("unknown Effect edge %s", name)
@@ -36084,6 +36347,1113 @@ func (m *TellQueueMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown TellQueue edge %s", name)
+}
+
+// TriggerMutation represents an operation that mutates the Trigger nodes in the graph.
+type TriggerMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	name               *string
+	world_id           *string
+	trigger_type       *string
+	target_type        *string
+	target_id          *int
+	addtarget_id       *int
+	room_id            *int
+	addroom_id         *int
+	equipment_id       *int
+	addequipment_id    *int
+	condition          *string
+	enabled            *bool
+	clearedFields      map[string]struct{}
+	effect             *int
+	clearedeffect      bool
+	recipe             *int
+	clearedrecipe      bool
+	dialog_node        *string
+	cleareddialog_node bool
+	done               bool
+	oldValue           func(context.Context) (*Trigger, error)
+	predicates         []predicate.Trigger
+}
+
+var _ ent.Mutation = (*TriggerMutation)(nil)
+
+// triggerOption allows management of the mutation configuration using functional options.
+type triggerOption func(*TriggerMutation)
+
+// newTriggerMutation creates new mutation for the Trigger entity.
+func newTriggerMutation(c config, op Op, opts ...triggerOption) *TriggerMutation {
+	m := &TriggerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTrigger,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTriggerID sets the ID field of the mutation.
+func withTriggerID(id int) triggerOption {
+	return func(m *TriggerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Trigger
+		)
+		m.oldValue = func(ctx context.Context) (*Trigger, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Trigger.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTrigger sets the old Trigger of the mutation.
+func withTrigger(node *Trigger) triggerOption {
+	return func(m *TriggerMutation) {
+		m.oldValue = func(context.Context) (*Trigger, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TriggerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TriggerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TriggerMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TriggerMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Trigger.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *TriggerMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *TriggerMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *TriggerMutation) ResetName() {
+	m.name = nil
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *TriggerMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *TriggerMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *TriggerMutation) ResetWorldID() {
+	m.world_id = nil
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (m *TriggerMutation) SetTriggerType(s string) {
+	m.trigger_type = &s
+}
+
+// TriggerType returns the value of the "trigger_type" field in the mutation.
+func (m *TriggerMutation) TriggerType() (r string, exists bool) {
+	v := m.trigger_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTriggerType returns the old "trigger_type" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldTriggerType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTriggerType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTriggerType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTriggerType: %w", err)
+	}
+	return oldValue.TriggerType, nil
+}
+
+// ResetTriggerType resets all changes to the "trigger_type" field.
+func (m *TriggerMutation) ResetTriggerType() {
+	m.trigger_type = nil
+}
+
+// SetTargetType sets the "target_type" field.
+func (m *TriggerMutation) SetTargetType(s string) {
+	m.target_type = &s
+}
+
+// TargetType returns the value of the "target_type" field in the mutation.
+func (m *TriggerMutation) TargetType() (r string, exists bool) {
+	v := m.target_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetType returns the old "target_type" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldTargetType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetType: %w", err)
+	}
+	return oldValue.TargetType, nil
+}
+
+// ResetTargetType resets all changes to the "target_type" field.
+func (m *TriggerMutation) ResetTargetType() {
+	m.target_type = nil
+}
+
+// SetTargetID sets the "target_id" field.
+func (m *TriggerMutation) SetTargetID(i int) {
+	m.target_id = &i
+	m.addtarget_id = nil
+}
+
+// TargetID returns the value of the "target_id" field in the mutation.
+func (m *TriggerMutation) TargetID() (r int, exists bool) {
+	v := m.target_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetID returns the old "target_id" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldTargetID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetID: %w", err)
+	}
+	return oldValue.TargetID, nil
+}
+
+// AddTargetID adds i to the "target_id" field.
+func (m *TriggerMutation) AddTargetID(i int) {
+	if m.addtarget_id != nil {
+		*m.addtarget_id += i
+	} else {
+		m.addtarget_id = &i
+	}
+}
+
+// AddedTargetID returns the value that was added to the "target_id" field in this mutation.
+func (m *TriggerMutation) AddedTargetID() (r int, exists bool) {
+	v := m.addtarget_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTargetID resets all changes to the "target_id" field.
+func (m *TriggerMutation) ResetTargetID() {
+	m.target_id = nil
+	m.addtarget_id = nil
+}
+
+// SetRoomID sets the "room_id" field.
+func (m *TriggerMutation) SetRoomID(i int) {
+	m.room_id = &i
+	m.addroom_id = nil
+}
+
+// RoomID returns the value of the "room_id" field in the mutation.
+func (m *TriggerMutation) RoomID() (r int, exists bool) {
+	v := m.room_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoomID returns the old "room_id" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldRoomID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoomID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoomID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoomID: %w", err)
+	}
+	return oldValue.RoomID, nil
+}
+
+// AddRoomID adds i to the "room_id" field.
+func (m *TriggerMutation) AddRoomID(i int) {
+	if m.addroom_id != nil {
+		*m.addroom_id += i
+	} else {
+		m.addroom_id = &i
+	}
+}
+
+// AddedRoomID returns the value that was added to the "room_id" field in this mutation.
+func (m *TriggerMutation) AddedRoomID() (r int, exists bool) {
+	v := m.addroom_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRoomID clears the value of the "room_id" field.
+func (m *TriggerMutation) ClearRoomID() {
+	m.room_id = nil
+	m.addroom_id = nil
+	m.clearedFields[trigger.FieldRoomID] = struct{}{}
+}
+
+// RoomIDCleared returns if the "room_id" field was cleared in this mutation.
+func (m *TriggerMutation) RoomIDCleared() bool {
+	_, ok := m.clearedFields[trigger.FieldRoomID]
+	return ok
+}
+
+// ResetRoomID resets all changes to the "room_id" field.
+func (m *TriggerMutation) ResetRoomID() {
+	m.room_id = nil
+	m.addroom_id = nil
+	delete(m.clearedFields, trigger.FieldRoomID)
+}
+
+// SetEquipmentID sets the "equipment_id" field.
+func (m *TriggerMutation) SetEquipmentID(i int) {
+	m.equipment_id = &i
+	m.addequipment_id = nil
+}
+
+// EquipmentID returns the value of the "equipment_id" field in the mutation.
+func (m *TriggerMutation) EquipmentID() (r int, exists bool) {
+	v := m.equipment_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEquipmentID returns the old "equipment_id" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldEquipmentID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEquipmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEquipmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEquipmentID: %w", err)
+	}
+	return oldValue.EquipmentID, nil
+}
+
+// AddEquipmentID adds i to the "equipment_id" field.
+func (m *TriggerMutation) AddEquipmentID(i int) {
+	if m.addequipment_id != nil {
+		*m.addequipment_id += i
+	} else {
+		m.addequipment_id = &i
+	}
+}
+
+// AddedEquipmentID returns the value that was added to the "equipment_id" field in this mutation.
+func (m *TriggerMutation) AddedEquipmentID() (r int, exists bool) {
+	v := m.addequipment_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearEquipmentID clears the value of the "equipment_id" field.
+func (m *TriggerMutation) ClearEquipmentID() {
+	m.equipment_id = nil
+	m.addequipment_id = nil
+	m.clearedFields[trigger.FieldEquipmentID] = struct{}{}
+}
+
+// EquipmentIDCleared returns if the "equipment_id" field was cleared in this mutation.
+func (m *TriggerMutation) EquipmentIDCleared() bool {
+	_, ok := m.clearedFields[trigger.FieldEquipmentID]
+	return ok
+}
+
+// ResetEquipmentID resets all changes to the "equipment_id" field.
+func (m *TriggerMutation) ResetEquipmentID() {
+	m.equipment_id = nil
+	m.addequipment_id = nil
+	delete(m.clearedFields, trigger.FieldEquipmentID)
+}
+
+// SetCondition sets the "condition" field.
+func (m *TriggerMutation) SetCondition(s string) {
+	m.condition = &s
+}
+
+// Condition returns the value of the "condition" field in the mutation.
+func (m *TriggerMutation) Condition() (r string, exists bool) {
+	v := m.condition
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCondition returns the old "condition" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldCondition(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCondition is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCondition requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCondition: %w", err)
+	}
+	return oldValue.Condition, nil
+}
+
+// ClearCondition clears the value of the "condition" field.
+func (m *TriggerMutation) ClearCondition() {
+	m.condition = nil
+	m.clearedFields[trigger.FieldCondition] = struct{}{}
+}
+
+// ConditionCleared returns if the "condition" field was cleared in this mutation.
+func (m *TriggerMutation) ConditionCleared() bool {
+	_, ok := m.clearedFields[trigger.FieldCondition]
+	return ok
+}
+
+// ResetCondition resets all changes to the "condition" field.
+func (m *TriggerMutation) ResetCondition() {
+	m.condition = nil
+	delete(m.clearedFields, trigger.FieldCondition)
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *TriggerMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *TriggerMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *TriggerMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetEffectID sets the "effect" edge to the Effect entity by id.
+func (m *TriggerMutation) SetEffectID(id int) {
+	m.effect = &id
+}
+
+// ClearEffect clears the "effect" edge to the Effect entity.
+func (m *TriggerMutation) ClearEffect() {
+	m.clearedeffect = true
+}
+
+// EffectCleared reports if the "effect" edge to the Effect entity was cleared.
+func (m *TriggerMutation) EffectCleared() bool {
+	return m.clearedeffect
+}
+
+// EffectID returns the "effect" edge ID in the mutation.
+func (m *TriggerMutation) EffectID() (id int, exists bool) {
+	if m.effect != nil {
+		return *m.effect, true
+	}
+	return
+}
+
+// EffectIDs returns the "effect" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EffectID instead. It exists only for internal usage by the builders.
+func (m *TriggerMutation) EffectIDs() (ids []int) {
+	if id := m.effect; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEffect resets all changes to the "effect" edge.
+func (m *TriggerMutation) ResetEffect() {
+	m.effect = nil
+	m.clearedeffect = false
+}
+
+// SetRecipeID sets the "recipe" edge to the CraftingRecipe entity by id.
+func (m *TriggerMutation) SetRecipeID(id int) {
+	m.recipe = &id
+}
+
+// ClearRecipe clears the "recipe" edge to the CraftingRecipe entity.
+func (m *TriggerMutation) ClearRecipe() {
+	m.clearedrecipe = true
+}
+
+// RecipeCleared reports if the "recipe" edge to the CraftingRecipe entity was cleared.
+func (m *TriggerMutation) RecipeCleared() bool {
+	return m.clearedrecipe
+}
+
+// RecipeID returns the "recipe" edge ID in the mutation.
+func (m *TriggerMutation) RecipeID() (id int, exists bool) {
+	if m.recipe != nil {
+		return *m.recipe, true
+	}
+	return
+}
+
+// RecipeIDs returns the "recipe" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RecipeID instead. It exists only for internal usage by the builders.
+func (m *TriggerMutation) RecipeIDs() (ids []int) {
+	if id := m.recipe; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRecipe resets all changes to the "recipe" edge.
+func (m *TriggerMutation) ResetRecipe() {
+	m.recipe = nil
+	m.clearedrecipe = false
+}
+
+// SetDialogNodeID sets the "dialog_node" edge to the DialogNode entity by id.
+func (m *TriggerMutation) SetDialogNodeID(id string) {
+	m.dialog_node = &id
+}
+
+// ClearDialogNode clears the "dialog_node" edge to the DialogNode entity.
+func (m *TriggerMutation) ClearDialogNode() {
+	m.cleareddialog_node = true
+}
+
+// DialogNodeCleared reports if the "dialog_node" edge to the DialogNode entity was cleared.
+func (m *TriggerMutation) DialogNodeCleared() bool {
+	return m.cleareddialog_node
+}
+
+// DialogNodeID returns the "dialog_node" edge ID in the mutation.
+func (m *TriggerMutation) DialogNodeID() (id string, exists bool) {
+	if m.dialog_node != nil {
+		return *m.dialog_node, true
+	}
+	return
+}
+
+// DialogNodeIDs returns the "dialog_node" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DialogNodeID instead. It exists only for internal usage by the builders.
+func (m *TriggerMutation) DialogNodeIDs() (ids []string) {
+	if id := m.dialog_node; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDialogNode resets all changes to the "dialog_node" edge.
+func (m *TriggerMutation) ResetDialogNode() {
+	m.dialog_node = nil
+	m.cleareddialog_node = false
+}
+
+// Where appends a list predicates to the TriggerMutation builder.
+func (m *TriggerMutation) Where(ps ...predicate.Trigger) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TriggerMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TriggerMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Trigger, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TriggerMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TriggerMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Trigger).
+func (m *TriggerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TriggerMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.name != nil {
+		fields = append(fields, trigger.FieldName)
+	}
+	if m.world_id != nil {
+		fields = append(fields, trigger.FieldWorldID)
+	}
+	if m.trigger_type != nil {
+		fields = append(fields, trigger.FieldTriggerType)
+	}
+	if m.target_type != nil {
+		fields = append(fields, trigger.FieldTargetType)
+	}
+	if m.target_id != nil {
+		fields = append(fields, trigger.FieldTargetID)
+	}
+	if m.room_id != nil {
+		fields = append(fields, trigger.FieldRoomID)
+	}
+	if m.equipment_id != nil {
+		fields = append(fields, trigger.FieldEquipmentID)
+	}
+	if m.condition != nil {
+		fields = append(fields, trigger.FieldCondition)
+	}
+	if m.enabled != nil {
+		fields = append(fields, trigger.FieldEnabled)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TriggerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case trigger.FieldName:
+		return m.Name()
+	case trigger.FieldWorldID:
+		return m.WorldID()
+	case trigger.FieldTriggerType:
+		return m.TriggerType()
+	case trigger.FieldTargetType:
+		return m.TargetType()
+	case trigger.FieldTargetID:
+		return m.TargetID()
+	case trigger.FieldRoomID:
+		return m.RoomID()
+	case trigger.FieldEquipmentID:
+		return m.EquipmentID()
+	case trigger.FieldCondition:
+		return m.Condition()
+	case trigger.FieldEnabled:
+		return m.Enabled()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TriggerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case trigger.FieldName:
+		return m.OldName(ctx)
+	case trigger.FieldWorldID:
+		return m.OldWorldID(ctx)
+	case trigger.FieldTriggerType:
+		return m.OldTriggerType(ctx)
+	case trigger.FieldTargetType:
+		return m.OldTargetType(ctx)
+	case trigger.FieldTargetID:
+		return m.OldTargetID(ctx)
+	case trigger.FieldRoomID:
+		return m.OldRoomID(ctx)
+	case trigger.FieldEquipmentID:
+		return m.OldEquipmentID(ctx)
+	case trigger.FieldCondition:
+		return m.OldCondition(ctx)
+	case trigger.FieldEnabled:
+		return m.OldEnabled(ctx)
+	}
+	return nil, fmt.Errorf("unknown Trigger field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TriggerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case trigger.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case trigger.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
+	case trigger.FieldTriggerType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTriggerType(v)
+		return nil
+	case trigger.FieldTargetType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetType(v)
+		return nil
+	case trigger.FieldTargetID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetID(v)
+		return nil
+	case trigger.FieldRoomID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoomID(v)
+		return nil
+	case trigger.FieldEquipmentID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEquipmentID(v)
+		return nil
+	case trigger.FieldCondition:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCondition(v)
+		return nil
+	case trigger.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Trigger field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TriggerMutation) AddedFields() []string {
+	var fields []string
+	if m.addtarget_id != nil {
+		fields = append(fields, trigger.FieldTargetID)
+	}
+	if m.addroom_id != nil {
+		fields = append(fields, trigger.FieldRoomID)
+	}
+	if m.addequipment_id != nil {
+		fields = append(fields, trigger.FieldEquipmentID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TriggerMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case trigger.FieldTargetID:
+		return m.AddedTargetID()
+	case trigger.FieldRoomID:
+		return m.AddedRoomID()
+	case trigger.FieldEquipmentID:
+		return m.AddedEquipmentID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TriggerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case trigger.FieldTargetID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTargetID(v)
+		return nil
+	case trigger.FieldRoomID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRoomID(v)
+		return nil
+	case trigger.FieldEquipmentID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEquipmentID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Trigger numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TriggerMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(trigger.FieldRoomID) {
+		fields = append(fields, trigger.FieldRoomID)
+	}
+	if m.FieldCleared(trigger.FieldEquipmentID) {
+		fields = append(fields, trigger.FieldEquipmentID)
+	}
+	if m.FieldCleared(trigger.FieldCondition) {
+		fields = append(fields, trigger.FieldCondition)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TriggerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TriggerMutation) ClearField(name string) error {
+	switch name {
+	case trigger.FieldRoomID:
+		m.ClearRoomID()
+		return nil
+	case trigger.FieldEquipmentID:
+		m.ClearEquipmentID()
+		return nil
+	case trigger.FieldCondition:
+		m.ClearCondition()
+		return nil
+	}
+	return fmt.Errorf("unknown Trigger nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TriggerMutation) ResetField(name string) error {
+	switch name {
+	case trigger.FieldName:
+		m.ResetName()
+		return nil
+	case trigger.FieldWorldID:
+		m.ResetWorldID()
+		return nil
+	case trigger.FieldTriggerType:
+		m.ResetTriggerType()
+		return nil
+	case trigger.FieldTargetType:
+		m.ResetTargetType()
+		return nil
+	case trigger.FieldTargetID:
+		m.ResetTargetID()
+		return nil
+	case trigger.FieldRoomID:
+		m.ResetRoomID()
+		return nil
+	case trigger.FieldEquipmentID:
+		m.ResetEquipmentID()
+		return nil
+	case trigger.FieldCondition:
+		m.ResetCondition()
+		return nil
+	case trigger.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	}
+	return fmt.Errorf("unknown Trigger field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TriggerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.effect != nil {
+		edges = append(edges, trigger.EdgeEffect)
+	}
+	if m.recipe != nil {
+		edges = append(edges, trigger.EdgeRecipe)
+	}
+	if m.dialog_node != nil {
+		edges = append(edges, trigger.EdgeDialogNode)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TriggerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case trigger.EdgeEffect:
+		if id := m.effect; id != nil {
+			return []ent.Value{*id}
+		}
+	case trigger.EdgeRecipe:
+		if id := m.recipe; id != nil {
+			return []ent.Value{*id}
+		}
+	case trigger.EdgeDialogNode:
+		if id := m.dialog_node; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TriggerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TriggerMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TriggerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedeffect {
+		edges = append(edges, trigger.EdgeEffect)
+	}
+	if m.clearedrecipe {
+		edges = append(edges, trigger.EdgeRecipe)
+	}
+	if m.cleareddialog_node {
+		edges = append(edges, trigger.EdgeDialogNode)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TriggerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case trigger.EdgeEffect:
+		return m.clearedeffect
+	case trigger.EdgeRecipe:
+		return m.clearedrecipe
+	case trigger.EdgeDialogNode:
+		return m.cleareddialog_node
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TriggerMutation) ClearEdge(name string) error {
+	switch name {
+	case trigger.EdgeEffect:
+		m.ClearEffect()
+		return nil
+	case trigger.EdgeRecipe:
+		m.ClearRecipe()
+		return nil
+	case trigger.EdgeDialogNode:
+		m.ClearDialogNode()
+		return nil
+	}
+	return fmt.Errorf("unknown Trigger unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TriggerMutation) ResetEdge(name string) error {
+	switch name {
+	case trigger.EdgeEffect:
+		m.ResetEffect()
+		return nil
+	case trigger.EdgeRecipe:
+		m.ResetRecipe()
+		return nil
+	case trigger.EdgeDialogNode:
+		m.ResetDialogNode()
+		return nil
+	}
+	return fmt.Errorf("unknown Trigger edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

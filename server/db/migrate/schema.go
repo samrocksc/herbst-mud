@@ -949,6 +949,48 @@ var (
 			},
 		},
 	}
+	// TriggersColumns holds the columns for the "triggers" table.
+	TriggersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "trigger_type", Type: field.TypeString},
+		{Name: "target_type", Type: field.TypeString},
+		{Name: "target_id", Type: field.TypeInt},
+		{Name: "room_id", Type: field.TypeInt, Nullable: true},
+		{Name: "equipment_id", Type: field.TypeInt, Nullable: true},
+		{Name: "condition", Type: field.TypeString, Nullable: true},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "crafting_recipe_triggers", Type: field.TypeInt, Nullable: true},
+		{Name: "dialog_node_triggers", Type: field.TypeString, Nullable: true},
+		{Name: "effect_triggers", Type: field.TypeInt, Nullable: true},
+	}
+	// TriggersTable holds the schema information for the "triggers" table.
+	TriggersTable = &schema.Table{
+		Name:       "triggers",
+		Columns:    TriggersColumns,
+		PrimaryKey: []*schema.Column{TriggersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "triggers_crafting_recipes_triggers",
+				Columns:    []*schema.Column{TriggersColumns[10]},
+				RefColumns: []*schema.Column{CraftingRecipesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "triggers_dialog_nodes_triggers",
+				Columns:    []*schema.Column{TriggersColumns[11]},
+				RefColumns: []*schema.Column{DialogNodesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "triggers_effects_triggers",
+				Columns:    []*schema.Column{TriggersColumns[12]},
+				RefColumns: []*schema.Column{EffectsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1091,6 +1133,7 @@ var (
 		SocialCommandsTable,
 		TagsTable,
 		TellQueuesTable,
+		TriggersTable,
 		UsersTable,
 		WorldsTable,
 		AbilityNpcAbilitiesTable,
@@ -1130,6 +1173,9 @@ func init() {
 	QuestProgressesTable.ForeignKeys[0].RefTable = CharactersTable
 	QuestProgressesTable.ForeignKeys[1].RefTable = QuestsTable
 	TellQueuesTable.ForeignKeys[0].RefTable = CharactersTable
+	TriggersTable.ForeignKeys[0].RefTable = CraftingRecipesTable
+	TriggersTable.ForeignKeys[1].RefTable = DialogNodesTable
+	TriggersTable.ForeignKeys[2].RefTable = EffectsTable
 	AbilityNpcAbilitiesTable.ForeignKeys[0].RefTable = AbilitiesTable
 	AbilityNpcAbilitiesTable.ForeignKeys[1].RefTable = NpcAbilitiesTable
 	NpcTemplateNpcAbilitiesTable.ForeignKeys[0].RefTable = NpcTemplatesTable

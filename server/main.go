@@ -322,6 +322,8 @@ func main() {
 	routes.RegisterAchievementRoutes(router, repos)
 
 	// Register NPC template routes (XP-008)
+	// Register trigger routes (TRIGGERS-001)
+	routes.RegisterTriggerRoutes(router, repos)
 	routes.RegisterNPCTemplateRoutes(router, repos)
 
 	// Register NPC instance routes (NPC-004)

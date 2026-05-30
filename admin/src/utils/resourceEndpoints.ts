@@ -6,6 +6,10 @@ export type ResourceEndpoint = Readonly<{
   apiBase: string
 }>
 
+export const resourceEndpoints = {
+  triggers: `${API}/api/triggers`,
+};
+
 export const RESOURCE_ENDPOINTS = {
   characters: {
     resourceType: "characters",
@@ -50,6 +54,16 @@ export const RESOURCE_ENDPOINTS = {
   effectDefs: {
     resourceType: "effect-defs",
     path: "effect-defs",
+    apiBase: `${API}/api`,
+  },
+  equipmentTemplates: {
+    resourceType: "equipment-templates",
+    path: "equipment-templates",
+    apiBase: `${API}/api`,
+  },
+  achievements: {
+    resourceType: "achievements",
+    path: "achievements",
     apiBase: `${API}/api`,
   },
 } as const;

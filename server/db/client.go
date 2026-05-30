@@ -47,6 +47,7 @@ import (
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
 	"herbst-server/db/tellqueue"
+	"herbst-server/db/trigger"
 	"herbst-server/db/user"
 	"herbst-server/db/world"
 
@@ -133,6 +134,8 @@ type Client struct {
 	Tag *TagClient
 	// TellQueue is the client for interacting with the TellQueue builders.
 	TellQueue *TellQueueClient
+	// Trigger is the client for interacting with the Trigger builders.
+	Trigger *TriggerClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// World is the client for interacting with the World builders.
@@ -184,6 +187,7 @@ func (c *Client) init() {
 	c.SocialCommand = NewSocialCommandClient(c.config)
 	c.Tag = NewTagClient(c.config)
 	c.TellQueue = NewTellQueueClient(c.config)
+	c.Trigger = NewTriggerClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.World = NewWorldClient(c.config)
 }
@@ -314,6 +318,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SocialCommand:            NewSocialCommandClient(cfg),
 		Tag:                      NewTagClient(cfg),
 		TellQueue:                NewTellQueueClient(cfg),
+		Trigger:                  NewTriggerClient(cfg),
 		User:                     NewUserClient(cfg),
 		World:                    NewWorldClient(cfg),
 	}, nil
@@ -371,6 +376,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		SocialCommand:            NewSocialCommandClient(cfg),
 		Tag:                      NewTagClient(cfg),
 		TellQueue:                NewTellQueueClient(cfg),
+		Trigger:                  NewTriggerClient(cfg),
 		User:                     NewUserClient(cfg),
 		World:                    NewWorldClient(cfg),
 	}, nil
@@ -409,7 +415,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.DamageLog, c.DialogNode, c.Effect, c.EffectHook, c.Equipment,
 		c.EquipmentTemplate, c.Faction, c.FactionCategory, c.FactionRequiredTag,
 		c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress,
-		c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue, c.User, c.World,
+		c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue, c.Trigger, c.User,
+		c.World,
 	} {
 		n.Use(hooks...)
 	}
@@ -426,7 +433,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.DamageLog, c.DialogNode, c.Effect, c.EffectHook, c.Equipment,
 		c.EquipmentTemplate, c.Faction, c.FactionCategory, c.FactionRequiredTag,
 		c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress,
-		c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue, c.User, c.World,
+		c.Race, c.Room, c.SocialCommand, c.Tag, c.TellQueue, c.Trigger, c.User,
+		c.World,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -507,6 +515,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Tag.mutate(ctx, m)
 	case *TellQueueMutation:
 		return c.TellQueue.mutate(ctx, m)
+	case *TriggerMutation:
+		return c.Trigger.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *WorldMutation:
@@ -3115,6 +3125,22 @@ func (c *CraftingRecipeClient) GetX(ctx context.Context, id int) *CraftingRecipe
 	return obj
 }
 
+// QueryTriggers queries the triggers edge of a CraftingRecipe.
+func (c *CraftingRecipeClient) QueryTriggers(_m *CraftingRecipe) *TriggerQuery {
+	query := (&TriggerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(craftingrecipe.Table, craftingrecipe.FieldID, id),
+			sqlgraph.To(trigger.Table, trigger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, craftingrecipe.TriggersTable, craftingrecipe.TriggersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CraftingRecipeClient) Hooks() []Hook {
 	return c.hooks.CraftingRecipe
@@ -3397,6 +3423,22 @@ func (c *DialogNodeClient) QueryNpcTemplate(_m *DialogNode) *NPCTemplateQuery {
 	return query
 }
 
+// QueryTriggers queries the triggers edge of a DialogNode.
+func (c *DialogNodeClient) QueryTriggers(_m *DialogNode) *TriggerQuery {
+	query := (&TriggerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dialognode.Table, dialognode.FieldID, id),
+			sqlgraph.To(trigger.Table, trigger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, dialognode.TriggersTable, dialognode.TriggersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *DialogNodeClient) Hooks() []Hook {
 	return c.hooks.DialogNode
@@ -3555,6 +3597,22 @@ func (c *EffectClient) QueryActiveEffectInstances(_m *Effect) *ActiveEffectQuery
 			sqlgraph.From(effect.Table, effect.FieldID, id),
 			sqlgraph.To(activeeffect.Table, activeeffect.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, effect.ActiveEffectInstancesTable, effect.ActiveEffectInstancesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTriggers queries the triggers edge of a Effect.
+func (c *EffectClient) QueryTriggers(_m *Effect) *TriggerQuery {
+	query := (&TriggerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(effect.Table, effect.FieldID, id),
+			sqlgraph.To(trigger.Table, trigger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, effect.TriggersTable, effect.TriggersColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -6280,6 +6338,187 @@ func (c *TellQueueClient) mutate(ctx context.Context, m *TellQueueMutation) (Val
 	}
 }
 
+// TriggerClient is a client for the Trigger schema.
+type TriggerClient struct {
+	config
+}
+
+// NewTriggerClient returns a client for the Trigger from the given config.
+func NewTriggerClient(c config) *TriggerClient {
+	return &TriggerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `trigger.Hooks(f(g(h())))`.
+func (c *TriggerClient) Use(hooks ...Hook) {
+	c.hooks.Trigger = append(c.hooks.Trigger, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `trigger.Intercept(f(g(h())))`.
+func (c *TriggerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Trigger = append(c.inters.Trigger, interceptors...)
+}
+
+// Create returns a builder for creating a Trigger entity.
+func (c *TriggerClient) Create() *TriggerCreate {
+	mutation := newTriggerMutation(c.config, OpCreate)
+	return &TriggerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Trigger entities.
+func (c *TriggerClient) CreateBulk(builders ...*TriggerCreate) *TriggerCreateBulk {
+	return &TriggerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TriggerClient) MapCreateBulk(slice any, setFunc func(*TriggerCreate, int)) *TriggerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TriggerCreateBulk{err: fmt.Errorf("calling to TriggerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TriggerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TriggerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Trigger.
+func (c *TriggerClient) Update() *TriggerUpdate {
+	mutation := newTriggerMutation(c.config, OpUpdate)
+	return &TriggerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TriggerClient) UpdateOne(_m *Trigger) *TriggerUpdateOne {
+	mutation := newTriggerMutation(c.config, OpUpdateOne, withTrigger(_m))
+	return &TriggerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TriggerClient) UpdateOneID(id int) *TriggerUpdateOne {
+	mutation := newTriggerMutation(c.config, OpUpdateOne, withTriggerID(id))
+	return &TriggerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Trigger.
+func (c *TriggerClient) Delete() *TriggerDelete {
+	mutation := newTriggerMutation(c.config, OpDelete)
+	return &TriggerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TriggerClient) DeleteOne(_m *Trigger) *TriggerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TriggerClient) DeleteOneID(id int) *TriggerDeleteOne {
+	builder := c.Delete().Where(trigger.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TriggerDeleteOne{builder}
+}
+
+// Query returns a query builder for Trigger.
+func (c *TriggerClient) Query() *TriggerQuery {
+	return &TriggerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTrigger},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Trigger entity by its id.
+func (c *TriggerClient) Get(ctx context.Context, id int) (*Trigger, error) {
+	return c.Query().Where(trigger.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TriggerClient) GetX(ctx context.Context, id int) *Trigger {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryEffect queries the effect edge of a Trigger.
+func (c *TriggerClient) QueryEffect(_m *Trigger) *EffectQuery {
+	query := (&EffectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(trigger.Table, trigger.FieldID, id),
+			sqlgraph.To(effect.Table, effect.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, trigger.EffectTable, trigger.EffectColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRecipe queries the recipe edge of a Trigger.
+func (c *TriggerClient) QueryRecipe(_m *Trigger) *CraftingRecipeQuery {
+	query := (&CraftingRecipeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(trigger.Table, trigger.FieldID, id),
+			sqlgraph.To(craftingrecipe.Table, craftingrecipe.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, trigger.RecipeTable, trigger.RecipeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDialogNode queries the dialog_node edge of a Trigger.
+func (c *TriggerClient) QueryDialogNode(_m *Trigger) *DialogNodeQuery {
+	query := (&DialogNodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(trigger.Table, trigger.FieldID, id),
+			sqlgraph.To(dialognode.Table, dialognode.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, trigger.DialogNodeTable, trigger.DialogNodeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TriggerClient) Hooks() []Hook {
+	return c.hooks.Trigger
+}
+
+// Interceptors returns the client interceptors.
+func (c *TriggerClient) Interceptors() []Interceptor {
+	return c.inters.Trigger
+}
+
+func (c *TriggerClient) mutate(ctx context.Context, m *TriggerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TriggerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TriggerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TriggerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TriggerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Trigger mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -6587,7 +6826,7 @@ type (
 		CompetencyLevelThreshold, CraftingRecipe, DamageLog, DialogNode, Effect,
 		EffectHook, Equipment, EquipmentTemplate, Faction, FactionCategory,
 		FactionRequiredTag, GameConfig, Gender, NPCAbility, NPCTemplate, Quest,
-		QuestProgress, Race, Room, SocialCommand, Tag, TellQueue, User,
+		QuestProgress, Race, Room, SocialCommand, Tag, TellQueue, Trigger, User,
 		World []ent.Hook
 	}
 	inters struct {
@@ -6597,7 +6836,7 @@ type (
 		CompetencyLevelThreshold, CraftingRecipe, DamageLog, DialogNode, Effect,
 		EffectHook, Equipment, EquipmentTemplate, Faction, FactionCategory,
 		FactionRequiredTag, GameConfig, Gender, NPCAbility, NPCTemplate, Quest,
-		QuestProgress, Race, Room, SocialCommand, Tag, TellQueue, User,
+		QuestProgress, Race, Room, SocialCommand, Tag, TellQueue, Trigger, User,
 		World []ent.Interceptor
 	}
 )

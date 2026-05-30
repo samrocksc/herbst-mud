@@ -20,12 +20,12 @@ vi.mock("../../contexts/WorldStoreContext", () => ({
 describe("NPCTemplatesIndex", () => {
   it("renders NPC template list from MSW", async () => {
     withQuery(<NPCTemplatesIndex />);
-    await screen.findByText("Village Guard");
+    await screen.findAllByText("Village Guard");
   });
 
   it("search input accepts text", async () => {
     withQuery(<NPCTemplatesIndex />);
-    await screen.findByText("Village Guard");
+    await screen.findAllByText("Village Guard");
     const searchInput = screen.getByPlaceholderText(/search templates/i);
     fireEvent.change(searchInput, { target: { value: "Village" } });
     expect(searchInput).toHaveValue("Village");

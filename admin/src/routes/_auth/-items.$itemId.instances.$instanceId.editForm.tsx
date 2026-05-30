@@ -6,6 +6,7 @@ import { Button } from "../../components/Button";
 import { CombatFieldsEditor, type CombatFields } from "../../components/CombatFieldsEditor";
 import { NumberField, SelectField, CheckboxField, TextareaField, FormField } from "../../components/FormFields";
 import { ResourceIdField } from "../../components/ResourceIdField";
+import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
 import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
 import type { ItemInstance } from "../../hooks/useItemInstances";
@@ -95,7 +96,13 @@ export function InstanceEditForm({ instance, instanceId, onDone }: Readonly<{
           <div className="grid grid-cols-2 gap-4 mb-4">
             <NumberField label="Container Capacity" value={form.containerCapacity} onChange={(v) => set("containerCapacity", v)} min={0} />
             <CheckboxField label="Locked" checked={form.isLocked} onChange={(v) => set("isLocked", v)} />
-            <FormField label="Key Item ID" value={form.keyItemID} onChange={(v) => set("keyItemID", v)} placeholder="Template ID of key to unlock" />
+            <ResourceSearchSelect
+              label="Key Item"
+              value={form.keyItemID || null}
+              onChange={(id) => set("keyItemID", String(id ?? ""))}
+              placeholder="Search key item template..."
+              {...RESOURCE_ENDPOINTS.equipmentTemplates}
+            />
           </div>
         )}
         <TextareaField label="Description" value={form.description} onChange={(v) => set("description", v)} rows={2} />

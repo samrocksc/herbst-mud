@@ -12,6 +12,10 @@ import { Button } from "../../components/Button";
 import { FormField, TextareaField, NumberField, SelectField } from "../../components/FormFields";
 import { showToast } from "../../components/Toast";
 import { PageContainer } from "../../components/PageContainer";
+import { SearchableSelect } from "../../components/SearchableSelect";
+import { ResourceMultiSelect } from "../../components/ResourceMultiSelect";
+import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
+import { useTags } from "../../hooks/useTags";
 
 export const Route = createFileRoute("/_auth/quests/new")({
   component: CreateQuestPage,
@@ -42,6 +46,7 @@ function CreateQuestPage() {
   const navigate = useNavigate();
   const createQuest = useCreateQuest();
   const { data: lookups, isLoading: lookupsLoading } = useQuestLookups();
+  const { data: tags } = useTags();
   const [formData, setFormData] = useState<QuestInput>(EMPTY_QUEST);
   const set = (patch: Partial<QuestInput>) => setFormData((prev) => ({ ...prev, ...patch }));
 
@@ -70,9 +75,6 @@ function CreateQuestPage() {
     }
   };
 
-  const currentObjective = formData.objectives?.[0];
-  const targetOptions = getTargetsForType(currentObjective?.type ?? "");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -80,15 +82,6 @@ function CreateQuestPage() {
       showToast("Quest created", "success");
       navigate({ to: "/quests" });
     } catch { /* toasted globally */ }
-  };
-
-  const togglePrereqQuest = (questId: string) => {
-    const current = formData.prerequisite_quest_ids ?? [];
-    if (current.includes(questId)) {
-      set({ prerequisite_quest_ids: current.filter(id => id !== questId) });
-    } else {
-      set({ prerequisite_quest_ids: [...current, questId] });
-    }
   };
 
   return (
@@ -107,90 +100,67 @@ function CreateQuestPage() {
             <label htmlFor="quest-active" className="text-sm text-text">Active</label>
           </div>
 
-          <div className="border-t border-border pt-3 mt-3">
-            <h4 className="text-sm font-semibold text-text mb-2">Prerequisite Quests</h4>
-            <div className="flex flex-wrap gap-2">
-              {lookups?.prerequisite_quests.map(q => (
-                <button
-                  key={q.id}
-                  type="button"
-                  onClick={() => togglePrereqQuest(q.id)}
-                  className={`px-2 py-1 text-xs rounded border ${
-                    (formData.prerequisite_quest_ids ?? []).includes(q.id)
-                      ? "bg-primary/20 border-primary text-text"
-                      : "bg-surface border-border text-muted hover:border-primary"
-                  }`}
-                >
-                  {q.name}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Prerequisite Quests */}
+          <ResourceMultiSelect
+            label="Prerequisite Quests"
+            value={formData.prerequisite_quest_ids ?? []}
+            onChange={(ids) => set({ prerequisite_quest_ids: ids as string[] })}
+            {...RESOURCE_ENDPOINTS.quests}
+          />
 
           <div className="border-t border-border pt-3 mt-3">
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-sm font-semibold text-text">Objectives</h4>
               <Button variant="ghost" size="sm" onClick={addObjective}>+ Objective</Button>
             </div>
-            {(formData.objectives ?? []).map((obj, i) => (
-              <div key={i} className="grid grid-cols-7 gap-2 mb-2 items-end">
-                <SelectField
-                  label="Type"
-                  value={obj.type}
-                  onChange={(v) => updateObjective(i, { type: v, target_id: "" })}
-                  options={[
-                    { value: "kill", label: "Kill NPC" },
-                    { value: "explore", label: "Explore Room" },
-                    { value: "collect", label: "Collect Item" },
-                  ]}
-                />
-                <SelectField
-                  label="Target"
-                  value={obj.target_id}
-                  onChange={(v) => updateObjective(i, { target_id: v })}
-                  options={[
-                    { value: "", label: "Select target..." },
-                    ...targetOptions.map(t => ({ value: t.id, label: t.name }))
-                  ]}
-                />
-                <FormField label="Tag Filter" value={obj.tag_filter} onChange={(v) => updateObjective(i, { tag_filter: v })} placeholder="Optional: filter by tag" />
-                <NumberField label="Count" value={obj.count} onChange={(v) => updateObjective(i, { count: v })} />
-                <FormField label="Label" value={obj.labels?.[0] ?? ""} onChange={(v) => updateObjective(i, { labels: [v] })} placeholder="Kill Rats" />
-                <FormField label="Hint" value={obj.hint} onChange={(v) => updateObjective(i, { hint: v })} placeholder="Optional hint" />
-                <Button variant="danger" size="sm" onClick={() => removeObjective(i)}>×</Button>
-              </div>
-            ))}
+            {(formData.objectives ?? []).map((obj, i) => {
+              const targetOptions = getTargetsForType(obj.type);
+              const tagOptions = (tags ?? []).map(t => ({ id: t.name, name: t.name }));
+              return (
+                <div key={i} className="grid grid-cols-7 gap-2 mb-2 items-end">
+                  <SelectField
+                    label="Type"
+                    value={obj.type}
+                    onChange={(v) => updateObjective(i, { type: v, target_id: "" })}
+                    options={[
+                      { value: "kill", label: "Kill NPC" },
+                      { value: "explore", label: "Explore Room" },
+                      { value: "collect", label: "Collect Item" },
+                    ]}
+                  />
+                  <SearchableSelect
+                    label="Target"
+                    value={obj.target_id || ""}
+                    onChange={(v) => updateObjective(i, { target_id: v })}
+                    options={targetOptions.map(t => ({ id: t.id, name: t.name }))}
+                    placeholder="Select target..."
+                  />
+                  <SearchableSelect
+                    label="Tag Filter"
+                    value={obj.tag_filter || ""}
+                    onChange={(v) => updateObjective(i, { tag_filter: v })}
+                    options={tagOptions}
+                    placeholder="Filter by tag..."
+                  />
+                  <NumberField label="Count" value={obj.count} onChange={(v) => updateObjective(i, { count: v })} />
+                  <FormField label="Label" value={obj.labels?.[0] ?? ""} onChange={(v) => updateObjective(i, { labels: [v] })} placeholder="Kill Rats" />
+                  <FormField label="Hint" value={obj.hint} onChange={(v) => updateObjective(i, { hint: v })} placeholder="Optional hint" />
+                  <Button variant="danger" size="sm" onClick={() => removeObjective(i)}>×</Button>
+                </div>
+              );
+            })}
           </div>
 
           <div className="border-t border-border pt-3 mt-3">
             <h4 className="text-sm font-semibold text-text mb-2">Rewards</h4>
             <NumberField label="XP" value={formData.rewards?.xp ?? 0} onChange={(v) => set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, xp: v } })} />
 
-            <div className="mt-3">
-              <label className="text-sm text-muted mb-1 block">Item Rewards</label>
-              <div className="flex flex-wrap gap-2">
-                {(lookups?.items ?? []).map(item => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      const current = formData.rewards?.item_ids ?? [];
-                      const newIds = current.includes(item.id)
-                        ? current.filter(id => id !== item.id)
-                        : [...current, item.id];
-                      set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, item_ids: newIds } });
-                    }}
-                    className={`px-2 py-1 text-xs rounded border ${
-                      (formData.rewards?.item_ids ?? []).includes(item.id)
-                        ? "bg-primary/20 border-primary text-text"
-                        : "bg-surface border-border text-muted hover:border-primary"
-                    }`}
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <ResourceMultiSelect
+              label="Item Rewards"
+              value={(formData.rewards?.item_ids ?? []) as string[]}
+              onChange={(ids) => set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, item_ids: ids as string[] } })}
+              {...RESOURCE_ENDPOINTS.equipmentTemplates}
+            />
 
             <div className="mt-3">
               <label className="text-sm text-muted mb-1 block">Tags to Add</label>
@@ -217,6 +187,20 @@ function CreateQuestPage() {
                 ))}
               </div>
             </div>
+
+            <ResourceMultiSelect
+              label="Effect Rewards"
+              value={formData.rewards?.effect_ids ?? []}
+              onChange={(ids) => set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, effect_ids: ids as number[] } })}
+              {...RESOURCE_ENDPOINTS.effectDefs}
+            />
+
+            <ResourceMultiSelect
+              label="Achievement Rewards"
+              value={formData.rewards?.achievement_ids ?? []}
+              onChange={(ids) => set({ rewards: { ...formData.rewards ?? EMPTY_REWARDS, achievement_ids: ids as number[] } })}
+              {...RESOURCE_ENDPOINTS.achievements}
+            />
           </div>
 
           <div className="flex gap-2 justify-end pt-4">

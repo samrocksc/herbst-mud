@@ -485,6 +485,29 @@ func HasActiveEffectInstancesWith(preds ...predicate.ActiveEffect) predicate.Eff
 	})
 }
 
+// HasTriggers applies the HasEdge predicate on the "triggers" edge.
+func HasTriggers() predicate.Effect {
+	return predicate.Effect(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TriggersTable, TriggersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTriggersWith applies the HasEdge predicate on the "triggers" edge with a given conditions (other predicates).
+func HasTriggersWith(preds ...predicate.Trigger) predicate.Effect {
+	return predicate.Effect(func(s *sql.Selector) {
+		step := newTriggersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Effect) predicate.Effect {
 	return predicate.Effect(sql.AndPredicates(predicates...))

@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/craftingrecipe"
 	"herbst-server/db/predicate"
 	"herbst-server/db/schema"
+	"herbst-server/db/trigger"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -211,9 +212,45 @@ func (_u *CraftingRecipeUpdate) SetNillableWorldID(v *string) *CraftingRecipeUpd
 	return _u
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_u *CraftingRecipeUpdate) AddTriggerIDs(ids ...int) *CraftingRecipeUpdate {
+	_u.mutation.AddTriggerIDs(ids...)
+	return _u
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_u *CraftingRecipeUpdate) AddTriggers(v ...*Trigger) *CraftingRecipeUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTriggerIDs(ids...)
+}
+
 // Mutation returns the CraftingRecipeMutation object of the builder.
 func (_u *CraftingRecipeUpdate) Mutation() *CraftingRecipeMutation {
 	return _u.mutation
+}
+
+// ClearTriggers clears all "triggers" edges to the Trigger entity.
+func (_u *CraftingRecipeUpdate) ClearTriggers() *CraftingRecipeUpdate {
+	_u.mutation.ClearTriggers()
+	return _u
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to Trigger entities by IDs.
+func (_u *CraftingRecipeUpdate) RemoveTriggerIDs(ids ...int) *CraftingRecipeUpdate {
+	_u.mutation.RemoveTriggerIDs(ids...)
+	return _u
+}
+
+// RemoveTriggers removes "triggers" edges to Trigger entities.
+func (_u *CraftingRecipeUpdate) RemoveTriggers(v ...*Trigger) *CraftingRecipeUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTriggerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -309,6 +346,51 @@ func (_u *CraftingRecipeUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.WorldID(); ok {
 		_spec.SetField(craftingrecipe.FieldWorldID, field.TypeString, value)
+	}
+	if _u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   craftingrecipe.TriggersTable,
+			Columns: []string{craftingrecipe.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTriggersIDs(); len(nodes) > 0 && !_u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   craftingrecipe.TriggersTable,
+			Columns: []string{craftingrecipe.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   craftingrecipe.TriggersTable,
+			Columns: []string{craftingrecipe.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -512,9 +594,45 @@ func (_u *CraftingRecipeUpdateOne) SetNillableWorldID(v *string) *CraftingRecipe
 	return _u
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_u *CraftingRecipeUpdateOne) AddTriggerIDs(ids ...int) *CraftingRecipeUpdateOne {
+	_u.mutation.AddTriggerIDs(ids...)
+	return _u
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_u *CraftingRecipeUpdateOne) AddTriggers(v ...*Trigger) *CraftingRecipeUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTriggerIDs(ids...)
+}
+
 // Mutation returns the CraftingRecipeMutation object of the builder.
 func (_u *CraftingRecipeUpdateOne) Mutation() *CraftingRecipeMutation {
 	return _u.mutation
+}
+
+// ClearTriggers clears all "triggers" edges to the Trigger entity.
+func (_u *CraftingRecipeUpdateOne) ClearTriggers() *CraftingRecipeUpdateOne {
+	_u.mutation.ClearTriggers()
+	return _u
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to Trigger entities by IDs.
+func (_u *CraftingRecipeUpdateOne) RemoveTriggerIDs(ids ...int) *CraftingRecipeUpdateOne {
+	_u.mutation.RemoveTriggerIDs(ids...)
+	return _u
+}
+
+// RemoveTriggers removes "triggers" edges to Trigger entities.
+func (_u *CraftingRecipeUpdateOne) RemoveTriggers(v ...*Trigger) *CraftingRecipeUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTriggerIDs(ids...)
 }
 
 // Where appends a list predicates to the CraftingRecipeUpdate builder.
@@ -640,6 +758,51 @@ func (_u *CraftingRecipeUpdateOne) sqlSave(ctx context.Context) (_node *Crafting
 	}
 	if value, ok := _u.mutation.WorldID(); ok {
 		_spec.SetField(craftingrecipe.FieldWorldID, field.TypeString, value)
+	}
+	if _u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   craftingrecipe.TriggersTable,
+			Columns: []string{craftingrecipe.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTriggersIDs(); len(nodes) > 0 && !_u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   craftingrecipe.TriggersTable,
+			Columns: []string{craftingrecipe.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   craftingrecipe.TriggersTable,
+			Columns: []string{craftingrecipe.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &CraftingRecipe{config: _u.config}
 	_spec.Assign = _node.assignValues

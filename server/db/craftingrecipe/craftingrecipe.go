@@ -4,6 +4,7 @@ package craftingrecipe
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -33,8 +34,17 @@ const (
 	FieldCraftTimeSecs = "craft_time_secs"
 	// FieldWorldID holds the string denoting the world_id field in the database.
 	FieldWorldID = "world_id"
+	// EdgeTriggers holds the string denoting the triggers edge name in mutations.
+	EdgeTriggers = "triggers"
 	// Table holds the table name of the craftingrecipe in the database.
 	Table = "crafting_recipes"
+	// TriggersTable is the table that holds the triggers relation/edge.
+	TriggersTable = "triggers"
+	// TriggersInverseTable is the table name for the Trigger entity.
+	// It exists in this package in order to avoid circular dependency with the "trigger" package.
+	TriggersInverseTable = "triggers"
+	// TriggersColumn is the table column denoting the triggers relation/edge.
+	TriggersColumn = "crafting_recipe_triggers"
 )
 
 // Columns holds all SQL columns for craftingrecipe fields.
@@ -123,4 +133,25 @@ func ByCraftTimeSecs(opts ...sql.OrderTermOption) OrderOption {
 // ByWorldID orders the results by the world_id field.
 func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
+}
+
+// ByTriggersCount orders the results by triggers count.
+func ByTriggersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTriggersStep(), opts...)
+	}
+}
+
+// ByTriggers orders the results by triggers terms.
+func ByTriggers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTriggersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newTriggersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TriggersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TriggersTable, TriggersColumn),
+	)
 }

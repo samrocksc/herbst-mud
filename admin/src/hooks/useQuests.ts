@@ -39,6 +39,7 @@ export type Quest = Readonly<{
 export type QuestInput = Readonly<{
   name?: string
   description?: string
+  main_type?: string
   prerequisite_quest_ids?: string[]
   objectives?: QuestObjective[]
   rewards?: QuestRewards

@@ -39,8 +39,29 @@ type CraftingRecipe struct {
 	// CraftTimeSecs holds the value of the "craft_time_secs" field.
 	CraftTimeSecs int `json:"craft_time_secs,omitempty"`
 	// WorldID holds the value of the "world_id" field.
-	WorldID      string `json:"world_id,omitempty"`
+	WorldID string `json:"world_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CraftingRecipeQuery when eager-loading is set.
+	Edges        CraftingRecipeEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// CraftingRecipeEdges holds the relations/edges for other nodes in the graph.
+type CraftingRecipeEdges struct {
+	// Triggers holds the value of the triggers edge.
+	Triggers []*Trigger `json:"triggers,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TriggersOrErr returns the Triggers value or an error if the edge
+// was not loaded in eager-loading.
+func (e CraftingRecipeEdges) TriggersOrErr() ([]*Trigger, error) {
+	if e.loadedTypes[0] {
+		return e.Triggers, nil
+	}
+	return nil, &NotLoadedError{edge: "triggers"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -156,6 +177,11 @@ func (_m *CraftingRecipe) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *CraftingRecipe) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryTriggers queries the "triggers" edge of the CraftingRecipe entity.
+func (_m *CraftingRecipe) QueryTriggers() *TriggerQuery {
+	return NewCraftingRecipeClient(_m.config).QueryTriggers(_m)
 }
 
 // Update returns a builder for updating this CraftingRecipe.

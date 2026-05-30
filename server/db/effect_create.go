@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/activeeffect"
 	"herbst-server/db/effect"
 	"herbst-server/db/effecthook"
+	"herbst-server/db/trigger"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -143,6 +144,21 @@ func (_c *EffectCreate) AddActiveEffectInstances(v ...*ActiveEffect) *EffectCrea
 		ids[i] = v[i].ID
 	}
 	return _c.AddActiveEffectInstanceIDs(ids...)
+}
+
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_c *EffectCreate) AddTriggerIDs(ids ...int) *EffectCreate {
+	_c.mutation.AddTriggerIDs(ids...)
+	return _c
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_c *EffectCreate) AddTriggers(v ...*Trigger) *EffectCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTriggerIDs(ids...)
 }
 
 // Mutation returns the EffectMutation object of the builder.
@@ -326,6 +342,22 @@ func (_c *EffectCreate) createSpec() (*Effect, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   effect.TriggersTable,
+			Columns: []string{effect.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

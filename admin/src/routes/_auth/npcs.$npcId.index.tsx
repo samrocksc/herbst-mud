@@ -1,4 +1,3 @@
-/* eslint-disable functional/prefer-immutable-types, functional/immutable-data, functional/no-loop-statements, react-hooks/set-state-in-effect */
 import { createFileRoute, useNavigate, Link, Outlet } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useMemo } from "react";
@@ -12,6 +11,9 @@ import { Modal } from "../../components/Modal";
 import { Button } from "../../components/Button";
 import { HooksPanel } from "../../components/HooksPanel";
 import { DialogNodesPanel } from "../../components/DialogNodesPanel";
+import { SearchableSelect } from "../../components/SearchableSelect";
+import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
+import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import {
   FormField,
   NumberField,
@@ -448,19 +450,13 @@ export function NpcTemplateDetail() {
 
       <Modal isOpen={showSpawnModal} onClose={handleSpawnModalClose} title="Add NPC Instance">
         <div className="flex flex-col gap-4">
-          <div>
-            <label className="text-text-muted text-xs block mb-1">Room ID *</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={spawnForm.room_id || ""}
-              onChange={(e) =>
-                setSpawnForm({ ...spawnForm, room_id: parseInt(e.target.value) || 0 })
-              }
-              placeholder="Enter room number"
-              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-            />
-          </div>
+          <ResourceSearchSelect
+            label="Room"
+            value={spawnForm.room_id || null}
+            onChange={(id) => setSpawnForm({ ...spawnForm, room_id: id ? Number(id) : 0 })}
+            placeholder="Search room..."
+            {...RESOURCE_ENDPOINTS.rooms}
+          />
 
           <div>
             <label className="text-text-muted text-xs block mb-1">Instance Number *</label>
@@ -534,19 +530,13 @@ function TemplateEditForm({ form, onChange, saveError, races }: Readonly<{
           value={form.name}
           onChange={(val: string) => onChange({ ...form, name: val })}
         />
-        <div>
-          <label className="text-text-muted text-xs block mb-1">Race</label>
-          <select
-            value={form.race_id}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange({ ...form, race_id: parseInt(e.target.value) || 0 })}
-            className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
-          >
-            <option value="">Select race…</option>
-            {races.map((r) => (
-              <option key={r.id} value={r.id}>{r.display_name || r.name}</option>
-            ))}
-          </select>
-        </div>
+        <SearchableSelect
+          label="Race"
+          options={races.map((r) => ({ id: String(r.id), name: r.display_name || r.name }))}
+          value={String(form.race_id || "")}
+          onChange={(v) => onChange({ ...form, race_id: Number(v) || 0 })}
+          placeholder="Select race..."
+        />
         <FormField
           label="Disposition"
           value={form.disposition}

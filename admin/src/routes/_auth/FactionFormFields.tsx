@@ -3,7 +3,7 @@ import {
   TextareaField,
   SelectField,
 } from "../../components/FormFields";
-import { TagInput } from "../../components/TagInput";
+import { SearchableSelect } from "../../components/SearchableSelect";
 import { useTags } from "../../hooks/useTags";
 import type { FactionCategory, FactionForm } from "./-factionTypes";
 
@@ -18,7 +18,6 @@ export function FactionFormFields({
 }>) {
   const set = (patch: Partial<FactionForm>) => setForm({ ...form, ...patch });
   const { data: tags } = useTags();
-  const availableTags = (tags ?? []).map((t) => t.name);
   const catOptions = [
     { value: "", label: "None" },
     ...categories.map((c) => ({ value: String(c.id), label: c.display_name || c.name })),
@@ -50,13 +49,39 @@ export function FactionFormFields({
           onChange={(v) => set({ category_id: v ? Number(v) : "" })}
           options={catOptions}
         />
-      <TagInput
-        label="Member Tags"
-        value={form.member_tags}
-        onChange={(tags) => set({ member_tags: tags })}
-        availableTags={availableTags}
-        placeholder="Tags auto-applied when characters join"
-      />
+      <div>
+        <label className="text-text-muted text-xs block mb-1">Member Tags</label>
+        {form.member_tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {form.member_tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 border border-primary/30 rounded text-sm text-text"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => set({ member_tags: form.member_tags.filter((t) => t !== tag) })}
+                  className="text-text-muted hover:text-danger px-0.5 text-xs"
+                  aria-label={`Remove ${tag}`}
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <SearchableSelect
+          options={(tags ?? []).map((t) => ({ id: t.name, name: t.name }))}
+          value=""
+          onChange={(v) => {
+            if (!form.member_tags.includes(v)) {
+              set({ member_tags: [...form.member_tags, v] });
+            }
+          }}
+          placeholder="Add existing tag..."
+        />
+      </div>
     </div>
   );
 }

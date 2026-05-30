@@ -10,6 +10,7 @@ import (
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/schema"
+	"herbst-server/db/trigger"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -139,6 +140,21 @@ func (_u *DialogNodeUpdate) SetNpcTemplate(v *NPCTemplate) *DialogNodeUpdate {
 	return _u.SetNpcTemplateID(v.ID)
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_u *DialogNodeUpdate) AddTriggerIDs(ids ...int) *DialogNodeUpdate {
+	_u.mutation.AddTriggerIDs(ids...)
+	return _u
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_u *DialogNodeUpdate) AddTriggers(v ...*Trigger) *DialogNodeUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTriggerIDs(ids...)
+}
+
 // Mutation returns the DialogNodeMutation object of the builder.
 func (_u *DialogNodeUpdate) Mutation() *DialogNodeMutation {
 	return _u.mutation
@@ -148,6 +164,27 @@ func (_u *DialogNodeUpdate) Mutation() *DialogNodeMutation {
 func (_u *DialogNodeUpdate) ClearNpcTemplate() *DialogNodeUpdate {
 	_u.mutation.ClearNpcTemplate()
 	return _u
+}
+
+// ClearTriggers clears all "triggers" edges to the Trigger entity.
+func (_u *DialogNodeUpdate) ClearTriggers() *DialogNodeUpdate {
+	_u.mutation.ClearTriggers()
+	return _u
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to Trigger entities by IDs.
+func (_u *DialogNodeUpdate) RemoveTriggerIDs(ids ...int) *DialogNodeUpdate {
+	_u.mutation.RemoveTriggerIDs(ids...)
+	return _u
+}
+
+// RemoveTriggers removes "triggers" edges to Trigger entities.
+func (_u *DialogNodeUpdate) RemoveTriggers(v ...*Trigger) *DialogNodeUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTriggerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -256,6 +293,51 @@ func (_u *DialogNodeUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   dialognode.TriggersTable,
+			Columns: []string{dialognode.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTriggersIDs(); len(nodes) > 0 && !_u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   dialognode.TriggersTable,
+			Columns: []string{dialognode.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   dialognode.TriggersTable,
+			Columns: []string{dialognode.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -392,6 +474,21 @@ func (_u *DialogNodeUpdateOne) SetNpcTemplate(v *NPCTemplate) *DialogNodeUpdateO
 	return _u.SetNpcTemplateID(v.ID)
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_u *DialogNodeUpdateOne) AddTriggerIDs(ids ...int) *DialogNodeUpdateOne {
+	_u.mutation.AddTriggerIDs(ids...)
+	return _u
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_u *DialogNodeUpdateOne) AddTriggers(v ...*Trigger) *DialogNodeUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTriggerIDs(ids...)
+}
+
 // Mutation returns the DialogNodeMutation object of the builder.
 func (_u *DialogNodeUpdateOne) Mutation() *DialogNodeMutation {
 	return _u.mutation
@@ -401,6 +498,27 @@ func (_u *DialogNodeUpdateOne) Mutation() *DialogNodeMutation {
 func (_u *DialogNodeUpdateOne) ClearNpcTemplate() *DialogNodeUpdateOne {
 	_u.mutation.ClearNpcTemplate()
 	return _u
+}
+
+// ClearTriggers clears all "triggers" edges to the Trigger entity.
+func (_u *DialogNodeUpdateOne) ClearTriggers() *DialogNodeUpdateOne {
+	_u.mutation.ClearTriggers()
+	return _u
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to Trigger entities by IDs.
+func (_u *DialogNodeUpdateOne) RemoveTriggerIDs(ids ...int) *DialogNodeUpdateOne {
+	_u.mutation.RemoveTriggerIDs(ids...)
+	return _u
+}
+
+// RemoveTriggers removes "triggers" edges to Trigger entities.
+func (_u *DialogNodeUpdateOne) RemoveTriggers(v ...*Trigger) *DialogNodeUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTriggerIDs(ids...)
 }
 
 // Where appends a list predicates to the DialogNodeUpdate builder.
@@ -539,6 +657,51 @@ func (_u *DialogNodeUpdateOne) sqlSave(ctx context.Context) (_node *DialogNode, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(npctemplate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   dialognode.TriggersTable,
+			Columns: []string{dialognode.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTriggersIDs(); len(nodes) > 0 && !_u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   dialognode.TriggersTable,
+			Columns: []string{dialognode.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   dialognode.TriggersTable,
+			Columns: []string{dialognode.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

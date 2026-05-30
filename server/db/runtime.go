@@ -34,6 +34,7 @@ import (
 	"herbst-server/db/schema"
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/tellqueue"
+	"herbst-server/db/trigger"
 	"herbst-server/db/user"
 	"herbst-server/db/world"
 	"time"
@@ -823,6 +824,16 @@ func init() {
 	tellqueueDescIsRead := tellqueueFields[5].Descriptor()
 	// tellqueue.DefaultIsRead holds the default value on creation for the isRead field.
 	tellqueue.DefaultIsRead = tellqueueDescIsRead.Default.(bool)
+	triggerFields := schema.Trigger{}.Fields()
+	_ = triggerFields
+	// triggerDescWorldID is the schema descriptor for world_id field.
+	triggerDescWorldID := triggerFields[1].Descriptor()
+	// trigger.DefaultWorldID holds the default value on creation for the world_id field.
+	trigger.DefaultWorldID = triggerDescWorldID.Default.(string)
+	// triggerDescEnabled is the schema descriptor for enabled field.
+	triggerDescEnabled := triggerFields[8].Descriptor()
+	// trigger.DefaultEnabled holds the default value on creation for the enabled field.
+	trigger.DefaultEnabled = triggerDescEnabled.Default.(bool)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescIsAdmin is the schema descriptor for is_admin field.

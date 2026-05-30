@@ -440,6 +440,18 @@ func (f TellQueueFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TellQueueMutation", m)
 }
 
+// The TriggerFunc type is an adapter to allow the use of ordinary
+// function as Trigger mutator.
+type TriggerFunc func(context.Context, *db.TriggerMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TriggerFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.TriggerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TriggerMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *db.UserMutation) (db.Value, error)

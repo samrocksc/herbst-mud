@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_auth/abilities/$abilityId")({
   component: AbilityDetailPage,
 });
 
-function AbilityDetailPage() {
+export function AbilityDetailPage() {
   const abilityId = Route.useParams().abilityId;
   const location = useLocation();
   const { data: ability, isLoading, error } = useAbility(Number(abilityId));

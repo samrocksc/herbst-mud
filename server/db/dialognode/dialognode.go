@@ -26,6 +26,8 @@ const (
 	FieldOnEnterEffects = "on_enter_effects"
 	// EdgeNpcTemplate holds the string denoting the npc_template edge name in mutations.
 	EdgeNpcTemplate = "npc_template"
+	// EdgeTriggers holds the string denoting the triggers edge name in mutations.
+	EdgeTriggers = "triggers"
 	// Table holds the table name of the dialognode in the database.
 	Table = "dialog_nodes"
 	// NpcTemplateTable is the table that holds the npc_template relation/edge.
@@ -35,6 +37,13 @@ const (
 	NpcTemplateInverseTable = "npc_templates"
 	// NpcTemplateColumn is the table column denoting the npc_template relation/edge.
 	NpcTemplateColumn = "npc_template_dialog_nodes"
+	// TriggersTable is the table that holds the triggers relation/edge.
+	TriggersTable = "triggers"
+	// TriggersInverseTable is the table name for the Trigger entity.
+	// It exists in this package in order to avoid circular dependency with the "trigger" package.
+	TriggersInverseTable = "triggers"
+	// TriggersColumn is the table column denoting the triggers relation/edge.
+	TriggersColumn = "dialog_node_triggers"
 )
 
 // Columns holds all SQL columns for dialognode fields.
@@ -110,10 +119,31 @@ func ByNpcTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newNpcTemplateStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByTriggersCount orders the results by triggers count.
+func ByTriggersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTriggersStep(), opts...)
+	}
+}
+
+// ByTriggers orders the results by triggers terms.
+func ByTriggers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTriggersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newNpcTemplateStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NpcTemplateInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, NpcTemplateTable, NpcTemplateColumn),
+	)
+}
+func newTriggersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TriggersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TriggersTable, TriggersColumn),
 	)
 }

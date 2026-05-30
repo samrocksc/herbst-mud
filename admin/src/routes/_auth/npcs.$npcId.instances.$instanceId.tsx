@@ -5,6 +5,8 @@ import { apiGet, apiPut, apiDelete, API_BASE } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
+import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
+import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -172,26 +174,20 @@ function NpcInstanceDetail() {
             <div className="space-y-4">
               <h2 className="mt-0 mb-4 text-text text-lg font-semibold">Edit Instance</h2>
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                  <label className="text-text-muted text-xs block mb-1">Room ID</label>
-                  <input
-                    type="number"
-                    value={form?.room_id ?? 0}
-                    onChange={(e) => setForm(p => p ? ({ ...p, room_id: parseInt(e.target.value) || 0 }) : null)}
-                    min={1}
-                    className="p-2 bg-surface border border-border rounded text-text text-sm"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-text-muted text-xs block mb-1">Starting Room</label>
-                  <input
-                    type="number"
-                    value={form?.starting_room_id ?? 0}
-                    onChange={(e) => setForm(p => p ? ({ ...p, starting_room_id: parseInt(e.target.value) || 0 }) : null)}
-                    min={1}
-                    className="p-2 bg-surface border border-border rounded text-text text-sm"
-                  />
-                </div>
+                <ResourceSearchSelect
+                  label="Room"
+                  value={form?.room_id ?? null}
+                  onChange={(id) => setForm(p => p ? ({ ...p, room_id: id ? Number(id) : 0 }) : null)}
+                  placeholder="Search room..."
+                  {...RESOURCE_ENDPOINTS.rooms}
+                />
+                <ResourceSearchSelect
+                  label="Starting Room"
+                  value={form?.starting_room_id ?? null}
+                  onChange={(id) => setForm(p => p ? ({ ...p, starting_room_id: id ? Number(id) : 0 }) : null)}
+                  placeholder="Search room..."
+                  {...RESOURCE_ENDPOINTS.rooms}
+                />
                 <div className="flex flex-col">
                   <label className="text-text-muted text-xs block mb-1">Instance Number</label>
                   <input

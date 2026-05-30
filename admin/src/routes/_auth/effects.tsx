@@ -18,6 +18,10 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
 import { showToast } from "../../components/Toast";
 import { FormField, NumberField, TextareaField, SelectField, CheckboxField, FieldLabel } from "../../components/fields";
+import { SearchableSelect } from "../../components/SearchableSelect";
+import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
+import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
+import { useTags } from "../../hooks/useTags";
 
 // Group effect types for better organization
 const EFFECT_TYPE_GROUPS = Array.from(
@@ -45,7 +49,7 @@ function getParamConfig(effectType: string) {
     case "bind_point_set":
     case "teleport":
       return [
-        { key: "room_id", label: "Room ID", type: "number" as const },
+        { key: "room_id", label: "Room", type: "resourceSearch" as const },
       ];
     case "message":
       return [
@@ -64,12 +68,12 @@ function getParamConfig(effectType: string) {
       ];
     case "apply_effect":
       return [
-        { key: "effect_id", label: "Effect ID", type: "number" as const },
+        { key: "effect_id", label: "Effect", type: "resourceSearch" as const },
       ];
     case "tag_add":
     case "tag_remove":
       return [
-        { key: "tag_name", label: "Tag Name", type: "text" as const },
+        { key: "tag_name", label: "Tag Name", type: "searchableSelect" as const },
       ];
     default:
       return [];
@@ -101,6 +105,8 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
       : createEmptyInput("hp_change"),
   );
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const { data: tags } = useTags();
+  const tagOptions = (tags ?? []).map((t) => ({ id: t.name, name: t.name }));
 
   const set = (patch: Partial<EffectDefInput>) =>
     setForm((prev) => ({ ...prev, ...patch }));
@@ -161,6 +167,30 @@ function EffectDefForm({ effect, onSubmit, onCancel, isLoading, error }: {
         <h4 className="text-sm font-semibold text-text mb-3">Parameters</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {paramConfig.map((pc) => {
+            if (pc.type === "resourceSearch") {
+              const endpoint = pc.key === "room_id" ? RESOURCE_ENDPOINTS.rooms : RESOURCE_ENDPOINTS.effectDefs;
+              return (
+                <ResourceSearchSelect
+                  key={pc.key}
+                  label={pc.label}
+                  value={(form.parameters[pc.key] as string | number | null | undefined) ?? null}
+                  onChange={(id) => set({ parameters: { ...form.parameters, [pc.key]: id } })}
+                  {...endpoint}
+                />
+              );
+            }
+            if (pc.type === "searchableSelect") {
+              return (
+                <SearchableSelect
+                  key={pc.key}
+                  label={pc.label}
+                  options={tagOptions}
+                  value={String(form.parameters[pc.key] ?? "")}
+                  onChange={(v) => set({ parameters: { ...form.parameters, [pc.key]: v } })}
+                  placeholder="Select a tag..."
+                />
+              );
+            }
             if (pc.type === "number") {
               return (
                 <div key={pc.key}>

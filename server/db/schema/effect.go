@@ -47,5 +47,6 @@ func (Effect) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("hooks", EffectHook.Type),
 		edge.To("active_effect_instances", ActiveEffect.Type),
+		edge.To("triggers", Trigger.Type),
 	}
 }

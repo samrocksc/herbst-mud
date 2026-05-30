@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/dialognode"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/schema"
+	"herbst-server/db/trigger"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -96,6 +97,21 @@ func (_c *DialogNodeCreate) SetNpcTemplateID(id string) *DialogNodeCreate {
 // SetNpcTemplate sets the "npc_template" edge to the NPCTemplate entity.
 func (_c *DialogNodeCreate) SetNpcTemplate(v *NPCTemplate) *DialogNodeCreate {
 	return _c.SetNpcTemplateID(v.ID)
+}
+
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_c *DialogNodeCreate) AddTriggerIDs(ids ...int) *DialogNodeCreate {
+	_c.mutation.AddTriggerIDs(ids...)
+	return _c
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_c *DialogNodeCreate) AddTriggers(v ...*Trigger) *DialogNodeCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTriggerIDs(ids...)
 }
 
 // Mutation returns the DialogNodeMutation object of the builder.
@@ -231,6 +247,22 @@ func (_c *DialogNodeCreate) createSpec() (*DialogNode, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.npc_template_dialog_nodes = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   dialognode.TriggersTable,
+			Columns: []string{dialognode.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

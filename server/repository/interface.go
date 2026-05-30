@@ -106,6 +106,21 @@ type CharacterAbilityRepo interface {
 	DeleteByCharacterAndAbility(ctx context.Context, charID int, abilityID int) error
 }
 
+// TriggerRepo defines data access for triggers.
+type TriggerRepo interface {
+	Get(ctx context.Context, id int) (*db.Trigger, error)
+	GetWithEdges(ctx context.Context, id int) (*db.Trigger, error)
+	List(ctx context.Context) ([]*db.Trigger, error)
+	ListWithEdges(ctx context.Context) ([]*db.Trigger, error)
+	ListByRoom(ctx context.Context, roomID int) ([]*db.Trigger, error)
+	ListByEquipment(ctx context.Context, equipmentID int) ([]*db.Trigger, error)
+	ListByTriggerType(ctx context.Context, triggerType string) ([]*db.Trigger, error)
+	ListByTargetType(ctx context.Context, targetType string) ([]*db.Trigger, error)
+	Create(ctx context.Context, input CreateTriggerInput) (*db.Trigger, error)
+	Update(ctx context.Context, id int, updates TriggerUpdates) (*db.Trigger, error)
+	Delete(ctx context.Context, id int) error
+}
+
 // EffectRepo defines data access for effects.
 type EffectRepo interface {
 	Get(ctx context.Context, id int) (*db.Effect, error)
@@ -842,4 +857,30 @@ type WorldUpdates struct {
 	Title       *string
 	Description *string
 	Active      *bool
+}
+
+// CreateTriggerInput defines the input for creating a trigger.
+type CreateTriggerInput struct {
+	Name        string
+	WorldID     string
+	TriggerType string
+	TargetType  string
+	TargetID    int
+	RoomID      *int
+	EquipmentID *int
+	Condition   string
+	Enabled     bool
+}
+
+// TriggerUpdates defines the updates for a trigger.
+type TriggerUpdates struct {
+	Name        *string
+	WorldID     *string
+	TriggerType *string
+	TargetType  *string
+	TargetID    *int
+	RoomID      *int
+	EquipmentID *int
+	Condition   *string
+	Enabled     *bool
 }

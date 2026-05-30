@@ -5,6 +5,8 @@ import { useCreateTemplate } from "../../hooks/useEquipmentTemplates";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { FormField, NumberField, SelectField, CheckboxField, TextareaField } from "../../components/FormFields";
+import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
+import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import { CombatFieldsEditor, type CombatFields } from "../../components/CombatFieldsEditor";
 import { showToast } from "../../components/Toast";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
@@ -28,7 +30,7 @@ export const Route = createFileRoute("/_auth/items/new")({
   component: CreateItemPage,
 });
 
-function CreateItemPage() {
+export function CreateItemPage() {
   const navigate = useNavigate();
   const { currentWorld } = useWorldStore();
   const { mutate: createTemplate, isPending } = useCreateTemplate();
@@ -120,7 +122,13 @@ function CreateItemPage() {
             <div className="grid grid-cols-3 gap-4 mt-2">
               <NumberField label="Container Capacity" value={form.container_capacity} onChange={(v) => setForm({ ...form, container_capacity: v })} min={0} />
               <CheckboxField label="Locked" checked={form.is_locked} onChange={(v) => setForm({ ...form, is_locked: v })} />
-              <FormField label="Key Item ID" value={form.key_item_id} onChange={(v) => setForm({ ...form, key_item_id: v })} placeholder="Template ID of the key" />
+              <ResourceSearchSelect
+                label="Key Item"
+                value={form.key_item_id || null}
+                onChange={(id) => setForm({ ...form, key_item_id: String(id ?? "") })}
+                placeholder="Search key item template..."
+                {...RESOURCE_ENDPOINTS.equipmentTemplates}
+              />
             </div>
           )}
           <div className="mt-2">

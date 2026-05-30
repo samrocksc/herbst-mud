@@ -10,6 +10,7 @@ import (
 	"herbst-server/db/effect"
 	"herbst-server/db/effecthook"
 	"herbst-server/db/predicate"
+	"herbst-server/db/trigger"
 	"math"
 
 	"entgo.io/ent"
@@ -27,6 +28,7 @@ type EffectQuery struct {
 	predicates                []predicate.Effect
 	withHooks                 *EffectHookQuery
 	withActiveEffectInstances *ActiveEffectQuery
+	withTriggers              *TriggerQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (_q *EffectQuery) QueryActiveEffectInstances() *ActiveEffectQuery {
 			sqlgraph.From(effect.Table, effect.FieldID, selector),
 			sqlgraph.To(activeeffect.Table, activeeffect.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, effect.ActiveEffectInstancesTable, effect.ActiveEffectInstancesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTriggers chains the current query on the "triggers" edge.
+func (_q *EffectQuery) QueryTriggers() *TriggerQuery {
+	query := (&TriggerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(effect.Table, effect.FieldID, selector),
+			sqlgraph.To(trigger.Table, trigger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, effect.TriggersTable, effect.TriggersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +325,7 @@ func (_q *EffectQuery) Clone() *EffectQuery {
 		predicates:                append([]predicate.Effect{}, _q.predicates...),
 		withHooks:                 _q.withHooks.Clone(),
 		withActiveEffectInstances: _q.withActiveEffectInstances.Clone(),
+		withTriggers:              _q.withTriggers.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +351,17 @@ func (_q *EffectQuery) WithActiveEffectInstances(opts ...func(*ActiveEffectQuery
 		opt(query)
 	}
 	_q.withActiveEffectInstances = query
+	return _q
+}
+
+// WithTriggers tells the query-builder to eager-load the nodes that are connected to
+// the "triggers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EffectQuery) WithTriggers(opts ...func(*TriggerQuery)) *EffectQuery {
+	query := (&TriggerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTriggers = query
 	return _q
 }
 
@@ -407,9 +443,10 @@ func (_q *EffectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Effec
 	var (
 		nodes       = []*Effect{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withHooks != nil,
 			_q.withActiveEffectInstances != nil,
+			_q.withTriggers != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -443,6 +480,13 @@ func (_q *EffectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Effec
 			func(n *Effect, e *ActiveEffect) {
 				n.Edges.ActiveEffectInstances = append(n.Edges.ActiveEffectInstances, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTriggers; query != nil {
+		if err := _q.loadTriggers(ctx, query, nodes,
+			func(n *Effect) { n.Edges.Triggers = []*Trigger{} },
+			func(n *Effect, e *Trigger) { n.Edges.Triggers = append(n.Edges.Triggers, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -505,6 +549,37 @@ func (_q *EffectQuery) loadActiveEffectInstances(ctx context.Context, query *Act
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "effect_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EffectQuery) loadTriggers(ctx context.Context, query *TriggerQuery, nodes []*Effect, init func(*Effect), assign func(*Effect, *Trigger)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Effect)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Trigger(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(effect.TriggersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.effect_triggers
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "effect_triggers" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "effect_triggers" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

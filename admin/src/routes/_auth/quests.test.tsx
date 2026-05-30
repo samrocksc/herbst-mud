@@ -17,13 +17,13 @@ vi.mock("@tanstack/react-router", async () => {
 describe("QuestsManagement", () => {
   it("renders quest list from MSW", async () => {
     withQuery(<QuestsManagement />);
-    await screen.findByText("Find the Key");
+    await screen.findAllByText("Find the Key");
     expect(screen.getByText("Quests")).toBeInTheDocument();
   });
 
   it('"Add Quest" button navigates', async () => {
     withQuery(<QuestsManagement />);
-    await screen.findByText("Find the Key");
+    await screen.findAllByText("Find the Key");
     // Check that we have at least one button with "Add Quest"
     const buttons = screen.queryAllByRole("button", { name: /add quest/i });
     expect(buttons.length).toBeGreaterThan(0);

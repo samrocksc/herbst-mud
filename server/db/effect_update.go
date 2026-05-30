@@ -10,6 +10,7 @@ import (
 	"herbst-server/db/effect"
 	"herbst-server/db/effecthook"
 	"herbst-server/db/predicate"
+	"herbst-server/db/trigger"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -183,6 +184,21 @@ func (_u *EffectUpdate) AddActiveEffectInstances(v ...*ActiveEffect) *EffectUpda
 	return _u.AddActiveEffectInstanceIDs(ids...)
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_u *EffectUpdate) AddTriggerIDs(ids ...int) *EffectUpdate {
+	_u.mutation.AddTriggerIDs(ids...)
+	return _u
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_u *EffectUpdate) AddTriggers(v ...*Trigger) *EffectUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTriggerIDs(ids...)
+}
+
 // Mutation returns the EffectMutation object of the builder.
 func (_u *EffectUpdate) Mutation() *EffectMutation {
 	return _u.mutation
@@ -228,6 +244,27 @@ func (_u *EffectUpdate) RemoveActiveEffectInstances(v ...*ActiveEffect) *EffectU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveActiveEffectInstanceIDs(ids...)
+}
+
+// ClearTriggers clears all "triggers" edges to the Trigger entity.
+func (_u *EffectUpdate) ClearTriggers() *EffectUpdate {
+	_u.mutation.ClearTriggers()
+	return _u
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to Trigger entities by IDs.
+func (_u *EffectUpdate) RemoveTriggerIDs(ids ...int) *EffectUpdate {
+	_u.mutation.RemoveTriggerIDs(ids...)
+	return _u
+}
+
+// RemoveTriggers removes "triggers" edges to Trigger entities.
+func (_u *EffectUpdate) RemoveTriggers(v ...*Trigger) *EffectUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTriggerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -382,6 +419,51 @@ func (_u *EffectUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   effect.TriggersTable,
+			Columns: []string{effect.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTriggersIDs(); len(nodes) > 0 && !_u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   effect.TriggersTable,
+			Columns: []string{effect.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   effect.TriggersTable,
+			Columns: []string{effect.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -563,6 +645,21 @@ func (_u *EffectUpdateOne) AddActiveEffectInstances(v ...*ActiveEffect) *EffectU
 	return _u.AddActiveEffectInstanceIDs(ids...)
 }
 
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_u *EffectUpdateOne) AddTriggerIDs(ids ...int) *EffectUpdateOne {
+	_u.mutation.AddTriggerIDs(ids...)
+	return _u
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_u *EffectUpdateOne) AddTriggers(v ...*Trigger) *EffectUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTriggerIDs(ids...)
+}
+
 // Mutation returns the EffectMutation object of the builder.
 func (_u *EffectUpdateOne) Mutation() *EffectMutation {
 	return _u.mutation
@@ -608,6 +705,27 @@ func (_u *EffectUpdateOne) RemoveActiveEffectInstances(v ...*ActiveEffect) *Effe
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveActiveEffectInstanceIDs(ids...)
+}
+
+// ClearTriggers clears all "triggers" edges to the Trigger entity.
+func (_u *EffectUpdateOne) ClearTriggers() *EffectUpdateOne {
+	_u.mutation.ClearTriggers()
+	return _u
+}
+
+// RemoveTriggerIDs removes the "triggers" edge to Trigger entities by IDs.
+func (_u *EffectUpdateOne) RemoveTriggerIDs(ids ...int) *EffectUpdateOne {
+	_u.mutation.RemoveTriggerIDs(ids...)
+	return _u
+}
+
+// RemoveTriggers removes "triggers" edges to Trigger entities.
+func (_u *EffectUpdateOne) RemoveTriggers(v ...*Trigger) *EffectUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTriggerIDs(ids...)
 }
 
 // Where appends a list predicates to the EffectUpdate builder.
@@ -792,6 +910,51 @@ func (_u *EffectUpdateOne) sqlSave(ctx context.Context) (_node *Effect, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(activeeffect.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   effect.TriggersTable,
+			Columns: []string{effect.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTriggersIDs(); len(nodes) > 0 && !_u.mutation.TriggersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   effect.TriggersTable,
+			Columns: []string{effect.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   effect.TriggersTable,
+			Columns: []string{effect.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

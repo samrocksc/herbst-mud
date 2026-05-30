@@ -4,10 +4,12 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"herbst-server/db/dialognode"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
+	"herbst-server/db/trigger"
 	"math"
 
 	"entgo.io/ent"
@@ -24,6 +26,7 @@ type DialogNodeQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.DialogNode
 	withNpcTemplate *NPCTemplateQuery
+	withTriggers    *TriggerQuery
 	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -76,6 +79,28 @@ func (_q *DialogNodeQuery) QueryNpcTemplate() *NPCTemplateQuery {
 			sqlgraph.From(dialognode.Table, dialognode.FieldID, selector),
 			sqlgraph.To(npctemplate.Table, npctemplate.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, dialognode.NpcTemplateTable, dialognode.NpcTemplateColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTriggers chains the current query on the "triggers" edge.
+func (_q *DialogNodeQuery) QueryTriggers() *TriggerQuery {
+	query := (&TriggerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dialognode.Table, dialognode.FieldID, selector),
+			sqlgraph.To(trigger.Table, trigger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, dialognode.TriggersTable, dialognode.TriggersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +301,7 @@ func (_q *DialogNodeQuery) Clone() *DialogNodeQuery {
 		inters:          append([]Interceptor{}, _q.inters...),
 		predicates:      append([]predicate.DialogNode{}, _q.predicates...),
 		withNpcTemplate: _q.withNpcTemplate.Clone(),
+		withTriggers:    _q.withTriggers.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +316,17 @@ func (_q *DialogNodeQuery) WithNpcTemplate(opts ...func(*NPCTemplateQuery)) *Dia
 		opt(query)
 	}
 	_q.withNpcTemplate = query
+	return _q
+}
+
+// WithTriggers tells the query-builder to eager-load the nodes that are connected to
+// the "triggers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DialogNodeQuery) WithTriggers(opts ...func(*TriggerQuery)) *DialogNodeQuery {
+	query := (&TriggerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTriggers = query
 	return _q
 }
 
@@ -372,8 +409,9 @@ func (_q *DialogNodeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 		nodes       = []*DialogNode{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withNpcTemplate != nil,
+			_q.withTriggers != nil,
 		}
 	)
 	if _q.withNpcTemplate != nil {
@@ -403,6 +441,13 @@ func (_q *DialogNodeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 	if query := _q.withNpcTemplate; query != nil {
 		if err := _q.loadNpcTemplate(ctx, query, nodes, nil,
 			func(n *DialogNode, e *NPCTemplate) { n.Edges.NpcTemplate = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTriggers; query != nil {
+		if err := _q.loadTriggers(ctx, query, nodes,
+			func(n *DialogNode) { n.Edges.Triggers = []*Trigger{} },
+			func(n *DialogNode, e *Trigger) { n.Edges.Triggers = append(n.Edges.Triggers, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -438,6 +483,37 @@ func (_q *DialogNodeQuery) loadNpcTemplate(ctx context.Context, query *NPCTempla
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *DialogNodeQuery) loadTriggers(ctx context.Context, query *TriggerQuery, nodes []*DialogNode, init func(*DialogNode), assign func(*DialogNode, *Trigger)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*DialogNode)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Trigger(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(dialognode.TriggersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.dialog_node_triggers
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "dialog_node_triggers" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "dialog_node_triggers" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

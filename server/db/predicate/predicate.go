@@ -114,6 +114,9 @@ type Tag func(*sql.Selector)
 // TellQueue is the predicate function for tellqueue builders.
 type TellQueue func(*sql.Selector)
 
+// Trigger is the predicate function for trigger builders.
+type Trigger func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 

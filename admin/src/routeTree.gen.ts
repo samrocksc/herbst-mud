@@ -39,6 +39,7 @@ import { Route as DocsAchievementsRouteImport } from './routes/docs/achievements
 import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
 import { Route as AuthWorldsRouteImport } from './routes/_auth/worlds'
+import { Route as AuthTriggersRouteImport } from './routes/_auth/triggers'
 import { Route as AuthTellQueueRouteImport } from './routes/_auth/tell-queue'
 import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
 import { Route as AuthSocialsRouteImport } from './routes/_auth/socials'
@@ -61,6 +62,8 @@ import { Route as AuthAbilitiesRouteImport } from './routes/_auth/abilities'
 import { Route as MapRoomsNewRouteImport } from './routes/map.rooms.new'
 import { Route as AuthWorldsNewRouteImport } from './routes/_auth/worlds.new'
 import { Route as AuthWorldsWorldIdRouteImport } from './routes/_auth/worlds.$worldId'
+import { Route as AuthTriggersNewRouteImport } from './routes/_auth/triggers.new'
+import { Route as AuthTriggersTriggerIdRouteImport } from './routes/_auth/triggers.$triggerId'
 import { Route as AuthSocialsNewRouteImport } from './routes/_auth/socials.new'
 import { Route as AuthSocialsSocialIdRouteImport } from './routes/_auth/socials.$socialId'
 import { Route as AuthRecipesRecipeNameRouteImport } from './routes/_auth/recipes.$recipeName'
@@ -232,6 +235,11 @@ const AuthWorldsRoute = AuthWorldsRouteImport.update({
   path: '/worlds',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthTriggersRoute = AuthTriggersRouteImport.update({
+  id: '/triggers',
+  path: '/triggers',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthTellQueueRoute = AuthTellQueueRouteImport.update({
   id: '/tell-queue',
   path: '/tell-queue',
@@ -341,6 +349,16 @@ const AuthWorldsWorldIdRoute = AuthWorldsWorldIdRouteImport.update({
   id: '/$worldId',
   path: '/$worldId',
   getParentRoute: () => AuthWorldsRoute,
+} as any)
+const AuthTriggersNewRoute = AuthTriggersNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthTriggersRoute,
+} as any)
+const AuthTriggersTriggerIdRoute = AuthTriggersTriggerIdRouteImport.update({
+  id: '/$triggerId',
+  path: '/$triggerId',
+  getParentRoute: () => AuthTriggersRoute,
 } as any)
 const AuthSocialsNewRoute = AuthSocialsNewRouteImport.update({
   id: '/new',
@@ -480,6 +498,7 @@ export interface FileRoutesByFullPath {
   '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
   '/tell-queue': typeof AuthTellQueueRoute
+  '/triggers': typeof AuthTriggersRouteWithChildren
   '/worlds': typeof AuthWorldsRouteWithChildren
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
@@ -516,6 +535,8 @@ export interface FileRoutesByFullPath {
   '/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
+  '/triggers/$triggerId': typeof AuthTriggersTriggerIdRoute
+  '/triggers/new': typeof AuthTriggersNewRoute
   '/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
@@ -552,6 +573,7 @@ export interface FileRoutesByTo {
   '/socials': typeof AuthSocialsRouteWithChildren
   '/tags': typeof AuthTagsRoute
   '/tell-queue': typeof AuthTellQueueRoute
+  '/triggers': typeof AuthTriggersRouteWithChildren
   '/worlds': typeof AuthWorldsRouteWithChildren
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
@@ -587,6 +609,8 @@ export interface FileRoutesByTo {
   '/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
+  '/triggers/$triggerId': typeof AuthTriggersTriggerIdRoute
+  '/triggers/new': typeof AuthTriggersNewRoute
   '/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
@@ -627,6 +651,7 @@ export interface FileRoutesById {
   '/_auth/socials': typeof AuthSocialsRouteWithChildren
   '/_auth/tags': typeof AuthTagsRoute
   '/_auth/tell-queue': typeof AuthTellQueueRoute
+  '/_auth/triggers': typeof AuthTriggersRouteWithChildren
   '/_auth/worlds': typeof AuthWorldsRouteWithChildren
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
@@ -663,6 +688,8 @@ export interface FileRoutesById {
   '/_auth/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
   '/_auth/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/_auth/socials/new': typeof AuthSocialsNewRoute
+  '/_auth/triggers/$triggerId': typeof AuthTriggersTriggerIdRoute
+  '/_auth/triggers/new': typeof AuthTriggersNewRoute
   '/_auth/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/_auth/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
@@ -703,6 +730,7 @@ export interface FileRouteTypes {
     | '/socials'
     | '/tags'
     | '/tell-queue'
+    | '/triggers'
     | '/worlds'
     | '/xp'
     | '/docs/ability-system'
@@ -739,6 +767,8 @@ export interface FileRouteTypes {
     | '/recipes/$recipeName'
     | '/socials/$socialId'
     | '/socials/new'
+    | '/triggers/$triggerId'
+    | '/triggers/new'
     | '/worlds/$worldId'
     | '/worlds/new'
     | '/map/rooms/new'
@@ -775,6 +805,7 @@ export interface FileRouteTypes {
     | '/socials'
     | '/tags'
     | '/tell-queue'
+    | '/triggers'
     | '/worlds'
     | '/xp'
     | '/docs/ability-system'
@@ -810,6 +841,8 @@ export interface FileRouteTypes {
     | '/recipes/$recipeName'
     | '/socials/$socialId'
     | '/socials/new'
+    | '/triggers/$triggerId'
+    | '/triggers/new'
     | '/worlds/$worldId'
     | '/worlds/new'
     | '/map/rooms/new'
@@ -849,6 +882,7 @@ export interface FileRouteTypes {
     | '/_auth/socials'
     | '/_auth/tags'
     | '/_auth/tell-queue'
+    | '/_auth/triggers'
     | '/_auth/worlds'
     | '/_auth/xp'
     | '/docs/ability-system'
@@ -885,6 +919,8 @@ export interface FileRouteTypes {
     | '/_auth/recipes/$recipeName'
     | '/_auth/socials/$socialId'
     | '/_auth/socials/new'
+    | '/_auth/triggers/$triggerId'
+    | '/_auth/triggers/new'
     | '/_auth/worlds/$worldId'
     | '/_auth/worlds/new'
     | '/map/rooms/new'
@@ -1120,6 +1156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthWorldsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/triggers': {
+      id: '/_auth/triggers'
+      path: '/triggers'
+      fullPath: '/triggers'
+      preLoaderRoute: typeof AuthTriggersRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/tell-queue': {
       id: '/_auth/tell-queue'
       path: '/tell-queue'
@@ -1273,6 +1316,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/worlds/$worldId'
       preLoaderRoute: typeof AuthWorldsWorldIdRouteImport
       parentRoute: typeof AuthWorldsRoute
+    }
+    '/_auth/triggers/new': {
+      id: '/_auth/triggers/new'
+      path: '/new'
+      fullPath: '/triggers/new'
+      preLoaderRoute: typeof AuthTriggersNewRouteImport
+      parentRoute: typeof AuthTriggersRoute
+    }
+    '/_auth/triggers/$triggerId': {
+      id: '/_auth/triggers/$triggerId'
+      path: '/$triggerId'
+      fullPath: '/triggers/$triggerId'
+      preLoaderRoute: typeof AuthTriggersTriggerIdRouteImport
+      parentRoute: typeof AuthTriggersRoute
     }
     '/_auth/socials/new': {
       id: '/_auth/socials/new'
@@ -1574,6 +1631,20 @@ const AuthSocialsRouteWithChildren = AuthSocialsRoute._addFileChildren(
   AuthSocialsRouteChildren,
 )
 
+interface AuthTriggersRouteChildren {
+  AuthTriggersTriggerIdRoute: typeof AuthTriggersTriggerIdRoute
+  AuthTriggersNewRoute: typeof AuthTriggersNewRoute
+}
+
+const AuthTriggersRouteChildren: AuthTriggersRouteChildren = {
+  AuthTriggersTriggerIdRoute: AuthTriggersTriggerIdRoute,
+  AuthTriggersNewRoute: AuthTriggersNewRoute,
+}
+
+const AuthTriggersRouteWithChildren = AuthTriggersRoute._addFileChildren(
+  AuthTriggersRouteChildren,
+)
+
 interface AuthWorldsRouteChildren {
   AuthWorldsWorldIdRoute: typeof AuthWorldsWorldIdRoute
   AuthWorldsNewRoute: typeof AuthWorldsNewRoute
@@ -1608,6 +1679,7 @@ interface AuthRouteChildren {
   AuthSocialsRoute: typeof AuthSocialsRouteWithChildren
   AuthTagsRoute: typeof AuthTagsRoute
   AuthTellQueueRoute: typeof AuthTellQueueRoute
+  AuthTriggersRoute: typeof AuthTriggersRouteWithChildren
   AuthWorldsRoute: typeof AuthWorldsRouteWithChildren
   AuthXpRoute: typeof AuthXpRoute
 }
@@ -1632,6 +1704,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthSocialsRoute: AuthSocialsRouteWithChildren,
   AuthTagsRoute: AuthTagsRoute,
   AuthTellQueueRoute: AuthTellQueueRoute,
+  AuthTriggersRoute: AuthTriggersRouteWithChildren,
   AuthWorldsRoute: AuthWorldsRouteWithChildren,
   AuthXpRoute: AuthXpRoute,
 }

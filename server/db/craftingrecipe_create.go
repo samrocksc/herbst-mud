@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"herbst-server/db/craftingrecipe"
 	"herbst-server/db/schema"
+	"herbst-server/db/trigger"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -132,6 +133,21 @@ func (_c *CraftingRecipeCreate) SetNillableWorldID(v *string) *CraftingRecipeCre
 		_c.SetWorldID(*v)
 	}
 	return _c
+}
+
+// AddTriggerIDs adds the "triggers" edge to the Trigger entity by IDs.
+func (_c *CraftingRecipeCreate) AddTriggerIDs(ids ...int) *CraftingRecipeCreate {
+	_c.mutation.AddTriggerIDs(ids...)
+	return _c
+}
+
+// AddTriggers adds the "triggers" edges to the Trigger entity.
+func (_c *CraftingRecipeCreate) AddTriggers(v ...*Trigger) *CraftingRecipeCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTriggerIDs(ids...)
 }
 
 // Mutation returns the CraftingRecipeMutation object of the builder.
@@ -278,6 +294,22 @@ func (_c *CraftingRecipeCreate) createSpec() (*CraftingRecipe, *sqlgraph.CreateS
 	if value, ok := _c.mutation.WorldID(); ok {
 		_spec.SetField(craftingrecipe.FieldWorldID, field.TypeString, value)
 		_node.WorldID = value
+	}
+	if nodes := _c.mutation.TriggersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   craftingrecipe.TriggersTable,
+			Columns: []string{craftingrecipe.TriggersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(trigger.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

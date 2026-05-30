@@ -7,6 +7,8 @@ import { Button } from "../../components/Button";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import { CombatFieldsEditor, type CombatFields } from "../../components/CombatFieldsEditor";
 import { NumberField, SelectField, CheckboxField, TextareaField, FormField, FormError } from "../../components/FormFields";
+import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
+import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
 
 const EFFECT_TYPE_OPTS = [
@@ -84,7 +86,13 @@ export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
         <div className="grid grid-cols-2 gap-4 mt-2">
           <NumberField label="Container Capacity" value={form.container_capacity} onChange={(v) => set("container_capacity", v)} min={0} />
           <CheckboxField label="Locked" checked={form.is_locked} onChange={(v) => set("is_locked", v)} />
-          <FormField label="Key Item ID" value={form.key_item_id} onChange={(v) => set("key_item_id", v)} placeholder="Template ID of key to unlock" />
+          <ResourceSearchSelect
+            label="Key Item"
+            value={form.key_item_id || null}
+            onChange={(id) => set("key_item_id", String(id ?? ""))}
+            placeholder="Search key item template..."
+            {...RESOURCE_ENDPOINTS.equipmentTemplates}
+          />
         </div>
       )}
       <div className="mt-2">

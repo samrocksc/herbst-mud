@@ -51,5 +51,6 @@ func (DialogNode) Edges() []ent.Edge {
 			Ref("dialog_nodes").
 			Unique().
 			Required(),
+		edge.To("triggers", Trigger.Type),
 	}
 }

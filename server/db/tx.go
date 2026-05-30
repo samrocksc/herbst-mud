@@ -84,6 +84,8 @@ type Tx struct {
 	Tag *TagClient
 	// TellQueue is the client for interacting with the TellQueue builders.
 	TellQueue *TellQueueClient
+	// Trigger is the client for interacting with the Trigger builders.
+	Trigger *TriggerClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// World is the client for interacting with the World builders.
@@ -255,6 +257,7 @@ func (tx *Tx) init() {
 	tx.SocialCommand = NewSocialCommandClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.TellQueue = NewTellQueueClient(tx.config)
+	tx.Trigger = NewTriggerClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.World = NewWorldClient(tx.config)
 }

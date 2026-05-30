@@ -34,6 +34,8 @@ const (
 	EdgeHooks = "hooks"
 	// EdgeActiveEffectInstances holds the string denoting the active_effect_instances edge name in mutations.
 	EdgeActiveEffectInstances = "active_effect_instances"
+	// EdgeTriggers holds the string denoting the triggers edge name in mutations.
+	EdgeTriggers = "triggers"
 	// Table holds the table name of the effect in the database.
 	Table = "effects"
 	// HooksTable is the table that holds the hooks relation/edge.
@@ -50,6 +52,13 @@ const (
 	ActiveEffectInstancesInverseTable = "active_effects"
 	// ActiveEffectInstancesColumn is the table column denoting the active_effect_instances relation/edge.
 	ActiveEffectInstancesColumn = "effect_id"
+	// TriggersTable is the table that holds the triggers relation/edge.
+	TriggersTable = "triggers"
+	// TriggersInverseTable is the table name for the Trigger entity.
+	// It exists in this package in order to avoid circular dependency with the "trigger" package.
+	TriggersInverseTable = "triggers"
+	// TriggersColumn is the table column denoting the triggers relation/edge.
+	TriggersColumn = "effect_triggers"
 )
 
 // Columns holds all SQL columns for effect fields.
@@ -163,6 +172,20 @@ func ByActiveEffectInstances(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOp
 		sqlgraph.OrderByNeighborTerms(s, newActiveEffectInstancesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByTriggersCount orders the results by triggers count.
+func ByTriggersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTriggersStep(), opts...)
+	}
+}
+
+// ByTriggers orders the results by triggers terms.
+func ByTriggers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTriggersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newHooksStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -175,5 +198,12 @@ func newActiveEffectInstancesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ActiveEffectInstancesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ActiveEffectInstancesTable, ActiveEffectInstancesColumn),
+	)
+}
+func newTriggersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TriggersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TriggersTable, TriggersColumn),
 	)
 }

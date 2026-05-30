@@ -49,6 +49,11 @@ func (m *model) initCommands() {
 	m.commands.Register("craft", m.handleCraftWrapperCommand)
 	m.commands.Register("recipes", m.handleRecipesWrapperCommand)
 	m.commands.Register("stations", m.handleStationsWrapperCommand)
+
+	// Object interaction commands
+	m.commands.Register("use", m.handleUseWrapperCommand)
+	m.commands.Register("touch", m.handleTouchWrapperCommand)
+	m.commands.Register("press", m.handlePressWrapperCommand)
 }
 
 func (m *model) handleInventoryWrapperCommand(_ *model, args []string) {
