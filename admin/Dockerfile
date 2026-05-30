@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . ./
-RUN npm run build
+RUN npx vite build
 
 # Production nginx stage
 FROM nginx:alpine
