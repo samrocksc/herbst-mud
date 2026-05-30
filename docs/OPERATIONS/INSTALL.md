@@ -87,7 +87,61 @@ open http://localhost:3001
 
 ---
 
-## 2. Database Migrations
+## 2. First Login — Default Admin Account
+
+On a fresh database, the API seeds a default admin user automatically:
+
+| Field | Value |
+|-------|-------|
+| Email | `admin@herbstmud.local` |
+| Password | `herb5t2026!` (stored in DB as plaintext — see note below) |
+| Is admin | `true` |
+
+**This account is created only if the `users` table is empty.** If you already have users, the seeder skips it.
+
+### Reset the admin password via psql
+
+The seeded password is stored as **plaintext**, but the login endpoint expects a **bcrypt hash**. You must reset it before logging in:
+
+```bash
+# Connect to the database
+docker exec -it herbst-postgres psql -U herbst -d herbst_mud
+
+# Generate a bcrypt hash for your desired password
+# Quick one-liner (Python):
+# python3 -c "import bcrypt; print(bcrypt.hashpw(b'sma', bcrypt.gensalt()).decode())"
+
+# Update the admin password
+UPDATE users
+SET password = '$2b$12$YyYNBVcodA.Ax9d65xljQ.XTJLYlwCIozaw946jl6L/z303QDV9n6'
+WHERE email = 'admin@herbstmud.local';
+
+# Verify
+\q
+```
+
+After the reset, log into the admin panel at `https://admin.yourdomain.com` with:
+- **Email:** `admin@herbstmud.local`
+- **Password:** `sma` (or whatever you generated a hash for)
+
+> ⚠️ **Known issue:** The seed function does not bcrypt the password. This is tracked in `tickets/016-bug-multi-world-isolation-races-genders-tags.md` as a secondary finding. A proper fix requires adding `bcrypt.GenerateFromPassword` to `server/dbinit/init.go` (`InitAdminUser`) before the next release.
+
+### Alternative: use the password-reset endpoint
+
+If the API is running and you know the admin user's ID (usually `1`), you can reset it to `"password"` without touching the database:
+
+```bash
+# Reset admin password to "password"
+curl -X POST http://localhost:8080/users/1/reset-password
+
+# Then log in with admin@herbstmud.local / password
+```
+
+> ⚠️ **Security note:** The endpoint is not protected by auth. Anyone with network access to the API can reset any user's password. This is by design for admin recovery but should be firewalled in production.
+
+---
+
+## 3. Database Migrations
 
 HerbSt uses **ent auto-migration**. On every startup, both the REST API server (`server/`) and the SSH MUD client (`herbst/`) automatically create or update tables to match the current schema.
 
