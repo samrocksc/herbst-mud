@@ -1,3 +1,3 @@
-- [ba435af](http://github.com/samrocksc/herbst-mud/commit/ba435afddc149543da605e91ad9d7e939f532c75) - 🟣 fix(admin): use type-only import for ItemInstance to satisfy verbatimModuleSyntax
-- [766a04d](http://github.com/samrocksc/herbst-mud/commit/766a04d9fd88ab65da8724b839eae2f827bc7ca3) - chore: auto-update CHANGELOG.md
+- [ac24865](http://github.com/samrocksc/herbst-mud/commit/ac248653b7e247ec205db0a39eb88d2ecf36cc82) - 🟣 fix(admin): scope NPC detail page instances by world_id (#WORLD-ID-P0-HOOK-useNPCInstances-ts)
+- [b54b646](http://github.com/samrocksc/herbst-mud/commit/b54b6467587bff03bfa4bb957678e60a48a1ba1e) - chore: auto-update CHANGELOG.md
 
