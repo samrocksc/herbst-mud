@@ -1,3 +1,3 @@
-- [ac24865](http://github.com/samrocksc/herbst-mud/commit/ac248653b7e247ec205db0a39eb88d2ecf36cc82) - 🟣 fix(admin): scope NPC detail page instances by world_id (#WORLD-ID-P0-HOOK-useNPCInstances-ts)
-- [b54b646](http://github.com/samrocksc/herbst-mud/commit/b54b6467587bff03bfa4bb957678e60a48a1ba1e) - chore: auto-update CHANGELOG.md
+- [3db6683](http://github.com/samrocksc/herbst-mud/commit/3db6683ab4c7c53f286817017df78ccf173bff3e) - 🔵 feat(admin): safety check — world cannot activate without 1 room, 1 race, 1 gender
+- [d48292c](http://github.com/samrocksc/herbst-mud/commit/d48292c72988671b8104abebaa4957a04ce70c2a) - chore: auto-update CHANGELOG.md
 
