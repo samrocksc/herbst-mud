@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { apiGet, apiPost, apiPut, apiDelete, API_BASE } from "../../utils/apiFetch";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
 import { useRaces } from "../../hooks/useRaces";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
@@ -178,6 +179,7 @@ export function NpcTemplateDetail() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { currentWorld } = useWorldStore();
   const [editing, setEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSpawnModal, setShowSpawnModal] = useState(false);
@@ -225,6 +227,7 @@ export function NpcTemplateDetail() {
         room_id: input.room_id,
         instance_number: input.instance_number,
         instance_name: input.instance_name || undefined,
+        world_id: currentWorld || undefined,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
@@ -243,8 +246,13 @@ export function NpcTemplateDetail() {
 
    
   const instancesQuery = useQuery<NPCInstance[]>({
-    queryKey: ["npc-instances"],
-    queryFn: () => apiGet<NPCInstance[]>(`${API_BASE}/api/npc-instances`),
+    queryKey: ["npc-instances", currentWorld],
+    queryFn: async () => {
+      const params = new URLSearchParams(currentWorld ? [["world_id", currentWorld]] : []);
+      const qs = params.toString() ? `?${params.toString()}` : "";
+      const data = await apiGet<NPCInstance[]>(`${API_BASE}/api/npc-instances${qs}`);
+      return Array.isArray(data) ? data : [];
+    },
   });
 
    
