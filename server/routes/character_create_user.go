@@ -52,6 +52,8 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid race"})
 			case errors.Is(err, service.ErrInvalidGender):
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid gender"})
+			case errors.Is(err, service.ErrWorldNotReady):
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 			default:
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			}

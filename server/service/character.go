@@ -30,6 +30,7 @@ var (
 	ErrTooManyCharacters  = errors.New("maximum of 3 characters per user reached")
 	ErrInvalidRace        = errors.New("invalid race")
 	ErrInvalidGender      = errors.New("invalid gender")
+	ErrWorldNotReady      = errors.New("world is not ready for character creation")
 )
 
 type CreateCharacterInput struct {
@@ -43,6 +44,9 @@ type CreateCharacterInput struct {
 }
 
 func (s *characterService) CreateCharacter(ctx context.Context, input CreateCharacterInput) (*db.Character, error) {
+	if err := s.CheckWorldReady(ctx, input.WorldID); err != nil {
+		return nil, err
+	}
 	if len(input.Name) < 1 || len(input.Name) > 23 {
 		return nil, errors.New("character name must be 1-23 characters")
 	}
@@ -61,24 +65,24 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 			return nil, ErrTooManyCharacters
 		}
 	}
-	race := "human"
-	if input.Race != "" {
-		// Use default world for character creation (or the character's world)
-		raceObj, err := s.repos.Race.GetByName(ctx, input.Race, input.WorldID)
-		if err != nil || len(raceObj.RequirementTags) > 0 {
-			return nil, ErrInvalidRace
-		}
-		race = raceObj.Name
+	// Race is REQUIRED — validate it exists in the world
+	if input.Race == "" {
+		return nil, ErrInvalidRace
 	}
-	gen := "he_him"
-	if input.Gender != "" {
-		// Use default world for character creation
-		genderObj, err := s.repos.Gender.GetByWorld(ctx, input.Gender, input.WorldID)
-		if err != nil {
-			return nil, ErrInvalidGender
-		}
-		gen = genderObj.Name
+	raceObj, err := s.repos.Race.GetByName(ctx, input.Race, input.WorldID)
+	if err != nil || len(raceObj.RequirementTags) > 0 {
+		return nil, ErrInvalidRace
 	}
+	race := raceObj.Name
+	// Gender is REQUIRED — validate it exists in the world
+	if input.Gender == "" {
+		return nil, ErrInvalidGender
+	}
+	genderObj, err := s.repos.Gender.GetByWorld(ctx, input.Gender, input.WorldID)
+	if err != nil {
+		return nil, ErrInvalidGender
+	}
+	gen := genderObj.Name
 	// Class is derived from faction memberships in the "class" category.
 	// Default to "survivor" if no class faction found (backwards compatibility).
 	class := "survivor"
@@ -88,6 +92,13 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	baseConstitution := constants.DefaultStats.Constitution + classConfig.StatBonuses.Constitution
 	baseIntelligence := constants.DefaultStats.Intelligence + classConfig.StatBonuses.Intelligence
 	baseWisdom := constants.DefaultStats.Wisdom + classConfig.StatBonuses.Wisdom
+	worldIntID := 0
+	if input.WorldID != "" {
+		worldObj, err := s.repos.World.GetByName(ctx, input.WorldID)
+		if err == nil && worldObj != nil {
+			worldIntID = worldObj.ID
+		}
+	}
 	startingRoomID := 1
 	rootRooms, err := s.client.Room.Query().Where(room.IsRootRoom(true)).All(ctx)
 	if err == nil && len(rootRooms) > 0 {
@@ -100,6 +111,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 		StartingRoomID:  startingRoomID,
 		RespawnRoomID:   startingRoomID,
 		WorldID:         input.WorldID,
+		WorldIntID:      worldIntID,
 		IsNPC:           false,
 		Race:            race,
 		Gender:          gen,
@@ -141,6 +153,22 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 		}
 	}
 	return char, nil
+}
+
+func (s *characterService) CheckWorldReady(ctx context.Context, worldID string) error {
+	roomCount, err := s.repos.Room.CountByWorld(ctx, worldID)
+	if err != nil || roomCount < 1 {
+		return ErrWorldNotReady
+	}
+	raceCount, err := s.repos.Race.CountByWorld(ctx, worldID)
+	if err != nil || raceCount < 1 {
+		return ErrWorldNotReady
+	}
+	genderCount, err := s.repos.Gender.CountByWorld(ctx, worldID)
+	if err != nil || genderCount < 1 {
+		return ErrWorldNotReady
+	}
+	return nil
 }
 
 func (s *characterService) DeleteCharacter(ctx context.Context, charID int) error {

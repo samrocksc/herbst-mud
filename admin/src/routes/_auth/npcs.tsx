@@ -44,8 +44,13 @@ export function NPCTemplatesIndex() {
 
   // Fetch instances once to count by template
   const instancesQuery = useQuery({
-    queryKey: ["npc-instances-count", currentWorld],
-    queryFn: () => apiGet<Array<{ npc_template_id: string }>>(`${API_BASE}/api/npc-instances${qs}`),
+    queryKey: ["npc-instances", { worldId: currentWorld }],
+    queryFn: () => {
+      const params = new URLSearchParams(currentWorld ? [["world_id", currentWorld]] : []);
+      params.set("active", "true");
+      const instanceQs = params.toString() ? `?${params.toString()}` : "";
+      return apiGet<Array<{ npc_template_id: string }>>(`${API_BASE}/api/npc-instances${instanceQs}`);
+    },
   });
 
   const instanceCounts = useMemo(() => {
@@ -91,14 +96,17 @@ export function NPCTemplatesIndex() {
         header: "Instances",
         accessor: "instances",
         align: "center",
-        render: (_: unknown, row: NPCTemplate) => (
-          <span className="badge badge-neutral">
-            {instanceCounts[row.id] ?? 0}
-          </span>
-        ),
+        render: (_: unknown, row: NPCTemplate) => {
+          if (instancesQuery.isLoading) return <span className="badge badge-neutral">—</span>;
+          return (
+            <span className="badge badge-neutral">
+              {instanceCounts[row.id] ?? 0}
+            </span>
+          );
+        },
       },
     ],
-    [instanceCounts],
+    [instanceCounts, instancesQuery.isLoading],
   );
 
   if (!isList) {
@@ -140,6 +148,12 @@ export function NPCTemplatesIndex() {
       {templatesQuery.isError && (
         <div className="p-4 bg-danger/10 border border-danger rounded text-danger text-xs">
           Failed to load NPC templates: {templatesQuery.error?.message ?? "Unknown error"}
+        </div>
+      )}
+
+      {instancesQuery.isError && (
+        <div className="p-4 bg-danger/10 border border-danger rounded text-danger text-xs">
+          Failed to load NPC instances: {instancesQuery.error?.message ?? "Unknown error"}
         </div>
       )}
 

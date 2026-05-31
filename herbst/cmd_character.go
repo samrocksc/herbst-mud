@@ -85,6 +85,17 @@ func (m *model) loadOrCreateCharacter() {
 	ctx := context.Background()
 	chars, err := m.client.Character.Query().Where(character.HasUserWith(user.IDEQ(m.currentUserID))).All(ctx)
 	if err != nil || len(chars) == 0 {
+		// Check if world has races and genders before auto-creating
+		if m.client != nil {
+			m.fetchRaces()
+			m.fetchGenders()
+			if len(availableRaces) == 0 || len(availableGenders) == 0 {
+				m.message = "This world is not ready for character creation. Please contact an admin."
+				m.messageType = "error"
+				m.screen = ScreenCharacterSelect
+				return
+			}
+		}
 		m.createDefaultCharacter()
 		return
 	}

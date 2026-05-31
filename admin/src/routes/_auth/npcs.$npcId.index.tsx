@@ -231,6 +231,7 @@ export function NpcTemplateDetail() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["npc-instances"] });
+      queryClient.invalidateQueries({ queryKey: ["npc-templates"] });
       setShowSpawnModal(false);
       setSpawnForm({ room_id: 1, instance_number: 1, instance_name: "" });
     },
@@ -246,9 +247,10 @@ export function NpcTemplateDetail() {
 
    
   const instancesQuery = useQuery<NPCInstance[]>({
-    queryKey: ["npc-instances", currentWorld],
+    queryKey: ["npc-instances", { worldId: currentWorld }],
     queryFn: async () => {
       const params = new URLSearchParams(currentWorld ? [["world_id", currentWorld]] : []);
+      params.set("active", "true");
       const qs = params.toString() ? `?${params.toString()}` : "";
       const data = await apiGet<NPCInstance[]>(`${API_BASE}/api/npc-instances${qs}`);
       return Array.isArray(data) ? data : [];

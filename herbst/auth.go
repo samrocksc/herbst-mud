@@ -890,6 +890,9 @@ func (m *model) loadCharacter(charID int) {
 	if level, ok := char["level"].(float64); ok {
 		m.characterLevel = int(level)
 	}
+	if skillTech, ok := char["skill_tech"].(float64); ok {
+		m.characterSkillTech = int(skillTech)
+	}
 	if isTest, ok := char["is_test"].(bool); ok {
 		m.isTest = isTest
 	}
@@ -942,6 +945,14 @@ func (m *model) startCharacterCreation() {
 	m.textInput.SetValue("")
 	m.inputBuffer = ""
 	m.fetchRaces() // Fetch available races for selection
+	m.fetchGenders()
+	if len(availableRaces) == 0 || len(availableGenders) == 0 {
+		m.AppendMessage("This world is not ready for character creation (missing races or genders). Please contact an admin.", "error")
+		m.isCreatingCharacter = false
+		m.inputField = ""
+		m.screen = ScreenCharacterSelect
+		return
+	}
 	m.AppendMessage("Creating new character in: "+m.currentWorld, "info")
 	m.AppendMessage("Enter character name (letters only, 1-23 chars):", "info")
 	m.textInput.Focus()

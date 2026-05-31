@@ -3,6 +3,7 @@ package routes
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
@@ -279,12 +280,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		// By default, only show visible items (GitHub #12)
 		items := allItems
 		if !includeHidden {
-			items = make([]*db.Equipment, 0)
-			for _, item := range allItems {
-				if item.IsVisible {
-					items = append(items, item)
-				}
-			}
+			items = slices.DeleteFunc(allItems, func(e *db.Equipment) bool { return !e.IsVisible })
 		}
 
 		// Add reveal conditions to response

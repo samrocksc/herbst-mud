@@ -11,7 +11,6 @@ import (
 	"herbst-server/dblog"
 	"herbst-server/service"
 )
-
 // roomClient holds both service container and raw DB client
 // for handlers still needing direct DB access during migration.
 type roomClient struct {
@@ -100,43 +99,9 @@ func (rc *roomClient) getLook(c *gin.Context) {
 	characters, _ := rc.db.Character.Query().
 		Where(character.CurrentRoomId(id)).
 		All(c.Request.Context())
-	var npcs, players []interface{}
-	for _, ch := range characters {
-		entry := map[string]interface{}{
-			"id":    ch.ID,
-			"name":  ch.Name,
-			"level": ch.Level,
-			"class": ch.Class,
-			"race":  ch.Race,
-			"hp":    ch.Hitpoints,
-			"maxHp": ch.MaxHitpoints,
-		}
-		if ch.IsNPC {
-			if ch.NpcTemplateID != "" {
-				entry["npcTemplateId"] = ch.NpcTemplateID
-				tmpl, err := rc.db.NPCTemplate.Get(c.Request.Context(), ch.NpcTemplateID)
-				if err == nil {
-					entry["xpValue"] = tmpl.XpValue
-				}
-			}
-			npcs = append(npcs, entry)
-		} else {
-			players = append(players, entry)
-		}
-	}
+	npcs, players := partitionCharacters(c, characters)
 	equipments, _ := rc.db.Equipment.Query().All(c.Request.Context())
-	var items []interface{}
-	for _, item := range equipments {
-		if item.Edges.Room != nil && item.Edges.Room.ID == id && item.IsVisible {
-			items = append(items, map[string]interface{}{
-				"id":          item.ID,
-				"name":        item.Name,
-				"slot":        item.Slot,
-				"itemType":    item.ItemType,
-				"description": item.Description,
-			})
-		}
-	}
+	items := filterVisibleItems(equipments, id)
 	c.JSON(http.StatusOK, gin.H{
 		"id":             room.ID,
 		"name":           room.Name,

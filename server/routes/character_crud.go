@@ -3,12 +3,13 @@ package routes
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/dblog"
 	"herbst-server/db"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 	"herbst-server/service"
 )
@@ -94,16 +95,11 @@ func listCharacters(repos *repository.Container) gin.HandlerFunc {
 		}
 		if search := c.Query("search"); search != "" {
 			s := strings.ToLower(search)
-			filtered := make([]*db.Character, 0, len(characters))
-			for _, ch := range characters {
-				// Match by name or by ID
+			characters = slices.DeleteFunc(characters, func(ch *db.Character) bool {
 				nameMatch := strings.Contains(strings.ToLower(ch.Name), s)
 				idMatch := strings.Contains(strings.ToLower(strconv.Itoa(ch.ID)), s)
-				if nameMatch || idMatch {
-					filtered = append(filtered, ch)
-				}
-			}
-			characters = filtered
+				return !nameMatch && !idMatch
+			})
 		}
 		c.JSON(http.StatusOK, characters)
 	}
