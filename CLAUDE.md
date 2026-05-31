@@ -60,6 +60,12 @@ on port 3000.
 - Use JSDoc-style comments, avoid inline comments.
 - Sign commits with team badge emoji: 🟣 Donatello, 🔴 Raphael, 🐀 Splinter
 
+## Functional Lite Go Standards (enforce strictly)
+- See `.cursorrules` in repo root for the 11 mandatory rules.
+- CI blocks on `.golangci.yml` violations — `nakedret`, `errcheck`, `govet` are errors.
+- No global variables. No naked returns. No panic. Context first param for I/O.
+- Tier isolation: `*db.Client` never leaks past repository layer.
+
 ## Service Management
 - Start all: `make dev-all`
 - Start backend only: `make dev`

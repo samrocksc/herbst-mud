@@ -1,0 +1,111 @@
+# .golangci.yml — herbst-mud Functional Lite Enforcement
+# This file blocks CI on violations of our Go coding standards.
+# Run locally: golangci-lint run --config .golangci.yml
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+
+linters:
+  enable:
+    # Ergonomics / correctness
+    - errcheck        # unchecked errors
+    - gosimple        # simplify code
+    - govet           # go vet + shadow check
+    - ineffassign     # ineffectual assignments
+    - staticcheck     # advanced static analysis
+    - unused          # unused vars/funcs/types
+    - deadcode        # unreachable code
+    - structcheck     # unused struct fields
+    - varcheck        # unused global vars
+
+    # Style / functional-lite alignment
+    - gofmt           # standard formatting
+    - goimports       # import grouping
+    - misspell        # common misspellings
+    - unconvert       # unnecessary conversions
+    - unparam         # unused parameters
+    - nakedret        # naked returns (FORBIDDEN)
+    - prealloc        # slice preallocation hints
+    - nolintlint      # ban bare nolint directives
+
+    # Security / reliability
+    - gosec           # security issues
+    - bodyclose       # unclosed HTTP bodies
+    - rowserrcheck    # unchecked sql.Rows.Err()
+    - sqlclosecheck   # unclosed sql.Rows/Stmt
+
+    # Performance
+    - maligned        # struct field ordering (deprecated, but useful hints)
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  govet:
+    check-shadowing: true
+    enable-all: true
+
+  nakedret:
+    max-func-lines: 5   # flag ANY naked return in functions >5 lines
+
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: true
+
+  unparam:
+    check-exported: false
+
+  gofmt:
+    simplify: true
+
+  misspell:
+    locale: US
+
+  nolintlint:
+    require-explanation: true
+    require-specific: true
+    allow-no-explanation: []  # no bare nolint allowed
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+  # These are non-negotiable — fail CI
+  exclude-rules:
+    # Allow unchecked errors ONLY in test helpers with explicit reason
+    - path: _test\.go
+      linters: [errcheck]
+      source: '^\s*\)'
+
+    # Allow defer close without check in specific patterns
+    - linters: [errcheck]
+      source: 'defer .*Close\(\)'
+
+  # Explicit severity: naked returns are errors, not warnings
+  severity:
+    default-severity: error
+    rules:
+      - linters: [nakedret]
+        severity: error
+      - linters: [errcheck]
+        severity: error
+      - linters: [govet]
+        severity: error
+      - linters: [staticcheck]
+        severity: error
+      - linters: [goimports, gofmt, misspell]
+        severity: warning
+
+output:
+  formats:
+    - format: colored-line-number
+      print-linter-name: true
+      print-issued-lines: true
+
+  sort-results: true
+  sort-order: [linter, file, severity]

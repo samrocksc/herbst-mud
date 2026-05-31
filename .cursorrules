@@ -1,0 +1,140 @@
+# herbst-mud Functional Lite Coding Standards
+# This file is read automatically by Claude Code on every session.
+# Violations must be caught in code review or blocked by CI.
+
+## Core Philosophy: Functional Lite
+
+Write small, explicit, side-effect-minimal Go. No deep OOP. No global state.
+Every function should be testable in isolation with explicit inputs.
+
+## Mandatory Rules
+
+### 1. context.Context is the first parameter for any I/O
+Any function that touches the database, network, filesystem, or time must take `ctx context.Context` as its first argument.
+
+```go
+// GOOD
+func (r *repo) ListByUser(ctx context.Context, userID int) ([]*db.Character, error)
+
+// BAD — no context, cannot cancel or timeout
+func (r *repo) ListByUser(userID int) ([]*db.Character, error)
+```
+
+### 2. Errors are values — wrap with context, never swallow
+Always return errors. Wrap them with `fmt.Errorf("...: %w", err)`. Never use `_ =` to discard an error unless explicitly documented why it is safe.
+
+```go
+// GOOD
+user, err := repos.User.GetByID(ctx, id)
+if err != nil {
+    return nil, fmt.Errorf("load user %d: %w", id, err)
+}
+
+// BAD
+user, _ := repos.User.GetByID(ctx, id) // silently fails
+```
+
+### 3. No global variables
+No `var db *sql.DB` at package level. No `var cache = make(map[string]any)`. All dependencies are injected via constructors.
+
+```go
+// GOOD
+type Server struct {
+    repos *repository.Container
+    cache cache.Cache
+}
+
+// BAD
+var client *db.Client // global, untestable, race-prone
+```
+
+### 4. No naked returns
+Always name what you are returning. `return result, err` is fine. `return` by itself is forbidden.
+
+```go
+// BAD
+func process() (result int, err error) {
+    // ... 40 lines ...
+    return // what is result? what is err?
+}
+```
+
+### 5. No panic
+Never `panic()`. Return errors up the stack. If a truly unrecoverable invariant is violated, log a fatal error and exit cleanly in `main.go` only.
+
+### 6. Keep functions small
+Target < 50 lines. Absolute ceiling is 100 lines. If a function exceeds 50 lines, split it. Helper functions are free.
+
+### 7. Constructor options pattern for services
+Use functional options for anything with >2 dependencies.
+
+```go
+type CharacterService struct {
+    repos  *repository.Container
+    logger *slog.Logger
+}
+
+type CharacterOption func(*CharacterService)
+
+func WithLogger(l *slog.Logger) CharacterOption {
+    return func(s *CharacterService) { s.logger = l }
+}
+
+func NewCharacterService(repos *repository.Container, opts ...CharacterOption) *CharacterService {
+    s := &CharacterService{repos: repos, logger: slog.Default()}
+    for _, o := range opts { o(s) }
+    return s
+}
+```
+
+### 8. Interface boundaries between tiers
+- Repository interfaces live in `repository/interface.go` and are consumed by services.
+- Services depend on repository interfaces, not `*db.Client`.
+- Route handlers depend on service interfaces or `*service.Container`, not `*db.Client`.
+- Never let `*db.Client` leak past the repository layer.
+
+### 9. Pure helpers
+Any function that does not touch I/O should not take `context.Context` and should have no side effects. It transforms inputs to outputs.
+
+```go
+// GOOD — pure helper
+func Slugify(name string) string {
+    s := strings.ToLower(name)
+    s = strings.NewReplacer(" ", "_", "-", "_").Replace(s)
+    return s
+}
+```
+
+### 10. Slice preallocation
+When the output size is known, preallocate with `make([]T, 0, n)`.
+
+```go
+results := make([]RoomInfo, 0, len(rooms))
+```
+
+### 11. Prefer value types for small structs
+Structs under 64 bytes should be passed by value unless they need mutation. Pointers are for large structs, optional fields, or interfaces.
+
+## Anti-Patterns (Forbidden)
+
+- Global `init()` functions that set up DB connections or caches
+- `interface{}` or `any` in function signatures unless absolutely required (JSON unmarshaling is acceptable)
+- Deep struct embedding chains (embedding is for decoration, not inheritance)
+- Method receivers that mix pointer and value for the same type — pick one convention per type
+- `sync.Mutex` exposed on public structs (unexported mutex + public methods)
+- `log.Printf` or `fmt.Println` in library code — use `*slog.Logger` or return errors
+
+## Naming Conventions
+
+- `ctx context.Context` — first param name is always `ctx`
+- `err error` — error variable name is always `err`
+- Repository interface methods: `Get`, `List`, `Create`, `Update`, `Delete`
+- Constructor names: `New<Type>(deps, opts...)`
+- Test helpers: `must<T>(t *testing.T, ...) T`
+
+## Test Rules
+
+- Table-driven tests with anonymous struct slices
+- Use `t.Parallel()` for pure functions
+- Mock at the repository interface boundary, not the DB client
+- `go test -race ./...` must pass before push
