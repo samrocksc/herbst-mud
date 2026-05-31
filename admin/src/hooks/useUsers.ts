@@ -8,7 +8,7 @@ export type User = Readonly<{
   id: number
   email: string
   is_admin: boolean
-  created_at: string
+  created_at?: string
   character_name?: string
 }>
 

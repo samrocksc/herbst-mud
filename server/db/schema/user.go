@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"time"
 )
 
 // User holds the schema definition for the User entity.
@@ -14,6 +15,16 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.Time("created_at").
+			Nillable().
+			Default(time.Now).
+			Immutable().
+			Comment("When the user account was created"),
+		field.Time("updated_at").
+			Nillable().
+			Default(time.Now).
+			UpdateDefault(time.Now).
+			Comment("When the user account was last updated"),
 		field.String("email").
 			Unique(),
 		field.String("password"),

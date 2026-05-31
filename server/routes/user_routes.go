@@ -70,6 +70,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			"email":          user.Email,
 			"is_admin":       user.IsAdmin,
 			"allowed_worlds": user.AllowedWorlds,
+			"created_at":     user.CreatedAt.Format(time.RFC3339),
 		})
 	})
 
@@ -189,9 +190,10 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 		result := make([]gin.H, len(users))
 		for i, user := range users {
 			result[i] = gin.H{
-				"id":       user.ID,
-				"email":    user.Email,
-				"is_admin": user.IsAdmin,
+				"id":         user.ID,
+				"email":      user.Email,
+				"is_admin":   user.IsAdmin,
+				"created_at": user.CreatedAt.Format(time.RFC3339),
 			}
 		}
 
@@ -218,6 +220,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			"email":          user.Email,
 			"is_admin":       user.IsAdmin,
 			"allowed_worlds": user.AllowedWorlds,
+			"created_at":     user.CreatedAt.Format(time.RFC3339),
 		})
 	})
 
@@ -284,6 +287,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			"email":          user.Email,
 			"is_admin":       user.IsAdmin,
 			"allowed_worlds": user.AllowedWorlds,
+			"created_at":     user.CreatedAt.Format(time.RFC3339),
 		})
 	})
 
@@ -318,6 +322,7 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 			"email":          user.Email,
 			"is_admin":       user.IsAdmin,
 			"allowed_worlds": user.AllowedWorlds,
+			"created_at":     user.CreatedAt.Format(time.RFC3339),
 		})
 	})
 

@@ -102,15 +102,19 @@ function PlayersManagement() {
     setEditForm({ email: user.email, isAdmin: user.is_admin });
   };
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const formatDate = (dateStr: string | undefined | null) => {
+    if (!dateStr) return "—";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "—";
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
 
   const userColumns: Column<User>[] = [
     { header: "ID", accessor: "id" },
     { header: "Email", accessor: "email" },
     { header: "Role", accessor: "is_admin", render: (val: unknown) =>
       val ? <span className="badge badge-admin">Admin</span> : <span className="badge badge-player">Player</span> },
-    { header: "Created", accessor: "created_at", render: (val: unknown) => formatDate(String(val ?? "")) },
+    { header: "Created", accessor: "created_at", render: (val: unknown) => formatDate(val as string | undefined) },
     { header: "Actions", accessor: "_actions", render: (_: unknown, row: User) => (
       <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
         <Button variant="ghost" size="sm" onClick={() => startEdit(row)}>Edit</Button>

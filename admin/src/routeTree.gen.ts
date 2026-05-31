@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MapIndexRouteImport } from './routes/map.index'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DocsWorldsRouteImport } from './routes/docs/worlds'
+import { Route as DocsTriggersRouteImport } from './routes/docs/triggers'
 import { Route as DocsTrainableSkillsRouteImport } from './routes/docs/trainable-skills'
 import { Route as DocsSocialCommandsRouteImport } from './routes/docs/social-commands'
 import { Route as DocsQuestSystemRouteImport } from './routes/docs/quest-system'
@@ -139,6 +140,11 @@ const DocsIndexRoute = DocsIndexRouteImport.update({
 const DocsWorldsRoute = DocsWorldsRouteImport.update({
   id: '/worlds',
   path: '/worlds',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsTriggersRoute = DocsTriggersRouteImport.update({
+  id: '/triggers',
+  path: '/triggers',
   getParentRoute: () => DocsRoute,
 } as any)
 const DocsTrainableSkillsRoute = DocsTrainableSkillsRouteImport.update({
@@ -525,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/social-commands': typeof DocsSocialCommandsRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs/triggers': typeof DocsTriggersRoute
   '/docs/worlds': typeof DocsWorldsRoute
   '/docs/': typeof DocsIndexRoute
   '/map/': typeof MapIndexRoute
@@ -601,6 +608,7 @@ export interface FileRoutesByTo {
   '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/social-commands': typeof DocsSocialCommandsRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs/triggers': typeof DocsTriggersRoute
   '/docs/worlds': typeof DocsWorldsRoute
   '/docs': typeof DocsIndexRoute
   '/map': typeof MapIndexRoute
@@ -680,6 +688,7 @@ export interface FileRoutesById {
   '/docs/quest-system': typeof DocsQuestSystemRoute
   '/docs/social-commands': typeof DocsSocialCommandsRoute
   '/docs/trainable-skills': typeof DocsTrainableSkillsRoute
+  '/docs/triggers': typeof DocsTriggersRoute
   '/docs/worlds': typeof DocsWorldsRoute
   '/docs/': typeof DocsIndexRoute
   '/map/': typeof MapIndexRoute
@@ -760,6 +769,7 @@ export interface FileRouteTypes {
     | '/docs/quest-system'
     | '/docs/social-commands'
     | '/docs/trainable-skills'
+    | '/docs/triggers'
     | '/docs/worlds'
     | '/docs/'
     | '/map/'
@@ -836,6 +846,7 @@ export interface FileRouteTypes {
     | '/docs/quest-system'
     | '/docs/social-commands'
     | '/docs/trainable-skills'
+    | '/docs/triggers'
     | '/docs/worlds'
     | '/docs'
     | '/map'
@@ -914,6 +925,7 @@ export interface FileRouteTypes {
     | '/docs/quest-system'
     | '/docs/social-commands'
     | '/docs/trainable-skills'
+    | '/docs/triggers'
     | '/docs/worlds'
     | '/docs/'
     | '/map/'
@@ -1033,6 +1045,13 @@ declare module '@tanstack/react-router' {
       path: '/worlds'
       fullPath: '/docs/worlds'
       preLoaderRoute: typeof DocsWorldsRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/triggers': {
+      id: '/docs/triggers'
+      path: '/triggers'
+      fullPath: '/docs/triggers'
+      preLoaderRoute: typeof DocsTriggersRouteImport
       parentRoute: typeof DocsRoute
     }
     '/docs/trainable-skills': {
@@ -1750,6 +1769,7 @@ interface DocsRouteChildren {
   DocsQuestSystemRoute: typeof DocsQuestSystemRoute
   DocsSocialCommandsRoute: typeof DocsSocialCommandsRoute
   DocsTrainableSkillsRoute: typeof DocsTrainableSkillsRoute
+  DocsTriggersRoute: typeof DocsTriggersRoute
   DocsWorldsRoute: typeof DocsWorldsRoute
   DocsIndexRoute: typeof DocsIndexRoute
 }
@@ -1772,6 +1792,7 @@ const DocsRouteChildren: DocsRouteChildren = {
   DocsQuestSystemRoute: DocsQuestSystemRoute,
   DocsSocialCommandsRoute: DocsSocialCommandsRoute,
   DocsTrainableSkillsRoute: DocsTrainableSkillsRoute,
+  DocsTriggersRoute: DocsTriggersRoute,
   DocsWorldsRoute: DocsWorldsRoute,
   DocsIndexRoute: DocsIndexRoute,
 }

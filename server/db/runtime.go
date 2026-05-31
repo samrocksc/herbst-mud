@@ -866,12 +866,22 @@ func init() {
 	trigger.DefaultEnabled = triggerDescEnabled.Default.(bool)
 	userFields := schema.User{}.Fields()
 	_ = userFields
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[0].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[1].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// userDescIsAdmin is the schema descriptor for is_admin field.
-	userDescIsAdmin := userFields[2].Descriptor()
+	userDescIsAdmin := userFields[4].Descriptor()
 	// user.DefaultIsAdmin holds the default value on creation for the is_admin field.
 	user.DefaultIsAdmin = userDescIsAdmin.Default.(bool)
 	// userDescGodMode is the schema descriptor for god_mode field.
-	userDescGodMode := userFields[3].Descriptor()
+	userDescGodMode := userFields[5].Descriptor()
 	// user.DefaultGodMode holds the default value on creation for the god_mode field.
 	user.DefaultGodMode = userDescGodMode.Default.(bool)
 	worldFields := schema.World{}.Fields()
