@@ -119,6 +119,10 @@ func (r *entRaceRepo) Delete(ctx context.Context, id int) error {
 	return r.client.Race.DeleteOneID(id).Exec(ctx)
 }
 
+func (r *entRaceRepo) CountByWorld(ctx context.Context, worldID string) (int, error) {
+	return r.client.Race.Query().Where(race.WorldIDEQ(worldID)).Count(ctx)
+}
+
 // Race represents a playable race for character creation
 type Race struct {
 	ID          int    `json:"id"`

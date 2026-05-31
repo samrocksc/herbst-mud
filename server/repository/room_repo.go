@@ -88,3 +88,7 @@ func (r *entRoomRepo) Update(ctx context.Context, id int, updates RoomUpdates) (
 func (r *entRoomRepo) Delete(ctx context.Context, id int) error {
 	return r.client.Room.DeleteOneID(id).Exec(ctx)
 }
+
+func (r *entRoomRepo) CountByWorld(ctx context.Context, worldID string) (int, error) {
+	return r.client.Room.Query().Where(room.WorldIDEQ(worldID)).Count(ctx)
+}

@@ -40,6 +40,7 @@ type RoomRepo interface {
 	Create(ctx context.Context, input CreateRoomInput) (*db.Room, error)
 	Update(ctx context.Context, id int, updates RoomUpdates) (*db.Room, error)
 	Delete(ctx context.Context, id int) error
+	CountByWorld(ctx context.Context, worldID string) (int, error)
 }
 
 // QuestRepo defines data access for quest definitions.
@@ -262,6 +263,7 @@ type RaceRepo interface {
 	Update(ctx context.Context, id int, updates RaceUpdates) (*db.Race, error)
 	Delete(ctx context.Context, id int) error
 	CountCharactersByRaceName(ctx context.Context, raceName, worldID string) (int, error)
+	CountByWorld(ctx context.Context, worldID string) (int, error)
 }
 
 // GenderRepo defines data access for genders.
@@ -273,6 +275,7 @@ type GenderRepo interface {
 	Create(ctx context.Context, input CreateGenderInput) (*db.Gender, error)
 	Update(ctx context.Context, id int, updates GenderUpdates) (*db.Gender, error)
 	Delete(ctx context.Context, id int) error
+	CountByWorld(ctx context.Context, worldID string) (int, error)
 }
 
 // WorldRepo defines data access for worlds.
@@ -322,6 +325,7 @@ type CreateCharacterInput struct {
 	StartingRoomID   int
 	RespawnRoomID    int
 	WorldID          string
+	WorldIntID       int
 	IsAdmin          bool
 	IsNPC            bool
 	NPCTemplateID    string

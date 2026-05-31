@@ -86,3 +86,7 @@ func (r *entGenderRepo) Update(ctx context.Context, id int, updates GenderUpdate
 func (r *entGenderRepo) Delete(ctx context.Context, id int) error {
 	return r.client.Gender.DeleteOneID(id).Exec(ctx)
 }
+
+func (r *entGenderRepo) CountByWorld(ctx context.Context, worldID string) (int, error) {
+	return r.client.Gender.Query().Where(gender.WorldIDEQ(worldID)).Count(ctx)
+}

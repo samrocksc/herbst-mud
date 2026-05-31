@@ -57,12 +57,12 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid world ID"})
 				return
 			}
-			world, err := repos.World.Get(c.Request.Context(), id)
+			w, err := repos.World.Get(c.Request.Context(), id)
 			if err != nil {
 				c.JSON(http.StatusNotFound, gin.H{"error": "World not found"})
 				return
 			}
-			c.JSON(http.StatusOK, world)
+			c.JSON(http.StatusOK, w)
 		})
 
 		// PUT /api/worlds/:id - UpdateWorldHandler
@@ -79,14 +79,56 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
-			world, err := repos.World.Update(c.Request.Context(), id, updates)
+
+			// Safety check: a world cannot be set active unless it has at least
+			// one room, one race, and one gender in its world_id scope.
+			if updates.Active != nil && *updates.Active {
+				w, err := repos.World.Get(c.Request.Context(), id)
+				if err != nil {
+					c.JSON(http.StatusNotFound, gin.H{"error": "World not found"})
+					return
+				}
+
+				roomCount, err := repos.Room.CountByWorld(c.Request.Context(), w.Name)
+				if err != nil {
+					dblog.Error("failed to count rooms", err, slog.Int("world_id", id))
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify world readiness"})
+					return
+				}
+				raceCount, err := repos.Race.CountByWorld(c.Request.Context(), w.Name)
+				if err != nil {
+					dblog.Error("failed to count races", err, slog.Int("world_id", id))
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify world readiness"})
+					return
+				}
+				genderCount, err := repos.Gender.CountByWorld(c.Request.Context(), w.Name)
+				if err != nil {
+					dblog.Error("failed to count genders", err, slog.Int("world_id", id))
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify world readiness"})
+					return
+				}
+
+				if roomCount < 1 || raceCount < 1 || genderCount < 1 {
+					c.JSON(http.StatusBadRequest, gin.H{
+						"error": "World cannot be activated without at least 1 room, 1 race, and 1 gender",
+						"details": gin.H{
+							"rooms":  roomCount,
+							"races":  raceCount,
+							"genders": genderCount,
+						},
+					})
+					return
+				}
+			}
+
+			w, err := repos.World.Update(c.Request.Context(), id, updates)
 			if err != nil {
 				dblog.Error("failed to update world", err, slog.String("service", "worlds"), slog.Int("world_id", id))
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
-			slog.Info("world updated", slog.Int("world_id", world.ID), slog.String("service", "worlds"))
-			c.JSON(http.StatusOK, world)
+			slog.Info("world updated", slog.Int("world_id", w.ID), slog.String("service", "worlds"))
+			c.JSON(http.StatusOK, w)
 		})
 
 		// DELETE /api/worlds/:id - DeleteWorldHandler
