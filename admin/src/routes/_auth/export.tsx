@@ -1,9 +1,9 @@
 /* eslint-disable functional/no-throw-statements, functional/immutable-data */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
-import { Button } from "../components/Button";
+import { Button } from "../../components/Button";
 
-export const Route = createFileRoute("/export")({
+export const Route = createFileRoute("/_auth/export")({
   component: ExportPage,
 });
 

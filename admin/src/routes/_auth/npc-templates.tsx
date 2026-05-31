@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
-import { apiGet, apiPost, apiPut } from "../utils/apiFetch";
-import { Button } from "../components/Button";
-import { Modal } from "../components/Modal";
-import { PageHeader } from "../components/PageHeader";
-import { FormField, NumberField, TextareaField, SelectField } from "../components/fields";
-import { FormError } from "../components/fields/FormError";
-import { showToast } from "../components/Toast";
+import { apiGet, apiPost, apiPut } from "../../utils/apiFetch";
+import { Button } from "../../components/Button";
+import { Modal } from "../../components/Modal";
+import { PageHeader } from "../../components/PageHeader";
+import { FormField, NumberField, TextareaField, SelectField } from "../../components/fields";
+import { FormError } from "../../components/fields/FormError";
+import { showToast } from "../../components/Toast";
 
 type NPCTemplate = Readonly<{
   id: string
@@ -23,7 +23,7 @@ type Race = Readonly<{
   display_name: string
 }>
 
-export const Route = createFileRoute("/npc-templates")({
+export const Route = createFileRoute("/_auth/npc-templates")({
   component: NPCTemplatePage,
 });
 
