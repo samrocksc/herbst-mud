@@ -1,3 +1,3 @@
-- [de0be6e](http://github.com/samrocksc/herbst-mud/commit/de0be6e021b2da122afeca6f57636e5486ca2b64) - docs(admin): rewrite all doc pages with warmer, human-friendly prose
-- [8222f94](http://github.com/samrocksc/herbst-mud/commit/8222f94f4132dc84a8138f9df887dd6cc2c27e07) - chore: auto-update CHANGELOG.md
+- [d56de46](http://github.com/samrocksc/herbst-mud/commit/d56de469ebdf5ac52847a131a9efd9402adb1e78) - standards(go): add functional-lite enforcement system
+- [233350b](http://github.com/samrocksc/herbst-mud/commit/233350bceab51b06e646da5a27daa951e3788096) - chore: auto-update CHANGELOG.md
 
