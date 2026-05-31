@@ -56,64 +56,71 @@ function AchievementsDoc() {
       <PageHeader title="Achievements" backTo="/docs" />
 
       <InfoBox>
-        <strong>TL;DR:</strong> Achievements are unlocked when character actions match
-        defined criteria. They grant XP rewards and display an icon. Managed via /achievements.
+        <strong>TL;DR:</strong> Achievements are rewards you set up for players who accomplish
+        specific things in the game. When a character does something that matches the criteria you
+        defined, the achievement unlocks. They get XP and a badge on their profile. You manage them
+        at /achievements.
       </InfoBox>
 
       <Section title="Achievement Entity">
+        <p className="text-text-muted mb-3">
+          Each achievement has a name, description, optional icon, XP reward, and criteria. Here is
+          what every field controls:
+        </p>
         <Table
-          headers={["Field", "Description"]}
+          headers={["Field", "What it does"]}
           rows={[
-            ["name", "Unique identifier (e.g., first_blood, dragon_slayer)."],
-            ["description", "Player-facing description of how to earn it."],
-            ["icon", "Optional emoji or icon for display."],
-            ["xp_reward", "XP granted when achievement is unlocked."],
-            ["criteria", "Optional JSON defining earn conditions (event-based)."],
+            ["name", "A unique internal name for this achievement (like first_blood or dragon_slayer)."],
+            ["description", "Text that tells players what they did to earn this. This is what they see on their profile."],
+            ["icon", "An optional emoji or icon. Shows up next to the achievement on the character page."],
+            ["xp_reward", "How much XP the character gets when this achievement unlocks."],
+            ["criteria", "A JSON object that defines what triggers the achievement. See the Criteria section below."],
           ]}
         />
       </Section>
 
       <Section title="Criteria">
         <p className="text-text-muted mb-3">
-          Criteria is a JSON object that defines what must happen to earn the achievement.
-          When events in the game match the criteria, the achievement is granted.
+          Criteria tell the game what has to happen for the achievement to unlock. When an in-game
+          event matches the criteria, the game grants the achievement automatically.
         </p>
         <Table
-          headers={["Criteria Field", "Description"]}
+          headers={["Criteria Field", "What it means"]
+          }
           rows={[
-            ["event", "Event type: kill_npc, complete_quest, explore_room, reach_level."],
-            ["target_id", "Specific ID to match (e.g., NPC template ID)."],
-            ["count", "Number of times the event must occur."],
-            ["world_id", "Optional: restrict to specific world."],
+            ["event", "The type of event that counts. Options are: kill_npc, complete_quest, explore_room, or reach_level."],
+            ["target_id", "The specific thing to match against. For example, if the event is kill_npc, this would be the NPC template ID."],
+            ["count", "How many times the event has to happen before the achievement unlocks."],
+            ["world_id", "Optional. Restricts the achievement to a specific world. Leave blank if it should count everywhere."],
           ]}
         />
       </Section>
 
       <Section title="Rewards">
         <p className="text-text-muted mb-3">
-          When an achievement is unlocked, the character receives:
+          When a character unlocks an achievement, here is what they get:
         </p>
         <ul className="list-disc pl-6 text-text-muted mb-4 space-y-1">
-          <li>XP reward added to their XP total.</li>
-          <li>Achievement recorded in their character record.</li>
-          <li>Icon displayed in their character profile (if set).</li>
+          <li>The XP reward is added to their total XP.</li>
+          <li>The achievement is recorded on their character.</li>
+          <li>If you set an icon, it shows up on their profile page.</li>
         </ul>
       </Section>
 
       <Section title="Admin UI">
         <p className="text-text-muted mb-3">
-          Achievements are managed at /achievements with full CRUD. Criteria is edited
-          as JSON in the form.
+          You can create, edit, and delete achievements at /achievements. The criteria field is
+          edited as raw JSON, so make sure the structure matches what the game expects.
         </p>
         <Table
-          headers={["Method", "Endpoint", "Description"]}
+          headers={["Method", "Endpoint", "What it does"]}
           rows={[
             ["GET", "/api/achievements", "List all achievements."],
-            ["POST", "/api/achievements", "Create an achievement."],
-            ["GET", "/api/achievements/:id", "Get achievement by ID."],
-            ["PUT", "/api/achievements/:id", "Update an achievement."],
+            ["POST", "/api/achievements", "Create a new achievement."],
+            ["GET", "/api/achievements/:id", "Look up a specific achievement by ID."],
+            ["PUT", "/api/achievements/:id", "Update an existing achievement."],
             ["DELETE", "/api/achievements/:id", "Delete an achievement."],
-            ["GET", "/api/characters/:id/achievements", "Get achievements for a character."],
+            ["GET", "/api/characters/:id/achievements", "See which achievements a character has unlocked."],
           ]}
         />
       </Section>

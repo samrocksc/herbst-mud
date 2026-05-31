@@ -56,111 +56,113 @@ function QuestSystemDoc() {
       <PageHeader title="Quest System" backTo="/docs" />
 
       <InfoBox>
-        <strong>TL;DR:</strong> Quests are objective-based tasks that characters accept, progress through
-        sequentially, and complete for rewards. Objectives track kills, exploration, item collection,
-        NPC conversations, and item returns. Progress is tracked per-character with automatic advancement
-        from in-game events.
+        <strong>TL;DR:</strong> Quests give your players goals to chase. A quest is a list of
+        objectives that players complete in order. You can set up kill targets, exploration
+        checkpoints, item collection, NPC conversations, and item deliveries. The game tracks
+        progress automatically as players play.
       </InfoBox>
 
       <Section title="Quest Lifecycle">
         <p className="text-text-muted mb-3">
-          A quest progresses through these states for each character:
+          Every quest goes through a set of states for each character:
         </p>
         <Table
-          headers={["State", "Description"]}
+          headers={["State", "What it means"]}
           rows={[
-            ["Available", "Quest meets prerequisites and character hasn't accepted it yet."],
-            ["Active", "Character has accepted the quest and is working on objectives."],
-            ["Completed", "All objectives finished. Rewards applied."],
-            ["Abandoned", "Character chose to abandon. Progress is lost."],
+            ["Available", "The player can see the quest and hasn't accepted it yet."],
+            ["Active", "The player accepted the quest and is working through objectives."],
+            ["Completed", "All objectives are done. Rewards have been handed out."],
+            ["Abandoned", "The player gave up. All progress on this quest is lost."],
           ]}
         />
       </Section>
 
       <Section title="Objective Types">
         <p className="text-text-muted mb-3">
-          Each quest has an ordered list of objectives. Objectives are completed
-          sequentially — later objectives don't start counting until earlier ones are done.
+          Each quest has a list of objectives that players tackle in order. A later objective
+          won't start counting until the one before it is finished. This lets you build
+          multi-step quest lines that feel natural.
         </p>
         <Table
-          headers={["Type", "Target", "Description"]}
+          headers={["Type", "What to target", "How it works"]}
           rows={[
-            ["kill", "NPC template ID", "Defeat a specific NPC type. Count tracks kills."],
-            ["explore", "Room ID", "Visit a specific room. Auto-completes on room entry."],
-            ["collect", "Item template ID", "Gather items. Count tracks items picked up."],
-            ["talk", "NPC template ID", "Speak with a specific NPC. Auto-completes on conversation."],
-            ["return", "Item template ID", "Bring an item back to a quest giver."],
+            ["kill", "NPC template ID", "Defeat a specific kind of NPC. The count tracks how many the player has killed."],
+            ["explore", "Room ID", "Visit a specific room. Completes automatically when the player walks in."],
+            ["collect", "Item template ID", "Gather items. The count tracks how many the player has picked up."],
+            ["talk", "NPC template ID", "Have a conversation with a specific NPC. Completes automatically on dialog."],
+            ["return", "Item template ID", "Bring an item back to the quest giver to turn it in."],
           ]}
         />
       </Section>
 
       <Section title="Repeat Modes">
         <p className="text-text-muted mb-3">
-          Quests can be one-time or repeatable:
+          You can let players repeat a quest, or keep it as a one-time deal:
         </p>
         <Table
-          headers={["Mode", "Behavior"]}
+          headers={["Mode", "How it works"]}
           rows={[
-            ["none", "One-time quest. Cannot be re-accepted after completion."],
-            ["cooldown", "Repeatable after cooldown_hours since last completion."],
-            ["always", "Always repeatable, no cooldown enforced."],
+            ["none", "One-time only. Once the player finishes, they can never pick it up again."],
+            ["cooldown", "Players can redo the quest after the cooldown period has passed since their last completion."],
+            ["always", "Players can re-accept this quest any time, no cooldown required."],
           ]}
         />
         <p className="text-text-muted">
-          Prerequisites are checked before acceptance. A character cannot accept a quest
+          Prerequisites are always checked before acceptance. A player can't accept a quest
           they already have active.
         </p>
       </Section>
 
       <Section title="Rewards">
         <p className="text-text-muted mb-3">
-          Completing a quest grants these reward types:
+          When a player finishes a quest, you can hand out any of these rewards:
         </p>
         <Table
-          headers={["Reward", "Description"]}
+          headers={["Reward", "What it does"]}
           rows={[
-            ["XP", "Experience points added to the character."],
-            ["Items", "Item templates granted to character inventory."],
-            ["Effects", "Ability effects applied to the character."],
-            ["Tags", "Tags added or removed from the character."],
+            ["XP", "Experience points added straight to the character."],
+            ["Items", "Item templates dropped into the character's inventory."],
+            ["Effects", "Abilities or effects applied to the character."],
+            ["Tags", "Tags added to or removed from the character (great for quest flags)."],
             ["Achievements", "Achievements unlocked for the character."],
           ]}
         />
         <InfoBox>
-          The admin UI currently only exposes the XP reward field. Item, effect, tag,
-          and achievement rewards can be set via the API directly.
+          The admin panel currently only exposes the XP reward field. If you need to grant
+          items, effects, tags, or achievements as quest rewards, you can set those up
+          through the API directly.
         </InfoBox>
       </Section>
 
       <Section title="Player Commands">
         <Table
-          headers={["Command", "Description"]}
+          headers={["Command", "What it does"]}
           rows={[
-            ["quests / quest / q", "Show quest tracker with all active/completed/abandoned quests."],
-            ["quest accept &lt;id&gt;", "Accept a quest by its ID. Checks prerequisites."],
-            ["quest abandon &lt;id&gt;", "Abandon an active quest. Progress is lost."],
+            ["quests / quest / q", "Shows the quest tracker with all active, completed, and abandoned quests."],
+            ["quest accept &lt;id&gt;", "Accept a quest by its ID. The game checks prerequisites before allowing this."],
+            ["quest abandon &lt;id&gt;", "Abandon an active quest. Warning: all progress is lost."],
           ]}
         />
         <p className="text-text-muted">
-          Quest progress advances automatically when in-game events match objective
-          types (killing NPCs, entering rooms, picking up items, talking to NPCs).
+          Players don't need to manually track quest progress. The game updates objectives
+          automatically as they kill NPCs, enter rooms, pick up items, or talk to NPCs.
         </p>
       </Section>
 
       <Section title="Admin API">
         <Table
-          headers={["Method", "Endpoint", "Description"]}
+          headers={["Method", "Endpoint", "What it does"]}
           rows={[
             ["GET", "/api/quests", "List all quest definitions."],
             ["POST", "/api/quests", "Create a new quest."],
-            ["GET", "/api/quests/:id", "Get a quest definition by ID."],
+            ["GET", "/api/quests/:id", "Get a single quest definition by ID."],
             ["PUT", "/api/quests/:id", "Update a quest definition."],
-            ["DELETE", "/api/quests/:id", "Delete a quest (fails if progress records exist)."],
+            ["DELETE", "/api/quests/:id", "Delete a quest. This fails if any players have progress records for it."],
             ["GET", "/api/characters/:id/quests", "List quest progress for a character."],
-            ["POST", "/api/characters/:id/quests", "Accept a quest (body: {\"quest_id\": N})."],
-            ["PUT", "/api/characters/:id/quests/:qid/check", "Check/increment single quest progress."],
-            ["PUT", "/api/characters/:id/quests/:qid/abandon", "Abandon a quest."],
-            ["POST", "/api/characters/:id/quests/check-all", "Bulk check all matching quests."],
+            ["POST", "/api/characters/:id/quests", "Accept a quest on behalf of a character (body: {\"quest_id\": N})."],
+            ["PUT", "/api/characters/:id/quests/:qid/check", "Manually check or increment progress on a single quest objective."],
+            ["PUT", "/api/characters/:id/quests/:qid/abandon", "Abandon a quest on behalf of a character."],
+            ["POST", "/api/characters/:id/quests/check-all", "Bulk check all matching quests for a character at once."],
           ]}
         />
       </Section>

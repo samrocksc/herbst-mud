@@ -56,80 +56,90 @@ function CompetenciesDoc() {
       <PageHeader title="Competencies" backTo="/docs" />
 
       <InfoBox>
-        <strong>TL;DR:</strong> Competencies are trainable skill categories with level thresholds.
-        Characters earn XP in a competency by using related abilities. Level thresholds define
-        XP gates and unlock bonuses.
+        <strong>TL;DR:</strong> Competencies are skill categories your characters can train over
+        time. As characters use related abilities, they earn XP in that competency. When they hit
+        an XP threshold, they level up and may unlock bonuses like extra crit chance or more damage.
       </InfoBox>
 
       <Section title="CompetencyCategory Entity">
+        <p className="text-text-muted mb-3">
+          Each CompetencyCategory defines a skill your characters can train. Here are the fields:
+        </p>
         <Table
-          headers={["Field", "Description"]}
+          headers={["Field", "What it does"]}
           rows={[
-            ["name", "Category name (e.g., Blades, Fire Magic, Stealth)."],
-            ["description", "Player-facing description of the competency."],
-            ["skill_name", "The underlying skill being trained (e.g., blades, fire_magic)."],
-            ["category", "Grouping: combat, magic, crafting, social."],
+            ["name", "The name players see for this skill category (like Blades, Fire Magic, or Stealth)."],
+            ["description", "A short description that tells players what this competency covers."],
+            ["skill_name", "The internal skill name this category trains (like blades or fire_magic). This links it to abilities."],
+            ["category", "A broad grouping: combat, magic, crafting, or social. Helps organize the skill list."],
           ]}
         />
       </Section>
 
       <Section title="CompetencyLevelThreshold Entity">
+        <p className="text-text-muted mb-3">
+          Level thresholds define the XP milestones for each competency. When a character's XP
+          crosses a threshold, they gain that level and any bonus it grants.
+        </p>
         <Table
-          headers={["Field", "Description"]}
+          headers={["Field", "What it does"]}
           rows={[
             ["category_id", "Which CompetencyCategory this threshold belongs to."],
-            ["level", "The level this threshold represents (1, 2, 3...)."],
-            ["xp_required", "Total XP needed to reach this level."],
-            ["bonus", "Bonus granted when this level is reached (JSON)."],
+            ["level", "The level number this threshold represents (1, 2, 3, and so on)."],
+            ["xp_required", "The total XP the character needs to reach this level."],
+            ["bonus", "A JSON object describing the bonus the character gets when they hit this level."],
           ]}
         />
         <p className="text-text-muted mt-3">
-          Example: Blades category has thresholds at level 1 (0 XP), level 2 (100 XP, +5% crit),
-          level 3 (300 XP, +10% crit), etc. Bonuses stack as level increases.
+          For example, the Blades category might have thresholds at level 1 (0 XP), level 2 (100 XP,
+          grants +5% crit), and level 3 (300 XP, grants +10% crit). Bonuses stack as the character
+          levels up.
         </p>
       </Section>
 
       <Section title="CharacterCompetency Entity">
+        <p className="text-text-muted mb-3">
+          This tracks where each character stands in each competency they are training.
+        </p>
         <Table
-          headers={["Field", "Description"]}
+          headers={["Field", "What it does"]}
           rows={[
-            ["character_id", "Which character has this competency."],
-            ["category_id", "Which competency category."],
-            ["level", "Current level in this competency."],
-            ["xp", "Current XP in this competency."],
+            ["character_id", "Which character this record belongs to."],
+            ["category_id", "Which competency category the character is training."],
+            ["level", "The character's current level in this competency."],
+            ["xp", "The character's current XP in this competency."],
           ]}
         />
       </Section>
 
       <Section title="How Training Works">
         <p className="text-text-muted mb-3">
-          When a character uses an ability that has a skill requirement:
+          When a character uses an ability that requires a skill, here is what happens:
         </p>
         <ul className="list-disc pl-6 text-text-muted mb-4 space-y-1">
-          <li>The ability checks if the character meets the skill level.</li>
-          <li>On use, the character earns XP in that skill (e.g., hitting with a sword trains Blades).</li>
-          <li>When XP crosses a threshold, level increases.</li>
-          <li>Level thresholds can grant bonuses (crit chance, damage, etc.).</li>
+          <li>The game checks whether the character meets the skill level requirement for that ability.</li>
+          <li>If they use the ability successfully, they earn XP in the related competency. Hitting something with a sword trains Blades, for example.</li>
+          <li>When their XP crosses a level threshold, their competency level goes up.</li>
+          <li>Level thresholds can grant bonuses like extra crit chance, more damage, and so on.</li>
         </ul>
       </Section>
 
       <Section title="Skill Page">
         <p className="text-text-muted mb-3">
-          The admin Skills page at /skills manages competency categories and their
-          level thresholds. Character competency progress is visible on the
-          character detail page.
+          You can manage competency categories and their level thresholds at /skills in the admin
+          panel. To see how a specific character is progressing, check their character detail page.
         </p>
       </Section>
 
       <Section title="Admin API">
         <Table
-          headers={["Method", "Endpoint", "Description"]}
+          headers={["Method", "Endpoint", "What it does"]}
           rows={[
             ["GET", "/api/competency-categories", "List all competency categories."],
-            ["POST", "/api/competency-categories", "Create a competency category."],
-            ["GET", "/api/competency-categories/:id/thresholds", "Get level thresholds for a category."],
-            ["POST", "/api/competency-categories/:id/thresholds", "Add a level threshold."],
-            ["GET", "/api/characters/:id/competencies", "Get character competency progress."],
+            ["POST", "/api/competency-categories", "Create a new competency category."],
+            ["GET", "/api/competency-categories/:id/thresholds", "See the level thresholds for a specific category."],
+            ["POST", "/api/competency-categories/:id/thresholds", "Add a new level threshold to a category."],
+            ["GET", "/api/characters/:id/competencies", "See how far a character has progressed in their competencies."],
           ]}
         />
       </Section>

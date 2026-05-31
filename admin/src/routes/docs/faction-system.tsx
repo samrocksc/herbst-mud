@@ -56,71 +56,87 @@ function FactionSystemDoc() {
       <PageHeader title="Faction System" backTo="/docs" />
 
       <InfoBox>
-        <strong>TL;DR:</strong> Factions are in-game groups with <strong>standing</strong> scores
-        (−100 to +100). Standing affects NPC aggression, shop prices, quest access, and
-        faction-specific abilities. Players gain/lose standing through actions.
+        <strong>TL;DR:</strong> Factions are in-game groups that track <strong>standing</strong> with each
+        player on a scale from -100 to +100. Standing changes how NPCs treat you: whether they attack you,
+        what prices you get at shops, which quests you can access, and whether you unlock special faction-only
+        abilities. You earn or lose standing based on what you do.
       </InfoBox>
 
       <Section title="Standing Scale">
+        <p className="text-text-muted mb-3">
+          Standing runs from -100 (hated) to +100 (revered). Here is what each range means for the player:
+        </p>
         <Table
-          headers={["Standing", "Label", "Effects"]}
+          headers={["Standing", "Label", "What happens"]}
           rows={[
             ["+81 to +100", "Revered", "50% shop discount. Exclusive quests. Faction abilities unlocked."],
-            ["+51 to +80", "Honored", "25% discount. Better quests. NPCs help in combat."],
-            ["+11 to +50", "Friendly", "10% discount. Standard quests available."],
-            ["−10 to +10", "Neutral", "No modifiers. Standard interactions."],
-            ["−50 to −11", "Unfriendly", "25% price markup. NPCs refuse some services."],
-            ["−80 to −51", "Hostile", "50% markup. NPCs may attack on sight."],
-            ["−100 to −81", "Hated", "Kill on sight. Shops closed. Bounty placed on player."],
+            ["+51 to +80", "Honored", "25% discount. Better quests. Friendly NPCs will help you in combat."],
+            ["+11 to +50", "Friendly", "10% discount. Standard quests become available."],
+            ["-10 to +10", "Neutral", "No modifiers. Just normal interactions."],
+            ["-50 to -11", "Unfriendly", "25% markup on prices. Some NPCs refuse to deal with you."],
+            ["-80 to -51", "Hostile", "50% markup. Some NPCs will attack you on sight."],
+            ["-100 to -81", "Hated", "Kill on sight. Shops are closed to you. A bounty is placed on your head."],
           ]}
         />
       </Section>
 
       <Section title="Faction Categories">
+        <p className="text-text-muted mb-3">
+          When you create a faction, pick a category that fits its theme. The category helps the game know
+          what kind of behavior gains or loses standing:
+        </p>
         <Table
-          headers={["Category", "Examples", "Typical Goals"]}
+          headers={["Category", "Examples", "What they care about"]}
           rows={[
             ["Political", "City councils, noble houses", "Territory control, taxes, laws"],
-            ["Religious", "Churches, cults, monastic orders", "Convert followers, holy quests"],
-            ["Criminal", "Thieves guilds, smugglers", "Profit, territory, avoiding guards"],
-            ["Guild", "Craft guilds, mercenary companies", "Skill mastery, contracts, reputation"],
+            ["Religious", "Churches, cults, monastic orders", "Converting followers, completing holy quests"],
+            ["Criminal", "Thieves guilds, smuggler rings", "Profit, territory, avoiding the guards"],
+            ["Guild", "Craft guilds, mercenary companies", "Skill mastery, contracts, building reputation"],
             ["Race", "Elf clans, dwarf holds", "Species pride, ancient grudges"],
           ]}
         />
       </Section>
 
       <Section title="Changing Standing">
-        <p className="text-text-muted mb-3">Standing changes through player actions:</p>
+        <p className="text-text-muted mb-3">
+          Players shift their standing through the choices they make in the world. Here is how much each
+          action moves the needle:
+        </p>
         <Table
-          headers={["Action", "Standing Change", "Faction"]}
+          headers={["Action", "Standing Change", "Which faction cares"]}
           rows={[
-            ["Complete faction quest", "+10 to +25", "Quest-giver's faction"],
-            ["Kill faction enemy", "+5", "Enemy of target's faction"],
-            ["Kill faction member", "−20 to −50", "Victim's faction"],
-            ["Donate items/gold", "+1 to +5", "Receiving faction"],
-            [" betray faction quest", "−30", "Betrayed faction"],
-            ["Wear faction emblem", "+1 per day (max +10)", "Emblem faction"],
-            ["Attack faction ally", "−10", "Ally's faction"],
+            ["Complete a faction quest", "+10 to +25", "The faction that gave the quest"],
+            ["Kill a faction's enemy", "+5", "Whichever faction hates the target"],
+            ["Kill a faction member", "-20 to -50", "The victim's faction"],
+            ["Donate items or gold", "+1 to +5", "The faction receiving the donation"],
+            ["Betray a faction quest", "-30", "The faction you betrayed"],
+            ["Wear a faction emblem", "+1 per day (max +10)", "The faction on the emblem"],
+            ["Attack a faction's ally", "-10", "The ally's faction"],
           ]}
         />
+        <p className="text-text-muted mt-3 text-sm">
+          Tip: Betraying a quest hurts a lot. Make sure players feel the weight of that choice in your
+          story design. A -30 swing is hard to recover from.
+        </p>
       </Section>
 
       <Section title="Faction Abilities">
         <p className="text-text-muted mb-3">
-          At <strong>Revered</strong> standing, factions grant unique abilities:
+          When a player reaches <strong>Revered</strong> standing (81+) with a faction, they earn a unique
+          ability that nobody else gets:
         </p>
         <Table
-          headers={["Faction", "Ability", "Effect"]}
+          headers={["Faction", "Ability", "What it does"]}
           rows={[
-            ["Surf Wardens", "Wave Rush", "Water-based knockback. DEX scaling."],
-            ["Dune Traders", "Sand Veil", "Temporary invisibility in desert zones."],
-            ["Tinkerers", "Gadget Barrage", "Tech damage + stun. INT scaling."],
-            ["The Vine Climb", "Overgrowth", "Roots enemies in place. WIS scaling."],
+            ["Surf Wardens", "Wave Rush", "Water-based knockback. Scales with DEX."],
+            ["Dune Traders", "Sand Veil", "Go temporarily invisible in desert zones."],
+            ["Tinkerers", "Gadget Barrage", "Deals tech damage and stuns. Scales with INT."],
+            ["The Vine Climb", "Overgrowth", "Roots enemies in place. Scales with WIS."],
           ]}
         />
         <p className="text-text-muted mt-3">
-          These abilities appear in the character's ability list once standing reaches 81+.
-          They can be equipped in any skill slot like classless skills.
+          These abilities show up in the character's ability list once standing hits 81. They can be
+          equipped in any skill slot, just like the classless abilities.
         </p>
       </Section>
     </div>

@@ -56,63 +56,66 @@ function CraftingSystemDoc() {
       <PageHeader title="Crafting System" backTo="/docs" />
 
       <InfoBox>
-        <strong>TL;DR:</strong> Crafting lets players create equipment by providing inputs
-        and optionally being at the right station. Recipes define what inputs are needed,
-        what station is required, and what outputs are produced.
+        <strong>TL;DR:</strong> Crafting lets your players turn materials into gear. You define
+        recipes that say what items go in, what comes out, and whether the player needs to be
+        at a specific station (like a forge) to make it happen.
       </InfoBox>
 
       <Section title="Recipe Entity">
         <p className="text-text-muted mb-3">
-          Recipes are defined as CraftingRecipe entities and managed via the admin UI at /recipes.
+          Each crafting recipe is a CraftingRecipe entity. You can create and edit recipes in the admin
+          panel at /recipes. Here is what each field does:
         </p>
         <Table
-          headers={["Field", "Description"]}
+          headers={["Field", "What it does"]}
           rows={[
-            ["name", "Unique machine-readable identifier (e.g., iron_sword)"],
-            ["display_name", "Player-facing name (e.g., Iron Sword)"],
-            ["description", "What the recipe produces and its flavor text."],
-            ["required_station_tag", "Room tag needed to craft (e.g., forge). Leave blank for anywhere."],
-            ["required_class", "Class restriction. Leave blank for any class."],
-            ["required_skill", "Skill name required (e.g., Blacksmithing). Leave blank for none."],
-            ["required_skill_level", "Minimum skill level required."],
-            ["inputs", "JSON array of CraftingInput objects."],
-            ["outputs", "JSON array of CraftingOutput objects."],
-            ["craft_time_secs", "Time in seconds the craft takes (future use)."],
+            ["name", "A unique internal name for this recipe (like iron_sword). Players will not see this."],
+            ["display_name", "The name players see (like Iron Sword)."],
+            ["description", "Flavor text that tells players what they are making."],
+            ["required_station_tag", "The room tag a player must be near to craft this (like forge). Leave blank if they can craft it anywhere."],
+            ["required_class", "Restrict this recipe to a specific class. Leave blank if any class can craft it."],
+            ["required_skill", "A skill the player must have (like Blacksmithing). Leave blank for no skill requirement."],
+            ["required_skill_level", "The minimum level in that skill. Only matters if you set required_skill."],
+            ["inputs", "A JSON array of CraftingInput objects. These are the materials the player provides."],
+            ["outputs", "A JSON array of CraftingOutput objects. These are the items the player receives."],
+            ["craft_time_secs", "How long the craft takes in seconds. This is reserved for future use."],
           ]}
         />
       </Section>
 
       <Section title="Inputs and Outputs">
         <p className="text-text-muted mb-3">
-          Each input specifies an equipment template and quantity. Inputs are consumed on successful craft.
+          Inputs are the materials the player brings to a recipe. When the craft succeeds, the inputs
+          are removed from the player's inventory (unless you set consumed to false).
         </p>
         <Table
-          headers={["Field", "Description"]}
+          headers={["Field", "What it does"]}
           rows={[
-            ["equipment_template_id", "ID of the equipment template to consume."],
-            ["quantity", "Number of units consumed per craft."],
-            ["consumed", "Whether the input is consumed (true) or returned (false)."],
+            ["equipment_template_id", "The ID of the equipment template the player provides."],
+            ["quantity", "How many of that item the player needs for one craft."],
+            ["consumed", "Whether the input gets used up. Set true (default) to consume it, false to return it after crafting."],
           ]}
         />
         <p className="text-text-muted mb-3 mt-4">
-          Outputs define what is created:
+          Outputs are what the player gets when the craft finishes:
         </p>
         <Table
-          headers={["Field", "Description"]}
+          headers={["Field", "What it does"]}
           rows={[
-            ["equipment_template_id", "ID of the equipment template produced."],
-            ["quantity", "Number of units produced per craft."],
+            ["equipment_template_id", "The ID of the equipment template the player receives."],
+            ["quantity", "How many of that item the player gets per craft."],
           ]}
         />
       </Section>
 
       <Section title="Stations">
         <p className="text-text-muted mb-3">
-          Rooms act as crafting stations via tags. A room with tag <code>forge</code> satisfies
-          <code>required_station_tag: forge</code>. Players can tag rooms in the admin panel.
+          Some recipes require the player to be in the right place. You do this by tagging rooms.
+          If a recipe has <code>required_station_tag: forge</code>, the player can only craft it in a
+          room tagged <code>forge</code>. You can add tags to rooms in the admin panel.
         </p>
         <Table
-          headers={["Example Tag", "Associated Crafting"]}
+          headers={["Example Tag", "What kind of crafting it unlocks"]}
           rows={[
             ["forge", "Metal weapons and armor"],
             ["alchemy_lab", "Potions and alchemical items"],
@@ -123,20 +126,24 @@ function CraftingSystemDoc() {
       </Section>
 
       <Section title="Player Commands">
+        <p className="text-text-muted mb-3">
+          Players interact with crafting through these in-game commands:
+        </p>
         <Table
-          headers={["Command", "Description"]}
+          headers={["Command", "What it does"]}
           rows={[
-            ["craft &lt;recipe&gt;", "Attempt to craft a recipe by name. Checks station, class, skill, and inputs."],
-            ["recipes", "List all known recipes and whether requirements are met."],
-            ["stations", "List crafting stations available in the current world."],
+            ["craft <recipe>", "Try to craft something by recipe name. The game checks the station, class, skill, and inputs before allowing it."],
+            ["recipes", "See all the recipes you know and whether you meet the requirements."],
+            ["stations", "See which crafting stations exist in the current world."],
           ]}
         />
       </Section>
 
       <Section title="Admin UI">
         <p className="text-text-muted">
-          The admin UI at /recipes provides full CRUD for crafting recipes.
-          Inputs and outputs are edited as JSON arrays in the form.
+          You can create, edit, and delete recipes at /recipes. Inputs and outputs are edited as
+          JSON arrays in the form. If you are not sure what to put there, start simple: one input,
+          one output, and build from there.
         </p>
       </Section>
     </div>

@@ -56,60 +56,68 @@ function SocialCommandsDoc() {
       <PageHeader title="Social Commands" backTo="/docs" />
 
       <InfoBox>
-        <strong>TL;DR:</strong> Social commands are player-to-player and player-to-world
-        communication tools. Predefined commands (say, shout, whisper, tell, emote) plus
-        configurable custom socials via the admin panel.
+        <strong>TL;DR:</strong> Social commands let players talk to each other and interact with
+        the world around them. You get five built-in commands (say, shout, whisper, tell, emote)
+        and you can create as many custom socials as you want from the admin panel.
       </InfoBox>
 
-      <Section title="Predefined Socials">
+      <Section title="Built-In Social Commands">
+        <p className="text-text-muted mb-3">
+          These commands come with the game and are always available:
+        </p>
         <Table
-          headers={["Command", "Range", "Description"]}
+          headers={["Command", "Reach", "What it does"]}
           rows={[
-            ["say &lt;text&gt;", "same_room", "Speak to everyone in the same room."],
-            ["shout &lt;text&gt;", "adjacent", "Shout to adjacent rooms."],
-            ["whisper &lt;player&gt; &lt;text&gt;", "same_room", "Private message to a player in the same room."],
-            ["tell &lt;player&gt; &lt;text&gt;", "global", "Private message to a player anywhere in the world."],
-            ["emote &lt;text&gt;", "same_room", "Perform an action visible to the room (e.g., /me smiles)."],
+            ["say &lt;text&gt;", "Same room", "Talk to everyone in the same room."],
+            ["shout &lt;text&gt;", "Adjacent rooms", "Shout loud enough for nearby rooms to hear."],
+            ["whisper &lt;player&gt; &lt;text&gt;", "Same room", "Send a private message to someone in the same room."],
+            ["tell &lt;player&gt; &lt;text&gt;", "Global", "Send a private message to anyone in the world."],
+            ["emote &lt;text&gt;", "Same room", "Perform an action that everyone in the room can see (e.g., /me smiles)."],
           ]}
         />
       </Section>
 
       <Section title="Custom Socials">
         <p className="text-text-muted mb-3">
-          Admins can create custom social commands at /socials. Each social has:
+          You can create custom social commands from the admin panel at /socials. Each social
+          has these fields:
         </p>
         <Table
-          headers={["Field", "Description"]}
+          headers={["Field", "What it means"]}
           rows={[
-            ["name", "Command name (e.g., laugh, wave)."],
-            ["message_format", "Template string. $sender is the player's name."],
-            ["channel", "same_room, adjacent, or global."],
-            ["cooldown_secs", "Optional cooldown between uses."],
+            ["name", "The command players type (e.g., laugh, wave, dance)."],
+            ["message_format", "The template for what other people see. Use $sender for the player's name."],
+            ["channel", "How far the message reaches: same_room, adjacent, or global."],
+            ["cooldown_secs", "Optional cooldown between uses. Set to 0 or leave blank for no cooldown."],
           ]}
         />
+        <p className="text-text-muted">
+          Custom socials are great for roleplaying. A "bow" command that shows "Aleron bows deeply"
+          adds flavor that makes the world feel alive.
+        </p>
       </Section>
 
       <Section title="Channel Configuration">
         <p className="text-text-muted mb-3">
-          Chat channels are configured at /channels. Channels route messages to specific
-          audiences and can be restricted by class, level, or faction.
+          Chat channels are set up at /channels. Channels control who can hear a message and
+          how far it travels. You can restrict channels by class, level, or faction.
         </p>
         <Table
-          headers={["Channel Field", "Description"]}
+          headers={["Channel Field", "What it does"]}
           rows={[
-            ["name", "Channel identifier (e.g., ooc, auction, guild)."],
-            ["range", "same_room, adjacent, or global."],
-            ["min_level", "Minimum character level to use."],
-            ["required_faction", "Optional faction requirement."],
+            ["name", "The channel's identifier (e.g., ooc, auction, guild)."],
+            ["range", "How far the message travels: same_room, adjacent, or global."],
+            ["min_level", "The minimum character level required to use this channel."],
+            ["required_faction", "Optional. Restrict this channel to members of a specific faction."],
           ]}
         />
       </Section>
 
       <Section title="SendMessage Effect">
         <p className="text-text-muted mb-3">
-          The SendMessage effect type can trigger social-style messages from abilities,
-          quests, or events. This lets game systems communicate with players through
-          the same channel infrastructure.
+          The SendMessage effect type lets you trigger social-style messages from abilities,
+          quests, or events. This means game systems can talk to players through the same
+          channel infrastructure that players use to talk to each other.
         </p>
       </Section>
     </div>

@@ -56,122 +56,142 @@ function CombatGuideDoc() {
       <PageHeader title="Combat Guide" backTo="/docs" />
 
       <InfoBox>
-        <strong>TL;DR:</strong> Combat is tick-based (1.5s ticks). Characters act by paying tick costs.
-        Stats (STR/DEX/CON/INT/WIS/CHA) drive damage, accuracy, dodge, and magic. Press
-        <kbd className="bg-surface-dark text-text-inverse px-1 rounded">1–5</kbd> in combat to use classless skills.
+        <strong>TL;DR:</strong> Combat runs on a tick system (1.5 seconds per tick). Characters take
+        actions by spending ticks. Your six core stats (STR, DEX, CON, INT, WIS, CHA) determine how hard
+        you hit, how well you dodge, and how potent your magic is. Press{" "}
+        <kbd className="bg-surface-dark text-text-inverse px-1 rounded">1</kbd> through{" "}
+        <kbd className="bg-surface-dark text-text-inverse px-1 rounded">5</kbd> during a fight to use your
+        classless abilities.
       </InfoBox>
 
       <Section title="Tick System">
         <p className="text-text-muted mb-3">
-          The combat clock fires globally every 1.5 seconds. Every action has a tick cost.
-          When a character's accumulated tick debt is paid, they can act again.
+          Every 1.5 seconds, the combat clock ticks. Each action costs a certain number of ticks. When your
+          accumulated tick debt is paid off, you get to act again. This means faster actions let you act
+          more often, while heavy abilities make you wait longer.
         </p>
         <Table
-          headers={["Action", "Tick Cost", "Notes"]}
+          headers={["Action", "Tick Cost", "What you need to know"]}
           rows={[
-            ["Attack", "1", "Basic melee or ranged attack. Damage = weapon + stat."],
-            ["Defend", "0", "Buff action — raises armor briefly without costing a turn."],
-            ["Flee", "1", "Attempt to escape combat. Success chance = DEX vs enemy level."],
-            ["Use Item", "1", "Drink potion, throw grenade, etc."],
-            ["Activate Skill", "1–3", "Classless skills (1 tick) or passive abilities (1–3 ticks)."],
+            ["Attack", "1", "Your basic swing or shot. Damage comes from your weapon plus your stats."],
+            ["Defend", "0", "Raises your armor briefly without costing you a turn. Always worth using."],
+            ["Flee", "1", "Try to escape. Your DEX is compared to the enemy's level to see if you succeed."],
+            ["Use Item", "1", "Drink a potion, throw a grenade, and so on."],
+            ["Activate Skill", "1 to 3", "Classless skills cost 1 tick. Passive abilities can cost up to 3."],
           ]}
         />
       </Section>
 
       <Section title="Character Stats">
+        <p className="text-text-muted mb-3">
+          Every character has six stats. These are the foundation for almost everything in combat, from
+          damage rolls to hit chance to how many spells you can cast:
+        </p>
         <Table
-          headers={["Stat", "Abbreviation", "What It Does"]}
+          headers={["Stat", "Abbrev", "What it does for you"]}
           rows={[
-            ["Strength", "STR", "Melee damage bonus, carrying capacity."],
-            ["Dexterity", "DEX", "Accuracy (hit chance), dodge chance, attack speed."],
-            ["Constitution", "CON", "HP pool, stamina pool, resistance to stun/poison."],
-            ["Intelligence", "INT", "Magic power, tech skill effectiveness, mana pool."],
-            ["Wisdom", "WIS", "Perception, wind magic, healing power, resistance."],
-            ["Charisma", "CHA", "Shop prices, NPC disposition, party size limit."],
+            ["Strength", "STR", "More melee damage and higher carrying capacity."],
+            ["Dexterity", "DEX", "Better hit chance, better dodge chance, faster attacks."],
+            ["Constitution", "CON", "Bigger HP pool, bigger stamina pool, better resistance to stun and poison."],
+            ["Intelligence", "INT", "Stronger magic, better tech skills, larger mana pool."],
+            ["Wisdom", "WIS", "Keener perception, stronger wind magic and healing, better magical resistance."],
+            ["Charisma", "CHA", "Better shop prices, friendlier NPCs, larger party size."],
           ]}
         />
       </Section>
 
       <Section title="Damage Formula">
-        <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mb-3">
-          damage = weapon_base + (STR × 0.5) + random(1, weapon_dice_sides) − target_armor
-        </div>
-        <p className="text-text-muted mb-2">
-          If the attacker has a <strong>scaling_stat</strong> set on their ability, the formula becomes:
+        <p className="text-text-muted mb-3">
+          When you hit someone, the game calculates damage like this:
         </p>
         <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mb-3">
-          damage = base + (stat_value × scaling_percent × base) − target_armor
+          damage = weapon_base + (STR × 0.5) + random(1, weapon_dice_sides) - target_armor
+        </div>
+        <p className="text-text-muted mb-2">
+          If the ability has a <strong>scaling_stat</strong> set, the formula changes to:
+        </p>
+        <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mb-3">
+          damage = base + (stat_value × scaling_percent × base) - target_armor
         </div>
         <ul className="text-sm text-text-muted space-y-1">
-          <li><strong>Weapon base:</strong> Item's <code>damage</code> field.</li>
-          <li><strong>Random roll:</strong> 1 to weapon's dice sides (e.g. d8 = 1–8).</li>
-          <li><strong>Armor:</strong> Sum of all equipped items' <code>armor</code> values.</li>
-          <li><strong>Minimum damage:</strong> 1 (you always deal at least 1 HP).</li>
+          <li><strong>Weapon base:</strong> The damage number on your weapon item.</li>
+          <li><strong>Random roll:</strong> A number between 1 and the weapon's dice sides. A d8 gives you 1 through 8.</li>
+          <li><strong>Armor:</strong> Add up the armor values on every piece of gear the target has equipped.</li>
+          <li><strong>Minimum damage:</strong> You always deal at least 1 HP, no matter how tough the armor.</li>
         </ul>
       </Section>
 
-      <Section title="Hit Chance & Dodge">
+      <Section title="Hit Chance and Dodge">
+        <p className="text-text-muted mb-3">
+          Every attack starts with a 50% chance to hit. DEX shifts that number:
+        </p>
         <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mb-3">
-          hit_chance = 50% + (attacker_DEX − target_DEX) × 2.5%
+          hit_chance = 50% + (attacker_DEX - target_DEX) × 2.5%
         </div>
-        <p className="text-text-muted mb-2">Base 50%. Each point of DEX difference shifts it by 2.5%.</p>
+        <p className="text-text-muted mb-2">
+          Each point of DEX difference between you and your target moves hit chance by 2.5%.
+        </p>
         <ul className="text-sm text-text-muted space-y-1 mb-3">
-          <li>Minimum hit chance: 5% (always a glimmer of hope).</li>
-          <li>Maximum hit chance: 95% (never guaranteed).</li>
-          <li><strong>Back-off</strong> skill: sets dodge to 100% for 1 round vs ALL attacks.</li>
-          <li><strong>Concentrate</strong> skill: +WIS to hit rolls for 4 rounds.</li>
+          <li>Minimum hit chance: 5%. There is always a small chance you connect.</li>
+          <li>Maximum hit chance: 95%. Nothing is guaranteed.</li>
+          <li><strong>Back-off</strong> skill: Gives you 100% dodge for 1 entire round. You avoid everything.</li>
+          <li><strong>Concentrate</strong> skill: Adds your WIS to hit rolls for 4 rounds.</li>
         </ul>
       </Section>
 
       <Section title="Critical Hits">
         <p className="text-text-muted mb-3">
-          Critical hits deal <strong>150% damage</strong> (before armor subtraction) and can trigger
-          <code>on_crit</code> proc events on abilities.
+          A critical hit deals <strong>150% damage</strong> before armor is subtracted. Criticals can also
+          trigger <code>on_crit</code> proc events on your abilities.
         </p>
         <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mb-3">
-          crit_chance = 5% + (DEX − 10) × 0.5%
+          crit_chance = 5% + (DEX - 10) × 0.5%
         </div>
         <p className="text-text-muted">
-          Base 5% crit. Each DEX above 10 adds 0.5%. Some items and buffs can raise this further.
+          Everyone starts with a 5% crit chance. Each point of DEX above 10 adds 0.5%. Some gear and buffs
+          can push this even higher.
         </p>
       </Section>
 
       <Section title="Combat Flow Example">
+        <p className="text-text-muted mb-3">
+          Here is what a typical 5-round fight looks like:
+        </p>
         <ol className="text-sm text-text-muted space-y-2 mb-3">
           <li>
-            <strong>Round 1:</strong> Player presses <kbd>1</kbd> (Concentrate). Cost: 10 MP, 0 ticks.
-            Buff active: +WIS to hit for 4 rounds.
+            <strong>Round 1:</strong> You press <kbd>1</kbd> (Concentrate). Cost: 10 MP, 0 ticks. Now
+            you have +WIS to hit for 4 rounds.
           </li>
           <li>
-            <strong>Round 2:</strong> Player attacks. Hit chance boosted by Concentrate.
-            DEX 14 vs enemy DEX 10 → 60% base + WIS bonus ≈ 70% hit.
+            <strong>Round 2:</strong> You attack. Concentrate is boosting your accuracy. DEX 14 vs enemy
+            DEX 10 gives you a 60% base hit. With WIS bonus you are around 70%.
           </li>
           <li>
-            <strong>Round 3:</strong> Enemy attacks. Player uses <kbd>3</kbd> (Back-off) as reaction.
-            Cost: 25 SP. Dodge: 100% this round.
+            <strong>Round 3:</strong> The enemy attacks. You press <kbd>3</kbd> (Back-off). Cost: 25 SP.
+            You dodge 100% of incoming attacks this round.
           </li>
           <li>
-            <strong>Round 4:</strong> Player presses <kbd>2</kbd> (Haymaker). Cost: 15 SP, 1 tick.
-            STR 16 → damage = 50 + (16 × 0.05 × 50) = 90. But −DEX to hit this attack.
+            <strong>Round 4:</strong> You press <kbd>2</kbd> (Haymaker). Cost: 15 SP, 1 tick. STR 16 means
+            damage = 50 + (16 × 0.05 × 50) = 90. But Haymaker lowers your DEX, so your next hit chance drops.
           </li>
           <li>
-            <strong>Round 5:</strong> Player presses <kbd>4</kbd> (Scream). Cost: 5 MP + 10 SP.
-            +DEX/STR, −WIS/INT for 2 rounds. Next Haymaker will be devastating.
+            <strong>Round 5:</strong> You press <kbd>4</kbd> (Scream). Cost: 5 MP + 10 SP. You gain +DEX/STR
+            and the enemy loses WIS/INT for 2 rounds. Your next Haymaker is going to hurt.
           </li>
         </ol>
       </Section>
 
       <Section title="Status Effects">
         <Table
-          headers={["Effect", "What It Does", "Duration"]}
+          headers={["Effect", "What happens", "How long it lasts"]}
           rows={[
-            ["Stunned", "Cannot act. Skips next turn.", "1 round (Slap)"],
-            ["Poisoned (dot)", "Loses HP every tick.", "Until cured or duration ends"],
-            ["Buffed", "Raised stat(s).", "Ability duration (ticks)"],
-            ["Debuffed", "Lowered stat(s).", "Ability duration (ticks)"],
-            ["Concentrating", "+WIS to hit rolls.", "4 rounds"],
-            ["Haymaker stance", "+STR damage, −DEX hit.", "1 attack"],
-            ["Screaming", "+DEX/STR, −WIS/INT.", "2 rounds"],
+            ["Stunned", "You cannot act. You skip your next turn entirely.", "1 round (from Slap)"],
+            ["Poisoned", "You lose HP every tick.", "Until cured or the duration runs out"],
+            ["Buffed", "One or more of your stats are raised.", "Duration set by the ability (in ticks)"],
+            ["Debuffed", "One or more of your stats are lowered.", "Duration set by the ability (in ticks)"],
+            ["Concentrating", "Your WIS is added to hit rolls.", "4 rounds"],
+            ["Haymaker stance", "Your STR boosts damage, but your DEX lowers hit chance.", "1 attack"],
+            ["Screaming", "You gain DEX and STR but lose WIS and INT.", "2 rounds"],
           ]}
         />
       </Section>

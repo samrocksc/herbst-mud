@@ -56,74 +56,82 @@ function TrainableSkillsDoc() {
       <PageHeader title="Trainable Skills" backTo="/docs" />
 
       <InfoBox>
-        <strong>TL;DR:</strong> Trainable skills are <strong>proficiency multipliers</strong> — "Blades",
-        "Fire Magic", "Pizza Making". Characters train them over time to improve effectiveness
-        with related abilities. They are <strong>not</strong> combat actions (those are Abilities).
+        <strong>TL;DR:</strong> Trainable skills are <strong>proficiency multipliers</strong>. Think
+        of them as things like "Blades", "Fire Magic", or even "Pizza Making". Characters get better
+        at them over time by using related abilities, and that improvement makes those abilities more
+        effective. They are <strong>not</strong> combat actions (those are called Abilities).
       </InfoBox>
 
       <Section title="Skill Categories">
+        <p className="text-text-muted mb-3">
+          Skills fall into a few broad categories. Each one affects different aspects of gameplay:
+        </p>
         <Table
-          headers={["Category", "Examples", "Affects"]}
+          headers={["Category", "Examples", "What it affects"]}
           rows={[
             ["Combat", "Blades, Knives, Staves, Brawling, Martial Arts, Bows, Thrown", "Damage with related weapons"],
             ["Magic", "Fire, Water, Wind, Earth, Light, Dark", "Spell power and mana efficiency"],
-            ["Defense", "Light Armor, Cloth Armor, Heavy Armor, Shields", "Damage reduction, block chance"],
-            ["Utility", "Tech, Pizza Making, Crafting, Trading", "Non-combat success rates, item quality"],
+            ["Defense", "Light Armor, Cloth Armor, Heavy Armor, Shields", "Damage reduction and block chance"],
+            ["Utility", "Tech, Pizza Making, Crafting, Trading", "Non-combat success rates and item quality"],
           ]}
         />
       </Section>
 
       <Section title="How Skills Relate to Abilities">
         <p className="text-text-muted mb-3">
-          Every <strong>Ability</strong> (combat action) has a <code>required_tag</code> or implicit category.
-          If a character's <strong>Trainable Skill</strong> in that category is high, the ability gets bonuses:
+          Every <strong>Ability</strong> (a combat action) is tagged with a skill category. When a
+          character uses that ability, their skill level in the matching category boosts its effect.
+          The formula is simple:
         </p>
         <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mb-3">
-          ability_bonus = skill_level × 2%
+          ability_bonus = skill_level * 2%
         </div>
-        <p className="text-text-muted mb-2">Example:</p>
+        <p className="text-text-muted mb-2">Here is a concrete example:</p>
         <ul className="text-sm text-text-muted space-y-1 mb-3">
           <li>Character has <strong>Blades 25</strong></li>
-          <li>Uses "Slash" ability (tagged <code>sword, blade</code>)</li>
+          <li>They use the "Slash" ability (tagged <code>sword, blade</code>)</li>
           <li>Base damage: 50</li>
-          <li>Bonus: 50 × (25 × 0.02) = <strong>+25 damage</strong></li>
-          <li>Final: 75 damage</li>
+          <li>Bonus: 50 * (25 * 0.02) = <strong>+25 damage</strong></li>
+          <li>Final damage: 75</li>
         </ul>
         <p className="text-text-muted">
-          At skill level 50: +100% bonus (double damage). At 100: +200% (triple damage).
-          This is why specialization beats generalization.
+          At skill level 50 you get a +100% bonus (double damage). At 100 you get +200% (triple
+          damage). This is why specializing in one skill pays off more than spreading points around.
         </p>
       </Section>
 
       <Section title="Training Mechanics">
-        <p className="text-text-muted mb-3">Skills improve through use. Each successful action adds XP to the relevant skill.</p>
+        <p className="text-text-muted mb-3">
+          Characters improve skills by using them. Every time they successfully perform an action,
+          they earn XP in the related skill. The harder the action, the more XP they get.
+        </p>
         <Table
-          headers={["Action", "XP Gain", "Skill Trained"]}
+          headers={["Action", "XP Gained", "Skill Trained"]}
           rows={[
-            ["Hit with sword", "2–5", "Blades"],
-            ["Cast fire spell", "3–6", "Fire Magic"],
-            ["Block with shield", "1–3", "Shields"],
-            ["Craft item", "5–10", "Crafting"],
-            ["Trade successfully", "1–2", "Trading"],
-            ["Parry attack", "3–5", "Blades or Martial Arts"],
+            ["Hit with a sword", "2 to 5", "Blades"],
+            ["Cast a fire spell", "3 to 6", "Fire Magic"],
+            ["Block with a shield", "1 to 3", "Shields"],
+            ["Craft an item", "5 to 10", "Crafting"],
+            ["Complete a trade", "1 to 2", "Trading"],
+            ["Parry an attack", "3 to 5", "Blades or Martial Arts"],
           ]}
         />
         <div className="bg-surface-muted rounded-lg p-4 font-mono text-sm mt-3 mb-3">
-          level_up_threshold = current_level × 10
+          level_up_threshold = current_level * 10
         </div>
         <p className="text-text-muted">
-          To go from level 5 → 6, you need 50 XP. From 50 → 51, you need 500 XP.
-          Higher levels require exponentially more effort.
+          Going from level 5 to 6 costs 50 XP. Going from 50 to 51 costs 500 XP. Higher levels take
+          exponentially more effort, so reaching the top is a real commitment.
         </p>
       </Section>
 
       <Section title="Requirements Format">
         <p className="text-text-muted mb-3">
-          The <strong>Requirements</strong> field on the Skills page uses a key:value format.
-          All conditions must be met.
+          The <strong>Requirements</strong> field on the Skills page lets you set prerequisites.
+          Use a key:value format. All conditions must be met for the skill to unlock.
         </p>
         <Table
-          headers={["Key", "Meaning", "Example"]}
+          headers={["Key", "What it checks", "Example"]}
           rows={[
             ["level", "Minimum character level", "level:10"],
             ["str", "Minimum Strength", "str:15"],
@@ -134,7 +142,10 @@ function TrainableSkillsDoc() {
             ["cha", "Minimum Charisma", "cha:5"],
           ]}
         />
-        <p className="text-text-muted mt-3">Example full requirement: <code>level:5,str:10</code> means level 5 AND 10 STR.</p>
+        <p className="text-text-muted mt-3">
+          Example: <code>level:5,str:10</code> means the character must be at least level 5 AND have
+          at least 10 Strength. Separate conditions with commas, no spaces.
+        </p>
       </Section>
     </div>
   );
