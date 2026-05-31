@@ -1,3 +1,3 @@
-- [3db6683](http://github.com/samrocksc/herbst-mud/commit/3db6683ab4c7c53f286817017df78ccf173bff3e) - 🔵 feat(admin): safety check — world cannot activate without 1 room, 1 race, 1 gender
-- [d48292c](http://github.com/samrocksc/herbst-mud/commit/d48292c72988671b8104abebaa4957a04ce70c2a) - chore: auto-update CHANGELOG.md
+- [5d2baca](http://github.com/samrocksc/herbst-mud/commit/5d2bacac1233fdb67c0f35a821dfb303118db336) - process remaining tickets
+- [8118b12](http://github.com/samrocksc/herbst-mud/commit/8118b12304d8937b2c26cc20f2a3b21bbb320578) - chore: auto-update CHANGELOG.md
 
