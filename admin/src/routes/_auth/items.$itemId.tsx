@@ -10,7 +10,7 @@ import { PageContainer } from "../../components/PageContainer";
 import { showToast } from "../../components/Toast";
 import { TemplateEditForm } from "./-items.$itemId.editForm";
 import { ItemDetailView } from "./-items.$itemId.detailView";
-import { ItemInstance } from "../../hooks/useItemInstances";
+import type { ItemInstance } from "../../hooks/useItemInstances";
 import { useDeleteItemInstance } from "../../hooks/useItemInstances";
 import type { EquipmentTemplate as ItemTemplate } from "../../hooks/useEquipmentTemplates";
 
