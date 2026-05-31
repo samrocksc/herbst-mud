@@ -1,3 +1,3 @@
-- [4e9ff02](http://github.com/samrocksc/herbst-mud/commit/4e9ff0201b23dad0960cf75cedc82c85a5018402) - feat(world-scoping): add world_id to entities with compound unique indexes
-- [dbc96f5](http://github.com/samrocksc/herbst-mud/commit/dbc96f5e322b638e2bcf3a2e4ac11d767e842212) - chore: auto-update CHANGELOG.md
+- [de0be6e](http://github.com/samrocksc/herbst-mud/commit/de0be6e021b2da122afeca6f57636e5486ca2b64) - docs(admin): rewrite all doc pages with warmer, human-friendly prose
+- [8222f94](http://github.com/samrocksc/herbst-mud/commit/8222f94f4132dc84a8138f9df887dd6cc2c27e07) - chore: auto-update CHANGELOG.md
 
