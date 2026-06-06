@@ -1,3 +1,3 @@
-- [46284f0](http://github.com/samrocksc/herbst-mud/commit/46284f0cc00f4f624862116e8ccd6e11c7a465d1) - feat(bdd): add admin CRUD feature files for NPCs, Items, Effects, Abilities
-- [8ca7802](http://github.com/samrocksc/herbst-mud/commit/8ca7802f11d91a25f877b7f4447bf3fbeb914c80) - chore: auto-update CHANGELOG.md
+- [db8eeb9](http://github.com/samrocksc/herbst-mud/commit/db8eeb9ca5ec732d738dbde85d47cf9223ae5f57) - feat(admin): add recipes.new.tsx create form — fixes #428
+- [6343640](http://github.com/samrocksc/herbst-mud/commit/63436402b9a5758b2386978d66d49428ce7081d1) - chore: auto-update CHANGELOG.md
 
