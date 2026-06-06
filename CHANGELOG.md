@@ -1,3 +1,3 @@
-- [d6b9e6e](http://github.com/samrocksc/herbst-mud/commit/d6b9e6e15c24a12c790e4802bc6f119f7817cd66) - fix(admin): escape {actor} in abilities.new.tsx JSX placeholders
-- [12d12e4](http://github.com/samrocksc/herbst-mud/commit/12d12e43f4fb694f462a3cbabf5a111bb7982890) - chore: auto-update CHANGELOG.md
+- [f19b514](http://github.com/samrocksc/herbst-mud/commit/f19b5143a667d3ac51b69a8abe2d6371e9b4a420) - feat(qa): add manual QA framework + error handling for silent create forms
+- [88bf6d8](http://github.com/samrocksc/herbst-mud/commit/88bf6d80d3d0581c9f397c7cf7b6acca34999ee6) - chore: auto-update CHANGELOG.md
 
