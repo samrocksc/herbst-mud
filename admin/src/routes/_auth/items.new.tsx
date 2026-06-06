@@ -12,6 +12,26 @@ import { showToast } from "../../components/Toast";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
 import { PageContainer } from "../../components/PageContainer";
 
+/** Map item type to default slot for common equipment patterns. */
+const getDefaultSlotForItemType = (itemType: string): string => {
+  const armorSlots = ["head", "chest", "hands", "legs", "feet"];
+  const weaponSlots = ["main_hand", "off_hand"];
+
+  switch (itemType) {
+    case "armor":
+      return armorSlots[0]; // head for armor
+    case "weapon":
+      return weaponSlots[0]; // main_hand for weapons
+    case "consumable":
+    case "potion":
+      return "neck"; // consumables often go in neck slot
+    case "container":
+      return "back"; // containers on back
+    default:
+      return ""; // empty for misc/quest items
+  }
+};
+
 const EFFECT_TYPE_OPTS = [
   { value: "", label: "— None —" },
   { value: "heal", label: "Heal" },
@@ -45,8 +65,8 @@ export function CreateItemPage() {
   } & CombatFields>({
     name: "",
     description: "",
-    slot: "",
-    item_type: "misc",
+    slot: getDefaultSlotForItemType("armor"),
+    item_type: "armor",
     level: 1,
     weight: 0,
     color: "",
@@ -71,6 +91,7 @@ export function CreateItemPage() {
     damage_type: "",
     weapon_type: "",
     is_two_handed: false,
+    stats: "{}",
     world_id: currentWorld || "default",
   });
 
@@ -80,17 +101,21 @@ export function CreateItemPage() {
     e.preventDefault();
     if (!form.name.trim()) return;
     setConflict(null);
-    createTemplate({ ...form, world_id: currentWorld || "default" }, {
+    const body: Record<string, unknown> = { ...form, world_id: currentWorld || "default" };
+    try { body.stats = JSON.parse(form.stats); } catch { body.stats = {}; }
+    createTemplate(body, {
       onSuccess: () => {
         showToast("Item template created", "success");
         navigate({ to: "/items" });
       },
       onError: (err: unknown) => {
+        console.error("Item template creation error:", err);
         const apiErr = err as { response?: { status?: number; data?: { existing?: Record<string, unknown> } } };
         if (apiErr?.response?.status === 409 && apiErr.response.data?.existing) {
           setConflict({ existing: apiErr.response.data.existing });
         } else {
-          showToast("Failed to create item template", "error");
+          const message = err instanceof Error ? err.message : "Failed to create item template";
+          showToast(message, "error");
         }
       },
     });
@@ -106,7 +131,9 @@ export function CreateItemPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
             <SelectField label="Slot" value={form.slot} onChange={(v) => setForm({ ...form, slot: v })} options={[...SLOT_OPTIONS]} />
-            <SelectField label="Item Type" value={form.item_type} onChange={(v) => setForm({ ...form, item_type: v })} options={[...ITEM_TYPE_OPTIONS]} />
+            <SelectField label="Item Type" value={form.item_type} onChange={(v) => {
+              setForm({ ...form, item_type: v, slot: getDefaultSlotForItemType(v) });
+            }} options={[...ITEM_TYPE_OPTIONS]} />
             <NumberField label="Level" value={form.level} onChange={(v) => setForm({ ...form, level: v })} min={1} />
             <NumberField label="Weight" value={form.weight} onChange={(v) => setForm({ ...form, weight: v })} min={0} />
             <TextareaField label="Description" value={form.description} onChange={(v) => setForm({ ...form, description: v })} rows={2} />

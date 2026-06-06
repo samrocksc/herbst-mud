@@ -57,7 +57,7 @@ function CreateNPCPage() {
         .split(",")
         .map((s) => s.trim())
         .filter((s) => s !== "");
-      const skills: Record<string, number> = {};
+      const skills: Record<string, number> = {}
       for (const line of input.skills.split("\n")) {
         const trimmed = line.trim();
         if (!trimmed) continue;
@@ -86,12 +86,23 @@ function CreateNPCPage() {
       queryClient.invalidateQueries({ queryKey: ["npc-templates"] });
       navigate({ to: "/npcs" });
     },
+    onError: (error: unknown) => {
+      console.error("Failed to create NPC template:", error);
+      const message = error instanceof Error ? error.message : "Failed to create NPC template";
+      alert(message); // Show visible error
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    createMutation.mutate(form);
+    createMutation.mutate(form, {
+      onError: (error: unknown) => {
+        console.error("NPC creation error:", error);
+        const message = error instanceof Error ? error.message : "Failed to create NPC template";
+        alert(message);
+      },
+    });
   };
 
   const set = (patch: Partial<NPCForm>) => setForm((prev) => ({ ...prev, ...patch }));

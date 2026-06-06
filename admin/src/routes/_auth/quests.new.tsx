@@ -81,7 +81,11 @@ function CreateQuestPage() {
       await createQuest.mutateAsync(formData);
       showToast("Quest created", "success");
       navigate({ to: "/quests" });
-    } catch { /* toasted globally */ }
+    } catch (err) {
+      console.error("Quest creation error:", err);
+      const message = err instanceof Error ? err.message : "Failed to create quest";
+      showToast(message, "error");
+    }
   };
 
   return (
