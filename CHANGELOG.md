@@ -1,3 +1,3 @@
-- [f19b514](http://github.com/samrocksc/herbst-mud/commit/f19b5143a667d3ac51b69a8abe2d6371e9b4a420) - feat(qa): add manual QA framework + error handling for silent create forms
-- [88bf6d8](http://github.com/samrocksc/herbst-mud/commit/88bf6d80d3d0581c9f397c7cf7b6acca34999ee6) - chore: auto-update CHANGELOG.md
+- [46284f0](http://github.com/samrocksc/herbst-mud/commit/46284f0cc00f4f624862116e8ccd6e11c7a465d1) - feat(bdd): add admin CRUD feature files for NPCs, Items, Effects, Abilities
+- [8ca7802](http://github.com/samrocksc/herbst-mud/commit/8ca7802f11d91a25f877b7f4447bf3fbeb914c80) - chore: auto-update CHANGELOG.md
 
