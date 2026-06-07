@@ -1,6 +1,7 @@
 /* eslint-disable functional/prefer-immutable-types, functional/immutable-data */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost, apiPut, apiDelete } from "../utils/apiFetch";
+import { useWorldStore } from "../contexts/WorldStoreContext";
 
 const API = `${window.location.origin}/api/races`;
 
@@ -16,6 +17,7 @@ export type Race = Readonly<{
   requirement_tags: string[]
   color: string
   tags: string[]
+  world_id: string
 }>
 
 export type RaceInput = Readonly<{
@@ -28,9 +30,15 @@ export type RaceInput = Readonly<{
   requirement_tags: ReadonlyArray<string>
   color: string
   tags: ReadonlyArray<string>
+  world_id: string
 }>
 
-function parseRaceForApi(input: RaceInput): Record<string, unknown> {
+function parseRaceForApi(input: RaceInput, worldId?: string): Record<string, unknown> {
+  const effectiveWorldId = worldId || input.world_id;
+  if (!effectiveWorldId) {
+    throw new Error("world_id is required but not provided");
+  }
+
   const equipmentSlots: string[] = [...input.equipment_slots];
   const tags: string[] = [...input.tags];
   const reqTags: string[] = [...input.requirement_tags];
@@ -44,6 +52,7 @@ function parseRaceForApi(input: RaceInput): Record<string, unknown> {
     requirement_tags: reqTags,
     color: input.color,
     tags: tags,
+    world_id: effectiveWorldId,
   };
   if (input.stat_modifiers.trim()) {
     body.stat_modifiers = input.stat_modifiers;
@@ -52,10 +61,13 @@ function parseRaceForApi(input: RaceInput): Record<string, unknown> {
 }
 
 export function useRaces() {
+  const { currentWorld } = useWorldStore();
+
   return useQuery({
-    queryKey: ["races"],
+    queryKey: ["races", currentWorld],
     queryFn: async (): Promise<Race[]> => {
-      const data = await apiGet<Race[]>(API);
+      const url = currentWorld && currentWorld !== "default" ? `${API}?world_id=${currentWorld}` : API;
+      const data = await apiGet<Race[]>(url);
       return Array.isArray(data) ? data : [];
     },
   });
@@ -63,27 +75,38 @@ export function useRaces() {
 
 export function useCreateRace() {
   const qc = useQueryClient();
+  const { currentWorld } = useWorldStore();
   return useMutation({
-    mutationFn: (input: RaceInput) =>
-      apiPost<Race>(API, parseRaceForApi(input)),
+    mutationFn: (input: RaceInput) => {
+      const worldId = currentWorld || input.world_id || "1";
+      return apiPost<Race>(`${API}?world_id=${encodeURIComponent(worldId)}`, parseRaceForApi(input, worldId));
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["races"] }),
   });
 }
 
 export function useUpdateRace() {
   const qc = useQueryClient();
+  const { currentWorld } = useWorldStore();
   return useMutation({
-    mutationFn: ({ id, input }: { id: number; input: RaceInput }) =>
-      apiPut<Race>(`${API}/${id}`, parseRaceForApi(input)),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["races"] }),
+    mutationFn: ({ id, input }: { id: number; input: RaceInput }) => {
+      const worldId = input.world_id || currentWorld || "1";
+      return apiPut<Race>(`${API}/${id}?world_id=${encodeURIComponent(worldId)}`, parseRaceForApi(input, worldId));
+    },
+    onSuccess: (_, variables) => {
+      const worldId = variables.input.world_id || currentWorld || "1";
+      qc.invalidateQueries({ queryKey: ["races", worldId] });
+    },
   });
 }
 
 export function useDeleteRace() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => apiDelete(`${API}/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["races"] }),
+    mutationFn: (race: Race) => apiDelete(`${API}/${race.id}`),
+    onSuccess: (_, race) => {
+      qc.invalidateQueries({ queryKey: ["races", race.world_id] });
+    },
   });
 }
 
