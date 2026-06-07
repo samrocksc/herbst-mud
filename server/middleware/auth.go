@@ -134,6 +134,22 @@ func AdminMiddleware() gin.HandlerFunc {
 	}
 }
 
+// WorldIDRequiredMiddleware validates that world_id query parameter is present
+// Returns 400 error if missing. Only enforced for mutating methods (POST/PUT/PATCH/DELETE).
+func WorldIDRequiredMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Query("world_id") == "" {
+			// GET requests (list/read) can omit world_id
+			if c.Request.Method != "GET" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "world_id query parameter is required"})
+				c.Abort()
+				return
+			}
+		}
+		c.Next()
+	}
+}
+
 // WorldAccessMiddleware checks if the user has access to a specific world
 // Must be used after AuthMiddleware
 func WorldAccessMiddleware() gin.HandlerFunc {
