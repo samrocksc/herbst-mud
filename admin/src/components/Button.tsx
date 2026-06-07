@@ -42,7 +42,7 @@ export function Button({
   size = "md",
   fullWidth = false,
   className = "",
-  disabled,
+  disabled = false,
   ...rest
 }: ButtonProps) {
   const classes = [
