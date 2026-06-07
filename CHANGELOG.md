@@ -1,3 +1,4 @@
-- [db8eeb9](http://github.com/samrocksc/herbst-mud/commit/db8eeb9ca5ec732d738dbde85d47cf9223ae5f57) - feat(admin): add recipes.new.tsx create form — fixes #428
-- [6343640](http://github.com/samrocksc/herbst-mud/commit/63436402b9a5758b2386978d66d49428ce7081d1) - chore: auto-update CHANGELOG.md
+- [a59c586](http://github.com/samrocksc/herbst-mud/commit/a59c5862d888c71ec575c9704911c62c148b98e0) - fix(admin): wire factions '+ Add Faction' button to show create form — fixes #429
+- [64b6cfb](http://github.com/samrocksc/herbst-mud/commit/64b6cfbf79343ec9ace24ac1e3f90e5764a77e23) - fix(admin): handle world_id=default in races query — fixes #426
+- [bbb9771](http://github.com/samrocksc/herbst-mud/commit/bbb97715588f7beef7e3ff341aaeb1281b5ab562) - chore: auto-update CHANGELOG.md
 
