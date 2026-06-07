@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type RoomScreenPayload } from "../lib/types";
+import { type RoomScreenPayload, type RoomCharacter, type RoomItem } from "../lib/types";
 import { ActionExpand, type EntityAction } from "../ui";
 
 type Props = {
@@ -10,7 +10,7 @@ type Props = {
   onToggleExpand: (id: string) => void;
   pendingTargets: Set<number>;
   onTogglePending: (id: number) => void;
-  onConfirmAttack: (char: RoomScreenPayload["characters"][number]) => void;
+  onConfirmAttack: (char: RoomCharacter) => void;
 };
 
 export default function RoomScreen({
@@ -25,19 +25,19 @@ export default function RoomScreen({
 }: Props) {
   const [descHidden, setDescHidden] = useState(false);
 
-  const characterActions = (char: RoomScreenPayload["characters"][number]): EntityAction[] => {
+  const characterActions = (char: RoomCharacter): EntityAction[] => {
     const actions: EntityAction[] = [];
     if (char.hostile) {
       if (pendingTargets.has(char.id)) {
-        actions.push({ label: "Confirm", variant: "danger", onClick: () => onConfirmAttack(char) });
+        actions.push({ label: "Confirm", variant: "danger", onClick: () => onConfirmAttack(char), keepOpen: true });
       } else {
-        actions.push({ label: "Attack", variant: "danger", onClick: () => onTogglePending(char.id) });
+        actions.push({ label: "Attack", variant: "danger", onClick: () => onTogglePending(char.id), keepOpen: true });
       }
     } else {
       if (pendingTargets.has(char.id)) {
-        actions.push({ label: "Confirm", variant: "danger", onClick: () => onConfirmAttack(char) });
+        actions.push({ label: "Confirm", variant: "danger", onClick: () => onConfirmAttack(char), keepOpen: true });
       } else {
-        actions.push({ label: "Attack", variant: "danger", onClick: () => onTogglePending(char.id) });
+        actions.push({ label: "Attack", variant: "danger", onClick: () => onTogglePending(char.id), keepOpen: true });
       }
       actions.push({ label: "Talk", variant: "success", onClick: () => onCommand(`talk ${char.name}`) });
     }
@@ -45,7 +45,7 @@ export default function RoomScreen({
     return actions;
   };
 
-  const itemActions = (item: RoomScreenPayload["items"][number]): EntityAction[] => {
+  const itemActions = (item: RoomItem): EntityAction[] => {
     const actions: EntityAction[] = [
       { label: "Examine", variant: "secondary", onClick: () => onCommand(`examine ${item.name}`) },
     ];
@@ -78,7 +78,7 @@ export default function RoomScreen({
         {/* Top Left: Characters */}
         <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "154px" }}>
           <div className="text-[10px] text-muted mb-1 uppercase tracking-wider">Characters</div>
-          {room.characters.length > 0 ? (
+          {room.characters?.length ? (
             <div className="flex gap-2 flex-wrap">
               {room.characters.map((char) => (
                 <ActionExpand
@@ -99,7 +99,7 @@ export default function RoomScreen({
         {/* Top Right: Exits */}
         <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "154px" }}>
           <div className="text-[10px] text-muted mb-1 uppercase tracking-wider">Exits</div>
-          {room.exits.length > 0 ? (
+          {room.exits?.length ? (
             <div className="flex gap-2 flex-wrap">
               {room.exits.map((exit) => (
                 <button
@@ -120,7 +120,7 @@ export default function RoomScreen({
         {/* Bottom Left: Items */}
         <div className="bg-surface p-2 overflow-y-auto" style={{ maxHeight: "200px" }}>
           <div className="text-[10px] text-muted mb-1 uppercase tracking-wider">Items</div>
-          {room.items.length > 0 ? (
+          {room.items?.length ? (
             <div className="flex gap-2 flex-wrap">
               {room.items.map((item) => (
                 <ActionExpand
@@ -155,6 +155,13 @@ export default function RoomScreen({
             >
               <span className="font-bold text-accent">E</span>
               <span className="text-muted">examine</span>
+            </button>
+            <button
+              onClick={() => onCommand("fight")}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded border border-border text-[11px] font-mono hover:bg-surface-alt active:bg-accent active:text-background transition-colors"
+            >
+              <span className="font-bold text-accent">F</span>
+              <span className="text-muted">fight</span>
             </button>
           </div>
         </div>

@@ -5,6 +5,7 @@ export type EntityAction = {
   readonly label: string;
   readonly variant?: "primary" | "secondary" | "ghost" | "danger" | "success" | "warning" | "info";
   readonly onClick: () => void;
+  readonly keepOpen?: boolean;
 };
 
 type ActionExpandProps = {
@@ -101,8 +102,10 @@ export function ActionExpand({
               onClick={(e) => {
                 e.stopPropagation();
                 a.onClick();
-                if (onToggle) onToggle();
-                else setOpen(false);
+                if (!a.keepOpen) {
+                  if (onToggle) onToggle();
+                  else setOpen(false);
+                }
               }}
             >
               {a.label}
