@@ -71,6 +71,7 @@ const TARGET_OPTS = [
 ];
 
 const SCALING_STAT_OPTS = [
+  { value: "", label: "— None —" },
   { value: "strength", label: "Strength" },
   { value: "dexterity", label: "Dexterity" },
   { value: "constitution", label: "Constitution" },
@@ -190,21 +191,23 @@ export function CreateAbilityPage() {
           <TextareaField label="Description" value={formData.description} onChange={(v) => set({ description: v })} rows={3} />
 
           <h3 className="text-text font-semibold mt-6 mb-4">Costs & Cooldown</h3>
+          <p className="text-xs text-muted mb-4">Active abilities cost mana, stamina, or HP to use. Set to 0 for abilities that don't consume resources.</p>
           <div className="grid grid-cols-3 gap-4">
-            <NumberField label="Cost" value={formData.cost} onChange={(v) => set({ cost: v })} />
-            <NumberField label="Cooldown (s)" value={formData.cooldown_seconds} onChange={(v) => set({ cooldown_seconds: v })} />
-            <FormField label="Unlock Tags (JSON)" value={formData.requirements} onChange={(v) => set({ requirements: v })} placeholder='{"tags":["level:5"]}' />
+            <NumberField label="Cost" tooltip="Legacy skill-point cost to learn/unlearn. Ignore for modern abilities — use mana/stamina/HP cost instead." value={formData.cost} onChange={(v) => set({ cost: v })} />
+            <NumberField label="Cooldown (s)" tooltip="Cooldown in seconds before the ability can be used again. 0 = no cooldown." value={formData.cooldown_seconds} onChange={(v) => set({ cooldown_seconds: v })} />
+            <FormField label="Unlock Tags (JSON)" tooltip="JSON prerequisites for unlocking this ability. Example: tags level:5 means the character must be level 5 or higher." value={formData.requirements} onChange={(v) => set({ requirements: v })} placeholder='{"tags":["level:5"]}' />
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <NumberField label="Mana Cost" value={formData.mana_cost} onChange={(v) => set({ mana_cost: v })} />
-            <NumberField label="Stamina Cost" value={formData.stamina_cost} onChange={(v) => set({ stamina_cost: v })} />
-            <NumberField label="HP Cost" value={formData.hp_cost} onChange={(v) => set({ hp_cost: v })} />
+            <NumberField label="Mana Cost" tooltip="Mana points consumed when using this ability. Use for magical abilities." value={formData.mana_cost} onChange={(v) => set({ mana_cost: v })} />
+            <NumberField label="Stamina Cost" tooltip="Stamina points consumed when using this ability. Use for physical abilities." value={formData.stamina_cost} onChange={(v) => set({ stamina_cost: v })} />
+            <NumberField label="HP Cost" tooltip="HP sacrificed to use the ability. Use for blood magic or self-damaging abilities." value={formData.hp_cost} onChange={(v) => set({ hp_cost: v })} />
           </div>
 
           <h3 className="text-text font-semibold mt-6 mb-4">Proc Settings</h3>
+          <p className="text-xs text-muted mb-4">Proc Settings are for passive abilities that trigger automatically based on combat events. Leave both at 0/empty for active abilities.</p>
           <div className="grid grid-cols-2 gap-4">
-            <NumberField label="Proc Chance (0–1)" value={formData.proc_chance} onChange={(v) => set({ proc_chance: v })} step={0.01} />
-            <FormField label="Proc Event" value={formData.proc_event} onChange={(v) => set({ proc_event: v })} placeholder="e.g., on_hit, on_crit" />
+            <NumberField label="Proc Chance (0–1)" tooltip="For passives: probability of triggering on each relevant event. 0.15 = 15% chance. Active abilities should use 0." value={formData.proc_chance} onChange={(v) => set({ proc_chance: v })} step={0.01} />
+            <FormField label="Proc Event" tooltip="Combat event that triggers this passive: on_hit (when you hit), on_hit_received (when you're hit), on_crit, on_kill. Empty for active abilities." value={formData.proc_event} onChange={(v) => set({ proc_event: v })} placeholder="e.g., on_hit, on_kill" />
           </div>
 
           <h3 className="text-text font-semibold mt-6 mb-4">Combat Messages</h3>
@@ -231,7 +234,11 @@ export function CreateAbilityPage() {
               <SelectField label="Target" value={currentEffect.target} onChange={(v) => setEffect({ target: v })} options={TARGET_OPTS} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SelectField label="Damage Type (if applicable)" value={currentEffect.damage_subtype} onChange={(v) => setEffect({ damage_subtype: v })} options={DAMAGE_SUBTYPE_OPTS} />
+              {(currentEffect.effect_type === "damage" || currentEffect.effect_type === "dot") ? (
+                <SelectField label="Damage Type" value={currentEffect.damage_subtype} onChange={(v) => setEffect({ damage_subtype: v })} options={DAMAGE_SUBTYPE_OPTS} />
+              ) : (
+                <div />
+              )}
               <NumberField label="Value / Amount" value={currentEffect.value} onChange={(v) => setEffect({ value: v })} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
