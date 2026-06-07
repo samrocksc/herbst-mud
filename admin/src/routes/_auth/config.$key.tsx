@@ -1,7 +1,6 @@
 /* eslint-disable functional/prefer-immutable-types */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "../../components/Button";
 import { TextareaField, FormError } from "../../components/FormFields";
 import { FieldLabel } from "../../components/fields/FieldLabel";
@@ -47,17 +46,15 @@ function ConfigDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    apiGet<GameConfig[]>("/api/game-configs")
-      .then((configs) => {
-        const found = configs.find((c) => c.key === key);
-        if (found) {
-          setConfig(found);
-          setValue(found.value);
-        } else {
-          setError(`Config "${key}" not found`);
-        }
+    apiGet<GameConfig>(`/api/game-configs/${key}`)
+      .then((config) => {
+        setConfig(config);
+        setValue(config.value);
       })
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load config"))
+      .catch((e) => {
+        const msg = e instanceof Error ? e.message : "Failed to load config";
+        setError(`Config "${key}" not found: ${msg}`);
+      })
       .finally(() => setLoading(false));
   }, [key]);
 
