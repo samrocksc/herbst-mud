@@ -132,8 +132,10 @@ export function CreateTriggerPage() {
       await createTrigger.mutateAsync(payload);
       showToast("Trigger created", "success");
       navigate({ to: "/triggers" });
-    } catch {
-      // Error is toasted by global onError handler
+    } catch (err) {
+      console.error("Trigger creation error:", err);
+      const message = err instanceof Error ? err.message : "Failed to create trigger";
+      showToast(message, "error");
     } finally {
       setSubmitting(false);
     }

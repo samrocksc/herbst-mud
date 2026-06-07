@@ -9,6 +9,7 @@ import {
 import { Button } from "../../components/Button";
 import { FormField, NumberField } from "../../components/FormFields";
 import { FormError } from "../../components/fields/FormError";
+import { showToast } from "../../components/Toast";
 
 const DEFAULT_THRESHOLDS: CompetencyThresholdInput[] = [
   { level: 1, xp_required: 0, damage_multiplier: 1.0, defense_multiplier: 1.0 },
@@ -56,7 +57,11 @@ export function SkillForm({ category, onSubmit, onCancel }: Props) {
         await createMutation.mutateAsync({ id, name, xp_multiplier: xpMult, thresholds });
       }
       onSubmit();
-    } catch { /* error is in mutation state */ }
+    } catch (err) {
+      console.error("Skill save error:", err);
+      const message = err instanceof Error ? err.message : "Failed to save skill";
+      showToast(message, "error");
+    }
   };
 
   return (

@@ -32,7 +32,11 @@ function SocialCreatePage() {
       await createMutation.mutateAsync(formData);
       showToast("Social created", "success");
       navigate({ to: "/socials" });
-    } catch { /* toasted globally */ }
+    } catch (err) {
+      console.error("Social creation error:", err);
+      const message = err instanceof Error ? err.message : "Failed to create social";
+      showToast(message, "error");
+    }
   };
 
   return (
