@@ -56,7 +56,8 @@ func (r *entCharacterRepo) ListAll(ctx context.Context) ([]*db.Character, error)
 }
 
 func (r *entCharacterRepo) ListAllByWorld(ctx context.Context, worldID string) ([]*db.Character, error) {
-	query := r.client.Character.Query()
+	query := r.client.Character.Query().
+		Where(character.IsNPCEQ(true))
 	if worldID != "" {
 		query = query.Where(character.CurrentWorldEQ(worldID))
 	}

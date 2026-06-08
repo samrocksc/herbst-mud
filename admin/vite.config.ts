@@ -17,6 +17,7 @@ export default defineConfig({
     },
     proxy: {
       // All API routes — frontend calls /api/*, backend serves /api/*
+      // Note: /api/proxy matches /api/equipment-templates, /api/item-instances, etc.
       "/api": {
         target: "http://localhost:8080",
         changeOrigin: true,
@@ -29,14 +30,26 @@ export default defineConfig({
         target: "http://localhost:8080",
         changeOrigin: true,
         bypass(req) {
-          // Only proxy exact /npcs when NOT requesting HTML (API data fetch);
-          // SPA page load sends Accept: text/html → serve index.html
+          // SPA page loads send Accept: text/html → serve SPA entrypoint
+          // API requests (JSON) are proxied to backend
           const accept = req.headers.accept ?? "";
-          if (accept.includes("text/html")) return "/index.html";
-          if (req.url !== "/npcs") return "/index.html";
+          if (accept.includes("text/html")) return "./index.html";
+          // Allow /npcs and /npcs?world_id=X through to backend.
+          // Only block sub-paths like /npcs/room/1 or /npcs/something/else.
+          if (!req.url.startsWith("/npcs")) return "./index.html";
+          if (req.url.startsWith("/npcs/")) return "./index.html";
         },
       },
-      "/characters": "http://localhost:8080",
+      "/characters": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        bypass(req) {
+          // SPA page loads send Accept: text/html → serve SPA entrypoint
+          // API requests (JSON) are proxied to backend
+          const accept = req.headers.accept ?? "";
+          if (accept.includes("text/html")) return "./index.html";
+        },
+      },
       "/equipment": "http://localhost:8080",
       "/skills": {
         target: "http://localhost:8080",
@@ -45,7 +58,7 @@ export default defineConfig({
           // /skills is also a sidebar SPA page.
           // API data fetch → no text/html Accept; SPA page load → text/html.
           const accept = req.headers.accept ?? "";
-          if (accept.includes("text/html")) return "/index.html";
+          if (accept.includes("text/html")) return "./index.html";
         },
       },
       // Auth endpoint
