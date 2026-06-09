@@ -18,6 +18,7 @@ func RegisterRaceRoutes(r *gin.Engine, repos *repository.Container, client *db.C
 	races := r.Group("/api/races")
 	races.Use(middleware.AuthMiddleware(nil))
 	races.Use(middleware.AdminMiddleware())
+	races.Use(middleware.WorldIDRequiredMiddleware())
 	{
 		races.GET("", listRaces(repos))
 		races.GET("/:id", getRace(repos))
@@ -31,10 +32,25 @@ func RegisterRaceRoutes(r *gin.Engine, repos *repository.Container, client *db.C
 // listRaces returns all races for the specified world.
 func listRaces(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Default to world "1" if not specified
-		worldID := c.Query("world_id")
-		if worldID == "" {
-			worldID = "1"
+		queryID := c.Query("world_id")
+		// Empty / "default" / non-numeric values are treated as world 1 (dev default).
+		// "default" is the UI sentinel for an unconfigured world context.
+		if queryID == "" || queryID == "default" {
+			queryID = "1"
+		}
+		// Check if queryID is a numeric ID or a world name
+		var worldID string
+		if _, err := strconv.Atoi(queryID); err == nil {
+			worldID = queryID
+		} else {
+			// Look up world by name to get the numeric ID
+			world, err := repos.World.GetByName(c.Request.Context(), queryID)
+			if err != nil {
+				c.JSON(http.StatusNotFound, gin.H{"error": "world not found"})
+				return
+			} else {
+				worldID = strconv.Itoa(world.ID)
+			}
 		}
 		races, err := repos.Race.ListWithTags(c.Request.Context(), worldID)
 		if err != nil {

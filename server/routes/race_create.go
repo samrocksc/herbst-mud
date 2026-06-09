@@ -55,7 +55,7 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 		// Resolve tag names to IDs
 		var tagIDs []int
 		if len(req.Tags) > 0 {
-			tagIDs, err = resolveTagIDs(c, client, req.Tags)
+			tagIDs, err = resolveTagIDs(c, client, req.Tags, req.WorldID)
 			if err != nil {
 				slog.Warn("bad request", slog.String("service", "races"), slog.String("reason", err.Error()))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -85,12 +85,17 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 }
 
 // resolveTagIDs resolves tag names to IDs, creating tags that don't exist yet.
+// Tags created here are scoped to the given worldID so they appear in the
+// admin Tags page for that world (instead of leaking into world 1).
 // TODO: Move tag resolution to TagRepo
-func resolveTagIDs(c *gin.Context, client *db.Client, names []string) ([]int, error) {
+func resolveTagIDs(c *gin.Context, client *db.Client, names []string, worldID string) ([]int, error) {
 	if len(names) == 0 {
 		return nil, nil
 	}
-	existing, err := client.Tag.Query().Where(tag.NameIn(names...)).All(c.Request.Context())
+	if worldID == "" {
+		worldID = "1"
+	}
+	existing, err := client.Tag.Query().Where(tag.NameIn(names...), tag.WorldID(worldID)).All(c.Request.Context())
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +109,7 @@ func resolveTagIDs(c *gin.Context, client *db.Client, names []string) ([]int, er
 	}
 	for _, name := range names {
 		if !existingNames[name] {
-			created, err := client.Tag.Create().SetName(name).Save(c.Request.Context())
+			created, err := client.Tag.Create().SetName(name).SetWorldID(worldID).Save(c.Request.Context())
 			if err != nil {
 				return nil, err
 			}

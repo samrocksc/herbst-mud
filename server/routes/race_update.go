@@ -63,7 +63,11 @@ func updateRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 		}
 
 		if req.Tags != nil {
-			tagIDs, err := resolveTagIDs(c, client, req.Tags)
+			worldID := "1"
+			if req.WorldID != nil {
+				worldID = *req.WorldID
+			}
+			tagIDs, err := resolveTagIDs(c, client, req.Tags, worldID)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return

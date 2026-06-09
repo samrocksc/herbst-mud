@@ -66,7 +66,10 @@ export function useRaces() {
   return useQuery({
     queryKey: ["races", currentWorld],
     queryFn: async (): Promise<Race[]> => {
-      const url = currentWorld && currentWorld !== "default" ? `${API}?world_id=${currentWorld}` : API;
+      // Always pass world_id — backend defaults to "1" for empty/"default" but
+      // some routes (e.g. /api/races) return 404 if world_id is missing entirely.
+      const worldId = currentWorld && currentWorld !== "default" ? currentWorld : "1";
+      const url = `${API}?world_id=${encodeURIComponent(worldId)}`;
       const data = await apiGet<Race[]>(url);
       return Array.isArray(data) ? data : [];
     },

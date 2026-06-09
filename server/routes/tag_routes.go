@@ -60,7 +60,9 @@ type tagUsageReport struct {
 func listTags(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		worldID := c.Query("world_id")
-		if worldID == "" {
+		// "default" is the UI sentinel for an unconfigured world context;
+		// treat it as world 1 (the only world with data in dev).
+		if worldID == "" || worldID == "default" {
 			worldID = "1"
 		}
 		tags, err := repos.Tag.List(c.Request.Context(), worldID)
@@ -99,8 +101,9 @@ func createTag(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 		}
 
 		t, err := repos.Tag.Create(c.Request.Context(), repository.CreateTagInput{
-			Name:  input.Name,
-			Color: input.Color,
+			Name:     input.Name,
+			Color:    input.Color,
+			WorldID:  input.WorldID,
 		})
 		if err != nil {
 			dblog.Error("failed to create tag", err, slog.String("service", "tags"), slog.String("name", input.Name))
@@ -108,7 +111,7 @@ func createTag(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 			return
 		}
 		slog.Info("tag created", slog.String("service", "tags"), slog.Int("tag_id", t.ID), slog.String("name", input.Name), slog.String("world_id", input.WorldID))
-		c.JSON(http.StatusCreated, tagView{ID: t.ID, Name: t.Name, Color: t.Color, WorldID: input.WorldID})
+		c.JSON(http.StatusCreated, tagView{ID: t.ID, Name: t.Name, Color: t.Color, WorldID: t.WorldID})
 	}
 }
 
@@ -124,8 +127,9 @@ func updateTag(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 		}
 
 		var input struct {
-			Name  *string `json:"name"`
-			Color *string `json:"color"`
+			Name    *string `json:"name"`
+			Color   *string `json:"color"`
+			WorldID *string `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
 			slog.Warn("invalid update tag request", slog.String("service", "tags"), slog.String("error", err.Error()))
@@ -134,8 +138,9 @@ func updateTag(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 		}
 
 		t, err := repos.Tag.Update(c.Request.Context(), id, repository.TagUpdates{
-			Name:  input.Name,
-			Color: input.Color,
+			Name:    input.Name,
+			Color:   input.Color,
+			WorldID: input.WorldID,
 		})
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})

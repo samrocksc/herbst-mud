@@ -77,7 +77,7 @@ export function TagUsagesPanel({
         </div>
       )}
 
-      <UsageSection label="Skills" items={report.abilities} badgeClass="badge-accent" hrefPrefix="abilities" />
+      <UsageSection label="Abilities" items={report.abilities} badgeClass="badge-accent" hrefPrefix="abilities" />
       <UsageSection label="Factions" items={report.factions} badgeClass="badge-primary" hrefPrefix="factions" />
       <UsageSection label="Characters" items={report.characters} badgeClass="badge-success" hrefPrefix="characters" />
     </div>
@@ -97,7 +97,7 @@ export function TagUsagesPanelInline({
   return (
     <div className="p-3 bg-surface-muted/50 rounded">
       {!hasUsages && <p className="text-muted text-sm m-0">This tag is orphaned — no entities reference it.</p>}
-      <UsageSection label="Skills" items={report.abilities} badgeClass="badge-accent" hrefPrefix="abilities" />
+      <UsageSection label="Abilities" items={report.abilities} badgeClass="badge-accent" hrefPrefix="abilities" />
       <UsageSection label="Factions" items={report.factions} badgeClass="badge-primary" hrefPrefix="factions" />
       <UsageSection label="Characters" items={report.characters} badgeClass="badge-success" hrefPrefix="characters" />
     </div>

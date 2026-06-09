@@ -35,6 +35,11 @@ func (r *entTagRepo) Create(ctx context.Context, input CreateTagInput) (*db.Tag,
 	if input.Color != "" {
 		builder = builder.SetColor(input.Color)
 	}
+	if input.WorldID != "" {
+		builder = builder.SetWorldID(input.WorldID)
+	} else {
+		builder = builder.SetWorldID("1")
+	}
 	return builder.Save(ctx)
 }
 
@@ -45,6 +50,9 @@ func (r *entTagRepo) Update(ctx context.Context, id int, updates TagUpdates) (*d
 	}
 	if updates.Color != nil {
 		builder = builder.SetColor(*updates.Color)
+	}
+	if updates.WorldID != nil && *updates.WorldID != "" {
+		builder = builder.SetWorldID(*updates.WorldID)
 	}
 	return builder.Save(ctx)
 }

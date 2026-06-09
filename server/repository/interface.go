@@ -272,6 +272,7 @@ type GenderRepo interface {
 	GetByName(ctx context.Context, name string) (*db.Gender, error)
 	GetByWorld(ctx context.Context, name, worldID string) (*db.Gender, error)
 	List(ctx context.Context, worldID string) ([]*db.Gender, error)
+	ListPlayable(ctx context.Context, worldID string) ([]*Gender, error)
 	Create(ctx context.Context, input CreateGenderInput) (*db.Gender, error)
 	Update(ctx context.Context, id int, updates GenderUpdates) (*db.Gender, error)
 	Delete(ctx context.Context, id int) error
@@ -571,43 +572,47 @@ type NPCTemplateUpdates struct {
 }
 
 type CreateAbilityInput struct {
-	Name             string
-	Description      string
-	AbilityType     string
-	AbilityClass    string
-	Cost             int
-	Cooldown         int
-	ManaCost         int
-	StaminaCost      int
-	HPCost           int
-	Requirements     string
-	RequiredTag      string
-	ProcChance       float64
-	ProcEvent        string
-	CooldownSeconds  int
-	Slug             string
-	FactionID        *int
-	WorldID          string
+	Name              string
+	Description       string
+	AbilityType       string
+	AbilityClass      string
+	Cost              int
+	Cooldown          int
+	ManaCost          int
+	StaminaCost       int
+	HPCost            int
+	Requirements      string
+	RequiredTag       string
+	ProcChance        float64
+	ProcEvent         string
+	CooldownSeconds   int
+	Slug              string
+	CasterMessage     string
+	RecipientMessage  string
+	FactionID         *int
+	WorldID           string
 }
 
 type AbilityUpdates struct {
-	Name            *string
-	Description     *string
-	AbilityType    *string
-	AbilityClass   *string
-	Cost            *int
-	Cooldown        *int
-	ManaCost        *int
-	StaminaCost     *int
-	HPCost          *int
-	Requirements    *string
-	RequiredTag     *string
-	ProcChance      *float64
-	ProcEvent       *string
-	CooldownSeconds *int
-	Slug            *string
-	FactionID       *int
-	WorldID         *string
+	Name              *string
+	Description       *string
+	AbilityType       *string
+	AbilityClass      *string
+	Cost              *int
+	Cooldown          *int
+	ManaCost          *int
+	StaminaCost       *int
+	HPCost            *int
+	Requirements      *string
+	RequiredTag       *string
+	ProcChance        *float64
+	ProcEvent         *string
+	CooldownSeconds   *int
+	Slug              *string
+	CasterMessage     *string
+	RecipientMessage  *string
+	FactionID         *int
+	WorldID           *string
 }
 
 type CreateEffectInput struct {
@@ -718,13 +723,15 @@ type FactionUpdates struct {
 }
 
 type CreateTagInput struct {
-	Name  string
-	Color string
+	Name     string
+	Color    string
+	WorldID  string
 }
 
 type TagUpdates struct {
-	Name  *string
-	Color *string
+	Name    *string
+	Color   *string
+	WorldID *string
 }
 
 type CreateAchievementInput struct {
