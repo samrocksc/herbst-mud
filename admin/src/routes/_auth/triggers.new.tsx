@@ -16,38 +16,43 @@ import {
 import { showToast } from "../../components/Toast";
 import { PageContainer } from "../../components/PageContainer";
 import { useWorldStore } from "../../contexts/WorldStoreContext";
-import { useWorlds } from "../../hooks/useWorlds";
 import { ResourceIdField } from "../../components/ResourceIdField";
 import { useNPCTemplates } from "../../hooks/useNPCTemplates";
 import { useDialogNodes, useCreateDialogNode, type DialogNodeInput } from "../../hooks/useDialogNodes";
 import { SearchableSelect } from "../../components/SearchableSelect";
-import { DialogTreeEditor } from "../../components/DialogTreeEditor";
-
 export const Route = createFileRoute("/_auth/triggers/new")({
   component: CreateTriggerPage,
 });
 
 const TRIGGER_TYPE_OPTS = [
-  { value: "use", label: "Use" },
-  { value: "touch", label: "Touch" },
-  { value: "press", label: "Press" },
-  { value: "enter", label: "Enter Room" },
-  { value: "examine", label: "Examine" },
-  { value: "talk", label: "Talk" },
+  { value: "use",     label: "Use — items, switches, doors" },
+  { value: "touch",   label: "Touch — surface interaction" },
+  { value: "press",   label: "Press — buttons, levers" },
+  { value: "enter",   label: "Enter Room — on room entry" },
+  { value: "examine", label: "Examine — detailed inspection" },
+  { value: "talk",    label: "Talk — NPC conversation" },
 ];
 
 const TARGET_TYPE_OPTS = [
-  { value: "recipe", label: "Recipe" },
-  { value: "effect", label: "Effect" },
+  { value: "recipe",      label: "Recipe" },
+  { value: "effect",      label: "Effect" },
   { value: "dialog_node", label: "Dialog Node" },
 ];
+
+const TRIGGER_HELP: Record<string, string> = {
+  use: "Fires when a player uses an item or interacts with an object in a room.",
+  touch: "Fires when a player touches a surface or object.",
+  press: "Fires when a player presses a button or lever.",
+  enter: "Fires automatically when a player enters the specified room.",
+  examine: "Fires when a player examines an object. Use examine_weight to control reveal order.",
+  talk: "Fires when a player starts a conversation with the linked NPC. Requires dialog node configuration.",
+};
 
 export function CreateTriggerPage() {
   const navigate = useNavigate();
   const createTrigger = useCreateTrigger();
   const createDialogNode = useCreateDialogNode();
   const { currentWorld } = useWorldStore();
-  const { data: worlds } = useWorlds();
   const { data: npcTemplates } = useNPCTemplates();
 
   const [formData, setFormData] = useState<TriggerInput>({
@@ -80,26 +85,6 @@ export function CreateTriggerPage() {
   const npcOptions = (npcTemplates ?? []).map((t) => ({ id: t.id, name: t.name }));
 
   const entryNodeOptions = entryNodes.map((n) => ({ id: n.id, name: `${n.id} — "${n.npc_text.slice(0, 30)}"` }));
-
-  const handleApplyTalkMode = (): string | null => {
-    if (talkMode === "existing") {
-      if (!selectedEntryNodeId) {
-        showToast("Select an entry dialog node", "error");
-        return null;
-      }
-      return selectedEntryNodeId;
-    }
-    if (createdNodes.length === 0) {
-      showToast("Create at least one entry node in the dialog tree", "error");
-      return null;
-    }
-    const entryNode = createdNodes.find((n) => n.is_entry);
-    if (!entryNode) {
-      showToast("Mark one node as the entry node", "error");
-      return null;
-    }
-    return entryNode.id || null;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,22 +133,20 @@ export function CreateTriggerPage() {
       <PageHeader title="Create Trigger" showBack backTo="/triggers" />
       <div className="card bg-surface p-6 border border-border rounded">
         <form onSubmit={handleSubmit} className="space-y-4">
+          <p className="text-xs text-text-muted mb-2">
+            World is automatically set to <code className="text-text">{currentWorld}</code>. Switch worlds via the dashboard dropdown.
+          </p>
+
           <h3 className="text-text font-semibold mb-4">Basic Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Name *" value={formData.name} onChange={(v) => set({ name: v })} required />
-            <SelectField
-              label="World *"
-              value={formData.world_id}
-              onChange={(v) => set({ world_id: v })}
-              options={(worlds || []).map(w => ({ value: String(w.id), label: w.name }))}
-            />
             <SelectField label="Trigger Type" value={formData.trigger_type} onChange={(v) => set({ trigger_type: v })} options={TRIGGER_TYPE_OPTS} />
             {!isTalk && (
               <SelectField label="Target Type" value={formData.target_type} onChange={(v) => set({ target_type: v })} options={TARGET_TYPE_OPTS} />
             )}
             {!isTalk && (
               <ResourceIdField
-                label="Target ID *"
+                label={formData.target_type === "recipe" ? "Recipe ID *" : formData.target_type === "effect" ? "Effect ID *" : "Target ID *"}
                 value={formData.target_id}
                 onChange={(v) => set({ target_id: v != null ? String(v) : "" })}
                 resourceType="targets"
@@ -173,6 +156,15 @@ export function CreateTriggerPage() {
             )}
           </div>
 
+          {/* Help section for selected trigger type */}
+          <div className="bg-surface-muted border border-border rounded p-3">
+            <p className="text-xs text-text-muted leading-relaxed">{TRIGGER_HELP[formData.trigger_type] || "No description available for this trigger type."}</p>
+            {formData.trigger_type === "examine" && formData.examine_weight > 0 && (
+              <p className="text-xs text-warning mt-1">Weight {formData.examine_weight}: requires examine skill ≥ {formData.examine_weight} to reveal.</p>
+            )}
+          </div>
+
+          {/* Talk trigger section */}
           {isTalk && (
             <div className="space-y-4 mt-4 p-4 bg-surface-muted rounded border border-border">
               <h3 className="text-text font-semibold mt-0 mb-2">Talk Trigger Configuration</h3>
@@ -241,7 +233,26 @@ export function CreateTriggerPage() {
             </div>
           )}
 
+          {/* Preview */}
+          {!isTalk && formData.target_id && (
+            <div className="bg-surface-muted border border-border rounded p-3">
+              <p className="text-xs text-text-muted font-medium uppercase tracking-wider mb-1">Trigger Preview</p>
+              <p className="text-sm text-text">
+                On <span className="text-primary font-medium">{formData.trigger_type}</span> →
+                <span className="text-accent font-medium ml-1">{formData.target_type}</span>
+                <code className="ml-1 text-xs bg-surface px-1 py-0.5 rounded">{formData.target_id}</code>
+                {formData.room_id != null && (
+                  <span className="ml-1 text-text-muted">in room <code className="text-xs bg-surface px-1 py-0.5 rounded">{formData.room_id}</code></span>
+                )}
+                {formData.condition && (
+                  <span className="ml-1 text-text-muted text-xs">(if {formData.condition})</span>
+                )}
+              </p>
+            </div>
+          )}
+
           <h3 className="text-text font-semibold mt-6 mb-4">Target Object</h3>
+          <p className="text-xs text-text-muted -mt-2 mb-2">Optional — bind this trigger to a specific room or equipment item. Leave empty for global triggers.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ResourceIdField
               label="Room ID (optional)"
@@ -266,7 +277,7 @@ export function CreateTriggerPage() {
               value={formData.examine_weight ?? 0}
               onChange={(v) => set({ examine_weight: v })}
               placeholder="0 = always fires"
-              tooltip="Examine tier threshold - higher values require more examine skill to reveal. 0 = always visible."
+              tooltip="Examine tier threshold — higher values require more examine skill to reveal. 0 = always visible."
             />
             <div>
               <TextareaField label="Condition (SPICE expression, optional)" value={formData.condition} onChange={(v) => set({ condition: v })} rows={3} placeholder="e.g., player_level >= 10" />

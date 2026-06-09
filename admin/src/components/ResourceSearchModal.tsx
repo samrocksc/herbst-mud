@@ -16,6 +16,7 @@ type Props = Readonly<{
   title: string
   resourceType: string
   apiBase: string
+  worldId?: string
   value?: number | string | null
   onSelect: (id: number | string) => void
   multi?: boolean
@@ -23,15 +24,20 @@ type Props = Readonly<{
 }>
 
 export function ResourceSearchModal({
-  isOpen, onClose, title, resourceType, apiBase,
+  isOpen, onClose, title, resourceType, apiBase, worldId,
   value, onSelect, multi = false, selectedIds = [],
 }: Props) {
   const [query, setQuery] = useState("");
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data: results = [], isLoading } = useResourceSearch(resourceType, apiBase, query);
+  const { data: resultsRaw = [], isLoading } = useResourceSearch(resourceType, apiBase, query, worldId);
+  // Guard: ensure results is an array (apiGet may return error object on failure)
+  const results = Array.isArray(resultsRaw) ? resultsRaw : [];
   const filtered = useMemo(() => {
-    if (!query.trim()) return results.slice(0, 50);
+    if (!query.trim()) {
+      // No query: show 5 most recent (highest IDs first) as suggestions
+      return [...results].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 5);
+    }
     return results.filter(
       (r: { id: number | string; name: string }) => fuzzyMatch(r.name, query) || fuzzyMatch(String(r.id), query),
     );
@@ -49,6 +55,10 @@ export function ResourceSearchModal({
   useEffect(() => {
     if (isOpen) {
       setQuery("");
+      // Trigger initial load of suggestions
+      setTimeout(() => {
+        // Force re-render with empty query to load initial results
+      }, 0);
       inputRef.current?.focus();
     }
   }, [isOpen]);

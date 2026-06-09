@@ -3,10 +3,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useGenders, useCreateGender, useUpdateGender, useDeleteGender, type Gender, type GenderInput } from "../../hooks/useGenders";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { PageContainer } from "../../components/PageContainer";
 import { Button } from "../../components/Button";
+import { FormField } from "../../components/FormFields";
 import { FormError } from "../../components/fields/FormError";
 
 export const Route = createFileRoute("/_auth/genders")({
@@ -14,6 +16,7 @@ export const Route = createFileRoute("/_auth/genders")({
 });
 
 function GendersManagement() {
+  const { currentWorld } = useWorldStore();
   const { data: genders, isLoading, error } = useGenders();
   const createMutation = useCreateGender();
   const updateMutation = useUpdateGender();
@@ -38,18 +41,27 @@ function GendersManagement() {
 
   const handleDelete = async () => {
     if (!deletingGender) return;
-    try { await deleteMutation.mutateAsync(deletingGender.id); setDeletingGender(null); }
+    try { await deleteMutation.mutateAsync(deletingGender); setDeletingGender(null); }
     catch { /* toasted by global handler */ }
   };
 
   const columns: Column<Gender>[] = [
     { header: "ID", accessor: "id", align: "center" },
-    { header: "Name", accessor: "name" },
-    { header: "Display Name", accessor: "display_name" },
-    { header: "Subject Pronoun", accessor: "subject_pronoun" },
-    { header: "Object Pronoun", accessor: "object_pronoun" },
-    { header: "Possessive Pronoun", accessor: "possessive_pronoun" },
-    { header: "World", accessor: "world_id", align: "center" },
+    {
+      header: "Name",
+      accessor: "display_name",
+      render: (_, row) => (
+        <span>
+          <span className="font-medium text-text">{row.display_name || row.name}</span>
+          {row.display_name !== row.name && (
+            <code className="ml-2 text-xs text-text-muted">{row.name}</code>
+          )}
+        </span>
+      ),
+    },
+    { header: "Subject", accessor: "subject_pronoun" },
+    { header: "Object", accessor: "object_pronoun" },
+    { header: "Possessive", accessor: "possessive_pronoun" },
     {
       header: "Actions",
       accessor: "_actions",
@@ -67,6 +79,9 @@ function GendersManagement() {
   return (
     <PageContainer>
       <PageHeader title="Genders" backTo="/dashboard" actions={<Button variant="primary" onClick={() => { setShowForm(true); setEditingGender(null); }}>+ Add Gender</Button>} />
+      <div className="mb-4 text-sm text-text-muted">
+        Managing genders for world <span className="text-text font-medium">{currentWorld}</span>. Switch worlds via the dashboard dropdown.
+      </div>
       {error && <div className="error-banner">{error instanceof Error ? error.message : "Failed to load genders"}</div>}
       {formError && <FormError message={formError} />}
       {showForm && !editingGender && <GenderForm gender={null} onSubmit={handleCreate} onCancel={() => setShowForm(false)} isLoading={isSaving} error={formError} />}
@@ -94,70 +109,95 @@ function DeleteConfirmation({ gender, onConfirm, onCancel, isLoading }: Readonly
   );
 }
 
-function GenderForm({ gender, onSubmit, onCancel, isLoading, error }: Readonly<{ gender: Gender | null; onSubmit: (input: GenderInput) => void; onCancel: () => void; isLoading: boolean; error: string }>) {
+type GenderFormProps = Readonly<{
+  gender: Gender | null
+  onSubmit: (input: GenderInput) => void
+  onCancel: () => void
+  isLoading: boolean
+  error: string
+}>
+
+function GenderForm({ gender, onSubmit, onCancel, isLoading, error }: GenderFormProps) {
+  const { currentWorld } = useWorldStore();
   const [form, setForm] = useState<GenderInput>({
     name: gender?.name || "",
     display_name: gender?.display_name || "",
     subject_pronoun: gender?.subject_pronoun || "",
     object_pronoun: gender?.object_pronoun || "",
     possessive_pronoun: gender?.possessive_pronoun || "",
-    world_id: gender?.world_id || "1",
+    world_id: currentWorld || "default",
   });
 
+  const handleField = (field: keyof GenderInput) => (value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
-    <div className="mt-4 p-4 bg-surface border border-border rounded">
+    <div className="mt-4 p-6 bg-surface border border-border rounded">
       <h3 className="text-lg font-semibold mb-4">{gender ? "Edit Gender" : "Create New Gender"}</h3>
+      <p className="text-xs text-text-muted mb-4">Define how characters of this gender are referenced in messages. World is automatically set to <code className="text-text">{currentWorld}</code>.</p>
       {error && <div className="mb-4 p-2 bg-danger/10 border border-danger rounded text-danger">{error}</div>}
       <div className="space-y-3">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Name (e.g., he_him)"
+        {/* Name fields */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FormField
+            label="Name"
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="flex-1 p-2 bg-surface border border-border rounded text-text text-sm"
+            onChange={handleField("name")}
+            placeholder="he_him"
             required
+            tooltip="Identifier used in code and content files (snake_case). Example: he_him, she_her, they_them."
           />
-          <input
-            type="text"
-            placeholder="Display Name (e.g., He/Him)"
+          <FormField
+            label="Display Name"
             value={form.display_name}
-            onChange={(e) => setForm({ ...form, display_name: e.target.value })}
-            className="flex-1 p-2 bg-surface border border-border rounded text-text text-sm"
+            onChange={handleField("display_name")}
+            placeholder="He/Him"
+            tooltip="How the gender appears in admin UI and character creation. Example: He/Him, She/Her, They/Them."
           />
         </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Subject Pronoun (e.g., he)"
+        {/* Pronoun fields */}
+        <p className="text-xs text-text-muted pt-1">Pronouns — used in game messages like "You see <em>them</em>." and "It belongs to <em>him</em>."</p>
+        <div className="grid grid-cols-3 gap-3">
+          <FormField
+            label="Subject"
             value={form.subject_pronoun}
-            onChange={(e) => setForm({ ...form, subject_pronoun: e.target.value })}
-            className="flex-1 p-2 bg-surface border border-border rounded text-text text-sm"
+            onChange={handleField("subject_pronoun")}
+            placeholder="he"
+            tooltip='Used when the character is the subject. Example: "He swings a sword."'
           />
-          <input
-            type="text"
-            placeholder="Object Pronoun (e.g., him)"
+          <FormField
+            label="Object"
             value={form.object_pronoun}
-            onChange={(e) => setForm({ ...form, object_pronoun: e.target.value })}
-            className="flex-1 p-2 bg-surface border border-border rounded text-text text-sm"
+            onChange={handleField("object_pronoun")}
+            placeholder="him"
+            tooltip='Used when the character is the object. Example: "The goblin hits him."'
           />
-          <input
-            type="text"
-            placeholder="Possessive Pronoun (e.g., his)"
+          <FormField
+            label="Possessive"
             value={form.possessive_pronoun}
-            onChange={(e) => setForm({ ...form, possessive_pronoun: e.target.value })}
-            className="flex-1 p-2 bg-surface border border-border rounded text-text text-sm"
+            onChange={handleField("possessive_pronoun")}
+            placeholder="his"
+            tooltip='Used for ownership. Example: "his sword."'
           />
         </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="World ID (default: 1)"
-            value={form.world_id}
-            onChange={(e) => setForm({ ...form, world_id: e.target.value })}
-            className="w-24 p-2 bg-surface border border-border rounded text-text text-sm"
-          />
-        </div>
+        {/* Live preview */}
+        {(form.subject_pronoun || form.object_pronoun || form.possessive_pronoun) && (
+          <div className="bg-surface-muted border border-border rounded p-3">
+            <p className="text-xs text-text-muted mb-1 font-medium uppercase tracking-wider">Preview</p>
+            <div className="space-y-1 text-sm text-text">
+              {form.subject_pronoun && (
+                <p><span className="text-primary font-medium">{form.subject_pronoun}</span> enters the room. <span className="text-primary font-medium">{form.subject_pronoun}</span> looks around.</p>
+              )}
+              {form.object_pronoun && (
+                <p>The goblin attacks <span className="text-primary font-medium">{form.object_pronoun}</span>! You see <span className="text-primary font-medium">{form.object_pronoun}</span>.</p>
+              )}
+              {form.possessive_pronoun && (
+                <p>This is <span className="text-primary font-medium">{form.possessive_pronoun}</span> sword. It belongs to <span className="text-primary font-medium">{form.object_pronoun || "them"}</span>.</p>
+              )}
+            </div>
+          </div>
+        )}
         <div className="flex gap-2 pt-2">
           <Button
             variant="primary"

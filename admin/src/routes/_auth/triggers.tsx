@@ -10,18 +10,31 @@ import { showToast } from "../../components/Toast";
 import { PageContainer } from "../../components/PageContainer";
 import type { Trigger } from "../../hooks/useTriggers";
 import { useWorldStore } from "../../contexts/WorldStoreContext";
-import { useWorlds } from "../../hooks/useWorlds";
 
 export const Route = createFileRoute("/_auth/triggers")({
   component: TriggersIndex,
 });
 
+const TRIGGER_BADGES: Record<string, string> = {
+  use:     "bg-primary/20 text-primary",
+  touch:   "bg-accent/20 text-accent",
+  press:   "bg-warning/20 text-warning",
+  enter:   "bg-success/20 text-success",
+  examine: "bg-info/20 text-info",
+  talk:    "bg-purple-500/20 text-purple-400",
+};
+
+const TARGET_BADGES: Record<string, string> = {
+  recipe:      "bg-amber-500/20 text-amber-400",
+  effect:      "bg-cyan-500/20 text-cyan-400",
+  dialog_node: "bg-pink-500/20 text-pink-400",
+};
+
 export function TriggersIndex() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const navigate = useNavigate();
-  const { currentWorld, setWorld } = useWorldStore();
-  const { data: worlds } = useWorlds();
+  const { currentWorld } = useWorldStore();
 
   const triggersQuery = useTriggers({ world_id: currentWorld });
   const deleteMutation = useDeleteTrigger();
@@ -50,38 +63,45 @@ export function TriggersIndex() {
         </Link>
       ),
     },
-    { header: "World", accessor: "world_id", align: "center" },
-    { header: "Type", accessor: "trigger_type", align: "center" },
-    { header: "Target Type", accessor: "target_type", align: "center" },
-    { header: "Target ID", accessor: "target_id", align: "center" },
     {
-      header: "Room",
-      accessor: "room_id",
-      align: "center",
-      render: (_, row) => (
-        <span className="badge badge-neutral">{row.room_id ?? "-"}</span>
-      ),
+      header: "Type",
+      accessor: "trigger_type",
+      render: (_, row) => {
+        const badge = TRIGGER_BADGES[row.trigger_type] || "bg-surface-muted text-text-muted";
+        return <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${badge}`}>{row.trigger_type}</span>;
+      },
     },
     {
-      header: "Enabled",
-      accessor: "enabled",
-      align: "center",
+      header: "Target",
+      accessor: "target_type",
       render: (_, row) => (
-        <span className={`badge ${row.enabled ? "badge-success" : "badge-error"}`}>
-          {row.enabled ? "Yes" : "No"}
+        <span className="text-xs text-text-muted">
+          <span className={`px-1 py-0.5 rounded text-xs font-medium mr-1 ${TARGET_BADGES[row.target_type] || "bg-surface-muted text-text-muted"}`}>
+            {row.target_type}
+          </span>
+          {row.target_id ? <code className="text-xs text-text">{row.target_id}</code> : <span className="text-xs text-text-muted">—</span>}
         </span>
       ),
     },
     {
+      header: "Room",
+      accessor: "room_id",
+      render: (_, row) => row.room_id != null ? <code className="text-xs text-text">{row.room_id}</code> : <span className="text-xs text-text-muted">—</span>,
+    },
+    {
+      header: "Status",
+      accessor: "enabled",
+      render: (_, row) => row.enabled
+        ? <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-success/20 text-success">Active</span>
+        : <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-surface-muted text-text-muted">Off</span>,
+    },
+    {
       header: "",
       accessor: "_actions",
-      align: "right",
       render: (_, row) => (
-        <div className="flex gap-2 justify-end">
-          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(row.id); }}>
-            Delete
-          </Button>
-        </div>
+        <Button variant="danger" size="sm" onClick={(e) => { e.stopPropagation(); setDeleteId(row.id); }}>
+          Delete
+        </Button>
       ),
     },
   ];
@@ -97,18 +117,8 @@ export function TriggersIndex() {
         <Button variant="primary" onClick={() => navigate({ to: "/triggers/new" })}>+ Add Trigger</Button>
       } />
 
-      <div className="mb-4 flex items-center gap-4">
-        <select
-          value={currentWorld}
-          onChange={(e) => setWorld(e.target.value)}
-          className="px-3 py-2 bg-surface-muted border border-border rounded text-sm focus:outline-none focus:border-primary"
-        >
-          {worlds?.map((w) => (
-            <option key={w.id} value={String(w.id)}>
-              {w.name}
-            </option>
-          ))}
-        </select>
+      <div className="mb-4 text-sm text-text-muted">
+        Managing triggers for world <span className="text-text font-medium">{currentWorld}</span>. Switch worlds via the dashboard.
       </div>
 
       <div className="mb-4">

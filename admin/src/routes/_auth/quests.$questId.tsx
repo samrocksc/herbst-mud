@@ -30,7 +30,7 @@ const REPEAT_MODE_OPTS = [
 ];
 
 const EMPTY_OBJECTIVE: QuestObjective = {
-  type: "", target_id: "", tag_filter: "", count: 1, labels: [], hint: "",
+  type: "kill", target_id: "", tag_filter: "", count: 1, labels: [], hint: "",
 };
 
 function QuestDetailPage() {
@@ -136,42 +136,58 @@ function QuestDetailPage() {
 
         <div className="border-t border-border pt-3 mt-3">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-semibold text-text">Objectives</h4>
+            <div>
+              <h4 className="text-sm font-semibold text-text">Objectives</h4>
+              <p className="text-xs text-text-muted mt-0.5">What the player must do to complete this quest. Add multiple objectives for multi-step quests.</p>
+            </div>
             <Button variant="ghost" size="sm" onClick={addObjective}>+ Objective</Button>
           </div>
           {(current.objectives ?? []).map((obj, i) => {
             const targetOptions = getTargetsForType(obj.type);
             const tagOptions = (tags ?? []).map(t => ({ id: t.name, name: t.name }));
             return (
-              <div key={i} className="grid grid-cols-7 gap-2 mb-2 items-end">
-                <SelectField
-                  label="Type"
-                  value={obj.type}
-                  onChange={(v) => updateObjective(i, { type: v, target_id: "" })}
-                  options={[
-                    { value: "kill", label: "Kill NPC" },
-                    { value: "explore", label: "Explore Room" },
-                    { value: "collect", label: "Collect Item" },
-                  ]}
-                />
-                <SearchableSelect
-                  label="Target"
-                  value={obj.target_id || ""}
-                  onChange={(v) => updateObjective(i, { target_id: v })}
-                  options={targetOptions.map(t => ({ id: t.id, name: t.name }))}
-                  placeholder="Select target..."
-                />
-                <SearchableSelect
-                  label="Tag Filter"
-                  value={obj.tag_filter || ""}
-                  onChange={(v) => updateObjective(i, { tag_filter: v })}
-                  options={tagOptions}
-                  placeholder="Filter by tag..."
-                />
-                <NumberField label="Count" value={obj.count} onChange={(v) => updateObjective(i, { count: v })} />
-                <FormField label="Label" value={obj.labels?.[0] ?? ""} onChange={(v) => updateObjective(i, { labels: [v] })} placeholder="Kill Rats" />
-                <FormField label="Hint" value={obj.hint} onChange={(v) => updateObjective(i, { hint: v })} placeholder="Optional hint" />
-                <Button variant="danger" size="sm" onClick={() => removeObjective(i)}>×</Button>
+              <div key={i} className="bg-surface-muted border border-border rounded p-3 mb-2 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Objective {i + 1}</span>
+                  <Button variant="danger" size="sm" onClick={() => removeObjective(i)}>×</Button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
+                  <SelectField
+                    label="Type"
+                    value={obj.type}
+                    onChange={(v) => updateObjective(i, { type: v, target_id: "" })}
+                    options={[
+                      { value: "kill", label: "Kill NPC" },
+                      { value: "explore", label: "Explore Room" },
+                      { value: "collect", label: "Collect Item" },
+                    ]}
+                  />
+                  <NumberField label="Count" value={obj.count} onChange={(v) => updateObjective(i, { count: v })} />
+                </div>
+                {obj.type && (
+                  <div className="mb-2">
+                    <SearchableSelect
+                      label="Target"
+                      value={obj.target_id || ""}
+                      onChange={(v) => updateObjective(i, { target_id: v })}
+                      options={targetOptions.map(t => ({ id: t.id, name: t.name }))}
+                      placeholder={obj.type === "kill" ? "Select NPC..." : obj.type === "explore" ? "Select room..." : "Select item..."}
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                  <FormField label="Label" value={obj.labels?.[0] ?? ""} onChange={(v) => updateObjective(i, { labels: [v] })} placeholder={obj.type === "kill" ? "Kill the Rats" : obj.type === "explore" ? "Find the Sewer" : "Gather Herbs"} />
+                  <FormField label="Hint" value={obj.hint} onChange={(v) => updateObjective(i, { hint: v })} placeholder="Optional hint for players" />
+                </div>
+                <div className="border-t border-border/50 pt-2 mt-1">
+                  <SearchableSelect
+                    label="Tag Filter"
+                    value={obj.tag_filter || ""}
+                    onChange={(v) => updateObjective(i, { tag_filter: v })}
+                    options={tagOptions}
+                    placeholder="Filter by tag (optional)..."
+                  />
+                </div>
               </div>
             );
           })}
