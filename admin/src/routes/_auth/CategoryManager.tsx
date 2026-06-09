@@ -8,7 +8,7 @@ import { apiPost, apiPut, apiDelete } from "../../utils/apiFetch";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import type { FactionCategory } from "./-factionTypes";
 
-export function CategoryManager({ categories, onRefresh }: Readonly<{ categories: FactionCategory[]; onRefresh: () => void }>) {
+export function CategoryManager({ categories, onRefresh, onEdit }: Readonly<{ categories: FactionCategory[]; onRefresh: () => void; onEdit?: (cat: FactionCategory) => void }>) {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editingCategory, setEditingCategory] = useState<FactionCategory | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -28,13 +28,18 @@ export function CategoryManager({ categories, onRefresh }: Readonly<{ categories
     }
   };
 
+  const handleEdit = (cat: FactionCategory) => {
+    if (onEdit) onEdit(cat);
+    else setEditingCategory(cat);
+  };
+
   return (
     <div className="max-w-[600px] mx-auto">
       <h2 className="mt-0 mb-4 text-text">Faction Categories</h2>
-      {editingCategory != null && (
+      {editingCategory != null && !onEdit && (
         <CategoryEditForm category={editingCategory} onDone={() => setEditingCategory(null)} />
       )}
-      <DataTable columns={categoryColumns(setDeleteId, (cat) => setEditingCategory(cat))} data={categories} getKey={(c) => c.id} emptyMessage="No categories yet" />
+      <DataTable columns={categoryColumns(setDeleteId, handleEdit)} data={categories} getKey={(c) => c.id} emptyMessage="No categories yet" />
       {deleteId != null && (
         <DeleteConfirmation
           open={deleteId != null}
@@ -49,7 +54,7 @@ export function CategoryManager({ categories, onRefresh }: Readonly<{ categories
   );
 }
 
-function CategoryEditForm({ category, onDone }: Readonly<{ category: FactionCategory; onDone: () => void }>) {
+export function CategoryEditForm({ category, onDone }: Readonly<{ category: FactionCategory; onDone: () => void }>) {
   const [name, setName] = useState(category.display_name || category.name);
   const [desc, setDesc] = useState(category.description || "");
   const [maxMemberships, setMaxMemberships] = useState(category.max_memberships ?? 1);
@@ -103,7 +108,6 @@ function categoryColumns(setDeleteId: (id: number | null) => void, onEdit: (cat:
     { header: "Name", accessor: "name", className: "font-bold" },
     { header: "Display Name", accessor: "display_name" },
     { header: "Memberships", accessor: "max_memberships", render: (v) => String(v ?? 1) },
-    { header: "Wizard", accessor: "initial_config", render: (v) => v ? "Yes" : "No" },
     { header: "Description", accessor: "description" },
     {
       header: "",
@@ -124,7 +128,6 @@ export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>)
   const [desc, setDesc] = useState("");
   const [maxMemberships, setMaxMemberships] = useState(1);
   const [autoJoin, setAutoJoin] = useState(false);
-  const [initialConfig, setInitialConfig] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -139,7 +142,6 @@ export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>)
         description: desc,
         max_memberships: maxMemberships,
         auto_join: autoJoin,
-        initial_config: initialConfig,
       });
       showToast("Category created", "success");
       onDone();
@@ -150,8 +152,6 @@ export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>)
       setSaving(false);
     }
   };
-
-  const initialConfigDisabled = maxMemberships > 1;
 
   return (
     <div className="max-w-[500px] mx-auto">
@@ -169,19 +169,6 @@ export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>)
             className="accent-primary"
           />
           Auto Join (earning required tag auto-joins faction)
-        </label>
-        <label className="flex items-center gap-2 text-sm text-text cursor-pointer">
-          <input
-            type="checkbox"
-            checked={initialConfig}
-            onChange={(e) => setInitialConfig(e.target.checked)}
-            disabled={initialConfigDisabled}
-            className="accent-primary"
-          />
-          Initial Config (appears in character creation wizard)
-          {initialConfigDisabled && (
-            <span className="text-text-muted text-xs italic">— Only available for max_memberships = 1</span>
-          )}
         </label>
         <div className="flex gap-2">
           <Button variant="primary" size="md" fullWidth onClick={handleCreate} disabled={saving}>
