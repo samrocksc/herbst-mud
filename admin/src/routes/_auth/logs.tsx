@@ -91,12 +91,16 @@ function LogsPage() {
               <button
                 key={l}
                 onClick={() => setLevel(l === "ALL" ? "" : l)}
-                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
+                title={l === "ALL" ? "Show all log levels" : `Filter to ${l} logs only`}
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   isActive
-                    ? `${style ? style.bg : "bg-primary/30"} ${style ? style.text : "text-white"} ring-1 ring-current`
+                    ? `${style ? style.bg : "bg-primary/30"} ${style ? style.text : "text-white"} ring-2 ring-current shadow-sm`
                     : "bg-surface text-text-muted hover:text-text hover:bg-surface/80"
                 }`}
               >
+                {style && (
+                  <span className={`w-1.5 h-1.5 rounded-full ${style.dot} ${isActive ? "" : "opacity-50"}`} />
+                )}
                 {l}
               </button>
             );
@@ -145,7 +149,13 @@ function LogsPage() {
         <div className="text-center py-12">
           <div className="text-text-muted text-lg mb-1">No logs found</div>
           <div className="text-text-muted/60 text-sm">
-            {live ? "Waiting for new log entries..." : "Try adjusting your filters."}
+            {live
+              ? level
+                ? `Waiting for new ${level} log entries...`
+                : "Waiting for new log entries..."
+              : (level || service || world || search)
+                ? <>No log entries match your current filters. <button onClick={() => { setLevel(""); setService(""); setWorld(""); setSearch(""); }} className="text-primary hover:underline ml-1">Clear all filters</button></>
+                : "No log entries yet."}
           </div>
         </div>
       )}
