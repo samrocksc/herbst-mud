@@ -13,13 +13,14 @@ import (
 // cleanupOrphanExits removes exits pointing to non-existent rooms.
 func cleanupOrphanExits(svc *service.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cleaned, err := svc.Room.CleanupOrphanExits(c.Request.Context())
+		worldID := c.Query("world_id")
+		cleaned, err := svc.Room.CleanupOrphanExits(c.Request.Context(), worldID)
 		if err != nil {
 			dblog.Error("Failed to cleanup orphan exits", err, slog.String("service", "rooms"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		slog.Info("Cleaned orphan exits", slog.String("service", "rooms"), slog.Int("count", cleaned))
+		slog.Info("Cleaned orphan exits", slog.String("service", "rooms"), slog.Int("count", cleaned), slog.String("world_id", worldID))
 		c.JSON(http.StatusOK, gin.H{"cleaned": cleaned})
 	}
 }

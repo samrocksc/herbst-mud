@@ -134,7 +134,11 @@ export function MapSidebar({
             .map((room) => (
               <div
                 key={room.id}
-                onClick={() => setSelectedRoom(room)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelectedRoom(room);
+                }}
                 className={[
                   "p-2 rounded text-xs cursor-pointer transition-colors",
                   selectedRoom?.id === room.id

@@ -25,6 +25,8 @@ type RoomInput = {
   posX: number
   posY: number
   posZ: number
+  atmosphere?: string
+  tags?: string[]
 }
 
 type RoomUpdate = Partial<RoomInput> & {
@@ -85,6 +87,8 @@ export function useRooms() {
     },
   });
 
+  const deleteRoomAsync = deleteMutation.mutateAsync;
+
   const cleanupMutation = useMutation({
     mutationFn: () => apiPost<{ cleaned: number }>(`${API_BASE}/api/rooms/cleanup-orphan-exits`, {}),
     onSuccess: () => {
@@ -117,6 +121,7 @@ export function useRooms() {
     createRoomAsync: createMutation.mutateAsync,
     updateRoom: updateMutation.mutate,
     deleteRoom: deleteMutation.mutate,
+    deleteRoomAsync: deleteRoomAsync,
     isUpdating: updateMutation.isPending,
     isCreating: createMutation.isPending,
     isDeleting: deleteMutation.isPending,

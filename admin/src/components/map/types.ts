@@ -9,6 +9,7 @@ export type Room = Readonly<{
   posX?: number
   posY?: number
   posZ?: number
+  tags?: string[]
   version?: number
 }>
 

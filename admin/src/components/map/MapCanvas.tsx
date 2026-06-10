@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { ExitLines } from "./ExitLineRenderer";
 import { RoomNode } from "./RoomNode";
+import { MapEmptyState } from "./MapEmptyState";
 import { CANVAS_W, CANVAS_H } from "./constants";
 import type { Room, NPC, Equipment } from "./types";
 
@@ -19,12 +20,15 @@ type MapCanvasProps = Readonly<{
   getNPCsInRoom: (roomId: number) => NPC[]
   getEquipmentInRoom: (roomId: number) => Equipment[]
   viewportRef: React.RefObject<HTMLDivElement | null>
+  currentZLevel: number
+  onCreateRoom: () => void
 }>
 
 export function MapCanvas({
   rooms, nodePositions, selectedRoom, zoom, panOffset, isDragging,
   onWheel, onSelectRoom, onDragStart, onDragEnd,
   getNPCsInRoom, getEquipmentInRoom, viewportRef,
+  currentZLevel, onCreateRoom,
 }: MapCanvasProps) {
   useEffect(() => {
     const el = viewportRef.current;
@@ -43,6 +47,9 @@ export function MapCanvas({
           transformOrigin: "top left",
         }}
       >
+        {nodePositions.size === 0 && (
+          <MapEmptyState currentZLevel={currentZLevel} onCreateRoom={onCreateRoom} />
+        )}
         <ExitLines rooms={rooms} nodePositions={nodePositions} />
         {rooms.map(room => {
           const pos = nodePositions.get(room.id);

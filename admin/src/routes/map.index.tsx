@@ -1,13 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { useMapState } from "../hooks/useMapState";
 import { MapSidebar } from "../components/map/MapSidebar";
 import { MapToolbar } from "../components/map/MapToolbar";
 import { MapCanvas } from "../components/map/MapCanvas";
 import { RoomDetailPanel } from "../components/map/RoomDetailPanel";
 import { RoomEditor } from "../components/map/RoomEditor";
+import { DeleteConfirmation } from "../components/DeleteConfirmation";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/map/")({
   component: MapBuilder,
@@ -48,11 +50,15 @@ function MapBuilder() {
       <div className="flex-1 overflow-hidden relative">
         <MapToolbar
           currentZLevel={state.currentZLevel}
+          zLevels={Array.from(new Set(Array.from(state.zLevels.values()))).sort((a, b) => a - b)}
           zoom={state.zoom}
           onZoom={state.handleZoom}
           onResetView={state.handleResetView}
           onRelayout={state.handleRelayout}
-          onCleanupOrphanExits={state.cleanupOrphanExits}
+          onCleanupOrphanExits={state.handleRequestCleanupOrphanExits}
+          onGoToFloor={state.handleSetZLevel}
+          onAddFloor={state.handleAddFloor}
+          onDeleteFloor={state.requestDeleteFloor}
         />
 
         <MapCanvas
@@ -69,6 +75,8 @@ function MapBuilder() {
           getNPCsInRoom={getNPCsInRoom}
           getEquipmentInRoom={getEquipmentInRoom}
           viewportRef={state.viewportRef}
+          currentZLevel={state.currentZLevel}
+          onCreateRoom={() => state.navigate({ to: "/map/rooms/new", search: { floor: state.currentZLevel } })}
         />
       </div>
 
@@ -81,7 +89,16 @@ function MapBuilder() {
             onSelectRoom={state.setSelectedRoom}
             onEditRoom={state.handleEditRoom}
             onDeleteRoom={state.deleteRoom}
-            onAddRoom={state.handleAddRoom}
+            onRequestDeleteRoom={state.requestDeleteRoom}
+            onAddRoom={state.requestAddRoom}
+            addRoomModal={state.addRoomModal}
+            onConfirmAddRoom={state.confirmAddRoom}
+            onCancelAddRoom={state.cancelAddRoom}
+            isAddingRoom={state.isAddingRoom}
+            deleteRoomModalOpen={state.deleteRoomModalOpen}
+            onConfirmDeleteRoom={state.confirmDeleteRoom}
+            onCancelDeleteRoom={state.cancelDeleteRoom}
+            isDeletingRoom={state.isDeletingRoom}
           />
         </div>
       )}
@@ -100,6 +117,20 @@ function MapBuilder() {
           {state.toast}
         </div>
       )}
+      <DeleteConfirmation
+        open={state.cleanupConfirmOpen}
+        title="Cleanup Orphan Exits"
+        message="This will scan all rooms for exits pointing to deleted rooms and remove them. This action cannot be undone. Continue?"
+        onConfirm={state.handleConfirmCleanupOrphanExits}
+        onCancel={state.handleCancelCleanupOrphanExits}
+      />
+      <DeleteConfirmation
+        open={state.deleteFloorModalOpen}
+        title="Delete Floor"
+        message={`This will delete all rooms on floor ${state.currentZLevel}. This cannot be undone.`}
+        onConfirm={state.confirmDeleteFloor}
+        onCancel={state.cancelDeleteFloor}
+      />
     </div>
   );
 }

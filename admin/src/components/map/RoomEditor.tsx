@@ -5,6 +5,8 @@ import { Button } from "../Button";
 import { SearchableSelect } from "../SearchableSelect";
 import { FormField } from "../fields/FormField";
 import { TextareaField } from "../fields/TextareaField";
+import { NumberField } from "../fields/NumberField";
+import { SelectField } from "../fields/SelectField";
 import { FormError } from "../fields/FormError";
 import { showToast } from "../Toast";
 import { useRooms } from "../../hooks/useRooms";
@@ -20,6 +22,11 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
   const [form, setForm] = useState({
     name: room.name,
     description: room.description,
+    atmosphere: room.atmosphere ?? "air",
+    tagsText: (room as any).tags ? (room as any).tags.join(", ") : "",
+    posX: room.posX ?? 0,
+    posY: room.posY ?? 0,
+    posZ: room.posZ ?? 0,
     exits: { ...room.exits },
     isStartingRoom: room.isStartingRoom,
     isRootRoom: room.isRootRoom,
@@ -62,6 +69,11 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
       update: {
         name: form.name,
         description: form.description,
+        atmosphere: form.atmosphere,
+        tags: form.tagsText.split(",").map((t: string) => t.trim()).filter(Boolean),
+        posX: form.posX,
+        posY: form.posY,
+        posZ: form.posZ,
         isStartingRoom: form.isStartingRoom,
         isRootRoom: form.isRootRoom,
         version: room.version,
@@ -84,6 +96,42 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
         </div>
         <div className="mb-3">
           <TextareaField label="Description" value={form.description} onChange={(v) => setForm({ ...form, description: v })} rows={4} />
+        </div>
+        <div className="mb-3">
+          <SelectField
+            label="Atmosphere"
+            value={form.atmosphere}
+            onChange={(v) => setForm({ ...form, atmosphere: v })}
+            options={[
+              { value: "air", label: "Air" },
+              { value: "water", label: "Water" },
+              { value: "wind", label: "Wind" },
+            ]}
+            tooltip="Environmental medium for the room — affects movement and combat"
+          />
+        </div>
+        <div className="mb-3">
+          <FormField
+            label="Tags (comma-separated)"
+            value={form.tagsText}
+            onChange={(v) => setForm({ ...form, tagsText: v })}
+            placeholder="e.g., forge, kitchen, mystic"
+            tooltip="Tags for station discovery — used by crafting and quest triggers"
+          />
+        </div>
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-text mb-2">Position</label>
+          <p className="text-xs text-text-muted mb-2">Defaults to (0,0,0) — the world origin on the ground floor.</p>
+          <div className="grid grid-cols-3 gap-3">
+            <NumberField label="X" value={form.posX} onChange={(v) => setForm({ ...form, posX: v })} tooltip="Horizontal position on the floor" />
+            <NumberField label="Y" value={form.posY} onChange={(v) => setForm({ ...form, posY: v })} tooltip="Vertical position on the floor" />
+            <NumberField
+              label="Z (floor)"
+              value={form.posZ}
+              onChange={(v) => setForm({ ...form, posZ: v })}
+              tooltip="Z-level / floor. 0 = ground, +1 = upstairs, -1 = basement"
+            />
+          </div>
         </div>
         <div className="mb-3 space-y-2">
           <div className="flex items-center gap-2">

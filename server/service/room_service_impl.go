@@ -116,12 +116,36 @@ func (s *roomService) UpdateRoom(ctx context.Context, id int, input UpdateRoomIn
 }
 
 func (s *roomService) DeleteRoom(ctx context.Context, id int) error {
+	// Find the right "default" room for character relocation in this room's world.
+	// Priority: the world's root room > any room in the same world > the original
+	// (hardcoded) fallback if the world is somehow empty.
 	defaultRoomID := 5
-	rootRooms, err := s.roomRepo.GetRoot(ctx)
-	if err == nil && len(rootRooms) > 0 {
-		defaultRoomID = rootRooms[0].ID
+	if room, err := s.roomRepo.Get(ctx, id); err == nil && room != nil {
+		if rootRooms, err := s.roomRepo.GetRoot(ctx); err == nil && len(rootRooms) > 0 {
+			// Prefer a root room in the same world
+			for _, r := range rootRooms {
+				if r.WorldID == room.WorldID {
+					defaultRoomID = r.ID
+					break
+				}
+			}
+			// Fall back to any root room
+			if defaultRoomID == 5 {
+				defaultRoomID = rootRooms[0].ID
+			}
+		} else {
+			// No root at all — pick any room in the same world
+			if sameWorld, err := s.roomRepo.List(ctx, room.WorldID); err == nil && len(sameWorld) > 0 {
+				for _, r := range sameWorld {
+					if r.ID != id {
+						defaultRoomID = r.ID
+						break
+					}
+				}
+			}
+		}
 	}
-	err = s.tx.WithTx(ctx, func(tx *db.Tx) error {
+	err := s.tx.WithTx(ctx, func(tx *db.Tx) error {
 		_, err := tx.Room.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("room not found: %w", err)
@@ -169,8 +193,13 @@ func (s *roomService) DeleteRoom(ctx context.Context, id int) error {
 	return err
 }
 
-func (s *roomService) CleanupOrphanExits(ctx context.Context) (int, error) {
-	rooms, err := s.roomRepo.List(ctx, "")
+// CleanupOrphanExits removes exits pointing to non-existent rooms.
+//
+// If worldID is empty (""), it operates on all rooms across all worlds.
+// This works because roomRepo.List with "" returns all rooms regardless of world.
+// If a worldID is provided, only exits within that world are cleaned.
+func (s *roomService) CleanupOrphanExits(ctx context.Context, worldID string) (int, error) {
+	rooms, err := s.roomRepo.List(ctx, worldID)
 	if err != nil {
 		return 0, err
 	}

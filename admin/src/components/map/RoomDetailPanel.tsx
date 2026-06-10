@@ -5,16 +5,31 @@ import { ALL_DIRECTIONS } from "./DirectionUtils";
 import { Button } from "../Button";
 import { NPCInstanceManager } from "./NPCInstanceManager";
 import { ItemInstanceManager } from "./ItemInstanceManager";
+import { NewRoomModal } from "./NewRoomModal";
+import { RoomDeleteModal } from "./RoomDeleteModal";
 
 type RoomDetailPanelProps = {
-  selectedRoom: Room
-  rooms: Room[]
-  zLevels: Map<number, number>
-  onSelectRoom: (room: Room | null) => void
-  onEditRoom: (room: Room) => void
-  onDeleteRoom: (roomId: number) => void
-  onAddRoom?: (room: Room, dir: string) => void
-}
+  selectedRoom: Room;
+  rooms: Room[];
+  zLevels: Map<number, number>;
+  onSelectRoom: (room: Room | null) => void;
+  onEditRoom: (room: Room) => void;
+  onDeleteRoom: (roomId: number) => void;
+  onRequestDeleteRoom?: (roomId: number) => void;
+  onAddRoom?: (room: Room, dir: string) => void;
+  addRoomModal?: {
+    open: boolean;
+    fromRoom: Room | null;
+    dir: string | null;
+  };
+  onConfirmAddRoom?: (input: { name: string; description: string }) => void;
+  onCancelAddRoom?: () => void;
+  isAddingRoom?: boolean;
+  deleteRoomModalOpen?: boolean;
+  onConfirmDeleteRoom?: () => void;
+  onCancelDeleteRoom?: () => void;
+  isDeletingRoom?: boolean;
+};
 
 export const RoomDetailPanel = memo(function RoomDetailPanel({
   selectedRoom,
@@ -23,9 +38,17 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
   onSelectRoom,
   onEditRoom,
   onDeleteRoom,
+  onRequestDeleteRoom,
   onAddRoom,
+  addRoomModal,
+  onConfirmAddRoom,
+  onCancelAddRoom,
+  isAddingRoom,
+  deleteRoomModalOpen,
+  onConfirmDeleteRoom,
+  onCancelDeleteRoom,
+  isDeletingRoom,
 }: RoomDetailPanelProps) {
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
   return (
     <>
@@ -68,9 +91,8 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
                 return (
                   <div
                     key={dir}
-                    onClick={() => onSelectRoom(targetRoom)}
                     className={[
-                      "p-1 my-1 rounded cursor-pointer text-xs transition-colors",
+                      "p-1 my-1 rounded text-xs flex items-center gap-2 transition-colors hover:bg-surface",
                       isZExit
                         ? dir === "up"
                           ? "bg-warning/20 border border-warning"
@@ -78,12 +100,20 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
                         : "bg-surface-muted",
                     ].join(" ")}
                   >
-                    <strong>{dir}</strong> → {targetRoom.name}
-                    {isZExit && (
-                      <span className="text-text-muted ml-1 text-[10px]">
-                        (z={zLevels.get(targetId) || 0})
-                      </span>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="!px-1 !py-0.5 flex-1 !justify-start text-left"
+                      onClick={() => onSelectRoom(targetRoom)}
+                      aria-label={`Navigate to ${targetRoom.name} via ${dir} exit`}
+                    >
+                      <strong>{dir}</strong> → {targetRoom.name}
+                      {isZExit && (
+                        <span className="text-text-muted ml-1 text-[10px]">
+                          (z={zLevels.get(targetId) || 0})
+                        </span>
+                      )}
+                    </Button>
                   </div>
                 );
               } else if (targetId) {
@@ -125,22 +155,38 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
         <Button variant="accent" size="md" fullWidth onClick={() => onEditRoom(selectedRoom)}>
           Edit Room
         </Button>
-        <Button
-          variant={confirmDelete === selectedRoom.id ? "secondary" : "danger"}
-          size="md"
-          fullWidth
-          onClick={() => {
-            if (confirmDelete === selectedRoom.id) {
-              onDeleteRoom(selectedRoom.id);
-              setConfirmDelete(null);
-            } else {
-              setConfirmDelete(selectedRoom.id);
-            }
-          }}
-        >
-          {confirmDelete === selectedRoom.id ? "Confirm Delete?" : "Delete Room"}
-        </Button>
+        {onRequestDeleteRoom && (
+          <Button
+            variant="danger"
+            size="md"
+            fullWidth
+            onClick={() => onRequestDeleteRoom(selectedRoom.id)}
+          >
+            Delete Room
+          </Button>
+        )}
       </div>
+
+      {onRequestDeleteRoom && deleteRoomModalOpen && onConfirmDeleteRoom && onCancelDeleteRoom && (
+        <RoomDeleteModal
+          open={deleteRoomModalOpen}
+          room={selectedRoom}
+          onConfirm={onConfirmDeleteRoom}
+          onCancel={onCancelDeleteRoom}
+          isLoading={isDeletingRoom}
+        />
+      )}
+
+      {addRoomModal && onConfirmAddRoom && onCancelAddRoom && (
+        <NewRoomModal
+          open={addRoomModal.open}
+          parentRoom={addRoomModal.fromRoom}
+          direction={addRoomModal.dir}
+          onConfirm={onConfirmAddRoom}
+          onCancel={onCancelAddRoom}
+          isLoading={isAddingRoom}
+        />
+      )}
     </>
   );
 });

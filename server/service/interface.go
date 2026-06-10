@@ -41,7 +41,7 @@ type RoomService interface {
 	ListRooms(ctx context.Context, worldID string) ([]*db.Room, error)
 	UpdateRoom(ctx context.Context, id int, input UpdateRoomInput) (*db.Room, error)
 	DeleteRoom(ctx context.Context, id int) error
-	CleanupOrphanExits(ctx context.Context) (int, error)
+	CleanupOrphanExits(ctx context.Context, worldID string) (int, error)
 	CreateBidirectionalExit(ctx context.Context, sourceID int, dir string, targetID int) (*BidirectionalExitResult, error)
 	DeleteBidirectionalExit(ctx context.Context, sourceID int, dir string) error
 }

@@ -15,7 +15,7 @@ export function useNodeLayout(rooms: Room[], currentZLevel: number) {
       if (!room) return zMap;
 
       const newVisited = new Set(visited).add(id);
-      const newZMap = new Map(zMap).set(id, room.posZ != null && room.posZ !== 0 ? room.posZ : z);
+      const newZMap = new Map(zMap).set(id, room.posZ != null ? room.posZ : z);
 
       const exits = room.exits || {};
       return Object.entries(exits).reduce((acc, [dir, targetId]) => {
@@ -28,7 +28,7 @@ export function useNodeLayout(rooms: Room[], currentZLevel: number) {
     const start = rooms.find(r => r.isRootRoom) || rooms.find(r => r.isStartingRoom) || rooms[0];
     const initialMap = start ? assign(start.id, 0, new Set(), new Map()) : new Map<number, number>();
 
-    return rooms.reduce((acc, r) => acc.has(r.id) ? acc : new Map(acc).set(r.id, 0), initialMap);
+    return rooms.reduce((acc, r) => acc.has(r.id) ? acc : new Map(acc).set(r.id, r.posZ ?? 0), initialMap);
   }, [rooms]);
 
   const nodePositions = useMemo(() => {
