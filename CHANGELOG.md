@@ -1,3 +1,3 @@
-- [132c63a](http://github.com/samrocksc/herbst-mud/commit/132c63afa0ec546b811afa8fa5b51da2fb06904f) - 🟣 fix(map): repair QA-found bugs from 9-ticket map pass
-- [1644a80](http://github.com/samrocksc/herbst-mud/commit/1644a801c0c121a8479f362c64aae487031a5a05) - chore: auto-update CHANGELOG.md
+- [60d6a69](http://github.com/samrocksc/herbst-mud/commit/60d6a69d2beabf0dc90c7791ba3159ee23f41bf2) - 🟣 feat(admin): create 8 D&D abilities + 12 form refinements
+- [4e03a41](http://github.com/samrocksc/herbst-mud/commit/4e03a411fd80a81ca40a786052f3a087c5d2fed5) - chore: auto-update CHANGELOG.md
 
