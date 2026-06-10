@@ -52,7 +52,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
 
   return (
     <>
-      <div className="p-3 border-b border-border flex justify-between items-center">
+      <div className="p-3 border-b border-border flex justify-between items-center flex-shrink-0">
         <h3 className="m-0 text-text text-base font-semibold">
           {selectedRoom.name}
           {selectedRoom.isStartingRoom && (
@@ -69,7 +69,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
         </Button>
       </div>
 
-      <div className="p-3 flex-1 overflow-y-auto">
+      <div className="p-3 flex-1 min-h-0 overflow-y-auto">
         <div className="text-text-muted text-[10px] mb-2">
           Room ID: <a href={`/map?room=${selectedRoom.id}`} className="text-primary hover:underline" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(`${window.location.origin}/map?room=${selectedRoom.id}`); }}>#{selectedRoom.id}</a>
           {selectedRoom.atmosphere && ` • ${selectedRoom.atmosphere}`}
@@ -151,7 +151,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
         </div>
       </div>
 
-      <div className="p-3 border-t border-border flex gap-2">
+      <div className="p-3 border-t border-border flex gap-2 flex-shrink-0">
         <Button variant="accent" size="md" fullWidth onClick={() => onEditRoom(selectedRoom)}>
           Edit Room
         </Button>

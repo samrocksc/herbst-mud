@@ -1,6 +1,6 @@
 /* eslint-disable functional/no-mixed-types */
 import { useState, useEffect } from "react";
-import { Modal } from "./Modal";
+import { Modal } from "../Modal";
 import { Button } from "../Button";
 import { FormField } from "../fields/FormField";
 import { TextareaField } from "../fields/TextareaField";

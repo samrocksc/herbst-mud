@@ -81,7 +81,7 @@ function MapBuilder() {
       </div>
 
       {state.selectedRoom && !state.editingRoom && (
-        <div className="w-[300px] bg-surface-muted border-l border-border flex flex-col lg:block hidden">
+        <div className="w-[300px] h-full bg-surface-muted border-l border-border flex-col flex lg:flex hidden">
           <RoomDetailPanel
             selectedRoom={state.selectedRoom}
             rooms={state.rooms}
@@ -104,7 +104,7 @@ function MapBuilder() {
       )}
 
       {state.editingRoom && (
-        <div className="w-[300px] bg-surface-muted border-l border-border flex flex-col lg:block hidden">
+        <div className="w-[300px] h-full bg-surface-muted border-l border-border flex-col flex lg:flex hidden">
           <RoomEditor
             room={state.editingRoom}
             onCancel={() => state.setEditingRoom(null)}
