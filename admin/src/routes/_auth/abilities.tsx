@@ -27,19 +27,34 @@ const COLUMNS: Column<Ability>[] = [
       </Link>
     ),
   },
-  { header: "Description", accessor: "description" },
+  {
+    header: "Description",
+    accessor: "description",
+    // Refinement #11: show a 1-line truncated description instead of the full text
+    render: (val: unknown) => (
+      <span className="text-text-muted text-xs" title={String(val ?? "")}>
+        {String(val ?? "").slice(0, 80)}
+        {String(val ?? "").length > 80 ? "…" : ""}
+      </span>
+    ),
+  },
   {
     header: "Type",
     accessor: "ability_type",
+    // Refinement #11: capitalize raw type values
     render: (val: unknown) => (
-      <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>
+      <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-text border border-primary/30 capitalize">
+        {String(val)}
+      </span>
     ),
   },
   {
     header: "Class",
     accessor: "ability_class",
     render: (val: unknown) => (
-      <span className={`talent-effect talent-effect-${String(val)}`}>{String(val)}</span>
+      <span className="text-xs px-2 py-0.5 rounded bg-accent/15 text-text border border-accent/30 capitalize">
+        {String(val)}
+      </span>
     ),
   },
   {
@@ -87,21 +102,6 @@ export function AbilitiesManagement() {
         showClear={!!(filterType || filterClass)}
         onClear={() => { setFilterType(""); setFilterClass(""); }}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs text-text-muted font-medium mr-1">Quick:</span>
-          <button onClick={() => { setFilterClass("passive"); setFilterType(""); }}
-            className={`px-2 py-1 text-xs rounded border ${filterClass === "passive" ? "bg-primary/20 border-primary text-text" : "bg-surface border-border text-muted hover:border-primary"}`}>
-            Weapon Skills (Passive)
-          </button>
-          <button onClick={() => { setFilterClass("active"); setFilterType(""); }}
-            className={`px-2 py-1 text-xs rounded border ${filterClass === "active" ? "bg-primary/20 border-primary text-text" : "bg-surface border-border text-muted hover:border-primary"}`}>
-            Active Abilities
-          </button>
-          <button onClick={() => { setFilterClass(""); setFilterType(""); }}
-            className={`px-2 py-1 text-xs rounded border ${filterClass === "" && filterType === "" ? "bg-primary/20 border-primary text-text" : "bg-surface border-border text-muted hover:border-primary"}`}>
-            All
-          </button>
-        </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-text-muted">Type:</label>
           <select

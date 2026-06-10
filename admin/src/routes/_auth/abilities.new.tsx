@@ -79,13 +79,13 @@ const SCALING_STAT_OPTS = [
   { value: "wisdom", label: "Wisdom" },
 ];
 
+// Refinement #1 + #2: removed legacy `cost` and `cooldown` (ticks) fields.
+// Refinement #12: only fields actually used by combat code remain.
 const EMPTY_ABILITY: AbilityInput = {
   name: "",
   description: "",
   ability_type: "combat",
-  requirements: "1",
-  cost: 0,
-  cooldown: 0,
+  requirements: "",
   cooldown_seconds: 0,
   mana_cost: 0,
   stamina_cost: 0,
@@ -124,10 +124,22 @@ export function CreateAbilityPage() {
   const set = (patch: Partial<AbilityInput>) => setFormData((prev) => ({ ...prev, ...patch }));
   const setEffect = (patch: Partial<AbilityEffect>) => setCurrentEffect((prev) => ({ ...prev, ...patch }));
 
+  // Refinement #7: when effect type changes, default the damage_subtype
+  // to the first sensible value (no damage for heals/buffs).
+  const handleEffectTypeChange = (newType: string) => {
+    const damageDefault = newType === "damage" ? "slashing" : newType === "dot" ? "fire" : "";
+    setEffect({ effect_type: newType, damage_subtype: damageDefault });
+  };
+
   const handleEffectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newEffect: AbilityEffect = {
       ...currentEffect,
+      // Refinement #7: scrub damage_subtype when not a damage effect
+      damage_subtype:
+        currentEffect.effect_type === "damage" || currentEffect.effect_type === "dot"
+          ? currentEffect.damage_subtype
+          : "",
       sort_order: effects.length,
     };
     setEffects((prev) => [...prev, newEffect]);
@@ -141,10 +153,8 @@ export function CreateAbilityPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // First create the ability
       const ability = await createAbility.mutateAsync(formData);
 
-      // Then create each effect
       for (const effect of effects) {
         await createAbilityEffect.mutateAsync({
           abilityId: ability.id,
@@ -169,116 +179,235 @@ export function CreateAbilityPage() {
     }
   };
 
+  // Refinement #6: only show Proc Settings for passive abilities
+  const isPassive = formData.ability_class === "passive";
+  // Refinement #7: only show Damage Type for damage/dot
+  const isDamageEffect =
+    currentEffect.effect_type === "damage" || currentEffect.effect_type === "dot";
+
   return (
     <PageContainer>
       <PageHeader title="Create Ability" showBack backTo="/abilities" />
+      <p className="text-sm text-muted mb-4">
+        Abilities are actions characters perform in combat — fireballs, healing spells, melee
+        strikes, defensive buffs. Set costs, cooldowns, and effects below. Add multiple effects for
+        complex abilities (e.g. Bless adds an attack bonus AND a save bonus).
+      </p>
       <div className="card bg-surface p-6 border border-border rounded">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <h3 className="text-text font-semibold mb-4">Basic Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Name *" value={formData.name} onChange={(v) => set({ name: v })} required />
-            <FormField label="Slug (optional)" value={formData.slug ?? ""} onChange={(v) => set({ slug: v })} placeholder="Auto-generated from name if empty" />
-            <SelectField label="Ability Type" value={formData.ability_type} onChange={(v) => set({ ability_type: v })} options={ABILITY_TYPE_OPTS} />
-            <SearchableSelect
-              label="Required Tag (optional)"
-              options={(availableTags ?? []).map((t) => ({ id: t.name, name: t.name }))}
-              value={formData.required_tag || ""}
-              onChange={(v) => set({ required_tag: v })}
-              placeholder="Select a tag..."
-            />
-            <SelectField label="Ability Class" value={formData.ability_class} onChange={(v) => set({ ability_class: v })} options={ABILITY_CLASS_OPTS} />
-          </div>
-          <TextareaField label="Description" value={formData.description} onChange={(v) => set({ description: v })} rows={3} />
-
-          <h3 className="text-text font-semibold mt-6 mb-4">Costs & Cooldown</h3>
-          <p className="text-xs text-muted mb-4">Active abilities cost mana, stamina, or HP to use. Set to 0 for abilities that don't consume resources.</p>
-          <div className="grid grid-cols-3 gap-4">
-            <NumberField label="Cost" tooltip="Legacy skill-point cost to learn/unlearn. Ignore for modern abilities — use mana/stamina/HP cost instead." value={formData.cost} onChange={(v) => set({ cost: v })} />
-            <NumberField label="Cooldown (s)" tooltip="Cooldown in seconds before the ability can be used again. 0 = no cooldown." value={formData.cooldown_seconds} onChange={(v) => set({ cooldown_seconds: v })} />
-            <FormField label="Unlock Tags (JSON)" tooltip="JSON prerequisites for unlocking this ability. Example: tags level:5 means the character must be level 5 or higher." value={formData.requirements} onChange={(v) => set({ requirements: v })} placeholder='{"tags":["level:5"]}' />
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <NumberField label="Mana Cost" tooltip="Mana points consumed when using this ability. Use for magical abilities." value={formData.mana_cost} onChange={(v) => set({ mana_cost: v })} />
-            <NumberField label="Stamina Cost" tooltip="Stamina points consumed when using this ability. Use for physical abilities." value={formData.stamina_cost} onChange={(v) => set({ stamina_cost: v })} />
-            <NumberField label="HP Cost" tooltip="HP sacrificed to use the ability. Use for blood magic or self-damaging abilities." value={formData.hp_cost} onChange={(v) => set({ hp_cost: v })} />
-          </div>
-
-          <h3 className="text-text font-semibold mt-6 mb-4">Proc Settings</h3>
-          <p className="text-xs text-muted mb-4">Proc Settings are for passive abilities that trigger automatically based on combat events. Leave both at 0/empty for active abilities.</p>
-          <div className="grid grid-cols-2 gap-4">
-            <NumberField label="Proc Chance (0–1)" tooltip="For passives: probability of triggering on each relevant event. 0.15 = 15% chance. Active abilities should use 0." value={formData.proc_chance} onChange={(v) => set({ proc_chance: v })} step={0.01} />
-            <FormField label="Proc Event" tooltip="Combat event that triggers this passive: on_hit (when you hit), on_hit_received (when you're hit), on_crit, on_kill. Empty for active abilities." value={formData.proc_event} onChange={(v) => set({ proc_event: v })} placeholder="e.g., on_hit, on_kill" />
-          </div>
-
-          <h3 className="text-text font-semibold mt-6 mb-4">Combat Messages</h3>
-          <div className="space-y-3">
-            <div>
-              <label className="text-text-muted text-xs block mb-1">Caster Message (optional)</label>
-              <p className="text-xs text-muted mb-1">Template when actor uses the ability. Example: "{'{actor}'} casts fireball"</p>
-              <FormField label="Caster Message" value={formData.caster_message} onChange={(v) => set({ caster_message: v })} placeholder={"e.g., {actor} casts fireball"} />
-            </div>
-            <div>
-              <label className="text-text-muted text-xs block mb-1">Recipient Message (optional)</label>
-              <p className="text-xs text-muted mb-1">Template when recipient is targeted. Example: "{'{actor}'} casts fireball at you"</p>
-              <FormField label="Recipient Message" value={formData.recipient_message} onChange={(v) => set({ recipient_message: v })} placeholder={"e.g., {actor} casts fireball at you"} />
-            </div>
-          </div>
-
-          <h3 className="text-text font-semibold mt-6 mb-4">Effects</h3>
-          <p className="text-sm text-muted mb-4">Define what the ability does. Add multiple effects for complex abilities.</p>
-
-          <form onSubmit={handleEffectSubmit} className="bg-surface/50 border border-border rounded p-4 space-y-4 mb-4">
-            <h4 className="text-text font-semibold mb-2">Add Effect</h4>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Refinement #12: sectioned with a left-border accent + heading */}
+          <section>
+            <h3 className="text-text font-semibold mb-1 border-l-4 border-primary pl-3">Basic Information</h3>
+            <p className="text-xs text-muted mb-3 ml-1">Name, type, class. Required: Name.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SelectField label="Effect Type" value={currentEffect.effect_type} onChange={(v) => setEffect({ effect_type: v })} options={EFFECT_TYPE_OPTS} />
-              <SelectField label="Target" value={currentEffect.target} onChange={(v) => setEffect({ target: v })} options={TARGET_OPTS} />
+              <FormField label="Name" value={formData.name} onChange={(v) => set({ name: v })} required placeholder="e.g., Fireball" />
+              <FormField label="Slug (optional)" value={formData.slug ?? ""} onChange={(v) => set({ slug: v })} placeholder="Auto-generated from name if empty" />
+              <SelectField label="Ability Type" value={formData.ability_type} onChange={(v) => set({ ability_type: v })} options={ABILITY_TYPE_OPTS} tooltip="Combat = melee, Magic = spells, Utility = misc actions, Healing = restore HP, Support = buff allies, Defensive = ward or shield" />
+              <SearchableSelect
+                label="Required Tag (optional)"
+                options={(availableTags ?? []).map((t) => ({ id: t.name, name: t.name }))}
+                value={formData.required_tag || ""}
+                onChange={(v) => set({ required_tag: v })}
+                placeholder="No tag required"
+              />
+              <SelectField label="Ability Class" value={formData.ability_class} onChange={(v) => set({ ability_class: v })} options={ABILITY_CLASS_OPTS} tooltip="Active = use on your turn. Passive = auto-triggers from Proc Settings. Toggle = turn on/off." />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(currentEffect.effect_type === "damage" || currentEffect.effect_type === "dot") ? (
-                <SelectField label="Damage Type" value={currentEffect.damage_subtype} onChange={(v) => setEffect({ damage_subtype: v })} options={DAMAGE_SUBTYPE_OPTS} />
-              ) : (
-                <div />
-              )}
-              <NumberField label="Value / Amount" value={currentEffect.value} onChange={(v) => setEffect({ value: v })} />
+            <div className="mt-4">
+              <TextareaField label="Description" value={formData.description} onChange={(v) => set({ description: v })} rows={3} placeholder="What the ability does — shown in the help panel and combat log." />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <NumberField label="Duration (ticks)" value={currentEffect.duration} onChange={(v) => setEffect({ duration: v })} />
-              <SelectField label="Scaling Stat (optional)" value={currentEffect.scaling_stat} onChange={(v) => setEffect({ scaling_stat: v })} options={SCALING_STAT_OPTS} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <NumberField label="Scaling Ratio" value={currentEffect.scaling_ratio} onChange={(v) => setEffect({ scaling_ratio: v })} step={0.1} />
-            </div>
-            <div className="flex justify-end">
-              <Button variant="primary" type="submit" disabled={createAbilityEffect.isPending}>
-                {createAbilityEffect.isPending ? "Adding..." : "Add Effect"}
-              </Button>
-            </div>
-          </form>
+          </section>
 
-          {effects.length > 0 && (
-            <div className="bg-surface/50 border border-border rounded p-4">
-              <h4 className="text-text font-semibold mb-3">Added Effects</h4>
-              <div className="space-y-3">
-                {effects.map((effect, index) => (
-                  <div key={index} className="flex justify-between items-start bg-surface border border-border rounded p-3">
-                    <div>
-                      <div className="font-medium">{effect.effect_type}</div>
-                      <div className="text-sm text-muted">
-                        {effect.target} • {effect.damage_subtype} • Value: {effect.value}
-                        {effect.duration > 0 && ` • Duration: ${effect.duration}`}
-                      </div>
-                    </div>
-                    <Button variant="danger" onClick={() => removeEffect(index)} size="sm">
-                      Remove
-                    </Button>
-                  </div>
-                ))}
+          {/* Refinement #1 + #2 + #12: removed legacy Cost/Cooldown ticks, single Cooldown (s) */}
+          <section>
+            <h3 className="text-text font-semibold mb-1 border-l-4 border-primary pl-3">Costs & Cooldown</h3>
+            <p className="text-xs text-muted mb-3 ml-1">
+              Active abilities cost mana, stamina, or HP to use. Set to 0 for abilities that don't
+              consume resources.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <NumberField
+                label="Cooldown (s)"
+                tooltip="Cooldown in seconds before the ability can be used again. 0 = no cooldown."
+                value={formData.cooldown_seconds}
+                onChange={(v) => set({ cooldown_seconds: v })}
+              />
+              <FormField
+                label="Unlock Tags (JSON)"
+                tooltip='JSON prerequisites for unlocking this ability. Example: {"tags":["level:5"]} means the character must be level 5 or higher.'
+                value={formData.requirements}
+                onChange={(v) => set({ requirements: v })}
+                placeholder='{"tags":["level:5"]}'
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4 mt-4">
+              <NumberField label="Mana Cost" tooltip="Mana points consumed when using this ability. Use for magical abilities." value={formData.mana_cost} onChange={(v) => set({ mana_cost: v })} />
+              <NumberField label="Stamina Cost" tooltip="Stamina points consumed when using this ability. Use for physical abilities." value={formData.stamina_cost} onChange={(v) => set({ stamina_cost: v })} />
+              <NumberField label="HP Cost" tooltip="HP sacrificed to use the ability. Use for blood magic or self-damaging abilities." value={formData.hp_cost} onChange={(v) => set({ hp_cost: v })} />
+            </div>
+          </section>
+
+          {/* Refinement #6: only show for passive abilities */}
+          {isPassive && (
+            <section>
+              <h3 className="text-text font-semibold mb-1 border-l-4 border-warning pl-3">Proc Settings</h3>
+              <p className="text-xs text-muted mb-3 ml-1">
+                Passives trigger automatically from combat events. Set the chance and the event that
+                fires them.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <NumberField
+                  label="Proc Chance (0–1)"
+                  tooltip="Probability of triggering on each relevant event. 0.15 = 15% chance."
+                  value={formData.proc_chance}
+                  onChange={(v) => set({ proc_chance: v })}
+                  step={0.01}
+                />
+                <FormField
+                  label="Proc Event"
+                  tooltip="Combat event that triggers this passive: on_hit, on_hit_received, on_crit, on_kill."
+                  value={formData.proc_event}
+                  onChange={(v) => set({ proc_event: v })}
+                  placeholder="e.g., on_hit, on_kill"
+                />
               </div>
-            </div>
+            </section>
           )}
 
-          <div className="flex gap-2 justify-end mt-6">
-            <Button variant="secondary" onClick={() => navigate({ to: "/abilities" })}>Cancel</Button>
+          {/* Refinement #7: collapsed to one row, no double-labels */}
+          <section>
+            <h3 className="text-text font-semibold mb-1 border-l-4 border-primary pl-3">Combat Messages</h3>
+            <p className="text-xs text-muted mb-3 ml-1">
+              Templates shown in the combat log. Use <code className="bg-muted px-1 rounded">{'{actor}'}</code>{" "}
+              for the user and <code className="bg-muted px-1 rounded">{'{target}'}</code> for the recipient.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label="Caster Message"
+                tooltip='What the actor sees. Example: "{actor} casts fireball"'
+                value={formData.caster_message}
+                onChange={(v) => set({ caster_message: v })}
+                placeholder="e.g., {actor} casts fireball"
+              />
+              <FormField
+                label="Recipient Message"
+                tooltip='What the target sees. Example: "{actor} casts fireball at you"'
+                value={formData.recipient_message}
+                onChange={(v) => set({ recipient_message: v })}
+                placeholder="e.g., {actor} casts fireball at you"
+              />
+            </div>
+          </section>
+
+          {/* Refinement #7, #8, #9: per-effect-type-conditional fields, card preview, no double-labels */}
+          <section>
+            <h3 className="text-text font-semibold mb-1 border-l-4 border-primary pl-3">Effects</h3>
+            <p className="text-xs text-muted mb-3 ml-1">
+              Define what the ability does. Add multiple effects for complex abilities (Bless =
+              AttackBonus + SaveBonus). Effects are saved when you click "Create Ability" below.
+            </p>
+
+            <div className="bg-surface-muted/50 border border-border rounded p-4 space-y-4 mb-4">
+              <h4 className="text-text font-semibold mb-2 text-sm">Add Effect</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <SelectField
+                  label="Effect Type"
+                  value={currentEffect.effect_type}
+                  onChange={handleEffectTypeChange}
+                  options={EFFECT_TYPE_OPTS}
+                  tooltip="Damage = direct HP loss. Heal = direct HP gain. Buff/Debuff = stat changes. DoT/HoT = over time. Stun = skip turn. Accuracy/Dodge = hit/miss modifiers."
+                />
+                <SelectField
+                  label="Target"
+                  value={currentEffect.target}
+                  onChange={(v) => setEffect({ target: v })}
+                  options={TARGET_OPTS}
+                  tooltip="Who the effect hits. Self for self-buffs, Ally for healing allies, Area for AoE."
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {isDamageEffect ? (
+                  <SelectField
+                    label="Damage Type"
+                    value={currentEffect.damage_subtype}
+                    onChange={(v) => setEffect({ damage_subtype: v })}
+                    options={DAMAGE_SUBTYPE_OPTS}
+                    tooltip="Elemental type. Affects resistance/weakness calculations."
+                  />
+                ) : null}
+                <NumberField
+                  label="Value / Amount"
+                  value={currentEffect.value}
+                  onChange={(v) => setEffect({ value: v })}
+                  tooltip="Numeric effect magnitude: damage amount, heal amount, buff bonus, etc."
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <NumberField
+                  label="Duration (ticks)"
+                  value={currentEffect.duration}
+                  onChange={(v) => setEffect({ duration: v })}
+                  tooltip="Effect duration in combat ticks. 0 = instant. Buffs/debuffs typically 3-10."
+                />
+                <SelectField
+                  label="Scaling Stat (optional)"
+                  value={currentEffect.scaling_stat}
+                  onChange={(v) => setEffect({ scaling_stat: v })}
+                  options={SCALING_STAT_OPTS}
+                  tooltip="Scales the value by a stat ratio. None = fixed value."
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <NumberField
+                  label="Scaling Ratio"
+                  value={currentEffect.scaling_ratio}
+                  onChange={(v) => setEffect({ scaling_ratio: v })}
+                  step={0.1}
+                  tooltip="Multiplier applied to the stat. Final = value + (stat × ratio)."
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button variant="primary" type="submit" disabled={createAbilityEffect.isPending}>
+                  {createAbilityEffect.isPending ? "Adding..." : "Add Effect"}
+                </Button>
+              </div>
+            </div>
+
+            {effects.length > 0 && (
+              <div className="bg-surface-muted/50 border border-border rounded p-4">
+                <h4 className="text-text font-semibold mb-3 text-sm">
+                  Added Effects ({effects.length})
+                </h4>
+                <div className="space-y-2">
+                  {effects.map((effect, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-start bg-surface border border-border rounded p-3"
+                    >
+                      <div>
+                        <div className="font-medium capitalize">
+                          {effect.effect_type}
+                          {effect.damage_subtype ? ` (${effect.damage_subtype})` : ""}
+                        </div>
+                        <div className="text-sm text-muted">
+                          Target: {effect.target} • Value: {effect.value}
+                          {effect.duration > 0 ? ` • Duration: ${effect.duration} ticks` : ""}
+                          {effect.scaling_stat ? ` • Scales: ${effect.scaling_stat}` : ""}
+                        </div>
+                      </div>
+                      <Button variant="danger" onClick={() => removeEffect(index)} size="sm">
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          <div className="flex gap-2 justify-end pt-4 border-t border-border">
+            <Button variant="secondary" onClick={() => navigate({ to: "/abilities" })}>
+              Cancel
+            </Button>
             <Button variant="primary" type="submit" disabled={createAbility.isPending}>
               {createAbility.isPending ? "Creating..." : "Create Ability"}
             </Button>

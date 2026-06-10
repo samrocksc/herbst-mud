@@ -23,7 +23,7 @@ export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
         {ability.proc_event && (
           <DetailField label="Proc Event" value={ability.proc_event} />
         )}
-        {ability.faction_skills !== null && (
+        {ability.faction_skills != null && (
           <DetailField label="Faction Skills" value={String(ability.faction_skills)} />
         )}
       </div>

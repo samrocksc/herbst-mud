@@ -29,8 +29,9 @@ type SearchableSelectProps = Readonly<{
 function getDisplayLabel(
   value: string,
   options: ReadonlyArray<SearchableSelectOption>,
+  placeholder: string,
 ): string {
-  if (!value) return "(not selected)";
+  if (!value) return placeholder;
   const found = options.find((o) => o.id === value);
   return found ? `${found.name} (${found.id})` : value;
 }
@@ -160,7 +161,7 @@ export function SearchableSelect({
 
   // ── Render ──────────────────────────────────────────────────────────────
 
-  const displayValue = isOpen ? query : getDisplayLabel(value, options);
+  const displayValue = isOpen ? query : getDisplayLabel(value, options, placeholder);
 
   return (
     <div ref={containerRef} className="relative">
