@@ -32,10 +32,21 @@ func performRegen(ctx context.Context, char *db.Character, combatSvc service.Com
 		return nil, nil
 	}
 
-	// Calculate derived stats (matching character_stats.go)
-	maxHP := char.Constitution*10 + char.Level*10
-	maxStamina := char.Constitution*5 + char.Level*5
-	maxMana := char.Intelligence*5 + char.Level*5
+	// Use the DB-stored max values as the source of truth.
+	// Constitution/Level-based derivation was a parallel source of truth that
+	// caused client/server desync (e.g. "130/130" display when DB said 100).
+	maxHP := char.MaxHitpoints
+	maxStamina := char.MaxStamina
+	maxMana := char.MaxMana
+	if maxHP <= 0 {
+		maxHP = 100
+	}
+	if maxStamina <= 0 {
+		maxStamina = 50
+	}
+	if maxMana <= 0 {
+		maxMana = 25
+	}
 
 	// Initialize regen amounts
 	hpRegen := 0

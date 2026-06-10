@@ -67,7 +67,7 @@ type QuestProgressService interface {
 
 // CombatService handles damage, healing, stamina, mana, and NPC combat.
 type CombatService interface {
-	ApplyDamage(ctx context.Context, targetID int, damage int) (*CombatResult, error)
+	ApplyDamage(ctx context.Context, attackerID, targetID int, damage int) (*CombatResult, error)
 	LogDamage(ctx context.Context, attackerID, targetID, damage int)
 	GetCombatStatus(ctx context.Context, charID int) (*CombatStatusResult, error)
 	HealCharacter(ctx context.Context, charID int, amount int) (*HealResult, error)

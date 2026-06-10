@@ -27,13 +27,16 @@ func applyDamage(svc *service.Container) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		result, err := svc.Combat.ApplyDamage(c.Request.Context(), id, req.Damage)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
+		var result *service.CombatResult
+		var applyErr error
 		if req.AttackerID > 0 {
-			svc.Combat.LogDamage(c.Request.Context(), req.AttackerID, id, req.Damage)
+			result, applyErr = svc.Combat.ApplyDamage(c.Request.Context(), req.AttackerID, id, req.Damage)
+		} else {
+			result, applyErr = svc.Combat.ApplyDamage(c.Request.Context(), 0, id, req.Damage)
+		}
+		if applyErr != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": applyErr.Error()})
+			return
 		}
 		resp := gin.H{
 			"id":       result.ID,

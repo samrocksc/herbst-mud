@@ -28,7 +28,7 @@ func NewCombatService(
 
 var ErrCharNotFound = errors.New("character not found")
 
-func (s *combatService) ApplyDamage(ctx context.Context, targetID int, damage int) (*CombatResult, error) {
+func (s *combatService) ApplyDamage(ctx context.Context, attackerID, targetID int, damage int) (*CombatResult, error) {
 	if damage < 0 {
 		return nil, errors.New("damage must be non-negative")
 	}
@@ -72,6 +72,10 @@ func (s *combatService) ApplyDamage(ctx context.Context, targetID int, damage in
 			},
 			Timestamp: time.Now().UnixMilli(),
 		})
+	}
+	// Persist damage to damage_logs table on every hit
+	if damage > 0 {
+		s.LogDamage(ctx, attackerID, targetID, damage)
 	}
 	return &CombatResult{ID: updated.ID, HP: updated.Hitpoints, MaxHP: updated.MaxHitpoints, Defeated: defeated}, nil
 }

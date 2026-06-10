@@ -28,6 +28,11 @@ export function useMUDSocket() {
   const [vitals, setVitals] = useState<VitalsPayload | null>(null);
   const [debugLog, setDebugLog] = useState<DebugEntry[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
+  const urlRef = useRef<string | null>(null);
+  const connectRef = useRef<((url: string) => void) | null>(null);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shouldReconnect = useRef(true);
+  const reconnectAttempt = useRef(0);
 
   const logDebug = useCallback((direction: DebugEntry["direction"], label: string, payload?: string) => {
     const entry: DebugEntry = {
@@ -47,6 +52,13 @@ export function useMUDSocket() {
       wsRef.current.close();
     }
     setState("connecting");
+    urlRef.current = url;
+    shouldReconnect.current = true;
+    reconnectAttempt.current = 0;
+    if (reconnectTimer.current) {
+      clearTimeout(reconnectTimer.current);
+      reconnectTimer.current = null;
+    }
     setLines([]);
     setRoomScreen(null);
     logDebug("state", "connecting", url);
@@ -108,8 +120,22 @@ export function useMUDSocket() {
       if (wsRef.current === ws) {
         wsRef.current = null;
       }
+      // Schedule reconnect with exponential backoff unless explicitly disconnected
+      if (shouldReconnect.current && urlRef.current) {
+        reconnectAttempt.current += 1;
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempt.current - 1), 30000);
+        logDebug("state", `reconnecting in ${delay}ms (attempt ${reconnectAttempt.current})`);
+        const savedUrl = urlRef.current;
+        reconnectTimer.current = setTimeout(() => {
+          reconnectTimer.current = null;
+          connectRef.current?.(savedUrl);
+        }, delay);
+      }
     };
   }, [logDebug]);
+
+  // Wire up connectRef so onclose timer can call connect without circular deps
+  connectRef.current = connect;
 
   const send = useCallback((type: "command" | "heartbeat", payload: string) => {
     const ws = wsRef.current;
@@ -132,6 +158,11 @@ export function useMUDSocket() {
 
   const disconnect = useCallback(() => {
     logDebug("state", "disconnect called");
+    shouldReconnect.current = false;
+    if (reconnectTimer.current) {
+      clearTimeout(reconnectTimer.current);
+      reconnectTimer.current = null;
+    }
     wsRef.current?.close();
     wsRef.current = null;
     setState("idle");

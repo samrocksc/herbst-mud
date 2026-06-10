@@ -66,6 +66,7 @@ func RegisterMeRoutes(group *gin.RouterGroup, svc *service.Container, repos *rep
 			Race   string `json:"race"`
 			Gender string `json:"gender"`
 			World  string `json:"world" binding:"required"`
+			Class  string `json:"class"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			slog.Warn("invalid create character request", slog.String("error", err.Error()), slog.String("service", "me"), slog.Int("user_id", userID))
@@ -79,6 +80,7 @@ func RegisterMeRoutes(group *gin.RouterGroup, svc *service.Container, repos *rep
 			Race:    req.Race,
 			Gender:  req.Gender,
 			WorldID: req.World,
+			Class:   req.Class,
 		})
 		if err != nil {
 			switch {
