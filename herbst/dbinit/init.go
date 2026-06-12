@@ -10,6 +10,7 @@ import (
 	"herbst/db/equipment"
 	"herbst/db/npctemplate"
 	"herbst/db/room"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -32,18 +33,23 @@ func InitAdminUser(client *db.Client) error {
 		return nil
 	}
 
-	// Create default admin user
+	// Create default admin user with bcrypt-hashed password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(DefaultAdminPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash admin password: %w", err)
+	}
+
 	_, err = client.User.
 		Create().
 		SetEmail(DefaultAdminEmail).
-		SetPassword(DefaultAdminPassword).
+		SetPassword(string(hashedPassword)).
 		SetIsAdmin(true).
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create admin user: %w", err)
 	}
 
-	log.Printf("Default admin user created: %s / %s", DefaultAdminEmail, DefaultAdminPassword)
+	log.Printf("Default admin user created: %s / %s (password hashed)", DefaultAdminEmail, DefaultAdminPassword)
 	return nil
 }
 
