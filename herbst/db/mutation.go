@@ -2975,9 +2975,13 @@ type CharacterMutation struct {
 	addmax_mana           *int
 	race                  *string
 	class                 *string
+	world_id              *int
+	addworld_id           *int
 	currentWorld          *string
 	level                 *int
 	addlevel              *int
+	gold_credits          *int
+	addgold_credits       *int
 	constitution          *int
 	addconstitution       *int
 	gender                *string
@@ -3781,6 +3785,62 @@ func (m *CharacterMutation) ResetClass() {
 	delete(m.clearedFields, character.FieldClass)
 }
 
+// SetWorldID sets the "world_id" field.
+func (m *CharacterMutation) SetWorldID(i int) {
+	m.world_id = &i
+	m.addworld_id = nil
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *CharacterMutation) WorldID() (r int, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldWorldID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// AddWorldID adds i to the "world_id" field.
+func (m *CharacterMutation) AddWorldID(i int) {
+	if m.addworld_id != nil {
+		*m.addworld_id += i
+	} else {
+		m.addworld_id = &i
+	}
+}
+
+// AddedWorldID returns the value that was added to the "world_id" field in this mutation.
+func (m *CharacterMutation) AddedWorldID() (r int, exists bool) {
+	v := m.addworld_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *CharacterMutation) ResetWorldID() {
+	m.world_id = nil
+	m.addworld_id = nil
+}
+
 // SetCurrentWorld sets the "currentWorld" field.
 func (m *CharacterMutation) SetCurrentWorld(s string) {
 	m.currentWorld = &s
@@ -3871,6 +3931,62 @@ func (m *CharacterMutation) AddedLevel() (r int, exists bool) {
 func (m *CharacterMutation) ResetLevel() {
 	m.level = nil
 	m.addlevel = nil
+}
+
+// SetGoldCredits sets the "gold_credits" field.
+func (m *CharacterMutation) SetGoldCredits(i int) {
+	m.gold_credits = &i
+	m.addgold_credits = nil
+}
+
+// GoldCredits returns the value of the "gold_credits" field in the mutation.
+func (m *CharacterMutation) GoldCredits() (r int, exists bool) {
+	v := m.gold_credits
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGoldCredits returns the old "gold_credits" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldGoldCredits(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGoldCredits is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGoldCredits requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGoldCredits: %w", err)
+	}
+	return oldValue.GoldCredits, nil
+}
+
+// AddGoldCredits adds i to the "gold_credits" field.
+func (m *CharacterMutation) AddGoldCredits(i int) {
+	if m.addgold_credits != nil {
+		*m.addgold_credits += i
+	} else {
+		m.addgold_credits = &i
+	}
+}
+
+// AddedGoldCredits returns the value that was added to the "gold_credits" field in this mutation.
+func (m *CharacterMutation) AddedGoldCredits() (r int, exists bool) {
+	v := m.addgold_credits
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGoldCredits resets all changes to the "gold_credits" field.
+func (m *CharacterMutation) ResetGoldCredits() {
+	m.gold_credits = nil
+	m.addgold_credits = nil
 }
 
 // SetConstitution sets the "constitution" field.
@@ -5015,7 +5131,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 32)
+	fields := make([]string, 0, 34)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -5058,11 +5174,17 @@ func (m *CharacterMutation) Fields() []string {
 	if m.class != nil {
 		fields = append(fields, character.FieldClass)
 	}
+	if m.world_id != nil {
+		fields = append(fields, character.FieldWorldID)
+	}
 	if m.currentWorld != nil {
 		fields = append(fields, character.FieldCurrentWorld)
 	}
 	if m.level != nil {
 		fields = append(fields, character.FieldLevel)
+	}
+	if m.gold_credits != nil {
+		fields = append(fields, character.FieldGoldCredits)
 	}
 	if m.constitution != nil {
 		fields = append(fields, character.FieldConstitution)
@@ -5148,10 +5270,14 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.Race()
 	case character.FieldClass:
 		return m.Class()
+	case character.FieldWorldID:
+		return m.WorldID()
 	case character.FieldCurrentWorld:
 		return m.CurrentWorld()
 	case character.FieldLevel:
 		return m.Level()
+	case character.FieldGoldCredits:
+		return m.GoldCredits()
 	case character.FieldConstitution:
 		return m.Constitution()
 	case character.FieldGender:
@@ -5221,10 +5347,14 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldRace(ctx)
 	case character.FieldClass:
 		return m.OldClass(ctx)
+	case character.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case character.FieldCurrentWorld:
 		return m.OldCurrentWorld(ctx)
 	case character.FieldLevel:
 		return m.OldLevel(ctx)
+	case character.FieldGoldCredits:
+		return m.OldGoldCredits(ctx)
 	case character.FieldConstitution:
 		return m.OldConstitution(ctx)
 	case character.FieldGender:
@@ -5364,6 +5494,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetClass(v)
 		return nil
+	case character.FieldWorldID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
 	case character.FieldCurrentWorld:
 		v, ok := value.(string)
 		if !ok {
@@ -5377,6 +5514,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLevel(v)
+		return nil
+	case character.FieldGoldCredits:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGoldCredits(v)
 		return nil
 	case character.FieldConstitution:
 		v, ok := value.(int)
@@ -5519,8 +5663,14 @@ func (m *CharacterMutation) AddedFields() []string {
 	if m.addmax_mana != nil {
 		fields = append(fields, character.FieldMaxMana)
 	}
+	if m.addworld_id != nil {
+		fields = append(fields, character.FieldWorldID)
+	}
 	if m.addlevel != nil {
 		fields = append(fields, character.FieldLevel)
+	}
+	if m.addgold_credits != nil {
+		fields = append(fields, character.FieldGoldCredits)
 	}
 	if m.addconstitution != nil {
 		fields = append(fields, character.FieldConstitution)
@@ -5586,8 +5736,12 @@ func (m *CharacterMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedMana()
 	case character.FieldMaxMana:
 		return m.AddedMaxMana()
+	case character.FieldWorldID:
+		return m.AddedWorldID()
 	case character.FieldLevel:
 		return m.AddedLevel()
+	case character.FieldGoldCredits:
+		return m.AddedGoldCredits()
 	case character.FieldConstitution:
 		return m.AddedConstitution()
 	case character.FieldStrength:
@@ -5674,12 +5828,26 @@ func (m *CharacterMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddMaxMana(v)
 		return nil
+	case character.FieldWorldID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWorldID(v)
+		return nil
 	case character.FieldLevel:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddLevel(v)
+		return nil
+	case character.FieldGoldCredits:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGoldCredits(v)
 		return nil
 	case character.FieldConstitution:
 		v, ok := value.(int)
@@ -5869,11 +6037,17 @@ func (m *CharacterMutation) ResetField(name string) error {
 	case character.FieldClass:
 		m.ResetClass()
 		return nil
+	case character.FieldWorldID:
+		m.ResetWorldID()
+		return nil
 	case character.FieldCurrentWorld:
 		m.ResetCurrentWorld()
 		return nil
 	case character.FieldLevel:
 		m.ResetLevel()
+		return nil
+	case character.FieldGoldCredits:
+		m.ResetGoldCredits()
 		return nil
 	case character.FieldConstitution:
 		m.ResetConstitution()
@@ -8435,7 +8609,7 @@ type EquipmentMutation struct {
 	clearedFields              map[string]struct{}
 	room                       *int
 	clearedroom                bool
-	equipmentTemplate          *string
+	equipmentTemplate          *int
 	clearedequipmentTemplate   bool
 	done                       bool
 	oldValue                   func(context.Context) (*Equipment, error)
@@ -9120,12 +9294,12 @@ func (m *EquipmentMutation) ResetRevealCondition() {
 }
 
 // SetEquipmentTemplateID sets the "equipment_template_id" field.
-func (m *EquipmentMutation) SetEquipmentTemplateID(s string) {
-	m.equipmentTemplate = &s
+func (m *EquipmentMutation) SetEquipmentTemplateID(i int) {
+	m.equipmentTemplate = &i
 }
 
 // EquipmentTemplateID returns the value of the "equipment_template_id" field in the mutation.
-func (m *EquipmentMutation) EquipmentTemplateID() (r string, exists bool) {
+func (m *EquipmentMutation) EquipmentTemplateID() (r int, exists bool) {
 	v := m.equipmentTemplate
 	if v == nil {
 		return
@@ -9136,7 +9310,7 @@ func (m *EquipmentMutation) EquipmentTemplateID() (r string, exists bool) {
 // OldEquipmentTemplateID returns the old "equipment_template_id" field's value of the Equipment entity.
 // If the Equipment object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v string, err error) {
+func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEquipmentTemplateID is only allowed on UpdateOne operations")
 	}
@@ -9937,7 +10111,7 @@ func (m *EquipmentMutation) EquipmentTemplateCleared() bool {
 // EquipmentTemplateIDs returns the "equipmentTemplate" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // EquipmentTemplateID instead. It exists only for internal usage by the builders.
-func (m *EquipmentMutation) EquipmentTemplateIDs() (ids []string) {
+func (m *EquipmentMutation) EquipmentTemplateIDs() (ids []int) {
 	if id := m.equipmentTemplate; id != nil {
 		ids = append(ids, *id)
 	}
@@ -10327,7 +10501,7 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		m.SetRevealCondition(v)
 		return nil
 	case equipment.FieldEquipmentTemplateID:
-		v, ok := value.(string)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -10820,7 +10994,9 @@ type EquipmentTemplateMutation struct {
 	config
 	op                         Op
 	typ                        string
-	id                         *string
+	id                         *int
+	slug                       *string
+	world_id                   *string
 	name                       *string
 	description                *string
 	slot                       *string
@@ -10889,7 +11065,7 @@ func newEquipmentTemplateMutation(c config, op Op, opts ...equipmenttemplateOpti
 }
 
 // withEquipmentTemplateID sets the ID field of the mutation.
-func withEquipmentTemplateID(id string) equipmenttemplateOption {
+func withEquipmentTemplateID(id int) equipmenttemplateOption {
 	return func(m *EquipmentTemplateMutation) {
 		var (
 			err   error
@@ -10939,15 +11115,9 @@ func (m EquipmentTemplateMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of EquipmentTemplate entities.
-func (m *EquipmentTemplateMutation) SetID(id string) {
-	m.id = &id
-}
-
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *EquipmentTemplateMutation) ID() (id string, exists bool) {
+func (m *EquipmentTemplateMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -10958,12 +11128,12 @@ func (m *EquipmentTemplateMutation) ID() (id string, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]string, error) {
+func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []string{id}, nil
+			return []int{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -10971,6 +11141,78 @@ func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetSlug sets the "slug" field.
+func (m *EquipmentTemplateMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *EquipmentTemplateMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *EquipmentTemplateMutation) ResetSlug() {
+	m.slug = nil
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *EquipmentTemplateMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *EquipmentTemplateMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *EquipmentTemplateMutation) ResetWorldID() {
+	m.world_id = nil
 }
 
 // SetName sets the "name" field.
@@ -12331,7 +12573,13 @@ func (m *EquipmentTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 29)
+	fields := make([]string, 0, 31)
+	if m.slug != nil {
+		fields = append(fields, equipmenttemplate.FieldSlug)
+	}
+	if m.world_id != nil {
+		fields = append(fields, equipmenttemplate.FieldWorldID)
+	}
 	if m.name != nil {
 		fields = append(fields, equipmenttemplate.FieldName)
 	}
@@ -12427,6 +12675,10 @@ func (m *EquipmentTemplateMutation) Fields() []string {
 // schema.
 func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case equipmenttemplate.FieldSlug:
+		return m.Slug()
+	case equipmenttemplate.FieldWorldID:
+		return m.WorldID()
 	case equipmenttemplate.FieldName:
 		return m.Name()
 	case equipmenttemplate.FieldDescription:
@@ -12494,6 +12746,10 @@ func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case equipmenttemplate.FieldSlug:
+		return m.OldSlug(ctx)
+	case equipmenttemplate.FieldWorldID:
+		return m.OldWorldID(ctx)
 	case equipmenttemplate.FieldName:
 		return m.OldName(ctx)
 	case equipmenttemplate.FieldDescription:
@@ -12561,6 +12817,20 @@ func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (
 // type.
 func (m *EquipmentTemplateMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case equipmenttemplate.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case equipmenttemplate.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
 	case equipmenttemplate.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -12951,6 +13221,12 @@ func (m *EquipmentTemplateMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *EquipmentTemplateMutation) ResetField(name string) error {
 	switch name {
+	case equipmenttemplate.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case equipmenttemplate.FieldWorldID:
+		m.ResetWorldID()
+		return nil
 	case equipmenttemplate.FieldName:
 		m.ResetName()
 		return nil

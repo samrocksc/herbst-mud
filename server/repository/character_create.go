@@ -115,6 +115,9 @@ func (r *entCharacterRepo) Update(ctx context.Context, id int, updates Character
 	if updates.Xp != nil {
 		builder = builder.SetXp(*updates.Xp)
 	}
+	if updates.GoldCredits != nil {
+		builder = builder.SetGoldCredits(*updates.GoldCredits)
+	}
 	if updates.IsNPC != nil {
 		builder = builder.SetIsNPC(*updates.IsNPC)
 	}

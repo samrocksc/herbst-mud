@@ -101,8 +101,10 @@ var (
 		{Name: "max_mana", Type: field.TypeInt, Default: 25},
 		{Name: "race", Type: field.TypeString, Default: "human"},
 		{Name: "class", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "world_id", Type: field.TypeInt},
 		{Name: "current_world", Type: field.TypeString, Default: "default"},
 		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "gold_credits", Type: field.TypeInt, Default: 0},
 		{Name: "constitution", Type: field.TypeInt, Default: 10},
 		{Name: "gender", Type: field.TypeString, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true},
@@ -133,31 +135,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_abilities_characters",
-				Columns:    []*schema.Column{CharactersColumns[32]},
+				Columns:    []*schema.Column{CharactersColumns[34]},
 				RefColumns: []*schema.Column{AbilitiesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[33]},
+				Columns:    []*schema.Column{CharactersColumns[35]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[34]},
+				Columns:    []*schema.Column{CharactersColumns[36]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[35]},
+				Columns:    []*schema.Column{CharactersColumns[37]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[36]},
+				Columns:    []*schema.Column{CharactersColumns[38]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -268,7 +270,7 @@ var (
 		{Name: "damage_bonus", Type: field.TypeInt, Default: 0},
 		{Name: "damage_type", Type: field.TypeString, Default: ""},
 		{Name: "is_two_handed", Type: field.TypeBool, Default: false},
-		{Name: "equipment_template_id", Type: field.TypeString, Nullable: true},
+		{Name: "equipment_template_id", Type: field.TypeInt, Nullable: true},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -293,7 +295,9 @@ var (
 	}
 	// EquipmentTemplatesColumns holds the columns for the "equipment_templates" table.
 	EquipmentTemplatesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "slot", Type: field.TypeString},
@@ -329,6 +333,13 @@ var (
 		Name:       "equipment_templates",
 		Columns:    EquipmentTemplatesColumns,
 		PrimaryKey: []*schema.Column{EquipmentTemplatesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "equipmenttemplate_slug_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{EquipmentTemplatesColumns[1], EquipmentTemplatesColumns[2]},
+			},
+		},
 	}
 	// NpcTemplatesColumns holds the columns for the "npc_templates" table.
 	NpcTemplatesColumns = []*schema.Column{

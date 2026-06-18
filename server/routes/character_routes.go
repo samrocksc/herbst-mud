@@ -5,12 +5,19 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/db"
+	"herbst-server/middleware"
 	"herbst-server/repository"
 	"herbst-server/service"
 )
 
 // RegisterCharacterRoutes registers all character-related routes.
-func RegisterCharacterRoutes(router *gin.Engine, svc *service.Container, repos *repository.Container) {
+func RegisterCharacterRoutes(router *gin.Engine, svc *service.Container, repos *repository.Container, client *db.Client) {
+	// Store db.Client in Gin context so listClasses can access it.
+	router.Use(func(c *gin.Context) {
+		c.Set("db_client", client)
+		c.Next()
+	})
 	chars := router.Group("/characters")
 	{
 		chars.POST("", createCharacter(svc, repos))
@@ -37,12 +44,16 @@ func RegisterCharacterRoutes(router *gin.Engine, svc *service.Container, repos *
 		chars.GET("/:id/classless-skills", getClasslessSkills(svc))
 		chars.POST("/:id/classless-skills", equipClasslessSkill(svc))
 		chars.PUT("/:id/classless-skills/swap", swapClasslessSkills(svc))
+		// Currency management
+		chars.GET("/:id/gold", getCharacterGold(repos))
+		chars.POST("/:id/gold", addCharacterGold(repos))
+		chars.DELETE("/:id/gold", spendCharacterGold(repos))
 	}
 	// NPC routes
 	router.GET("/npcs/room/:id", getNPCsByRoom(repos))
 	router.GET("/npcs", listAllNPCs(repos))
 	// Character combat routes
-	router.POST("/characters/:id/damage", applyDamage(svc))
+	router.POST("/characters/:id/damage", applyDamage(svc, repos))
 	router.POST("/characters/:id/heal", healCharacter(svc))
 	router.POST("/characters/:id/stamina", adjustStamina(svc))
 	router.POST("/characters/:id/mana", adjustMana(svc))
@@ -54,10 +65,11 @@ func RegisterCharacterRoutes(router *gin.Engine, svc *service.Container, repos *
 	router.POST("/user-characters/:id", createCharacterForUser(svc, repos))
 	router.GET("/user-characters/:id/needed", needsCharacter(repos))
 	// Class/specialty lookup
+	router.GET("/classes", listClasses)
 	router.GET("/classes/:class/specialties", getSpecialtiesForClass)
-	// Race/gender routes (public)
-	router.GET("/races", listPlayableRaces(repos))
-	router.GET("/genders", listGenders(repos))
+	// Race/gender routes (public) - require world_id
+	router.GET("/races", middleware.WorldIDRequiredMiddleware(), listPlayableRaces(repos))
+	router.GET("/genders", middleware.WorldIDRequiredMiddleware(), listGenders(repos))
 	router.GET("/characters/:id/race", getCharacterRace(repos))
 	router.PUT("/characters/:id/race", updateCharacterRace(repos))
 	// Game config routes

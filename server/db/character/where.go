@@ -115,6 +115,11 @@ func NpcSkillID(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldNpcSkillID, v))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldWorldID, v))
+}
+
 // CurrentWorld applies equality check predicate on the "currentWorld" field. It's identical to CurrentWorldEQ.
 func CurrentWorld(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldCurrentWorld, v))
@@ -178,6 +183,11 @@ func Level(v int) predicate.Character {
 // Xp applies equality check predicate on the "xp" field. It's identical to XpEQ.
 func Xp(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldXp, v))
+}
+
+// GoldCredits applies equality check predicate on the "gold_credits" field. It's identical to GoldCreditsEQ.
+func GoldCredits(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldGoldCredits, v))
 }
 
 // DiedAt applies equality check predicate on the "died_at" field. It's identical to DiedAtEQ.
@@ -673,6 +683,36 @@ func NpcSkillIDEqualFold(v string) predicate.Character {
 // NpcSkillIDContainsFold applies the ContainsFold predicate on the "npc_skill_id" field.
 func NpcSkillIDContainsFold(v string) predicate.Character {
 	return predicate.Character(sql.FieldContainsFold(FieldNpcSkillID, v))
+}
+
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDIsNil applies the IsNil predicate on the "world_id" field.
+func WorldIDIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldWorldID))
+}
+
+// WorldIDNotNil applies the NotNil predicate on the "world_id" field.
+func WorldIDNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldWorldID))
 }
 
 // CurrentWorldEQ applies the EQ predicate on the "currentWorld" field.
@@ -1313,6 +1353,46 @@ func XpLT(v int) predicate.Character {
 // XpLTE applies the LTE predicate on the "xp" field.
 func XpLTE(v int) predicate.Character {
 	return predicate.Character(sql.FieldLTE(FieldXp, v))
+}
+
+// GoldCreditsEQ applies the EQ predicate on the "gold_credits" field.
+func GoldCreditsEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldGoldCredits, v))
+}
+
+// GoldCreditsNEQ applies the NEQ predicate on the "gold_credits" field.
+func GoldCreditsNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldGoldCredits, v))
+}
+
+// GoldCreditsIn applies the In predicate on the "gold_credits" field.
+func GoldCreditsIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldGoldCredits, vs...))
+}
+
+// GoldCreditsNotIn applies the NotIn predicate on the "gold_credits" field.
+func GoldCreditsNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldGoldCredits, vs...))
+}
+
+// GoldCreditsGT applies the GT predicate on the "gold_credits" field.
+func GoldCreditsGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldGoldCredits, v))
+}
+
+// GoldCreditsGTE applies the GTE predicate on the "gold_credits" field.
+func GoldCreditsGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldGoldCredits, v))
+}
+
+// GoldCreditsLT applies the LT predicate on the "gold_credits" field.
+func GoldCreditsLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldGoldCredits, v))
+}
+
+// GoldCreditsLTE applies the LTE predicate on the "gold_credits" field.
+func GoldCreditsLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldGoldCredits, v))
 }
 
 // DiedAtEQ applies the EQ predicate on the "died_at" field.
@@ -2148,6 +2228,29 @@ func HasUserWith(preds ...predicate.User) predicate.Character {
 	})
 }
 
+// HasWorld applies the HasEdge predicate on the "world" edge.
+func HasWorld() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorldTable, WorldColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorldWith applies the HasEdge predicate on the "world" edge with a given conditions (other predicates).
+func HasWorldWith(preds ...predicate.World) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newWorldStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasRoom applies the HasEdge predicate on the "room" edge.
 func HasRoom() predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
@@ -2393,6 +2496,29 @@ func HasTellQueue() predicate.Character {
 func HasTellQueueWith(preds ...predicate.TellQueue) predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
 		step := newTellQueueStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasShopTemplate applies the HasEdge predicate on the "shop_template" edge.
+func HasShopTemplate() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ShopTemplateTable, ShopTemplateColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShopTemplateWith applies the HasEdge predicate on the "shop_template" edge with a given conditions (other predicates).
+func HasShopTemplateWith(preds ...predicate.ShopTemplate) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newShopTemplateStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

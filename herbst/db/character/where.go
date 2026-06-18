@@ -124,6 +124,11 @@ func Class(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldClass, v))
 }
 
+// WorldID applies equality check predicate on the "world_id" field. It's identical to WorldIDEQ.
+func WorldID(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldWorldID, v))
+}
+
 // CurrentWorld applies equality check predicate on the "currentWorld" field. It's identical to CurrentWorldEQ.
 func CurrentWorld(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldCurrentWorld, v))
@@ -132,6 +137,11 @@ func CurrentWorld(v string) predicate.Character {
 // Level applies equality check predicate on the "level" field. It's identical to LevelEQ.
 func Level(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldLevel, v))
+}
+
+// GoldCredits applies equality check predicate on the "gold_credits" field. It's identical to GoldCreditsEQ.
+func GoldCredits(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldGoldCredits, v))
 }
 
 // Constitution applies equality check predicate on the "constitution" field. It's identical to ConstitutionEQ.
@@ -749,6 +759,46 @@ func ClassContainsFold(v string) predicate.Character {
 	return predicate.Character(sql.FieldContainsFold(FieldClass, v))
 }
 
+// WorldIDEQ applies the EQ predicate on the "world_id" field.
+func WorldIDEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldWorldID, v))
+}
+
+// WorldIDNEQ applies the NEQ predicate on the "world_id" field.
+func WorldIDNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldWorldID, v))
+}
+
+// WorldIDIn applies the In predicate on the "world_id" field.
+func WorldIDIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldWorldID, vs...))
+}
+
+// WorldIDNotIn applies the NotIn predicate on the "world_id" field.
+func WorldIDNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldWorldID, vs...))
+}
+
+// WorldIDGT applies the GT predicate on the "world_id" field.
+func WorldIDGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldWorldID, v))
+}
+
+// WorldIDGTE applies the GTE predicate on the "world_id" field.
+func WorldIDGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldWorldID, v))
+}
+
+// WorldIDLT applies the LT predicate on the "world_id" field.
+func WorldIDLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldWorldID, v))
+}
+
+// WorldIDLTE applies the LTE predicate on the "world_id" field.
+func WorldIDLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldWorldID, v))
+}
+
 // CurrentWorldEQ applies the EQ predicate on the "currentWorld" field.
 func CurrentWorldEQ(v string) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldCurrentWorld, v))
@@ -852,6 +902,46 @@ func LevelLT(v int) predicate.Character {
 // LevelLTE applies the LTE predicate on the "level" field.
 func LevelLTE(v int) predicate.Character {
 	return predicate.Character(sql.FieldLTE(FieldLevel, v))
+}
+
+// GoldCreditsEQ applies the EQ predicate on the "gold_credits" field.
+func GoldCreditsEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldGoldCredits, v))
+}
+
+// GoldCreditsNEQ applies the NEQ predicate on the "gold_credits" field.
+func GoldCreditsNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldGoldCredits, v))
+}
+
+// GoldCreditsIn applies the In predicate on the "gold_credits" field.
+func GoldCreditsIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldGoldCredits, vs...))
+}
+
+// GoldCreditsNotIn applies the NotIn predicate on the "gold_credits" field.
+func GoldCreditsNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldGoldCredits, vs...))
+}
+
+// GoldCreditsGT applies the GT predicate on the "gold_credits" field.
+func GoldCreditsGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldGoldCredits, v))
+}
+
+// GoldCreditsGTE applies the GTE predicate on the "gold_credits" field.
+func GoldCreditsGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldGoldCredits, v))
+}
+
+// GoldCreditsLT applies the LT predicate on the "gold_credits" field.
+func GoldCreditsLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldGoldCredits, v))
+}
+
+// GoldCreditsLTE applies the LTE predicate on the "gold_credits" field.
+func GoldCreditsLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldGoldCredits, v))
 }
 
 // ConstitutionEQ applies the EQ predicate on the "constitution" field.

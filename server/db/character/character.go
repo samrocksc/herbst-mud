@@ -36,6 +36,8 @@ const (
 	FieldNpcTemplateID = "npc_template_id"
 	// FieldNpcSkillID holds the string denoting the npc_skill_id field in the database.
 	FieldNpcSkillID = "npc_skill_id"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldCurrentWorld holds the string denoting the currentworld field in the database.
 	FieldCurrentWorld = "current_world"
 	// FieldNpcSkillCooldown holds the string denoting the npc_skill_cooldown field in the database.
@@ -62,6 +64,8 @@ const (
 	FieldLevel = "level"
 	// FieldXp holds the string denoting the xp field in the database.
 	FieldXp = "xp"
+	// FieldGoldCredits holds the string denoting the gold_credits field in the database.
+	FieldGoldCredits = "gold_credits"
 	// FieldDiedAt holds the string denoting the died_at field in the database.
 	FieldDiedAt = "died_at"
 	// FieldLastSeenAt holds the string denoting the lastseenat field in the database.
@@ -100,6 +104,8 @@ const (
 	FieldSkillHeavyArmor = "skill_heavy_armor"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeWorld holds the string denoting the world edge name in mutations.
+	EdgeWorld = "world"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// EdgeNpcTemplate holds the string denoting the npctemplate edge name in mutations.
@@ -122,6 +128,8 @@ const (
 	EdgeIgnoring = "ignoring"
 	// EdgeTellQueue holds the string denoting the tellqueue edge name in mutations.
 	EdgeTellQueue = "tellQueue"
+	// EdgeShopTemplate holds the string denoting the shop_template edge name in mutations.
+	EdgeShopTemplate = "shop_template"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -131,6 +139,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_characters"
+	// WorldTable is the table that holds the world relation/edge.
+	WorldTable = "characters"
+	// WorldInverseTable is the table name for the World entity.
+	// It exists in this package in order to avoid circular dependency with the "world" package.
+	WorldInverseTable = "worlds"
+	// WorldColumn is the table column denoting the world relation/edge.
+	WorldColumn = "world_id"
 	// RoomTable is the table that holds the room relation/edge.
 	RoomTable = "characters"
 	// RoomInverseTable is the table name for the Room entity.
@@ -208,6 +223,13 @@ const (
 	TellQueueInverseTable = "tell_queues"
 	// TellQueueColumn is the table column denoting the tellQueue relation/edge.
 	TellQueueColumn = "character_tell_queue"
+	// ShopTemplateTable is the table that holds the shop_template relation/edge.
+	ShopTemplateTable = "shop_templates"
+	// ShopTemplateInverseTable is the table name for the ShopTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "shoptemplate" package.
+	ShopTemplateInverseTable = "shop_templates"
+	// ShopTemplateColumn is the table column denoting the shop_template relation/edge.
+	ShopTemplateColumn = "character_shop_template"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -225,6 +247,7 @@ var Columns = []string{
 	FieldInstanceNumber,
 	FieldNpcTemplateID,
 	FieldNpcSkillID,
+	FieldWorldID,
 	FieldCurrentWorld,
 	FieldNpcSkillCooldown,
 	FieldHitpoints,
@@ -238,6 +261,7 @@ var Columns = []string{
 	FieldSpecialty,
 	FieldLevel,
 	FieldXp,
+	FieldGoldCredits,
 	FieldDiedAt,
 	FieldLastSeenAt,
 	FieldConstitution,
@@ -263,7 +287,6 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"room_characters",
 	"user_characters",
-	"world_characters",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -320,6 +343,8 @@ var (
 	DefaultLevel int
 	// DefaultXp holds the default value on creation for the "xp" field.
 	DefaultXp int
+	// DefaultGoldCredits holds the default value on creation for the "gold_credits" field.
+	DefaultGoldCredits int
 	// DefaultConstitution holds the default value on creation for the "constitution" field.
 	DefaultConstitution int
 	// DefaultStrength holds the default value on creation for the "strength" field.
@@ -418,6 +443,11 @@ func ByNpcSkillID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNpcSkillID, opts...).ToFunc()
 }
 
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
+}
+
 // ByCurrentWorld orders the results by the currentWorld field.
 func ByCurrentWorld(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrentWorld, opts...).ToFunc()
@@ -481,6 +511,11 @@ func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 // ByXp orders the results by the xp field.
 func ByXp(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldXp, opts...).ToFunc()
+}
+
+// ByGoldCredits orders the results by the gold_credits field.
+func ByGoldCredits(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGoldCredits, opts...).ToFunc()
 }
 
 // ByDiedAt orders the results by the died_at field.
@@ -577,6 +612,13 @@ func BySkillHeavyArmor(opts ...sql.OrderTermOption) OrderOption {
 func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByWorldField orders the results by world field.
+func ByWorldField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorldStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -719,11 +761,32 @@ func ByTellQueue(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTellQueueStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByShopTemplateCount orders the results by shop_template count.
+func ByShopTemplateCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newShopTemplateStep(), opts...)
+	}
+}
+
+// ByShopTemplate orders the results by shop_template terms.
+func ByShopTemplate(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShopTemplateStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newWorldStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorldInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, WorldTable, WorldColumn),
 	)
 }
 func newRoomStep() *sqlgraph.Step {
@@ -801,5 +864,12 @@ func newTellQueueStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TellQueueInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TellQueueTable, TellQueueColumn),
+	)
+}
+func newShopTemplateStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShopTemplateInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ShopTemplateTable, ShopTemplateColumn),
 	)
 }

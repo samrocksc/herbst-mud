@@ -18,8 +18,10 @@ import (
 	"herbst-server/db/predicate"
 	"herbst-server/db/questprogress"
 	"herbst-server/db/room"
+	"herbst-server/db/shoptemplate"
 	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
+	"herbst-server/db/world"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -238,6 +240,26 @@ func (_u *CharacterUpdate) SetNillableNpcSkillID(v *string) *CharacterUpdate {
 // ClearNpcSkillID clears the value of the "npc_skill_id" field.
 func (_u *CharacterUpdate) ClearNpcSkillID() *CharacterUpdate {
 	_u.mutation.ClearNpcSkillID()
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *CharacterUpdate) SetWorldID(v int) *CharacterUpdate {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableWorldID(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
+// ClearWorldID clears the value of the "world_id" field.
+func (_u *CharacterUpdate) ClearWorldID() *CharacterUpdate {
+	_u.mutation.ClearWorldID()
 	return _u
 }
 
@@ -495,6 +517,27 @@ func (_u *CharacterUpdate) SetNillableXp(v *int) *CharacterUpdate {
 // AddXp adds value to the "xp" field.
 func (_u *CharacterUpdate) AddXp(v int) *CharacterUpdate {
 	_u.mutation.AddXp(v)
+	return _u
+}
+
+// SetGoldCredits sets the "gold_credits" field.
+func (_u *CharacterUpdate) SetGoldCredits(v int) *CharacterUpdate {
+	_u.mutation.ResetGoldCredits()
+	_u.mutation.SetGoldCredits(v)
+	return _u
+}
+
+// SetNillableGoldCredits sets the "gold_credits" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableGoldCredits(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetGoldCredits(*v)
+	}
+	return _u
+}
+
+// AddGoldCredits adds value to the "gold_credits" field.
+func (_u *CharacterUpdate) AddGoldCredits(v int) *CharacterUpdate {
+	_u.mutation.AddGoldCredits(v)
 	return _u
 }
 
@@ -891,6 +934,11 @@ func (_u *CharacterUpdate) SetUser(v *User) *CharacterUpdate {
 	return _u.SetUserID(v.ID)
 }
 
+// SetWorld sets the "world" edge to the World entity.
+func (_u *CharacterUpdate) SetWorld(v *World) *CharacterUpdate {
+	return _u.SetWorldID(v.ID)
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *CharacterUpdate) SetRoomID(id int) *CharacterUpdate {
 	_u.mutation.SetRoomID(id)
@@ -1042,6 +1090,21 @@ func (_u *CharacterUpdate) AddTellQueue(v ...*TellQueue) *CharacterUpdate {
 	return _u.AddTellQueueIDs(ids...)
 }
 
+// AddShopTemplateIDs adds the "shop_template" edge to the ShopTemplate entity by IDs.
+func (_u *CharacterUpdate) AddShopTemplateIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddShopTemplateIDs(ids...)
+	return _u
+}
+
+// AddShopTemplate adds the "shop_template" edges to the ShopTemplate entity.
+func (_u *CharacterUpdate) AddShopTemplate(v ...*ShopTemplate) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddShopTemplateIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -1050,6 +1113,12 @@ func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (_u *CharacterUpdate) ClearUser() *CharacterUpdate {
 	_u.mutation.ClearUser()
+	return _u
+}
+
+// ClearWorld clears the "world" edge to the World entity.
+func (_u *CharacterUpdate) ClearWorld() *CharacterUpdate {
+	_u.mutation.ClearWorld()
 	return _u
 }
 
@@ -1254,6 +1323,27 @@ func (_u *CharacterUpdate) RemoveTellQueue(v ...*TellQueue) *CharacterUpdate {
 	return _u.RemoveTellQueueIDs(ids...)
 }
 
+// ClearShopTemplate clears all "shop_template" edges to the ShopTemplate entity.
+func (_u *CharacterUpdate) ClearShopTemplate() *CharacterUpdate {
+	_u.mutation.ClearShopTemplate()
+	return _u
+}
+
+// RemoveShopTemplateIDs removes the "shop_template" edge to ShopTemplate entities by IDs.
+func (_u *CharacterUpdate) RemoveShopTemplateIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveShopTemplateIDs(ids...)
+	return _u
+}
+
+// RemoveShopTemplate removes "shop_template" edges to ShopTemplate entities.
+func (_u *CharacterUpdate) RemoveShopTemplate(v ...*ShopTemplate) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveShopTemplateIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *CharacterUpdate) Save(ctx context.Context) (int, error) {
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
@@ -1415,6 +1505,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedXp(); ok {
 		_spec.AddField(character.FieldXp, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.GoldCredits(); ok {
+		_spec.SetField(character.FieldGoldCredits, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldCredits(); ok {
+		_spec.AddField(character.FieldGoldCredits, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.DiedAt(); ok {
 		_spec.SetField(character.FieldDiedAt, field.TypeTime, value)
 	}
@@ -1545,6 +1641,35 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   character.WorldTable,
+			Columns: []string{character.WorldColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   character.WorldTable,
+			Columns: []string{character.WorldColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -2015,6 +2140,51 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ShopTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ShopTemplateTable,
+			Columns: []string{character.ShopTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoptemplate.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedShopTemplateIDs(); len(nodes) > 0 && !_u.mutation.ShopTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ShopTemplateTable,
+			Columns: []string{character.ShopTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoptemplate.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShopTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ShopTemplateTable,
+			Columns: []string{character.ShopTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoptemplate.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{character.Label}
@@ -2233,6 +2403,26 @@ func (_u *CharacterUpdateOne) SetNillableNpcSkillID(v *string) *CharacterUpdateO
 // ClearNpcSkillID clears the value of the "npc_skill_id" field.
 func (_u *CharacterUpdateOne) ClearNpcSkillID() *CharacterUpdateOne {
 	_u.mutation.ClearNpcSkillID()
+	return _u
+}
+
+// SetWorldID sets the "world_id" field.
+func (_u *CharacterUpdateOne) SetWorldID(v int) *CharacterUpdateOne {
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableWorldID(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
+// ClearWorldID clears the value of the "world_id" field.
+func (_u *CharacterUpdateOne) ClearWorldID() *CharacterUpdateOne {
+	_u.mutation.ClearWorldID()
 	return _u
 }
 
@@ -2490,6 +2680,27 @@ func (_u *CharacterUpdateOne) SetNillableXp(v *int) *CharacterUpdateOne {
 // AddXp adds value to the "xp" field.
 func (_u *CharacterUpdateOne) AddXp(v int) *CharacterUpdateOne {
 	_u.mutation.AddXp(v)
+	return _u
+}
+
+// SetGoldCredits sets the "gold_credits" field.
+func (_u *CharacterUpdateOne) SetGoldCredits(v int) *CharacterUpdateOne {
+	_u.mutation.ResetGoldCredits()
+	_u.mutation.SetGoldCredits(v)
+	return _u
+}
+
+// SetNillableGoldCredits sets the "gold_credits" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableGoldCredits(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetGoldCredits(*v)
+	}
+	return _u
+}
+
+// AddGoldCredits adds value to the "gold_credits" field.
+func (_u *CharacterUpdateOne) AddGoldCredits(v int) *CharacterUpdateOne {
+	_u.mutation.AddGoldCredits(v)
 	return _u
 }
 
@@ -2886,6 +3097,11 @@ func (_u *CharacterUpdateOne) SetUser(v *User) *CharacterUpdateOne {
 	return _u.SetUserID(v.ID)
 }
 
+// SetWorld sets the "world" edge to the World entity.
+func (_u *CharacterUpdateOne) SetWorld(v *World) *CharacterUpdateOne {
+	return _u.SetWorldID(v.ID)
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_u *CharacterUpdateOne) SetRoomID(id int) *CharacterUpdateOne {
 	_u.mutation.SetRoomID(id)
@@ -3037,6 +3253,21 @@ func (_u *CharacterUpdateOne) AddTellQueue(v ...*TellQueue) *CharacterUpdateOne 
 	return _u.AddTellQueueIDs(ids...)
 }
 
+// AddShopTemplateIDs adds the "shop_template" edge to the ShopTemplate entity by IDs.
+func (_u *CharacterUpdateOne) AddShopTemplateIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddShopTemplateIDs(ids...)
+	return _u
+}
+
+// AddShopTemplate adds the "shop_template" edges to the ShopTemplate entity.
+func (_u *CharacterUpdateOne) AddShopTemplate(v ...*ShopTemplate) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddShopTemplateIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -3045,6 +3276,12 @@ func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (_u *CharacterUpdateOne) ClearUser() *CharacterUpdateOne {
 	_u.mutation.ClearUser()
+	return _u
+}
+
+// ClearWorld clears the "world" edge to the World entity.
+func (_u *CharacterUpdateOne) ClearWorld() *CharacterUpdateOne {
+	_u.mutation.ClearWorld()
 	return _u
 }
 
@@ -3249,6 +3486,27 @@ func (_u *CharacterUpdateOne) RemoveTellQueue(v ...*TellQueue) *CharacterUpdateO
 	return _u.RemoveTellQueueIDs(ids...)
 }
 
+// ClearShopTemplate clears all "shop_template" edges to the ShopTemplate entity.
+func (_u *CharacterUpdateOne) ClearShopTemplate() *CharacterUpdateOne {
+	_u.mutation.ClearShopTemplate()
+	return _u
+}
+
+// RemoveShopTemplateIDs removes the "shop_template" edge to ShopTemplate entities by IDs.
+func (_u *CharacterUpdateOne) RemoveShopTemplateIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveShopTemplateIDs(ids...)
+	return _u
+}
+
+// RemoveShopTemplate removes "shop_template" edges to ShopTemplate entities.
+func (_u *CharacterUpdateOne) RemoveShopTemplate(v ...*ShopTemplate) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveShopTemplateIDs(ids...)
+}
+
 // Where appends a list predicates to the CharacterUpdate builder.
 func (_u *CharacterUpdateOne) Where(ps ...predicate.Character) *CharacterUpdateOne {
 	_u.mutation.Where(ps...)
@@ -3440,6 +3698,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	if value, ok := _u.mutation.AddedXp(); ok {
 		_spec.AddField(character.FieldXp, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.GoldCredits(); ok {
+		_spec.SetField(character.FieldGoldCredits, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldCredits(); ok {
+		_spec.AddField(character.FieldGoldCredits, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.DiedAt(); ok {
 		_spec.SetField(character.FieldDiedAt, field.TypeTime, value)
 	}
@@ -3570,6 +3834,35 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.WorldCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   character.WorldTable,
+			Columns: []string{character.WorldColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   character.WorldTable,
+			Columns: []string{character.WorldColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -4033,6 +4326,51 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ShopTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ShopTemplateTable,
+			Columns: []string{character.ShopTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoptemplate.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedShopTemplateIDs(); len(nodes) > 0 && !_u.mutation.ShopTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ShopTemplateTable,
+			Columns: []string{character.ShopTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoptemplate.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ShopTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ShopTemplateTable,
+			Columns: []string{character.ShopTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoptemplate.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

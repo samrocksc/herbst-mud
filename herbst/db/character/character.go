@@ -40,10 +40,14 @@ const (
 	FieldRace = "race"
 	// FieldClass holds the string denoting the class field in the database.
 	FieldClass = "class"
+	// FieldWorldID holds the string denoting the world_id field in the database.
+	FieldWorldID = "world_id"
 	// FieldCurrentWorld holds the string denoting the currentworld field in the database.
 	FieldCurrentWorld = "current_world"
 	// FieldLevel holds the string denoting the level field in the database.
 	FieldLevel = "level"
+	// FieldGoldCredits holds the string denoting the gold_credits field in the database.
+	FieldGoldCredits = "gold_credits"
 	// FieldConstitution holds the string denoting the constitution field in the database.
 	FieldConstitution = "constitution"
 	// FieldGender holds the string denoting the gender field in the database.
@@ -142,8 +146,10 @@ var Columns = []string{
 	FieldMaxMana,
 	FieldRace,
 	FieldClass,
+	FieldWorldID,
 	FieldCurrentWorld,
 	FieldLevel,
+	FieldGoldCredits,
 	FieldConstitution,
 	FieldGender,
 	FieldDescription,
@@ -213,6 +219,8 @@ var (
 	DefaultCurrentWorld string
 	// DefaultLevel holds the default value on creation for the "level" field.
 	DefaultLevel int
+	// DefaultGoldCredits holds the default value on creation for the "gold_credits" field.
+	DefaultGoldCredits int
 	// DefaultConstitution holds the default value on creation for the "constitution" field.
 	DefaultConstitution int
 	// DefaultStrength holds the default value on creation for the "strength" field.
@@ -321,6 +329,11 @@ func ByClass(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldClass, opts...).ToFunc()
 }
 
+// ByWorldID orders the results by the world_id field.
+func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorldID, opts...).ToFunc()
+}
+
 // ByCurrentWorld orders the results by the currentWorld field.
 func ByCurrentWorld(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrentWorld, opts...).ToFunc()
@@ -329,6 +342,11 @@ func ByCurrentWorld(opts ...sql.OrderTermOption) OrderOption {
 // ByLevel orders the results by the level field.
 func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLevel, opts...).ToFunc()
+}
+
+// ByGoldCredits orders the results by the gold_credits field.
+func ByGoldCredits(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGoldCredits, opts...).ToFunc()
 }
 
 // ByConstitution orders the results by the constitution field.
