@@ -43,6 +43,8 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			RoomID      int    `json:"roomId"`
 			// Owner system
 			OwnerID *int `json:"ownerId"`
+			// Template reference
+			EquipmentTemplateID int `json:"equipment_template_id"`
 			// Consumable effects
 			Healing int    `json:"healing"`
 			Effect  string `json:"effect"`
@@ -105,6 +107,11 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		// Set owner if provided
 		if req.OwnerID != nil {
 			builder.SetOwnerId(*req.OwnerID)
+		}
+
+		// Set template reference if provided
+		if req.EquipmentTemplateID > 0 {
+			builder.SetEquipmentTemplateID(req.EquipmentTemplateID)
 		}
 
 		// Set expiry time for corpses and other transient items (GitHub #22)
@@ -182,6 +189,14 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			query = query.Where(equipment.ItemTypeEQ(itemType))
 		}
 
+		// Filter by template if equipmentTemplateId query param is provided
+		if templateIDStr := c.Query("equipmentTemplateId"); templateIDStr != "" {
+			templateID, err := strconv.Atoi(templateIDStr)
+			if err == nil {
+				query = query.Where(equipment.EquipmentTemplateIDEQ(templateID))
+			}
+		}
+
 		items, err := query.All(c.Request.Context())
 		if err != nil {
 			dblog.Error("failed to list equipment", err, slog.String("service", "equipment"))
@@ -202,8 +217,9 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			Color           string         `json:"color"`
 			IsVisible       bool           `json:"isVisible"`
 			ItemType        string         `json:"itemType"`
-			OwnerID         *int           `json:"ownerId"`
-			Healing         int            `json:"healing"`
+			OwnerID             *int           `json:"ownerId"`
+			EquipmentTemplateID int            `json:"equipment_template_id"`
+			Healing             int            `json:"healing"`
 			Effect          string         `json:"effect"`
 			RevealCondition map[string]any `json:"revealCondition,omitempty"`
 			ArmorRating           int            `json:"armor_rating"`
@@ -234,9 +250,10 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 				IsImmovable: item.IsImmovable,
 				Color:       item.Color,
 				IsVisible:   item.IsVisible,
-				ItemType:    item.ItemType,
-				OwnerID:     item.OwnerId,
-				Healing:     item.Healing,
+				ItemType:            item.ItemType,
+				OwnerID:             item.OwnerId,
+				EquipmentTemplateID: item.EquipmentTemplateID,
+				Healing:             item.Healing,
 				Effect:      item.Effect,
 				ArmorRating:           item.ArmorRating,
 				ArmorType:             item.ArmorType,
@@ -352,8 +369,9 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			Color           string         `json:"color"`
 			IsVisible       bool           `json:"isVisible"`
 			ItemType        string         `json:"itemType"`
-			OwnerID         *int           `json:"ownerId,omitempty"`
-			RevealCondition map[string]any `json:"revealCondition,omitempty"`
+			OwnerID             *int           `json:"ownerId,omitempty"`
+			EquipmentTemplateID int            `json:"equipment_template_id"`
+			RevealCondition     map[string]any `json:"revealCondition,omitempty"`
 			ArmorRating           int            `json:"armor_rating"`
 			ArmorType             string         `json:"armor_type"`
 			Stats                 map[string]int `json:"stats,omitempty"`
@@ -379,8 +397,9 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			IsImmovable: eq.IsImmovable,
 			Color:       eq.Color,
 			IsVisible:   eq.IsVisible,
-			ItemType:    eq.ItemType,
-			OwnerID:     eq.OwnerId,
+			ItemType:            eq.ItemType,
+			OwnerID:             eq.OwnerId,
+			EquipmentTemplateID: eq.EquipmentTemplateID,
 			ArmorRating:           eq.ArmorRating,
 			ArmorType:             eq.ArmorType,
 			Stats:                 eq.Stats,
@@ -426,6 +445,7 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 			IsVisible       *bool          `json:"isVisible"`
 			ItemType        string         `json:"itemType"`
 			RoomID          *int           `json:"roomId"`
+				ClearRoom       bool    `json:"clearRoom,omitempty"`
 			OwnerID         *int           `json:"ownerId"`
 			RevealCondition map[string]any `json:"revealCondition"`
 			// Corpse rotting (GitHub #22)
@@ -483,7 +503,9 @@ func RegisterEquipmentRoutes(router *gin.Engine, repos *repository.Container, cl
 		if req.ItemType != "" {
 			updater.SetItemType(req.ItemType)
 		}
-		if req.RoomID != nil {
+		if req.ClearRoom {
+			updater.ClearRoom()
+		} else if req.RoomID != nil {
 			if *req.RoomID == 0 {
 				updater.ClearRoom()
 			} else {
