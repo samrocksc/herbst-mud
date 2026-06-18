@@ -1,6 +1,6 @@
 /* eslint-disable functional/prefer-immutable-types */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPut } from "../utils/apiFetch";
+import { apiGet, apiPut, apiPost, apiDelete } from "../utils/apiFetch";
 
 export type Character = Readonly<{
   id: number
@@ -25,6 +25,7 @@ export type Character = Readonly<{
   description: string
   level: number
   xp: number
+  gold_credits: number
   strength: number
   dexterity: number
   constitution: number
@@ -45,6 +46,7 @@ export type CharacterUpdate = Partial<{
   description: string
   level: number
   xp: number
+  gold_credits: number
   hitpoints: number
   maxHitpoints: number
   stamina: number
@@ -84,6 +86,39 @@ export function useUpdateCharacter() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["characters"] });
       queryClient.invalidateQueries({ queryKey: ["character"] });
+    },
+  });
+}
+
+export function useCharacterGold(id: number) {
+  return useQuery({
+    queryKey: ["character-gold", id],
+    queryFn: async (): Promise<{ character_id: number; gold_credits: number }> =>
+      apiGet(`${API}/characters/${id}/gold`),
+    enabled: !!id,
+  });
+}
+
+export function useAddCharacterGold() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount, source }: { id: number; amount: number; source?: string }) =>
+      apiPost(`${API}/characters/${id}/gold`, { amount, source }),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["character-gold", vars.id] });
+      queryClient.invalidateQueries({ queryKey: ["character", vars.id] });
+    },
+  });
+}
+
+export function useSpendCharacterGold() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount, reason }: { id: number; amount: number; reason?: string }) =>
+      apiDelete(`${API}/characters/${id}/gold`, { amount, reason }),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["character-gold", vars.id] });
+      queryClient.invalidateQueries({ queryKey: ["character", vars.id] });
     },
   });
 }

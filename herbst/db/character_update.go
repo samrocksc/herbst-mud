@@ -283,6 +283,27 @@ func (_u *CharacterUpdate) ClearClass() *CharacterUpdate {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *CharacterUpdate) SetWorldID(v int) *CharacterUpdate {
+	_u.mutation.ResetWorldID()
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableWorldID(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
+// AddWorldID adds value to the "world_id" field.
+func (_u *CharacterUpdate) AddWorldID(v int) *CharacterUpdate {
+	_u.mutation.AddWorldID(v)
+	return _u
+}
+
 // SetCurrentWorld sets the "currentWorld" field.
 func (_u *CharacterUpdate) SetCurrentWorld(v string) *CharacterUpdate {
 	_u.mutation.SetCurrentWorld(v)
@@ -315,6 +336,27 @@ func (_u *CharacterUpdate) SetNillableLevel(v *int) *CharacterUpdate {
 // AddLevel adds value to the "level" field.
 func (_u *CharacterUpdate) AddLevel(v int) *CharacterUpdate {
 	_u.mutation.AddLevel(v)
+	return _u
+}
+
+// SetGoldCredits sets the "gold_credits" field.
+func (_u *CharacterUpdate) SetGoldCredits(v int) *CharacterUpdate {
+	_u.mutation.ResetGoldCredits()
+	_u.mutation.SetGoldCredits(v)
+	return _u
+}
+
+// SetNillableGoldCredits sets the "gold_credits" field if the given value is not nil.
+func (_u *CharacterUpdate) SetNillableGoldCredits(v *int) *CharacterUpdate {
+	if v != nil {
+		_u.SetGoldCredits(*v)
+	}
+	return _u
+}
+
+// AddGoldCredits adds value to the "gold_credits" field.
+func (_u *CharacterUpdate) AddGoldCredits(v int) *CharacterUpdate {
+	_u.mutation.AddGoldCredits(v)
 	return _u
 }
 
@@ -906,6 +948,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.ClassCleared() {
 		_spec.ClearField(character.FieldClass, field.TypeString)
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(character.FieldWorldID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedWorldID(); ok {
+		_spec.AddField(character.FieldWorldID, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.CurrentWorld(); ok {
 		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
 	}
@@ -914,6 +962,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedLevel(); ok {
 		_spec.AddField(character.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.GoldCredits(); ok {
+		_spec.SetField(character.FieldGoldCredits, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldCredits(); ok {
+		_spec.AddField(character.FieldGoldCredits, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)
@@ -1459,6 +1513,27 @@ func (_u *CharacterUpdateOne) ClearClass() *CharacterUpdateOne {
 	return _u
 }
 
+// SetWorldID sets the "world_id" field.
+func (_u *CharacterUpdateOne) SetWorldID(v int) *CharacterUpdateOne {
+	_u.mutation.ResetWorldID()
+	_u.mutation.SetWorldID(v)
+	return _u
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableWorldID(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetWorldID(*v)
+	}
+	return _u
+}
+
+// AddWorldID adds value to the "world_id" field.
+func (_u *CharacterUpdateOne) AddWorldID(v int) *CharacterUpdateOne {
+	_u.mutation.AddWorldID(v)
+	return _u
+}
+
 // SetCurrentWorld sets the "currentWorld" field.
 func (_u *CharacterUpdateOne) SetCurrentWorld(v string) *CharacterUpdateOne {
 	_u.mutation.SetCurrentWorld(v)
@@ -1491,6 +1566,27 @@ func (_u *CharacterUpdateOne) SetNillableLevel(v *int) *CharacterUpdateOne {
 // AddLevel adds value to the "level" field.
 func (_u *CharacterUpdateOne) AddLevel(v int) *CharacterUpdateOne {
 	_u.mutation.AddLevel(v)
+	return _u
+}
+
+// SetGoldCredits sets the "gold_credits" field.
+func (_u *CharacterUpdateOne) SetGoldCredits(v int) *CharacterUpdateOne {
+	_u.mutation.ResetGoldCredits()
+	_u.mutation.SetGoldCredits(v)
+	return _u
+}
+
+// SetNillableGoldCredits sets the "gold_credits" field if the given value is not nil.
+func (_u *CharacterUpdateOne) SetNillableGoldCredits(v *int) *CharacterUpdateOne {
+	if v != nil {
+		_u.SetGoldCredits(*v)
+	}
+	return _u
+}
+
+// AddGoldCredits adds value to the "gold_credits" field.
+func (_u *CharacterUpdateOne) AddGoldCredits(v int) *CharacterUpdateOne {
+	_u.mutation.AddGoldCredits(v)
 	return _u
 }
 
@@ -2112,6 +2208,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	if _u.mutation.ClassCleared() {
 		_spec.ClearField(character.FieldClass, field.TypeString)
 	}
+	if value, ok := _u.mutation.WorldID(); ok {
+		_spec.SetField(character.FieldWorldID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedWorldID(); ok {
+		_spec.AddField(character.FieldWorldID, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.CurrentWorld(); ok {
 		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
 	}
@@ -2120,6 +2222,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.AddedLevel(); ok {
 		_spec.AddField(character.FieldLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.GoldCredits(); ok {
+		_spec.SetField(character.FieldGoldCredits, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldCredits(); ok {
+		_spec.AddField(character.FieldGoldCredits, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)

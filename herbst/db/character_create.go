@@ -196,6 +196,12 @@ func (_c *CharacterCreate) SetNillableClass(v *string) *CharacterCreate {
 	return _c
 }
 
+// SetWorldID sets the "world_id" field.
+func (_c *CharacterCreate) SetWorldID(v int) *CharacterCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
 // SetCurrentWorld sets the "currentWorld" field.
 func (_c *CharacterCreate) SetCurrentWorld(v string) *CharacterCreate {
 	_c.mutation.SetCurrentWorld(v)
@@ -220,6 +226,20 @@ func (_c *CharacterCreate) SetLevel(v int) *CharacterCreate {
 func (_c *CharacterCreate) SetNillableLevel(v *int) *CharacterCreate {
 	if v != nil {
 		_c.SetLevel(*v)
+	}
+	return _c
+}
+
+// SetGoldCredits sets the "gold_credits" field.
+func (_c *CharacterCreate) SetGoldCredits(v int) *CharacterCreate {
+	_c.mutation.SetGoldCredits(v)
+	return _c
+}
+
+// SetNillableGoldCredits sets the "gold_credits" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableGoldCredits(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetGoldCredits(*v)
 	}
 	return _c
 }
@@ -614,6 +634,10 @@ func (_c *CharacterCreate) defaults() {
 		v := character.DefaultLevel
 		_c.mutation.SetLevel(v)
 	}
+	if _, ok := _c.mutation.GoldCredits(); !ok {
+		v := character.DefaultGoldCredits
+		_c.mutation.SetGoldCredits(v)
+	}
 	if _, ok := _c.mutation.Constitution(); !ok {
 		v := character.DefaultConstitution
 		_c.mutation.SetConstitution(v)
@@ -713,11 +737,17 @@ func (_c *CharacterCreate) check() error {
 	if _, ok := _c.mutation.Race(); !ok {
 		return &ValidationError{Name: "race", err: errors.New(`db: missing required field "Character.race"`)}
 	}
+	if _, ok := _c.mutation.WorldID(); !ok {
+		return &ValidationError{Name: "world_id", err: errors.New(`db: missing required field "Character.world_id"`)}
+	}
 	if _, ok := _c.mutation.CurrentWorld(); !ok {
 		return &ValidationError{Name: "currentWorld", err: errors.New(`db: missing required field "Character.currentWorld"`)}
 	}
 	if _, ok := _c.mutation.Level(); !ok {
 		return &ValidationError{Name: "level", err: errors.New(`db: missing required field "Character.level"`)}
+	}
+	if _, ok := _c.mutation.GoldCredits(); !ok {
+		return &ValidationError{Name: "gold_credits", err: errors.New(`db: missing required field "Character.gold_credits"`)}
 	}
 	if _, ok := _c.mutation.Constitution(); !ok {
 		return &ValidationError{Name: "constitution", err: errors.New(`db: missing required field "Character.constitution"`)}
@@ -842,6 +872,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 		_spec.SetField(character.FieldClass, field.TypeString, value)
 		_node.Class = value
 	}
+	if value, ok := _c.mutation.WorldID(); ok {
+		_spec.SetField(character.FieldWorldID, field.TypeInt, value)
+		_node.WorldID = value
+	}
 	if value, ok := _c.mutation.CurrentWorld(); ok {
 		_spec.SetField(character.FieldCurrentWorld, field.TypeString, value)
 		_node.CurrentWorld = value
@@ -849,6 +883,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Level(); ok {
 		_spec.SetField(character.FieldLevel, field.TypeInt, value)
 		_node.Level = value
+	}
+	if value, ok := _c.mutation.GoldCredits(); ok {
+		_spec.SetField(character.FieldGoldCredits, field.TypeInt, value)
+		_node.GoldCredits = value
 	}
 	if value, ok := _c.mutation.Constitution(); ok {
 		_spec.SetField(character.FieldConstitution, field.TypeInt, value)

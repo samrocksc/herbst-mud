@@ -1,8 +1,8 @@
 /* eslint-disable functional/prefer-immutable-types, react-hooks/purity */
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCharacter, useUpdateCharacter, type CharacterUpdate } from "../../hooks/useCharacters";
+import { useCharacter, useUpdateCharacter, useAddCharacterGold, useSpendCharacterGold, type CharacterUpdate } from "../../hooks/useCharacters";
 import { apiPost } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { EquippedItemsView } from "../../components/EquippedItemsView";
@@ -10,6 +10,41 @@ import { ActiveEffectsPanel } from "../../components/ActiveEffectsPanel";
 import { ResourceIdField } from "../../components/ResourceIdField";
 import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import { AddItemModal } from "./-characters.$characterId.addItemModal";
+
+function GoldManager({ id, balance }: Readonly<{ id: number; balance: number }>) {
+  const [amount, setAmount] = useState(0);
+  const addMutation = useAddCharacterGold();
+  const spendMutation = useSpendCharacterGold();
+  const isPending = addMutation.isPending || spendMutation.isPending;
+  const error = (addMutation.error ?? spendMutation.error) as Error | null;
+
+  return (
+    <div className="flex items-center gap-2 mt-2">
+      <input
+        type="number"
+        min={0}
+        value={amount || ""}
+        onChange={(e) => setAmount(parseInt(e.target.value) || 0)}
+        className="w-24 p-1 bg-surface border border-border rounded text-text text-sm"
+      />
+      <button
+        onClick={() => addMutation.mutate({ id, amount })}
+        disabled={isPending || amount <= 0}
+        className="px-2 py-1 bg-success text-white rounded text-xs hover:opacity-90 disabled:opacity-50"
+      >
+        +
+      </button>
+      <button
+        onClick={() => spendMutation.mutate({ id, amount })}
+        disabled={isPending || amount <= 0 || amount > balance}
+        className="px-2 py-1 bg-danger text-white rounded text-xs hover:opacity-90 disabled:opacity-50"
+      >
+        −
+      </button>
+      {error && <span className="text-danger text-xs">{error.message}</span>}
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_auth/characters/$characterId")({
   component: CharacterDetail,
@@ -36,6 +71,7 @@ function CharacterDetail() {
         ownerId: id,
       });
       queryClient.invalidateQueries({ queryKey: ["item-instances"] });
+      queryClient.invalidateQueries({ queryKey: ["item-instances", "owner", id] });
       queryClient.invalidateQueries({ queryKey: ["character", id] });
       setAddItemOpen(false);
     } catch (err) {
@@ -70,6 +106,13 @@ function CharacterDetail() {
           >
             {editing ? "Cancel" : "Edit"}
           </button>
+          <Link
+            to="/characters/$characterId/examine"
+            params={{ characterId: String(id) }}
+            className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-text hover:bg-surface-muted"
+          >
+            Examine
+          </Link>
         </div>
       } />
       {editing ? (
@@ -127,6 +170,11 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
         <Field label="XP" value={String(character.xp)} />
       </Section>
 
+      <Section title="Currency">
+        <Field label="Gold Credits" value={String(character.gold_credits ?? 0)} />
+        <GoldManager id={character.id} balance={character.gold_credits ?? 0} />
+      </Section>
+
       <Section title="Stats">
         <Field label="STR" value={String(character.strength)} />
         <Field label="DEX" value={String(character.dexterity)} />
@@ -152,6 +200,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
     respawnRoomId: character.respawnRoomId,
     level: character.level,
     xp: character.xp,
+    gold_credits: character.gold_credits ?? 0,
     hitpoints: character.hitpoints,
     maxHitpoints: character.max_hitpoints,
     stamina: character.stamina,
@@ -260,6 +309,7 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
       <Section title="Progression">
         {numField("level", "Level")}
         {numField("xp", "XP")}
+        {numField("gold_credits", "Gold Credits")}
       </Section>
 
       <button

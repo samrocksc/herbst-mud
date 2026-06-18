@@ -39,7 +39,7 @@ async function apiFetch<T = unknown>(input: RequestInfo, init?: RequestInit): Pr
     // but only when the response is a simple wrapper (1–2 top-level keys)
     const keys = Object.keys(parsed);
     if (keys.length <= 2) {
-      const unwrapKeys = ["skills", "npcs", "characters", "abilities", "users", "items", "rooms", "races", "achievements", "factions", "faction_categories", "effects", "hooks", "active_effects", "tags", "recipes", "quests", "quest_progress", "dialog_nodes"];
+      const unwrapKeys = ["skills", "npcs", "characters", "abilities", "users", "items", "rooms", "races", "achievements", "factions", "faction_categories", "effects", "hooks", "active_effects", "tags", "recipes", "quests", "quest_progress", "dialog_nodes", "genders"];
       const matchKey = unwrapKeys.find(k => Object.prototype.hasOwnProperty.call(parsed, k) && Array.isArray(parsed[k]));
       if (matchKey) {
         return parsed[matchKey] as T;
@@ -64,4 +64,5 @@ export const apiPost = <T>(url: string, body: unknown): Promise<T> =>
   apiFetch<T>(url, { method: "POST", body: JSON.stringify(body) });
 export const apiPut = <T>(url: string, body: unknown): Promise<T> =>
   apiFetch<T>(url, { method: "PUT", body: JSON.stringify(body) });
-export const apiDelete = <T>(url: string): Promise<T> => apiFetch<T>(url, { method: "DELETE" });
+export const apiDelete = <T>(url: string, body?: unknown): Promise<T> =>
+  apiFetch<T>(url, { method: "DELETE", ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });

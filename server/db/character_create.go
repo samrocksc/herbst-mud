@@ -17,8 +17,10 @@ import (
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/questprogress"
 	"herbst-server/db/room"
+	"herbst-server/db/shoptemplate"
 	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
+	"herbst-server/db/world"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -172,6 +174,20 @@ func (_c *CharacterCreate) SetNpcSkillID(v string) *CharacterCreate {
 func (_c *CharacterCreate) SetNillableNpcSkillID(v *string) *CharacterCreate {
 	if v != nil {
 		_c.SetNpcSkillID(*v)
+	}
+	return _c
+}
+
+// SetWorldID sets the "world_id" field.
+func (_c *CharacterCreate) SetWorldID(v int) *CharacterCreate {
+	_c.mutation.SetWorldID(v)
+	return _c
+}
+
+// SetNillableWorldID sets the "world_id" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableWorldID(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetWorldID(*v)
 	}
 	return _c
 }
@@ -354,6 +370,20 @@ func (_c *CharacterCreate) SetXp(v int) *CharacterCreate {
 func (_c *CharacterCreate) SetNillableXp(v *int) *CharacterCreate {
 	if v != nil {
 		_c.SetXp(*v)
+	}
+	return _c
+}
+
+// SetGoldCredits sets the "gold_credits" field.
+func (_c *CharacterCreate) SetGoldCredits(v int) *CharacterCreate {
+	_c.mutation.SetGoldCredits(v)
+	return _c
+}
+
+// SetNillableGoldCredits sets the "gold_credits" field if the given value is not nil.
+func (_c *CharacterCreate) SetNillableGoldCredits(v *int) *CharacterCreate {
+	if v != nil {
+		_c.SetGoldCredits(*v)
 	}
 	return _c
 }
@@ -629,6 +659,11 @@ func (_c *CharacterCreate) SetUser(v *User) *CharacterCreate {
 	return _c.SetUserID(v.ID)
 }
 
+// SetWorld sets the "world" edge to the World entity.
+func (_c *CharacterCreate) SetWorld(v *World) *CharacterCreate {
+	return _c.SetWorldID(v.ID)
+}
+
 // SetRoomID sets the "room" edge to the Room entity by ID.
 func (_c *CharacterCreate) SetRoomID(id int) *CharacterCreate {
 	_c.mutation.SetRoomID(id)
@@ -780,6 +815,21 @@ func (_c *CharacterCreate) AddTellQueue(v ...*TellQueue) *CharacterCreate {
 	return _c.AddTellQueueIDs(ids...)
 }
 
+// AddShopTemplateIDs adds the "shop_template" edge to the ShopTemplate entity by IDs.
+func (_c *CharacterCreate) AddShopTemplateIDs(ids ...int) *CharacterCreate {
+	_c.mutation.AddShopTemplateIDs(ids...)
+	return _c
+}
+
+// AddShopTemplate adds the "shop_template" edges to the ShopTemplate entity.
+func (_c *CharacterCreate) AddShopTemplate(v ...*ShopTemplate) *CharacterCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddShopTemplateIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_c *CharacterCreate) Mutation() *CharacterMutation {
 	return _c.mutation
@@ -890,6 +940,10 @@ func (_c *CharacterCreate) defaults() {
 	if _, ok := _c.mutation.Xp(); !ok {
 		v := character.DefaultXp
 		_c.mutation.SetXp(v)
+	}
+	if _, ok := _c.mutation.GoldCredits(); !ok {
+		v := character.DefaultGoldCredits
+		_c.mutation.SetGoldCredits(v)
 	}
 	if _, ok := _c.mutation.Constitution(); !ok {
 		v := character.DefaultConstitution
@@ -1013,6 +1067,9 @@ func (_c *CharacterCreate) check() error {
 	}
 	if _, ok := _c.mutation.Xp(); !ok {
 		return &ValidationError{Name: "xp", err: errors.New(`db: missing required field "Character.xp"`)}
+	}
+	if _, ok := _c.mutation.GoldCredits(); !ok {
+		return &ValidationError{Name: "gold_credits", err: errors.New(`db: missing required field "Character.gold_credits"`)}
 	}
 	if _, ok := _c.mutation.Constitution(); !ok {
 		return &ValidationError{Name: "constitution", err: errors.New(`db: missing required field "Character.constitution"`)}
@@ -1177,6 +1234,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 		_spec.SetField(character.FieldXp, field.TypeInt, value)
 		_node.Xp = value
 	}
+	if value, ok := _c.mutation.GoldCredits(); ok {
+		_spec.SetField(character.FieldGoldCredits, field.TypeInt, value)
+		_node.GoldCredits = value
+	}
 	if value, ok := _c.mutation.DiedAt(); ok {
 		_spec.SetField(character.FieldDiedAt, field.TypeTime, value)
 		_node.DiedAt = &value
@@ -1264,6 +1325,23 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_characters = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.WorldIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   character.WorldTable,
+			Columns: []string{character.WorldColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(world.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.WorldID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.RoomIDs(); len(nodes) > 0 {
@@ -1437,6 +1515,22 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tellqueue.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ShopTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ShopTemplateTable,
+			Columns: []string{character.ShopTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoptemplate.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

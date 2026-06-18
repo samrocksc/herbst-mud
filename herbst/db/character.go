@@ -47,10 +47,14 @@ type Character struct {
 	Race string `json:"race,omitempty"`
 	// Class derived from faction memberships in 'class' category. Empty = classless.
 	Class string `json:"class,omitempty"`
-	// World this character belongs to (for multi-world support)
+	// Foreign key to the World this character belongs to
+	WorldID int `json:"world_id,omitempty"`
+	// Current world context for the character
 	CurrentWorld string `json:"currentWorld,omitempty"`
 	// Level holds the value of the "level" field.
 	Level int `json:"level,omitempty"`
+	// Currency balance for shops and trading
+	GoldCredits int `json:"gold_credits,omitempty"`
 	// Constitution holds the value of the "constitution" field.
 	Constitution int `json:"constitution,omitempty"`
 	// Gender holds the value of the "gender" field.
@@ -168,7 +172,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsTest:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldWorldID, character.FieldLevel, character.FieldGoldCredits, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
 		case character.FieldName, character.FieldRace, character.FieldClass, character.FieldCurrentWorld, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -285,6 +289,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Class = value.String
 			}
+		case character.FieldWorldID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = int(value.Int64)
+			}
 		case character.FieldCurrentWorld:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field currentWorld", values[i])
@@ -296,6 +306,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field level", values[i])
 			} else if value.Valid {
 				_m.Level = int(value.Int64)
+			}
+		case character.FieldGoldCredits:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gold_credits", values[i])
+			} else if value.Valid {
+				_m.GoldCredits = int(value.Int64)
 			}
 		case character.FieldConstitution:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -524,11 +540,17 @@ func (_m *Character) String() string {
 	builder.WriteString("class=")
 	builder.WriteString(_m.Class)
 	builder.WriteString(", ")
+	builder.WriteString("world_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.WorldID))
+	builder.WriteString(", ")
 	builder.WriteString("currentWorld=")
 	builder.WriteString(_m.CurrentWorld)
 	builder.WriteString(", ")
 	builder.WriteString("level=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Level))
+	builder.WriteString(", ")
+	builder.WriteString("gold_credits=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GoldCredits))
 	builder.WriteString(", ")
 	builder.WriteString("constitution=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Constitution))

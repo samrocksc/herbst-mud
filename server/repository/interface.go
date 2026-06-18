@@ -373,6 +373,7 @@ type CharacterUpdates struct {
 	MaxMana         *int
 	Level           *int
 	Xp              *int
+	GoldCredits     *int
 	IsNPC           *bool
 	IsImmortal      *bool
 	IsAdmin         *bool
@@ -712,7 +713,9 @@ type CreateFactionInput struct {
 	Name        string
 	DisplayName string
 	Description string
+	CategoryID  *int
 	MemberTags  []string
+	WorldID     string
 }
 
 type FactionUpdates struct {
@@ -762,14 +765,15 @@ type CompetencyCategoryUpdates struct {
 }
 
 type CreateRaceInput struct {
-	Name           string
-	DisplayName    string
-	Description    string
-	StatModifiers  *string
+	Name            string
+	DisplayName     string
+	Description     string
+	StatModifiers   *string
 	RequirementTags []string
-	Color          string
-	EquipmentSlots []string
-	TagIDs         []int
+	Color           string
+	EquipmentSlots  []string
+	TagIDs          []int
+	WorldID         string
 }
 
 type RaceUpdates struct {

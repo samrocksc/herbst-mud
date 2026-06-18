@@ -42,9 +42,12 @@ func (Character) Fields() []ent.Field {
 		field.String("npc_skill_id").
 			Optional().
 			Comment("NPC skill identifier (e.g., 'druid_heal')"),
+		field.Int("world_id").
+			Optional().
+			Comment("Foreign key to the World this character belongs to"),
 		field.String("currentWorld").
 			Default("default").
-			Comment("World this character belongs to (for multi-world support)"),
+			Comment("Current world context for the character"),
 		field.Int("npc_skill_cooldown").
 			Default(0).
 			Comment("Current cooldown ticks on NPC skill"),
@@ -74,6 +77,9 @@ func (Character) Fields() []ent.Field {
 		field.Int("xp").
 			Default(0).
 			Comment("Current accumulated experience points"),
+		field.Int("gold_credits").
+			Default(0).
+			Comment("Currency balance for shops and trading"),
 		field.Time("died_at").
 			Optional().
 			Nillable().
@@ -123,6 +129,10 @@ func (Character) Edges() []ent.Edge {
 		edge.From("user", User.Type).
 			Ref("characters").
 			Unique(),
+		edge.From("world", World.Type).
+			Ref("characters").
+			Field("world_id").
+			Unique(),
 		edge.To("room", Room.Type).
 			Field("currentRoomId").
 			Required().
@@ -139,5 +149,7 @@ func (Character) Edges() []ent.Edge {
 		edge.To("channelSettings", CharacterChannel.Type),
 		edge.To("ignoring", CharacterIgnore.Type),
 		edge.To("tellQueue", TellQueue.Type),
+		edge.To("shop_template", ShopTemplate.Type).
+			Comment("Shop template this NPC instance serves (if vendor)"),
 	}
 }

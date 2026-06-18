@@ -8,6 +8,7 @@ import (
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/room"
 	"herbst-server/db/user"
+	"herbst-server/db/world"
 	"strings"
 	"time"
 
@@ -44,7 +45,9 @@ type Character struct {
 	NpcTemplateID string `json:"npc_template_id,omitempty"`
 	// NPC skill identifier (e.g., 'druid_heal')
 	NpcSkillID string `json:"npc_skill_id,omitempty"`
-	// World this character belongs to (for multi-world support)
+	// Foreign key to the World this character belongs to
+	WorldID int `json:"world_id,omitempty"`
+	// Current world context for the character
 	CurrentWorld string `json:"currentWorld,omitempty"`
 	// Current cooldown ticks on NPC skill
 	NpcSkillCooldown int `json:"npc_skill_cooldown,omitempty"`
@@ -70,6 +73,8 @@ type Character struct {
 	Level int `json:"level,omitempty"`
 	// Current accumulated experience points
 	Xp int `json:"xp,omitempty"`
+	// Currency balance for shops and trading
+	GoldCredits int `json:"gold_credits,omitempty"`
 	// When this NPC died (nil if alive or a player character)
 	DiedAt *time.Time `json:"died_at,omitempty"`
 	// When the character was last online
@@ -108,17 +113,18 @@ type Character struct {
 	SkillHeavyArmor int `json:"skill_heavy_armor,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
-	Edges            CharacterEdges `json:"edges"`
-	room_characters  *int
-	user_characters  *int
-	world_characters *int
-	selectValues     sql.SelectValues
+	Edges           CharacterEdges `json:"edges"`
+	room_characters *int
+	user_characters *int
+	selectValues    sql.SelectValues
 }
 
 // CharacterEdges holds the relations/edges for other nodes in the graph.
 type CharacterEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// World holds the value of the world edge.
+	World *World `json:"world,omitempty"`
 	// Room holds the value of the room edge.
 	Room *Room `json:"room,omitempty"`
 	// NpcTemplate holds the value of the npcTemplate edge.
@@ -141,9 +147,11 @@ type CharacterEdges struct {
 	Ignoring []*CharacterIgnore `json:"ignoring,omitempty"`
 	// TellQueue holds the value of the tellQueue edge.
 	TellQueue []*TellQueue `json:"tellQueue,omitempty"`
+	// Shop template this NPC instance serves (if vendor)
+	ShopTemplate []*ShopTemplate `json:"shop_template,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [14]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -157,12 +165,23 @@ func (e CharacterEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
+// WorldOrErr returns the World value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CharacterEdges) WorldOrErr() (*World, error) {
+	if e.World != nil {
+		return e.World, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: world.Label}
+	}
+	return nil, &NotLoadedError{edge: "world"}
+}
+
 // RoomOrErr returns the Room value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CharacterEdges) RoomOrErr() (*Room, error) {
 	if e.Room != nil {
 		return e.Room, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: room.Label}
 	}
 	return nil, &NotLoadedError{edge: "room"}
@@ -173,7 +192,7 @@ func (e CharacterEdges) RoomOrErr() (*Room, error) {
 func (e CharacterEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
 	if e.NpcTemplate != nil {
 		return e.NpcTemplate, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: npctemplate.Label}
 	}
 	return nil, &NotLoadedError{edge: "npcTemplate"}
@@ -182,7 +201,7 @@ func (e CharacterEdges) NpcTemplateOrErr() (*NPCTemplate, error) {
 // AbilitiesOrErr returns the Abilities value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) AbilitiesOrErr() ([]*CharacterAbility, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Abilities, nil
 	}
 	return nil, &NotLoadedError{edge: "abilities"}
@@ -191,7 +210,7 @@ func (e CharacterEdges) AbilitiesOrErr() ([]*CharacterAbility, error) {
 // TagsOrErr returns the Tags value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) TagsOrErr() ([]*CharacterTag, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Tags, nil
 	}
 	return nil, &NotLoadedError{edge: "tags"}
@@ -200,7 +219,7 @@ func (e CharacterEdges) TagsOrErr() ([]*CharacterTag, error) {
 // FactionMembershipsOrErr returns the FactionMemberships value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) FactionMembershipsOrErr() ([]*CharacterFaction, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.FactionMemberships, nil
 	}
 	return nil, &NotLoadedError{edge: "faction_memberships"}
@@ -209,7 +228,7 @@ func (e CharacterEdges) FactionMembershipsOrErr() ([]*CharacterFaction, error) {
 // CompetenciesOrErr returns the Competencies value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) CompetenciesOrErr() ([]*CharacterCompetency, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.Competencies, nil
 	}
 	return nil, &NotLoadedError{edge: "competencies"}
@@ -218,7 +237,7 @@ func (e CharacterEdges) CompetenciesOrErr() ([]*CharacterCompetency, error) {
 // ActiveEffectsOrErr returns the ActiveEffects value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) ActiveEffectsOrErr() ([]*ActiveEffect, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.ActiveEffects, nil
 	}
 	return nil, &NotLoadedError{edge: "active_effects"}
@@ -227,7 +246,7 @@ func (e CharacterEdges) ActiveEffectsOrErr() ([]*ActiveEffect, error) {
 // QuestProgressOrErr returns the QuestProgress value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) QuestProgressOrErr() ([]*QuestProgress, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.QuestProgress, nil
 	}
 	return nil, &NotLoadedError{edge: "quest_progress"}
@@ -236,7 +255,7 @@ func (e CharacterEdges) QuestProgressOrErr() ([]*QuestProgress, error) {
 // ChannelSettingsOrErr returns the ChannelSettings value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) ChannelSettingsOrErr() ([]*CharacterChannel, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.ChannelSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "channelSettings"}
@@ -245,7 +264,7 @@ func (e CharacterEdges) ChannelSettingsOrErr() ([]*CharacterChannel, error) {
 // IgnoringOrErr returns the Ignoring value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) IgnoringOrErr() ([]*CharacterIgnore, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.Ignoring, nil
 	}
 	return nil, &NotLoadedError{edge: "ignoring"}
@@ -254,10 +273,19 @@ func (e CharacterEdges) IgnoringOrErr() ([]*CharacterIgnore, error) {
 // TellQueueOrErr returns the TellQueue value or an error if the edge
 // was not loaded in eager-loading.
 func (e CharacterEdges) TellQueueOrErr() ([]*TellQueue, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.TellQueue, nil
 	}
 	return nil, &NotLoadedError{edge: "tellQueue"}
+}
+
+// ShopTemplateOrErr returns the ShopTemplate value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) ShopTemplateOrErr() ([]*ShopTemplate, error) {
+	if e.loadedTypes[13] {
+		return e.ShopTemplate, nil
+	}
+	return nil, &NotLoadedError{edge: "shop_template"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -267,7 +295,7 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsImmortal, character.FieldIsTest, character.FieldIsInstance:
 			values[i] = new(sql.NullBool)
-		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldInstanceNumber, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldXp, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
+		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldInstanceNumber, character.FieldWorldID, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldXp, character.FieldGoldCredits, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldSkillBlades, character.FieldSkillStaves, character.FieldSkillKnives, character.FieldSkillMartial, character.FieldSkillBrawling, character.FieldSkillTech, character.FieldSkillLightArmor, character.FieldSkillClothArmor, character.FieldSkillHeavyArmor:
 			values[i] = new(sql.NullInt64)
 		case character.FieldName, character.FieldNpcTemplateID, character.FieldNpcSkillID, character.FieldCurrentWorld, character.FieldRace, character.FieldClass, character.FieldSpecialty, character.FieldGender, character.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -276,8 +304,6 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 		case character.ForeignKeys[0]: // room_characters
 			values[i] = new(sql.NullInt64)
 		case character.ForeignKeys[1]: // user_characters
-			values[i] = new(sql.NullInt64)
-		case character.ForeignKeys[2]: // world_characters
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -372,6 +398,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.NpcSkillID = value.String
 			}
+		case character.FieldWorldID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field world_id", values[i])
+			} else if value.Valid {
+				_m.WorldID = int(value.Int64)
+			}
 		case character.FieldCurrentWorld:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field currentWorld", values[i])
@@ -449,6 +481,12 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field xp", values[i])
 			} else if value.Valid {
 				_m.Xp = int(value.Int64)
+			}
+		case character.FieldGoldCredits:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gold_credits", values[i])
+			} else if value.Valid {
+				_m.GoldCredits = int(value.Int64)
 			}
 		case character.FieldDiedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -574,13 +612,6 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 				_m.user_characters = new(int)
 				*_m.user_characters = int(value.Int64)
 			}
-		case character.ForeignKeys[2]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field world_characters", value)
-			} else if value.Valid {
-				_m.world_characters = new(int)
-				*_m.world_characters = int(value.Int64)
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -597,6 +628,11 @@ func (_m *Character) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the Character entity.
 func (_m *Character) QueryUser() *UserQuery {
 	return NewCharacterClient(_m.config).QueryUser(_m)
+}
+
+// QueryWorld queries the "world" edge of the Character entity.
+func (_m *Character) QueryWorld() *WorldQuery {
+	return NewCharacterClient(_m.config).QueryWorld(_m)
 }
 
 // QueryRoom queries the "room" edge of the Character entity.
@@ -652,6 +688,11 @@ func (_m *Character) QueryIgnoring() *CharacterIgnoreQuery {
 // QueryTellQueue queries the "tellQueue" edge of the Character entity.
 func (_m *Character) QueryTellQueue() *TellQueueQuery {
 	return NewCharacterClient(_m.config).QueryTellQueue(_m)
+}
+
+// QueryShopTemplate queries the "shop_template" edge of the Character entity.
+func (_m *Character) QueryShopTemplate() *ShopTemplateQuery {
+	return NewCharacterClient(_m.config).QueryShopTemplate(_m)
 }
 
 // Update returns a builder for updating this Character.
@@ -713,6 +754,9 @@ func (_m *Character) String() string {
 	builder.WriteString("npc_skill_id=")
 	builder.WriteString(_m.NpcSkillID)
 	builder.WriteString(", ")
+	builder.WriteString("world_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.WorldID))
+	builder.WriteString(", ")
 	builder.WriteString("currentWorld=")
 	builder.WriteString(_m.CurrentWorld)
 	builder.WriteString(", ")
@@ -751,6 +795,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("xp=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Xp))
+	builder.WriteString(", ")
+	builder.WriteString("gold_credits=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GoldCredits))
 	builder.WriteString(", ")
 	if v := _m.DiedAt; v != nil {
 		builder.WriteString("died_at=")

@@ -41,11 +41,16 @@ func (Character) Fields() []ent.Field {
 			Optional().
 			Default("").
 			Comment("Class derived from faction memberships in 'class' category. Empty = classless."),
+		field.Int("world_id").
+			Comment("Foreign key to the World this character belongs to"),
 		field.String("currentWorld").
 			Default("default").
-			Comment("World this character belongs to (for multi-world support)"),
+			Comment("Current world context for the character"),
 		field.Int("level").
 			Default(1),
+		field.Int("gold_credits").
+			Default(0).
+			Comment("Currency balance for shops and trading"),
 		field.Int("constitution").
 			Default(10),
 		field.String("gender").

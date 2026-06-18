@@ -27,6 +27,8 @@ var (
 		{Name: "proc_chance", Type: field.TypeFloat64, Default: 0},
 		{Name: "proc_event", Type: field.TypeString, Nullable: true},
 		{Name: "cooldown_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "caster_message", Type: field.TypeString, Nullable: true},
+		{Name: "recipient_message", Type: field.TypeString, Nullable: true},
 		{Name: "faction_abilities", Type: field.TypeInt, Nullable: true},
 	}
 	// AbilitiesTable holds the schema information for the "abilities" table.
@@ -37,7 +39,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "abilities_factions_abilities",
-				Columns:    []*schema.Column{AbilitiesColumns[17]},
+				Columns:    []*schema.Column{AbilitiesColumns[19]},
 				RefColumns: []*schema.Column{FactionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -54,6 +56,7 @@ var (
 		{Name: "scaling_stat", Type: field.TypeString, Nullable: true},
 		{Name: "scaling_ratio", Type: field.TypeFloat64, Default: 0},
 		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "effect_message", Type: field.TypeString, Nullable: true},
 		{Name: "ability_effects", Type: field.TypeInt, Nullable: true},
 	}
 	// AbilityEffectsTable holds the schema information for the "ability_effects" table.
@@ -64,7 +67,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "ability_effects_abilities_effects",
-				Columns:    []*schema.Column{AbilityEffectsColumns[9]},
+				Columns:    []*schema.Column{AbilityEffectsColumns[10]},
 				RefColumns: []*schema.Column{AbilitiesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -194,6 +197,7 @@ var (
 		{Name: "specialty", Type: field.TypeString, Nullable: true},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "xp", Type: field.TypeInt, Default: 0},
+		{Name: "gold_credits", Type: field.TypeInt, Default: 0},
 		{Name: "died_at", Type: field.TypeTime, Nullable: true},
 		{Name: "last_seen_at", Type: field.TypeTime, Nullable: true},
 		{Name: "constitution", Type: field.TypeInt, Default: 10},
@@ -216,7 +220,7 @@ var (
 		{Name: "npc_template_id", Type: field.TypeString, Nullable: true},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
 		{Name: "user_characters", Type: field.TypeInt, Nullable: true},
-		{Name: "world_characters", Type: field.TypeInt, Nullable: true},
+		{Name: "world_id", Type: field.TypeInt, Nullable: true},
 	}
 	// CharactersTable holds the schema information for the "characters" table.
 	CharactersTable = &schema.Table{
@@ -226,31 +230,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[42]},
+				Columns:    []*schema.Column{CharactersColumns[43]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[43]},
+				Columns:    []*schema.Column{CharactersColumns[44]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[44]},
+				Columns:    []*schema.Column{CharactersColumns[45]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[45]},
+				Columns:    []*schema.Column{CharactersColumns[46]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_worlds_characters",
-				Columns:    []*schema.Column{CharactersColumns[46]},
+				Columns:    []*schema.Column{CharactersColumns[47]},
 				RefColumns: []*schema.Column{WorldsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -599,7 +603,7 @@ var (
 		{Name: "quantity", Type: field.TypeInt, Default: 1},
 		{Name: "armor_rating", Type: field.TypeInt, Default: 0},
 		{Name: "armor_type", Type: field.TypeString, Default: ""},
-		{Name: "stats", Type: field.TypeJSON},
+		{Name: "stats", Type: field.TypeJSON, Nullable: true},
 		{Name: "rarity", Type: field.TypeString, Default: "common"},
 		{Name: "skill_requirement", Type: field.TypeString, Default: ""},
 		{Name: "skill_requirement_level", Type: field.TypeInt, Default: 0},
@@ -684,7 +688,7 @@ var (
 	// FactionsColumns holds the columns for the "factions" table.
 	FactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
 		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "display_name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
@@ -702,6 +706,13 @@ var (
 				Columns:    []*schema.Column{FactionsColumns[6]},
 				RefColumns: []*schema.Column{FactionCategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "faction_name_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{FactionsColumns[1], FactionsColumns[2]},
 			},
 		},
 	}
@@ -804,7 +815,7 @@ var (
 		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
-		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral"}, Default: "neutral"},
+		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral", "shopkeeper"}, Default: "neutral"},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "xp_value", Type: field.TypeInt, Default: 0},
 		{Name: "skills", Type: field.TypeJSON},
@@ -927,6 +938,82 @@ var (
 		Columns:    RoomsColumns,
 		PrimaryKey: []*schema.Column{RoomsColumns[0]},
 	}
+	// ShopItemsColumns holds the columns for the "shop_items" table.
+	ShopItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "shop_id", Type: field.TypeInt},
+		{Name: "equipment_template_id", Type: field.TypeInt},
+		{Name: "category", Type: field.TypeString, Nullable: true},
+		{Name: "price", Type: field.TypeInt, Default: 0},
+		{Name: "quantity", Type: field.TypeInt, Default: 0},
+		{Name: "max_stock", Type: field.TypeInt, Default: 99},
+		{Name: "is_enabled", Type: field.TypeBool, Default: true},
+		{Name: "last_restocked", Type: field.TypeTime, Nullable: true},
+	}
+	// ShopItemsTable holds the schema information for the "shop_items" table.
+	ShopItemsTable = &schema.Table{
+		Name:       "shop_items",
+		Columns:    ShopItemsColumns,
+		PrimaryKey: []*schema.Column{ShopItemsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "shopitem_shop_id_equipment_template_id",
+				Unique:  true,
+				Columns: []*schema.Column{ShopItemsColumns[1], ShopItemsColumns[2]},
+			},
+			{
+				Name:    "shopitem_shop_id_category",
+				Unique:  false,
+				Columns: []*schema.Column{ShopItemsColumns[1], ShopItemsColumns[3]},
+			},
+			{
+				Name:    "shopitem_category",
+				Unique:  false,
+				Columns: []*schema.Column{ShopItemsColumns[3]},
+			},
+		},
+	}
+	// ShopTemplatesColumns holds the columns for the "shop_templates" table.
+	ShopTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "npc_template_id", Type: field.TypeString, Nullable: true},
+		{Name: "currency_item_type", Type: field.TypeInt, Nullable: true},
+		{Name: "max_inventory", Type: field.TypeInt, Default: 50},
+		{Name: "gold_reserves", Type: field.TypeInt, Default: 1000},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "last_restocked", Type: field.TypeTime, Nullable: true},
+		{Name: "character_shop_template", Type: field.TypeInt, Nullable: true},
+		{Name: "world_shops", Type: field.TypeInt, Nullable: true},
+	}
+	// ShopTemplatesTable holds the schema information for the "shop_templates" table.
+	ShopTemplatesTable = &schema.Table{
+		Name:       "shop_templates",
+		Columns:    ShopTemplatesColumns,
+		PrimaryKey: []*schema.Column{ShopTemplatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "shop_templates_characters_shop_template",
+				Columns:    []*schema.Column{ShopTemplatesColumns[9]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "shop_templates_worlds_shops",
+				Columns:    []*schema.Column{ShopTemplatesColumns[10]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "shoptemplate_world_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{ShopTemplatesColumns[2], ShopTemplatesColumns[1]},
+			},
+		},
+	}
 	// SocialCommandsColumns holds the columns for the "social_commands" table.
 	SocialCommandsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -951,6 +1038,37 @@ var (
 				Name:    "socialcommand_name_world_id",
 				Unique:  true,
 				Columns: []*schema.Column{SocialCommandsColumns[2], SocialCommandsColumns[1]},
+			},
+		},
+	}
+	// SystemLogsColumns holds the columns for the "system_logs" table.
+	SystemLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "action", Type: field.TypeString},
+		{Name: "character_id", Type: field.TypeInt, Nullable: true},
+		{Name: "details", Type: field.TypeString, Nullable: true},
+		{Name: "timestamp", Type: field.TypeTime},
+	}
+	// SystemLogsTable holds the schema information for the "system_logs" table.
+	SystemLogsTable = &schema.Table{
+		Name:       "system_logs",
+		Columns:    SystemLogsColumns,
+		PrimaryKey: []*schema.Column{SystemLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "systemlog_action",
+				Unique:  false,
+				Columns: []*schema.Column{SystemLogsColumns[1]},
+			},
+			{
+				Name:    "systemlog_timestamp",
+				Unique:  false,
+				Columns: []*schema.Column{SystemLogsColumns[4]},
+			},
+			{
+				Name:    "systemlog_action_timestamp",
+				Unique:  false,
+				Columns: []*schema.Column{SystemLogsColumns[1], SystemLogsColumns[4]},
 			},
 		},
 	}
@@ -1006,14 +1124,16 @@ var (
 		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "trigger_type", Type: field.TypeString},
 		{Name: "target_type", Type: field.TypeString},
-		{Name: "target_id", Type: field.TypeInt},
+		{Name: "target_id", Type: field.TypeString},
 		{Name: "room_id", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_id", Type: field.TypeInt, Nullable: true},
 		{Name: "condition", Type: field.TypeString, Nullable: true},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "examine_weight", Type: field.TypeInt, Default: 0},
 		{Name: "crafting_recipe_triggers", Type: field.TypeInt, Nullable: true},
 		{Name: "dialog_node_triggers", Type: field.TypeString, Nullable: true},
 		{Name: "effect_triggers", Type: field.TypeInt, Nullable: true},
+		{Name: "npc_template_triggers", Type: field.TypeString, Nullable: true},
 	}
 	// TriggersTable holds the schema information for the "triggers" table.
 	TriggersTable = &schema.Table{
@@ -1023,20 +1143,26 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "triggers_crafting_recipes_triggers",
-				Columns:    []*schema.Column{TriggersColumns[10]},
+				Columns:    []*schema.Column{TriggersColumns[11]},
 				RefColumns: []*schema.Column{CraftingRecipesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "triggers_dialog_nodes_triggers",
-				Columns:    []*schema.Column{TriggersColumns[11]},
+				Columns:    []*schema.Column{TriggersColumns[12]},
 				RefColumns: []*schema.Column{DialogNodesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "triggers_effects_triggers",
-				Columns:    []*schema.Column{TriggersColumns[12]},
+				Columns:    []*schema.Column{TriggersColumns[13]},
 				RefColumns: []*schema.Column{EffectsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "triggers_npc_templates_triggers",
+				Columns:    []*schema.Column{TriggersColumns[14]},
+				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -1307,7 +1433,10 @@ var (
 		QuestProgressesTable,
 		RacesTable,
 		RoomsTable,
+		ShopItemsTable,
+		ShopTemplatesTable,
 		SocialCommandsTable,
+		SystemLogsTable,
 		TagsTable,
 		TellQueuesTable,
 		TriggersTable,
@@ -1355,10 +1484,13 @@ func init() {
 	NpcTemplatesTable.ForeignKeys[0].RefTable = RacesTable
 	QuestProgressesTable.ForeignKeys[0].RefTable = CharactersTable
 	QuestProgressesTable.ForeignKeys[1].RefTable = QuestsTable
+	ShopTemplatesTable.ForeignKeys[0].RefTable = CharactersTable
+	ShopTemplatesTable.ForeignKeys[1].RefTable = WorldsTable
 	TellQueuesTable.ForeignKeys[0].RefTable = CharactersTable
 	TriggersTable.ForeignKeys[0].RefTable = CraftingRecipesTable
 	TriggersTable.ForeignKeys[1].RefTable = DialogNodesTable
 	TriggersTable.ForeignKeys[2].RefTable = EffectsTable
+	TriggersTable.ForeignKeys[3].RefTable = NpcTemplatesTable
 	AbilityNpcAbilitiesTable.ForeignKeys[0].RefTable = AbilitiesTable
 	AbilityNpcAbilitiesTable.ForeignKeys[1].RefTable = NpcAbilitiesTable
 	NpcTemplateNpcAbilitiesTable.ForeignKeys[0].RefTable = NpcTemplatesTable
