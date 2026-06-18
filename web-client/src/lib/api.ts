@@ -1,3 +1,5 @@
+import type { ShopItem, ShopSession } from "./types";
+
 const API_BASE = (() => {
   // Production build override (set at docker build time)
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
@@ -41,8 +43,10 @@ export type User = {
 };
 
 export type World = {
+  readonly id: string;
   readonly name: string;
-  readonly file: string;
+  readonly description: string;
+  readonly status?: string;
 };
 
 export type Character = {
@@ -102,6 +106,12 @@ export type Gender = {
   readonly possessive_pronoun: string;
 };
 
+export type Class = {
+  readonly name: string;
+  readonly display_name: string;
+  readonly description: string;
+};
+
 export async function login(email: string, password: string): Promise<{ readonly token: string; readonly user: User }> {
   const res = await fetch(`${API_BASE}/users/auth`, {
     method: "POST",
@@ -154,6 +164,7 @@ export async function createCharacter(input: {
   readonly race: string;
   readonly gender: string;
   readonly world: string;
+  readonly class?: string;
 }): Promise<Character> {
   const res = await fetch(`${API_BASE}/api/me/characters`, {
     method: "POST",
@@ -181,6 +192,16 @@ export async function listGenders(): Promise<readonly Gender[]> {
   if (!res.ok) {
     const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to load genders" }));
     throw new Error(err.error || "Failed to load genders");
+  }
+  return res.json();
+}
+
+export async function listClasses(worldId?: string): Promise<readonly Class[]> {
+  const qs = worldId ? `?world_id=${worldId}` : "";
+  const res = await fetch(`${API_BASE}/classes${qs}`, { headers: headers() });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to load classes" }));
+    throw new Error(err.error || "Failed to load classes");
   }
   return res.json();
 }
@@ -262,6 +283,18 @@ export async function healCharacter(charID: number, amount: number): Promise<voi
   }
 }
 
+export async function adjustMana(charID: number, amount: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/characters/${charID}/mana`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ amount }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to adjust mana" }));
+    throw new Error(err.error || "Failed to adjust mana");
+  }
+}
+
 export async function getCharacterEquipment(charID: number): Promise<readonly EquipmentItem[]> {
   const res = await fetch(`${API_BASE}/equipment?ownerId=${charID}`, { headers: headers() });
   if (!res.ok) {
@@ -296,4 +329,62 @@ export async function unequipItem(itemID: number, charID: number): Promise<void>
     console.error({ endpoint: `/equipment/${itemID}/unequip`, status: res.status, body: err, characterID: charID });
     throw new Error(err.error || "Failed to unequip item");
   }
+}
+
+export async function deleteCharacter(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/characters/${id}`, {
+    method: "DELETE",
+    headers: headers(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to delete character" }));
+    throw new Error(err.error || "Failed to delete character");
+  }
+}
+
+// ─── Shop API (NPC-006 - Vendor NPCs) ───────────────────────────────────────
+
+export async function openShop(npcID: number): Promise<ShopSession> {
+  const res = await fetch(`${API_BASE}/api/npcs/${npcID}/shop`, { headers: headers() });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to open shop" }));
+    throw new Error(err.error || "Failed to open shop");
+  }
+  return res.json();
+}
+
+export async function getShopItems(shopID: number): Promise<readonly ShopItem[]> {
+  const res = await fetch(`${API_BASE}/api/shops/${shopID}/items`, { headers: headers() });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to get shop items" }));
+    throw new Error(err.error || "Failed to get shop items");
+  }
+  const data = await res.json() as { items: readonly ShopItem[] };
+  return data.items;
+}
+
+export async function buyItem(shopID: number, itemID: number, quantity: number): Promise<{ success: boolean; message: string; gold: number }> {
+  const res = await fetch(`${API_BASE}/api/shops/${shopID}/buy`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ item_id: itemID, quantity }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to buy item" }));
+    throw new Error(err.error || "Failed to buy item");
+  }
+  return res.json();
+}
+
+export async function sellItem(shopID: number, itemID: number, quantity: number): Promise<{ success: boolean; message: string; gold: number }> {
+  const res = await fetch(`${API_BASE}/api/shops/${shopID}/sell`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ item_id: itemID, quantity }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to sell item" }));
+    throw new Error(err.error || "Failed to sell item");
+  }
+  return res.json();
 }
