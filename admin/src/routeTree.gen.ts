@@ -68,6 +68,7 @@ import { Route as AuthTriggersNewRouteImport } from './routes/_auth/triggers.new
 import { Route as AuthTriggersTriggerIdRouteImport } from './routes/_auth/triggers.$triggerId'
 import { Route as AuthSocialsNewRouteImport } from './routes/_auth/socials.new'
 import { Route as AuthSocialsSocialIdRouteImport } from './routes/_auth/socials.$socialId'
+import { Route as AuthRecipesNewRouteImport } from './routes/_auth/recipes.new'
 import { Route as AuthRecipesRecipeNameRouteImport } from './routes/_auth/recipes.$recipeName'
 import { Route as AuthQuestsNewRouteImport } from './routes/_auth/quests.new'
 import { Route as AuthQuestsQuestIdRouteImport } from './routes/_auth/quests.$questId'
@@ -83,10 +84,13 @@ import { Route as AuthAbilitiesAbilityIdRouteImport } from './routes/_auth/abili
 import { Route as AuthNpcsNpcIdIndexRouteImport } from './routes/_auth/npcs.$npcId.index'
 import { Route as AuthRecipesRecipeNameEditRouteImport } from './routes/_auth/recipes.$recipeName.edit'
 import { Route as AuthItemsItemIdSpawnRouteImport } from './routes/_auth/items.$itemId.spawn'
+import { Route as AuthCharactersCharacterIdExamineRouteImport } from './routes/_auth/characters.$characterId.examine'
 import { Route as MapRoomsRoomIdNpcsSpawnRouteImport } from './routes/map.rooms.$roomId.npcs.spawn'
 import { Route as MapRoomsRoomIdItemsSpawnRouteImport } from './routes/map.rooms.$roomId.items.spawn'
 import { Route as AuthNpcsNpcIdInstancesInstanceIdRouteImport } from './routes/_auth/npcs.$npcId.instances.$instanceId'
 import { Route as AuthItemsItemIdInstancesInstanceIdRouteImport } from './routes/_auth/items.$itemId.instances.$instanceId'
+import { Route as AuthNpcsNpcIdInstancesInstanceIdExamineRouteImport } from './routes/_auth/npcs.$npcId.instances.$instanceId.examine'
+import { Route as AuthNpcsNpcIdInstancesInstanceIdEquipmentRouteImport } from './routes/_auth/npcs.$npcId.instances.$instanceId.equipment'
 
 const MapRoute = MapRouteImport.update({
   id: '/map',
@@ -382,6 +386,11 @@ const AuthSocialsSocialIdRoute = AuthSocialsSocialIdRouteImport.update({
   path: '/$socialId',
   getParentRoute: () => AuthSocialsRoute,
 } as any)
+const AuthRecipesNewRoute = AuthRecipesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthRecipesRoute,
+} as any)
 const AuthRecipesRecipeNameRoute = AuthRecipesRecipeNameRouteImport.update({
   id: '/$recipeName',
   path: '/$recipeName',
@@ -459,6 +468,12 @@ const AuthItemsItemIdSpawnRoute = AuthItemsItemIdSpawnRouteImport.update({
   path: '/spawn',
   getParentRoute: () => AuthItemsItemIdRoute,
 } as any)
+const AuthCharactersCharacterIdExamineRoute =
+  AuthCharactersCharacterIdExamineRouteImport.update({
+    id: '/examine',
+    path: '/examine',
+    getParentRoute: () => AuthCharactersCharacterIdRoute,
+  } as any)
 const MapRoomsRoomIdNpcsSpawnRoute = MapRoomsRoomIdNpcsSpawnRouteImport.update({
   id: '/rooms/$roomId/npcs/spawn',
   path: '/rooms/$roomId/npcs/spawn',
@@ -481,6 +496,18 @@ const AuthItemsItemIdInstancesInstanceIdRoute =
     id: '/instances/$instanceId',
     path: '/instances/$instanceId',
     getParentRoute: () => AuthItemsItemIdRoute,
+  } as any)
+const AuthNpcsNpcIdInstancesInstanceIdExamineRoute =
+  AuthNpcsNpcIdInstancesInstanceIdExamineRouteImport.update({
+    id: '/examine',
+    path: '/examine',
+    getParentRoute: () => AuthNpcsNpcIdInstancesInstanceIdRoute,
+  } as any)
+const AuthNpcsNpcIdInstancesInstanceIdEquipmentRoute =
+  AuthNpcsNpcIdInstancesInstanceIdEquipmentRouteImport.update({
+    id: '/equipment',
+    path: '/equipment',
+    getParentRoute: () => AuthNpcsNpcIdInstancesInstanceIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -537,7 +564,7 @@ export interface FileRoutesByFullPath {
   '/map/': typeof MapIndexRoute
   '/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
   '/abilities/new': typeof AuthAbilitiesNewRoute
-  '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
+  '/characters/$characterId': typeof AuthCharactersCharacterIdRouteWithChildren
   '/config/$key': typeof AuthConfigKeyRoute
   '/config/new': typeof AuthConfigNewRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
@@ -547,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
   '/quests/new': typeof AuthQuestsNewRoute
   '/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
+  '/recipes/new': typeof AuthRecipesNewRoute
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
   '/triggers/$triggerId': typeof AuthTriggersTriggerIdRoute
@@ -554,13 +582,16 @@ export interface FileRoutesByFullPath {
   '/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
+  '/characters/$characterId/examine': typeof AuthCharactersCharacterIdExamineRoute
   '/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/recipes/$recipeName/edit': typeof AuthRecipesRecipeNameEditRoute
   '/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
-  '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+  '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRouteWithChildren
   '/map/rooms/$roomId/items/spawn': typeof MapRoomsRoomIdItemsSpawnRoute
   '/map/rooms/$roomId/npcs/spawn': typeof MapRoomsRoomIdNpcsSpawnRoute
+  '/npcs/$npcId/instances/$instanceId/equipment': typeof AuthNpcsNpcIdInstancesInstanceIdEquipmentRoute
+  '/npcs/$npcId/instances/$instanceId/examine': typeof AuthNpcsNpcIdInstancesInstanceIdExamineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -614,7 +645,7 @@ export interface FileRoutesByTo {
   '/map': typeof MapIndexRoute
   '/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
   '/abilities/new': typeof AuthAbilitiesNewRoute
-  '/characters/$characterId': typeof AuthCharactersCharacterIdRoute
+  '/characters/$characterId': typeof AuthCharactersCharacterIdRouteWithChildren
   '/config/$key': typeof AuthConfigKeyRoute
   '/config/new': typeof AuthConfigNewRoute
   '/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
@@ -623,6 +654,7 @@ export interface FileRoutesByTo {
   '/quests/$questId': typeof AuthQuestsQuestIdRoute
   '/quests/new': typeof AuthQuestsNewRoute
   '/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
+  '/recipes/new': typeof AuthRecipesNewRoute
   '/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/socials/new': typeof AuthSocialsNewRoute
   '/triggers/$triggerId': typeof AuthTriggersTriggerIdRoute
@@ -630,13 +662,16 @@ export interface FileRoutesByTo {
   '/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
+  '/characters/$characterId/examine': typeof AuthCharactersCharacterIdExamineRoute
   '/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/recipes/$recipeName/edit': typeof AuthRecipesRecipeNameEditRoute
   '/npcs/$npcId': typeof AuthNpcsNpcIdIndexRoute
   '/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
-  '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+  '/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRouteWithChildren
   '/map/rooms/$roomId/items/spawn': typeof MapRoomsRoomIdItemsSpawnRoute
   '/map/rooms/$roomId/npcs/spawn': typeof MapRoomsRoomIdNpcsSpawnRoute
+  '/npcs/$npcId/instances/$instanceId/equipment': typeof AuthNpcsNpcIdInstancesInstanceIdEquipmentRoute
+  '/npcs/$npcId/instances/$instanceId/examine': typeof AuthNpcsNpcIdInstancesInstanceIdExamineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -694,7 +729,7 @@ export interface FileRoutesById {
   '/map/': typeof MapIndexRoute
   '/_auth/abilities/$abilityId': typeof AuthAbilitiesAbilityIdRoute
   '/_auth/abilities/new': typeof AuthAbilitiesNewRoute
-  '/_auth/characters/$characterId': typeof AuthCharactersCharacterIdRoute
+  '/_auth/characters/$characterId': typeof AuthCharactersCharacterIdRouteWithChildren
   '/_auth/config/$key': typeof AuthConfigKeyRoute
   '/_auth/config/new': typeof AuthConfigNewRoute
   '/_auth/items/$itemId': typeof AuthItemsItemIdRouteWithChildren
@@ -704,6 +739,7 @@ export interface FileRoutesById {
   '/_auth/quests/$questId': typeof AuthQuestsQuestIdRoute
   '/_auth/quests/new': typeof AuthQuestsNewRoute
   '/_auth/recipes/$recipeName': typeof AuthRecipesRecipeNameRouteWithChildren
+  '/_auth/recipes/new': typeof AuthRecipesNewRoute
   '/_auth/socials/$socialId': typeof AuthSocialsSocialIdRoute
   '/_auth/socials/new': typeof AuthSocialsNewRoute
   '/_auth/triggers/$triggerId': typeof AuthTriggersTriggerIdRoute
@@ -711,13 +747,16 @@ export interface FileRoutesById {
   '/_auth/worlds/$worldId': typeof AuthWorldsWorldIdRoute
   '/_auth/worlds/new': typeof AuthWorldsNewRoute
   '/map/rooms/new': typeof MapRoomsNewRoute
+  '/_auth/characters/$characterId/examine': typeof AuthCharactersCharacterIdExamineRoute
   '/_auth/items/$itemId/spawn': typeof AuthItemsItemIdSpawnRoute
   '/_auth/recipes/$recipeName/edit': typeof AuthRecipesRecipeNameEditRoute
   '/_auth/npcs/$npcId/': typeof AuthNpcsNpcIdIndexRoute
   '/_auth/items/$itemId/instances/$instanceId': typeof AuthItemsItemIdInstancesInstanceIdRoute
-  '/_auth/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+  '/_auth/npcs/$npcId/instances/$instanceId': typeof AuthNpcsNpcIdInstancesInstanceIdRouteWithChildren
   '/map/rooms/$roomId/items/spawn': typeof MapRoomsRoomIdItemsSpawnRoute
   '/map/rooms/$roomId/npcs/spawn': typeof MapRoomsRoomIdNpcsSpawnRoute
+  '/_auth/npcs/$npcId/instances/$instanceId/equipment': typeof AuthNpcsNpcIdInstancesInstanceIdEquipmentRoute
+  '/_auth/npcs/$npcId/instances/$instanceId/examine': typeof AuthNpcsNpcIdInstancesInstanceIdExamineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -785,6 +824,7 @@ export interface FileRouteTypes {
     | '/quests/$questId'
     | '/quests/new'
     | '/recipes/$recipeName'
+    | '/recipes/new'
     | '/socials/$socialId'
     | '/socials/new'
     | '/triggers/$triggerId'
@@ -792,6 +832,7 @@ export interface FileRouteTypes {
     | '/worlds/$worldId'
     | '/worlds/new'
     | '/map/rooms/new'
+    | '/characters/$characterId/examine'
     | '/items/$itemId/spawn'
     | '/recipes/$recipeName/edit'
     | '/npcs/$npcId/'
@@ -799,6 +840,8 @@ export interface FileRouteTypes {
     | '/npcs/$npcId/instances/$instanceId'
     | '/map/rooms/$roomId/items/spawn'
     | '/map/rooms/$roomId/npcs/spawn'
+    | '/npcs/$npcId/instances/$instanceId/equipment'
+    | '/npcs/$npcId/instances/$instanceId/examine'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -861,6 +904,7 @@ export interface FileRouteTypes {
     | '/quests/$questId'
     | '/quests/new'
     | '/recipes/$recipeName'
+    | '/recipes/new'
     | '/socials/$socialId'
     | '/socials/new'
     | '/triggers/$triggerId'
@@ -868,6 +912,7 @@ export interface FileRouteTypes {
     | '/worlds/$worldId'
     | '/worlds/new'
     | '/map/rooms/new'
+    | '/characters/$characterId/examine'
     | '/items/$itemId/spawn'
     | '/recipes/$recipeName/edit'
     | '/npcs/$npcId'
@@ -875,6 +920,8 @@ export interface FileRouteTypes {
     | '/npcs/$npcId/instances/$instanceId'
     | '/map/rooms/$roomId/items/spawn'
     | '/map/rooms/$roomId/npcs/spawn'
+    | '/npcs/$npcId/instances/$instanceId/equipment'
+    | '/npcs/$npcId/instances/$instanceId/examine'
   id:
     | '__root__'
     | '/'
@@ -941,6 +988,7 @@ export interface FileRouteTypes {
     | '/_auth/quests/$questId'
     | '/_auth/quests/new'
     | '/_auth/recipes/$recipeName'
+    | '/_auth/recipes/new'
     | '/_auth/socials/$socialId'
     | '/_auth/socials/new'
     | '/_auth/triggers/$triggerId'
@@ -948,6 +996,7 @@ export interface FileRouteTypes {
     | '/_auth/worlds/$worldId'
     | '/_auth/worlds/new'
     | '/map/rooms/new'
+    | '/_auth/characters/$characterId/examine'
     | '/_auth/items/$itemId/spawn'
     | '/_auth/recipes/$recipeName/edit'
     | '/_auth/npcs/$npcId/'
@@ -955,6 +1004,8 @@ export interface FileRouteTypes {
     | '/_auth/npcs/$npcId/instances/$instanceId'
     | '/map/rooms/$roomId/items/spawn'
     | '/map/rooms/$roomId/npcs/spawn'
+    | '/_auth/npcs/$npcId/instances/$instanceId/equipment'
+    | '/_auth/npcs/$npcId/instances/$instanceId/examine'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1380,6 +1431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSocialsSocialIdRouteImport
       parentRoute: typeof AuthSocialsRoute
     }
+    '/_auth/recipes/new': {
+      id: '/_auth/recipes/new'
+      path: '/new'
+      fullPath: '/recipes/new'
+      preLoaderRoute: typeof AuthRecipesNewRouteImport
+      parentRoute: typeof AuthRecipesRoute
+    }
     '/_auth/recipes/$recipeName': {
       id: '/_auth/recipes/$recipeName'
       path: '/$recipeName'
@@ -1485,6 +1543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthItemsItemIdSpawnRouteImport
       parentRoute: typeof AuthItemsItemIdRoute
     }
+    '/_auth/characters/$characterId/examine': {
+      id: '/_auth/characters/$characterId/examine'
+      path: '/examine'
+      fullPath: '/characters/$characterId/examine'
+      preLoaderRoute: typeof AuthCharactersCharacterIdExamineRouteImport
+      parentRoute: typeof AuthCharactersCharacterIdRoute
+    }
     '/map/rooms/$roomId/npcs/spawn': {
       id: '/map/rooms/$roomId/npcs/spawn'
       path: '/rooms/$roomId/npcs/spawn'
@@ -1513,6 +1578,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthItemsItemIdInstancesInstanceIdRouteImport
       parentRoute: typeof AuthItemsItemIdRoute
     }
+    '/_auth/npcs/$npcId/instances/$instanceId/examine': {
+      id: '/_auth/npcs/$npcId/instances/$instanceId/examine'
+      path: '/examine'
+      fullPath: '/npcs/$npcId/instances/$instanceId/examine'
+      preLoaderRoute: typeof AuthNpcsNpcIdInstancesInstanceIdExamineRouteImport
+      parentRoute: typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+    }
+    '/_auth/npcs/$npcId/instances/$instanceId/equipment': {
+      id: '/_auth/npcs/$npcId/instances/$instanceId/equipment'
+      path: '/equipment'
+      fullPath: '/npcs/$npcId/instances/$instanceId/equipment'
+      preLoaderRoute: typeof AuthNpcsNpcIdInstancesInstanceIdEquipmentRouteImport
+      parentRoute: typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+    }
   }
 }
 
@@ -1530,12 +1609,27 @@ const AuthAbilitiesRouteWithChildren = AuthAbilitiesRoute._addFileChildren(
   AuthAbilitiesRouteChildren,
 )
 
+interface AuthCharactersCharacterIdRouteChildren {
+  AuthCharactersCharacterIdExamineRoute: typeof AuthCharactersCharacterIdExamineRoute
+}
+
+const AuthCharactersCharacterIdRouteChildren: AuthCharactersCharacterIdRouteChildren =
+  {
+    AuthCharactersCharacterIdExamineRoute:
+      AuthCharactersCharacterIdExamineRoute,
+  }
+
+const AuthCharactersCharacterIdRouteWithChildren =
+  AuthCharactersCharacterIdRoute._addFileChildren(
+    AuthCharactersCharacterIdRouteChildren,
+  )
+
 interface AuthCharactersRouteChildren {
-  AuthCharactersCharacterIdRoute: typeof AuthCharactersCharacterIdRoute
+  AuthCharactersCharacterIdRoute: typeof AuthCharactersCharacterIdRouteWithChildren
 }
 
 const AuthCharactersRouteChildren: AuthCharactersRouteChildren = {
-  AuthCharactersCharacterIdRoute: AuthCharactersCharacterIdRoute,
+  AuthCharactersCharacterIdRoute: AuthCharactersCharacterIdRouteWithChildren,
 }
 
 const AuthCharactersRouteWithChildren = AuthCharactersRoute._addFileChildren(
@@ -1585,14 +1679,33 @@ const AuthItemsRouteWithChildren = AuthItemsRoute._addFileChildren(
   AuthItemsRouteChildren,
 )
 
+interface AuthNpcsNpcIdInstancesInstanceIdRouteChildren {
+  AuthNpcsNpcIdInstancesInstanceIdEquipmentRoute: typeof AuthNpcsNpcIdInstancesInstanceIdEquipmentRoute
+  AuthNpcsNpcIdInstancesInstanceIdExamineRoute: typeof AuthNpcsNpcIdInstancesInstanceIdExamineRoute
+}
+
+const AuthNpcsNpcIdInstancesInstanceIdRouteChildren: AuthNpcsNpcIdInstancesInstanceIdRouteChildren =
+  {
+    AuthNpcsNpcIdInstancesInstanceIdEquipmentRoute:
+      AuthNpcsNpcIdInstancesInstanceIdEquipmentRoute,
+    AuthNpcsNpcIdInstancesInstanceIdExamineRoute:
+      AuthNpcsNpcIdInstancesInstanceIdExamineRoute,
+  }
+
+const AuthNpcsNpcIdInstancesInstanceIdRouteWithChildren =
+  AuthNpcsNpcIdInstancesInstanceIdRoute._addFileChildren(
+    AuthNpcsNpcIdInstancesInstanceIdRouteChildren,
+  )
+
 interface AuthNpcsNpcIdRouteChildren {
   AuthNpcsNpcIdIndexRoute: typeof AuthNpcsNpcIdIndexRoute
-  AuthNpcsNpcIdInstancesInstanceIdRoute: typeof AuthNpcsNpcIdInstancesInstanceIdRoute
+  AuthNpcsNpcIdInstancesInstanceIdRoute: typeof AuthNpcsNpcIdInstancesInstanceIdRouteWithChildren
 }
 
 const AuthNpcsNpcIdRouteChildren: AuthNpcsNpcIdRouteChildren = {
   AuthNpcsNpcIdIndexRoute: AuthNpcsNpcIdIndexRoute,
-  AuthNpcsNpcIdInstancesInstanceIdRoute: AuthNpcsNpcIdInstancesInstanceIdRoute,
+  AuthNpcsNpcIdInstancesInstanceIdRoute:
+    AuthNpcsNpcIdInstancesInstanceIdRouteWithChildren,
 }
 
 const AuthNpcsNpcIdRouteWithChildren = AuthNpcsNpcIdRoute._addFileChildren(
@@ -1642,10 +1755,12 @@ const AuthRecipesRecipeNameRouteWithChildren =
 
 interface AuthRecipesRouteChildren {
   AuthRecipesRecipeNameRoute: typeof AuthRecipesRecipeNameRouteWithChildren
+  AuthRecipesNewRoute: typeof AuthRecipesNewRoute
 }
 
 const AuthRecipesRouteChildren: AuthRecipesRouteChildren = {
   AuthRecipesRecipeNameRoute: AuthRecipesRecipeNameRouteWithChildren,
+  AuthRecipesNewRoute: AuthRecipesNewRoute,
 }
 
 const AuthRecipesRouteWithChildren = AuthRecipesRoute._addFileChildren(

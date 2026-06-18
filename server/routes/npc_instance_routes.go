@@ -31,6 +31,7 @@ func RegisterNPCInstanceRoutes(r *gin.Engine, repos *repository.Container, clien
 		// Equipment management for NPC instances
 		g.GET("/npc-instances/:id/equipment", listNPCInstanceEquipment(repos))
 		g.POST("/npc-instances/:id/equipment", addNPCInstanceEquipment(repos))
+		g.PUT("/npc-instances/:id/equipment/:eqid", updateNPCInstanceEquipment(repos))
 		g.DELETE("/npc-instances/:id/equipment/:eqid", removeNPCInstanceEquipment(repos))
 	}
 }
@@ -171,12 +172,18 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 			return
 		}
 
-		// Fetch the race name for this NPC template
-		raceObj, err := repos.Race.Get(c.Request.Context(), tmpl.RaceID)
-		if err != nil {
-			dblog.Error("race not found for npc template", err, slog.String("service", "npcs"), slog.String("npc_template_id", tmpl.ID))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "race not found for npc template"})
-			return
+		// Fetch the race name for this NPC template (optional — fall back to "human" if unset)
+		var raceName string
+		if tmpl.RaceID != 0 {
+			raceObj, err := repos.Race.Get(c.Request.Context(), tmpl.RaceID)
+			if err != nil {
+				dblog.Error("race not found for npc template", err, slog.String("service", "npcs"), slog.String("npc_template_id", tmpl.ID))
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "race not found for npc template"})
+				return
+			}
+			raceName = raceObj.Name
+		} else {
+			raceName = "human"
 		}
 		// Determine instance_number: if 0, auto-assign next available
 		instanceNum := req.InstanceNumber
@@ -199,7 +206,7 @@ func createNPCInstance(repos *repository.Container, client *db.Client) gin.Handl
 			SetNpcTemplateID(tmpl.ID).
 			SetCurrentRoomId(req.RoomID).
 			SetStartingRoomId(req.RoomID).
-			SetRace(raceObj.Name).
+			SetRace(raceName).
 			SetHitpoints(100).
 			SetMaxHitpoints(100).
 			SetStamina(50).
@@ -463,6 +470,57 @@ func removeNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
 
 		slog.Info("equipment removed from npc instance", slog.Int("equipment_id", eqID), slog.Int("npc_instance_id", instID), slog.String("user_email", c.GetString("email")), slog.String("service", "npcs"))
 		c.JSON(http.StatusNoContent, nil)
+	}
+}
+
+// PUT /api/npc-instances/:id/equipment/:eqid — update equipment equipped state
+func updateNPCInstanceEquipment(repos *repository.Container) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		instID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid instance id"), slog.String("client_ip", c.ClientIP()))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid instance id"})
+			return
+		}
+		eqID, err := strconv.Atoi(c.Param("eqid"))
+		if err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid equipment id"), slog.String("client_ip", c.ClientIP()))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid equipment id"})
+			return
+		}
+
+		var req struct {
+			IsEquipped bool `json:"is_equipped"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", err.Error()), slog.String("client_ip", c.ClientIP()))
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		item, err := repos.Equipment.Get(c.Request.Context(), eqID)
+		if err != nil || item.OwnerId == nil || *item.OwnerId != instID {
+			c.JSON(http.StatusNotFound, gin.H{"error": "equipment not found for this instance"})
+			return
+		}
+
+		updated, err := repos.Equipment.Update(c.Request.Context(), eqID, repository.EquipmentUpdates{
+			IsEquipped: &req.IsEquipped,
+		})
+		if err != nil {
+			dblog.Error("failed to update npc instance equipment", err, slog.String("service", "npcs"), slog.Int("npc_instance_id", instID), slog.Int("equipment_id", eqID))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		slog.Info("equipment updated for npc instance", slog.Int("equipment_id", eqID), slog.Int("npc_instance_id", instID), slog.String("user_email", c.GetString("email")), slog.String("service", "npcs"))
+		c.JSON(http.StatusOK, equipmentItemView{
+			ID:         updated.ID,
+			Name:       updated.Name,
+			Slot:       updated.Slot,
+			ItemType:   updated.ItemType,
+			IsEquipped: updated.IsEquipped,
+		})
 	}
 }
 

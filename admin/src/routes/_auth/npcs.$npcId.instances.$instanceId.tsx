@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiGet, apiPut, apiDelete, API_BASE } from "../../utils/apiFetch";
@@ -41,6 +41,7 @@ export const Route = createFileRoute("/_auth/npcs/$npcId/instances/$instanceId")
 
 function NpcInstanceDetail() {
   const { npcId, instanceId } = Route.useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
@@ -124,6 +125,11 @@ function NpcInstanceDetail() {
     );
   }
 
+  // Render outlet for child routes (equipment, examine)
+  if (location.pathname !== `/npcs/${npcId}/instances/${instanceId}`) {
+    return <Outlet />;
+  }
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -133,6 +139,20 @@ function NpcInstanceDetail() {
         backTo={`/npcs/${npcId}`}
         actions={
           <div className="flex items-center gap-2">
+            <Link
+              to="/npcs/$npcId/instances/$instanceId/examine"
+              params={{ npcId, instanceId }}
+              className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-text hover:bg-surface-muted"
+            >
+              Examine
+            </Link>
+            <Link
+              to="/npcs/$npcId/instances/$instanceId/equipment"
+              params={{ npcId, instanceId }}
+              className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-text hover:bg-surface-muted"
+            >
+              Equipment
+            </Link>
             {!isEditing ? (
               <Button variant="primary" size="sm" onClick={startEditing}>
                 Edit
