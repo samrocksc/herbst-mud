@@ -37,12 +37,13 @@ type ServerMessage struct {
 }
 
 const (
-	MsgOutput = "output"
-	MsgSystem = "system"
-	MsgError  = "error"
-	MsgPing   = "ping"
-	MsgScreen = "screen"
-	MsgVitals = "vitals"
+	MsgOutput    = "output"
+	MsgSystem    = "system"
+	MsgError     = "error"
+	MsgPing      = "ping"
+	MsgScreen    = "screen"
+	MsgVitals    = "vitals"
+	MsgNotify    = "notification"  // Notification events (quest completed, etc.)
 )
 
 // VitalsPayload represents character vitality stats
@@ -91,8 +92,6 @@ type RoomScreenPayload struct {
 	Items       []ItemInfo `json:"items"`
 }
 
-// ─── Connection manager ───────────────────────────────────────────────────────
-
 var (
 	upgrader = websocket.Upgrader{
 		CheckOrigin:     func(r *http.Request) bool { return true }, // CORS handled by Gin
@@ -135,6 +134,15 @@ func sendVitals(wsc *WSConn, payload VitalsPayload) {
 	})
 }
 
+// sendNotification sends a notification message to the WebSocket client
+func sendNotification(wsc *WSConn, text string) {
+	wsc.send(ServerMessage{
+		Type:      MsgNotify,
+		Text:      text,
+		Timestamp: time.Now().UnixMilli(),
+	})
+}
+
 func buildRoomScreen(ctx context.Context, roomID int, worldID string, repos *repository.Container) (RoomScreenPayload, error) {
 	rm, err := repos.Room.Get(ctx, roomID)
 	if err != nil {
@@ -170,7 +178,7 @@ func buildRoomScreen(ctx context.Context, roomID int, worldID string, repos *rep
 			hostile := chType == "npc" // default
 			if chType == "npc" && ch.NpcTemplateID != "" {
 				tmpl, tmplErr := repos.NPCTemplate.Get(ctx, ch.NpcTemplateID)
-				if tmplErr == nil && tmpl.Disposition == "friendly" {
+				if tmplErr == nil && (tmpl.Disposition == "friendly" || tmpl.Disposition == "shopkeeper") {
 					hostile = false
 				}
 			}
@@ -288,12 +296,9 @@ func wsHandler(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 			done:        make(chan struct{}),
 		}
 
-		// Register connection
+		// Register connection — replace old entry but don't kill it (let it die naturally)
+		// Killing it creates a reconnect storm: each new connect → old close → reconnect → loop
 		connMu.Lock()
-		if old, ok := connections[userID]; ok {
-			// Signal old connection to stop without double-closing its done channel
-			old.Conn.Close()
-		}
 		connections[userID] = wsc
 		connMu.Unlock()
 
@@ -435,6 +440,213 @@ func SendVitalsToCharacter(characterID int, payload VitalsPayload) {
 	}
 }
 
+// ─── Examine helpers ─────────────────────────────────────────────────────────
+
+// getExamineLevel calculates the player's examine skill level
+func getExamineLevel(char *db.Character) int {
+	// Examine skill bonus from examine_skill.go pattern
+	switch {
+	case char.SkillTech >= 91:
+		return 75
+	case char.SkillTech >= 76:
+		return 50
+	case char.SkillTech >= 51:
+		return 25
+	case char.SkillTech >= 26:
+		return 10
+	default:
+		return 0
+	}
+}
+
+// examineItem finds an item in the room by name
+func examineItem(ctx context.Context, roomID int, targetName string, repos *repository.Container) (*db.Equipment, string) {
+	rmItems, err := repos.Equipment.ListByRoom(ctx, roomID)
+	if err != nil {
+		return nil, fmt.Sprintf("Error examining %s: could not load room items.", targetName)
+	}
+	for _, item := range rmItems {
+		if strings.Contains(strings.ToLower(item.Name), strings.ToLower(targetName)) {
+			return item, ""
+		}
+	}
+	return nil, ""
+}
+
+// examineNPC finds an NPC in the room by name
+func examineNPC(ctx context.Context, roomID int, targetName string, repos *repository.Container) (*db.Character, string) {
+	roomChars, err := repos.Character.ListByRoom(ctx, roomID)
+	if err != nil {
+		return nil, fmt.Sprintf("Error examining %s: could not load room characters.", targetName)
+	}
+	for _, ch := range roomChars {
+		if ch.IsNPC && strings.Contains(strings.ToLower(ch.Name), strings.ToLower(targetName)) {
+			return ch, ""
+		}
+	}
+	return nil, ""
+}
+
+// fireExamineTriggers fires examine triggers for the target and returns combined description
+func fireExamineTriggers(ctx context.Context, targetName string, examineLevel int, targetID int, roomID int, repos *repository.Container) (string, error) {
+	var results []string
+
+	// Get examine triggers for the room
+	var triggers []*db.Trigger
+	var err error
+	if roomID > 0 {
+		triggers, err = repos.Trigger.ListByRoom(ctx, roomID)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// Filter and fire triggers where examine_weight <= player level
+	for _, t := range triggers {
+		if t.TriggerType == "examine" && t.Enabled && t.ExamineWeight <= examineLevel {
+			if t.TargetType == "dialog_node" {
+				results = append(results, fmt.Sprintf("Dialog node: %s", t.TargetID))
+			} else if t.TargetType == "effect" {
+				results = append(results, fmt.Sprintf("Effect: %s", t.TargetID))
+			} else if t.TargetType == "recipe" {
+				results = append(results, fmt.Sprintf("Recipe: %s", t.TargetID))
+			}
+		}
+	}
+
+	if len(results) > 0 {
+		return strings.Join(results, " "), nil
+	}
+	return "", nil
+}
+
+// ─── take ────────────────────────────────────────────────────────────────────
+
+func tryTake(targetName string, wsc *WSConn, repos *repository.Container) string {
+	ctx := context.Background()
+	char, err := repos.Character.Get(ctx, wsc.CharacterID)
+	if err != nil {
+		dblog.Error("tryTake: failed to get character", err, slog.Int("character_id", wsc.CharacterID))
+		return "You try to take an item, but something is wrong with your character."
+	}
+
+	// Find item in current room by name
+	roomItems, err := repos.Equipment.ListByRoom(ctx, char.CurrentRoomId)
+	if err != nil {
+		dblog.Error("tryTake: failed to list room items", err, slog.Int("room_id", char.CurrentRoomId))
+		return "You look for items, but the room refuses to reveal its contents."
+	}
+
+	var targetItem *db.Equipment
+	for _, item := range roomItems {
+		if strings.Contains(strings.ToLower(item.Name), strings.ToLower(targetName)) {
+			targetItem = item
+			break
+		}
+	}
+
+	if targetItem == nil {
+		return fmt.Sprintf("You don't see any %s here.", targetName)
+	}
+
+	// Check if immovable
+	if targetItem.IsImmovable {
+		return fmt.Sprintf("You can't take the %s - it's immovable!", targetItem.Name)
+	}
+
+	// Check strength (weight comparison)
+	strength := char.Strength
+	if targetItem.Weight > strength {
+		return fmt.Sprintf("The %s is too heavy for you to lift (requires %d strength, you have %d).", targetItem.Name, targetItem.Weight, strength)
+	}
+
+	// Move item from room to inventory
+	isEquipped := false
+	_, err = repos.Equipment.Update(ctx, targetItem.ID, repository.EquipmentUpdates{
+		RoomID:     nil, // clears room association
+		ClearRoom:  true,
+		OwnerID:    &char.ID,
+		IsEquipped: &isEquipped,
+	})
+	if err != nil {
+		dblog.Error("tryTake: failed to update equipment", err, slog.Int("equipment_id", targetItem.ID))
+		return fmt.Sprintf("Failed to pick up the %s.", targetItem.Name)
+	}
+
+	slog.Info("tryTake: item moved to inventory",
+		slog.Int("equipment_id", targetItem.ID),
+		slog.String("item_name", targetItem.Name),
+		slog.Int("character_id", char.ID),
+		slog.Int("room_id", char.CurrentRoomId))
+
+	// Refresh room screen
+	roomScreen, err := buildRoomScreen(ctx, char.CurrentRoomId, char.CurrentWorld, repos)
+	if err != nil {
+		dblog.Error("tryTake: failed to build room screen", err, slog.Int("room_id", char.CurrentRoomId))
+	} else {
+		sendScreen(wsc, roomScreen)
+	}
+
+	return fmt.Sprintf("You pick up the %s.", targetItem.Name)
+}
+
+// ─── drop ────────────────────────────────────────────────────────────────────
+
+func tryDrop(targetName string, wsc *WSConn, repos *repository.Container) string {
+	ctx := context.Background()
+	char, err := repos.Character.Get(ctx, wsc.CharacterID)
+	if err != nil {
+		dblog.Error("tryDrop: failed to get character", err, slog.Int("character_id", wsc.CharacterID))
+		return "You try to drop an item, but something is wrong with your character."
+	}
+
+	// Find item in inventory by name (owned by character, not equipped)
+	inventory, err := repos.Equipment.ListByOwner(ctx, char.ID)
+	if err != nil {
+		dblog.Error("tryDrop: failed to list inventory", err, slog.Int("character_id", char.ID))
+		return "You check your inventory, but it's empty."
+	}
+
+	var targetItem *db.Equipment
+	for _, item := range inventory {
+		if !item.IsEquipped && strings.Contains(strings.ToLower(item.Name), strings.ToLower(targetName)) {
+			targetItem = item
+			break
+		}
+	}
+
+	if targetItem == nil {
+		return fmt.Sprintf("You don't have any %s in your inventory.", targetName)
+	}
+
+	// Check if immovable
+	if targetItem.IsImmovable {
+		return fmt.Sprintf("You can't drop the %s - it's magically bound to you!", targetItem.Name)
+	}
+
+	// Move item from inventory to room
+	isEquipped := false
+	_, err = repos.Equipment.Update(ctx, targetItem.ID, repository.EquipmentUpdates{
+		RoomID:    &char.CurrentRoomId,
+		OwnerID:   nil, // clears ownership
+		IsEquipped: &isEquipped,
+	})
+	if err != nil {
+		dblog.Error("tryDrop: failed to update equipment", err, slog.Int("equipment_id", targetItem.ID))
+		return fmt.Sprintf("Failed to drop the %s.", targetItem.Name)
+	}
+
+	// Refresh room screen
+	roomScreen, err := buildRoomScreen(ctx, char.CurrentRoomId, char.CurrentWorld, repos)
+	if err != nil {
+		dblog.Error("tryDrop: failed to build room screen", err, slog.Int("room_id", char.CurrentRoomId))
+	} else {
+		sendScreen(wsc, roomScreen)
+	}
+
+	return fmt.Sprintf("You drop the %s.", targetItem.Name)
+}
+
 // ─── Command handler ──────────────────────────────────────────────────────────
 
 func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client *db.Client) string {
@@ -445,7 +657,98 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 	// examine <target>
 	if len(cmd) > 8 && strings.HasPrefix(cmd, "examine ") {
 		target := cmd[8:]
-		return fmt.Sprintf("You examine %s closely. It's nothing special. (Detailed object descriptions coming in Phase 6.)", target)
+		ctx := context.Background()
+		char, err := repos.Character.Get(ctx, wsc.CharacterID)
+		if err != nil {
+			dblog.Error("examine: failed to get character", err, slog.Int("character_id", wsc.CharacterID))
+			return "You try to examine, but something is wrong with your character."
+		}
+
+		examineLevel := getExamineLevel(char)
+		roomID := char.CurrentRoomId
+
+		// Try to find the target as an item, NPC, or player character
+		var targetDescription string
+
+		// Check items first
+		if item, err := repos.Equipment.ListByRoom(ctx, roomID); err == nil {
+			for _, it := range item {
+				if strings.Contains(strings.ToLower(it.Name), strings.ToLower(target)) {
+					targetDescription = fmt.Sprintf("You examine %s. It's %s.", it.Name, it.Description)
+					break
+				}
+			}
+		}
+
+		// Check room characters (both NPCs and players)
+		if targetDescription == "" {
+			chars, _ := repos.Character.ListByRoom(ctx, roomID)
+			for _, ch := range chars {
+				if strings.Contains(strings.ToLower(ch.Name), strings.ToLower(target)) {
+					// Get equipment for both NPCs and players
+					equipment, _ := repos.Equipment.ListByOwner(ctx, ch.ID)
+					var wearing []string
+					var wielding []string
+					for _, eq := range equipment {
+						if eq.IsEquipped {
+							if eq.Slot == "main_hand" || eq.Slot == "off_hand" {
+								wielding = append(wielding, eq.Name)
+							} else {
+								wearing = append(wearing, eq.Name)
+							}
+						}
+					}
+
+					var desc string
+					if ch.IsNPC {
+						desc = fmt.Sprintf("[%s]", ch.Name)
+						if ch.Description != "" {
+							desc += fmt.Sprintf("\n%s", ch.Description)
+						}
+						desc += fmt.Sprintf("\n\nLevel: %d", ch.Level)
+					} else {
+						desc = fmt.Sprintf("[%s]\nA player adventurer.", ch.Name)
+						desc += fmt.Sprintf("\nLevel: %d", ch.Level)
+					}
+
+					if ch.Race != "" {
+						desc += fmt.Sprintf("\nRace: %s", ch.Race)
+					}
+					if ch.Class != "" {
+						desc += fmt.Sprintf("\nClass: %s", ch.Class)
+					}
+
+					if len(wearing) > 0 {
+						desc += fmt.Sprintf("\nWearing: %s", strings.Join(wearing, ", "))
+					}
+					if len(wielding) > 0 {
+						if len(wielding) == 2 {
+							desc += fmt.Sprintf("\nWielding: %s and %s", wielding[0], wielding[1])
+						} else {
+							desc += fmt.Sprintf("\nWielding: %s", wielding[0])
+						}
+					}
+
+					targetDescription = desc
+					break
+				}
+			}
+		}
+
+		if targetDescription == "" {
+			return fmt.Sprintf("You don't see %s here.", target)
+		}
+
+		// Fire examine triggers
+		examineResult, err := fireExamineTriggers(ctx, target, examineLevel, 0, roomID, repos)
+		if err != nil {
+			dblog.Error("examine: failed to fire triggers", err, slog.Int("room_id", roomID))
+		}
+		if examineResult != "" {
+			targetDescription += " " + examineResult
+		}
+
+		return targetDescription
 	}
 
 	// talk to <target>
@@ -454,9 +757,13 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 		return tryTalk(target, wsc, repos)
 	}
 
-	// attack <target>
+	// attack <target> and fight <target>
 	if strings.HasPrefix(cmd, "attack ") {
 		target := strings.TrimPrefix(cmd, "attack ")
+		return tryAttack(target, wsc, repos, client)
+	}
+	if strings.HasPrefix(cmd, "fight ") {
+		target := strings.TrimPrefix(cmd, "fight ")
 		return tryAttack(target, wsc, repos, client)
 	}
 
@@ -507,6 +814,17 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 		}
 		return "You look around."
 
+	case "take", "get":
+		target := strings.TrimPrefix(cmd, "take ")
+		if target == cmd {
+			target = strings.TrimPrefix(cmd, "get ")
+		}
+		return tryTake(target, wsc, repos)
+
+	case "drop":
+		target := strings.TrimPrefix(cmd, "drop ")
+		return tryDrop(target, wsc, repos)
+
 	case "quit", "exit":
 		return "Disconnecting is not yet implemented. Use the browser UI."
 
@@ -514,7 +832,7 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 		return "You are alone in the void. (Player list coming soon.)"
 
 	case "help":
-		return "Available commands: look, who, help, quit, examine <target>, directions (n/s/e/w/u/d). (More coming in Phase 6.)"
+		return "Available commands: look, who, help, quit, examine <target>, directions (n/s/e/w/u/d), take <item>, drop <item>. (More coming in Phase 6.)"
 
 	default:
 		return fmt.Sprintf("You typed: \"%s\". (Command not yet implemented.)", cmd)
@@ -549,6 +867,12 @@ func tryMove(dir string, wsc *WSConn, repos *repository.Container, client *db.Cl
 	if err != nil {
 		dblog.Error("tryMove: failed to update character room", err, slog.Int("character_id", char.ID), slog.Int("target_room", targetID))
 		return "Something prevents you from moving."
+	}
+
+	// Check explore quests and notify player
+	questMsgs := advanceQuestObjective(ctx, client, repos, char.ID, "explore", fmt.Sprintf("%d", targetID), 1)
+	for _, msg := range questMsgs {
+		sendNotification(wsc, msg)
 	}
 
 	// Send new room screen
@@ -633,6 +957,11 @@ func tryAttack(targetName string, wsc *WSConn, repos *repository.Container, clie
 	}
 	if targetNPC == nil {
 		return fmt.Sprintf("There is no %s here to attack.", targetName)
+	}
+
+	// Check if player is trying to attack themselves (by ID, not name)
+	if targetNPC.ID == char.ID {
+		return "You cannot attack yourself!"
 	}
 
 	// Check disposition via template

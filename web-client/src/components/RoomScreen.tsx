@@ -40,6 +40,7 @@ export default function RoomScreen({
         actions.push({ label: "Attack", variant: "danger", onClick: () => onTogglePending(char.id), keepOpen: true });
       }
       actions.push({ label: "Talk", variant: "success", onClick: () => onCommand(`talk ${char.name}`) });
+      actions.push({ label: "Trade", variant: "secondary", onClick: () => onCommand(`shop ${char.name}`) });
     }
     actions.push({ label: "Examine", variant: "secondary", onClick: () => onCommand(`examine ${char.name}`) });
     return actions;
