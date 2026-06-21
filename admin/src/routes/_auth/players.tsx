@@ -213,9 +213,9 @@ function PlayersManagement() {
                 <h4 className="text-text text-base font-semibold mb-2">Characters</h4>
                 {userCharactersQuery.isLoading ? <div className="text-text-muted text-sm">Loading...</div> :
                  userCharactersQuery.isError ? <div className="text-danger text-sm">Failed to load characters</div> :
-                 (userCharactersQuery.data?.length ?? 0) === 0 ? <div className="text-text-muted text-sm">No characters</div> :
+                 !Array.isArray(userCharactersQuery.data) || userCharactersQuery.data.length === 0 ? <div className="text-text-muted text-sm">No characters</div> :
                  <div className="space-y-2">
-                   {userCharactersQuery.data!.map((char) => (
+                   {userCharactersQuery.data.map((char) => (
                      <div key={char.id} className="flex items-center justify-between bg-surface-muted rounded px-3 py-2">
                        <div>
                          <span className="font-semibold text-text">{char.name}</span>
