@@ -1,6 +1,7 @@
-/* eslint-disable functional/no-return-void */
+/* eslint-disable functional/no-return-void, functional/no-loop-statements */
 import { describe, it, expect } from "vitest";
 import { computeRealignUpdates } from "../../utils/mapRealign";
+import { estimateNodeSize } from "./DirectionUtils";
 import type { Room } from "./types";
 
 function makeRooms(): Room[] {
@@ -60,5 +61,30 @@ describe("computeRealignUpdates", () => {
     });
     const second = computeRealignUpdates(nextRooms, 1, zLevels);
     expect(second).toHaveLength(0);
+  });
+
+  it("keeps same-floor rooms ordered and separated by at least their box sizes minus grid tolerance", () => {
+    const rooms = makeRooms();
+    const zLevels = new Map(rooms.map((r) => [r.id, r.posZ ?? 0]));
+    const updates = computeRealignUpdates(rooms, 1, zLevels);
+    const positions = positionsFromUpdates(updates, rooms);
+
+    const floorIds = Array.from(positions.keys()).filter((id) => (zLevels.get(id) ?? 0) === 1);
+    for (let i = 0; i < floorIds.length; i++) {
+      for (let j = i + 1; j < floorIds.length; j++) {
+        const a = floorIds[i];
+        const b = floorIds[j];
+        const pa = positions.get(a)!;
+        const pb = positions.get(b)!;
+        const boxA = estimateNodeSize(rooms.find((r) => r.id === a)!);
+        const boxB = estimateNodeSize(rooms.find((r) => r.id === b)!);
+
+        // Two boxes overlap only when they overlap on BOTH axes. Grid rounding
+        // can introduce a small actual overlap, so allow a 10 px tolerance.
+        const overlapX = (boxA.w + boxB.w) / 2 - Math.abs(pa.x - pb.x);
+        const overlapY = (boxA.h + boxB.h) / 2 - Math.abs(pa.y - pb.y);
+        expect(Math.min(overlapX, overlapY)).toBeLessThanOrEqual(10);
+      }
+    }
   });
 });

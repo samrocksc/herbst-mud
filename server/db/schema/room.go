@@ -39,13 +39,16 @@ func (Room) Fields() []ent.Field {
 			Default("air"),
 		field.Int("posX").
 			Default(0).
-			Optional(),
+			Optional().
+			StructTag(`json:"posX"`),
 		field.Int("posY").
 			Default(0).
-			Optional(),
+			Optional().
+			StructTag(`json:"posY"`),
 		field.Int("posZ").
 			Default(0).
 			Optional().
+			StructTag(`json:"posZ"`).
 			Comment("Z-level for map rendering; 0 = ground floor"),
 		field.Int("version").
 			Default(1),

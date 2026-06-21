@@ -41,10 +41,18 @@ export function useRooms() {
 
   const roomsQuery = useQuery<Room[]>({
     queryKey: ["rooms", currentWorld],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams(currentWorld ? [["world_id", currentWorld]] : []);
       const qs = params.toString() ? `?${params.toString()}` : "";
-      return apiGet<Room[]>(`${API_BASE}/api/rooms${qs}`);
+      const raw = await apiGet<Room[]>(`${API_BASE}/api/rooms${qs}`);
+      // The backend omits zero-valued coordinates from JSON, so normalize
+      // them here so downstream layout math never sees undefined/Infinity.
+      return raw.map((r) => ({
+        ...r,
+        posX: r.posX ?? 0,
+        posY: r.posY ?? 0,
+        posZ: r.posZ ?? 0,
+      }));
     },
   });
 

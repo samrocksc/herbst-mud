@@ -1,9 +1,13 @@
 /* eslint-disable functional/immutable-data */
  
 import { useMemo } from "react";
-import { DIRECTION_OFFSETS } from "../components/map/DirectionUtils";
-import { ORPHAN_COLS } from "../components/map/constants";
+import { getNoOverlapOffset, estimateNodeSize } from "../components/map/DirectionUtils";
+import { ORPHAN_COLS, GRID } from "../components/map/constants";
 import type { Room } from "../components/map/types";
+
+function roundToGrid(n: number): number {
+  return Math.round(n / GRID) * GRID;
+}
 
 export function useNodeLayout(rooms: Room[], currentZLevel: number) {
   const zLevels = useMemo(() => {
@@ -50,10 +54,16 @@ export function useNodeLayout(rooms: Room[], currentZLevel: number) {
         if (!tid || dir === "up" || dir === "down") return acc;
         if (acc.has(tid)) return acc;
 
-        const off = DIRECTION_OFFSETS[dir] || { dx: 150, dy: 0 };
         const tr = rooms.find(r => r.id === tid);
-        const tx = tr?.posX != null ? tr.posX : x + off.dx;
-        const ty = tr?.posY != null ? tr.posY : y + off.dy;
+        if (tr == null) return acc;
+
+        const sourceBox = estimateNodeSize(room);
+        const targetBox = estimateNodeSize(tr);
+        const off = tr.posX != null && tr.posY != null
+          ? { dx: tr.posX - x, dy: tr.posY - y }
+          : getNoOverlapOffset(dir, sourceBox, targetBox);
+        const tx = tr.posX != null ? tr.posX : roundToGrid(x + off.dx);
+        const ty = tr.posY != null ? tr.posY : roundToGrid(y + off.dy);
         return posRoom(tid, tx, ty, newPos, acc);
       }, newPosMap);
     };
