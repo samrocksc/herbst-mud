@@ -1,13 +1,46 @@
 /* eslint-disable functional/prefer-immutable-types, functional/immutable-data, functional/no-loop-statements */
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useRooms } from "./useRooms";
 import { useNPCs } from "./useNPCs";
 import { useRoomEquipment } from "./useRoomEquipment";
 import { useNodeLayout } from "./useNodeLayout";
+import { computeRealignUpdates } from "../utils/mapRealign";
 import { GRID, MIN_ZOOM, MAX_ZOOM, ZOOM_FINE_STEP } from "../components/map/constants";
-import { DIRECTION_OFFSETS } from "../components/map/DirectionUtils";
+import { DIRECTION_OFFSETS, OPPOSITE_DIR, ALL_DIRECTIONS } from "../components/map/DirectionUtils";
 import type { Room } from "../components/map/types";
+
+function angleBetweenRooms(a: { x: number; y: number }, b: { x: number; y: number }): number {
+  return Math.atan2(b.y - a.y, b.x - a.x);
+}
+
+function computeTargetHandle(dir: string, sourceRoom: Room, targetRoom: Room): string {
+  // Prefer the target room's reciprocal exit direction if it points back at the source.
+  const reciprocal = Object.entries(targetRoom.exits || {}).find(([, tid]) => tid === sourceRoom.id)?.[0];
+  if (reciprocal) return reciprocal;
+
+  const orthogonal = ["north", "south", "east", "west"];
+  if (orthogonal.includes(dir)) {
+    return OPPOSITE_DIR[dir] ?? "south";
+  }
+
+  const angle = angleBetweenRooms(
+    { x: sourceRoom.posX ?? 0, y: sourceRoom.posY ?? 0 },
+    { x: targetRoom.posX ?? 0, y: targetRoom.posY ?? 0 },
+  );
+  const init = { nearest: dir, best: Infinity };
+  return ALL_DIRECTIONS.reduce((acc, d) => {
+    if (d === "up" || d === "down") return acc;
+    const off = DIRECTION_OFFSETS[d];
+    if (!off) return acc;
+    const a = Math.atan2(off.dy, off.dx);
+    const diff = Math.abs(((a - angle + Math.PI) % (2 * Math.PI)) - Math.PI);
+    if (diff < acc.best) {
+      return { nearest: d, best: diff };
+    }
+    return acc;
+  }, init).nearest;
+}
 
 type MapSearch = {
   room?: number
@@ -32,7 +65,6 @@ export function useMapState() {
   const [zoom, setZoom] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [cleanupConfirmOpen, setCleanupConfirmOpen] = useState(false);
@@ -53,51 +85,95 @@ export function useMapState() {
 
   const { zLevels, nodePositions } = useNodeLayout(rooms, currentZLevel);
 
-  // Sync selected room from URL search param on mount and when rooms load
-  useEffect(() => {
-    if (roomsLoading || !rooms.length || syncRunning.current) return;
-    syncRunning.current = true;
-    const roomId = search.room;
-    if (roomId != null) {
-      const room = rooms.find(r => r.id === roomId);
-      if (room && (selectedRoom == null || selectedRoom.id !== roomId)) {
-        setSelectedRoom(room);
-      }
-    }
-    if (roomId == null && selectedRoom != null && initialSyncDone.current) {
-      setSelectedRoom(null);
-    }
-    initialSyncDone.current = true;
-    syncRunning.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rooms, search.room]);
-
+  // Update search params
   const updateSearchParams = useCallback((updates: { room?: number | null; floor?: number }) => {
-    // Build the full next search state explicitly. Avoids the previous
-    // else-if chain that could leave stale params in the URL and was
-    // reported to occasionally misroute the navigation away from /map.
     const nextSearch: Record<string, number> = {};
-
     if (updates.room !== undefined) {
       if (updates.room !== null) nextSearch.room = updates.room;
-      // updates.room === null → omit key, clears it
     } else if (search.room != null) {
       nextSearch.room = search.room;
     }
-
     if (updates.floor != null) {
       nextSearch.floor = updates.floor;
     } else if (currentZLevel !== 0) {
       nextSearch.floor = currentZLevel;
     }
-
     navigate({ to: "/map", search: nextSearch, replace: true });
   }, [navigate, search.room, currentZLevel]);
 
-  const handleSetZLevel = useCallback((z: number) => {
-    updateSearchParams({ floor: z });
+  // Node interaction handlers
+  const handleSelectRoom = useCallback((room: Room | null) => {
+    setSelectedRoom(room);
+    setSidebarOpen(false);
+    if (room) {
+      setEditingRoom(null);
+      updateSearchParams({ room: room.id });
+    } else {
+      updateSearchParams({ room: null });
+    }
   }, [updateSearchParams]);
 
+  const handleAddExitFromNode = useCallback((roomId: number, direction: string) => {
+    const fromRoom = rooms.find(r => r.id === roomId);
+    if (fromRoom) {
+      requestAddRoom(fromRoom, direction);
+    }
+  }, [rooms]);
+
+  // Room lifecycle
+  const requestAddRoom = useCallback((fromRoom: Room, dir: string) => {
+    setAddRoomModal({ open: true, fromRoom, dir });
+  }, []);
+
+  const cancelAddRoom = useCallback(() => {
+    setAddRoomModal({ open: false, fromRoom: null, dir: null });
+  }, []);
+
+  const confirmAddRoom = useCallback(
+    async (input: { name: string; description: string }) => {
+      const fromRoom = addRoomModal.fromRoom;
+      const dir = addRoomModal.dir;
+      if (!fromRoom || !dir) return;
+
+      setIsAddingRoom(true);
+      const offset = DIRECTION_OFFSETS[dir];
+      const posX = offset ? fromRoom.posX! + offset.dx : (fromRoom.posX ?? 0);
+      const posY = offset ? fromRoom.posY! + offset.dy : (fromRoom.posY ?? 0);
+      const parentZ = zLevels.get(fromRoom.id) ?? 0;
+      const posZ = dir === "up" ? parentZ + 1 : dir === "down" ? parentZ - 1 : parentZ;
+      try {
+        const newRoom = await createRoomAsync({
+          name: input.name,
+          description: input.description,
+          isStartingRoom: false,
+          isRootRoom: false,
+          exits: {},
+          posX,
+          posY,
+          posZ,
+        });
+        await createBidirectionalExit({
+          roomId: fromRoom.id,
+          direction: dir,
+          targetRoomId: newRoom.id,
+        });
+        handleSelectRoom(newRoom);
+        setAddRoomModal({ open: false, fromRoom: null, dir: null });
+      } catch {
+        showToast("Failed to create room");
+      } finally {
+        setIsAddingRoom(false);
+      }
+    },
+    [addRoomModal, createRoomAsync, createBidirectionalExit, zLevels, handleSelectRoom],
+  );
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  // Layout handler
   const handleRelayout = useCallback(() => {
     const clean = nodePositions;
     const updates: { roomId: number; posX: number; posY: number }[] = [];
@@ -114,6 +190,21 @@ export function useMapState() {
       updateRoom({ id: roomId, update: { posX, posY } });
     }
   }, [nodePositions, rooms, updateRoom]);
+
+  // Re-align rooms on the current floor to a grid based on exit graph
+  const handleRealign = useCallback(() => {
+    const updates = computeRealignUpdates(rooms, currentZLevel, zLevels);
+    if (updates.length === 0) {
+      showToast("Rooms already aligned");
+      return;
+    }
+    updates.forEach(({ roomId, posX, posY }) => updateRoom({ id: roomId, update: { posX, posY } }));
+    showToast(`Aligned ${updates.length} room(s) to grid`);
+  }, [rooms, currentZLevel, zLevels, updateRoom, showToast]);
+
+  const handleSetZLevel = useCallback((z: number) => {
+    updateSearchParams({ floor: z });
+  }, [updateSearchParams]);
 
   const handleZoom = useCallback((delta: number) => {
     const viewport = viewportRef.current;
@@ -143,109 +234,23 @@ export function useMapState() {
     setPanOffset(p => ({ x: p.x - dx, y: p.y - dy }));
   }, [handleZoom]);
 
-  const handleDragStart = useCallback((_roomId: number) => {
-    setIsDragging(true);
-  }, []);
-
-  const handleRoomDragEnd = useCallback((roomId: number, posX: number, posY: number) => {
-    const snappedX = Math.round(posX / GRID) * GRID;
-    const snappedY = Math.round(posY / GRID) * GRID;
-    setIsDragging(false);
-    const room = rooms.find(r => r.id === roomId);
-    if (!room) return;
-    updateRoom({ id: roomId, update: { posX: snappedX, posY: snappedY, version: room.version } });
-  }, [rooms, updateRoom]);
-
   const handleResetView = useCallback(() => {
     setZoom(1);
     setPanOffset({ x: 0, y: 0 });
   }, []);
 
-  const handleSelectRoom = useCallback((room: Room | null) => {
-    setSelectedRoom(room);
-    setSidebarOpen(false);
-    if (room) setEditingRoom(null);
-    updateSearchParams({ room: room?.id ?? null });
-  }, [updateSearchParams]);
-
-  const handleEditRoom = useCallback((room: Room) => {
-    setEditingRoom(room);
-  }, []);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  }, []);
-
-  // Opens the modal to add a room
-  const requestAddRoom = useCallback((fromRoom: Room, dir: string) => {
-    setAddRoomModal({ open: true, fromRoom, dir });
-  }, []);
-
-  // Closes the modal without creating a room
-  const cancelAddRoom = useCallback(() => {
-    setAddRoomModal({ open: false, fromRoom: null, dir: null });
-  }, []);
-
-  // Creates the room with user-provided name/description and selects it
-  const confirmAddRoom = useCallback(
-    async (input: { name: string; description: string }) => {
-      const fromRoom = addRoomModal.fromRoom;
-      const dir = addRoomModal.dir;
-      if (!fromRoom || !dir) return;
-
-      setIsAddingRoom(true);
-      const offset = DIRECTION_OFFSETS[dir];
-      const posX = offset ? fromRoom.posX! + offset.dx : (fromRoom.posX ?? 0);
-      const posY = offset ? fromRoom.posY! + offset.dy : (fromRoom.posY ?? 0);
-      const parentZ = zLevels.get(fromRoom.id) ?? 0;
-      const posZ = dir === "up" ? parentZ + 1 : dir === "down" ? parentZ - 1 : parentZ;
-      try {
-        const newRoom = await createRoomAsync({
-          name: input.name,
-          description: input.description,
-          isStartingRoom: false,
-          isRootRoom: false,
-          exits: {},
-          posX,
-          posY,
-          posZ,
-        });
-        await createBidirectionalExit({
-          roomId: fromRoom.id,
-          direction: dir,
-          targetRoomId: newRoom.id,
-        });
-        // Auto-select the new room after creation
-        handleSelectRoom(newRoom);
-        setAddRoomModal({ open: false, fromRoom: null, dir: null });
-      } catch {
-        showToast("Failed to create room");
-      } finally {
-        setIsAddingRoom(false);
-      }
-    },
-    [addRoomModal, createRoomAsync, createBidirectionalExit, zLevels, handleSelectRoom, showToast]
-  );
-
-  // Opens the modal (non-async, just triggers modal)
-  const handleAddRoom = useCallback((fromRoom: Room, dir: string) => {
-    requestAddRoom(fromRoom, dir);
-  }, [requestAddRoom]);
-
+  // Floor management
   const handleAddFloor = useCallback(async () => {
     const sorted = Array.from(new Set(Array.from(zLevels.values()))).sort((a, b) => a - b);
     const maxZ = sorted[sorted.length - 1] ?? 0;
     const newZ = sorted.length === 0 ? 0 : maxZ + 1;
-    
-    // Guard: don't allow going beyond ±10
+
     if (newZ > 10 || newZ < -10) {
       showToast("Maximum floor range is -10 to +10");
       return;
     }
 
     try {
-      // Check if any room is already a root — if not, make this new room the root
       const hasRoot = rooms.some(r => r.isRootRoom);
       await createRoomAsync({
         name: `Floor ${newZ}`,
@@ -265,6 +270,11 @@ export function useMapState() {
     }
   }, [updateSearchParams, zLevels, rooms, createRoomAsync, showToast]);
 
+  const handleEditRoom = useCallback((room: Room) => {
+    setEditingRoom(room);
+  }, []);
+
+  // Delete operations
   const [deleteFloorModalOpen, setDeleteFloorModalOpen] = useState(false);
   const [deleteRoomModalOpen, setDeleteRoomModalOpen] = useState(false);
   const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
@@ -274,7 +284,6 @@ export function useMapState() {
   const requestDeleteFloor = useCallback(() => {
     const roomsOnFloor = rooms.filter((r) => (zLevels.get(r.id) ?? 0) === currentZLevel);
     if (roomsOnFloor.length === 0) {
-      // Empty floor — just navigate away
       const remaining = Array.from(new Set(Array.from(zLevels.values()))).filter((z) => z !== currentZLevel).sort((a, b) => a - b);
       const fallback = remaining[0] ?? 0;
       updateSearchParams({ floor: fallback });
@@ -300,21 +309,13 @@ export function useMapState() {
     const room = rooms.find((r) => r.id === roomId);
     if (!room) return;
 
-    // Count affected characters
     const allNpcs = npcsQuery.data ?? [];
     const affectedCharacterCount = allNpcs.filter((n) => n.currentRoomId === roomId).length;
 
-    // Count orphan exits (exits in other rooms pointing to this room)
-    let orphanExitCount = 0;
-    for (const r of rooms) {
-      if (r.exits) {
-        for (const targetId of Object.values(r.exits)) {
-          if (targetId === roomId) {
-            orphanExitCount++;
-          }
-        }
-      }
-    }
+    const orphanExitCount = rooms.reduce((count, r) => {
+      if (!r.exits) return count;
+      return count + Object.values(r.exits).filter((targetId) => targetId === roomId).length;
+    }, 0);
 
     setDeletingRoomDetails({ affectedCharacterCount, orphanExitCount });
     setDeletingRoomId(roomId);
@@ -341,7 +342,6 @@ export function useMapState() {
       showToast("Room deleted");
     } catch {
       showToast("Failed to delete room");
-      // Keep modal open so user can retry or cancel
     } finally {
       setIsDeletingRoom(false);
     }
@@ -365,22 +365,123 @@ export function useMapState() {
     setCleanupConfirmOpen(false);
   }, []);
 
+  // Sync selected room from URL search param on mount and when rooms load
+  useEffect(() => {
+    if (roomsLoading || !rooms.length || syncRunning.current) return;
+    syncRunning.current = true;
+    const roomId = search.room;
+    if (roomId != null) {
+      const room = rooms.find(r => r.id === roomId);
+      if (room && (selectedRoom == null || selectedRoom.id !== roomId)) {
+        setSelectedRoom(room);
+      }
+    }
+    if (roomId == null && selectedRoom != null && initialSyncDone.current) {
+      setSelectedRoom(null);
+    }
+    initialSyncDone.current = true;
+    syncRunning.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rooms, search.room]);
+
+  // Build React Flow nodes for current z-level
+  const reactFlowNodes = useMemo(() => {
+    if (!rooms.length) return [];
+    const getNPCsInRoom = (roomId: number) => npcsQuery.data?.filter(n => n.currentRoomId === roomId) || [];
+    const getEquipmentInRoom = (_roomId: number) => equipmentQuery.data || [];
+
+    const nodes: Array<{ id: string; position: { x: number; y: number }; type: string; data: Record<string, unknown> }> = [];
+    for (const room of rooms) {
+      const pos = nodePositions.get(room.id);
+      if (!pos || (zLevels.get(room.id) ?? 0) !== currentZLevel) continue;
+
+      nodes.push({
+        id: `room-${room.id}`,
+        position: { x: pos.x, y: pos.y },
+        type: "default",
+        data: {
+          room,
+          roomNpcs: getNPCsInRoom(room.id),
+          roomItems: getEquipmentInRoom(room.id),
+          rooms,
+          onSelect: handleSelectRoom,
+          onAddExit: handleAddExitFromNode,
+        },
+      });
+    }
+    return nodes;
+  }, [rooms, nodePositions, zLevels, currentZLevel, npcsQuery.data, equipmentQuery.data]);
+
+  // Build React Flow edges for current z-level
+  const reactFlowEdges = useMemo(() => {
+    if (!rooms.length) return [];
+    const edges: Array<{ id: string; source: string; target: string; sourceHandle: string; targetHandle: string; type: string; data: Record<string, unknown>; style: Record<string, string | number> }> = [];
+    const drawn = new Set<string>();
+
+    for (const room of rooms) {
+      const roomPos = nodePositions.get(room.id);
+      if (!roomPos) continue;
+
+      for (const [dir, targetId] of Object.entries(room.exits || {})) {
+        if (dir === "up" || dir === "down") continue;
+        const targetPos = nodePositions.get(targetId);
+        if (!targetPos) continue;
+
+        const [lo, hi] = room.id < targetId ? [room.id, targetId] : [targetId, room.id];
+        const canon = `${lo}-${hi}`;
+        if (drawn.has(canon)) continue;
+        drawn.add(canon);
+
+        // Use the source room's exit direction for the source side; prefer the
+        // target room's reciprocal exit direction for the target side so the line
+        // enters the same side a player would use to walk back.
+        const targetRoom = rooms.find(r => r.id === targetId);
+        if (!targetRoom) continue;
+        const targetHandle = computeTargetHandle(dir, room, targetRoom);
+
+        edges.push({
+          id: `edge-${canon}`,
+          source: `room-${room.id}`,
+          target: `room-${targetId}`,
+          sourceHandle: dir,
+          targetHandle,
+          type: "mapEdge",
+          data: { dir, targetHandle },
+          style: { stroke: "var(--color-success, #22c55e)", strokeWidth: 2 },
+        });
+      }
+    }
+    return edges;
+  }, [rooms, nodePositions]);
+
   return {
-    rooms, roomsLoading, selectedRoom, setSelectedRoom: handleSelectRoom,
-    zoom, panOffset, currentZLevel, setCurrentZLevel: handleSetZLevel,
-    sidebarOpen, setSidebarOpen, isDragging,
-    editingRoom, setEditingRoom,
-    toast, showToast,
-    cleanupConfirmOpen, handleRequestCleanupOrphanExits, handleConfirmCleanupOrphanExits, handleCancelCleanupOrphanExits,
-    addRoomModal, requestAddRoom, cancelAddRoom, confirmAddRoom, isAddingRoom,
+    // State
+    rooms, roomsLoading, selectedRoom, zoom, panOffset, currentZLevel,
+    sidebarOpen, setSidebarOpen, editingRoom, setEditingRoom, toast, cleanupConfirmOpen, addRoomModal,
+    isAddingRoom, deleteFloorModalOpen, deleteRoomModalOpen,
+    deletingRoomId, isDeletingRoom, deletingRoomDetails,
+
+    // React Flow data
+    reactFlowNodes, reactFlowEdges,
     viewportRef, handleWheel, handleZoom, handleResetView,
-    handleRelayout, handleDragStart, handleRoomDragEnd, handleEditRoom,
-    nodePositions, zLevels,
+    handleSelectRoom, handleAddExitFromNode,
+
+    // Navigation
+    navigate, updateSearchParams,
+
+    // Handlers
+    handleRelayout, handleRealign, handleSetZLevel, handleAddFloor, handleEditRoom,
+    requestAddRoom, cancelAddRoom, confirmAddRoom,
+    requestDeleteFloor, confirmDeleteFloor, cancelDeleteFloor,
+    requestDeleteRoom, cancelDeleteRoom, confirmDeleteRoom,
+    handleRequestCleanupOrphanExits, handleConfirmCleanupOrphanExits,
+    handleCancelCleanupOrphanExits,
+
+    // Data
     npcs: npcsQuery.data ?? [],
     roomEquipment: equipmentQuery.data ?? [],
+    zLevels, nodePositions,
     updateRoom, createRoom, deleteRoom, deleteRoomAsync, isCreating, cleanupOrphanExits,
-    handleAddRoom, handleAddFloor, navigate, handleSetZLevel,
-    deleteFloorModalOpen, requestDeleteFloor, confirmDeleteFloor, cancelDeleteFloor,
-    deleteRoomModalOpen, requestDeleteRoom, cancelDeleteRoom, confirmDeleteRoom, isDeletingRoom, deletingRoomDetails,
+    showToast,
   };
 }
