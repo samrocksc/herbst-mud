@@ -32,11 +32,11 @@ type Room struct {
 	// Atmosphere holds the value of the "atmosphere" field.
 	Atmosphere room.Atmosphere `json:"atmosphere,omitempty"`
 	// PosX holds the value of the "posX" field.
-	PosX int `json:"posX,omitempty"`
+	PosX int `json:"posX"`
 	// PosY holds the value of the "posY" field.
-	PosY int `json:"posY,omitempty"`
+	PosY int `json:"posY"`
 	// Z-level for map rendering; 0 = ground floor
-	PosZ int `json:"posZ,omitempty"`
+	PosZ int `json:"posZ"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
 	// Tags for station discovery, room features (e.g. pizza_station, forge)

@@ -1,8 +1,9 @@
-import { DIRECTION_OFFSETS } from "../components/map/DirectionUtils";
+import { getNoOverlapOffset, estimateNodeSize } from "../components/map/DirectionUtils";
 import { GRID, ORPHAN_COLS } from "../components/map/constants";
 import type { Room } from "../components/map/types";
 
-type Position = { x: number; y: number };
+type Position = { readonly x: number; readonly y: number };
+type Box = { readonly w: number; readonly h: number };
 type Component = {
   rooms: readonly Room[]
   start: Room
@@ -109,10 +110,14 @@ function placeComponent(
   const sy = roundToGrid(y);
   const nextPlaced = new Map([...placed, [startId, { x: sx, y: sy }]]);
   const exits = getFloorExitPairs(room, roomsById, zLevels, currentZLevel);
+  const sourceBox = estimateNodeSize(room);
 
   return exits.reduce<ReadonlyMap<number, Position>>(
     (acc, { dir, tid }) => {
-      const off = DIRECTION_OFFSETS[dir] ?? { dx: 150, dy: 0 };
+      const target = roomsById.get(tid);
+      if (target == null) return acc;
+      const targetBox = estimateNodeSize(target);
+      const off = getNoOverlapOffset(dir, sourceBox, targetBox);
       return placeComponent(tid, sx + off.dx, sy + off.dy, acc, roomsById, zLevels, currentZLevel);
     },
     nextPlaced,
@@ -136,6 +141,64 @@ function componentBottom(placed: ReadonlyMap<number, Position>, ids: ReadonlySet
     .filter(([id]) => ids.has(id))
     .map(([, p]) => p.y);
   return positions.length === 0 ? 0 : Math.max(...positions);
+}
+
+function resolveOverlaps(
+  positions: ReadonlyMap<number, Position>,
+  boxes: ReadonlyMap<number, Box>,
+  margin = 20,
+  maxIterations = 50,
+): ReadonlyMap<number, Position> {
+  const ids = Array.from(positions.keys());
+
+  function step(remaining: number, current: ReadonlyMap<number, Position>): ReadonlyMap<number, Position> {
+    if (remaining === 0) {
+      return current;
+    }
+
+    const { result, moved } = ids.reduce(
+      (acc, a, i) => ids.slice(i + 1).reduce((innerAcc, b) => {
+        const pa = innerAcc.result.get(a)!;
+        const pb = innerAcc.result.get(b)!;
+        const boxA = boxes.get(a) ?? { w: 120, h: 65 };
+        const boxB = boxes.get(b) ?? { w: 120, h: 65 };
+
+        const halfW = (boxA.w + boxB.w) / 2 + margin;
+        const halfH = (boxA.h + boxB.h) / 2 + margin;
+        const overlapX = halfW - Math.abs(pa.x - pb.x);
+        const overlapY = halfH - Math.abs(pa.y - pb.y);
+
+        if (overlapX <= 0 || overlapY <= 0) {
+          return innerAcc;
+        }
+
+        const dx = pa.x - pb.x;
+        const dy = pa.y - pb.y;
+        const useX = overlapX < overlapY;
+        const push = useX ? overlapX / 2 : overlapY / 2;
+
+        const nextA = useX
+          ? { x: pa.x + (dx > 0 ? push : -push), y: pa.y }
+          : { x: pa.x, y: pa.y + (dy > 0 ? push : -push) };
+        const nextB = useX
+          ? { x: pb.x + (dx > 0 ? -push : push), y: pb.y }
+          : { x: pb.x, y: pb.y + (dy > 0 ? -push : push) };
+
+        return {
+          result: new Map([...innerAcc.result, [a, nextA], [b, nextB]]),
+          moved: true,
+        };
+      }, acc),
+      { result: current, moved: false } as { result: ReadonlyMap<number, Position>; moved: boolean },
+    );
+
+    if (!moved) {
+      return result;
+    }
+    return step(remaining - 1, result);
+  }
+
+  return step(maxIterations, positions);
 }
 
 export function computeRealignUpdates(
@@ -166,7 +229,7 @@ export function computeRealignUpdates(
   const mainBottomY = componentBottom(placed, mainIds);
   const orphans = components.filter((c) => c !== main);
 
-  const finalPlaced = orphans.reduce((acc, c, idx) => {
+  const withOrphans = orphans.reduce((acc, c, idx) => {
     const col = idx % ORPHAN_COLS;
     const row = Math.floor(idx / ORPHAN_COLS);
     const orphanX = roundToGrid(400 + col * 300);
@@ -174,7 +237,13 @@ export function computeRealignUpdates(
     return placeComponent(c.start.id, orphanX, orphanY, acc, roomsById, zLevels, currentZLevel);
   }, placed);
 
-  return Array.from(finalPlaced.entries()).reduce(
+  const boxes = new Map(Array.from(withOrphans.keys()).map((id) => [id, estimateNodeSize(roomsById.get(id)!)]));
+  const resolved = resolveOverlaps(withOrphans, boxes);
+  const finalPlaced = new Map(
+    Array.from(resolved.entries()).map(([id, p]) => [id, { x: roundToGrid(p.x), y: roundToGrid(p.y) }]),
+  );
+
+  const updates = Array.from(finalPlaced.entries()).reduce(
     (acc, [roomId, pos]) => {
       const room = roomsById.get(roomId);
       if (room != null && (room.posX !== pos.x || room.posY !== pos.y)) {
@@ -184,4 +253,5 @@ export function computeRealignUpdates(
     },
     [] as Array<{ roomId: number; posX: number; posY: number }>,
   );
+  return updates;
 }
