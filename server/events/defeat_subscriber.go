@@ -1,6 +1,7 @@
 package events
 
 import (
+	"herbst-server/dblog"
 	"context"
 	"fmt"
 	"log/slog"
@@ -55,7 +56,7 @@ func DefeatXPSubscriber(xpSvc XPAwarder, client *db.Client, logger *slog.Logger)
 			Order(damagelog.ByCreatedAt(sql.OrderAsc())).
 			All(ctx)
 		if err != nil {
-			logger.Error("failed to query damage log", "npc_id", npcID, "error", err)
+			dblog.Error("failed to query damage log", err, slog.Int("npc_id", npcID), slog.String("service", "events"))
 			return fmt.Errorf("query damage log: %w", err)
 		}
 
@@ -80,7 +81,7 @@ func DefeatXPSubscriber(xpSvc XPAwarder, client *db.Client, logger *slog.Logger)
 			attacker, err := client.Character.Get(ctx, attackerID)
 			if err != nil {
 				logger.Warn("failed to get attacker character, skipping XP award",
-					"attacker_id", attackerID, "error", err)
+					slog.String("error", err.Error()), slog.String("service", "events"), slog.Int("attacker_id", attackerID))
 				continue
 			}
 
@@ -97,8 +98,8 @@ func DefeatXPSubscriber(xpSvc XPAwarder, client *db.Client, logger *slog.Logger)
 
 			newXP, newLevel, leveledUp, err := xpSvc.AwardXP(ctx, attackerID, adjustedXP)
 			if err != nil {
-				logger.Error("failed to award defeat XP",
-					"attacker_id", attackerID, "xp", adjustedXP, "error", err)
+				dblog.Error("failed to award defeat XP",
+					err, slog.String("service", "events"), slog.Int("attacker_id", attackerID))
 				continue
 			}
 
@@ -229,7 +230,7 @@ func (s *RespawnService) processRespawns() error {
 			ClearDiedAt().
 			Save(ctx)
 		if err != nil {
-			s.logger.Error("failed to respawn NPC", "npc_id", npc.ID, "room", roomID, "error", err)
+			dblog.Error("failed to respawn NPC", err, slog.String("service", "events"), slog.Int("npc_id", npc.ID))
 			continue
 		}
 
