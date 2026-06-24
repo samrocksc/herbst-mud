@@ -10,7 +10,7 @@ COPY . ./
 RUN npx vite build
 
 # Production nginx stage
-FROM nginx:alpine
+FROM nginx:1.31.2-alpine3.23
 
 # Copy built files to nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
