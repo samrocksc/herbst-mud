@@ -7,7 +7,7 @@ RUN npm ci
 COPY . ./
 RUN npx vite build
 
-FROM nginx:alpine
+FROM nginx:1.31.2-alpine3.23
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
