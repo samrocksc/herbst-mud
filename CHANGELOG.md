@@ -1,3 +1,5 @@
+- [d5b8134](http://github.com/samrocksc/herbst-mud/commit/d5b8134c7e21412172bfff9eea891ba8edf6bafa) - 🔵 feat: Phase 0 — skill column refactor + XP system design doc
+- [36780b5](http://github.com/samrocksc/herbst-mud/commit/36780b5dcf96e84894a313ac0db21d72db66782f) - chore: auto-update CHANGELOG.md
 - [3cbf18f](http://github.com/samrocksc/herbst-mud/commit/3cbf18fca416334e692947e470a778376b57bda4) - 🔵 feat: DB-driven classes + world export/import parity
 - [8b672b4](http://github.com/samrocksc/herbst-mud/commit/8b672b458f85f921d295aa8c79999f88c7031493) - chore: auto-update CHANGELOG.md
 - [cc4e002](http://github.com/samrocksc/herbst-mud/commit/cc4e0020550b8010add4a29acafaabe1618cbbd3) - 🔵 feat(abilities): class-specific abilities for Ooze Surfers + eligibility fix
