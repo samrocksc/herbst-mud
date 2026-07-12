@@ -1,0 +1,59 @@
+# Bort - The Possum Mutant
+# Quest giver in the Junkyard, seeking help to reclaim his territory
+
+id: bort
+template_name: "Bort"
+description: "A scavenger possum mutant, kicked out of the junkyard by Ferguson"
+level: 8
+xp_value: 100
+classification: npc
+
+stats:
+  strength: 14
+  dexterity: 16
+  constitution: 14
+  intelligence: 10
+  wisdom: 10
+  charisma: 12
+
+hp:
+  base: 100
+  con_multiplier: 8
+
+skills:
+  classless:
+    slot_1: scratch
+    slot_2: hiss
+
+ai:
+  type: scavenger
+  aggression: defensive
+  speech:
+    greeting: "Hey there! You look like you might be able to help a fella out."
+    attack: "Fine! You want to play rough?!"
+    defeat: "Ugh... you got me this time..."
+    idle:
+      - "Ferguson's got it easy up on that trash heap..."
+      - "I used to have a good spot here before he kicked me out..."
+      - "If you see Ferguson, be careful - he's got a mean right hook..."
+
+loot:
+  - item_id: junk_scrap
+    chance: 0.50
+    count_min: 1
+    count_max: 3
+  - item_id: health_potion
+    chance: 0.20
+    count_min: 1
+    count_max: 2
+
+visual:
+  appearance: "A scrawny possum mutant with tattered fur and sharp claws"
+  color: "#8B4513"
+  icon: "🐭"
+
+flags:
+  - quest_giver
+
+quests_offered:
+  - junkyard_reclamation

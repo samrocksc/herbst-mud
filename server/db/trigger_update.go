@@ -72,6 +72,33 @@ func (_u *TriggerUpdate) SetNillableTriggerType(v *string) *TriggerUpdate {
 	return _u
 }
 
+// SetExamineWeight sets the "examine_weight" field.
+func (_u *TriggerUpdate) SetExamineWeight(v int) *TriggerUpdate {
+	_u.mutation.ResetExamineWeight()
+	_u.mutation.SetExamineWeight(v)
+	return _u
+}
+
+// SetNillableExamineWeight sets the "examine_weight" field if the given value is not nil.
+func (_u *TriggerUpdate) SetNillableExamineWeight(v *int) *TriggerUpdate {
+	if v != nil {
+		_u.SetExamineWeight(*v)
+	}
+	return _u
+}
+
+// AddExamineWeight adds value to the "examine_weight" field.
+func (_u *TriggerUpdate) AddExamineWeight(v int) *TriggerUpdate {
+	_u.mutation.AddExamineWeight(v)
+	return _u
+}
+
+// ClearExamineWeight clears the value of the "examine_weight" field.
+func (_u *TriggerUpdate) ClearExamineWeight() *TriggerUpdate {
+	_u.mutation.ClearExamineWeight()
+	return _u
+}
+
 // SetTargetType sets the "target_type" field.
 func (_u *TriggerUpdate) SetTargetType(v string) *TriggerUpdate {
 	_u.mutation.SetTargetType(v)
@@ -104,6 +131,12 @@ func (_u *TriggerUpdate) SetNillableTargetID(v *int) *TriggerUpdate {
 // AddTargetID adds value to the "target_id" field.
 func (_u *TriggerUpdate) AddTargetID(v int) *TriggerUpdate {
 	_u.mutation.AddTargetID(v)
+	return _u
+}
+
+// ClearTargetID clears the value of the "target_id" field.
+func (_u *TriggerUpdate) ClearTargetID() *TriggerUpdate {
+	_u.mutation.ClearTargetID()
 	return _u
 }
 
@@ -320,6 +353,15 @@ func (_u *TriggerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.TriggerType(); ok {
 		_spec.SetField(trigger.FieldTriggerType, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ExamineWeight(); ok {
+		_spec.SetField(trigger.FieldExamineWeight, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedExamineWeight(); ok {
+		_spec.AddField(trigger.FieldExamineWeight, field.TypeInt, value)
+	}
+	if _u.mutation.ExamineWeightCleared() {
+		_spec.ClearField(trigger.FieldExamineWeight, field.TypeInt)
+	}
 	if value, ok := _u.mutation.TargetType(); ok {
 		_spec.SetField(trigger.FieldTargetType, field.TypeString, value)
 	}
@@ -328,6 +370,9 @@ func (_u *TriggerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedTargetID(); ok {
 		_spec.AddField(trigger.FieldTargetID, field.TypeInt, value)
+	}
+	if _u.mutation.TargetIDCleared() {
+		_spec.ClearField(trigger.FieldTargetID, field.TypeInt)
 	}
 	if value, ok := _u.mutation.RoomID(); ok {
 		_spec.SetField(trigger.FieldRoomID, field.TypeInt, value)
@@ -505,6 +550,33 @@ func (_u *TriggerUpdateOne) SetNillableTriggerType(v *string) *TriggerUpdateOne 
 	return _u
 }
 
+// SetExamineWeight sets the "examine_weight" field.
+func (_u *TriggerUpdateOne) SetExamineWeight(v int) *TriggerUpdateOne {
+	_u.mutation.ResetExamineWeight()
+	_u.mutation.SetExamineWeight(v)
+	return _u
+}
+
+// SetNillableExamineWeight sets the "examine_weight" field if the given value is not nil.
+func (_u *TriggerUpdateOne) SetNillableExamineWeight(v *int) *TriggerUpdateOne {
+	if v != nil {
+		_u.SetExamineWeight(*v)
+	}
+	return _u
+}
+
+// AddExamineWeight adds value to the "examine_weight" field.
+func (_u *TriggerUpdateOne) AddExamineWeight(v int) *TriggerUpdateOne {
+	_u.mutation.AddExamineWeight(v)
+	return _u
+}
+
+// ClearExamineWeight clears the value of the "examine_weight" field.
+func (_u *TriggerUpdateOne) ClearExamineWeight() *TriggerUpdateOne {
+	_u.mutation.ClearExamineWeight()
+	return _u
+}
+
 // SetTargetType sets the "target_type" field.
 func (_u *TriggerUpdateOne) SetTargetType(v string) *TriggerUpdateOne {
 	_u.mutation.SetTargetType(v)
@@ -537,6 +609,12 @@ func (_u *TriggerUpdateOne) SetNillableTargetID(v *int) *TriggerUpdateOne {
 // AddTargetID adds value to the "target_id" field.
 func (_u *TriggerUpdateOne) AddTargetID(v int) *TriggerUpdateOne {
 	_u.mutation.AddTargetID(v)
+	return _u
+}
+
+// ClearTargetID clears the value of the "target_id" field.
+func (_u *TriggerUpdateOne) ClearTargetID() *TriggerUpdateOne {
+	_u.mutation.ClearTargetID()
 	return _u
 }
 
@@ -783,6 +861,15 @@ func (_u *TriggerUpdateOne) sqlSave(ctx context.Context) (_node *Trigger, err er
 	if value, ok := _u.mutation.TriggerType(); ok {
 		_spec.SetField(trigger.FieldTriggerType, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.ExamineWeight(); ok {
+		_spec.SetField(trigger.FieldExamineWeight, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedExamineWeight(); ok {
+		_spec.AddField(trigger.FieldExamineWeight, field.TypeInt, value)
+	}
+	if _u.mutation.ExamineWeightCleared() {
+		_spec.ClearField(trigger.FieldExamineWeight, field.TypeInt)
+	}
 	if value, ok := _u.mutation.TargetType(); ok {
 		_spec.SetField(trigger.FieldTargetType, field.TypeString, value)
 	}
@@ -791,6 +878,9 @@ func (_u *TriggerUpdateOne) sqlSave(ctx context.Context) (_node *Trigger, err er
 	}
 	if value, ok := _u.mutation.AddedTargetID(); ok {
 		_spec.AddField(trigger.FieldTargetID, field.TypeInt, value)
+	}
+	if _u.mutation.TargetIDCleared() {
+		_spec.ClearField(trigger.FieldTargetID, field.TypeInt)
 	}
 	if value, ok := _u.mutation.RoomID(); ok {
 		_spec.SetField(trigger.FieldRoomID, field.TypeInt, value)

@@ -5,13 +5,19 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/repository"
 	"herbst-server/routes"
 )
+
+func uniqueUserEmail(prefix string) string {
+	return prefix + "_" + strconv.FormatInt(time.Now().UnixNano(), 10) + "@example.com"
+}
 
 func TestUserCRUD(t *testing.T) {
 	// Set Gin to test mode
@@ -32,7 +38,7 @@ func TestUserCRUD(t *testing.T) {
 	// Test creating a user
 	t.Run("CreateUser", func(t *testing.T) {
 		userData := map[string]interface{}{
-			"email":    "testuser@example.com",
+			"email":    uniqueUserEmail("testuser"),
 			"password": "testpassword123",
 			"isAdmin":  false,
 		}
@@ -76,7 +82,7 @@ func TestUserCRUD(t *testing.T) {
 	t.Run("UpdateUser", func(t *testing.T) {
 		// First create a user to update
 		userData := map[string]interface{}{
-			"email":    "updatetest@example.com",
+			"email":    uniqueUserEmail("updatetest"),
 			"password": "originalpassword",
 			"isAdmin":  false,
 		}
@@ -93,11 +99,11 @@ func TestUserCRUD(t *testing.T) {
 
 			// Now update it
 			updateData := map[string]interface{}{
-				"email":   "updated@example.com",
+				"email":   uniqueUserEmail("updated"),
 				"isAdmin": true,
 			}
 			updateJSON, _ := json.Marshal(updateData)
-			updateReq, _ := http.NewRequest("PUT", "/users/"+string(rune(userID+'0')), bytes.NewBuffer(updateJSON))
+			updateReq, _ := http.NewRequest("PUT", "/users/"+strconv.Itoa(userID), bytes.NewBuffer(updateJSON))
 			updateReq.Header.Set("Content-Type", "application/json")
 			updateResp := httptest.NewRecorder()
 			router.ServeHTTP(updateResp, updateReq)
@@ -112,7 +118,7 @@ func TestUserCRUD(t *testing.T) {
 	t.Run("DeleteUser", func(t *testing.T) {
 		// First create a user to delete
 		userData := map[string]interface{}{
-			"email":    "deletetest@example.com",
+			"email":    uniqueUserEmail("deletetest"),
 			"password": "deletepassword",
 			"isAdmin":  false,
 		}
@@ -128,7 +134,7 @@ func TestUserCRUD(t *testing.T) {
 			userID := int(createdUser["id"].(float64))
 
 			// Now delete it
-			deleteReq, _ := http.NewRequest("DELETE", "/users/"+string(rune(userID+'0')), nil)
+			deleteReq, _ := http.NewRequest("DELETE", "/users/"+strconv.Itoa(userID), nil)
 			deleteResp := httptest.NewRecorder()
 			router.ServeHTTP(deleteResp, deleteReq)
 

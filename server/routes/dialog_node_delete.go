@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"log/slog"
+	"herbst-server/dblog"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +20,7 @@ func deleteDialogNode(repos *repository.Container) gin.HandlerFunc {
 		}
 		err := repos.DialogNode.Delete(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("delete dialog node failed", err, slog.String("service", "dialog_nodes"))
 			c.JSON(http.StatusNotFound, gin.H{"error": "dialog node not found"})
 			return
 		}

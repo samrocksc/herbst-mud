@@ -47,6 +47,9 @@ func (r *entRoomRepo) Create(ctx context.Context, input CreateRoomInput) (*db.Ro
 	if input.Atmosphere != "" {
 		builder = builder.SetAtmosphere(room.Atmosphere(input.Atmosphere))
 	}
+	if len(input.ZoneIDs) > 0 {
+		builder = builder.SetZoneIds(input.ZoneIDs)
+	}
 	return builder.Save(ctx)
 }
 
@@ -81,6 +84,9 @@ func (r *entRoomRepo) Update(ctx context.Context, id int, updates RoomUpdates) (
 	}
 	if updates.WorldID != nil {
 		builder = builder.SetWorldID(*updates.WorldID)
+	}
+	if updates.ZoneIDs != nil {
+		builder = builder.SetZoneIds(*updates.ZoneIDs)
 	}
 	return builder.Save(ctx)
 }

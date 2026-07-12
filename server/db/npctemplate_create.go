@@ -12,6 +12,7 @@ import (
 	"herbst-server/db/npcability"
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/race"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -158,6 +159,96 @@ func (_c *NPCTemplateCreate) SetNillableRespawnCooldown(v *int) *NPCTemplateCrea
 	return _c
 }
 
+// SetRoamPattern sets the "roam_pattern" field.
+func (_c *NPCTemplateCreate) SetRoamPattern(v npctemplate.RoamPattern) *NPCTemplateCreate {
+	_c.mutation.SetRoamPattern(v)
+	return _c
+}
+
+// SetNillableRoamPattern sets the "roam_pattern" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableRoamPattern(v *npctemplate.RoamPattern) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetRoamPattern(*v)
+	}
+	return _c
+}
+
+// SetRoamZoneIds sets the "roam_zone_ids" field.
+func (_c *NPCTemplateCreate) SetRoamZoneIds(v []string) *NPCTemplateCreate {
+	_c.mutation.SetRoamZoneIds(v)
+	return _c
+}
+
+// SetRoamIntervalSeconds sets the "roam_interval_seconds" field.
+func (_c *NPCTemplateCreate) SetRoamIntervalSeconds(v int) *NPCTemplateCreate {
+	_c.mutation.SetRoamIntervalSeconds(v)
+	return _c
+}
+
+// SetNillableRoamIntervalSeconds sets the "roam_interval_seconds" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableRoamIntervalSeconds(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetRoamIntervalSeconds(*v)
+	}
+	return _c
+}
+
+// SetRoamPauseMinSeconds sets the "roam_pause_min_seconds" field.
+func (_c *NPCTemplateCreate) SetRoamPauseMinSeconds(v int) *NPCTemplateCreate {
+	_c.mutation.SetRoamPauseMinSeconds(v)
+	return _c
+}
+
+// SetNillableRoamPauseMinSeconds sets the "roam_pause_min_seconds" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableRoamPauseMinSeconds(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetRoamPauseMinSeconds(*v)
+	}
+	return _c
+}
+
+// SetRoamPauseMaxSeconds sets the "roam_pause_max_seconds" field.
+func (_c *NPCTemplateCreate) SetRoamPauseMaxSeconds(v int) *NPCTemplateCreate {
+	_c.mutation.SetRoamPauseMaxSeconds(v)
+	return _c
+}
+
+// SetNillableRoamPauseMaxSeconds sets the "roam_pause_max_seconds" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableRoamPauseMaxSeconds(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetRoamPauseMaxSeconds(*v)
+	}
+	return _c
+}
+
+// SetLastMovedAt sets the "last_moved_at" field.
+func (_c *NPCTemplateCreate) SetLastMovedAt(v time.Time) *NPCTemplateCreate {
+	_c.mutation.SetLastMovedAt(v)
+	return _c
+}
+
+// SetNillableLastMovedAt sets the "last_moved_at" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableLastMovedAt(v *time.Time) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetLastMovedAt(*v)
+	}
+	return _c
+}
+
+// SetNotifyOnEnter sets the "notify_on_enter" field.
+func (_c *NPCTemplateCreate) SetNotifyOnEnter(v bool) *NPCTemplateCreate {
+	_c.mutation.SetNotifyOnEnter(v)
+	return _c
+}
+
+// SetNillableNotifyOnEnter sets the "notify_on_enter" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableNotifyOnEnter(v *bool) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetNotifyOnEnter(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *NPCTemplateCreate) SetID(v string) *NPCTemplateCreate {
 	_c.mutation.SetID(v)
@@ -284,6 +375,26 @@ func (_c *NPCTemplateCreate) defaults() {
 		v := npctemplate.DefaultRespawnCooldown
 		_c.mutation.SetRespawnCooldown(v)
 	}
+	if _, ok := _c.mutation.RoamPattern(); !ok {
+		v := npctemplate.DefaultRoamPattern
+		_c.mutation.SetRoamPattern(v)
+	}
+	if _, ok := _c.mutation.RoamIntervalSeconds(); !ok {
+		v := npctemplate.DefaultRoamIntervalSeconds
+		_c.mutation.SetRoamIntervalSeconds(v)
+	}
+	if _, ok := _c.mutation.RoamPauseMinSeconds(); !ok {
+		v := npctemplate.DefaultRoamPauseMinSeconds
+		_c.mutation.SetRoamPauseMinSeconds(v)
+	}
+	if _, ok := _c.mutation.RoamPauseMaxSeconds(); !ok {
+		v := npctemplate.DefaultRoamPauseMaxSeconds
+		_c.mutation.SetRoamPauseMaxSeconds(v)
+	}
+	if _, ok := _c.mutation.NotifyOnEnter(); !ok {
+		v := npctemplate.DefaultNotifyOnEnter
+		_c.mutation.SetNotifyOnEnter(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -319,6 +430,14 @@ func (_c *NPCTemplateCreate) check() error {
 	}
 	if _, ok := _c.mutation.Greeting(); !ok {
 		return &ValidationError{Name: "greeting", err: errors.New(`db: missing required field "NPCTemplate.greeting"`)}
+	}
+	if _, ok := _c.mutation.RoamPattern(); !ok {
+		return &ValidationError{Name: "roam_pattern", err: errors.New(`db: missing required field "NPCTemplate.roam_pattern"`)}
+	}
+	if v, ok := _c.mutation.RoamPattern(); ok {
+		if err := npctemplate.RoamPatternValidator(v); err != nil {
+			return &ValidationError{Name: "roam_pattern", err: fmt.Errorf(`db: validator failed for field "NPCTemplate.roam_pattern": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -402,6 +521,34 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.RespawnCooldown(); ok {
 		_spec.SetField(npctemplate.FieldRespawnCooldown, field.TypeInt, value)
 		_node.RespawnCooldown = value
+	}
+	if value, ok := _c.mutation.RoamPattern(); ok {
+		_spec.SetField(npctemplate.FieldRoamPattern, field.TypeEnum, value)
+		_node.RoamPattern = value
+	}
+	if value, ok := _c.mutation.RoamZoneIds(); ok {
+		_spec.SetField(npctemplate.FieldRoamZoneIds, field.TypeJSON, value)
+		_node.RoamZoneIds = value
+	}
+	if value, ok := _c.mutation.RoamIntervalSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamIntervalSeconds, field.TypeInt, value)
+		_node.RoamIntervalSeconds = value
+	}
+	if value, ok := _c.mutation.RoamPauseMinSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamPauseMinSeconds, field.TypeInt, value)
+		_node.RoamPauseMinSeconds = value
+	}
+	if value, ok := _c.mutation.RoamPauseMaxSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamPauseMaxSeconds, field.TypeInt, value)
+		_node.RoamPauseMaxSeconds = value
+	}
+	if value, ok := _c.mutation.LastMovedAt(); ok {
+		_spec.SetField(npctemplate.FieldLastMovedAt, field.TypeTime, value)
+		_node.LastMovedAt = &value
+	}
+	if value, ok := _c.mutation.NotifyOnEnter(); ok {
+		_spec.SetField(npctemplate.FieldNotifyOnEnter, field.TypeBool, value)
+		_node.NotifyOnEnter = value
 	}
 	if nodes := _c.mutation.NpcAbilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

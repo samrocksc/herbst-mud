@@ -18,8 +18,10 @@ import (
 	"herbst-server/db/predicate"
 	"herbst-server/db/questprogress"
 	"herbst-server/db/room"
+	"herbst-server/db/shoptemplate"
 	"herbst-server/db/tellqueue"
 	"herbst-server/db/user"
+	"herbst-server/db/world"
 	"math"
 
 	"entgo.io/ent"
@@ -36,6 +38,7 @@ type CharacterQuery struct {
 	inters                 []Interceptor
 	predicates             []predicate.Character
 	withUser               *UserQuery
+	withWorld              *WorldQuery
 	withRoom               *RoomQuery
 	withNpcTemplate        *NPCTemplateQuery
 	withAbilities          *CharacterAbilityQuery
@@ -47,6 +50,7 @@ type CharacterQuery struct {
 	withChannelSettings    *CharacterChannelQuery
 	withIgnoring           *CharacterIgnoreQuery
 	withTellQueue          *TellQueueQuery
+	withShopTemplate       *ShopTemplateQuery
 	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -99,6 +103,28 @@ func (_q *CharacterQuery) QueryUser() *UserQuery {
 			sqlgraph.From(character.Table, character.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, character.UserTable, character.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorld chains the current query on the "world" edge.
+func (_q *CharacterQuery) QueryWorld() *WorldQuery {
+	query := (&WorldClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(world.Table, world.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, character.WorldTable, character.WorldColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -348,6 +374,28 @@ func (_q *CharacterQuery) QueryTellQueue() *TellQueueQuery {
 	return query
 }
 
+// QueryShopTemplate chains the current query on the "shop_template" edge.
+func (_q *CharacterQuery) QueryShopTemplate() *ShopTemplateQuery {
+	query := (&ShopTemplateClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(shoptemplate.Table, shoptemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.ShopTemplateTable, character.ShopTemplateColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Character entity from the query.
 // Returns a *NotFoundError when no Character was found.
 func (_q *CharacterQuery) First(ctx context.Context) (*Character, error) {
@@ -541,6 +589,7 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		inters:                 append([]Interceptor{}, _q.inters...),
 		predicates:             append([]predicate.Character{}, _q.predicates...),
 		withUser:               _q.withUser.Clone(),
+		withWorld:              _q.withWorld.Clone(),
 		withRoom:               _q.withRoom.Clone(),
 		withNpcTemplate:        _q.withNpcTemplate.Clone(),
 		withAbilities:          _q.withAbilities.Clone(),
@@ -552,6 +601,7 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		withChannelSettings:    _q.withChannelSettings.Clone(),
 		withIgnoring:           _q.withIgnoring.Clone(),
 		withTellQueue:          _q.withTellQueue.Clone(),
+		withShopTemplate:       _q.withShopTemplate.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -566,6 +616,17 @@ func (_q *CharacterQuery) WithUser(opts ...func(*UserQuery)) *CharacterQuery {
 		opt(query)
 	}
 	_q.withUser = query
+	return _q
+}
+
+// WithWorld tells the query-builder to eager-load the nodes that are connected to
+// the "world" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithWorld(opts ...func(*WorldQuery)) *CharacterQuery {
+	query := (&WorldClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withWorld = query
 	return _q
 }
 
@@ -690,6 +751,17 @@ func (_q *CharacterQuery) WithTellQueue(opts ...func(*TellQueueQuery)) *Characte
 	return _q
 }
 
+// WithShopTemplate tells the query-builder to eager-load the nodes that are connected to
+// the "shop_template" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithShopTemplate(opts ...func(*ShopTemplateQuery)) *CharacterQuery {
+	query := (&ShopTemplateClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withShopTemplate = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -769,8 +841,9 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [14]bool{
 			_q.withUser != nil,
+			_q.withWorld != nil,
 			_q.withRoom != nil,
 			_q.withNpcTemplate != nil,
 			_q.withAbilities != nil,
@@ -782,6 +855,7 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 			_q.withChannelSettings != nil,
 			_q.withIgnoring != nil,
 			_q.withTellQueue != nil,
+			_q.withShopTemplate != nil,
 		}
 	)
 	if _q.withUser != nil {
@@ -811,6 +885,12 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 	if query := _q.withUser; query != nil {
 		if err := _q.loadUser(ctx, query, nodes, nil,
 			func(n *Character, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withWorld; query != nil {
+		if err := _q.loadWorld(ctx, query, nodes, nil,
+			func(n *Character, e *World) { n.Edges.World = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -891,6 +971,13 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 			return nil, err
 		}
 	}
+	if query := _q.withShopTemplate; query != nil {
+		if err := _q.loadShopTemplate(ctx, query, nodes,
+			func(n *Character) { n.Edges.ShopTemplate = []*ShopTemplate{} },
+			func(n *Character, e *ShopTemplate) { n.Edges.ShopTemplate = append(n.Edges.ShopTemplate, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -919,6 +1006,35 @@ func (_q *CharacterQuery) loadUser(ctx context.Context, query *UserQuery, nodes 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "user_characters" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadWorld(ctx context.Context, query *WorldQuery, nodes []*Character, init func(*Character), assign func(*Character, *World)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Character)
+	for i := range nodes {
+		fk := nodes[i].WorldID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(world.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "world_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -1262,6 +1378,37 @@ func (_q *CharacterQuery) loadTellQueue(ctx context.Context, query *TellQueueQue
 	}
 	return nil
 }
+func (_q *CharacterQuery) loadShopTemplate(ctx context.Context, query *ShopTemplateQuery, nodes []*Character, init func(*Character), assign func(*Character, *ShopTemplate)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.ShopTemplate(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.ShopTemplateColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.character_shop_template
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "character_shop_template" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_shop_template" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (_q *CharacterQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -1287,6 +1434,9 @@ func (_q *CharacterQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != character.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withWorld != nil {
+			_spec.Node.AddColumnOnce(character.FieldWorldID)
 		}
 		if _q.withRoom != nil {
 			_spec.Node.AddColumnOnce(character.FieldCurrentRoomId)

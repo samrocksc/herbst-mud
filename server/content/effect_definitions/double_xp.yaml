@@ -1,0 +1,17 @@
+# Double XP Effect
+# Doubles XP gain for a duration
+
+id: double_xp
+name: "Double XP"
+description: "All XP gains are doubled for the duration"
+effect_type: xp_multiplier
+parameters:
+  multiplier: 2.0
+  duration_secs: 1800
+stack_mode: replace
+stack_limit: 1
+is_permanent: false
+duration_secs: 1800
+messages:
+  on_start: "You feel energized! XP gain is doubled!"
+  on_end: "The effects of the potion wear off."

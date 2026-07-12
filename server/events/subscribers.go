@@ -1,6 +1,7 @@
 package events
 
 import (
+	"herbst-server/dblog"
 	"context"
 	"fmt"
 	"log/slog"
@@ -29,6 +30,7 @@ func XPSubscriber(xpSvc XPAwarder, logger *slog.Logger) Subscriber {
 		ctx := context.Background()
 		newXP, newLevel, leveledUp, err := xpSvc.AwardXP(ctx, int(charID), int(xpGained))
 		if err != nil {
+			dblog.Error("failed to award XP", err, slog.String("service", "events"))
 			return fmt.Errorf("failed to award XP: %w", err)
 		}
 
@@ -68,6 +70,7 @@ func DeathPenaltySubscriber(xpSvc XPAwarder, logger *slog.Logger, penaltyPercent
 		ctx := context.Background()
 		xpLost, newXP, err := xpSvc.ApplyDeathPenalty(ctx, int(charID), penaltyPercent)
 		if err != nil {
+			dblog.Error("failed to apply death penalty", err, slog.String("service", "events"))
 			return fmt.Errorf("failed to apply death penalty: %w", err)
 		}
 
@@ -148,11 +151,7 @@ func QuestXPSubscriber(xpSvc QuestXPAwarder, logger *slog.Logger) Subscriber {
 		// Award competency XP if a competency category is specified
 		if category, ok := event.Payload["competency_category"].(string); ok && category != "" {
 			if err := xpSvc.AwardCompetencyXP(ctx, charIDInt, category, xpRewardInt); err != nil {
-				logger.Error("failed to award quest competency XP",
-					"character_id", charIDInt,
-					"category", category,
-					"error", err,
-				)
+				dblog.Error("failed to award quest competency XP", err, slog.String("service", "events"), slog.Int("character_id", charIDInt), slog.String("category", category))
 				// Non-fatal: base XP was already awarded
 			}
 		}

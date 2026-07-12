@@ -4,6 +4,7 @@ package npctemplate
 
 import (
 	"herbst-server/db/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -107,6 +108,31 @@ func Greeting(v string) predicate.NPCTemplate {
 // RespawnCooldown applies equality check predicate on the "respawn_cooldown" field. It's identical to RespawnCooldownEQ.
 func RespawnCooldown(v int) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldRespawnCooldown, v))
+}
+
+// RoamIntervalSeconds applies equality check predicate on the "roam_interval_seconds" field. It's identical to RoamIntervalSecondsEQ.
+func RoamIntervalSeconds(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRoamIntervalSeconds, v))
+}
+
+// RoamPauseMinSeconds applies equality check predicate on the "roam_pause_min_seconds" field. It's identical to RoamPauseMinSecondsEQ.
+func RoamPauseMinSeconds(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRoamPauseMinSeconds, v))
+}
+
+// RoamPauseMaxSeconds applies equality check predicate on the "roam_pause_max_seconds" field. It's identical to RoamPauseMaxSecondsEQ.
+func RoamPauseMaxSeconds(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRoamPauseMaxSeconds, v))
+}
+
+// LastMovedAt applies equality check predicate on the "last_moved_at" field. It's identical to LastMovedAtEQ.
+func LastMovedAt(v time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldLastMovedAt, v))
+}
+
+// NotifyOnEnter applies equality check predicate on the "notify_on_enter" field. It's identical to NotifyOnEnterEQ.
+func NotifyOnEnter(v bool) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldNotifyOnEnter, v))
 }
 
 // SlugEQ applies the EQ predicate on the "slug" field.
@@ -632,6 +658,256 @@ func RespawnCooldownIsNil() predicate.NPCTemplate {
 // RespawnCooldownNotNil applies the NotNil predicate on the "respawn_cooldown" field.
 func RespawnCooldownNotNil() predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldNotNull(FieldRespawnCooldown))
+}
+
+// RoamPatternEQ applies the EQ predicate on the "roam_pattern" field.
+func RoamPatternEQ(v RoamPattern) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRoamPattern, v))
+}
+
+// RoamPatternNEQ applies the NEQ predicate on the "roam_pattern" field.
+func RoamPatternNEQ(v RoamPattern) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldRoamPattern, v))
+}
+
+// RoamPatternIn applies the In predicate on the "roam_pattern" field.
+func RoamPatternIn(vs ...RoamPattern) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldRoamPattern, vs...))
+}
+
+// RoamPatternNotIn applies the NotIn predicate on the "roam_pattern" field.
+func RoamPatternNotIn(vs ...RoamPattern) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldRoamPattern, vs...))
+}
+
+// RoamZoneIdsIsNil applies the IsNil predicate on the "roam_zone_ids" field.
+func RoamZoneIdsIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldRoamZoneIds))
+}
+
+// RoamZoneIdsNotNil applies the NotNil predicate on the "roam_zone_ids" field.
+func RoamZoneIdsNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldRoamZoneIds))
+}
+
+// RoamIntervalSecondsEQ applies the EQ predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRoamIntervalSeconds, v))
+}
+
+// RoamIntervalSecondsNEQ applies the NEQ predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsNEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldRoamIntervalSeconds, v))
+}
+
+// RoamIntervalSecondsIn applies the In predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldRoamIntervalSeconds, vs...))
+}
+
+// RoamIntervalSecondsNotIn applies the NotIn predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsNotIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldRoamIntervalSeconds, vs...))
+}
+
+// RoamIntervalSecondsGT applies the GT predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsGT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldRoamIntervalSeconds, v))
+}
+
+// RoamIntervalSecondsGTE applies the GTE predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsGTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldRoamIntervalSeconds, v))
+}
+
+// RoamIntervalSecondsLT applies the LT predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsLT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldRoamIntervalSeconds, v))
+}
+
+// RoamIntervalSecondsLTE applies the LTE predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsLTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldRoamIntervalSeconds, v))
+}
+
+// RoamIntervalSecondsIsNil applies the IsNil predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldRoamIntervalSeconds))
+}
+
+// RoamIntervalSecondsNotNil applies the NotNil predicate on the "roam_interval_seconds" field.
+func RoamIntervalSecondsNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldRoamIntervalSeconds))
+}
+
+// RoamPauseMinSecondsEQ applies the EQ predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRoamPauseMinSeconds, v))
+}
+
+// RoamPauseMinSecondsNEQ applies the NEQ predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsNEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldRoamPauseMinSeconds, v))
+}
+
+// RoamPauseMinSecondsIn applies the In predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldRoamPauseMinSeconds, vs...))
+}
+
+// RoamPauseMinSecondsNotIn applies the NotIn predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsNotIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldRoamPauseMinSeconds, vs...))
+}
+
+// RoamPauseMinSecondsGT applies the GT predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsGT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldRoamPauseMinSeconds, v))
+}
+
+// RoamPauseMinSecondsGTE applies the GTE predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsGTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldRoamPauseMinSeconds, v))
+}
+
+// RoamPauseMinSecondsLT applies the LT predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsLT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldRoamPauseMinSeconds, v))
+}
+
+// RoamPauseMinSecondsLTE applies the LTE predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsLTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldRoamPauseMinSeconds, v))
+}
+
+// RoamPauseMinSecondsIsNil applies the IsNil predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldRoamPauseMinSeconds))
+}
+
+// RoamPauseMinSecondsNotNil applies the NotNil predicate on the "roam_pause_min_seconds" field.
+func RoamPauseMinSecondsNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldRoamPauseMinSeconds))
+}
+
+// RoamPauseMaxSecondsEQ applies the EQ predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldRoamPauseMaxSeconds, v))
+}
+
+// RoamPauseMaxSecondsNEQ applies the NEQ predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsNEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldRoamPauseMaxSeconds, v))
+}
+
+// RoamPauseMaxSecondsIn applies the In predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldRoamPauseMaxSeconds, vs...))
+}
+
+// RoamPauseMaxSecondsNotIn applies the NotIn predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsNotIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldRoamPauseMaxSeconds, vs...))
+}
+
+// RoamPauseMaxSecondsGT applies the GT predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsGT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldRoamPauseMaxSeconds, v))
+}
+
+// RoamPauseMaxSecondsGTE applies the GTE predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsGTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldRoamPauseMaxSeconds, v))
+}
+
+// RoamPauseMaxSecondsLT applies the LT predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsLT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldRoamPauseMaxSeconds, v))
+}
+
+// RoamPauseMaxSecondsLTE applies the LTE predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsLTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldRoamPauseMaxSeconds, v))
+}
+
+// RoamPauseMaxSecondsIsNil applies the IsNil predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldRoamPauseMaxSeconds))
+}
+
+// RoamPauseMaxSecondsNotNil applies the NotNil predicate on the "roam_pause_max_seconds" field.
+func RoamPauseMaxSecondsNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldRoamPauseMaxSeconds))
+}
+
+// LastMovedAtEQ applies the EQ predicate on the "last_moved_at" field.
+func LastMovedAtEQ(v time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldLastMovedAt, v))
+}
+
+// LastMovedAtNEQ applies the NEQ predicate on the "last_moved_at" field.
+func LastMovedAtNEQ(v time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldLastMovedAt, v))
+}
+
+// LastMovedAtIn applies the In predicate on the "last_moved_at" field.
+func LastMovedAtIn(vs ...time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldLastMovedAt, vs...))
+}
+
+// LastMovedAtNotIn applies the NotIn predicate on the "last_moved_at" field.
+func LastMovedAtNotIn(vs ...time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldLastMovedAt, vs...))
+}
+
+// LastMovedAtGT applies the GT predicate on the "last_moved_at" field.
+func LastMovedAtGT(v time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldLastMovedAt, v))
+}
+
+// LastMovedAtGTE applies the GTE predicate on the "last_moved_at" field.
+func LastMovedAtGTE(v time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldLastMovedAt, v))
+}
+
+// LastMovedAtLT applies the LT predicate on the "last_moved_at" field.
+func LastMovedAtLT(v time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldLastMovedAt, v))
+}
+
+// LastMovedAtLTE applies the LTE predicate on the "last_moved_at" field.
+func LastMovedAtLTE(v time.Time) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldLastMovedAt, v))
+}
+
+// LastMovedAtIsNil applies the IsNil predicate on the "last_moved_at" field.
+func LastMovedAtIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldLastMovedAt))
+}
+
+// LastMovedAtNotNil applies the NotNil predicate on the "last_moved_at" field.
+func LastMovedAtNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldLastMovedAt))
+}
+
+// NotifyOnEnterEQ applies the EQ predicate on the "notify_on_enter" field.
+func NotifyOnEnterEQ(v bool) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldNotifyOnEnter, v))
+}
+
+// NotifyOnEnterNEQ applies the NEQ predicate on the "notify_on_enter" field.
+func NotifyOnEnterNEQ(v bool) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldNotifyOnEnter, v))
+}
+
+// NotifyOnEnterIsNil applies the IsNil predicate on the "notify_on_enter" field.
+func NotifyOnEnterIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldNotifyOnEnter))
+}
+
+// NotifyOnEnterNotNil applies the NotNil predicate on the "notify_on_enter" field.
+func NotifyOnEnterNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldNotifyOnEnter))
 }
 
 // HasNpcAbilities applies the HasEdge predicate on the "npc_abilities" edge.

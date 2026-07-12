@@ -9,7 +9,12 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/equipment"
+	"herbst-server/db/equipmenttemplate"
+	"herbst-server/db/quest"
+	"herbst-server/db/race"
 	"herbst-server/db/room"
+	"herbst-server/db/schema"
+	"herbst-server/db/npctemplate"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -322,10 +327,25 @@ func InitJunkyard(client *db.Client) error {
 	ctx := context.Background()
 
 	// Check if junkyard already exists (check for "Junkyard Entrance" room in default world)
+	// Try both world IDs for compatibility
 	existingRooms, err := client.Room.Query().Where(
 		room.NameEQ("Junkyard Entrance"),
-		room.WorldIDEQ("default"),
+		room.WorldIDEQ("1"),
 	).Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for junkyard rooms: %w", err)
+	}
+
+	// Fallback check for "default" world if no rooms found with "1"
+	if existingRooms == 0 {
+		existingRooms, err = client.Room.Query().Where(
+			room.NameEQ("Junkyard Entrance"),
+			room.WorldIDEQ("default"),
+		).Count(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to check for junkyard rooms: %w", err)
+		}
+	}
 	if err != nil {
 		return fmt.Errorf("failed to check for junkyard rooms: %w", err)
 	}
@@ -336,12 +356,20 @@ func InitJunkyard(client *db.Client) error {
 	}
 
 	// Get The Hole room to connect the exit (center room in default world)
+	// Try both world IDs for compatibility
 	centerRoom, err := client.Room.Query().Where(
 		room.NameEQ("The Hole"),
-		room.WorldIDEQ("default"),
+		room.WorldIDEQ("1"),
 	).Only(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to find The Hole center room: %w", err)
+		// Fallback to "default" world
+		centerRoom, err = client.Room.Query().Where(
+			room.NameEQ("The Hole"),
+			room.WorldIDEQ("default"),
+		).Only(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to find The Hole center room: %w", err)
+		}
 	}
 
 	// Room type descriptions for randomization
@@ -425,6 +453,7 @@ func InitJunkyard(client *db.Client) error {
 				SetAtmosphere(room.AtmosphereWind).
 				SetIsStartingRoom(false).
 				SetExits(map[string]int{}).
+				SetWorldID("1").
 				Save(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to create room at (%d,%d): %w", row, col, err)
@@ -653,6 +682,338 @@ func InitConsumables(client *db.Client) error {
 		log.Printf("Created %s consumable", p.name)
 	}
 
+	return nil
+}
+
+// InitJunkyardQuest creates the Junkyard Reclamation quest
+// This is a multi-step quest where the player helps Bort reclaim his territory from Ferguson.
+// Steps: 1) Talk to Bort (room 90), 2) Kill Ferguson, 3) Return to Bort
+func InitJunkyardQuest(client *db.Client) error {
+	ctx := context.Background()
+
+	// First, ensure Bort NPC exists (quest giver)
+	if err := ensureBortNPC(client); err != nil {
+		return fmt.Errorf("failed to ensure Bort NPC: %w", err)
+	}
+
+	// Ensure Ferguson NPC exists (quest target)
+	if err := ensureFergusonNPC(client); err != nil {
+		return fmt.Errorf("failed to ensure Ferguson NPC: %w", err)
+	}
+
+	// Ensure green XP potion item exists (quest reward)
+	if err := ensureGreenXPPotion(client); err != nil {
+		return fmt.Errorf("failed to ensure green XP potion: %w", err)
+	}
+
+	// Create dialog nodes for Bort NPC
+	if err := initJunkyardDialogNodes(client); err != nil {
+		return fmt.Errorf("failed to init junkyard dialog nodes: %w", err)
+	}
+
+	// Check if quest already exists
+	existingQuests, err := client.Quest.Query().
+		Where(quest.NameEQ("Junkyard Reclamation")).
+		Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for existing junkyard quest: %w", err)
+	}
+
+	if existingQuests > 0 {
+		log.Println("Junkyard Reclamation quest already exists, skipping...")
+		return nil
+	}
+
+	// Define objectives for the multi-step quest
+	objectives := []schema.QuestObjective{
+		// Step 1: Talk to Bort in the junkyard entrance (room 90)
+		{
+			Type:     "talk",
+			TargetID: "bort",
+			Count:    1,
+			Labels:   []string{"Speak with Bort"},
+			Hint:     "Find Bort in the Junkyard Entrance to learn about his troubles.",
+		},
+		// Step 2: Kill Ferguson in the junkyard
+		{
+			Type:     "kill",
+			TargetID: "ferguson",
+			Count:    1,
+			Labels:   []string{"Defeat Ferguson"},
+			Hint:     "Ferguson is the gorilla boss who rules the junkyard. Defeat him to reclaim it.",
+		},
+		// Step 3: Return to Bort to complete the quest
+		{
+			Type:     "talk",
+			TargetID: "bort",
+			Count:    1,
+			Labels:   []string{"Return to Bort"},
+			Hint:     "Go back to Bort to tell him the good news.",
+		},
+	}
+
+	// Define rewards: 800 XP + green XP potion (effect: double XP for 30 minutes)
+	rewards := schema.QuestRewards{
+		XP:      800,
+		ItemIDs: []string{"green_xp_potion"},
+		EffectIDs: []int{},
+	}
+
+	// Create the quest
+	quest, err := client.Quest.Create().
+		SetName("Junkyard Reclamation").
+		SetDescription("Bort has been kicked out of the junkyard by Ferguson. Help him reclaim his home!").
+		SetObjectives(objectives).
+		SetRewards(rewards).
+		SetMainType(quest.MainTypeGeneral).
+		SetRepeatMode(quest.RepeatModeNone).
+		SetCooldownHours(0).
+		SetIsActive(true).
+		SetWorldID("1").
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create junkyard quest: %w", err)
+	}
+
+	log.Printf("Created Junkyard Reclamation quest (ID: %d)", quest.ID)
+	return nil
+}
+
+// ensureBortNPC creates or updates Bort NPC (quest giver in junkyard)
+func ensureBortNPC(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if Bort already exists by template ID
+	count, err := client.NPCTemplate.Query().
+		Where(npctemplate.IDEQ("bort")).
+		Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for Bort: %w", err)
+	}
+	if count > 0 {
+		log.Println("Bort NPC already exists, skipping...")
+		return nil
+	}
+
+	// Look up the possum mutant race by name to get its string UUID.
+	race, err := client.Race.Query().
+		Where(race.Name("possum_mutant")).
+		Only(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to look up possum_mutant race: %w", err)
+	}
+
+	// Create Bort NPC
+	_, err = client.NPCTemplate.Create().
+		SetID("bort").
+		SetName("Bort").
+		SetDescription("A scavenger possum mutant, kicked out of the junkyard by Ferguson").
+		SetRaceID(race.ID).
+		SetDisposition(npctemplate.DispositionNeutral).
+		SetLevel(8).
+		SetXpValue(100).
+		SetGreeting("Hey there! You look like you might be able to help a fella out.").
+		SetSkills(map[string]int{}).
+		SetTradesWith([]string{}).
+		SetRespawnRooms([]string{"90"}).
+		SetRespawnCooldown(300).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Bort: %w", err)
+	}
+
+	log.Println("Created Bort NPC (quest giver)")
+	return nil
+}
+
+// ensureFergusonNPC creates or updates Ferguson NPC (quest target in junkyard)
+func ensureFergusonNPC(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if Ferguson already exists by template ID
+	count, err := client.NPCTemplate.Query().
+		Where(npctemplate.IDEQ("ferguson")).
+		Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for Ferguson: %w", err)
+	}
+	if count > 0 {
+		log.Println("Ferguson NPC already exists, skipping...")
+		return nil
+	}
+
+	// Look up the possum mutant race by name to get its string UUID.
+	race, err := client.Race.Query().
+		Where(race.Name("possum_mutant")).
+		Only(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to look up possum_mutant race: %w", err)
+	}
+
+	// Create Ferguson NPC
+	_, err = client.NPCTemplate.Create().
+		SetID("ferguson").
+		SetName("Ferguson").
+		SetDescription("A massive gorilla who rules the junkyard with an iron fist").
+		SetRaceID(race.ID). // possum mutant (gorilla-like)
+		SetDisposition(npctemplate.DispositionHostile).
+		SetLevel(15).
+		SetXpValue(400).
+		SetGreeting("This is MY junkyard! Get out or get hurt!").
+		SetSkills(map[string]int{}).
+		SetTradesWith([]string{}).
+		SetRespawnRooms([]string{"94"}).
+		SetRespawnCooldown(300).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create Ferguson: %w", err)
+	}
+
+	log.Println("Created Ferguson NPC (quest target)")
+	return nil
+}
+
+// ensureGreenXPPotion creates the green XP potion item (quest reward)
+func ensureGreenXPPotion(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if green XP potion already exists by slug
+	count, err := client.EquipmentTemplate.Query().
+		Where(equipmenttemplate.SlugEQ("green_xp_potion")).
+		Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for green XP potion: %w", err)
+	}
+	if count > 0 {
+		log.Println("Green XP potion already exists, skipping...")
+		return nil
+	}
+
+	// Create green XP potion
+	_, err = client.EquipmentTemplate.Create().
+		SetSlug("green_xp_potion").
+		SetName("Green XP Potion").
+		SetDescription("A glowing green liquid that doubles XP gain for 30 minutes").
+		SetSlot("consumable").
+		SetLevel(1).
+		SetRarity("uncommon").
+		SetItemType("consumable").
+		SetEffectType("xp_multiplier").
+		SetEffectValue(2).     // 2x XP multiplier
+		SetEffectDuration(1800). // 30 minutes (1800 seconds)
+		SetIsVisible(true).
+		SetIsImmovable(false).
+		SetWeight(int(0.25 * 1000)). // Convert to int (grams)
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create green XP potion: %w", err)
+	}
+
+	log.Println("Created Green XP Potion item")
+	return nil
+}
+
+// initJunkyardDialogNodes creates dialog nodes for Bort NPC
+func initJunkyardDialogNodes(client *db.Client) error {
+	ctx := context.Background()
+
+	// Check if Bort dialog nodes already exist
+	count, err := client.DialogNode.Query().Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check for dialog nodes: %w", err)
+	}
+
+	// Only create if no dialog nodes exist (idempotent)
+	if count > 0 {
+		log.Println("Dialog nodes already exist, skipping...")
+		return nil
+	}
+
+	// Create Bort dialog nodes
+	bortNodes := []struct {
+		id        string
+		npcText   string
+		isEntry   bool
+		responses []schema.DialogResponse
+	}{
+		{
+			id:      "bort_greeting",
+			npcText: "Hey there! You look like you might be able to help a fella out. I used to have a good spot up on the trash heap, but that big mean gorilla Ferguson kicked me out. If you see him, teach him a lesson!",
+			isEntry: true,
+			responses: []schema.DialogResponse{
+				{
+					Label:        "I'll help you take back the junkyard",
+					NextNodeID:   "bort_quest_offer",
+					QuestOfferID: "junkyard_reclamation",
+				},
+				{
+					Label:        "I'm not interested",
+					NextNodeID:   "bort_goodbye",
+				},
+			},
+		},
+		{
+			id:      "bort_quest_offer",
+			npcText: "Really? You'd do that for me? Great! Just find Ferguson and defeat him. Then come back here to claim your reward!",
+			isEntry: false,
+			responses: []schema.DialogResponse{
+				{
+					Label:        "I'll do it!",
+					NextNodeID:   "bort_goodbye",
+				},
+				{
+					Label:        "Wait, what do I need to do?",
+					NextNodeID:   "bort_details",
+				},
+			},
+		},
+		{
+			id:      "bort_details",
+			npcText: "Here's the plan: 1) Find Ferguson in the junkyard - he's usually lurking around the back. 2) Defeat him. 3) Come back to me. Simple!",
+			isEntry: false,
+			responses: []schema.DialogResponse{
+				{
+					Label:        "I'm ready, let's do this",
+					NextNodeID:   "bort_goodbye",
+					QuestOfferID: "junkyard_reclamation",
+				},
+			},
+		},
+		{
+			id:      "bort_goodbye",
+			npcText: "Good luck, hero! I'll be waiting here.",
+			isEntry: false,
+			responses: []schema.DialogResponse{},
+		},
+		{
+			id:      "bort_return",
+			npcText: "You did it! The junkyard is mine again! Take this - it's a special potion that will double your XP gain for 30 minutes!",
+			isEntry: false,
+			responses: []schema.DialogResponse{
+				{
+					Label:        "Thank you!",
+					NextNodeID:   "bort_goodbye",
+				},
+			},
+		},
+	}
+
+	for _, node := range bortNodes {
+		// Create the dialog node and link it to Bort NPC
+		_, err := client.DialogNode.Create().
+			SetID(node.id).
+			SetNpcText(node.npcText).
+			SetIsEntry(node.isEntry).
+			SetResponses(node.responses).
+			SetNpcTemplateID("bort").
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to create dialog node %s: %w", node.id, err)
+		}
+		log.Printf("Created dialog node: %s", node.id)
+	}
+
+	log.Println("Created Bort dialog nodes and linked to NPC template")
 	return nil
 }
 

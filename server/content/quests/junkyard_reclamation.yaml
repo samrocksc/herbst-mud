@@ -1,0 +1,42 @@
+# Junkyard Reclamation
+# Multi-step quest: Help Bort reclaim his territory from Ferguson
+
+id: junkyard_reclamation
+name: "Junkyard Reclamation"
+description: "Bort has been kicked out of the junkyard by Ferguson. Help him reclaim his home!"
+type: multi_step
+difficulty: medium
+level_required: 5
+
+steps:
+  - id: talk_to_bort
+    type: talk
+    description: "Speak with Bort in the junkyard"
+    target: bort
+    order: 1
+  - id: defeat_ferguson
+    type: kill
+    description: "Defeat Ferguson to reclaim the junkyard"
+    target: ferguson
+    count: 1
+    order: 2
+  - id: return_to_bort
+    type: talk
+    description: "Return to Bort to complete the quest"
+    target: bort
+    order: 3
+
+rewards:
+  experience: 800
+  items:
+    - item_id: green_xp_potion
+      count: 1
+
+quest_giver: bort
+auto_complete: false
+repeatable: false
+
+flavor:
+  start: "I used to have a good spot up on the trash heap, but that big mean gorilla Ferguson kicked me out. If you see him, teach him a lesson!"
+  progress: "Have you found Ferguson yet? He's usually lurking around the back of the junkyard."
+  complete: "You did it! The junkyard is mine again! Take this - it's a special potion that will double your XP gain for 30 minutes!"

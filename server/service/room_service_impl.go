@@ -10,11 +10,12 @@ import (
 )
 
 type roomService struct {
-	roomRepo repository.RoomRepo
+	roomRepo  repository.RoomRepo
 	charRepo  repository.CharacterRepo
 	equipRepo repository.EquipmentRepo
 	npcRepo   repository.NPCTemplateRepo
 	tx        repository.TransactionRunner
+	zoneRepo  repository.ZoneRepository
 }
 
 func NewRoomService(
@@ -23,13 +24,15 @@ func NewRoomService(
 	equipRepo repository.EquipmentRepo,
 	npcRepo repository.NPCTemplateRepo,
 	tx repository.TransactionRunner,
+	zoneRepo repository.ZoneRepository,
 ) RoomService {
 	return &roomService{
-		roomRepo: roomRepo,
-		charRepo: charRepo,
+		roomRepo:  roomRepo,
+		charRepo:  charRepo,
 		equipRepo: equipRepo,
 		npcRepo:   npcRepo,
 		tx:        tx,
+		zoneRepo:  zoneRepo,
 	}
 }
 
@@ -42,12 +45,6 @@ func (s *roomService) CreateRoom(ctx context.Context, input CreateRoomInput) (*d
 			}
 		}
 	}
-	if input.PosX < 0 {
-		input.PosX = 0
-	}
-	if input.PosY < 0 {
-		input.PosY = 0
-	}
 	repoInput := repository.CreateRoomInput{
 		Name:           input.Name,
 		Description:    input.Description,
@@ -55,12 +52,36 @@ func (s *roomService) CreateRoom(ctx context.Context, input CreateRoomInput) (*d
 		IsRootRoom:     input.IsRootRoom,
 		Exits:          input.Exits,
 		Atmosphere:     input.Atmosphere,
-		PosX:           input.PosX,
-		PosY:           input.PosY,
 		PosZ:           input.PosZ,
 		WorldID:        input.WorldID,
+		ZoneIDs:        input.ZoneIDs,
 	}
-	return s.roomRepo.Create(ctx, repoInput)
+	created, err := s.roomRepo.Create(ctx, repoInput)
+	if err != nil {
+		return nil, err
+	}
+	// Sync Zone.room_ids for each zone the room was added to.
+	if len(input.ZoneIDs) > 0 {
+		for _, zid := range input.ZoneIDs {
+			zone, err := s.zoneRepo.Get(ctx, zid)
+			if err != nil {
+				continue
+			}
+			newRoomIDs := append([]int{}, zone.RoomIds...)
+			already := false
+			for _, rid := range newRoomIDs {
+				if rid == created.ID {
+					already = true
+					break
+				}
+			}
+			if !already {
+				newRoomIDs = append(newRoomIDs, created.ID)
+				_, _ = s.zoneRepo.Update(ctx, zid, repository.ZoneUpdates{RoomIDs: &newRoomIDs})
+			}
+		}
+	}
+	return created, nil
 }
 
 func (s *roomService) GetRoom(ctx context.Context, id int) (*db.Room, error) {
@@ -97,22 +118,56 @@ func (s *roomService) UpdateRoom(ctx context.Context, id int, input UpdateRoomIn
 		Exits:          input.Exits,
 		Atmosphere:     input.Atmosphere,
 		PosZ:           input.PosZ,
+		ZoneIDs:        input.ZoneIDs,
 	}
-	if input.PosX != nil {
-		px := *input.PosX
-		if px < 0 {
-			px = 0
+	updated, err := s.roomRepo.Update(ctx, id, updates)
+	if err != nil {
+		return nil, err
+	}
+	// Keep Zone.room_ids in sync with the room's zone_ids. When a room is
+	// added to or removed from a zone, append/remove the room id from the
+	// zone's explicit room_ids list.
+	if input.ZoneIDs != nil {
+		oldZoneSet := make(map[string]bool, len(existing.ZoneIds))
+		for _, zid := range existing.ZoneIds {
+			oldZoneSet[zid] = true
 		}
-		updates.PosX = &px
-	}
-	if input.PosY != nil {
-		py := *input.PosY
-		if py < 0 {
-			py = 0
+		newZoneSet := make(map[string]bool, len(*input.ZoneIDs))
+		for _, zid := range *input.ZoneIDs {
+			newZoneSet[zid] = true
 		}
-		updates.PosY = &py
+		// For each zone in old or new set, sync.
+		allZones := make(map[string]bool, len(oldZoneSet)+len(newZoneSet))
+		for z := range oldZoneSet {
+			allZones[z] = true
+		}
+		for z := range newZoneSet {
+			allZones[z] = true
+		}
+		for zid := range allZones {
+			zone, err := s.zoneRepo.Get(ctx, zid)
+			if err != nil {
+				continue
+			}
+			var newRoomIDs []int
+			hasRoom := false
+			for _, rid := range zone.RoomIds {
+				if rid == id {
+					hasRoom = true
+					continue
+				}
+				newRoomIDs = append(newRoomIDs, rid)
+			}
+			shouldBeInZone := newZoneSet[zid]
+			if shouldBeInZone && !hasRoom {
+				newRoomIDs = append(newRoomIDs, id)
+			} else if !shouldBeInZone && hasRoom {
+				// already removed above
+			}
+			_, _ = s.zoneRepo.Update(ctx, zid, repository.ZoneUpdates{RoomIDs: &newRoomIDs})
+		}
 	}
-	return s.roomRepo.Update(ctx, id, updates)
+	return updated, nil
 }
 
 func (s *roomService) DeleteRoom(ctx context.Context, id int) error {

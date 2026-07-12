@@ -118,11 +118,12 @@ func RegisterUserRoutes(router *gin.Engine, repos *repository.Container) {
 
 		slog.Info("user logged in", slog.Int("user_id", user.ID), slog.String("service", "users"))
 		c.JSON(http.StatusOK, gin.H{
-			"id":         user.ID,
-			"email":      user.Email,
-			"is_admin":   user.IsAdmin,
-			"token":      tokenString,
-			"expires_in": 86400,
+			"id":             user.ID,
+			"email":          user.Email,
+			"is_admin":       user.IsAdmin,
+			"allowed_worlds": user.AllowedWorlds,
+			"token":          tokenString,
+			"expires_in":     86400,
 		})
 	})
 

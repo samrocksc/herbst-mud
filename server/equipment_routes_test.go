@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 )
 
 // setupTestRouter creates a test router with equipment routes
-func setupTestRouter(t *testing.T) (*gin.Engine, func()) {
+func setupEquipmentTestRouter(t *testing.T) (*gin.Engine, func()) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 
@@ -85,7 +86,7 @@ func setupTestRouter(t *testing.T) (*gin.Engine, func()) {
 
 // TestEquipmentRoutes tests the equipment/item routes (GitHub #89)
 func TestEquipmentRoutes(t *testing.T) {
-	router, cleanup := setupTestRouter(t)
+	router, cleanup := setupEquipmentTestRouter(t)
 	defer cleanup()
 
 	t.Run("Create equipment item", func(t *testing.T) {
@@ -188,7 +189,7 @@ func TestEquipmentRoutes(t *testing.T) {
 		}
 		jsonData, _ = json.Marshal(updateData)
 
-		req, _ = http.NewRequest("PUT", "/equipment/"+string(rune(itemID)), bytes.NewBuffer(jsonData))
+		req, _ = http.NewRequest("PUT", "/equipment/"+strconv.Itoa(itemID), bytes.NewBuffer(jsonData))
 		req.Header.Set("Content-Type", "application/json")
 		w = httptest.NewRecorder()
 		router.ServeHTTP(w, req)
@@ -219,7 +220,7 @@ func TestEquipmentRoutes(t *testing.T) {
 		itemID := createdItem["id"]
 
 		// Get the item
-		req, _ = http.NewRequest("GET", "/equipment/"+string(rune(int(itemID.(float64)))), nil)
+		req, _ = http.NewRequest("GET", "/equipment/"+strconv.Itoa(int(itemID.(float64))), nil)
 		w = httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 	})
@@ -227,7 +228,7 @@ func TestEquipmentRoutes(t *testing.T) {
 
 // TestEquipmentImmovableFlag tests immovable item behavior (GitHub #89)
 func TestEquipmentImmovableFlag(t *testing.T) {
-	router, cleanup := setupTestRouter(t)
+	router, cleanup := setupEquipmentTestRouter(t)
 	defer cleanup()
 
 	t.Run("Create item with immovable flag", func(t *testing.T) {
@@ -304,7 +305,7 @@ func TestEquipmentImmovableFlag(t *testing.T) {
 
 // TestRoomEquipment tests the room equipment endpoint (GitHub #89)
 func TestRoomEquipment(t *testing.T) {
-	router, cleanup := setupTestRouter(t)
+	router, cleanup := setupEquipmentTestRouter(t)
 	defer cleanup()
 
 	t.Run("Get equipment in non-existent room", func(t *testing.T) {

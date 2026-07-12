@@ -69,6 +69,11 @@ func TriggerType(v string) predicate.Trigger {
 	return predicate.Trigger(sql.FieldEQ(FieldTriggerType, v))
 }
 
+// ExamineWeight applies equality check predicate on the "examine_weight" field. It's identical to ExamineWeightEQ.
+func ExamineWeight(v int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldEQ(FieldExamineWeight, v))
+}
+
 // TargetType applies equality check predicate on the "target_type" field. It's identical to TargetTypeEQ.
 func TargetType(v string) predicate.Trigger {
 	return predicate.Trigger(sql.FieldEQ(FieldTargetType, v))
@@ -294,6 +299,56 @@ func TriggerTypeContainsFold(v string) predicate.Trigger {
 	return predicate.Trigger(sql.FieldContainsFold(FieldTriggerType, v))
 }
 
+// ExamineWeightEQ applies the EQ predicate on the "examine_weight" field.
+func ExamineWeightEQ(v int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldEQ(FieldExamineWeight, v))
+}
+
+// ExamineWeightNEQ applies the NEQ predicate on the "examine_weight" field.
+func ExamineWeightNEQ(v int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldNEQ(FieldExamineWeight, v))
+}
+
+// ExamineWeightIn applies the In predicate on the "examine_weight" field.
+func ExamineWeightIn(vs ...int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldIn(FieldExamineWeight, vs...))
+}
+
+// ExamineWeightNotIn applies the NotIn predicate on the "examine_weight" field.
+func ExamineWeightNotIn(vs ...int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldNotIn(FieldExamineWeight, vs...))
+}
+
+// ExamineWeightGT applies the GT predicate on the "examine_weight" field.
+func ExamineWeightGT(v int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldGT(FieldExamineWeight, v))
+}
+
+// ExamineWeightGTE applies the GTE predicate on the "examine_weight" field.
+func ExamineWeightGTE(v int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldGTE(FieldExamineWeight, v))
+}
+
+// ExamineWeightLT applies the LT predicate on the "examine_weight" field.
+func ExamineWeightLT(v int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldLT(FieldExamineWeight, v))
+}
+
+// ExamineWeightLTE applies the LTE predicate on the "examine_weight" field.
+func ExamineWeightLTE(v int) predicate.Trigger {
+	return predicate.Trigger(sql.FieldLTE(FieldExamineWeight, v))
+}
+
+// ExamineWeightIsNil applies the IsNil predicate on the "examine_weight" field.
+func ExamineWeightIsNil() predicate.Trigger {
+	return predicate.Trigger(sql.FieldIsNull(FieldExamineWeight))
+}
+
+// ExamineWeightNotNil applies the NotNil predicate on the "examine_weight" field.
+func ExamineWeightNotNil() predicate.Trigger {
+	return predicate.Trigger(sql.FieldNotNull(FieldExamineWeight))
+}
+
 // TargetTypeEQ applies the EQ predicate on the "target_type" field.
 func TargetTypeEQ(v string) predicate.Trigger {
 	return predicate.Trigger(sql.FieldEQ(FieldTargetType, v))
@@ -397,6 +452,16 @@ func TargetIDLT(v int) predicate.Trigger {
 // TargetIDLTE applies the LTE predicate on the "target_id" field.
 func TargetIDLTE(v int) predicate.Trigger {
 	return predicate.Trigger(sql.FieldLTE(FieldTargetID, v))
+}
+
+// TargetIDIsNil applies the IsNil predicate on the "target_id" field.
+func TargetIDIsNil() predicate.Trigger {
+	return predicate.Trigger(sql.FieldIsNull(FieldTargetID))
+}
+
+// TargetIDNotNil applies the NotNil predicate on the "target_id" field.
+func TargetIDNotNil() predicate.Trigger {
+	return predicate.Trigger(sql.FieldNotNull(FieldTargetID))
 }
 
 // RoomIDEQ applies the EQ predicate on the "room_id" field.

@@ -10,6 +10,7 @@ import (
 	"herbst-server/db/equipment"
 	"herbst-server/db/predicate"
 	"herbst-server/db/room"
+	"herbst-server/db/zone"
 	"math"
 
 	"entgo.io/ent"
@@ -27,6 +28,7 @@ type RoomQuery struct {
 	predicates     []predicate.Room
 	withCharacters *CharacterQuery
 	withEquipment  *EquipmentQuery
+	withZones      *ZoneQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (_q *RoomQuery) QueryEquipment() *EquipmentQuery {
 			sqlgraph.From(room.Table, room.FieldID, selector),
 			sqlgraph.To(equipment.Table, equipment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, room.EquipmentTable, room.EquipmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryZones chains the current query on the "zones" edge.
+func (_q *RoomQuery) QueryZones() *ZoneQuery {
+	query := (&ZoneClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(zone.Table, zone.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, room.ZonesTable, room.ZonesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +325,7 @@ func (_q *RoomQuery) Clone() *RoomQuery {
 		predicates:     append([]predicate.Room{}, _q.predicates...),
 		withCharacters: _q.withCharacters.Clone(),
 		withEquipment:  _q.withEquipment.Clone(),
+		withZones:      _q.withZones.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +351,17 @@ func (_q *RoomQuery) WithEquipment(opts ...func(*EquipmentQuery)) *RoomQuery {
 		opt(query)
 	}
 	_q.withEquipment = query
+	return _q
+}
+
+// WithZones tells the query-builder to eager-load the nodes that are connected to
+// the "zones" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RoomQuery) WithZones(opts ...func(*ZoneQuery)) *RoomQuery {
+	query := (&ZoneClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withZones = query
 	return _q
 }
 
@@ -407,9 +443,10 @@ func (_q *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	var (
 		nodes       = []*Room{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withCharacters != nil,
 			_q.withEquipment != nil,
+			_q.withZones != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,6 +478,13 @@ func (_q *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 		if err := _q.loadEquipment(ctx, query, nodes,
 			func(n *Room) { n.Edges.Equipment = []*Equipment{} },
 			func(n *Room, e *Equipment) { n.Edges.Equipment = append(n.Edges.Equipment, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withZones; query != nil {
+		if err := _q.loadZones(ctx, query, nodes,
+			func(n *Room) { n.Edges.Zones = []*Zone{} },
+			func(n *Room, e *Zone) { n.Edges.Zones = append(n.Edges.Zones, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -506,6 +550,67 @@ func (_q *RoomQuery) loadEquipment(ctx context.Context, query *EquipmentQuery, n
 			return fmt.Errorf(`unexpected referenced foreign-key "room_equipment" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (_q *RoomQuery) loadZones(ctx context.Context, query *ZoneQuery, nodes []*Room, init func(*Room), assign func(*Room, *Zone)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Room)
+	nids := make(map[string]map[*Room]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(room.ZonesTable)
+		s.Join(joinT).On(s.C(zone.FieldID), joinT.C(room.ZonesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(room.ZonesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(room.ZonesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := values[1].(*sql.NullString).String
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Room]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Zone](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "zones" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

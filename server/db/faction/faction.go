@@ -22,6 +22,10 @@ const (
 	FieldDescription = "description"
 	// FieldMemberTags holds the string denoting the member_tags field in the database.
 	FieldMemberTags = "member_tags"
+	// FieldStatBonuses holds the string denoting the stat_bonuses field in the database.
+	FieldStatBonuses = "stat_bonuses"
+	// FieldSpecialties holds the string denoting the specialties field in the database.
+	FieldSpecialties = "specialties"
 	// EdgeCategory holds the string denoting the category edge name in mutations.
 	EdgeCategory = "category"
 	// EdgeRequiredTags holds the string denoting the required_tags edge name in mutations.
@@ -70,6 +74,8 @@ var Columns = []string{
 	FieldDisplayName,
 	FieldDescription,
 	FieldMemberTags,
+	FieldStatBonuses,
+	FieldSpecialties,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "factions"

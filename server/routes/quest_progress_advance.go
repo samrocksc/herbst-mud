@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"herbst-server/dblog"
+	"log/slog"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -32,6 +34,7 @@ func advanceObjective(client *db.Client, repos *repository.Container, c *gin.Con
 	if q == nil {
 		questObj, err := repos.Quest.Get(c.Request.Context(), questID)
 		if err != nil {
+			dblog.Error("advance objective - quest not found", err, slog.String("service", "quests"))
 			return progressResult{err: err, notFound: true}
 		}
 		q = questObj
@@ -58,7 +61,7 @@ func advanceObjective(client *db.Client, repos *repository.Container, c *gin.Con
 		WithQuest().WithCharacter().
 		Only(c.Request.Context())
 	view := questProgressToView(updated)
-	if q != nil && updated.Status == questprogress.StatusCompleted {
+	if q != nil && updated.Status == questprogress.StatusCompleted && updated.Edges.Character != nil {
 		view.RewardsApplied = applyQuestRewards(q.Rewards)
 	}
 	return progressResult{view: view}

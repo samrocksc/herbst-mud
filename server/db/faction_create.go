@@ -11,6 +11,7 @@ import (
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/factionrequiredtag"
+	"herbst-server/db/schema"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -66,6 +67,26 @@ func (_c *FactionCreate) SetNillableDescription(v *string) *FactionCreate {
 // SetMemberTags sets the "member_tags" field.
 func (_c *FactionCreate) SetMemberTags(v []string) *FactionCreate {
 	_c.mutation.SetMemberTags(v)
+	return _c
+}
+
+// SetStatBonuses sets the "stat_bonuses" field.
+func (_c *FactionCreate) SetStatBonuses(v schema.StatBonuses) *FactionCreate {
+	_c.mutation.SetStatBonuses(v)
+	return _c
+}
+
+// SetNillableStatBonuses sets the "stat_bonuses" field if the given value is not nil.
+func (_c *FactionCreate) SetNillableStatBonuses(v *schema.StatBonuses) *FactionCreate {
+	if v != nil {
+		_c.SetStatBonuses(*v)
+	}
+	return _c
+}
+
+// SetSpecialties sets the "specialties" field.
+func (_c *FactionCreate) SetSpecialties(v []schema.ClassSpecialty) *FactionCreate {
+	_c.mutation.SetSpecialties(v)
 	return _c
 }
 
@@ -230,6 +251,14 @@ func (_c *FactionCreate) createSpec() (*Faction, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.MemberTags(); ok {
 		_spec.SetField(faction.FieldMemberTags, field.TypeJSON, value)
 		_node.MemberTags = value
+	}
+	if value, ok := _c.mutation.StatBonuses(); ok {
+		_spec.SetField(faction.FieldStatBonuses, field.TypeJSON, value)
+		_node.StatBonuses = value
+	}
+	if value, ok := _c.mutation.Specialties(); ok {
+		_spec.SetField(faction.FieldSpecialties, field.TypeJSON, value)
+		_node.Specialties = value
 	}
 	if nodes := _c.mutation.CategoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -1,12 +1,13 @@
 package routes
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"herbst-server/constants"
+	"herbst-server/db"
 	"herbst-server/dblog"
 	"herbst-server/repository"
 	"herbst-server/service"
@@ -42,15 +43,19 @@ func updateCharacterClass(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		validClasses := map[string]bool{
-			"tinkerer": true, "trader": true, "warrior": true, "brawler": true,
-			"mystic": true, "chef": true, "vine_climber": true, "survivor": true,
+		// Validate class against DB: check if a faction with name=req.Class
+		// exists in a "class" category for the character's world.
+		char, err := repos.Character.Get(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+			return
 		}
-		if !validClasses[req.Class] {
+		client := c.MustGet("db_client").(*db.Client)
+		if !isValidClassDB(c.Request.Context(), client, req.Class, char.CurrentWorld) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class"})
 			return
 		}
-		char, err := repos.Character.Update(c.Request.Context(), id, repository.CharacterUpdates{Class: &req.Class})
+		char, err = repos.Character.Update(c.Request.Context(), id, repository.CharacterUpdates{Class: &req.Class})
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
 			return
@@ -101,12 +106,17 @@ func updateCharacterSpecialty(repos *repository.Container) gin.HandlerFunc {
 // getSpecialtiesForClass handles GET /classes/:class/specialties.
 func getSpecialtiesForClass(c *gin.Context) {
 	class := c.Param("class")
-	specialties, ok := constants.ClassSpecialties[class]
-	if !ok {
+	worldID := c.Query("world_id")
+	client := c.MustGet("db_client").(*db.Client)
+	ctx := context.Background()
+
+	// Query the class faction from DB, then read its specialties JSON field.
+	f, err := getClassFactionByName(ctx, client, class, worldID)
+	if err != nil || f == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Class not found"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"class": class, "specialties": specialties})
+	c.JSON(http.StatusOK, gin.H{"class": class, "specialties": f.Specialties})
 }
 
 // getCharacterStats handles GET /characters/:id/stats.

@@ -53,7 +53,7 @@ func RegisterCharacterRoutes(router *gin.Engine, svc *service.Container, repos *
 	router.GET("/npcs/room/:id", getNPCsByRoom(repos))
 	router.GET("/npcs", listAllNPCs(repos))
 	// Character combat routes
-	router.POST("/characters/:id/damage", applyDamage(svc, repos))
+	router.POST("/characters/:id/damage", applyDamage(svc))
 	router.POST("/characters/:id/heal", healCharacter(svc))
 	router.POST("/characters/:id/stamina", adjustStamina(svc))
 	router.POST("/characters/:id/mana", adjustMana(svc))

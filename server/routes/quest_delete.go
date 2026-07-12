@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"log/slog"
+	"herbst-server/dblog"
+
 	"net/http"
 	"strconv"
 
@@ -19,6 +22,7 @@ func deleteQuest(svc *service.Container) gin.HandlerFunc {
 		}
 		err = svc.Quest.DeleteQuest(c.Request.Context(), id)
 		if err != nil {
+			dblog.Error("delete quest failed", err, slog.String("service", "quests"))
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 			return
 		}

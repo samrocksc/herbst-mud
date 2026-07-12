@@ -32,7 +32,7 @@ func TestNPCRoomVisibility(t *testing.T) {
 	router := gin.New()
 	repos := repository.NewContainer(client)
 	services := service.NewContainer(client, repos, slog.Default())
-	routes.RegisterCharacterRoutes(router, services, repos)
+	routes.RegisterCharacterRoutes(router, services, repos, client)
 	routes.RegisterRoomRoutes(router, client, services)
 
 	// Create test room first

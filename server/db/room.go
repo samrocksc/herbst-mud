@@ -41,6 +41,8 @@ type Room struct {
 	Version int `json:"version,omitempty"`
 	// Tags for station discovery, room features (e.g. pizza_station, forge)
 	Tags []string `json:"tags,omitempty"`
+	// Zone memberships for this room. First entry is the primary zone. Sub-zone membership is just appending the sub-zone ID.
+	ZoneIds []string `json:"zone_ids,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomQuery when eager-loading is set.
 	Edges        RoomEdges `json:"edges"`
@@ -53,9 +55,11 @@ type RoomEdges struct {
 	Characters []*Character `json:"characters,omitempty"`
 	// Equipment holds the value of the equipment edge.
 	Equipment []*Equipment `json:"equipment,omitempty"`
+	// Zones holds the value of the zones edge.
+	Zones []*Zone `json:"zones,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -76,12 +80,21 @@ func (e RoomEdges) EquipmentOrErr() ([]*Equipment, error) {
 	return nil, &NotLoadedError{edge: "equipment"}
 }
 
+// ZonesOrErr returns the Zones value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) ZonesOrErr() ([]*Zone, error) {
+	if e.loadedTypes[2] {
+		return e.Zones, nil
+	}
+	return nil, &NotLoadedError{edge: "zones"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Room) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case room.FieldExits, room.FieldTags:
+		case room.FieldExits, room.FieldTags, room.FieldZoneIds:
 			values[i] = new([]byte)
 		case room.FieldIsStartingRoom, room.FieldIsRootRoom:
 			values[i] = new(sql.NullBool)
@@ -186,6 +199,14 @@ func (_m *Room) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field tags: %w", err)
 				}
 			}
+		case room.FieldZoneIds:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field zone_ids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.ZoneIds); err != nil {
+					return fmt.Errorf("unmarshal field zone_ids: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -207,6 +228,11 @@ func (_m *Room) QueryCharacters() *CharacterQuery {
 // QueryEquipment queries the "equipment" edge of the Room entity.
 func (_m *Room) QueryEquipment() *EquipmentQuery {
 	return NewRoomClient(_m.config).QueryEquipment(_m)
+}
+
+// QueryZones queries the "zones" edge of the Room entity.
+func (_m *Room) QueryZones() *ZoneQuery {
+	return NewRoomClient(_m.config).QueryZones(_m)
 }
 
 // Update returns a builder for updating this Room.
@@ -267,6 +293,9 @@ func (_m *Room) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tags=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Tags))
+	builder.WriteString(", ")
+	builder.WriteString("zone_ids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ZoneIds))
 	builder.WriteByte(')')
 	return builder.String()
 }

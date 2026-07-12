@@ -3,6 +3,7 @@ package routes
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/dblog"
@@ -13,10 +14,27 @@ import (
 // listPlayableRaces handles GET /races (public, playable races only).
 func listPlayableRaces(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Default to world "1" for public API
-		worldID := c.Query("world_id")
-		if worldID == "" {
-			worldID = "1"
+		queryID := c.Query("world_id")
+		// Empty / "default" / non-numeric values are treated as world 1 (dev default).
+		// "default" is the UI sentinel for an unconfigured world context.
+		if queryID == "" || queryID == "default" {
+			queryID = "1"
+		}
+		// Check if queryID is a numeric ID or a world name
+		// For backwards compatibility, accept both numeric IDs and world names
+		var worldID string
+		// Try to parse as numeric ID first
+		if _, err := strconv.Atoi(queryID); err == nil {
+			worldID = queryID
+		} else {
+			// Look up world by name to get the numeric ID
+			world, err := repos.World.GetByName(c.Request.Context(), queryID)
+			if err != nil {
+				// World not found - return 404
+				c.JSON(http.StatusNotFound, gin.H{"error": "world not found"})
+				return
+			}
+			worldID = strconv.Itoa(world.ID)
 		}
 		races, err := repos.Race.List(c.Request.Context(), worldID)
 		if err != nil {
@@ -48,9 +66,29 @@ func listPlayableRaces(repos *repository.Container) gin.HandlerFunc {
 // listGendersPublic handles GET /genders (public endpoint for SSH client).
 func listGendersPublic(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		genders, err := repos.Gender.List(c.Request.Context(), "1")
+		queryID := c.Query("world_id")
+		// Empty / "default" / non-numeric values are treated as world 1 (dev default).
+		// "default" is the UI sentinel for an unconfigured world context.
+		if queryID == "" || queryID == "default" {
+			queryID = "1"
+		}
+		// Check if queryID is a numeric ID or a world name
+		var worldID string
+		if _, err := strconv.Atoi(queryID); err == nil {
+			worldID = queryID
+		} else {
+			// Look up world by name to get the numeric ID
+			world, err := repos.World.GetByName(c.Request.Context(), queryID)
+			if err != nil {
+				// World not found - return 404
+				c.JSON(http.StatusNotFound, gin.H{"error": "world not found"})
+				return
+			}
+			worldID = strconv.Itoa(world.ID)
+		}
+		genders, err := repos.Gender.List(c.Request.Context(), worldID)
 		if err != nil {
-			dblog.Error("failed to list genders", err, slog.String("service", "characters"))
+			dblog.Error("failed to list genders", err, slog.String("service", "characters"), slog.String("world_id", worldID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

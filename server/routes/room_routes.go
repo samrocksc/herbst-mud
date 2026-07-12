@@ -15,9 +15,9 @@ func RegisterRoomRoutes(router *gin.Engine, client *db.Client, svc *service.Cont
 	rooms.Use(middleware.WorldAccessMiddleware())
 	{
 		rooms.GET("/rooms", listRooms(svc))
-		rooms.POST("/rooms", createRoom(svc))
+		rooms.POST("/rooms", createRoom(svc, client))
 		rooms.GET("/rooms/:id", getRoom(svc))
-		rooms.PUT("/rooms/:id", updateRoom(svc))
+		rooms.PUT("/rooms/:id", updateRoom(svc, client))
 		rooms.DELETE("/rooms/:id", deleteRoom(svc))
 		rooms.POST("/rooms/cleanup-orphan-exits", cleanupOrphanExits(svc))
 		rooms.POST("/rooms/:id/exits/bidirectional", createBidirectionalExit(svc))

@@ -55,8 +55,9 @@ func dialogNodeToView(dn *db.DialogNode) dialogNodeView {
 	}
 }
 
-// dialogNodeToViewSimple converts a db.DialogNode without loading edges.
-func dialogNodeToViewSimple(dn *db.DialogNode) dialogNodeView {
+// dialogNodeToViewSimpleWithTemplate converts a db.DialogNode without loading edges,
+// using the provided templateID (from the route parameter).
+func dialogNodeToViewSimpleWithTemplate(dn *db.DialogNode, templateID string) dialogNodeView {
 	responses := responsesToView(dn.Responses)
 	return dialogNodeView{
 		ID:             dn.ID,
@@ -65,7 +66,7 @@ func dialogNodeToViewSimple(dn *db.DialogNode) dialogNodeView {
 		IsEntry:        dn.IsEntry,
 		EntryCondition: dn.EntryCondition,
 		OnEnterEffects: dn.OnEnterEffects,
-		NpcTemplateID:  "",
+		NpcTemplateID:  templateID,
 	}
 }
 

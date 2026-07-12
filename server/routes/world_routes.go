@@ -89,19 +89,19 @@ func RegisterWorldCRUDRoutes(router *gin.Engine, repos *repository.Container) {
 					return
 				}
 
-				roomCount, err := repos.Room.CountByWorld(c.Request.Context(), w.Name)
+				roomCount, err := repos.Room.CountByWorld(c.Request.Context(), strconv.Itoa(w.ID))
 				if err != nil {
 					dblog.Error("failed to count rooms", err, slog.Int("world_id", id))
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify world readiness"})
 					return
 				}
-				raceCount, err := repos.Race.CountByWorld(c.Request.Context(), w.Name)
+				raceCount, err := repos.Race.CountByWorld(c.Request.Context(), strconv.Itoa(w.ID))
 				if err != nil {
 					dblog.Error("failed to count races", err, slog.Int("world_id", id))
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify world readiness"})
 					return
 				}
-				genderCount, err := repos.Gender.CountByWorld(c.Request.Context(), w.Name)
+				genderCount, err := repos.Gender.CountByWorld(c.Request.Context(), strconv.Itoa(w.ID))
 				if err != nil {
 					dblog.Error("failed to count genders", err, slog.Int("world_id", id))
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify world readiness"})

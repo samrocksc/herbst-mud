@@ -14,6 +14,21 @@ import (
 	"herbst-server/db/user"
 )
 
+// GetWorldID extracts world_id from a Gin context. It checks the query
+// string first, then the stored "world_id" context key set by
+// WorldAccessMiddleware. Returns "" if neither is set.
+func GetWorldID(c *gin.Context) string {
+	if w := c.Query("world_id"); w != "" {
+		return w
+	}
+	if v, ok := c.Get("world_id"); ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
+}
+
 // Claims represents JWT claims structure
 type Claims struct {
 	UserID  uint   `json:"user_id"`

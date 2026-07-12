@@ -19,6 +19,7 @@ type Container struct {
 	EffectHook           EffectHookRepo
 	DialogNode           DialogNodeRepo
 	User                 UserRepo
+	Zone                 ZoneRepository
 	Faction              FactionRepo
 	CharacterFaction     CharacterFactionRepo
 	CharacterTag         CharacterTagRepo
@@ -57,6 +58,7 @@ func NewContainer(client *db.Client) *Container {
 		EffectHook:           NewEntEffectHookRepo(client),
 		DialogNode:           NewEntDialogNodeRepo(client),
 		User:                 NewEntUserRepo(client),
+		Zone:                 NewEntZoneRepo(client),
 		Faction:              NewEntFactionRepo(client),
 		CharacterFaction:     NewEntCharacterFactionRepo(client),
 		CharacterTag:         NewEntCharacterTagRepo(client),

@@ -12,6 +12,7 @@ import (
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/factionrequiredtag"
 	"herbst-server/db/predicate"
+	"herbst-server/db/schema"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -109,6 +110,44 @@ func (_u *FactionUpdate) AppendMemberTags(v []string) *FactionUpdate {
 // ClearMemberTags clears the value of the "member_tags" field.
 func (_u *FactionUpdate) ClearMemberTags() *FactionUpdate {
 	_u.mutation.ClearMemberTags()
+	return _u
+}
+
+// SetStatBonuses sets the "stat_bonuses" field.
+func (_u *FactionUpdate) SetStatBonuses(v schema.StatBonuses) *FactionUpdate {
+	_u.mutation.SetStatBonuses(v)
+	return _u
+}
+
+// SetNillableStatBonuses sets the "stat_bonuses" field if the given value is not nil.
+func (_u *FactionUpdate) SetNillableStatBonuses(v *schema.StatBonuses) *FactionUpdate {
+	if v != nil {
+		_u.SetStatBonuses(*v)
+	}
+	return _u
+}
+
+// ClearStatBonuses clears the value of the "stat_bonuses" field.
+func (_u *FactionUpdate) ClearStatBonuses() *FactionUpdate {
+	_u.mutation.ClearStatBonuses()
+	return _u
+}
+
+// SetSpecialties sets the "specialties" field.
+func (_u *FactionUpdate) SetSpecialties(v []schema.ClassSpecialty) *FactionUpdate {
+	_u.mutation.SetSpecialties(v)
+	return _u
+}
+
+// AppendSpecialties appends value to the "specialties" field.
+func (_u *FactionUpdate) AppendSpecialties(v []schema.ClassSpecialty) *FactionUpdate {
+	_u.mutation.AppendSpecialties(v)
+	return _u
+}
+
+// ClearSpecialties clears the value of the "specialties" field.
+func (_u *FactionUpdate) ClearSpecialties() *FactionUpdate {
+	_u.mutation.ClearSpecialties()
 	return _u
 }
 
@@ -311,6 +350,23 @@ func (_u *FactionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.MemberTagsCleared() {
 		_spec.ClearField(faction.FieldMemberTags, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.StatBonuses(); ok {
+		_spec.SetField(faction.FieldStatBonuses, field.TypeJSON, value)
+	}
+	if _u.mutation.StatBonusesCleared() {
+		_spec.ClearField(faction.FieldStatBonuses, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Specialties(); ok {
+		_spec.SetField(faction.FieldSpecialties, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedSpecialties(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, faction.FieldSpecialties, value)
+		})
+	}
+	if _u.mutation.SpecialtiesCleared() {
+		_spec.ClearField(faction.FieldSpecialties, field.TypeJSON)
 	}
 	if _u.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -576,6 +632,44 @@ func (_u *FactionUpdateOne) ClearMemberTags() *FactionUpdateOne {
 	return _u
 }
 
+// SetStatBonuses sets the "stat_bonuses" field.
+func (_u *FactionUpdateOne) SetStatBonuses(v schema.StatBonuses) *FactionUpdateOne {
+	_u.mutation.SetStatBonuses(v)
+	return _u
+}
+
+// SetNillableStatBonuses sets the "stat_bonuses" field if the given value is not nil.
+func (_u *FactionUpdateOne) SetNillableStatBonuses(v *schema.StatBonuses) *FactionUpdateOne {
+	if v != nil {
+		_u.SetStatBonuses(*v)
+	}
+	return _u
+}
+
+// ClearStatBonuses clears the value of the "stat_bonuses" field.
+func (_u *FactionUpdateOne) ClearStatBonuses() *FactionUpdateOne {
+	_u.mutation.ClearStatBonuses()
+	return _u
+}
+
+// SetSpecialties sets the "specialties" field.
+func (_u *FactionUpdateOne) SetSpecialties(v []schema.ClassSpecialty) *FactionUpdateOne {
+	_u.mutation.SetSpecialties(v)
+	return _u
+}
+
+// AppendSpecialties appends value to the "specialties" field.
+func (_u *FactionUpdateOne) AppendSpecialties(v []schema.ClassSpecialty) *FactionUpdateOne {
+	_u.mutation.AppendSpecialties(v)
+	return _u
+}
+
+// ClearSpecialties clears the value of the "specialties" field.
+func (_u *FactionUpdateOne) ClearSpecialties() *FactionUpdateOne {
+	_u.mutation.ClearSpecialties()
+	return _u
+}
+
 // SetCategoryID sets the "category" edge to the FactionCategory entity by ID.
 func (_u *FactionUpdateOne) SetCategoryID(id int) *FactionUpdateOne {
 	_u.mutation.SetCategoryID(id)
@@ -805,6 +899,23 @@ func (_u *FactionUpdateOne) sqlSave(ctx context.Context) (_node *Faction, err er
 	}
 	if _u.mutation.MemberTagsCleared() {
 		_spec.ClearField(faction.FieldMemberTags, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.StatBonuses(); ok {
+		_spec.SetField(faction.FieldStatBonuses, field.TypeJSON, value)
+	}
+	if _u.mutation.StatBonusesCleared() {
+		_spec.ClearField(faction.FieldStatBonuses, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Specialties(); ok {
+		_spec.SetField(faction.FieldSpecialties, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedSpecialties(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, faction.FieldSpecialties, value)
+		})
+	}
+	if _u.mutation.SpecialtiesCleared() {
+		_spec.ClearField(faction.FieldSpecialties, field.TypeJSON)
 	}
 	if _u.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{

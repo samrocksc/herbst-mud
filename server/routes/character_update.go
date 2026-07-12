@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"herbst-server/dblog"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -62,6 +64,7 @@ func updateCharacter(repos *repository.Container) gin.HandlerFunc {
 		}
 		char, err := repos.Character.Update(c.Request.Context(), id, updates)
 		if err != nil {
+			dblog.Error("update character failed", err, slog.String("service", "characters"))
 			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
 			return
 		}

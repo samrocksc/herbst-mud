@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"herbst-server/dblog"
+	"log/slog"
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/dialognode"
@@ -61,13 +63,14 @@ func getDialogNodesForTemplate(repos *repository.Container) gin.HandlerFunc {
 		}
 		nodes, err := repos.DialogNode.ListByTemplate(c.Request.Context(), templateID)
 		if err != nil {
+			dblog.Error("get dialog nodes for template failed", err, slog.String("service", "dialog_nodes"))
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 		result := make([]dialogNodeView, len(nodes))
 		for i, n := range nodes {
-			result[i] = dialogNodeToViewSimple(n)
+			result[i] = dialogNodeToViewSimpleWithTemplate(n, templateID)
 		}
-		c.JSON(200, gin.H{"dialog_nodes": result})
+		c.JSON(200, gin.H{"dialog_nodes": result, "nodes": result})
 	}
 }

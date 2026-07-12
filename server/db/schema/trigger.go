@@ -24,10 +24,15 @@ func (Trigger) Fields() []ent.Field {
 			Comment("World this trigger belongs to (for multi-world support)"),
 		field.String("trigger_type").
 			Comment("use|touch|press|enter|examine - what action triggers this"),
+		field.Int("examine_weight").
+			Optional().
+			Default(0).
+			Comment("For examine-type triggers, the player level required to see this trigger. 0 = always show."),
 		field.String("target_type").
 			Comment("recipe|effect|dialog_node - what gets executed"),
 		field.Int("target_id").
-			Comment("FK to target entity (recipe name, effect id, dialog_node id)"),
+			Optional().
+			Comment("FK to target entity (recipe id, effect id, dialog_node id). NULL for triggers that don't target a specific entity (e.g. notification-only)."),
 		field.Int("room_id").
 			Optional().
 			Nillable().

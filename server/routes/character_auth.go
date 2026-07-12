@@ -29,24 +29,7 @@ func getUserCharacters(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		result := make([]gin.H, len(characters))
-		for i, char := range characters {
-			result[i] = gin.H{
-				"id":            char.ID,
-				"name":          char.Name,
-				"isNPC":         char.IsNPC,
-				"is_admin":      char.IsAdmin,
-				"currentRoomId": char.CurrentRoomId,
-				"startingRoomId": char.StartingRoomId,
-				"hitpoints":     char.Hitpoints,
-				"max_hitpoints": char.MaxHitpoints,
-				"stamina":       char.Stamina,
-				"max_stamina":   char.MaxStamina,
-				"mana":          char.Mana,
-				"max_mana":      char.MaxMana,
-			}
-		}
-		c.JSON(http.StatusOK, result)
+		c.JSON(http.StatusOK, characters)
 	}
 }
 

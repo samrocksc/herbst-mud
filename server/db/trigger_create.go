@@ -48,6 +48,20 @@ func (_c *TriggerCreate) SetTriggerType(v string) *TriggerCreate {
 	return _c
 }
 
+// SetExamineWeight sets the "examine_weight" field.
+func (_c *TriggerCreate) SetExamineWeight(v int) *TriggerCreate {
+	_c.mutation.SetExamineWeight(v)
+	return _c
+}
+
+// SetNillableExamineWeight sets the "examine_weight" field if the given value is not nil.
+func (_c *TriggerCreate) SetNillableExamineWeight(v *int) *TriggerCreate {
+	if v != nil {
+		_c.SetExamineWeight(*v)
+	}
+	return _c
+}
+
 // SetTargetType sets the "target_type" field.
 func (_c *TriggerCreate) SetTargetType(v string) *TriggerCreate {
 	_c.mutation.SetTargetType(v)
@@ -57,6 +71,14 @@ func (_c *TriggerCreate) SetTargetType(v string) *TriggerCreate {
 // SetTargetID sets the "target_id" field.
 func (_c *TriggerCreate) SetTargetID(v int) *TriggerCreate {
 	_c.mutation.SetTargetID(v)
+	return _c
+}
+
+// SetNillableTargetID sets the "target_id" field if the given value is not nil.
+func (_c *TriggerCreate) SetNillableTargetID(v *int) *TriggerCreate {
+	if v != nil {
+		_c.SetTargetID(*v)
+	}
 	return _c
 }
 
@@ -212,6 +234,10 @@ func (_c *TriggerCreate) defaults() {
 		v := trigger.DefaultWorldID
 		_c.mutation.SetWorldID(v)
 	}
+	if _, ok := _c.mutation.ExamineWeight(); !ok {
+		v := trigger.DefaultExamineWeight
+		_c.mutation.SetExamineWeight(v)
+	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := trigger.DefaultEnabled
 		_c.mutation.SetEnabled(v)
@@ -231,9 +257,6 @@ func (_c *TriggerCreate) check() error {
 	}
 	if _, ok := _c.mutation.TargetType(); !ok {
 		return &ValidationError{Name: "target_type", err: errors.New(`db: missing required field "Trigger.target_type"`)}
-	}
-	if _, ok := _c.mutation.TargetID(); !ok {
-		return &ValidationError{Name: "target_id", err: errors.New(`db: missing required field "Trigger.target_id"`)}
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`db: missing required field "Trigger.enabled"`)}
@@ -275,6 +298,10 @@ func (_c *TriggerCreate) createSpec() (*Trigger, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.TriggerType(); ok {
 		_spec.SetField(trigger.FieldTriggerType, field.TypeString, value)
 		_node.TriggerType = value
+	}
+	if value, ok := _c.mutation.ExamineWeight(); ok {
+		_spec.SetField(trigger.FieldExamineWeight, field.TypeInt, value)
+		_node.ExamineWeight = value
 	}
 	if value, ok := _c.mutation.TargetType(); ok {
 		_spec.SetField(trigger.FieldTargetType, field.TypeString, value)

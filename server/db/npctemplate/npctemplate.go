@@ -40,6 +40,20 @@ const (
 	FieldRespawnRooms = "respawn_rooms"
 	// FieldRespawnCooldown holds the string denoting the respawn_cooldown field in the database.
 	FieldRespawnCooldown = "respawn_cooldown"
+	// FieldRoamPattern holds the string denoting the roam_pattern field in the database.
+	FieldRoamPattern = "roam_pattern"
+	// FieldRoamZoneIds holds the string denoting the roam_zone_ids field in the database.
+	FieldRoamZoneIds = "roam_zone_ids"
+	// FieldRoamIntervalSeconds holds the string denoting the roam_interval_seconds field in the database.
+	FieldRoamIntervalSeconds = "roam_interval_seconds"
+	// FieldRoamPauseMinSeconds holds the string denoting the roam_pause_min_seconds field in the database.
+	FieldRoamPauseMinSeconds = "roam_pause_min_seconds"
+	// FieldRoamPauseMaxSeconds holds the string denoting the roam_pause_max_seconds field in the database.
+	FieldRoamPauseMaxSeconds = "roam_pause_max_seconds"
+	// FieldLastMovedAt holds the string denoting the last_moved_at field in the database.
+	FieldLastMovedAt = "last_moved_at"
+	// FieldNotifyOnEnter holds the string denoting the notify_on_enter field in the database.
+	FieldNotifyOnEnter = "notify_on_enter"
 	// EdgeNpcAbilities holds the string denoting the npc_abilities edge name in mutations.
 	EdgeNpcAbilities = "npc_abilities"
 	// EdgeHooks holds the string denoting the hooks edge name in mutations.
@@ -103,6 +117,13 @@ var Columns = []string{
 	FieldGreeting,
 	FieldRespawnRooms,
 	FieldRespawnCooldown,
+	FieldRoamPattern,
+	FieldRoamZoneIds,
+	FieldRoamIntervalSeconds,
+	FieldRoamPauseMinSeconds,
+	FieldRoamPauseMaxSeconds,
+	FieldLastMovedAt,
+	FieldNotifyOnEnter,
 }
 
 var (
@@ -130,6 +151,14 @@ var (
 	DefaultXpValue int
 	// DefaultRespawnCooldown holds the default value on creation for the "respawn_cooldown" field.
 	DefaultRespawnCooldown int
+	// DefaultRoamIntervalSeconds holds the default value on creation for the "roam_interval_seconds" field.
+	DefaultRoamIntervalSeconds int
+	// DefaultRoamPauseMinSeconds holds the default value on creation for the "roam_pause_min_seconds" field.
+	DefaultRoamPauseMinSeconds int
+	// DefaultRoamPauseMaxSeconds holds the default value on creation for the "roam_pause_max_seconds" field.
+	DefaultRoamPauseMaxSeconds int
+	// DefaultNotifyOnEnter holds the default value on creation for the "notify_on_enter" field.
+	DefaultNotifyOnEnter bool
 )
 
 // Disposition defines the type for the "disposition" enum field.
@@ -156,6 +185,34 @@ func DispositionValidator(d Disposition) error {
 		return nil
 	default:
 		return fmt.Errorf("npctemplate: invalid enum value for disposition field: %q", d)
+	}
+}
+
+// RoamPattern defines the type for the "roam_pattern" enum field.
+type RoamPattern string
+
+// RoamPatternStatic is the default value of the RoamPattern enum.
+const DefaultRoamPattern = RoamPatternStatic
+
+// RoamPattern values.
+const (
+	RoamPatternStatic     RoamPattern = "static"
+	RoamPatternWander     RoamPattern = "wander"
+	RoamPatternPatrol     RoamPattern = "patrol"
+	RoamPatternReturnHome RoamPattern = "return_home"
+)
+
+func (rp RoamPattern) String() string {
+	return string(rp)
+}
+
+// RoamPatternValidator is a validator for the "roam_pattern" field enum values. It is called by the builders before save.
+func RoamPatternValidator(rp RoamPattern) error {
+	switch rp {
+	case RoamPatternStatic, RoamPatternWander, RoamPatternPatrol, RoamPatternReturnHome:
+		return nil
+	default:
+		return fmt.Errorf("npctemplate: invalid enum value for roam_pattern field: %q", rp)
 	}
 }
 
@@ -215,6 +272,36 @@ func ByGreeting(opts ...sql.OrderTermOption) OrderOption {
 // ByRespawnCooldown orders the results by the respawn_cooldown field.
 func ByRespawnCooldown(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRespawnCooldown, opts...).ToFunc()
+}
+
+// ByRoamPattern orders the results by the roam_pattern field.
+func ByRoamPattern(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRoamPattern, opts...).ToFunc()
+}
+
+// ByRoamIntervalSeconds orders the results by the roam_interval_seconds field.
+func ByRoamIntervalSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRoamIntervalSeconds, opts...).ToFunc()
+}
+
+// ByRoamPauseMinSeconds orders the results by the roam_pause_min_seconds field.
+func ByRoamPauseMinSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRoamPauseMinSeconds, opts...).ToFunc()
+}
+
+// ByRoamPauseMaxSeconds orders the results by the roam_pause_max_seconds field.
+func ByRoamPauseMaxSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRoamPauseMaxSeconds, opts...).ToFunc()
+}
+
+// ByLastMovedAt orders the results by the last_moved_at field.
+func ByLastMovedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastMovedAt, opts...).ToFunc()
+}
+
+// ByNotifyOnEnter orders the results by the notify_on_enter field.
+func ByNotifyOnEnter(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNotifyOnEnter, opts...).ToFunc()
 }
 
 // ByNpcAbilitiesCount orders the results by npc_abilities count.

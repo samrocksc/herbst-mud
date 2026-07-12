@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"herbst-server/db/faction"
 	"herbst-server/db/factioncategory"
+	"herbst-server/db/schema"
 	"strings"
 
 	"entgo.io/ent"
@@ -28,6 +29,10 @@ type Faction struct {
 	Description string `json:"description,omitempty"`
 	// Tags auto-applied to characters when they join this faction
 	MemberTags []string `json:"member_tags,omitempty"`
+	// Stat bonuses applied during character creation for class factions
+	StatBonuses schema.StatBonuses `json:"stat_bonuses,omitempty"`
+	// Specialties available for this class faction
+	Specialties []schema.ClassSpecialty `json:"specialties,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FactionQuery when eager-loading is set.
 	Edges                     FactionEdges `json:"edges"`
@@ -93,7 +98,7 @@ func (*Faction) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case faction.FieldMemberTags:
+		case faction.FieldMemberTags, faction.FieldStatBonuses, faction.FieldSpecialties:
 			values[i] = new([]byte)
 		case faction.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -152,6 +157,22 @@ func (_m *Faction) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &_m.MemberTags); err != nil {
 					return fmt.Errorf("unmarshal field member_tags: %w", err)
+				}
+			}
+		case faction.FieldStatBonuses:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field stat_bonuses", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.StatBonuses); err != nil {
+					return fmt.Errorf("unmarshal field stat_bonuses: %w", err)
+				}
+			}
+		case faction.FieldSpecialties:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field specialties", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Specialties); err != nil {
+					return fmt.Errorf("unmarshal field specialties: %w", err)
 				}
 			}
 		case faction.ForeignKeys[0]:
@@ -231,6 +252,12 @@ func (_m *Faction) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("member_tags=")
 	builder.WriteString(fmt.Sprintf("%v", _m.MemberTags))
+	builder.WriteString(", ")
+	builder.WriteString("stat_bonuses=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StatBonuses))
+	builder.WriteString(", ")
+	builder.WriteString("specialties=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Specialties))
 	builder.WriteByte(')')
 	return builder.String()
 }

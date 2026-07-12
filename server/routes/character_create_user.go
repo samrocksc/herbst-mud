@@ -2,9 +2,11 @@ package routes
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"herbst-server/dblog"
 	"herbst-server/repository"
 	"herbst-server/service"
 )
@@ -25,6 +27,7 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			Name        string   `json:"name" binding:"required"`
 			Race        string   `json:"race"`
 			Gender      string   `json:"gender"`
+			Class       string   `json:"class"`
 			Description string   `json:"description"`
 			World       string   `json:"world"`
 			Factions    []string `json:"factions"`
@@ -38,6 +41,7 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			Name:     req.Name,
 			Race:     req.Race,
 			Gender:   req.Gender,
+			Class:    req.Class,
 			Description: req.Description,
 			WorldID:  req.World,
 			Factions: req.Factions,
@@ -55,6 +59,7 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			case errors.Is(err, service.ErrWorldNotReady):
 				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 			default:
+				dblog.Error("create character failed", err, slog.String("service", "characters"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			}
 			return

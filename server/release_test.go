@@ -151,7 +151,7 @@ func determineBumpType(commits string) string {
 	bumpType := "patch"
 
 	// Check for breaking changes first (has highest priority)
-	if regexp.MustCompile(`^feat!.+:`).MatchString(commits) {
+	if regexp.MustCompile(`(?m)^feat!.*:`).MatchString(commits) {
 		return "major"
 	}
 	if strings.Contains(commits, "BREAKING CHANGE") {
@@ -159,7 +159,7 @@ func determineBumpType(commits string) string {
 	}
 
 	// Check for features (minor)
-	if regexp.MustCompile(`^feat(\(.+\))?:`).MatchString(commits) {
+	if regexp.MustCompile(`(?m)^feat(\(.+\))?:`).MatchString(commits) {
 		bumpType = "minor"
 	}
 

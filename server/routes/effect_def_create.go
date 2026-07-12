@@ -11,9 +11,11 @@ import (
 
 var validEffectTypes = map[string]bool{
 	"xp_drain": true, "xp_gain": true, "xp_set": true,
+	"xp_multiplier": true,
 	"bind_point_set": true, "hp_change": true, "stamina_change": true,
 	"mana_change": true, "message": true, "teleport": true,
 	"apply_effect": true, "tag_add": true, "tag_remove": true,
+	"change_race": true, "change_class": true,
 }
 
 func createEffectDef(repos *repository.Container) gin.HandlerFunc {

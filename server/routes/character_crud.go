@@ -84,10 +84,23 @@ func createCharacter(svc *service.Container, repos *repository.Container) gin.Ha
 	}
 }
 
-// listCharacters handles GET /characters, optionally filtered by name or ID.
+// listCharacters handles GET /characters, optionally filtered by name, ID, or owner.
 func listCharacters(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		characters, err := repos.Character.ListAll(c.Request.Context())
+		var characters []*db.Character
+		var err error
+
+		// Check for owner filter first
+		if ownerStr := c.Query("owner"); ownerStr != "" {
+			ownerID, parseErr := strconv.Atoi(ownerStr)
+			if parseErr != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid owner ID"})
+				return
+			}
+			characters, err = repos.Character.ListByUser(c.Request.Context(), ownerID)
+		} else {
+			characters, err = repos.Character.ListAll(c.Request.Context())
+		}
 		if err != nil {
 			dblog.Error("failed to list characters", err, slog.String("service", "characters"))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
