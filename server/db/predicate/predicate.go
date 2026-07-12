@@ -105,8 +105,17 @@ type Race func(*sql.Selector)
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
 
+// ShopItem is the predicate function for shopitem builders.
+type ShopItem func(*sql.Selector)
+
+// ShopTemplate is the predicate function for shoptemplate builders.
+type ShopTemplate func(*sql.Selector)
+
 // SocialCommand is the predicate function for socialcommand builders.
 type SocialCommand func(*sql.Selector)
+
+// SystemLog is the predicate function for systemlog builders.
+type SystemLog func(*sql.Selector)
 
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)
@@ -122,3 +131,6 @@ type User func(*sql.Selector)
 
 // World is the predicate function for world builders.
 type World func(*sql.Selector)
+
+// Zone is the predicate function for zone builders.
+type Zone func(*sql.Selector)

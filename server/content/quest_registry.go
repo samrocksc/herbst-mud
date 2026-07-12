@@ -19,21 +19,36 @@ func NewQuestRegistry() *QuestRegistry {
 	}
 }
 
-// QuestDef represents a quest definition
+// QuestDef represents a quest definition (supports both legacy 'steps' and new 'objectives' format)
 type QuestDef struct {
-	ID            string         `json:"id"`
-	Name          string         `json:"name"`
-	Description   string         `json:"description"`
-	Type          string         `json:"type"`
-	Difficulty    string         `json:"difficulty"`
-	LevelRequired int            `json:"level_required"`
-	Steps         []QuestStep    `json:"steps"`
-	Rewards       QuestRewards   `json:"rewards"`
-	QuestGiver    string         `json:"quest_giver"`
-	AutoComplete  bool           `json:"auto_complete"`
-	Repeatable    bool           `json:"repeatable"`
-	RepeatCooldown int         `json:"repeat_cooldown,omitempty"`
-	Flavor        QuestFlavor    `json:"flavor,omitempty"`
+	ID             string          `json:"id"`
+	Name           string          `json:"name"`
+	Description    string          `json:"description"`
+	Type           string          `json:"type"`
+	Difficulty     string          `json:"difficulty"`
+	LevelRequired  int             `json:"level_required"`
+	Steps          []QuestStep     `json:"steps,omitempty"`        // Legacy format
+	Objectives     []QuestObjective `json:"objectives,omitempty"`   // New format
+	Rewards        QuestRewards    `json:"rewards"`
+	QuestGiver     string          `json:"quest_giver"`
+	AutoComplete   bool            `json:"auto_complete"`
+	Repeatable     bool            `json:"repeatable"`
+	RepeatCooldown int             `json:"repeat_cooldown,omitempty"`
+	Flavor         QuestFlavor     `json:"flavor,omitempty"`
+	RepeatMode     string          `json:"repeat_mode,omitempty"`
+	IsActive       bool            `json:"is_active,omitempty"`
+	WorldID        string          `json:"world_id,omitempty"`
+	MainType       string          `json:"main_type,omitempty"`
+}
+
+// QuestObjective represents a single objective (new format)
+type QuestObjective struct {
+	Type      string   `json:"type"`
+	TargetID  string   `json:"target_id"`
+	TagFilter string   `json:"tag_filter,omitempty"`
+	Count     int      `json:"count"`
+	Labels    []string `json:"labels,omitempty"`
+	Hint      string   `json:"hint,omitempty"`
 }
 
 // QuestStep represents a single step in a quest
@@ -160,9 +175,9 @@ func (r *QuestRegistry) Count() int {
 func (r *QuestRegistry) Validate(skills *SkillRegistry, npcs *NPCRegistry, items *ItemRegistry) []ValidationError {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	var errors []ValidationError
-	
+
 	for id, quest := range r.quests {
 		// Validate quest giver exists
 		if quest.QuestGiver != "" && quest.QuestGiver != "system" {
@@ -175,8 +190,8 @@ func (r *QuestRegistry) Validate(skills *SkillRegistry, npcs *NPCRegistry, items
 				})
 			}
 		}
-		
-		// Validate quest targets exist
+
+		// Validate quest targets - legacy 'steps' format
 		for _, step := range quest.Steps {
 			if step.Type == "kill" || step.Type == "talk" {
 				if _, exists := npcs.Get(step.Target); !exists {
@@ -199,7 +214,21 @@ func (r *QuestRegistry) Validate(skills *SkillRegistry, npcs *NPCRegistry, items
 				}
 			}
 		}
-		
+
+		// Validate quest targets - new 'objectives' format
+		for _, obj := range quest.Objectives {
+			if obj.Type == "kill" || obj.Type == "talk" {
+				if _, exists := npcs.Get(obj.TargetID); !exists {
+					errors = append(errors, ValidationError{
+						Type:    "quest",
+						ID:      id,
+						Field:   fmt.Sprintf("objectives.target_id"),
+						Message: fmt.Sprintf("NPC '%s' not found", obj.TargetID),
+					})
+				}
+			}
+		}
+
 		// Validate reward items exist
 		for _, reward := range quest.Rewards.Items {
 			if _, exists := items.Get(reward.ItemID); !exists {
@@ -212,6 +241,6 @@ func (r *QuestRegistry) Validate(skills *SkillRegistry, npcs *NPCRegistry, items
 			}
 		}
 	}
-	
+
 	return errors
 }

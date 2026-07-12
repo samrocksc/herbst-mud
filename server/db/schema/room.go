@@ -55,6 +55,9 @@ func (Room) Fields() []ent.Field {
 		field.JSON("tags", []string{}).
 			Optional().
 			Comment("Tags for station discovery, room features (e.g. pizza_station, forge)"),
+		field.Strings("zone_ids").
+			Optional().
+			Comment("Zone memberships for this room. First entry is the primary zone. Sub-zone membership is just appending the sub-zone ID."),
 	}
 }
 
@@ -63,5 +66,6 @@ func (Room) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("characters", Character.Type),
 		edge.To("equipment", Equipment.Type),
+		edge.To("zones", Zone.Type),
 	}
 }

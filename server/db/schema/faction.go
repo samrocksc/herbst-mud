@@ -11,6 +11,23 @@ type Faction struct {
 	ent.Schema
 }
 
+// StatBonuses represents per-class stat bonuses applied during character creation.
+type StatBonuses struct {
+	Strength     int `json:"strength,omitempty"`
+	Dexterity    int `json:"dexterity,omitempty"`
+	Constitution int `json:"constitution,omitempty"`
+	Intelligence int `json:"intelligence,omitempty"`
+	Wisdom       int `json:"wisdom,omitempty"`
+	Charisma     int `json:"charisma,omitempty"`
+}
+
+// ClassSpecialty represents a specialty within a class faction.
+type ClassSpecialty struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+}
+
 func (Faction) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
@@ -25,6 +42,12 @@ func (Faction) Fields() []ent.Field {
 		field.JSON("member_tags", []string{}).
 			Optional().
 			Comment("Tags auto-applied to characters when they join this faction"),
+		field.JSON("stat_bonuses", StatBonuses{}).
+			Optional().
+			Comment("Stat bonuses applied during character creation for class factions"),
+		field.JSON("specialties", []ClassSpecialty{}).
+			Optional().
+			Comment("Specialties available for this class faction"),
 	}
 }
 

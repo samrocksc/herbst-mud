@@ -272,7 +272,7 @@ type GenderRepo interface {
 	GetByName(ctx context.Context, name string) (*db.Gender, error)
 	GetByWorld(ctx context.Context, name, worldID string) (*db.Gender, error)
 	List(ctx context.Context, worldID string) ([]*db.Gender, error)
-	ListPlayable(ctx context.Context, worldID string) ([]*Gender, error)
+	ListPlayable(ctx context.Context, worldID string) ([]*db.Gender, error)
 	Create(ctx context.Context, input CreateGenderInput) (*db.Gender, error)
 	Update(ctx context.Context, id int, updates GenderUpdates) (*db.Gender, error)
 	Delete(ctx context.Context, id int) error
@@ -412,6 +412,7 @@ type CreateRoomInput struct {
 	PosY           int
 	PosZ           int
 	WorldID        string
+	ZoneIDs        []string
 }
 
 type RoomUpdates struct {
@@ -425,6 +426,7 @@ type RoomUpdates struct {
 	PosY           *int
 	PosZ           *int
 	WorldID        *string
+	ZoneIDs        *[]string
 }
 
 type CreateQuestInput struct {

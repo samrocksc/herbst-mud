@@ -13,6 +13,7 @@ import (
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/predicate"
 	"herbst-server/db/race"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -248,6 +249,159 @@ func (_u *NPCTemplateUpdate) ClearRespawnCooldown() *NPCTemplateUpdate {
 	return _u
 }
 
+// SetRoamPattern sets the "roam_pattern" field.
+func (_u *NPCTemplateUpdate) SetRoamPattern(v npctemplate.RoamPattern) *NPCTemplateUpdate {
+	_u.mutation.SetRoamPattern(v)
+	return _u
+}
+
+// SetNillableRoamPattern sets the "roam_pattern" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableRoamPattern(v *npctemplate.RoamPattern) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetRoamPattern(*v)
+	}
+	return _u
+}
+
+// SetRoamZoneIds sets the "roam_zone_ids" field.
+func (_u *NPCTemplateUpdate) SetRoamZoneIds(v []string) *NPCTemplateUpdate {
+	_u.mutation.SetRoamZoneIds(v)
+	return _u
+}
+
+// AppendRoamZoneIds appends value to the "roam_zone_ids" field.
+func (_u *NPCTemplateUpdate) AppendRoamZoneIds(v []string) *NPCTemplateUpdate {
+	_u.mutation.AppendRoamZoneIds(v)
+	return _u
+}
+
+// ClearRoamZoneIds clears the value of the "roam_zone_ids" field.
+func (_u *NPCTemplateUpdate) ClearRoamZoneIds() *NPCTemplateUpdate {
+	_u.mutation.ClearRoamZoneIds()
+	return _u
+}
+
+// SetRoamIntervalSeconds sets the "roam_interval_seconds" field.
+func (_u *NPCTemplateUpdate) SetRoamIntervalSeconds(v int) *NPCTemplateUpdate {
+	_u.mutation.ResetRoamIntervalSeconds()
+	_u.mutation.SetRoamIntervalSeconds(v)
+	return _u
+}
+
+// SetNillableRoamIntervalSeconds sets the "roam_interval_seconds" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableRoamIntervalSeconds(v *int) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetRoamIntervalSeconds(*v)
+	}
+	return _u
+}
+
+// AddRoamIntervalSeconds adds value to the "roam_interval_seconds" field.
+func (_u *NPCTemplateUpdate) AddRoamIntervalSeconds(v int) *NPCTemplateUpdate {
+	_u.mutation.AddRoamIntervalSeconds(v)
+	return _u
+}
+
+// ClearRoamIntervalSeconds clears the value of the "roam_interval_seconds" field.
+func (_u *NPCTemplateUpdate) ClearRoamIntervalSeconds() *NPCTemplateUpdate {
+	_u.mutation.ClearRoamIntervalSeconds()
+	return _u
+}
+
+// SetRoamPauseMinSeconds sets the "roam_pause_min_seconds" field.
+func (_u *NPCTemplateUpdate) SetRoamPauseMinSeconds(v int) *NPCTemplateUpdate {
+	_u.mutation.ResetRoamPauseMinSeconds()
+	_u.mutation.SetRoamPauseMinSeconds(v)
+	return _u
+}
+
+// SetNillableRoamPauseMinSeconds sets the "roam_pause_min_seconds" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableRoamPauseMinSeconds(v *int) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetRoamPauseMinSeconds(*v)
+	}
+	return _u
+}
+
+// AddRoamPauseMinSeconds adds value to the "roam_pause_min_seconds" field.
+func (_u *NPCTemplateUpdate) AddRoamPauseMinSeconds(v int) *NPCTemplateUpdate {
+	_u.mutation.AddRoamPauseMinSeconds(v)
+	return _u
+}
+
+// ClearRoamPauseMinSeconds clears the value of the "roam_pause_min_seconds" field.
+func (_u *NPCTemplateUpdate) ClearRoamPauseMinSeconds() *NPCTemplateUpdate {
+	_u.mutation.ClearRoamPauseMinSeconds()
+	return _u
+}
+
+// SetRoamPauseMaxSeconds sets the "roam_pause_max_seconds" field.
+func (_u *NPCTemplateUpdate) SetRoamPauseMaxSeconds(v int) *NPCTemplateUpdate {
+	_u.mutation.ResetRoamPauseMaxSeconds()
+	_u.mutation.SetRoamPauseMaxSeconds(v)
+	return _u
+}
+
+// SetNillableRoamPauseMaxSeconds sets the "roam_pause_max_seconds" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableRoamPauseMaxSeconds(v *int) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetRoamPauseMaxSeconds(*v)
+	}
+	return _u
+}
+
+// AddRoamPauseMaxSeconds adds value to the "roam_pause_max_seconds" field.
+func (_u *NPCTemplateUpdate) AddRoamPauseMaxSeconds(v int) *NPCTemplateUpdate {
+	_u.mutation.AddRoamPauseMaxSeconds(v)
+	return _u
+}
+
+// ClearRoamPauseMaxSeconds clears the value of the "roam_pause_max_seconds" field.
+func (_u *NPCTemplateUpdate) ClearRoamPauseMaxSeconds() *NPCTemplateUpdate {
+	_u.mutation.ClearRoamPauseMaxSeconds()
+	return _u
+}
+
+// SetLastMovedAt sets the "last_moved_at" field.
+func (_u *NPCTemplateUpdate) SetLastMovedAt(v time.Time) *NPCTemplateUpdate {
+	_u.mutation.SetLastMovedAt(v)
+	return _u
+}
+
+// SetNillableLastMovedAt sets the "last_moved_at" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableLastMovedAt(v *time.Time) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetLastMovedAt(*v)
+	}
+	return _u
+}
+
+// ClearLastMovedAt clears the value of the "last_moved_at" field.
+func (_u *NPCTemplateUpdate) ClearLastMovedAt() *NPCTemplateUpdate {
+	_u.mutation.ClearLastMovedAt()
+	return _u
+}
+
+// SetNotifyOnEnter sets the "notify_on_enter" field.
+func (_u *NPCTemplateUpdate) SetNotifyOnEnter(v bool) *NPCTemplateUpdate {
+	_u.mutation.SetNotifyOnEnter(v)
+	return _u
+}
+
+// SetNillableNotifyOnEnter sets the "notify_on_enter" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableNotifyOnEnter(v *bool) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetNotifyOnEnter(*v)
+	}
+	return _u
+}
+
+// ClearNotifyOnEnter clears the value of the "notify_on_enter" field.
+func (_u *NPCTemplateUpdate) ClearNotifyOnEnter() *NPCTemplateUpdate {
+	_u.mutation.ClearNotifyOnEnter()
+	return _u
+}
+
 // AddNpcAbilityIDs adds the "npc_abilities" edge to the NPCAbility entity by IDs.
 func (_u *NPCTemplateUpdate) AddNpcAbilityIDs(ids ...int) *NPCTemplateUpdate {
 	_u.mutation.AddNpcAbilityIDs(ids...)
@@ -442,6 +596,11 @@ func (_u *NPCTemplateUpdate) check() error {
 			return &ValidationError{Name: "disposition", err: fmt.Errorf(`db: validator failed for field "NPCTemplate.disposition": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.RoamPattern(); ok {
+		if err := npctemplate.RoamPatternValidator(v); err != nil {
+			return &ValidationError{Name: "roam_pattern", err: fmt.Errorf(`db: validator failed for field "NPCTemplate.roam_pattern": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -520,6 +679,59 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if _u.mutation.RespawnCooldownCleared() {
 		_spec.ClearField(npctemplate.FieldRespawnCooldown, field.TypeInt)
+	}
+	if value, ok := _u.mutation.RoamPattern(); ok {
+		_spec.SetField(npctemplate.FieldRoamPattern, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.RoamZoneIds(); ok {
+		_spec.SetField(npctemplate.FieldRoamZoneIds, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedRoamZoneIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, npctemplate.FieldRoamZoneIds, value)
+		})
+	}
+	if _u.mutation.RoamZoneIdsCleared() {
+		_spec.ClearField(npctemplate.FieldRoamZoneIds, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.RoamIntervalSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRoamIntervalSeconds(); ok {
+		_spec.AddField(npctemplate.FieldRoamIntervalSeconds, field.TypeInt, value)
+	}
+	if _u.mutation.RoamIntervalSecondsCleared() {
+		_spec.ClearField(npctemplate.FieldRoamIntervalSeconds, field.TypeInt)
+	}
+	if value, ok := _u.mutation.RoamPauseMinSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamPauseMinSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRoamPauseMinSeconds(); ok {
+		_spec.AddField(npctemplate.FieldRoamPauseMinSeconds, field.TypeInt, value)
+	}
+	if _u.mutation.RoamPauseMinSecondsCleared() {
+		_spec.ClearField(npctemplate.FieldRoamPauseMinSeconds, field.TypeInt)
+	}
+	if value, ok := _u.mutation.RoamPauseMaxSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamPauseMaxSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRoamPauseMaxSeconds(); ok {
+		_spec.AddField(npctemplate.FieldRoamPauseMaxSeconds, field.TypeInt, value)
+	}
+	if _u.mutation.RoamPauseMaxSecondsCleared() {
+		_spec.ClearField(npctemplate.FieldRoamPauseMaxSeconds, field.TypeInt)
+	}
+	if value, ok := _u.mutation.LastMovedAt(); ok {
+		_spec.SetField(npctemplate.FieldLastMovedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastMovedAtCleared() {
+		_spec.ClearField(npctemplate.FieldLastMovedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.NotifyOnEnter(); ok {
+		_spec.SetField(npctemplate.FieldNotifyOnEnter, field.TypeBool, value)
+	}
+	if _u.mutation.NotifyOnEnterCleared() {
+		_spec.ClearField(npctemplate.FieldNotifyOnEnter, field.TypeBool)
 	}
 	if _u.mutation.NpcAbilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -965,6 +1177,159 @@ func (_u *NPCTemplateUpdateOne) ClearRespawnCooldown() *NPCTemplateUpdateOne {
 	return _u
 }
 
+// SetRoamPattern sets the "roam_pattern" field.
+func (_u *NPCTemplateUpdateOne) SetRoamPattern(v npctemplate.RoamPattern) *NPCTemplateUpdateOne {
+	_u.mutation.SetRoamPattern(v)
+	return _u
+}
+
+// SetNillableRoamPattern sets the "roam_pattern" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableRoamPattern(v *npctemplate.RoamPattern) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetRoamPattern(*v)
+	}
+	return _u
+}
+
+// SetRoamZoneIds sets the "roam_zone_ids" field.
+func (_u *NPCTemplateUpdateOne) SetRoamZoneIds(v []string) *NPCTemplateUpdateOne {
+	_u.mutation.SetRoamZoneIds(v)
+	return _u
+}
+
+// AppendRoamZoneIds appends value to the "roam_zone_ids" field.
+func (_u *NPCTemplateUpdateOne) AppendRoamZoneIds(v []string) *NPCTemplateUpdateOne {
+	_u.mutation.AppendRoamZoneIds(v)
+	return _u
+}
+
+// ClearRoamZoneIds clears the value of the "roam_zone_ids" field.
+func (_u *NPCTemplateUpdateOne) ClearRoamZoneIds() *NPCTemplateUpdateOne {
+	_u.mutation.ClearRoamZoneIds()
+	return _u
+}
+
+// SetRoamIntervalSeconds sets the "roam_interval_seconds" field.
+func (_u *NPCTemplateUpdateOne) SetRoamIntervalSeconds(v int) *NPCTemplateUpdateOne {
+	_u.mutation.ResetRoamIntervalSeconds()
+	_u.mutation.SetRoamIntervalSeconds(v)
+	return _u
+}
+
+// SetNillableRoamIntervalSeconds sets the "roam_interval_seconds" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableRoamIntervalSeconds(v *int) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetRoamIntervalSeconds(*v)
+	}
+	return _u
+}
+
+// AddRoamIntervalSeconds adds value to the "roam_interval_seconds" field.
+func (_u *NPCTemplateUpdateOne) AddRoamIntervalSeconds(v int) *NPCTemplateUpdateOne {
+	_u.mutation.AddRoamIntervalSeconds(v)
+	return _u
+}
+
+// ClearRoamIntervalSeconds clears the value of the "roam_interval_seconds" field.
+func (_u *NPCTemplateUpdateOne) ClearRoamIntervalSeconds() *NPCTemplateUpdateOne {
+	_u.mutation.ClearRoamIntervalSeconds()
+	return _u
+}
+
+// SetRoamPauseMinSeconds sets the "roam_pause_min_seconds" field.
+func (_u *NPCTemplateUpdateOne) SetRoamPauseMinSeconds(v int) *NPCTemplateUpdateOne {
+	_u.mutation.ResetRoamPauseMinSeconds()
+	_u.mutation.SetRoamPauseMinSeconds(v)
+	return _u
+}
+
+// SetNillableRoamPauseMinSeconds sets the "roam_pause_min_seconds" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableRoamPauseMinSeconds(v *int) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetRoamPauseMinSeconds(*v)
+	}
+	return _u
+}
+
+// AddRoamPauseMinSeconds adds value to the "roam_pause_min_seconds" field.
+func (_u *NPCTemplateUpdateOne) AddRoamPauseMinSeconds(v int) *NPCTemplateUpdateOne {
+	_u.mutation.AddRoamPauseMinSeconds(v)
+	return _u
+}
+
+// ClearRoamPauseMinSeconds clears the value of the "roam_pause_min_seconds" field.
+func (_u *NPCTemplateUpdateOne) ClearRoamPauseMinSeconds() *NPCTemplateUpdateOne {
+	_u.mutation.ClearRoamPauseMinSeconds()
+	return _u
+}
+
+// SetRoamPauseMaxSeconds sets the "roam_pause_max_seconds" field.
+func (_u *NPCTemplateUpdateOne) SetRoamPauseMaxSeconds(v int) *NPCTemplateUpdateOne {
+	_u.mutation.ResetRoamPauseMaxSeconds()
+	_u.mutation.SetRoamPauseMaxSeconds(v)
+	return _u
+}
+
+// SetNillableRoamPauseMaxSeconds sets the "roam_pause_max_seconds" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableRoamPauseMaxSeconds(v *int) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetRoamPauseMaxSeconds(*v)
+	}
+	return _u
+}
+
+// AddRoamPauseMaxSeconds adds value to the "roam_pause_max_seconds" field.
+func (_u *NPCTemplateUpdateOne) AddRoamPauseMaxSeconds(v int) *NPCTemplateUpdateOne {
+	_u.mutation.AddRoamPauseMaxSeconds(v)
+	return _u
+}
+
+// ClearRoamPauseMaxSeconds clears the value of the "roam_pause_max_seconds" field.
+func (_u *NPCTemplateUpdateOne) ClearRoamPauseMaxSeconds() *NPCTemplateUpdateOne {
+	_u.mutation.ClearRoamPauseMaxSeconds()
+	return _u
+}
+
+// SetLastMovedAt sets the "last_moved_at" field.
+func (_u *NPCTemplateUpdateOne) SetLastMovedAt(v time.Time) *NPCTemplateUpdateOne {
+	_u.mutation.SetLastMovedAt(v)
+	return _u
+}
+
+// SetNillableLastMovedAt sets the "last_moved_at" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableLastMovedAt(v *time.Time) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetLastMovedAt(*v)
+	}
+	return _u
+}
+
+// ClearLastMovedAt clears the value of the "last_moved_at" field.
+func (_u *NPCTemplateUpdateOne) ClearLastMovedAt() *NPCTemplateUpdateOne {
+	_u.mutation.ClearLastMovedAt()
+	return _u
+}
+
+// SetNotifyOnEnter sets the "notify_on_enter" field.
+func (_u *NPCTemplateUpdateOne) SetNotifyOnEnter(v bool) *NPCTemplateUpdateOne {
+	_u.mutation.SetNotifyOnEnter(v)
+	return _u
+}
+
+// SetNillableNotifyOnEnter sets the "notify_on_enter" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableNotifyOnEnter(v *bool) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetNotifyOnEnter(*v)
+	}
+	return _u
+}
+
+// ClearNotifyOnEnter clears the value of the "notify_on_enter" field.
+func (_u *NPCTemplateUpdateOne) ClearNotifyOnEnter() *NPCTemplateUpdateOne {
+	_u.mutation.ClearNotifyOnEnter()
+	return _u
+}
+
 // AddNpcAbilityIDs adds the "npc_abilities" edge to the NPCAbility entity by IDs.
 func (_u *NPCTemplateUpdateOne) AddNpcAbilityIDs(ids ...int) *NPCTemplateUpdateOne {
 	_u.mutation.AddNpcAbilityIDs(ids...)
@@ -1172,6 +1537,11 @@ func (_u *NPCTemplateUpdateOne) check() error {
 			return &ValidationError{Name: "disposition", err: fmt.Errorf(`db: validator failed for field "NPCTemplate.disposition": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.RoamPattern(); ok {
+		if err := npctemplate.RoamPatternValidator(v); err != nil {
+			return &ValidationError{Name: "roam_pattern", err: fmt.Errorf(`db: validator failed for field "NPCTemplate.roam_pattern": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1267,6 +1637,59 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 	}
 	if _u.mutation.RespawnCooldownCleared() {
 		_spec.ClearField(npctemplate.FieldRespawnCooldown, field.TypeInt)
+	}
+	if value, ok := _u.mutation.RoamPattern(); ok {
+		_spec.SetField(npctemplate.FieldRoamPattern, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.RoamZoneIds(); ok {
+		_spec.SetField(npctemplate.FieldRoamZoneIds, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedRoamZoneIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, npctemplate.FieldRoamZoneIds, value)
+		})
+	}
+	if _u.mutation.RoamZoneIdsCleared() {
+		_spec.ClearField(npctemplate.FieldRoamZoneIds, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.RoamIntervalSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamIntervalSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRoamIntervalSeconds(); ok {
+		_spec.AddField(npctemplate.FieldRoamIntervalSeconds, field.TypeInt, value)
+	}
+	if _u.mutation.RoamIntervalSecondsCleared() {
+		_spec.ClearField(npctemplate.FieldRoamIntervalSeconds, field.TypeInt)
+	}
+	if value, ok := _u.mutation.RoamPauseMinSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamPauseMinSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRoamPauseMinSeconds(); ok {
+		_spec.AddField(npctemplate.FieldRoamPauseMinSeconds, field.TypeInt, value)
+	}
+	if _u.mutation.RoamPauseMinSecondsCleared() {
+		_spec.ClearField(npctemplate.FieldRoamPauseMinSeconds, field.TypeInt)
+	}
+	if value, ok := _u.mutation.RoamPauseMaxSeconds(); ok {
+		_spec.SetField(npctemplate.FieldRoamPauseMaxSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRoamPauseMaxSeconds(); ok {
+		_spec.AddField(npctemplate.FieldRoamPauseMaxSeconds, field.TypeInt, value)
+	}
+	if _u.mutation.RoamPauseMaxSecondsCleared() {
+		_spec.ClearField(npctemplate.FieldRoamPauseMaxSeconds, field.TypeInt)
+	}
+	if value, ok := _u.mutation.LastMovedAt(); ok {
+		_spec.SetField(npctemplate.FieldLastMovedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastMovedAtCleared() {
+		_spec.ClearField(npctemplate.FieldLastMovedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.NotifyOnEnter(); ok {
+		_spec.SetField(npctemplate.FieldNotifyOnEnter, field.TypeBool, value)
+	}
+	if _u.mutation.NotifyOnEnterCleared() {
+		_spec.ClearField(npctemplate.FieldNotifyOnEnter, field.TypeBool)
 	}
 	if _u.mutation.NpcAbilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{

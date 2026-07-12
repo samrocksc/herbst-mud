@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/constants"
@@ -12,6 +13,17 @@ import (
 	"herbst-server/db/tag"
 	"herbst-server/repository"
 )
+
+// isUniqueRaceNameViolation reports whether err is the Postgres unique-index
+// race_name_world_id collision on the races table. Used to translate raw pq
+// errors into a friendly 409 response.
+func isUniqueRaceNameViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "race_name_world_id") || strings.Contains(msg, "duplicate key value")
+}
 
 // createRace creates a new race in the specified world.
 func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc {
@@ -40,8 +52,18 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			return
 		}
 
+		// Normalize world_id: empty / "default" / non-numeric values are treated
+		// as world 1 (dev default). Matches listRaces behavior at race_list.go:38-40
+		// and prevents the "race appears in world X but not in the world the user
+		// picked" silent-leak class of bugs.
+		worldID := strings.TrimSpace(req.WorldID)
+		if worldID == "" || worldID == "default" {
+			worldID = "1"
+		}
+		req.WorldID = worldID
+
 		// Check for duplicate name in this world
-		existing, err := repos.Race.GetByName(c.Request.Context(), req.Name, req.WorldID)
+		existing, err := repos.Race.GetByName(c.Request.Context(), req.Name, worldID)
 		if err == nil && existing != nil {
 			c.JSON(http.StatusConflict, gin.H{"error": "a race with this name already exists in this world"})
 			return
@@ -72,9 +94,17 @@ func createRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			Color:           req.Color,
 			EquipmentSlots:  req.EquipmentSlots,
 			TagIDs:          tagIDs,
+			WorldID:         worldID,
 		})
 		if err != nil {
-			dblog.Error("failed to create race", err, slog.String("service", "races"), slog.String("world_id", req.WorldID))
+			// Map a unique-constraint violation (race_name_world_id) to a 409
+			// with a friendly message instead of leaking the raw pq error.
+			if isUniqueRaceNameViolation(err) {
+				slog.Warn("race duplicate", slog.String("service", "races"), slog.String("race_name", req.Name), slog.String("world_id", worldID))
+				c.JSON(http.StatusConflict, gin.H{"error": "a race with this name already exists in this world"})
+				return
+			}
+			dblog.Error("failed to create race", err, slog.String("service", "races"), slog.String("world_id", worldID))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

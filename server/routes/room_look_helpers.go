@@ -2,6 +2,7 @@ package routes
 
 import (
 	"slices"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
@@ -9,7 +10,21 @@ import (
 
 // partitionCharacters splits characters into NPC and player lists.
 func partitionCharacters(c *gin.Context, characters []*db.Character) (npcs, players []interface{}) {
+	userID, exists := c.Get("user_id")
+	var currentUserID int
+	if exists {
+		if uid, ok := userID.(uint); ok {
+			currentUserID = int(uid)
+		}
+	}
+
 	for _, ch := range characters {
+		if !ch.IsNPC {
+			if (currentUserID != 0 && ch.Edges.User != nil && ch.Edges.User.ID == currentUserID) ||
+				ch.LastSeenAt == nil || time.Since(*ch.LastSeenAt) > 2*time.Minute {
+				continue
+			}
+		}
 		entry := map[string]interface{}{
 			"id":    ch.ID,
 			"name":  ch.Name,

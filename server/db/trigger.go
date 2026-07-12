@@ -25,9 +25,11 @@ type Trigger struct {
 	WorldID string `json:"world_id,omitempty"`
 	// use|touch|press|enter|examine - what action triggers this
 	TriggerType string `json:"trigger_type,omitempty"`
+	// For examine-type triggers, the player level required to see this trigger. 0 = always show.
+	ExamineWeight int `json:"examine_weight,omitempty"`
 	// recipe|effect|dialog_node - what gets executed
 	TargetType string `json:"target_type,omitempty"`
-	// FK to target entity (recipe name, effect id, dialog_node id)
+	// FK to target entity (recipe id, effect id, dialog_node id). NULL for triggers that don't target a specific entity (e.g. notification-only).
 	TargetID int `json:"target_id,omitempty"`
 	// FK to Room - trigger fires when interacting with room objects
 	RoomID *int `json:"room_id,omitempty"`
@@ -99,7 +101,7 @@ func (*Trigger) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case trigger.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case trigger.FieldID, trigger.FieldTargetID, trigger.FieldRoomID, trigger.FieldEquipmentID:
+		case trigger.FieldID, trigger.FieldExamineWeight, trigger.FieldTargetID, trigger.FieldRoomID, trigger.FieldEquipmentID:
 			values[i] = new(sql.NullInt64)
 		case trigger.FieldName, trigger.FieldWorldID, trigger.FieldTriggerType, trigger.FieldTargetType, trigger.FieldCondition:
 			values[i] = new(sql.NullString)
@@ -147,6 +149,12 @@ func (_m *Trigger) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field trigger_type", values[i])
 			} else if value.Valid {
 				_m.TriggerType = value.String
+			}
+		case trigger.FieldExamineWeight:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field examine_weight", values[i])
+			} else if value.Valid {
+				_m.ExamineWeight = int(value.Int64)
 			}
 		case trigger.FieldTargetType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -266,6 +274,9 @@ func (_m *Trigger) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("trigger_type=")
 	builder.WriteString(_m.TriggerType)
+	builder.WriteString(", ")
+	builder.WriteString("examine_weight=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ExamineWeight))
 	builder.WriteString(", ")
 	builder.WriteString("target_type=")
 	builder.WriteString(_m.TargetType)

@@ -78,8 +78,14 @@ type Tx struct {
 	Race *RaceClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
+	// ShopItem is the client for interacting with the ShopItem builders.
+	ShopItem *ShopItemClient
+	// ShopTemplate is the client for interacting with the ShopTemplate builders.
+	ShopTemplate *ShopTemplateClient
 	// SocialCommand is the client for interacting with the SocialCommand builders.
 	SocialCommand *SocialCommandClient
+	// SystemLog is the client for interacting with the SystemLog builders.
+	SystemLog *SystemLogClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// TellQueue is the client for interacting with the TellQueue builders.
@@ -90,6 +96,8 @@ type Tx struct {
 	User *UserClient
 	// World is the client for interacting with the World builders.
 	World *WorldClient
+	// Zone is the client for interacting with the Zone builders.
+	Zone *ZoneClient
 
 	// lazily loaded.
 	client     *Client
@@ -254,12 +262,16 @@ func (tx *Tx) init() {
 	tx.QuestProgress = NewQuestProgressClient(tx.config)
 	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
+	tx.ShopItem = NewShopItemClient(tx.config)
+	tx.ShopTemplate = NewShopTemplateClient(tx.config)
 	tx.SocialCommand = NewSocialCommandClient(tx.config)
+	tx.SystemLog = NewSystemLogClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.TellQueue = NewTellQueueClient(tx.config)
 	tx.Trigger = NewTriggerClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.World = NewWorldClient(tx.config)
+	tx.Zone = NewZoneClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

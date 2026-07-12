@@ -9,6 +9,7 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/equipment"
 	"herbst-server/db/room"
+	"herbst-server/db/zone"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -157,6 +158,12 @@ func (_c *RoomCreate) SetTags(v []string) *RoomCreate {
 	return _c
 }
 
+// SetZoneIds sets the "zone_ids" field.
+func (_c *RoomCreate) SetZoneIds(v []string) *RoomCreate {
+	_c.mutation.SetZoneIds(v)
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_c *RoomCreate) AddCharacterIDs(ids ...int) *RoomCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -185,6 +192,21 @@ func (_c *RoomCreate) AddEquipment(v ...*Equipment) *RoomCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddEquipmentIDs(ids...)
+}
+
+// AddZoneIDs adds the "zones" edge to the Zone entity by IDs.
+func (_c *RoomCreate) AddZoneIDs(ids ...string) *RoomCreate {
+	_c.mutation.AddZoneIDs(ids...)
+	return _c
+}
+
+// AddZones adds the "zones" edges to the Zone entity.
+func (_c *RoomCreate) AddZones(v ...*Zone) *RoomCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddZoneIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -361,6 +383,10 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 		_spec.SetField(room.FieldTags, field.TypeJSON, value)
 		_node.Tags = value
 	}
+	if value, ok := _c.mutation.ZoneIds(); ok {
+		_spec.SetField(room.FieldZoneIds, field.TypeJSON, value)
+		_node.ZoneIds = value
+	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -386,6 +412,22 @@ func (_c *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ZonesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   room.ZonesTable,
+			Columns: room.ZonesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(zone.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

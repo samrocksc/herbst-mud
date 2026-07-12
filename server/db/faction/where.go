@@ -354,6 +354,26 @@ func MemberTagsNotNil() predicate.Faction {
 	return predicate.Faction(sql.FieldNotNull(FieldMemberTags))
 }
 
+// StatBonusesIsNil applies the IsNil predicate on the "stat_bonuses" field.
+func StatBonusesIsNil() predicate.Faction {
+	return predicate.Faction(sql.FieldIsNull(FieldStatBonuses))
+}
+
+// StatBonusesNotNil applies the NotNil predicate on the "stat_bonuses" field.
+func StatBonusesNotNil() predicate.Faction {
+	return predicate.Faction(sql.FieldNotNull(FieldStatBonuses))
+}
+
+// SpecialtiesIsNil applies the IsNil predicate on the "specialties" field.
+func SpecialtiesIsNil() predicate.Faction {
+	return predicate.Faction(sql.FieldIsNull(FieldSpecialties))
+}
+
+// SpecialtiesNotNil applies the NotNil predicate on the "specialties" field.
+func SpecialtiesNotNil() predicate.Faction {
+	return predicate.Faction(sql.FieldNotNull(FieldSpecialties))
+}
+
 // HasCategory applies the HasEdge predicate on the "category" edge.
 func HasCategory() predicate.Faction {
 	return predicate.Faction(func(s *sql.Selector) {

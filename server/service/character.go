@@ -9,7 +9,9 @@ import (
 	"herbst-server/constants"
 	"herbst-server/db"
 	"herbst-server/db/ability"
+	"herbst-server/db/factioncategory"
 	"herbst-server/db/room"
+	"herbst-server/db/schema"
 	"herbst-server/dbinit"
 	"herbst-server/repository"
 
@@ -86,18 +88,27 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	}
 	gen := genderObj.Name
 	// Class defaults to "survivor" if not provided or invalid (backwards compatibility).
+	// Validate against DB: a faction with name=class in a "class" category for this world.
 	class := "survivor"
+	specialty := "generalist"
 	if input.Class != "" {
-		if constants.IsValidClass(input.Class) {
+		if classFaction, err := s.getClassFactionByName(ctx, input.Class, input.WorldID); err == nil && classFaction != nil {
 			class = input.Class
+			if len(classFaction.Specialties) > 0 {
+				specialty = classFaction.Specialties[0].ID
+			}
 		}
 	}
-	classConfig := constants.GetClassConfig(class, "")
-	baseStrength := constants.DefaultStats.Strength + classConfig.StatBonuses.Strength
-	baseDexterity := constants.DefaultStats.Dexterity + classConfig.StatBonuses.Dexterity
-	baseConstitution := constants.DefaultStats.Constitution + classConfig.StatBonuses.Constitution
-	baseIntelligence := constants.DefaultStats.Intelligence + classConfig.StatBonuses.Intelligence
-	baseWisdom := constants.DefaultStats.Wisdom + classConfig.StatBonuses.Wisdom
+	// Get stat bonuses from the DB faction for this class.
+	var statBonuses schema.StatBonuses
+	if classFaction, err := s.getClassFactionByName(ctx, class, input.WorldID); err == nil && classFaction != nil {
+		statBonuses = classFaction.StatBonuses
+	}
+	baseStrength := constants.DefaultStats.Strength + statBonuses.Strength
+	baseDexterity := constants.DefaultStats.Dexterity + statBonuses.Dexterity
+	baseConstitution := constants.DefaultStats.Constitution + statBonuses.Constitution
+	baseIntelligence := constants.DefaultStats.Intelligence + statBonuses.Intelligence
+	baseWisdom := constants.DefaultStats.Wisdom + statBonuses.Wisdom
 	worldIntID := 0
 	if input.WorldID != "" {
 		worldObj, err := s.repos.World.GetByName(ctx, input.WorldID)
@@ -137,7 +148,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 		Gender:          gen,
 		Description:     input.Description,
 		Class:           class,
-		Specialty:       classConfig.Specialty,
+		Specialty:       specialty,
 		HP:              100,
 		MaxHP:           100,
 		Stamina:         50,
@@ -244,14 +255,25 @@ func (s *characterService) QueryCharacterByName(ctx context.Context, name string
 	return s.repos.Character.GetByName(ctx, name)
 }
 
-// isValidClass checks if the given class name is in the ValidClasses list.
-func isValidClass(class string) bool {
-	for _, c := range constants.ValidClasses {
-		if c == class {
-			return true
+// getClassFactionByName queries the DB for a faction with the given name in a
+// "class" faction category for the given world. Returns nil if not found.
+func (s *characterService) getClassFactionByName(ctx context.Context, name, worldID string) (*db.Faction, error) {
+	cat, err := s.client.FactionCategory.Query().
+		Where(
+			factioncategory.Name("class"),
+			factioncategory.WorldID(worldID),
+		).
+		WithFactions().
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range cat.Edges.Factions {
+		if f.Name == name {
+			return f, nil
 		}
 	}
-	return false
+	return nil, fmt.Errorf("class faction %q not found in world %q", name, worldID)
 }
 
 // equipDefaultAbilities queries abilities for the character's class and creates

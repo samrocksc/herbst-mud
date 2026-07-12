@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
@@ -35,7 +36,7 @@ func (rc *roomClient) getCharacters(c *gin.Context) {
 	}
 	characters, err := rc.db.Character.Query().
 		Where(character.CurrentRoomId(id)).
-		All(c.Request.Context())
+		WithUser().All(c.Request.Context())
 	if err != nil {
 		dblog.Error("Failed to get room characters", err, slog.String("service", "rooms"), slog.Int("room_id", id))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -55,7 +56,20 @@ func (rc *roomClient) getCharacters(c *gin.Context) {
 		LastSeenAt    string `json:"lastSeenAt,omitempty"`
 	}
 	result := make([]charView, 0, len(characters))
+
+	userID, _ := c.Get("user_id")
+	var currentUserID int
+	if uid, ok := userID.(uint); ok {
+		currentUserID = int(uid)
+	}
+
 	for _, ch := range characters {
+		if !ch.IsNPC {
+			if (currentUserID != 0 && ch.Edges.User != nil && ch.Edges.User.ID == currentUserID) ||
+				ch.LastSeenAt == nil || time.Since(*ch.LastSeenAt) > 2*time.Minute {
+				continue
+			}
+		}
 		cv := charView{
 			ID: ch.ID, Name: ch.Name, IsNPC: ch.IsNPC,
 			Level: ch.Level, Class: ch.Class, Race: ch.Race,
@@ -98,7 +112,7 @@ func (rc *roomClient) getLook(c *gin.Context) {
 	}
 	characters, _ := rc.db.Character.Query().
 		Where(character.CurrentRoomId(id)).
-		All(c.Request.Context())
+		WithUser().All(c.Request.Context())
 	npcs, players := partitionCharacters(c, characters)
 	equipments, _ := rc.db.Equipment.Query().All(c.Request.Context())
 	items := filterVisibleItems(equipments, id)

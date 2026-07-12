@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"herbst-server/dblog"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -23,6 +25,7 @@ func acceptQuest(svc *service.Container) gin.HandlerFunc {
 		}
 		result, err := svc.QuestProgress.Accept(c.Request.Context(), charID, input.QuestID)
 		if err != nil {
+			dblog.Error("accept quest failed", err, slog.String("service", "quests"))
 			switch {
 			case isNotFound(err):
 				c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})

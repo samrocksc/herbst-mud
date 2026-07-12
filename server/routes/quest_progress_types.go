@@ -16,6 +16,7 @@ type questProgressView struct {
 	ObjectiveCounts  map[string]int         `json:"objective_counts"`
 	QuestName        string                 `json:"quest_name,omitempty"`
 	RewardsApplied   map[string]interface{} `json:"rewards_applied,omitempty"`
+	Messages         []string               `json:"messages,omitempty"`
 }
 
 // questProgressToView converts a db.QuestProgress entity to a questProgressView.

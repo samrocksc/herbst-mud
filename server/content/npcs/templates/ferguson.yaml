@@ -1,0 +1,71 @@
+# Ferguson - The Junkyard Gorilla
+# Main antagonist, has kicked out Bort from the junkyard
+
+id: ferguson
+template_name: "Ferguson"
+description: "A massive gorilla who rules the junkyard with an iron fist"
+level: 15
+xp_value: 400
+classification: enemy
+
+stats:
+  strength: 30
+  dexterity: 14
+  constitution: 25
+  intelligence: 8
+  wisdom: 10
+  charisma: 6
+
+hp:
+  base: 250
+  con_multiplier: 15
+
+skills:
+  classless:
+    slot_1: haymaker
+    slot_2: slam
+
+ai:
+  type: warrior
+  aggression: aggressive
+  abilities:
+    - skill_id: haymaker
+      use_chance: 0.60
+      health_threshold_below: 0.50
+    - skill_id: slam
+      use_chance: 0.40
+      health_threshold_above: 0.30
+  speech:
+    greeting: "This is MY junkyard! Get out or get hurt!"
+    attack: "GRRRR! YOU DARE CHALLENGE ME?!"
+    defeat: "Grr... you're stronger than I thought..."
+    idle:
+      - "This junkyard is mine, and I'll keep it that way!"
+      - "No one messes with Ferguson and gets away with it!"
+
+loot:
+  - item_id: gizmo_scrap
+    chance: 0.80
+    count_min: 3
+    count_max: 8
+  - item_id: iron_ore
+    chance: 0.60
+    count_min: 2
+    count_max: 5
+  - item_id: health_potion
+    chance: 0.40
+    count_min: 1
+    count_max: 3
+  - item_id: junk_scrap
+    chance: 0.50
+    count_min: 1
+    count_max: 2
+
+visual:
+  appearance: "A hulking gorilla with scarred skin and piercing yellow eyes"
+  color: "#228B22"
+  icon: "🦍"
+
+flags:
+  - aggressive
+  - boss

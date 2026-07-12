@@ -1,0 +1,29 @@
+# Green XP Potion
+# Doubles XP gain for 30 minutes
+
+id: green_xp_potion
+name: "Green XP Potion"
+description: "A glowing green liquid that doubles XP gain for 30 minutes"
+type: consumable
+slot: none
+level_requirement: 1
+rarity: uncommon
+
+effects:
+  - type: apply_effect
+    effect:
+      effect_name: double_xp
+      duration: 1800
+
+visual:
+  icon: "🧪"
+  color: "#00FF00"
+
+value:
+  buy: 150
+  sell: 50
+
+uses: 1
+stackable: true
+max_stack: 5
+weight: 0.25

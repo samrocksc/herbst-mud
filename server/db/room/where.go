@@ -534,6 +534,16 @@ func TagsNotNil() predicate.Room {
 	return predicate.Room(sql.FieldNotNull(FieldTags))
 }
 
+// ZoneIdsIsNil applies the IsNil predicate on the "zone_ids" field.
+func ZoneIdsIsNil() predicate.Room {
+	return predicate.Room(sql.FieldIsNull(FieldZoneIds))
+}
+
+// ZoneIdsNotNil applies the NotNil predicate on the "zone_ids" field.
+func ZoneIdsNotNil() predicate.Room {
+	return predicate.Room(sql.FieldNotNull(FieldZoneIds))
+}
+
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
 func HasCharacters() predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
@@ -572,6 +582,29 @@ func HasEquipment() predicate.Room {
 func HasEquipmentWith(preds ...predicate.Equipment) predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
 		step := newEquipmentStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasZones applies the HasEdge predicate on the "zones" edge.
+func HasZones() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, ZonesTable, ZonesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasZonesWith applies the HasEdge predicate on the "zones" edge with a given conditions (other predicates).
+func HasZonesWith(preds ...predicate.Zone) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := newZonesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -22,6 +22,7 @@ type Container struct {
 	Effect             EffectService
 	Dialog             DialogService
 	Chat               ChatService
+	Zone               *ZoneService
 	Client             *db.Client
 }
 
@@ -40,11 +41,12 @@ func NewContainer(client *db.Client, repos *repository.Container, logger *slog.L
 		AbilityEligibility: abilityEligSvc,
 		Quest:             NewQuestService(repos.Quest, repos.QuestProgress),
 		QuestProgress:     NewQuestProgressService(repos.QuestProgress, repos.Quest, repos.Character),
-		Room:               NewRoomService(repos.Room, repos.Character, repos.Equipment, repos.NPCTemplate, repos.Tx),
+		Room:               NewRoomService(repos.Room, repos.Character, repos.Equipment, repos.NPCTemplate, repos.Tx, repos.Zone),
 		Combat:             NewCombatService(repos.Character, repos.DamageLog, repos.NPCTemplate, logger),
 		Ability:            NewAbilityService(repos.CharacterAbility, repos.Ability, repos.Character),
 		Chat:               NewChatService(repos.Character, repos.ChannelSubscription, repos.OfflineTell, repos.Ignore),
 		NPC:                NewNPCService(repos.NPCTemplate),
+		Zone:               NewZoneService(repos.Zone, repos.NPCTemplate),
 		Client:             client,
 	}
 }

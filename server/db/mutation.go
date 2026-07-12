@@ -50,6 +50,7 @@ import (
 	"herbst-server/db/trigger"
 	"herbst-server/db/user"
 	"herbst-server/db/world"
+	"herbst-server/db/zone"
 	"sync"
 	"time"
 
@@ -108,6 +109,7 @@ const (
 	TypeTrigger                  = "Trigger"
 	TypeUser                     = "User"
 	TypeWorld                    = "World"
+	TypeZone                     = "Zone"
 )
 
 // AbilityMutation represents an operation that mutates the Ability nodes in the graph.
@@ -139,8 +141,6 @@ type AbilityMutation struct {
 	proc_event           *string
 	cooldown_seconds     *int
 	addcooldown_seconds  *int
-	caster_message       *string
-	recipient_message    *string
 	clearedFields        map[string]struct{}
 	characters           map[int]struct{}
 	removedcharacters    map[int]struct{}
@@ -1024,104 +1024,6 @@ func (m *AbilityMutation) ResetCooldownSeconds() {
 	m.addcooldown_seconds = nil
 }
 
-// SetCasterMessage sets the "caster_message" field.
-func (m *AbilityMutation) SetCasterMessage(s string) {
-	m.caster_message = &s
-}
-
-// CasterMessage returns the value of the "caster_message" field in the mutation.
-func (m *AbilityMutation) CasterMessage() (r string, exists bool) {
-	v := m.caster_message
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCasterMessage returns the old "caster_message" field's value of the Ability entity.
-// If the Ability object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AbilityMutation) OldCasterMessage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCasterMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCasterMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCasterMessage: %w", err)
-	}
-	return oldValue.CasterMessage, nil
-}
-
-// ClearCasterMessage clears the value of the "caster_message" field.
-func (m *AbilityMutation) ClearCasterMessage() {
-	m.caster_message = nil
-	m.clearedFields[ability.FieldCasterMessage] = struct{}{}
-}
-
-// CasterMessageCleared returns if the "caster_message" field was cleared in this mutation.
-func (m *AbilityMutation) CasterMessageCleared() bool {
-	_, ok := m.clearedFields[ability.FieldCasterMessage]
-	return ok
-}
-
-// ResetCasterMessage resets all changes to the "caster_message" field.
-func (m *AbilityMutation) ResetCasterMessage() {
-	m.caster_message = nil
-	delete(m.clearedFields, ability.FieldCasterMessage)
-}
-
-// SetRecipientMessage sets the "recipient_message" field.
-func (m *AbilityMutation) SetRecipientMessage(s string) {
-	m.recipient_message = &s
-}
-
-// RecipientMessage returns the value of the "recipient_message" field in the mutation.
-func (m *AbilityMutation) RecipientMessage() (r string, exists bool) {
-	v := m.recipient_message
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRecipientMessage returns the old "recipient_message" field's value of the Ability entity.
-// If the Ability object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AbilityMutation) OldRecipientMessage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRecipientMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRecipientMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRecipientMessage: %w", err)
-	}
-	return oldValue.RecipientMessage, nil
-}
-
-// ClearRecipientMessage clears the value of the "recipient_message" field.
-func (m *AbilityMutation) ClearRecipientMessage() {
-	m.recipient_message = nil
-	m.clearedFields[ability.FieldRecipientMessage] = struct{}{}
-}
-
-// RecipientMessageCleared returns if the "recipient_message" field was cleared in this mutation.
-func (m *AbilityMutation) RecipientMessageCleared() bool {
-	_, ok := m.clearedFields[ability.FieldRecipientMessage]
-	return ok
-}
-
-// ResetRecipientMessage resets all changes to the "recipient_message" field.
-func (m *AbilityMutation) ResetRecipientMessage() {
-	m.recipient_message = nil
-	delete(m.clearedFields, ability.FieldRecipientMessage)
-}
-
 // AddCharacterIDs adds the "characters" edge to the CharacterAbility entity by ids.
 func (m *AbilityMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -1357,7 +1259,7 @@ func (m *AbilityMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AbilityMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 16)
 	if m.world_id != nil {
 		fields = append(fields, ability.FieldWorldID)
 	}
@@ -1406,12 +1308,6 @@ func (m *AbilityMutation) Fields() []string {
 	if m.cooldown_seconds != nil {
 		fields = append(fields, ability.FieldCooldownSeconds)
 	}
-	if m.caster_message != nil {
-		fields = append(fields, ability.FieldCasterMessage)
-	}
-	if m.recipient_message != nil {
-		fields = append(fields, ability.FieldRecipientMessage)
-	}
 	return fields
 }
 
@@ -1452,10 +1348,6 @@ func (m *AbilityMutation) Field(name string) (ent.Value, bool) {
 		return m.ProcEvent()
 	case ability.FieldCooldownSeconds:
 		return m.CooldownSeconds()
-	case ability.FieldCasterMessage:
-		return m.CasterMessage()
-	case ability.FieldRecipientMessage:
-		return m.RecipientMessage()
 	}
 	return nil, false
 }
@@ -1497,10 +1389,6 @@ func (m *AbilityMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldProcEvent(ctx)
 	case ability.FieldCooldownSeconds:
 		return m.OldCooldownSeconds(ctx)
-	case ability.FieldCasterMessage:
-		return m.OldCasterMessage(ctx)
-	case ability.FieldRecipientMessage:
-		return m.OldRecipientMessage(ctx)
 	}
 	return nil, fmt.Errorf("unknown Ability field %s", name)
 }
@@ -1621,20 +1509,6 @@ func (m *AbilityMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCooldownSeconds(v)
-		return nil
-	case ability.FieldCasterMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCasterMessage(v)
-		return nil
-	case ability.FieldRecipientMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRecipientMessage(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Ability field %s", name)
@@ -1765,12 +1639,6 @@ func (m *AbilityMutation) ClearedFields() []string {
 	if m.FieldCleared(ability.FieldProcEvent) {
 		fields = append(fields, ability.FieldProcEvent)
 	}
-	if m.FieldCleared(ability.FieldCasterMessage) {
-		fields = append(fields, ability.FieldCasterMessage)
-	}
-	if m.FieldCleared(ability.FieldRecipientMessage) {
-		fields = append(fields, ability.FieldRecipientMessage)
-	}
 	return fields
 }
 
@@ -1796,12 +1664,6 @@ func (m *AbilityMutation) ClearField(name string) error {
 		return nil
 	case ability.FieldProcEvent:
 		m.ClearProcEvent()
-		return nil
-	case ability.FieldCasterMessage:
-		m.ClearCasterMessage()
-		return nil
-	case ability.FieldRecipientMessage:
-		m.ClearRecipientMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown Ability nullable field %s", name)
@@ -1858,12 +1720,6 @@ func (m *AbilityMutation) ResetField(name string) error {
 		return nil
 	case ability.FieldCooldownSeconds:
 		m.ResetCooldownSeconds()
-		return nil
-	case ability.FieldCasterMessage:
-		m.ResetCasterMessage()
-		return nil
-	case ability.FieldRecipientMessage:
-		m.ResetRecipientMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown Ability field %s", name)
@@ -2041,7 +1897,6 @@ type AbilityEffectMutation struct {
 	addscaling_ratio *float64
 	sort_order       *int
 	addsort_order    *int
-	effect_message   *string
 	clearedFields    map[string]struct{}
 	ability          *int
 	clearedability   bool
@@ -2529,55 +2384,6 @@ func (m *AbilityEffectMutation) ResetSortOrder() {
 	m.addsort_order = nil
 }
 
-// SetEffectMessage sets the "effect_message" field.
-func (m *AbilityEffectMutation) SetEffectMessage(s string) {
-	m.effect_message = &s
-}
-
-// EffectMessage returns the value of the "effect_message" field in the mutation.
-func (m *AbilityEffectMutation) EffectMessage() (r string, exists bool) {
-	v := m.effect_message
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEffectMessage returns the old "effect_message" field's value of the AbilityEffect entity.
-// If the AbilityEffect object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AbilityEffectMutation) OldEffectMessage(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEffectMessage is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEffectMessage requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEffectMessage: %w", err)
-	}
-	return oldValue.EffectMessage, nil
-}
-
-// ClearEffectMessage clears the value of the "effect_message" field.
-func (m *AbilityEffectMutation) ClearEffectMessage() {
-	m.effect_message = nil
-	m.clearedFields[abilityeffect.FieldEffectMessage] = struct{}{}
-}
-
-// EffectMessageCleared returns if the "effect_message" field was cleared in this mutation.
-func (m *AbilityEffectMutation) EffectMessageCleared() bool {
-	_, ok := m.clearedFields[abilityeffect.FieldEffectMessage]
-	return ok
-}
-
-// ResetEffectMessage resets all changes to the "effect_message" field.
-func (m *AbilityEffectMutation) ResetEffectMessage() {
-	m.effect_message = nil
-	delete(m.clearedFields, abilityeffect.FieldEffectMessage)
-}
-
 // SetAbilityID sets the "ability" edge to the Ability entity by id.
 func (m *AbilityEffectMutation) SetAbilityID(id int) {
 	m.ability = &id
@@ -2651,7 +2457,7 @@ func (m *AbilityEffectMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AbilityEffectMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 8)
 	if m.effect_type != nil {
 		fields = append(fields, abilityeffect.FieldEffectType)
 	}
@@ -2675,9 +2481,6 @@ func (m *AbilityEffectMutation) Fields() []string {
 	}
 	if m.sort_order != nil {
 		fields = append(fields, abilityeffect.FieldSortOrder)
-	}
-	if m.effect_message != nil {
-		fields = append(fields, abilityeffect.FieldEffectMessage)
 	}
 	return fields
 }
@@ -2703,8 +2506,6 @@ func (m *AbilityEffectMutation) Field(name string) (ent.Value, bool) {
 		return m.ScalingRatio()
 	case abilityeffect.FieldSortOrder:
 		return m.SortOrder()
-	case abilityeffect.FieldEffectMessage:
-		return m.EffectMessage()
 	}
 	return nil, false
 }
@@ -2730,8 +2531,6 @@ func (m *AbilityEffectMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldScalingRatio(ctx)
 	case abilityeffect.FieldSortOrder:
 		return m.OldSortOrder(ctx)
-	case abilityeffect.FieldEffectMessage:
-		return m.OldEffectMessage(ctx)
 	}
 	return nil, fmt.Errorf("unknown AbilityEffect field %s", name)
 }
@@ -2796,13 +2595,6 @@ func (m *AbilityEffectMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSortOrder(v)
-		return nil
-	case abilityeffect.FieldEffectMessage:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEffectMessage(v)
 		return nil
 	}
 	return fmt.Errorf("unknown AbilityEffect field %s", name)
@@ -2888,9 +2680,6 @@ func (m *AbilityEffectMutation) ClearedFields() []string {
 	if m.FieldCleared(abilityeffect.FieldScalingStat) {
 		fields = append(fields, abilityeffect.FieldScalingStat)
 	}
-	if m.FieldCleared(abilityeffect.FieldEffectMessage) {
-		fields = append(fields, abilityeffect.FieldEffectMessage)
-	}
 	return fields
 }
 
@@ -2907,9 +2696,6 @@ func (m *AbilityEffectMutation) ClearField(name string) error {
 	switch name {
 	case abilityeffect.FieldScalingStat:
 		m.ClearScalingStat()
-		return nil
-	case abilityeffect.FieldEffectMessage:
-		m.ClearEffectMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown AbilityEffect nullable field %s", name)
@@ -2942,9 +2728,6 @@ func (m *AbilityEffectMutation) ResetField(name string) error {
 		return nil
 	case abilityeffect.FieldSortOrder:
 		m.ResetSortOrder()
-		return nil
-	case abilityeffect.FieldEffectMessage:
-		m.ResetEffectMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown AbilityEffect field %s", name)
@@ -21854,22 +21637,9 @@ func (m *EquipmentMutation) OldStats(ctx context.Context) (v map[string]int, err
 	return oldValue.Stats, nil
 }
 
-// ClearStats clears the value of the "stats" field.
-func (m *EquipmentMutation) ClearStats() {
-	m.stats = nil
-	m.clearedFields[equipment.FieldStats] = struct{}{}
-}
-
-// StatsCleared returns if the "stats" field was cleared in this mutation.
-func (m *EquipmentMutation) StatsCleared() bool {
-	_, ok := m.clearedFields[equipment.FieldStats]
-	return ok
-}
-
 // ResetStats resets all changes to the "stats" field.
 func (m *EquipmentMutation) ResetStats() {
 	m.stats = nil
-	delete(m.clearedFields, equipment.FieldStats)
 }
 
 // SetRarity sets the "rarity" field.
@@ -23176,9 +22946,6 @@ func (m *EquipmentMutation) ClearedFields() []string {
 	if m.FieldCleared(equipment.FieldExpiresAt) {
 		fields = append(fields, equipment.FieldExpiresAt)
 	}
-	if m.FieldCleared(equipment.FieldStats) {
-		fields = append(fields, equipment.FieldStats)
-	}
 	return fields
 }
 
@@ -23204,9 +22971,6 @@ func (m *EquipmentMutation) ClearField(name string) error {
 		return nil
 	case equipment.FieldExpiresAt:
 		m.ClearExpiresAt()
-		return nil
-	case equipment.FieldStats:
-		m.ClearStats()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment nullable field %s", name)
@@ -23557,6 +23321,12 @@ func (m EquipmentTemplateMutation) Tx() (*Tx, error) {
 	tx := &Tx{config: m.config}
 	tx.init()
 	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EquipmentTemplate entities.
+func (m *EquipmentTemplateMutation) SetID(id int) {
+	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
@@ -25930,6 +25700,9 @@ type FactionMutation struct {
 	description               *string
 	member_tags               *[]string
 	appendmember_tags         []string
+	stat_bonuses              *schema.StatBonuses
+	specialties               *[]schema.ClassSpecialty
+	appendspecialties         []schema.ClassSpecialty
 	clearedFields             map[string]struct{}
 	category                  *int
 	clearedcategory           bool
@@ -26267,6 +26040,120 @@ func (m *FactionMutation) ResetMemberTags() {
 	delete(m.clearedFields, faction.FieldMemberTags)
 }
 
+// SetStatBonuses sets the "stat_bonuses" field.
+func (m *FactionMutation) SetStatBonuses(sb schema.StatBonuses) {
+	m.stat_bonuses = &sb
+}
+
+// StatBonuses returns the value of the "stat_bonuses" field in the mutation.
+func (m *FactionMutation) StatBonuses() (r schema.StatBonuses, exists bool) {
+	v := m.stat_bonuses
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatBonuses returns the old "stat_bonuses" field's value of the Faction entity.
+// If the Faction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FactionMutation) OldStatBonuses(ctx context.Context) (v schema.StatBonuses, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatBonuses is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatBonuses requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatBonuses: %w", err)
+	}
+	return oldValue.StatBonuses, nil
+}
+
+// ClearStatBonuses clears the value of the "stat_bonuses" field.
+func (m *FactionMutation) ClearStatBonuses() {
+	m.stat_bonuses = nil
+	m.clearedFields[faction.FieldStatBonuses] = struct{}{}
+}
+
+// StatBonusesCleared returns if the "stat_bonuses" field was cleared in this mutation.
+func (m *FactionMutation) StatBonusesCleared() bool {
+	_, ok := m.clearedFields[faction.FieldStatBonuses]
+	return ok
+}
+
+// ResetStatBonuses resets all changes to the "stat_bonuses" field.
+func (m *FactionMutation) ResetStatBonuses() {
+	m.stat_bonuses = nil
+	delete(m.clearedFields, faction.FieldStatBonuses)
+}
+
+// SetSpecialties sets the "specialties" field.
+func (m *FactionMutation) SetSpecialties(ss []schema.ClassSpecialty) {
+	m.specialties = &ss
+	m.appendspecialties = nil
+}
+
+// Specialties returns the value of the "specialties" field in the mutation.
+func (m *FactionMutation) Specialties() (r []schema.ClassSpecialty, exists bool) {
+	v := m.specialties
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpecialties returns the old "specialties" field's value of the Faction entity.
+// If the Faction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FactionMutation) OldSpecialties(ctx context.Context) (v []schema.ClassSpecialty, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpecialties is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpecialties requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpecialties: %w", err)
+	}
+	return oldValue.Specialties, nil
+}
+
+// AppendSpecialties adds ss to the "specialties" field.
+func (m *FactionMutation) AppendSpecialties(ss []schema.ClassSpecialty) {
+	m.appendspecialties = append(m.appendspecialties, ss...)
+}
+
+// AppendedSpecialties returns the list of values that were appended to the "specialties" field in this mutation.
+func (m *FactionMutation) AppendedSpecialties() ([]schema.ClassSpecialty, bool) {
+	if len(m.appendspecialties) == 0 {
+		return nil, false
+	}
+	return m.appendspecialties, true
+}
+
+// ClearSpecialties clears the value of the "specialties" field.
+func (m *FactionMutation) ClearSpecialties() {
+	m.specialties = nil
+	m.appendspecialties = nil
+	m.clearedFields[faction.FieldSpecialties] = struct{}{}
+}
+
+// SpecialtiesCleared returns if the "specialties" field was cleared in this mutation.
+func (m *FactionMutation) SpecialtiesCleared() bool {
+	_, ok := m.clearedFields[faction.FieldSpecialties]
+	return ok
+}
+
+// ResetSpecialties resets all changes to the "specialties" field.
+func (m *FactionMutation) ResetSpecialties() {
+	m.specialties = nil
+	m.appendspecialties = nil
+	delete(m.clearedFields, faction.FieldSpecialties)
+}
+
 // SetCategoryID sets the "category" edge to the FactionCategory entity by id.
 func (m *FactionMutation) SetCategoryID(id int) {
 	m.category = &id
@@ -26502,7 +26389,7 @@ func (m *FactionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FactionMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, faction.FieldName)
 	}
@@ -26517,6 +26404,12 @@ func (m *FactionMutation) Fields() []string {
 	}
 	if m.member_tags != nil {
 		fields = append(fields, faction.FieldMemberTags)
+	}
+	if m.stat_bonuses != nil {
+		fields = append(fields, faction.FieldStatBonuses)
+	}
+	if m.specialties != nil {
+		fields = append(fields, faction.FieldSpecialties)
 	}
 	return fields
 }
@@ -26536,6 +26429,10 @@ func (m *FactionMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case faction.FieldMemberTags:
 		return m.MemberTags()
+	case faction.FieldStatBonuses:
+		return m.StatBonuses()
+	case faction.FieldSpecialties:
+		return m.Specialties()
 	}
 	return nil, false
 }
@@ -26555,6 +26452,10 @@ func (m *FactionMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDescription(ctx)
 	case faction.FieldMemberTags:
 		return m.OldMemberTags(ctx)
+	case faction.FieldStatBonuses:
+		return m.OldStatBonuses(ctx)
+	case faction.FieldSpecialties:
+		return m.OldSpecialties(ctx)
 	}
 	return nil, fmt.Errorf("unknown Faction field %s", name)
 }
@@ -26599,6 +26500,20 @@ func (m *FactionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetMemberTags(v)
 		return nil
+	case faction.FieldStatBonuses:
+		v, ok := value.(schema.StatBonuses)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatBonuses(v)
+		return nil
+	case faction.FieldSpecialties:
+		v, ok := value.([]schema.ClassSpecialty)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpecialties(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Faction field %s", name)
 }
@@ -26635,6 +26550,12 @@ func (m *FactionMutation) ClearedFields() []string {
 	if m.FieldCleared(faction.FieldMemberTags) {
 		fields = append(fields, faction.FieldMemberTags)
 	}
+	if m.FieldCleared(faction.FieldStatBonuses) {
+		fields = append(fields, faction.FieldStatBonuses)
+	}
+	if m.FieldCleared(faction.FieldSpecialties) {
+		fields = append(fields, faction.FieldSpecialties)
+	}
 	return fields
 }
 
@@ -26654,6 +26575,12 @@ func (m *FactionMutation) ClearField(name string) error {
 		return nil
 	case faction.FieldMemberTags:
 		m.ClearMemberTags()
+		return nil
+	case faction.FieldStatBonuses:
+		m.ClearStatBonuses()
+		return nil
+	case faction.FieldSpecialties:
+		m.ClearSpecialties()
 		return nil
 	}
 	return fmt.Errorf("unknown Faction nullable field %s", name)
@@ -26677,6 +26604,12 @@ func (m *FactionMutation) ResetField(name string) error {
 		return nil
 	case faction.FieldMemberTags:
 		m.ResetMemberTags()
+		return nil
+	case faction.FieldStatBonuses:
+		m.ResetStatBonuses()
+		return nil
+	case faction.FieldSpecialties:
+		m.ResetSpecialties()
 		return nil
 	}
 	return fmt.Errorf("unknown Faction field %s", name)
@@ -29630,47 +29563,55 @@ func (m *NPCAbilityMutation) ResetEdge(name string) error {
 // NPCTemplateMutation represents an operation that mutates the NPCTemplate nodes in the graph.
 type NPCTemplateMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *string
-	slug                 *string
-	world_id             *string
-	name                 *string
-	description          *string
-	disposition          *npctemplate.Disposition
-	level                *int
-	addlevel             *int
-	xp_value             *int
-	addxp_value          *int
-	skills               *map[string]int
-	trades_with          *[]string
-	appendtrades_with    []string
-	greeting             *string
-	respawn_rooms        *[]string
-	appendrespawn_rooms  []string
-	respawn_cooldown     *int
-	addrespawn_cooldown  *int
-	clearedFields        map[string]struct{}
-	npc_abilities        map[int]struct{}
-	removednpc_abilities map[int]struct{}
-	clearednpc_abilities bool
-	_hooks               map[int]struct{}
-	removed_hooks        map[int]struct{}
-	cleared_hooks        bool
-	dialog_nodes         map[string]struct{}
-	removeddialog_nodes  map[string]struct{}
-	cleareddialog_nodes  bool
-	triggers             map[int]struct{}
-	removedtriggers      map[int]struct{}
-	clearedtriggers      bool
-	characters           map[int]struct{}
-	removedcharacters    map[int]struct{}
-	clearedcharacters    bool
-	race                 *int
-	clearedrace          bool
-	done                 bool
-	oldValue             func(context.Context) (*NPCTemplate, error)
-	predicates           []predicate.NPCTemplate
+	op                        Op
+	typ                       string
+	id                        *string
+	slug                      *string
+	world_id                  *string
+	name                      *string
+	description               *string
+	disposition               *npctemplate.Disposition
+	level                     *int
+	addlevel                  *int
+	xp_value                  *int
+	addxp_value               *int
+	skills                    *map[string]int
+	trades_with               *[]string
+	appendtrades_with         []string
+	greeting                  *string
+	respawn_rooms             *[]string
+	appendrespawn_rooms       []string
+	respawn_cooldown          *int
+	addrespawn_cooldown       *int
+	roam_pattern              *npctemplate.RoamPattern
+	roam_zone_ids             *[]string
+	appendroam_zone_ids       []string
+	roam_interval_seconds     *int
+	addroam_interval_seconds  *int
+	roam_pause_min_seconds    *int
+	addroam_pause_min_seconds *int
+	roam_pause_max_seconds    *int
+	addroam_pause_max_seconds *int
+	last_moved_at             *time.Time
+	notify_on_enter           *bool
+	clearedFields             map[string]struct{}
+	npc_abilities             map[int]struct{}
+	removednpc_abilities      map[int]struct{}
+	clearednpc_abilities      bool
+	_hooks                    map[int]struct{}
+	removed_hooks             map[int]struct{}
+	cleared_hooks             bool
+	dialog_nodes              map[string]struct{}
+	removeddialog_nodes       map[string]struct{}
+	cleareddialog_nodes       bool
+	characters                map[int]struct{}
+	removedcharacters         map[int]struct{}
+	clearedcharacters         bool
+	race                      *int
+	clearedrace               bool
+	done                      bool
+	oldValue                  func(context.Context) (*NPCTemplate, error)
+	predicates                []predicate.NPCTemplate
 }
 
 var _ ent.Mutation = (*NPCTemplateMutation)(nil)
@@ -30389,6 +30330,415 @@ func (m *NPCTemplateMutation) ResetRespawnCooldown() {
 	delete(m.clearedFields, npctemplate.FieldRespawnCooldown)
 }
 
+// SetRoamPattern sets the "roam_pattern" field.
+func (m *NPCTemplateMutation) SetRoamPattern(np npctemplate.RoamPattern) {
+	m.roam_pattern = &np
+}
+
+// RoamPattern returns the value of the "roam_pattern" field in the mutation.
+func (m *NPCTemplateMutation) RoamPattern() (r npctemplate.RoamPattern, exists bool) {
+	v := m.roam_pattern
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoamPattern returns the old "roam_pattern" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldRoamPattern(ctx context.Context) (v npctemplate.RoamPattern, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoamPattern is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoamPattern requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoamPattern: %w", err)
+	}
+	return oldValue.RoamPattern, nil
+}
+
+// ResetRoamPattern resets all changes to the "roam_pattern" field.
+func (m *NPCTemplateMutation) ResetRoamPattern() {
+	m.roam_pattern = nil
+}
+
+// SetRoamZoneIds sets the "roam_zone_ids" field.
+func (m *NPCTemplateMutation) SetRoamZoneIds(s []string) {
+	m.roam_zone_ids = &s
+	m.appendroam_zone_ids = nil
+}
+
+// RoamZoneIds returns the value of the "roam_zone_ids" field in the mutation.
+func (m *NPCTemplateMutation) RoamZoneIds() (r []string, exists bool) {
+	v := m.roam_zone_ids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoamZoneIds returns the old "roam_zone_ids" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldRoamZoneIds(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoamZoneIds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoamZoneIds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoamZoneIds: %w", err)
+	}
+	return oldValue.RoamZoneIds, nil
+}
+
+// AppendRoamZoneIds adds s to the "roam_zone_ids" field.
+func (m *NPCTemplateMutation) AppendRoamZoneIds(s []string) {
+	m.appendroam_zone_ids = append(m.appendroam_zone_ids, s...)
+}
+
+// AppendedRoamZoneIds returns the list of values that were appended to the "roam_zone_ids" field in this mutation.
+func (m *NPCTemplateMutation) AppendedRoamZoneIds() ([]string, bool) {
+	if len(m.appendroam_zone_ids) == 0 {
+		return nil, false
+	}
+	return m.appendroam_zone_ids, true
+}
+
+// ClearRoamZoneIds clears the value of the "roam_zone_ids" field.
+func (m *NPCTemplateMutation) ClearRoamZoneIds() {
+	m.roam_zone_ids = nil
+	m.appendroam_zone_ids = nil
+	m.clearedFields[npctemplate.FieldRoamZoneIds] = struct{}{}
+}
+
+// RoamZoneIdsCleared returns if the "roam_zone_ids" field was cleared in this mutation.
+func (m *NPCTemplateMutation) RoamZoneIdsCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldRoamZoneIds]
+	return ok
+}
+
+// ResetRoamZoneIds resets all changes to the "roam_zone_ids" field.
+func (m *NPCTemplateMutation) ResetRoamZoneIds() {
+	m.roam_zone_ids = nil
+	m.appendroam_zone_ids = nil
+	delete(m.clearedFields, npctemplate.FieldRoamZoneIds)
+}
+
+// SetRoamIntervalSeconds sets the "roam_interval_seconds" field.
+func (m *NPCTemplateMutation) SetRoamIntervalSeconds(i int) {
+	m.roam_interval_seconds = &i
+	m.addroam_interval_seconds = nil
+}
+
+// RoamIntervalSeconds returns the value of the "roam_interval_seconds" field in the mutation.
+func (m *NPCTemplateMutation) RoamIntervalSeconds() (r int, exists bool) {
+	v := m.roam_interval_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoamIntervalSeconds returns the old "roam_interval_seconds" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldRoamIntervalSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoamIntervalSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoamIntervalSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoamIntervalSeconds: %w", err)
+	}
+	return oldValue.RoamIntervalSeconds, nil
+}
+
+// AddRoamIntervalSeconds adds i to the "roam_interval_seconds" field.
+func (m *NPCTemplateMutation) AddRoamIntervalSeconds(i int) {
+	if m.addroam_interval_seconds != nil {
+		*m.addroam_interval_seconds += i
+	} else {
+		m.addroam_interval_seconds = &i
+	}
+}
+
+// AddedRoamIntervalSeconds returns the value that was added to the "roam_interval_seconds" field in this mutation.
+func (m *NPCTemplateMutation) AddedRoamIntervalSeconds() (r int, exists bool) {
+	v := m.addroam_interval_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRoamIntervalSeconds clears the value of the "roam_interval_seconds" field.
+func (m *NPCTemplateMutation) ClearRoamIntervalSeconds() {
+	m.roam_interval_seconds = nil
+	m.addroam_interval_seconds = nil
+	m.clearedFields[npctemplate.FieldRoamIntervalSeconds] = struct{}{}
+}
+
+// RoamIntervalSecondsCleared returns if the "roam_interval_seconds" field was cleared in this mutation.
+func (m *NPCTemplateMutation) RoamIntervalSecondsCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldRoamIntervalSeconds]
+	return ok
+}
+
+// ResetRoamIntervalSeconds resets all changes to the "roam_interval_seconds" field.
+func (m *NPCTemplateMutation) ResetRoamIntervalSeconds() {
+	m.roam_interval_seconds = nil
+	m.addroam_interval_seconds = nil
+	delete(m.clearedFields, npctemplate.FieldRoamIntervalSeconds)
+}
+
+// SetRoamPauseMinSeconds sets the "roam_pause_min_seconds" field.
+func (m *NPCTemplateMutation) SetRoamPauseMinSeconds(i int) {
+	m.roam_pause_min_seconds = &i
+	m.addroam_pause_min_seconds = nil
+}
+
+// RoamPauseMinSeconds returns the value of the "roam_pause_min_seconds" field in the mutation.
+func (m *NPCTemplateMutation) RoamPauseMinSeconds() (r int, exists bool) {
+	v := m.roam_pause_min_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoamPauseMinSeconds returns the old "roam_pause_min_seconds" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldRoamPauseMinSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoamPauseMinSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoamPauseMinSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoamPauseMinSeconds: %w", err)
+	}
+	return oldValue.RoamPauseMinSeconds, nil
+}
+
+// AddRoamPauseMinSeconds adds i to the "roam_pause_min_seconds" field.
+func (m *NPCTemplateMutation) AddRoamPauseMinSeconds(i int) {
+	if m.addroam_pause_min_seconds != nil {
+		*m.addroam_pause_min_seconds += i
+	} else {
+		m.addroam_pause_min_seconds = &i
+	}
+}
+
+// AddedRoamPauseMinSeconds returns the value that was added to the "roam_pause_min_seconds" field in this mutation.
+func (m *NPCTemplateMutation) AddedRoamPauseMinSeconds() (r int, exists bool) {
+	v := m.addroam_pause_min_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRoamPauseMinSeconds clears the value of the "roam_pause_min_seconds" field.
+func (m *NPCTemplateMutation) ClearRoamPauseMinSeconds() {
+	m.roam_pause_min_seconds = nil
+	m.addroam_pause_min_seconds = nil
+	m.clearedFields[npctemplate.FieldRoamPauseMinSeconds] = struct{}{}
+}
+
+// RoamPauseMinSecondsCleared returns if the "roam_pause_min_seconds" field was cleared in this mutation.
+func (m *NPCTemplateMutation) RoamPauseMinSecondsCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldRoamPauseMinSeconds]
+	return ok
+}
+
+// ResetRoamPauseMinSeconds resets all changes to the "roam_pause_min_seconds" field.
+func (m *NPCTemplateMutation) ResetRoamPauseMinSeconds() {
+	m.roam_pause_min_seconds = nil
+	m.addroam_pause_min_seconds = nil
+	delete(m.clearedFields, npctemplate.FieldRoamPauseMinSeconds)
+}
+
+// SetRoamPauseMaxSeconds sets the "roam_pause_max_seconds" field.
+func (m *NPCTemplateMutation) SetRoamPauseMaxSeconds(i int) {
+	m.roam_pause_max_seconds = &i
+	m.addroam_pause_max_seconds = nil
+}
+
+// RoamPauseMaxSeconds returns the value of the "roam_pause_max_seconds" field in the mutation.
+func (m *NPCTemplateMutation) RoamPauseMaxSeconds() (r int, exists bool) {
+	v := m.roam_pause_max_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoamPauseMaxSeconds returns the old "roam_pause_max_seconds" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldRoamPauseMaxSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoamPauseMaxSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoamPauseMaxSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoamPauseMaxSeconds: %w", err)
+	}
+	return oldValue.RoamPauseMaxSeconds, nil
+}
+
+// AddRoamPauseMaxSeconds adds i to the "roam_pause_max_seconds" field.
+func (m *NPCTemplateMutation) AddRoamPauseMaxSeconds(i int) {
+	if m.addroam_pause_max_seconds != nil {
+		*m.addroam_pause_max_seconds += i
+	} else {
+		m.addroam_pause_max_seconds = &i
+	}
+}
+
+// AddedRoamPauseMaxSeconds returns the value that was added to the "roam_pause_max_seconds" field in this mutation.
+func (m *NPCTemplateMutation) AddedRoamPauseMaxSeconds() (r int, exists bool) {
+	v := m.addroam_pause_max_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRoamPauseMaxSeconds clears the value of the "roam_pause_max_seconds" field.
+func (m *NPCTemplateMutation) ClearRoamPauseMaxSeconds() {
+	m.roam_pause_max_seconds = nil
+	m.addroam_pause_max_seconds = nil
+	m.clearedFields[npctemplate.FieldRoamPauseMaxSeconds] = struct{}{}
+}
+
+// RoamPauseMaxSecondsCleared returns if the "roam_pause_max_seconds" field was cleared in this mutation.
+func (m *NPCTemplateMutation) RoamPauseMaxSecondsCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldRoamPauseMaxSeconds]
+	return ok
+}
+
+// ResetRoamPauseMaxSeconds resets all changes to the "roam_pause_max_seconds" field.
+func (m *NPCTemplateMutation) ResetRoamPauseMaxSeconds() {
+	m.roam_pause_max_seconds = nil
+	m.addroam_pause_max_seconds = nil
+	delete(m.clearedFields, npctemplate.FieldRoamPauseMaxSeconds)
+}
+
+// SetLastMovedAt sets the "last_moved_at" field.
+func (m *NPCTemplateMutation) SetLastMovedAt(t time.Time) {
+	m.last_moved_at = &t
+}
+
+// LastMovedAt returns the value of the "last_moved_at" field in the mutation.
+func (m *NPCTemplateMutation) LastMovedAt() (r time.Time, exists bool) {
+	v := m.last_moved_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastMovedAt returns the old "last_moved_at" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldLastMovedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastMovedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastMovedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastMovedAt: %w", err)
+	}
+	return oldValue.LastMovedAt, nil
+}
+
+// ClearLastMovedAt clears the value of the "last_moved_at" field.
+func (m *NPCTemplateMutation) ClearLastMovedAt() {
+	m.last_moved_at = nil
+	m.clearedFields[npctemplate.FieldLastMovedAt] = struct{}{}
+}
+
+// LastMovedAtCleared returns if the "last_moved_at" field was cleared in this mutation.
+func (m *NPCTemplateMutation) LastMovedAtCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldLastMovedAt]
+	return ok
+}
+
+// ResetLastMovedAt resets all changes to the "last_moved_at" field.
+func (m *NPCTemplateMutation) ResetLastMovedAt() {
+	m.last_moved_at = nil
+	delete(m.clearedFields, npctemplate.FieldLastMovedAt)
+}
+
+// SetNotifyOnEnter sets the "notify_on_enter" field.
+func (m *NPCTemplateMutation) SetNotifyOnEnter(b bool) {
+	m.notify_on_enter = &b
+}
+
+// NotifyOnEnter returns the value of the "notify_on_enter" field in the mutation.
+func (m *NPCTemplateMutation) NotifyOnEnter() (r bool, exists bool) {
+	v := m.notify_on_enter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotifyOnEnter returns the old "notify_on_enter" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldNotifyOnEnter(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotifyOnEnter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotifyOnEnter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotifyOnEnter: %w", err)
+	}
+	return oldValue.NotifyOnEnter, nil
+}
+
+// ClearNotifyOnEnter clears the value of the "notify_on_enter" field.
+func (m *NPCTemplateMutation) ClearNotifyOnEnter() {
+	m.notify_on_enter = nil
+	m.clearedFields[npctemplate.FieldNotifyOnEnter] = struct{}{}
+}
+
+// NotifyOnEnterCleared returns if the "notify_on_enter" field was cleared in this mutation.
+func (m *NPCTemplateMutation) NotifyOnEnterCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldNotifyOnEnter]
+	return ok
+}
+
+// ResetNotifyOnEnter resets all changes to the "notify_on_enter" field.
+func (m *NPCTemplateMutation) ResetNotifyOnEnter() {
+	m.notify_on_enter = nil
+	delete(m.clearedFields, npctemplate.FieldNotifyOnEnter)
+}
+
 // AddNpcAbilityIDs adds the "npc_abilities" edge to the NPCAbility entity by ids.
 func (m *NPCTemplateMutation) AddNpcAbilityIDs(ids ...int) {
 	if m.npc_abilities == nil {
@@ -30551,60 +30901,6 @@ func (m *NPCTemplateMutation) ResetDialogNodes() {
 	m.removeddialog_nodes = nil
 }
 
-// AddTriggerIDs adds the "triggers" edge to the Trigger entity by ids.
-func (m *NPCTemplateMutation) AddTriggerIDs(ids ...int) {
-	if m.triggers == nil {
-		m.triggers = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.triggers[ids[i]] = struct{}{}
-	}
-}
-
-// ClearTriggers clears the "triggers" edge to the Trigger entity.
-func (m *NPCTemplateMutation) ClearTriggers() {
-	m.clearedtriggers = true
-}
-
-// TriggersCleared reports if the "triggers" edge to the Trigger entity was cleared.
-func (m *NPCTemplateMutation) TriggersCleared() bool {
-	return m.clearedtriggers
-}
-
-// RemoveTriggerIDs removes the "triggers" edge to the Trigger entity by IDs.
-func (m *NPCTemplateMutation) RemoveTriggerIDs(ids ...int) {
-	if m.removedtriggers == nil {
-		m.removedtriggers = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.triggers, ids[i])
-		m.removedtriggers[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedTriggers returns the removed IDs of the "triggers" edge to the Trigger entity.
-func (m *NPCTemplateMutation) RemovedTriggersIDs() (ids []int) {
-	for id := range m.removedtriggers {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// TriggersIDs returns the "triggers" edge IDs in the mutation.
-func (m *NPCTemplateMutation) TriggersIDs() (ids []int) {
-	for id := range m.triggers {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetTriggers resets all changes to the "triggers" edge.
-func (m *NPCTemplateMutation) ResetTriggers() {
-	m.triggers = nil
-	m.clearedtriggers = false
-	m.removedtriggers = nil
-}
-
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
 func (m *NPCTemplateMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -30720,7 +31016,7 @@ func (m *NPCTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NPCTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 20)
 	if m.slug != nil {
 		fields = append(fields, npctemplate.FieldSlug)
 	}
@@ -30760,6 +31056,27 @@ func (m *NPCTemplateMutation) Fields() []string {
 	if m.respawn_cooldown != nil {
 		fields = append(fields, npctemplate.FieldRespawnCooldown)
 	}
+	if m.roam_pattern != nil {
+		fields = append(fields, npctemplate.FieldRoamPattern)
+	}
+	if m.roam_zone_ids != nil {
+		fields = append(fields, npctemplate.FieldRoamZoneIds)
+	}
+	if m.roam_interval_seconds != nil {
+		fields = append(fields, npctemplate.FieldRoamIntervalSeconds)
+	}
+	if m.roam_pause_min_seconds != nil {
+		fields = append(fields, npctemplate.FieldRoamPauseMinSeconds)
+	}
+	if m.roam_pause_max_seconds != nil {
+		fields = append(fields, npctemplate.FieldRoamPauseMaxSeconds)
+	}
+	if m.last_moved_at != nil {
+		fields = append(fields, npctemplate.FieldLastMovedAt)
+	}
+	if m.notify_on_enter != nil {
+		fields = append(fields, npctemplate.FieldNotifyOnEnter)
+	}
 	return fields
 }
 
@@ -30794,6 +31111,20 @@ func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.RespawnRooms()
 	case npctemplate.FieldRespawnCooldown:
 		return m.RespawnCooldown()
+	case npctemplate.FieldRoamPattern:
+		return m.RoamPattern()
+	case npctemplate.FieldRoamZoneIds:
+		return m.RoamZoneIds()
+	case npctemplate.FieldRoamIntervalSeconds:
+		return m.RoamIntervalSeconds()
+	case npctemplate.FieldRoamPauseMinSeconds:
+		return m.RoamPauseMinSeconds()
+	case npctemplate.FieldRoamPauseMaxSeconds:
+		return m.RoamPauseMaxSeconds()
+	case npctemplate.FieldLastMovedAt:
+		return m.LastMovedAt()
+	case npctemplate.FieldNotifyOnEnter:
+		return m.NotifyOnEnter()
 	}
 	return nil, false
 }
@@ -30829,6 +31160,20 @@ func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldRespawnRooms(ctx)
 	case npctemplate.FieldRespawnCooldown:
 		return m.OldRespawnCooldown(ctx)
+	case npctemplate.FieldRoamPattern:
+		return m.OldRoamPattern(ctx)
+	case npctemplate.FieldRoamZoneIds:
+		return m.OldRoamZoneIds(ctx)
+	case npctemplate.FieldRoamIntervalSeconds:
+		return m.OldRoamIntervalSeconds(ctx)
+	case npctemplate.FieldRoamPauseMinSeconds:
+		return m.OldRoamPauseMinSeconds(ctx)
+	case npctemplate.FieldRoamPauseMaxSeconds:
+		return m.OldRoamPauseMaxSeconds(ctx)
+	case npctemplate.FieldLastMovedAt:
+		return m.OldLastMovedAt(ctx)
+	case npctemplate.FieldNotifyOnEnter:
+		return m.OldNotifyOnEnter(ctx)
 	}
 	return nil, fmt.Errorf("unknown NPCTemplate field %s", name)
 }
@@ -30929,6 +31274,55 @@ func (m *NPCTemplateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRespawnCooldown(v)
 		return nil
+	case npctemplate.FieldRoamPattern:
+		v, ok := value.(npctemplate.RoamPattern)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoamPattern(v)
+		return nil
+	case npctemplate.FieldRoamZoneIds:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoamZoneIds(v)
+		return nil
+	case npctemplate.FieldRoamIntervalSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoamIntervalSeconds(v)
+		return nil
+	case npctemplate.FieldRoamPauseMinSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoamPauseMinSeconds(v)
+		return nil
+	case npctemplate.FieldRoamPauseMaxSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoamPauseMaxSeconds(v)
+		return nil
+	case npctemplate.FieldLastMovedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastMovedAt(v)
+		return nil
+	case npctemplate.FieldNotifyOnEnter:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotifyOnEnter(v)
+		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate field %s", name)
 }
@@ -30946,6 +31340,15 @@ func (m *NPCTemplateMutation) AddedFields() []string {
 	if m.addrespawn_cooldown != nil {
 		fields = append(fields, npctemplate.FieldRespawnCooldown)
 	}
+	if m.addroam_interval_seconds != nil {
+		fields = append(fields, npctemplate.FieldRoamIntervalSeconds)
+	}
+	if m.addroam_pause_min_seconds != nil {
+		fields = append(fields, npctemplate.FieldRoamPauseMinSeconds)
+	}
+	if m.addroam_pause_max_seconds != nil {
+		fields = append(fields, npctemplate.FieldRoamPauseMaxSeconds)
+	}
 	return fields
 }
 
@@ -30960,6 +31363,12 @@ func (m *NPCTemplateMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedXpValue()
 	case npctemplate.FieldRespawnCooldown:
 		return m.AddedRespawnCooldown()
+	case npctemplate.FieldRoamIntervalSeconds:
+		return m.AddedRoamIntervalSeconds()
+	case npctemplate.FieldRoamPauseMinSeconds:
+		return m.AddedRoamPauseMinSeconds()
+	case npctemplate.FieldRoamPauseMaxSeconds:
+		return m.AddedRoamPauseMaxSeconds()
 	}
 	return nil, false
 }
@@ -30990,6 +31399,27 @@ func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddRespawnCooldown(v)
 		return nil
+	case npctemplate.FieldRoamIntervalSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRoamIntervalSeconds(v)
+		return nil
+	case npctemplate.FieldRoamPauseMinSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRoamPauseMinSeconds(v)
+		return nil
+	case npctemplate.FieldRoamPauseMaxSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRoamPauseMaxSeconds(v)
+		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate numeric field %s", name)
 }
@@ -31009,6 +31439,24 @@ func (m *NPCTemplateMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(npctemplate.FieldRespawnCooldown) {
 		fields = append(fields, npctemplate.FieldRespawnCooldown)
+	}
+	if m.FieldCleared(npctemplate.FieldRoamZoneIds) {
+		fields = append(fields, npctemplate.FieldRoamZoneIds)
+	}
+	if m.FieldCleared(npctemplate.FieldRoamIntervalSeconds) {
+		fields = append(fields, npctemplate.FieldRoamIntervalSeconds)
+	}
+	if m.FieldCleared(npctemplate.FieldRoamPauseMinSeconds) {
+		fields = append(fields, npctemplate.FieldRoamPauseMinSeconds)
+	}
+	if m.FieldCleared(npctemplate.FieldRoamPauseMaxSeconds) {
+		fields = append(fields, npctemplate.FieldRoamPauseMaxSeconds)
+	}
+	if m.FieldCleared(npctemplate.FieldLastMovedAt) {
+		fields = append(fields, npctemplate.FieldLastMovedAt)
+	}
+	if m.FieldCleared(npctemplate.FieldNotifyOnEnter) {
+		fields = append(fields, npctemplate.FieldNotifyOnEnter)
 	}
 	return fields
 }
@@ -31035,6 +31483,24 @@ func (m *NPCTemplateMutation) ClearField(name string) error {
 		return nil
 	case npctemplate.FieldRespawnCooldown:
 		m.ClearRespawnCooldown()
+		return nil
+	case npctemplate.FieldRoamZoneIds:
+		m.ClearRoamZoneIds()
+		return nil
+	case npctemplate.FieldRoamIntervalSeconds:
+		m.ClearRoamIntervalSeconds()
+		return nil
+	case npctemplate.FieldRoamPauseMinSeconds:
+		m.ClearRoamPauseMinSeconds()
+		return nil
+	case npctemplate.FieldRoamPauseMaxSeconds:
+		m.ClearRoamPauseMaxSeconds()
+		return nil
+	case npctemplate.FieldLastMovedAt:
+		m.ClearLastMovedAt()
+		return nil
+	case npctemplate.FieldNotifyOnEnter:
+		m.ClearNotifyOnEnter()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate nullable field %s", name)
@@ -31083,13 +31549,34 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 	case npctemplate.FieldRespawnCooldown:
 		m.ResetRespawnCooldown()
 		return nil
+	case npctemplate.FieldRoamPattern:
+		m.ResetRoamPattern()
+		return nil
+	case npctemplate.FieldRoamZoneIds:
+		m.ResetRoamZoneIds()
+		return nil
+	case npctemplate.FieldRoamIntervalSeconds:
+		m.ResetRoamIntervalSeconds()
+		return nil
+	case npctemplate.FieldRoamPauseMinSeconds:
+		m.ResetRoamPauseMinSeconds()
+		return nil
+	case npctemplate.FieldRoamPauseMaxSeconds:
+		m.ResetRoamPauseMaxSeconds()
+		return nil
+	case npctemplate.FieldLastMovedAt:
+		m.ResetLastMovedAt()
+		return nil
+	case npctemplate.FieldNotifyOnEnter:
+		m.ResetNotifyOnEnter()
+		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NPCTemplateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.npc_abilities != nil {
 		edges = append(edges, npctemplate.EdgeNpcAbilities)
 	}
@@ -31098,9 +31585,6 @@ func (m *NPCTemplateMutation) AddedEdges() []string {
 	}
 	if m.dialog_nodes != nil {
 		edges = append(edges, npctemplate.EdgeDialogNodes)
-	}
-	if m.triggers != nil {
-		edges = append(edges, npctemplate.EdgeTriggers)
 	}
 	if m.characters != nil {
 		edges = append(edges, npctemplate.EdgeCharacters)
@@ -31133,12 +31617,6 @@ func (m *NPCTemplateMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case npctemplate.EdgeTriggers:
-		ids := make([]ent.Value, 0, len(m.triggers))
-		for id := range m.triggers {
-			ids = append(ids, id)
-		}
-		return ids
 	case npctemplate.EdgeCharacters:
 		ids := make([]ent.Value, 0, len(m.characters))
 		for id := range m.characters {
@@ -31155,7 +31633,7 @@ func (m *NPCTemplateMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NPCTemplateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.removednpc_abilities != nil {
 		edges = append(edges, npctemplate.EdgeNpcAbilities)
 	}
@@ -31164,9 +31642,6 @@ func (m *NPCTemplateMutation) RemovedEdges() []string {
 	}
 	if m.removeddialog_nodes != nil {
 		edges = append(edges, npctemplate.EdgeDialogNodes)
-	}
-	if m.removedtriggers != nil {
-		edges = append(edges, npctemplate.EdgeTriggers)
 	}
 	if m.removedcharacters != nil {
 		edges = append(edges, npctemplate.EdgeCharacters)
@@ -31196,12 +31671,6 @@ func (m *NPCTemplateMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case npctemplate.EdgeTriggers:
-		ids := make([]ent.Value, 0, len(m.removedtriggers))
-		for id := range m.removedtriggers {
-			ids = append(ids, id)
-		}
-		return ids
 	case npctemplate.EdgeCharacters:
 		ids := make([]ent.Value, 0, len(m.removedcharacters))
 		for id := range m.removedcharacters {
@@ -31214,7 +31683,7 @@ func (m *NPCTemplateMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NPCTemplateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.clearednpc_abilities {
 		edges = append(edges, npctemplate.EdgeNpcAbilities)
 	}
@@ -31223,9 +31692,6 @@ func (m *NPCTemplateMutation) ClearedEdges() []string {
 	}
 	if m.cleareddialog_nodes {
 		edges = append(edges, npctemplate.EdgeDialogNodes)
-	}
-	if m.clearedtriggers {
-		edges = append(edges, npctemplate.EdgeTriggers)
 	}
 	if m.clearedcharacters {
 		edges = append(edges, npctemplate.EdgeCharacters)
@@ -31246,8 +31712,6 @@ func (m *NPCTemplateMutation) EdgeCleared(name string) bool {
 		return m.cleared_hooks
 	case npctemplate.EdgeDialogNodes:
 		return m.cleareddialog_nodes
-	case npctemplate.EdgeTriggers:
-		return m.clearedtriggers
 	case npctemplate.EdgeCharacters:
 		return m.clearedcharacters
 	case npctemplate.EdgeRace:
@@ -31279,9 +31743,6 @@ func (m *NPCTemplateMutation) ResetEdge(name string) error {
 		return nil
 	case npctemplate.EdgeDialogNodes:
 		m.ResetDialogNodes()
-		return nil
-	case npctemplate.EdgeTriggers:
-		m.ResetTriggers()
 		return nil
 	case npctemplate.EdgeCharacters:
 		m.ResetCharacters()
@@ -34167,6 +34628,8 @@ type RoomMutation struct {
 	addversion        *int
 	tags              *[]string
 	appendtags        []string
+	zone_ids          *[]string
+	appendzone_ids    []string
 	clearedFields     map[string]struct{}
 	characters        map[int]struct{}
 	removedcharacters map[int]struct{}
@@ -34174,6 +34637,9 @@ type RoomMutation struct {
 	equipment         map[int]struct{}
 	removedequipment  map[int]struct{}
 	clearedequipment  bool
+	zones             map[string]struct{}
+	removedzones      map[string]struct{}
+	clearedzones      bool
 	done              bool
 	oldValue          func(context.Context) (*Room, error)
 	predicates        []predicate.Room
@@ -34860,6 +35326,71 @@ func (m *RoomMutation) ResetTags() {
 	delete(m.clearedFields, room.FieldTags)
 }
 
+// SetZoneIds sets the "zone_ids" field.
+func (m *RoomMutation) SetZoneIds(s []string) {
+	m.zone_ids = &s
+	m.appendzone_ids = nil
+}
+
+// ZoneIds returns the value of the "zone_ids" field in the mutation.
+func (m *RoomMutation) ZoneIds() (r []string, exists bool) {
+	v := m.zone_ids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldZoneIds returns the old "zone_ids" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldZoneIds(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldZoneIds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldZoneIds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldZoneIds: %w", err)
+	}
+	return oldValue.ZoneIds, nil
+}
+
+// AppendZoneIds adds s to the "zone_ids" field.
+func (m *RoomMutation) AppendZoneIds(s []string) {
+	m.appendzone_ids = append(m.appendzone_ids, s...)
+}
+
+// AppendedZoneIds returns the list of values that were appended to the "zone_ids" field in this mutation.
+func (m *RoomMutation) AppendedZoneIds() ([]string, bool) {
+	if len(m.appendzone_ids) == 0 {
+		return nil, false
+	}
+	return m.appendzone_ids, true
+}
+
+// ClearZoneIds clears the value of the "zone_ids" field.
+func (m *RoomMutation) ClearZoneIds() {
+	m.zone_ids = nil
+	m.appendzone_ids = nil
+	m.clearedFields[room.FieldZoneIds] = struct{}{}
+}
+
+// ZoneIdsCleared returns if the "zone_ids" field was cleared in this mutation.
+func (m *RoomMutation) ZoneIdsCleared() bool {
+	_, ok := m.clearedFields[room.FieldZoneIds]
+	return ok
+}
+
+// ResetZoneIds resets all changes to the "zone_ids" field.
+func (m *RoomMutation) ResetZoneIds() {
+	m.zone_ids = nil
+	m.appendzone_ids = nil
+	delete(m.clearedFields, room.FieldZoneIds)
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
 func (m *RoomMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -34968,6 +35499,60 @@ func (m *RoomMutation) ResetEquipment() {
 	m.removedequipment = nil
 }
 
+// AddZoneIDs adds the "zones" edge to the Zone entity by ids.
+func (m *RoomMutation) AddZoneIDs(ids ...string) {
+	if m.zones == nil {
+		m.zones = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.zones[ids[i]] = struct{}{}
+	}
+}
+
+// ClearZones clears the "zones" edge to the Zone entity.
+func (m *RoomMutation) ClearZones() {
+	m.clearedzones = true
+}
+
+// ZonesCleared reports if the "zones" edge to the Zone entity was cleared.
+func (m *RoomMutation) ZonesCleared() bool {
+	return m.clearedzones
+}
+
+// RemoveZoneIDs removes the "zones" edge to the Zone entity by IDs.
+func (m *RoomMutation) RemoveZoneIDs(ids ...string) {
+	if m.removedzones == nil {
+		m.removedzones = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.zones, ids[i])
+		m.removedzones[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedZones returns the removed IDs of the "zones" edge to the Zone entity.
+func (m *RoomMutation) RemovedZonesIDs() (ids []string) {
+	for id := range m.removedzones {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ZonesIDs returns the "zones" edge IDs in the mutation.
+func (m *RoomMutation) ZonesIDs() (ids []string) {
+	for id := range m.zones {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetZones resets all changes to the "zones" edge.
+func (m *RoomMutation) ResetZones() {
+	m.zones = nil
+	m.clearedzones = false
+	m.removedzones = nil
+}
+
 // Where appends a list predicates to the RoomMutation builder.
 func (m *RoomMutation) Where(ps ...predicate.Room) {
 	m.predicates = append(m.predicates, ps...)
@@ -35002,7 +35587,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
@@ -35039,6 +35624,9 @@ func (m *RoomMutation) Fields() []string {
 	if m.tags != nil {
 		fields = append(fields, room.FieldTags)
 	}
+	if m.zone_ids != nil {
+		fields = append(fields, room.FieldZoneIds)
+	}
 	return fields
 }
 
@@ -35071,6 +35659,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.Version()
 	case room.FieldTags:
 		return m.Tags()
+	case room.FieldZoneIds:
+		return m.ZoneIds()
 	}
 	return nil, false
 }
@@ -35104,6 +35694,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldVersion(ctx)
 	case room.FieldTags:
 		return m.OldTags(ctx)
+	case room.FieldZoneIds:
+		return m.OldZoneIds(ctx)
 	}
 	return nil, fmt.Errorf("unknown Room field %s", name)
 }
@@ -35196,6 +35788,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTags(v)
+		return nil
+	case room.FieldZoneIds:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetZoneIds(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)
@@ -35290,6 +35889,9 @@ func (m *RoomMutation) ClearedFields() []string {
 	if m.FieldCleared(room.FieldTags) {
 		fields = append(fields, room.FieldTags)
 	}
+	if m.FieldCleared(room.FieldZoneIds) {
+		fields = append(fields, room.FieldZoneIds)
+	}
 	return fields
 }
 
@@ -35315,6 +35917,9 @@ func (m *RoomMutation) ClearField(name string) error {
 		return nil
 	case room.FieldTags:
 		m.ClearTags()
+		return nil
+	case room.FieldZoneIds:
+		m.ClearZoneIds()
 		return nil
 	}
 	return fmt.Errorf("unknown Room nullable field %s", name)
@@ -35360,18 +35965,24 @@ func (m *RoomMutation) ResetField(name string) error {
 	case room.FieldTags:
 		m.ResetTags()
 		return nil
+	case room.FieldZoneIds:
+		m.ResetZoneIds()
+		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoomMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.characters != nil {
 		edges = append(edges, room.EdgeCharacters)
 	}
 	if m.equipment != nil {
 		edges = append(edges, room.EdgeEquipment)
+	}
+	if m.zones != nil {
+		edges = append(edges, room.EdgeZones)
 	}
 	return edges
 }
@@ -35392,18 +36003,27 @@ func (m *RoomMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case room.EdgeZones:
+		ids := make([]ent.Value, 0, len(m.zones))
+		for id := range m.zones {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoomMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedcharacters != nil {
 		edges = append(edges, room.EdgeCharacters)
 	}
 	if m.removedequipment != nil {
 		edges = append(edges, room.EdgeEquipment)
+	}
+	if m.removedzones != nil {
+		edges = append(edges, room.EdgeZones)
 	}
 	return edges
 }
@@ -35424,18 +36044,27 @@ func (m *RoomMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case room.EdgeZones:
+		ids := make([]ent.Value, 0, len(m.removedzones))
+		for id := range m.removedzones {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoomMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedcharacters {
 		edges = append(edges, room.EdgeCharacters)
 	}
 	if m.clearedequipment {
 		edges = append(edges, room.EdgeEquipment)
+	}
+	if m.clearedzones {
+		edges = append(edges, room.EdgeZones)
 	}
 	return edges
 }
@@ -35448,6 +36077,8 @@ func (m *RoomMutation) EdgeCleared(name string) bool {
 		return m.clearedcharacters
 	case room.EdgeEquipment:
 		return m.clearedequipment
+	case room.EdgeZones:
+		return m.clearedzones
 	}
 	return false
 }
@@ -35469,6 +36100,9 @@ func (m *RoomMutation) ResetEdge(name string) error {
 		return nil
 	case room.EdgeEquipment:
 		m.ResetEquipment()
+		return nil
+	case room.EdgeZones:
+		m.ResetZones()
 		return nil
 	}
 	return fmt.Errorf("unknown Room edge %s", name)
@@ -40059,34 +40693,33 @@ func (m *TellQueueMutation) ResetEdge(name string) error {
 // TriggerMutation represents an operation that mutates the Trigger nodes in the graph.
 type TriggerMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	name                *string
-	world_id            *string
-	trigger_type        *string
-	target_type         *string
-	target_id           *string
-	room_id             *int
-	addroom_id          *int
-	equipment_id        *int
-	addequipment_id     *int
-	condition           *string
-	enabled             *bool
-	examine_weight      *int
-	addexamine_weight   *int
-	clearedFields       map[string]struct{}
-	effect              *int
-	clearedeffect       bool
-	recipe              *int
-	clearedrecipe       bool
-	dialog_node         *string
-	cleareddialog_node  bool
-	npc_template        *string
-	clearednpc_template bool
-	done                bool
-	oldValue            func(context.Context) (*Trigger, error)
-	predicates          []predicate.Trigger
+	op                 Op
+	typ                string
+	id                 *int
+	name               *string
+	world_id           *string
+	trigger_type       *string
+	examine_weight     *int
+	addexamine_weight  *int
+	target_type        *string
+	target_id          *int
+	addtarget_id       *int
+	room_id            *int
+	addroom_id         *int
+	equipment_id       *int
+	addequipment_id    *int
+	condition          *string
+	enabled            *bool
+	clearedFields      map[string]struct{}
+	effect             *int
+	clearedeffect      bool
+	recipe             *int
+	clearedrecipe      bool
+	dialog_node        *string
+	cleareddialog_node bool
+	done               bool
+	oldValue           func(context.Context) (*Trigger, error)
+	predicates         []predicate.Trigger
 }
 
 var _ ent.Mutation = (*TriggerMutation)(nil)
@@ -40295,6 +40928,76 @@ func (m *TriggerMutation) ResetTriggerType() {
 	m.trigger_type = nil
 }
 
+// SetExamineWeight sets the "examine_weight" field.
+func (m *TriggerMutation) SetExamineWeight(i int) {
+	m.examine_weight = &i
+	m.addexamine_weight = nil
+}
+
+// ExamineWeight returns the value of the "examine_weight" field in the mutation.
+func (m *TriggerMutation) ExamineWeight() (r int, exists bool) {
+	v := m.examine_weight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExamineWeight returns the old "examine_weight" field's value of the Trigger entity.
+// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TriggerMutation) OldExamineWeight(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExamineWeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExamineWeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExamineWeight: %w", err)
+	}
+	return oldValue.ExamineWeight, nil
+}
+
+// AddExamineWeight adds i to the "examine_weight" field.
+func (m *TriggerMutation) AddExamineWeight(i int) {
+	if m.addexamine_weight != nil {
+		*m.addexamine_weight += i
+	} else {
+		m.addexamine_weight = &i
+	}
+}
+
+// AddedExamineWeight returns the value that was added to the "examine_weight" field in this mutation.
+func (m *TriggerMutation) AddedExamineWeight() (r int, exists bool) {
+	v := m.addexamine_weight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearExamineWeight clears the value of the "examine_weight" field.
+func (m *TriggerMutation) ClearExamineWeight() {
+	m.examine_weight = nil
+	m.addexamine_weight = nil
+	m.clearedFields[trigger.FieldExamineWeight] = struct{}{}
+}
+
+// ExamineWeightCleared returns if the "examine_weight" field was cleared in this mutation.
+func (m *TriggerMutation) ExamineWeightCleared() bool {
+	_, ok := m.clearedFields[trigger.FieldExamineWeight]
+	return ok
+}
+
+// ResetExamineWeight resets all changes to the "examine_weight" field.
+func (m *TriggerMutation) ResetExamineWeight() {
+	m.examine_weight = nil
+	m.addexamine_weight = nil
+	delete(m.clearedFields, trigger.FieldExamineWeight)
+}
+
 // SetTargetType sets the "target_type" field.
 func (m *TriggerMutation) SetTargetType(s string) {
 	m.target_type = &s
@@ -40332,12 +41035,13 @@ func (m *TriggerMutation) ResetTargetType() {
 }
 
 // SetTargetID sets the "target_id" field.
-func (m *TriggerMutation) SetTargetID(s string) {
-	m.target_id = &s
+func (m *TriggerMutation) SetTargetID(i int) {
+	m.target_id = &i
+	m.addtarget_id = nil
 }
 
 // TargetID returns the value of the "target_id" field in the mutation.
-func (m *TriggerMutation) TargetID() (r string, exists bool) {
+func (m *TriggerMutation) TargetID() (r int, exists bool) {
 	v := m.target_id
 	if v == nil {
 		return
@@ -40348,7 +41052,7 @@ func (m *TriggerMutation) TargetID() (r string, exists bool) {
 // OldTargetID returns the old "target_id" field's value of the Trigger entity.
 // If the Trigger object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TriggerMutation) OldTargetID(ctx context.Context) (v string, err error) {
+func (m *TriggerMutation) OldTargetID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTargetID is only allowed on UpdateOne operations")
 	}
@@ -40362,9 +41066,42 @@ func (m *TriggerMutation) OldTargetID(ctx context.Context) (v string, err error)
 	return oldValue.TargetID, nil
 }
 
+// AddTargetID adds i to the "target_id" field.
+func (m *TriggerMutation) AddTargetID(i int) {
+	if m.addtarget_id != nil {
+		*m.addtarget_id += i
+	} else {
+		m.addtarget_id = &i
+	}
+}
+
+// AddedTargetID returns the value that was added to the "target_id" field in this mutation.
+func (m *TriggerMutation) AddedTargetID() (r int, exists bool) {
+	v := m.addtarget_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearTargetID clears the value of the "target_id" field.
+func (m *TriggerMutation) ClearTargetID() {
+	m.target_id = nil
+	m.addtarget_id = nil
+	m.clearedFields[trigger.FieldTargetID] = struct{}{}
+}
+
+// TargetIDCleared returns if the "target_id" field was cleared in this mutation.
+func (m *TriggerMutation) TargetIDCleared() bool {
+	_, ok := m.clearedFields[trigger.FieldTargetID]
+	return ok
+}
+
 // ResetTargetID resets all changes to the "target_id" field.
 func (m *TriggerMutation) ResetTargetID() {
 	m.target_id = nil
+	m.addtarget_id = nil
+	delete(m.clearedFields, trigger.FieldTargetID)
 }
 
 // SetRoomID sets the "room_id" field.
@@ -40592,62 +41329,6 @@ func (m *TriggerMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
-// SetExamineWeight sets the "examine_weight" field.
-func (m *TriggerMutation) SetExamineWeight(i int) {
-	m.examine_weight = &i
-	m.addexamine_weight = nil
-}
-
-// ExamineWeight returns the value of the "examine_weight" field in the mutation.
-func (m *TriggerMutation) ExamineWeight() (r int, exists bool) {
-	v := m.examine_weight
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExamineWeight returns the old "examine_weight" field's value of the Trigger entity.
-// If the Trigger object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TriggerMutation) OldExamineWeight(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExamineWeight is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExamineWeight requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExamineWeight: %w", err)
-	}
-	return oldValue.ExamineWeight, nil
-}
-
-// AddExamineWeight adds i to the "examine_weight" field.
-func (m *TriggerMutation) AddExamineWeight(i int) {
-	if m.addexamine_weight != nil {
-		*m.addexamine_weight += i
-	} else {
-		m.addexamine_weight = &i
-	}
-}
-
-// AddedExamineWeight returns the value that was added to the "examine_weight" field in this mutation.
-func (m *TriggerMutation) AddedExamineWeight() (r int, exists bool) {
-	v := m.addexamine_weight
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetExamineWeight resets all changes to the "examine_weight" field.
-func (m *TriggerMutation) ResetExamineWeight() {
-	m.examine_weight = nil
-	m.addexamine_weight = nil
-}
-
 // SetEffectID sets the "effect" edge to the Effect entity by id.
 func (m *TriggerMutation) SetEffectID(id int) {
 	m.effect = &id
@@ -40765,45 +41446,6 @@ func (m *TriggerMutation) ResetDialogNode() {
 	m.cleareddialog_node = false
 }
 
-// SetNpcTemplateID sets the "npc_template" edge to the NPCTemplate entity by id.
-func (m *TriggerMutation) SetNpcTemplateID(id string) {
-	m.npc_template = &id
-}
-
-// ClearNpcTemplate clears the "npc_template" edge to the NPCTemplate entity.
-func (m *TriggerMutation) ClearNpcTemplate() {
-	m.clearednpc_template = true
-}
-
-// NpcTemplateCleared reports if the "npc_template" edge to the NPCTemplate entity was cleared.
-func (m *TriggerMutation) NpcTemplateCleared() bool {
-	return m.clearednpc_template
-}
-
-// NpcTemplateID returns the "npc_template" edge ID in the mutation.
-func (m *TriggerMutation) NpcTemplateID() (id string, exists bool) {
-	if m.npc_template != nil {
-		return *m.npc_template, true
-	}
-	return
-}
-
-// NpcTemplateIDs returns the "npc_template" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// NpcTemplateID instead. It exists only for internal usage by the builders.
-func (m *TriggerMutation) NpcTemplateIDs() (ids []string) {
-	if id := m.npc_template; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetNpcTemplate resets all changes to the "npc_template" edge.
-func (m *TriggerMutation) ResetNpcTemplate() {
-	m.npc_template = nil
-	m.clearednpc_template = false
-}
-
 // Where appends a list predicates to the TriggerMutation builder.
 func (m *TriggerMutation) Where(ps ...predicate.Trigger) {
 	m.predicates = append(m.predicates, ps...)
@@ -40848,6 +41490,9 @@ func (m *TriggerMutation) Fields() []string {
 	if m.trigger_type != nil {
 		fields = append(fields, trigger.FieldTriggerType)
 	}
+	if m.examine_weight != nil {
+		fields = append(fields, trigger.FieldExamineWeight)
+	}
 	if m.target_type != nil {
 		fields = append(fields, trigger.FieldTargetType)
 	}
@@ -40866,9 +41511,6 @@ func (m *TriggerMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, trigger.FieldEnabled)
 	}
-	if m.examine_weight != nil {
-		fields = append(fields, trigger.FieldExamineWeight)
-	}
 	return fields
 }
 
@@ -40883,6 +41525,8 @@ func (m *TriggerMutation) Field(name string) (ent.Value, bool) {
 		return m.WorldID()
 	case trigger.FieldTriggerType:
 		return m.TriggerType()
+	case trigger.FieldExamineWeight:
+		return m.ExamineWeight()
 	case trigger.FieldTargetType:
 		return m.TargetType()
 	case trigger.FieldTargetID:
@@ -40895,8 +41539,6 @@ func (m *TriggerMutation) Field(name string) (ent.Value, bool) {
 		return m.Condition()
 	case trigger.FieldEnabled:
 		return m.Enabled()
-	case trigger.FieldExamineWeight:
-		return m.ExamineWeight()
 	}
 	return nil, false
 }
@@ -40912,6 +41554,8 @@ func (m *TriggerMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldWorldID(ctx)
 	case trigger.FieldTriggerType:
 		return m.OldTriggerType(ctx)
+	case trigger.FieldExamineWeight:
+		return m.OldExamineWeight(ctx)
 	case trigger.FieldTargetType:
 		return m.OldTargetType(ctx)
 	case trigger.FieldTargetID:
@@ -40924,8 +41568,6 @@ func (m *TriggerMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCondition(ctx)
 	case trigger.FieldEnabled:
 		return m.OldEnabled(ctx)
-	case trigger.FieldExamineWeight:
-		return m.OldExamineWeight(ctx)
 	}
 	return nil, fmt.Errorf("unknown Trigger field %s", name)
 }
@@ -40956,6 +41598,13 @@ func (m *TriggerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTriggerType(v)
 		return nil
+	case trigger.FieldExamineWeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExamineWeight(v)
+		return nil
 	case trigger.FieldTargetType:
 		v, ok := value.(string)
 		if !ok {
@@ -40964,7 +41613,7 @@ func (m *TriggerMutation) SetField(name string, value ent.Value) error {
 		m.SetTargetType(v)
 		return nil
 	case trigger.FieldTargetID:
-		v, ok := value.(string)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -40998,13 +41647,6 @@ func (m *TriggerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEnabled(v)
 		return nil
-	case trigger.FieldExamineWeight:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExamineWeight(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Trigger field %s", name)
 }
@@ -41013,14 +41655,17 @@ func (m *TriggerMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *TriggerMutation) AddedFields() []string {
 	var fields []string
+	if m.addexamine_weight != nil {
+		fields = append(fields, trigger.FieldExamineWeight)
+	}
+	if m.addtarget_id != nil {
+		fields = append(fields, trigger.FieldTargetID)
+	}
 	if m.addroom_id != nil {
 		fields = append(fields, trigger.FieldRoomID)
 	}
 	if m.addequipment_id != nil {
 		fields = append(fields, trigger.FieldEquipmentID)
-	}
-	if m.addexamine_weight != nil {
-		fields = append(fields, trigger.FieldExamineWeight)
 	}
 	return fields
 }
@@ -41030,12 +41675,14 @@ func (m *TriggerMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *TriggerMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case trigger.FieldExamineWeight:
+		return m.AddedExamineWeight()
+	case trigger.FieldTargetID:
+		return m.AddedTargetID()
 	case trigger.FieldRoomID:
 		return m.AddedRoomID()
 	case trigger.FieldEquipmentID:
 		return m.AddedEquipmentID()
-	case trigger.FieldExamineWeight:
-		return m.AddedExamineWeight()
 	}
 	return nil, false
 }
@@ -41045,6 +41692,20 @@ func (m *TriggerMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *TriggerMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case trigger.FieldExamineWeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExamineWeight(v)
+		return nil
+	case trigger.FieldTargetID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTargetID(v)
+		return nil
 	case trigger.FieldRoomID:
 		v, ok := value.(int)
 		if !ok {
@@ -41059,13 +41720,6 @@ func (m *TriggerMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddEquipmentID(v)
 		return nil
-	case trigger.FieldExamineWeight:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddExamineWeight(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Trigger numeric field %s", name)
 }
@@ -41074,6 +41728,12 @@ func (m *TriggerMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *TriggerMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(trigger.FieldExamineWeight) {
+		fields = append(fields, trigger.FieldExamineWeight)
+	}
+	if m.FieldCleared(trigger.FieldTargetID) {
+		fields = append(fields, trigger.FieldTargetID)
+	}
 	if m.FieldCleared(trigger.FieldRoomID) {
 		fields = append(fields, trigger.FieldRoomID)
 	}
@@ -41097,6 +41757,12 @@ func (m *TriggerMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *TriggerMutation) ClearField(name string) error {
 	switch name {
+	case trigger.FieldExamineWeight:
+		m.ClearExamineWeight()
+		return nil
+	case trigger.FieldTargetID:
+		m.ClearTargetID()
+		return nil
 	case trigger.FieldRoomID:
 		m.ClearRoomID()
 		return nil
@@ -41123,6 +41789,9 @@ func (m *TriggerMutation) ResetField(name string) error {
 	case trigger.FieldTriggerType:
 		m.ResetTriggerType()
 		return nil
+	case trigger.FieldExamineWeight:
+		m.ResetExamineWeight()
+		return nil
 	case trigger.FieldTargetType:
 		m.ResetTargetType()
 		return nil
@@ -41141,16 +41810,13 @@ func (m *TriggerMutation) ResetField(name string) error {
 	case trigger.FieldEnabled:
 		m.ResetEnabled()
 		return nil
-	case trigger.FieldExamineWeight:
-		m.ResetExamineWeight()
-		return nil
 	}
 	return fmt.Errorf("unknown Trigger field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TriggerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.effect != nil {
 		edges = append(edges, trigger.EdgeEffect)
 	}
@@ -41159,9 +41825,6 @@ func (m *TriggerMutation) AddedEdges() []string {
 	}
 	if m.dialog_node != nil {
 		edges = append(edges, trigger.EdgeDialogNode)
-	}
-	if m.npc_template != nil {
-		edges = append(edges, trigger.EdgeNpcTemplate)
 	}
 	return edges
 }
@@ -41182,17 +41845,13 @@ func (m *TriggerMutation) AddedIDs(name string) []ent.Value {
 		if id := m.dialog_node; id != nil {
 			return []ent.Value{*id}
 		}
-	case trigger.EdgeNpcTemplate:
-		if id := m.npc_template; id != nil {
-			return []ent.Value{*id}
-		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TriggerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -41204,7 +41863,7 @@ func (m *TriggerMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TriggerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 3)
 	if m.clearedeffect {
 		edges = append(edges, trigger.EdgeEffect)
 	}
@@ -41213,9 +41872,6 @@ func (m *TriggerMutation) ClearedEdges() []string {
 	}
 	if m.cleareddialog_node {
 		edges = append(edges, trigger.EdgeDialogNode)
-	}
-	if m.clearednpc_template {
-		edges = append(edges, trigger.EdgeNpcTemplate)
 	}
 	return edges
 }
@@ -41230,8 +41886,6 @@ func (m *TriggerMutation) EdgeCleared(name string) bool {
 		return m.clearedrecipe
 	case trigger.EdgeDialogNode:
 		return m.cleareddialog_node
-	case trigger.EdgeNpcTemplate:
-		return m.clearednpc_template
 	}
 	return false
 }
@@ -41249,9 +41903,6 @@ func (m *TriggerMutation) ClearEdge(name string) error {
 	case trigger.EdgeDialogNode:
 		m.ClearDialogNode()
 		return nil
-	case trigger.EdgeNpcTemplate:
-		m.ClearNpcTemplate()
-		return nil
 	}
 	return fmt.Errorf("unknown Trigger unique edge %s", name)
 }
@@ -41268,9 +41919,6 @@ func (m *TriggerMutation) ResetEdge(name string) error {
 		return nil
 	case trigger.EdgeDialogNode:
 		m.ResetDialogNode()
-		return nil
-	case trigger.EdgeNpcTemplate:
-		m.ResetNpcTemplate()
 		return nil
 	}
 	return fmt.Errorf("unknown Trigger edge %s", name)
@@ -42073,9 +42721,6 @@ type WorldMutation struct {
 	effect_hooks              map[int]struct{}
 	removedeffect_hooks       map[int]struct{}
 	clearedeffect_hooks       bool
-	shops                     map[int]struct{}
-	removedshops              map[int]struct{}
-	clearedshops              bool
 	done                      bool
 	oldValue                  func(context.Context) (*World, error)
 	predicates                []predicate.World
@@ -42714,60 +43359,6 @@ func (m *WorldMutation) ResetEffectHooks() {
 	m.removedeffect_hooks = nil
 }
 
-// AddShopIDs adds the "shops" edge to the ShopTemplate entity by ids.
-func (m *WorldMutation) AddShopIDs(ids ...int) {
-	if m.shops == nil {
-		m.shops = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.shops[ids[i]] = struct{}{}
-	}
-}
-
-// ClearShops clears the "shops" edge to the ShopTemplate entity.
-func (m *WorldMutation) ClearShops() {
-	m.clearedshops = true
-}
-
-// ShopsCleared reports if the "shops" edge to the ShopTemplate entity was cleared.
-func (m *WorldMutation) ShopsCleared() bool {
-	return m.clearedshops
-}
-
-// RemoveShopIDs removes the "shops" edge to the ShopTemplate entity by IDs.
-func (m *WorldMutation) RemoveShopIDs(ids ...int) {
-	if m.removedshops == nil {
-		m.removedshops = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.shops, ids[i])
-		m.removedshops[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedShops returns the removed IDs of the "shops" edge to the ShopTemplate entity.
-func (m *WorldMutation) RemovedShopsIDs() (ids []int) {
-	for id := range m.removedshops {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ShopsIDs returns the "shops" edge IDs in the mutation.
-func (m *WorldMutation) ShopsIDs() (ids []int) {
-	for id := range m.shops {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetShops resets all changes to the "shops" edge.
-func (m *WorldMutation) ResetShops() {
-	m.shops = nil
-	m.clearedshops = false
-	m.removedshops = nil
-}
-
 // Where appends a list predicates to the WorldMutation builder.
 func (m *WorldMutation) Where(ps ...predicate.World) {
 	m.predicates = append(m.predicates, ps...)
@@ -42961,7 +43552,7 @@ func (m *WorldMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *WorldMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 7)
 	if m.characters != nil {
 		edges = append(edges, world.EdgeCharacters)
 	}
@@ -42982,9 +43573,6 @@ func (m *WorldMutation) AddedEdges() []string {
 	}
 	if m.effect_hooks != nil {
 		edges = append(edges, world.EdgeEffectHooks)
-	}
-	if m.shops != nil {
-		edges = append(edges, world.EdgeShops)
 	}
 	return edges
 }
@@ -43035,19 +43623,13 @@ func (m *WorldMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case world.EdgeShops:
-		ids := make([]ent.Value, 0, len(m.shops))
-		for id := range m.shops {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *WorldMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 7)
 	if m.removedcharacters != nil {
 		edges = append(edges, world.EdgeCharacters)
 	}
@@ -43068,9 +43650,6 @@ func (m *WorldMutation) RemovedEdges() []string {
 	}
 	if m.removedeffect_hooks != nil {
 		edges = append(edges, world.EdgeEffectHooks)
-	}
-	if m.removedshops != nil {
-		edges = append(edges, world.EdgeShops)
 	}
 	return edges
 }
@@ -43121,19 +43700,13 @@ func (m *WorldMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case world.EdgeShops:
-		ids := make([]ent.Value, 0, len(m.removedshops))
-		for id := range m.removedshops {
-			ids = append(ids, id)
-		}
-		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *WorldMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 7)
 	if m.clearedcharacters {
 		edges = append(edges, world.EdgeCharacters)
 	}
@@ -43154,9 +43727,6 @@ func (m *WorldMutation) ClearedEdges() []string {
 	}
 	if m.clearedeffect_hooks {
 		edges = append(edges, world.EdgeEffectHooks)
-	}
-	if m.clearedshops {
-		edges = append(edges, world.EdgeShops)
 	}
 	return edges
 }
@@ -43179,8 +43749,6 @@ func (m *WorldMutation) EdgeCleared(name string) bool {
 		return m.clearedfaction_categories
 	case world.EdgeEffectHooks:
 		return m.clearedeffect_hooks
-	case world.EdgeShops:
-		return m.clearedshops
 	}
 	return false
 }
@@ -43218,9 +43786,1029 @@ func (m *WorldMutation) ResetEdge(name string) error {
 	case world.EdgeEffectHooks:
 		m.ResetEffectHooks()
 		return nil
-	case world.EdgeShops:
-		m.ResetShops()
-		return nil
 	}
 	return fmt.Errorf("unknown World edge %s", name)
+}
+
+// ZoneMutation represents an operation that mutates the Zone nodes in the graph.
+type ZoneMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *string
+	world_id        *string
+	name            *string
+	description     *string
+	min_level       *int
+	addmin_level    *int
+	color           *string
+	room_ids        *[]int
+	appendroom_ids  []int
+	clearedFields   map[string]struct{}
+	parent          *string
+	clearedparent   bool
+	children        map[string]struct{}
+	removedchildren map[string]struct{}
+	clearedchildren bool
+	rooms           map[int]struct{}
+	removedrooms    map[int]struct{}
+	clearedrooms    bool
+	done            bool
+	oldValue        func(context.Context) (*Zone, error)
+	predicates      []predicate.Zone
+}
+
+var _ ent.Mutation = (*ZoneMutation)(nil)
+
+// zoneOption allows management of the mutation configuration using functional options.
+type zoneOption func(*ZoneMutation)
+
+// newZoneMutation creates new mutation for the Zone entity.
+func newZoneMutation(c config, op Op, opts ...zoneOption) *ZoneMutation {
+	m := &ZoneMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeZone,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withZoneID sets the ID field of the mutation.
+func withZoneID(id string) zoneOption {
+	return func(m *ZoneMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Zone
+		)
+		m.oldValue = func(ctx context.Context) (*Zone, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Zone.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withZone sets the old Zone of the mutation.
+func withZone(node *Zone) zoneOption {
+	return func(m *ZoneMutation) {
+		m.oldValue = func(context.Context) (*Zone, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ZoneMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ZoneMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Zone entities.
+func (m *ZoneMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ZoneMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ZoneMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Zone.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *ZoneMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *ZoneMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *ZoneMutation) ResetWorldID() {
+	m.world_id = nil
+}
+
+// SetName sets the "name" field.
+func (m *ZoneMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ZoneMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ZoneMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *ZoneMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ZoneMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *ZoneMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[zone.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ZoneMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[zone.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ZoneMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, zone.FieldDescription)
+}
+
+// SetMinLevel sets the "min_level" field.
+func (m *ZoneMutation) SetMinLevel(i int) {
+	m.min_level = &i
+	m.addmin_level = nil
+}
+
+// MinLevel returns the value of the "min_level" field in the mutation.
+func (m *ZoneMutation) MinLevel() (r int, exists bool) {
+	v := m.min_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMinLevel returns the old "min_level" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldMinLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMinLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMinLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMinLevel: %w", err)
+	}
+	return oldValue.MinLevel, nil
+}
+
+// AddMinLevel adds i to the "min_level" field.
+func (m *ZoneMutation) AddMinLevel(i int) {
+	if m.addmin_level != nil {
+		*m.addmin_level += i
+	} else {
+		m.addmin_level = &i
+	}
+}
+
+// AddedMinLevel returns the value that was added to the "min_level" field in this mutation.
+func (m *ZoneMutation) AddedMinLevel() (r int, exists bool) {
+	v := m.addmin_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMinLevel resets all changes to the "min_level" field.
+func (m *ZoneMutation) ResetMinLevel() {
+	m.min_level = nil
+	m.addmin_level = nil
+}
+
+// SetParentZoneID sets the "parent_zone_id" field.
+func (m *ZoneMutation) SetParentZoneID(s string) {
+	m.parent = &s
+}
+
+// ParentZoneID returns the value of the "parent_zone_id" field in the mutation.
+func (m *ZoneMutation) ParentZoneID() (r string, exists bool) {
+	v := m.parent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentZoneID returns the old "parent_zone_id" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldParentZoneID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentZoneID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentZoneID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentZoneID: %w", err)
+	}
+	return oldValue.ParentZoneID, nil
+}
+
+// ClearParentZoneID clears the value of the "parent_zone_id" field.
+func (m *ZoneMutation) ClearParentZoneID() {
+	m.parent = nil
+	m.clearedFields[zone.FieldParentZoneID] = struct{}{}
+}
+
+// ParentZoneIDCleared returns if the "parent_zone_id" field was cleared in this mutation.
+func (m *ZoneMutation) ParentZoneIDCleared() bool {
+	_, ok := m.clearedFields[zone.FieldParentZoneID]
+	return ok
+}
+
+// ResetParentZoneID resets all changes to the "parent_zone_id" field.
+func (m *ZoneMutation) ResetParentZoneID() {
+	m.parent = nil
+	delete(m.clearedFields, zone.FieldParentZoneID)
+}
+
+// SetColor sets the "color" field.
+func (m *ZoneMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *ZoneMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "color" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ClearColor clears the value of the "color" field.
+func (m *ZoneMutation) ClearColor() {
+	m.color = nil
+	m.clearedFields[zone.FieldColor] = struct{}{}
+}
+
+// ColorCleared returns if the "color" field was cleared in this mutation.
+func (m *ZoneMutation) ColorCleared() bool {
+	_, ok := m.clearedFields[zone.FieldColor]
+	return ok
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *ZoneMutation) ResetColor() {
+	m.color = nil
+	delete(m.clearedFields, zone.FieldColor)
+}
+
+// SetRoomIds sets the "room_ids" field.
+func (m *ZoneMutation) SetRoomIds(i []int) {
+	m.room_ids = &i
+	m.appendroom_ids = nil
+}
+
+// RoomIds returns the value of the "room_ids" field in the mutation.
+func (m *ZoneMutation) RoomIds() (r []int, exists bool) {
+	v := m.room_ids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoomIds returns the old "room_ids" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldRoomIds(ctx context.Context) (v []int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoomIds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoomIds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoomIds: %w", err)
+	}
+	return oldValue.RoomIds, nil
+}
+
+// AppendRoomIds adds i to the "room_ids" field.
+func (m *ZoneMutation) AppendRoomIds(i []int) {
+	m.appendroom_ids = append(m.appendroom_ids, i...)
+}
+
+// AppendedRoomIds returns the list of values that were appended to the "room_ids" field in this mutation.
+func (m *ZoneMutation) AppendedRoomIds() ([]int, bool) {
+	if len(m.appendroom_ids) == 0 {
+		return nil, false
+	}
+	return m.appendroom_ids, true
+}
+
+// ClearRoomIds clears the value of the "room_ids" field.
+func (m *ZoneMutation) ClearRoomIds() {
+	m.room_ids = nil
+	m.appendroom_ids = nil
+	m.clearedFields[zone.FieldRoomIds] = struct{}{}
+}
+
+// RoomIdsCleared returns if the "room_ids" field was cleared in this mutation.
+func (m *ZoneMutation) RoomIdsCleared() bool {
+	_, ok := m.clearedFields[zone.FieldRoomIds]
+	return ok
+}
+
+// ResetRoomIds resets all changes to the "room_ids" field.
+func (m *ZoneMutation) ResetRoomIds() {
+	m.room_ids = nil
+	m.appendroom_ids = nil
+	delete(m.clearedFields, zone.FieldRoomIds)
+}
+
+// SetParentID sets the "parent" edge to the Zone entity by id.
+func (m *ZoneMutation) SetParentID(id string) {
+	m.parent = &id
+}
+
+// ClearParent clears the "parent" edge to the Zone entity.
+func (m *ZoneMutation) ClearParent() {
+	m.clearedparent = true
+	m.clearedFields[zone.FieldParentZoneID] = struct{}{}
+}
+
+// ParentCleared reports if the "parent" edge to the Zone entity was cleared.
+func (m *ZoneMutation) ParentCleared() bool {
+	return m.ParentZoneIDCleared() || m.clearedparent
+}
+
+// ParentID returns the "parent" edge ID in the mutation.
+func (m *ZoneMutation) ParentID() (id string, exists bool) {
+	if m.parent != nil {
+		return *m.parent, true
+	}
+	return
+}
+
+// ParentIDs returns the "parent" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ParentID instead. It exists only for internal usage by the builders.
+func (m *ZoneMutation) ParentIDs() (ids []string) {
+	if id := m.parent; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParent resets all changes to the "parent" edge.
+func (m *ZoneMutation) ResetParent() {
+	m.parent = nil
+	m.clearedparent = false
+}
+
+// AddChildIDs adds the "children" edge to the Zone entity by ids.
+func (m *ZoneMutation) AddChildIDs(ids ...string) {
+	if m.children == nil {
+		m.children = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.children[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChildren clears the "children" edge to the Zone entity.
+func (m *ZoneMutation) ClearChildren() {
+	m.clearedchildren = true
+}
+
+// ChildrenCleared reports if the "children" edge to the Zone entity was cleared.
+func (m *ZoneMutation) ChildrenCleared() bool {
+	return m.clearedchildren
+}
+
+// RemoveChildIDs removes the "children" edge to the Zone entity by IDs.
+func (m *ZoneMutation) RemoveChildIDs(ids ...string) {
+	if m.removedchildren == nil {
+		m.removedchildren = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.children, ids[i])
+		m.removedchildren[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChildren returns the removed IDs of the "children" edge to the Zone entity.
+func (m *ZoneMutation) RemovedChildrenIDs() (ids []string) {
+	for id := range m.removedchildren {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChildrenIDs returns the "children" edge IDs in the mutation.
+func (m *ZoneMutation) ChildrenIDs() (ids []string) {
+	for id := range m.children {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChildren resets all changes to the "children" edge.
+func (m *ZoneMutation) ResetChildren() {
+	m.children = nil
+	m.clearedchildren = false
+	m.removedchildren = nil
+}
+
+// AddRoomIDs adds the "rooms" edge to the Room entity by ids.
+func (m *ZoneMutation) AddRoomIDs(ids ...int) {
+	if m.rooms == nil {
+		m.rooms = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.rooms[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRooms clears the "rooms" edge to the Room entity.
+func (m *ZoneMutation) ClearRooms() {
+	m.clearedrooms = true
+}
+
+// RoomsCleared reports if the "rooms" edge to the Room entity was cleared.
+func (m *ZoneMutation) RoomsCleared() bool {
+	return m.clearedrooms
+}
+
+// RemoveRoomIDs removes the "rooms" edge to the Room entity by IDs.
+func (m *ZoneMutation) RemoveRoomIDs(ids ...int) {
+	if m.removedrooms == nil {
+		m.removedrooms = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.rooms, ids[i])
+		m.removedrooms[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRooms returns the removed IDs of the "rooms" edge to the Room entity.
+func (m *ZoneMutation) RemovedRoomsIDs() (ids []int) {
+	for id := range m.removedrooms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RoomsIDs returns the "rooms" edge IDs in the mutation.
+func (m *ZoneMutation) RoomsIDs() (ids []int) {
+	for id := range m.rooms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRooms resets all changes to the "rooms" edge.
+func (m *ZoneMutation) ResetRooms() {
+	m.rooms = nil
+	m.clearedrooms = false
+	m.removedrooms = nil
+}
+
+// Where appends a list predicates to the ZoneMutation builder.
+func (m *ZoneMutation) Where(ps ...predicate.Zone) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ZoneMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ZoneMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Zone, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ZoneMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ZoneMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Zone).
+func (m *ZoneMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ZoneMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.world_id != nil {
+		fields = append(fields, zone.FieldWorldID)
+	}
+	if m.name != nil {
+		fields = append(fields, zone.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, zone.FieldDescription)
+	}
+	if m.min_level != nil {
+		fields = append(fields, zone.FieldMinLevel)
+	}
+	if m.parent != nil {
+		fields = append(fields, zone.FieldParentZoneID)
+	}
+	if m.color != nil {
+		fields = append(fields, zone.FieldColor)
+	}
+	if m.room_ids != nil {
+		fields = append(fields, zone.FieldRoomIds)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ZoneMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case zone.FieldWorldID:
+		return m.WorldID()
+	case zone.FieldName:
+		return m.Name()
+	case zone.FieldDescription:
+		return m.Description()
+	case zone.FieldMinLevel:
+		return m.MinLevel()
+	case zone.FieldParentZoneID:
+		return m.ParentZoneID()
+	case zone.FieldColor:
+		return m.Color()
+	case zone.FieldRoomIds:
+		return m.RoomIds()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ZoneMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case zone.FieldWorldID:
+		return m.OldWorldID(ctx)
+	case zone.FieldName:
+		return m.OldName(ctx)
+	case zone.FieldDescription:
+		return m.OldDescription(ctx)
+	case zone.FieldMinLevel:
+		return m.OldMinLevel(ctx)
+	case zone.FieldParentZoneID:
+		return m.OldParentZoneID(ctx)
+	case zone.FieldColor:
+		return m.OldColor(ctx)
+	case zone.FieldRoomIds:
+		return m.OldRoomIds(ctx)
+	}
+	return nil, fmt.Errorf("unknown Zone field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ZoneMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case zone.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
+	case zone.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case zone.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case zone.FieldMinLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMinLevel(v)
+		return nil
+	case zone.FieldParentZoneID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentZoneID(v)
+		return nil
+	case zone.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
+	case zone.FieldRoomIds:
+		v, ok := value.([]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoomIds(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Zone field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ZoneMutation) AddedFields() []string {
+	var fields []string
+	if m.addmin_level != nil {
+		fields = append(fields, zone.FieldMinLevel)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ZoneMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case zone.FieldMinLevel:
+		return m.AddedMinLevel()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ZoneMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case zone.FieldMinLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMinLevel(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Zone numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ZoneMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(zone.FieldDescription) {
+		fields = append(fields, zone.FieldDescription)
+	}
+	if m.FieldCleared(zone.FieldParentZoneID) {
+		fields = append(fields, zone.FieldParentZoneID)
+	}
+	if m.FieldCleared(zone.FieldColor) {
+		fields = append(fields, zone.FieldColor)
+	}
+	if m.FieldCleared(zone.FieldRoomIds) {
+		fields = append(fields, zone.FieldRoomIds)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ZoneMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ZoneMutation) ClearField(name string) error {
+	switch name {
+	case zone.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case zone.FieldParentZoneID:
+		m.ClearParentZoneID()
+		return nil
+	case zone.FieldColor:
+		m.ClearColor()
+		return nil
+	case zone.FieldRoomIds:
+		m.ClearRoomIds()
+		return nil
+	}
+	return fmt.Errorf("unknown Zone nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ZoneMutation) ResetField(name string) error {
+	switch name {
+	case zone.FieldWorldID:
+		m.ResetWorldID()
+		return nil
+	case zone.FieldName:
+		m.ResetName()
+		return nil
+	case zone.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case zone.FieldMinLevel:
+		m.ResetMinLevel()
+		return nil
+	case zone.FieldParentZoneID:
+		m.ResetParentZoneID()
+		return nil
+	case zone.FieldColor:
+		m.ResetColor()
+		return nil
+	case zone.FieldRoomIds:
+		m.ResetRoomIds()
+		return nil
+	}
+	return fmt.Errorf("unknown Zone field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ZoneMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.parent != nil {
+		edges = append(edges, zone.EdgeParent)
+	}
+	if m.children != nil {
+		edges = append(edges, zone.EdgeChildren)
+	}
+	if m.rooms != nil {
+		edges = append(edges, zone.EdgeRooms)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ZoneMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case zone.EdgeParent:
+		if id := m.parent; id != nil {
+			return []ent.Value{*id}
+		}
+	case zone.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.children))
+		for id := range m.children {
+			ids = append(ids, id)
+		}
+		return ids
+	case zone.EdgeRooms:
+		ids := make([]ent.Value, 0, len(m.rooms))
+		for id := range m.rooms {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ZoneMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedchildren != nil {
+		edges = append(edges, zone.EdgeChildren)
+	}
+	if m.removedrooms != nil {
+		edges = append(edges, zone.EdgeRooms)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ZoneMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case zone.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.removedchildren))
+		for id := range m.removedchildren {
+			ids = append(ids, id)
+		}
+		return ids
+	case zone.EdgeRooms:
+		ids := make([]ent.Value, 0, len(m.removedrooms))
+		for id := range m.removedrooms {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ZoneMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedparent {
+		edges = append(edges, zone.EdgeParent)
+	}
+	if m.clearedchildren {
+		edges = append(edges, zone.EdgeChildren)
+	}
+	if m.clearedrooms {
+		edges = append(edges, zone.EdgeRooms)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ZoneMutation) EdgeCleared(name string) bool {
+	switch name {
+	case zone.EdgeParent:
+		return m.clearedparent
+	case zone.EdgeChildren:
+		return m.clearedchildren
+	case zone.EdgeRooms:
+		return m.clearedrooms
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ZoneMutation) ClearEdge(name string) error {
+	switch name {
+	case zone.EdgeParent:
+		m.ClearParent()
+		return nil
+	}
+	return fmt.Errorf("unknown Zone unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ZoneMutation) ResetEdge(name string) error {
+	switch name {
+	case zone.EdgeParent:
+		m.ResetParent()
+		return nil
+	case zone.EdgeChildren:
+		m.ResetChildren()
+		return nil
+	case zone.EdgeRooms:
+		m.ResetRooms()
+		return nil
+	}
+	return fmt.Errorf("unknown Zone edge %s", name)
 }

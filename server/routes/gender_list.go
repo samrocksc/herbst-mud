@@ -26,12 +26,28 @@ func RegisterGenderRoutes(r *gin.Engine, repos *repository.Container, client *db
 	}
 }
 
-// listGenders returns all genders for the specified world_id (default: "1").
+// listGenders returns all genders for the specified world_id.
 func listGenders(repos *repository.Container) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		worldID := c.Query("world_id")
-		if worldID == "" {
-			worldID = "1"
+		queryID := c.Query("world_id")
+		// Empty / "default" / non-numeric values are treated as world 1 (dev default).
+		// "default" is the UI sentinel for an unconfigured world context.
+		if queryID == "" || queryID == "default" {
+			queryID = "1"
+		}
+		// Check if queryID is a numeric ID or a world name
+		var worldID string
+		if _, err := strconv.Atoi(queryID); err == nil {
+			worldID = queryID
+		} else {
+			// Look up world by name to get the numeric ID
+			world, err := repos.World.GetByName(c.Request.Context(), queryID)
+			if err != nil {
+				// World not found - return 404
+				c.JSON(http.StatusNotFound, gin.H{"error": "world not found"})
+				return
+			}
+			worldID = strconv.Itoa(world.ID)
 		}
 		genders, err := repos.Gender.List(c.Request.Context(), worldID)
 		if err != nil {

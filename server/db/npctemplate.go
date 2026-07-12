@@ -8,6 +8,7 @@ import (
 	"herbst-server/db/npctemplate"
 	"herbst-server/db/race"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -44,6 +45,20 @@ type NPCTemplate struct {
 	RespawnRooms []string `json:"respawn_rooms,omitempty"`
 	// Seconds before this NPC respawns after death (0 = immediate, nil = default 60)
 	RespawnCooldown int `json:"respawn_cooldown,omitempty"`
+	// NPC roaming behavior: static (never moves), wander (random exits), patrol (round-robin), return_home (walk back to home)
+	RoamPattern npctemplate.RoamPattern `json:"roam_pattern,omitempty"`
+	// Zones this NPC can roam inside. Empty = no zone restriction.
+	RoamZoneIds []string `json:"roam_zone_ids,omitempty"`
+	// How often (in seconds) this NPC is eligible to move. Default 60.
+	RoamIntervalSeconds int `json:"roam_interval_seconds,omitempty"`
+	// Minimum seconds to add as jitter before the next move.
+	RoamPauseMinSeconds int `json:"roam_pause_min_seconds,omitempty"`
+	// Maximum seconds to add as jitter before the next move.
+	RoamPauseMaxSeconds int `json:"roam_pause_max_seconds,omitempty"`
+	// Last time this NPC was moved by the roaming service. Used to enforce roam_interval_seconds.
+	LastMovedAt *time.Time `json:"last_moved_at,omitempty"`
+	// If true, emit a chat/notification event when this NPC enters a room.
+	NotifyOnEnter bool `json:"notify_on_enter,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NPCTemplateQuery when eager-loading is set.
 	Edges        NPCTemplateEdges `json:"edges"`
@@ -119,12 +134,16 @@ func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case npctemplate.FieldSkills, npctemplate.FieldTradesWith, npctemplate.FieldRespawnRooms:
+		case npctemplate.FieldSkills, npctemplate.FieldTradesWith, npctemplate.FieldRespawnRooms, npctemplate.FieldRoamZoneIds:
 			values[i] = new([]byte)
-		case npctemplate.FieldRaceID, npctemplate.FieldLevel, npctemplate.FieldXpValue, npctemplate.FieldRespawnCooldown:
+		case npctemplate.FieldNotifyOnEnter:
+			values[i] = new(sql.NullBool)
+		case npctemplate.FieldRaceID, npctemplate.FieldLevel, npctemplate.FieldXpValue, npctemplate.FieldRespawnCooldown, npctemplate.FieldRoamIntervalSeconds, npctemplate.FieldRoamPauseMinSeconds, npctemplate.FieldRoamPauseMaxSeconds:
 			values[i] = new(sql.NullInt64)
-		case npctemplate.FieldID, npctemplate.FieldSlug, npctemplate.FieldWorldID, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldDisposition, npctemplate.FieldGreeting:
+		case npctemplate.FieldID, npctemplate.FieldSlug, npctemplate.FieldWorldID, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldDisposition, npctemplate.FieldGreeting, npctemplate.FieldRoamPattern:
 			values[i] = new(sql.NullString)
+		case npctemplate.FieldLastMovedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -230,6 +249,51 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.RespawnCooldown = int(value.Int64)
 			}
+		case npctemplate.FieldRoamPattern:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field roam_pattern", values[i])
+			} else if value.Valid {
+				_m.RoamPattern = npctemplate.RoamPattern(value.String)
+			}
+		case npctemplate.FieldRoamZoneIds:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field roam_zone_ids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.RoamZoneIds); err != nil {
+					return fmt.Errorf("unmarshal field roam_zone_ids: %w", err)
+				}
+			}
+		case npctemplate.FieldRoamIntervalSeconds:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field roam_interval_seconds", values[i])
+			} else if value.Valid {
+				_m.RoamIntervalSeconds = int(value.Int64)
+			}
+		case npctemplate.FieldRoamPauseMinSeconds:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field roam_pause_min_seconds", values[i])
+			} else if value.Valid {
+				_m.RoamPauseMinSeconds = int(value.Int64)
+			}
+		case npctemplate.FieldRoamPauseMaxSeconds:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field roam_pause_max_seconds", values[i])
+			} else if value.Valid {
+				_m.RoamPauseMaxSeconds = int(value.Int64)
+			}
+		case npctemplate.FieldLastMovedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_moved_at", values[i])
+			} else if value.Valid {
+				_m.LastMovedAt = new(time.Time)
+				*_m.LastMovedAt = value.Time
+			}
+		case npctemplate.FieldNotifyOnEnter:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field notify_on_enter", values[i])
+			} else if value.Valid {
+				_m.NotifyOnEnter = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -329,6 +393,29 @@ func (_m *NPCTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("respawn_cooldown=")
 	builder.WriteString(fmt.Sprintf("%v", _m.RespawnCooldown))
+	builder.WriteString(", ")
+	builder.WriteString("roam_pattern=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RoamPattern))
+	builder.WriteString(", ")
+	builder.WriteString("roam_zone_ids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RoamZoneIds))
+	builder.WriteString(", ")
+	builder.WriteString("roam_interval_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RoamIntervalSeconds))
+	builder.WriteString(", ")
+	builder.WriteString("roam_pause_min_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RoamPauseMinSeconds))
+	builder.WriteString(", ")
+	builder.WriteString("roam_pause_max_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RoamPauseMaxSeconds))
+	builder.WriteString(", ")
+	if v := _m.LastMovedAt; v != nil {
+		builder.WriteString("last_moved_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("notify_on_enter=")
+	builder.WriteString(fmt.Sprintf("%v", _m.NotifyOnEnter))
 	builder.WriteByte(')')
 	return builder.String()
 }

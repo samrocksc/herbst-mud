@@ -38,10 +38,14 @@ const (
 	FieldVersion = "version"
 	// FieldTags holds the string denoting the tags field in the database.
 	FieldTags = "tags"
+	// FieldZoneIds holds the string denoting the zone_ids field in the database.
+	FieldZoneIds = "zone_ids"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
 	EdgeEquipment = "equipment"
+	// EdgeZones holds the string denoting the zones edge name in mutations.
+	EdgeZones = "zones"
 	// Table holds the table name of the room in the database.
 	Table = "rooms"
 	// CharactersTable is the table that holds the characters relation/edge.
@@ -58,6 +62,11 @@ const (
 	EquipmentInverseTable = "equipment"
 	// EquipmentColumn is the table column denoting the equipment relation/edge.
 	EquipmentColumn = "room_equipment"
+	// ZonesTable is the table that holds the zones relation/edge. The primary key declared below.
+	ZonesTable = "room_zones"
+	// ZonesInverseTable is the table name for the Zone entity.
+	// It exists in this package in order to avoid circular dependency with the "zone" package.
+	ZonesInverseTable = "zones"
 )
 
 // Columns holds all SQL columns for room fields.
@@ -75,7 +84,14 @@ var Columns = []string{
 	FieldPosZ,
 	FieldVersion,
 	FieldTags,
+	FieldZoneIds,
 }
+
+var (
+	// ZonesPrimaryKey and ZonesColumn2 are the table columns denoting the
+	// primary key for the zones relation (M2M).
+	ZonesPrimaryKey = []string{"room_id", "zone_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -216,6 +232,20 @@ func ByEquipment(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newEquipmentStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByZonesCount orders the results by zones count.
+func ByZonesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newZonesStep(), opts...)
+	}
+}
+
+// ByZones orders the results by zones terms.
+func ByZones(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newZonesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -228,5 +258,12 @@ func newEquipmentStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EquipmentInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EquipmentTable, EquipmentColumn),
+	)
+}
+func newZonesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ZonesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, ZonesTable, ZonesPrimaryKey...),
 	)
 }

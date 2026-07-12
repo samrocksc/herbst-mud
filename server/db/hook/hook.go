@@ -404,6 +404,30 @@ func (f RoomFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RoomMutation", m)
 }
 
+// The ShopItemFunc type is an adapter to allow the use of ordinary
+// function as ShopItem mutator.
+type ShopItemFunc func(context.Context, *db.ShopItemMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ShopItemFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ShopItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ShopItemMutation", m)
+}
+
+// The ShopTemplateFunc type is an adapter to allow the use of ordinary
+// function as ShopTemplate mutator.
+type ShopTemplateFunc func(context.Context, *db.ShopTemplateMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ShopTemplateFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ShopTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ShopTemplateMutation", m)
+}
+
 // The SocialCommandFunc type is an adapter to allow the use of ordinary
 // function as SocialCommand mutator.
 type SocialCommandFunc func(context.Context, *db.SocialCommandMutation) (db.Value, error)
@@ -414,6 +438,18 @@ func (f SocialCommandFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value,
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SocialCommandMutation", m)
+}
+
+// The SystemLogFunc type is an adapter to allow the use of ordinary
+// function as SystemLog mutator.
+type SystemLogFunc func(context.Context, *db.SystemLogMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemLogFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.SystemLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.SystemLogMutation", m)
 }
 
 // The TagFunc type is an adapter to allow the use of ordinary
@@ -474,6 +510,18 @@ func (f WorldFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.WorldMutation", m)
+}
+
+// The ZoneFunc type is an adapter to allow the use of ordinary
+// function as Zone mutator.
+type ZoneFunc func(context.Context, *db.ZoneMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ZoneFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ZoneMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ZoneMutation", m)
 }
 
 // Condition is a hook condition function.

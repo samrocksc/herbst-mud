@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"herbst-server/dblog"
+	"log/slog"
 	"encoding/json"
 	"net/http"
 
@@ -24,6 +26,7 @@ func RegisterContentRoutes(router *gin.Engine, mgr *content.Manager) {
 		id := c.Param("id")
 		skill, exists := mgr.Skills.Get(id)
 		if !exists {
+			dblog.Error("skill not found", nil, slog.String("service", "content"))
 			c.JSON(http.StatusNotFound, gin.H{"error": "Skill not found"})
 			return
 		}
@@ -64,6 +67,7 @@ func RegisterContentRoutes(router *gin.Engine, mgr *content.Manager) {
 		id := c.Param("id")
 		item, exists := mgr.Items.Get(id)
 		if !exists {
+			dblog.Error("item not found", nil, slog.String("service", "content"))
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 			return
 		}
@@ -84,6 +88,7 @@ func RegisterContentRoutes(router *gin.Engine, mgr *content.Manager) {
 		id := c.Param("id")
 		npc, exists := mgr.NPCs.Get(id)
 		if !exists {
+			dblog.Error("NPC not found", nil, slog.String("service", "content"))
 			c.JSON(http.StatusNotFound, gin.H{"error": "NPC not found"})
 			return
 		}
@@ -110,6 +115,7 @@ func RegisterContentRoutes(router *gin.Engine, mgr *content.Manager) {
 		id := c.Param("id")
 		room, exists := mgr.Rooms.Get(id)
 		if !exists {
+			dblog.Error("room not found", nil, slog.String("service", "content"))
 			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 			return
 		}
@@ -121,6 +127,7 @@ func RegisterContentRoutes(router *gin.Engine, mgr *content.Manager) {
 		id := c.Param("id")
 		room, exists := mgr.Rooms.Get(id)
 		if !exists {
+			dblog.Error("room not found", nil, slog.String("service", "content"))
 			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 			return
 		}
@@ -154,6 +161,7 @@ func RegisterContentRoutes(router *gin.Engine, mgr *content.Manager) {
 		id := c.Param("id")
 		quest, exists := mgr.Quests.Get(id)
 		if !exists {
+			dblog.Error("quest not found", nil, slog.String("service", "content"))
 			c.JSON(http.StatusNotFound, gin.H{"error": "Quest not found"})
 			return
 		}
@@ -215,6 +223,7 @@ func RegisterContentRoutes(router *gin.Engine, mgr *content.Manager) {
 
 		preview, err := mgr.PreviewContent(request.Type, request.Data)
 		if err != nil {
+			dblog.Error("preview content failed", err, slog.String("service", "content"))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}

@@ -90,3 +90,7 @@ func (r *entGenderRepo) Delete(ctx context.Context, id int) error {
 func (r *entGenderRepo) CountByWorld(ctx context.Context, worldID string) (int, error) {
 	return r.client.Gender.Query().Where(gender.WorldIDEQ(worldID)).Count(ctx)
 }
+
+func (r *entGenderRepo) ListPlayable(ctx context.Context, worldID string) ([]*db.Gender, error) {
+	return r.List(ctx, worldID)
+}

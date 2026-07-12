@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"herbst-server/dblog"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -40,12 +42,14 @@ func equipItemHandler(c *gin.Context, repos *repository.Container) {
 
 	item, err := repos.Equipment.Get(c.Request.Context(), id)
 	if err != nil {
+		dblog.Error("equip item - equipment not found", err, slog.String("service", "equipment"))
 		c.JSON(http.StatusNotFound, gin.H{"error": "Equipment not found"})
 		return
 	}
 
 	char, err := repos.Character.Get(c.Request.Context(), req.CharacterID)
 	if err != nil {
+		dblog.Error("equip item - character not found", err, slog.String("service", "equipment"))
 		c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
 		return
 	}

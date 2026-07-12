@@ -3,6 +3,7 @@ package content
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"gopkg.in/yaml.v3"
@@ -72,7 +73,14 @@ func NewWorldManager(basePath string) (*WorldManager, error) {
 			wm.worlds[world.ID] = &worldCopy
 
 			// Create content manager for this world
-			contentMgr := NewManager(basePath + "/" + world.ContentPath)
+			// If ContentPath is absolute, use it directly; otherwise join with basePath
+			var contentPath string
+			if strings.HasPrefix(world.ContentPath, "/") {
+				contentPath = world.ContentPath
+			} else {
+				contentPath = basePath + "/" + world.ContentPath
+			}
+			contentMgr := NewManager(contentPath)
 			if err := contentMgr.LoadAll(); err != nil {
 				return nil, fmt.Errorf("failed to load world %s: %w", world.ID, err)
 			}

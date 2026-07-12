@@ -271,7 +271,7 @@ func main() {
 	routes.RegisterUserRoutes(router, repos)
 
 	// Register character routes (public endpoints)
-	routes.RegisterCharacterRoutes(router, services, repos)
+	routes.RegisterCharacterRoutes(router, services, repos, client)
 
 	// Protected routes - require authentication
 	protected := router.Group("/api")
@@ -323,6 +323,9 @@ func main() {
 
 	// Register achievement routes (ACH-001)
 	routes.RegisterAchievementRoutes(router, repos)
+
+	// Register zone routes
+	routes.RegisterZoneRoutes(router, services, repos)
 
 	// Register NPC template routes (XP-008)
 	// Register trigger routes (TRIGGERS-001)

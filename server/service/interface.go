@@ -244,6 +244,7 @@ type CreateRoomInput struct {
 	PosY           int
 	PosZ           int
 	WorldID        string
+	ZoneIDs        []string
 }
 
 // UpdateRoomInput for RoomService.
@@ -259,6 +260,7 @@ type UpdateRoomInput struct {
 	PosZ           *int
 	Version        *int
 	WorldID        *string
+	ZoneIDs        *[]string
 }
 
 // CreateQuestInput for QuestService.

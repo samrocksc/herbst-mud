@@ -200,13 +200,13 @@ func (r *NPCRegistry) Count() int {
 	return len(r.npcs)
 }
 
-// Validate checks NPCs against loaded skills and items
-func (r *NPCRegistry) Validate(skills *SkillRegistry, items *ItemRegistry) []ValidationError {
+// Validate checks NPCs against loaded skills, items, and quests
+func (r *NPCRegistry) Validate(skills *SkillRegistry, items *ItemRegistry, quests *QuestRegistry) []ValidationError {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	var errors []ValidationError
-	
+
 	for id, npc := range r.npcs {
 		// Validate skill references
 		for slot, skillID := range npc.Skills.Classless {
@@ -254,8 +254,20 @@ func (r *NPCRegistry) Validate(skills *SkillRegistry, items *ItemRegistry) []Val
 				})
 			}
 		}
+
+		// Validate quest references in quests_offered
+		for _, questID := range npc.QuestsOffered {
+			if _, exists := quests.Get(questID); !exists {
+				errors = append(errors, ValidationError{
+					Type:    "npc",
+					ID:      id,
+					Field:   "quests_offered",
+					Message: fmt.Sprintf("quest '%s' not found", questID),
+				})
+			}
+		}
 	}
-	
+
 	return errors
 }
 

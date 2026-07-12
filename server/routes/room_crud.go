@@ -1,19 +1,51 @@
 package routes
 
 import (
+	"context"
+	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/db/room"
 	"herbst-server/dblog"
 	"herbst-server/service"
 	"log/slog"
 )
 
+// validateExits checks if all exits point to existing rooms.
+func validateExits(ctx context.Context, client *db.Client, exits map[string]int, worldID string) []string {
+	var errors []string
+	query := client.Room.Query()
+	if worldID != "" {
+		query = query.Where(room.WorldID(worldID))
+	}
+	rooms, err := query.All(ctx)
+	if err != nil {
+		dblog.Error("failed to list rooms for exit validation", err, slog.String("service", "rooms"))
+		errors = append(errors, "failed to validate exits: could not list rooms")
+		return errors
+	}
+	roomIDs := make(map[int]bool)
+	for _, r := range rooms {
+		roomIDs[r.ID] = true
+	}
+	for dir, targetID := range exits {
+		if targetID == 0 {
+			continue
+		}
+		if !roomIDs[targetID] {
+			errors = append(errors, fmt.Sprintf("exit '%s' points to non-existent room %d", dir, targetID))
+		}
+	}
+	return errors
+}
+
 // createRoom creates a new room.
-func createRoom(svc *service.Container) gin.HandlerFunc {
+func createRoom(svc *service.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input struct {
 			Name           string         `json:"name" binding:"required"`
@@ -22,14 +54,21 @@ func createRoom(svc *service.Container) gin.HandlerFunc {
 			IsRootRoom     bool           `json:"isRootRoom"`
 			Exits          map[string]int `json:"exits"`
 			Atmosphere     string         `json:"atmosphere"`
-			PosX           int            `json:"posX"`
-			PosY           int            `json:"posY"`
 			PosZ           int            `json:"posZ"`
+			ZoneIDs        []string       `json:"zoneIds"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
 			slog.Warn("bad request", slog.String("service", "rooms"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
+		}
+		// Validate exits point to existing rooms
+		if len(input.Exits) > 0 {
+			if errors := validateExits(c.Request.Context(), client, input.Exits, c.Query("world_id")); len(errors) > 0 {
+				slog.Warn("invalid exits", slog.String("service", "rooms"), slog.Any("errors", errors), slog.String("client_ip", c.ClientIP()))
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid exits: " + strings.Join(errors, "; ")})
+				return
+			}
 		}
 		room, err := svc.Room.CreateRoom(c.Request.Context(), service.CreateRoomInput{
 			Name:           input.Name,
@@ -38,10 +77,9 @@ func createRoom(svc *service.Container) gin.HandlerFunc {
 			IsRootRoom:     input.IsRootRoom,
 			Exits:          input.Exits,
 			Atmosphere:     input.Atmosphere,
-			PosX:           input.PosX,
-			PosY:           input.PosY,
 			PosZ:           input.PosZ,
 			WorldID:        c.Query("world_id"),
+			ZoneIDs:        input.ZoneIDs,
 		})
 		if err != nil {
 			dblog.Error("create room failed", err, slog.String("service", "rooms"))
@@ -74,6 +112,15 @@ func listRooms(svc *service.Container) gin.HandlerFunc {
 			}
 			rooms = filtered
 		}
+		if zoneID := c.Query("zone_id"); zoneID != "" {
+			filtered := make([]*db.Room, 0, len(rooms))
+			for _, r := range rooms {
+				if slices.Contains(r.ZoneIds, zoneID) {
+					filtered = append(filtered, r)
+				}
+			}
+			rooms = filtered
+		}
 		c.JSON(http.StatusOK, rooms)
 	}
 }
@@ -97,7 +144,7 @@ func getRoom(svc *service.Container) gin.HandlerFunc {
 }
 
 // updateRoom updates an existing room with optimistic locking.
-func updateRoom(svc *service.Container) gin.HandlerFunc {
+func updateRoom(svc *service.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -112,15 +159,22 @@ func updateRoom(svc *service.Container) gin.HandlerFunc {
 			IsRootRoom     *bool           `json:"isRootRoom"`
 			Exits          *map[string]int `json:"exits"`
 			Atmosphere     *string         `json:"atmosphere"`
-			PosX           *int            `json:"posX"`
-			PosY           *int            `json:"posY"`
 			PosZ           *int            `json:"posZ"`
 			Version        *int            `json:"version"`
+			ZoneIDs        *[]string       `json:"zoneIds"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
 			slog.Warn("bad request", slog.String("service", "rooms"), slog.String("reason", "invalid json"), slog.String("client_ip", c.ClientIP()))
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
+		}
+		// Validate exits point to existing rooms (if exits are being updated)
+		if input.Exits != nil {
+			if errors := validateExits(c.Request.Context(), client, *input.Exits, c.Query("world_id")); len(errors) > 0 {
+				slog.Warn("invalid exits", slog.String("service", "rooms"), slog.Any("errors", errors), slog.String("client_ip", c.ClientIP()))
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid exits: " + strings.Join(errors, "; ")})
+				return
+			}
 		}
 		room, err := svc.Room.UpdateRoom(c.Request.Context(), id, service.UpdateRoomInput{
 			Name:           input.Name,
@@ -129,10 +183,9 @@ func updateRoom(svc *service.Container) gin.HandlerFunc {
 			IsRootRoom:     input.IsRootRoom,
 			Exits:          input.Exits,
 			Atmosphere:     input.Atmosphere,
-			PosX:           input.PosX,
-			PosY:           input.PosY,
 			PosZ:           input.PosZ,
 			Version:        input.Version,
+			ZoneIDs:        input.ZoneIDs,
 		})
 		if err != nil {
 			if err.Error() == "version conflict" || (err.Error() != "" && len(err.Error()) > 16 && err.Error()[:16] == "version conflict") {

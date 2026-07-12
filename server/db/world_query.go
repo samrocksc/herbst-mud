@@ -678,6 +678,9 @@ func (_q *WorldQuery) loadCharacters(ctx context.Context, query *CharacterQuery,
 		}
 	}
 	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(character.FieldWorldID)
+	}
 	query.Where(predicate.Character(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(world.CharactersColumn), fks...))
 	}))
@@ -686,13 +689,10 @@ func (_q *WorldQuery) loadCharacters(ctx context.Context, query *CharacterQuery,
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.world_characters
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "world_characters" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.WorldID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "world_characters" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "world_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

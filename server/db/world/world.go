@@ -42,7 +42,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "character" package.
 	CharactersInverseTable = "characters"
 	// CharactersColumn is the table column denoting the characters relation/edge.
-	CharactersColumn = "world_characters"
+	CharactersColumn = "world_id"
 	// RacesTable is the table that holds the races relation/edge. The primary key declared below.
 	RacesTable = "world_races"
 	// RacesInverseTable is the table name for the Race entity.

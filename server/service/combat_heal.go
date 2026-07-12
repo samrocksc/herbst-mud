@@ -27,9 +27,7 @@ func (s *combatService) HealCharacter(ctx context.Context, charID int, amount in
 }
 
 func (s *combatService) AdjustStamina(ctx context.Context, charID int, amount int) (*StatResult, error) {
-	if amount < 0 {
-		return nil, errors.New("stamina amount must be non-negative")
-	}
+	// Allow negative amounts for cost deduction (but not below 0)
 	char, err := s.charRepo.Get(ctx, charID)
 	if err != nil {
 		return nil, ErrCharNotFound
@@ -37,6 +35,9 @@ func (s *combatService) AdjustStamina(ctx context.Context, charID int, amount in
 	newStamina := char.Stamina + amount
 	if newStamina > char.MaxStamina {
 		newStamina = char.MaxStamina
+	}
+	if newStamina < 0 {
+		newStamina = 0
 	}
 	updated, err := s.charRepo.Update(ctx, charID, repository.CharacterUpdates{Stamina: &newStamina})
 	if err != nil {
@@ -46,9 +47,7 @@ func (s *combatService) AdjustStamina(ctx context.Context, charID int, amount in
 }
 
 func (s *combatService) AdjustMana(ctx context.Context, charID int, amount int) (*StatResult, error) {
-	if amount < 0 {
-		return nil, errors.New("mana amount must be non-negative")
-	}
+	// Allow negative amounts for cost deduction (but not below 0)
 	char, err := s.charRepo.Get(ctx, charID)
 	if err != nil {
 		return nil, ErrCharNotFound
@@ -56,6 +55,9 @@ func (s *combatService) AdjustMana(ctx context.Context, charID int, amount int) 
 	newMana := char.Mana + amount
 	if newMana > char.MaxMana {
 		newMana = char.MaxMana
+	}
+	if newMana < 0 {
+		newMana = 0
 	}
 	updated, err := s.charRepo.Update(ctx, charID, repository.CharacterUpdates{Mana: &newMana})
 	if err != nil {

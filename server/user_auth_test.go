@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
@@ -32,7 +34,7 @@ func TestUserAuthBcrypt(t *testing.T) {
 	// Test user authentication with bcrypt
 	t.Run("AuthenticateUserWithBcrypt", func(t *testing.T) {
 		// Create a user with a known password
-		testEmail := "bcrypt_test_" + t.Name() + "@example.com"
+		testEmail := "bcrypt_test_" + strconv.FormatInt(time.Now().UnixNano(), 10) + "@example.com"
 		userData := map[string]interface{}{
 			"email":    testEmail,
 			"password": "mysecretpassword123",

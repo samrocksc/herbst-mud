@@ -18,6 +18,8 @@ const (
 	FieldWorldID = "world_id"
 	// FieldTriggerType holds the string denoting the trigger_type field in the database.
 	FieldTriggerType = "trigger_type"
+	// FieldExamineWeight holds the string denoting the examine_weight field in the database.
+	FieldExamineWeight = "examine_weight"
 	// FieldTargetType holds the string denoting the target_type field in the database.
 	FieldTargetType = "target_type"
 	// FieldTargetID holds the string denoting the target_id field in the database.
@@ -67,6 +69,7 @@ var Columns = []string{
 	FieldName,
 	FieldWorldID,
 	FieldTriggerType,
+	FieldExamineWeight,
 	FieldTargetType,
 	FieldTargetID,
 	FieldRoomID,
@@ -101,6 +104,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultWorldID holds the default value on creation for the "world_id" field.
 	DefaultWorldID string
+	// DefaultExamineWeight holds the default value on creation for the "examine_weight" field.
+	DefaultExamineWeight int
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
 )
@@ -126,6 +131,11 @@ func ByWorldID(opts ...sql.OrderTermOption) OrderOption {
 // ByTriggerType orders the results by the trigger_type field.
 func ByTriggerType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTriggerType, opts...).ToFunc()
+}
+
+// ByExamineWeight orders the results by the examine_weight field.
+func ByExamineWeight(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExamineWeight, opts...).ToFunc()
 }
 
 // ByTargetType orders the results by the target_type field.

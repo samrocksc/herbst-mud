@@ -39,12 +39,16 @@ import (
 	"herbst-server/db/questprogress"
 	"herbst-server/db/race"
 	"herbst-server/db/room"
+	"herbst-server/db/shopitem"
+	"herbst-server/db/shoptemplate"
 	"herbst-server/db/socialcommand"
+	"herbst-server/db/systemlog"
 	"herbst-server/db/tag"
 	"herbst-server/db/tellqueue"
 	"herbst-server/db/trigger"
 	"herbst-server/db/user"
 	"herbst-server/db/world"
+	"herbst-server/db/zone"
 	"reflect"
 	"sync"
 
@@ -144,12 +148,16 @@ func checkColumn(t, c string) error {
 			questprogress.Table:            questprogress.ValidColumn,
 			race.Table:                     race.ValidColumn,
 			room.Table:                     room.ValidColumn,
+			shopitem.Table:                 shopitem.ValidColumn,
+			shoptemplate.Table:             shoptemplate.ValidColumn,
 			socialcommand.Table:            socialcommand.ValidColumn,
+			systemlog.Table:                systemlog.ValidColumn,
 			tag.Table:                      tag.ValidColumn,
 			tellqueue.Table:                tellqueue.ValidColumn,
 			trigger.Table:                  trigger.ValidColumn,
 			user.Table:                     user.ValidColumn,
 			world.Table:                    world.ValidColumn,
+			zone.Table:                     zone.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

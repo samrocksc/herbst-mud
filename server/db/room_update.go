@@ -10,6 +10,7 @@ import (
 	"herbst-server/db/equipment"
 	"herbst-server/db/predicate"
 	"herbst-server/db/room"
+	"herbst-server/db/zone"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -240,6 +241,24 @@ func (_u *RoomUpdate) ClearTags() *RoomUpdate {
 	return _u
 }
 
+// SetZoneIds sets the "zone_ids" field.
+func (_u *RoomUpdate) SetZoneIds(v []string) *RoomUpdate {
+	_u.mutation.SetZoneIds(v)
+	return _u
+}
+
+// AppendZoneIds appends value to the "zone_ids" field.
+func (_u *RoomUpdate) AppendZoneIds(v []string) *RoomUpdate {
+	_u.mutation.AppendZoneIds(v)
+	return _u
+}
+
+// ClearZoneIds clears the value of the "zone_ids" field.
+func (_u *RoomUpdate) ClearZoneIds() *RoomUpdate {
+	_u.mutation.ClearZoneIds()
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *RoomUpdate) AddCharacterIDs(ids ...int) *RoomUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -268,6 +287,21 @@ func (_u *RoomUpdate) AddEquipment(v ...*Equipment) *RoomUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddEquipmentIDs(ids...)
+}
+
+// AddZoneIDs adds the "zones" edge to the Zone entity by IDs.
+func (_u *RoomUpdate) AddZoneIDs(ids ...string) *RoomUpdate {
+	_u.mutation.AddZoneIDs(ids...)
+	return _u
+}
+
+// AddZones adds the "zones" edges to the Zone entity.
+func (_u *RoomUpdate) AddZones(v ...*Zone) *RoomUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddZoneIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -315,6 +349,27 @@ func (_u *RoomUpdate) RemoveEquipment(v ...*Equipment) *RoomUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEquipmentIDs(ids...)
+}
+
+// ClearZones clears all "zones" edges to the Zone entity.
+func (_u *RoomUpdate) ClearZones() *RoomUpdate {
+	_u.mutation.ClearZones()
+	return _u
+}
+
+// RemoveZoneIDs removes the "zones" edge to Zone entities by IDs.
+func (_u *RoomUpdate) RemoveZoneIDs(ids ...string) *RoomUpdate {
+	_u.mutation.RemoveZoneIDs(ids...)
+	return _u
+}
+
+// RemoveZones removes "zones" edges to Zone entities.
+func (_u *RoomUpdate) RemoveZones(v ...*Zone) *RoomUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveZoneIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -431,6 +486,17 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.TagsCleared() {
 		_spec.ClearField(room.FieldTags, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.ZoneIds(); ok {
+		_spec.SetField(room.FieldZoneIds, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedZoneIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, room.FieldZoneIds, value)
+		})
+	}
+	if _u.mutation.ZoneIdsCleared() {
+		_spec.ClearField(room.FieldZoneIds, field.TypeJSON)
+	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -514,6 +580,51 @@ func (_u *RoomUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ZonesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   room.ZonesTable,
+			Columns: room.ZonesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(zone.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedZonesIDs(); len(nodes) > 0 && !_u.mutation.ZonesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   room.ZonesTable,
+			Columns: room.ZonesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(zone.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ZonesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   room.ZonesTable,
+			Columns: room.ZonesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(zone.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -751,6 +862,24 @@ func (_u *RoomUpdateOne) ClearTags() *RoomUpdateOne {
 	return _u
 }
 
+// SetZoneIds sets the "zone_ids" field.
+func (_u *RoomUpdateOne) SetZoneIds(v []string) *RoomUpdateOne {
+	_u.mutation.SetZoneIds(v)
+	return _u
+}
+
+// AppendZoneIds appends value to the "zone_ids" field.
+func (_u *RoomUpdateOne) AppendZoneIds(v []string) *RoomUpdateOne {
+	_u.mutation.AppendZoneIds(v)
+	return _u
+}
+
+// ClearZoneIds clears the value of the "zone_ids" field.
+func (_u *RoomUpdateOne) ClearZoneIds() *RoomUpdateOne {
+	_u.mutation.ClearZoneIds()
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *RoomUpdateOne) AddCharacterIDs(ids ...int) *RoomUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -779,6 +908,21 @@ func (_u *RoomUpdateOne) AddEquipment(v ...*Equipment) *RoomUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddEquipmentIDs(ids...)
+}
+
+// AddZoneIDs adds the "zones" edge to the Zone entity by IDs.
+func (_u *RoomUpdateOne) AddZoneIDs(ids ...string) *RoomUpdateOne {
+	_u.mutation.AddZoneIDs(ids...)
+	return _u
+}
+
+// AddZones adds the "zones" edges to the Zone entity.
+func (_u *RoomUpdateOne) AddZones(v ...*Zone) *RoomUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddZoneIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -826,6 +970,27 @@ func (_u *RoomUpdateOne) RemoveEquipment(v ...*Equipment) *RoomUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEquipmentIDs(ids...)
+}
+
+// ClearZones clears all "zones" edges to the Zone entity.
+func (_u *RoomUpdateOne) ClearZones() *RoomUpdateOne {
+	_u.mutation.ClearZones()
+	return _u
+}
+
+// RemoveZoneIDs removes the "zones" edge to Zone entities by IDs.
+func (_u *RoomUpdateOne) RemoveZoneIDs(ids ...string) *RoomUpdateOne {
+	_u.mutation.RemoveZoneIDs(ids...)
+	return _u
+}
+
+// RemoveZones removes "zones" edges to Zone entities.
+func (_u *RoomUpdateOne) RemoveZones(v ...*Zone) *RoomUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveZoneIDs(ids...)
 }
 
 // Where appends a list predicates to the RoomUpdate builder.
@@ -972,6 +1137,17 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 	if _u.mutation.TagsCleared() {
 		_spec.ClearField(room.FieldTags, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.ZoneIds(); ok {
+		_spec.SetField(room.FieldZoneIds, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedZoneIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, room.FieldZoneIds, value)
+		})
+	}
+	if _u.mutation.ZoneIdsCleared() {
+		_spec.ClearField(room.FieldZoneIds, field.TypeJSON)
+	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1055,6 +1231,51 @@ func (_u *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(equipment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ZonesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   room.ZonesTable,
+			Columns: room.ZonesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(zone.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedZonesIDs(); len(nodes) > 0 && !_u.mutation.ZonesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   room.ZonesTable,
+			Columns: room.ZonesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(zone.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ZonesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   room.ZonesTable,
+			Columns: room.ZonesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(zone.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

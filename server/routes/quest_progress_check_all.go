@@ -37,11 +37,9 @@ func checkAllQuests(repos *repository.Container, client *db.Client) gin.HandlerF
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		key := input.ObjectiveType + ":" + input.TargetID
-		increment := input.Count
-		if increment <= 0 {
-			increment = 1
-		}
+
+		messages := advanceQuestObjective(c.Request.Context(), client, repos, charID, input.ObjectiveType, input.TargetID, input.Count)
+
 		progresses, err := client.QuestProgress.Query().
 			Where(
 				questprogress.HasCharacterWith(character.IDEQ(charID)),
@@ -54,11 +52,13 @@ func checkAllQuests(repos *repository.Container, client *db.Client) gin.HandlerF
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
 		type updatedQuest struct {
-			QuestID   int              `json:"quest_id"`
-			QuestName string           `json:"quest_name"`
-			Status    string           `json:"status"`
-			Counts    map[string]int   `json:"objective_counts"`
+			QuestID   int            `json:"quest_id"`
+			QuestName string         `json:"quest_name"`
+			Status    string         `json:"status"`
+			Counts    map[string]int `json:"objective_counts"`
+			Messages  []string       `json:"messages,omitempty"`
 		}
 		var results []updatedQuest
 		for _, p := range progresses {
@@ -66,38 +66,15 @@ func checkAllQuests(repos *repository.Container, client *db.Client) gin.HandlerF
 			if q == nil {
 				continue
 			}
-			matched := false
-			for _, obj := range q.Objectives {
-				if obj.Type == input.ObjectiveType && obj.TargetID == input.TargetID {
-					matched = true
-					break
-				}
-			}
-			if !matched {
-				continue
-			}
-			counts := p.ObjectiveCounts
-			if counts == nil {
-				counts = map[string]int{}
-			}
-			counts[key] += increment
-			mut := client.QuestProgress.UpdateOneID(p.ID).
-				SetObjectiveCounts(counts)
-			if allObjectivesComplete(q, p, counts) {
-				mut = mut.SetStatus(questprogress.StatusCompleted)
-			}
-			updated, err := mut.Save(c.Request.Context())
-			if err != nil {
-				continue
-			}
 			results = append(results, updatedQuest{
 				QuestID:   q.ID,
 				QuestName: q.Name,
-				Status:     string(updated.Status),
-				Counts:     counts,
+				Status:    string(p.Status),
+				Counts:    p.ObjectiveCounts,
 			})
 		}
+
 		slog.Info("quest progress checked", slog.Int("character_id", charID), slog.Int("updated_count", len(results)), slog.String("user_email", c.GetString("email")), slog.String("service", "quests"))
-		c.JSON(http.StatusOK, gin.H{"updated": results, "count": len(results)})
+		c.JSON(http.StatusOK, gin.H{"updated": results, "count": len(results), "messages": messages})
 	}
 }

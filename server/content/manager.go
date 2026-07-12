@@ -70,7 +70,7 @@ func (m *Manager) Validate() []ValidationError {
 
 	errors = append(errors, m.Skills.Validate()...)
 	errors = append(errors, m.Items.Validate()...)
-	errors = append(errors, m.NPCs.Validate(m.Skills, m.Items)...)
+	errors = append(errors, m.NPCs.Validate(m.Skills, m.Items, m.Quests)...)
 	errors = append(errors, m.Rooms.Validate()...)
 	errors = append(errors, m.Quests.Validate(m.Skills, m.NPCs, m.Items)...)
 
