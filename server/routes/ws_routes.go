@@ -143,6 +143,31 @@ func sendNotification(wsc *WSConn, text string) {
 	})
 }
 
+// connectedCharacterIDs returns a set of character IDs that currently have
+// an active WebSocket connection. NPCs are not included — they're always
+// visible.
+func connectedCharacterIDs() map[int]bool {
+	connMu.RLock()
+	defer connMu.RUnlock()
+	m := make(map[int]bool, len(connections))
+	for _, wsc := range connections {
+		if wsc.CharacterID != 0 {
+			m[wsc.CharacterID] = true
+		}
+	}
+	return m
+}
+
+// isCharacterConnected checks whether a player character's user currently
+// has an active WebSocket connection. NPCs are always considered "connected"
+// since they're server-side entities.
+func isCharacterConnected(ch *db.Character, connected map[int]bool) bool {
+	if ch.IsNPC {
+		return true
+	}
+	return connected[ch.ID]
+}
+
 func buildRoomScreen(ctx context.Context, roomID int, worldID string, repos *repository.Container) (RoomScreenPayload, error) {
 	rm, err := repos.Room.Get(ctx, roomID)
 	if err != nil {
@@ -164,13 +189,21 @@ func buildRoomScreen(ctx context.Context, roomID int, worldID string, repos *rep
 		})
 	}
 
-	// Characters in room (NPCs + other players)
+	// Characters in room (NPCs + other players).
+	// Only show player characters that are currently connected via WebSocket.
+	// Offline PCs linger in the DB with their last current_room_id — they must
+	// not appear in the room list. This was a regression; the fix was lost
+	// during the ws_routes refactor.
+	connected := connectedCharacterIDs()
 	var chars []CharInfo
 	rmChars, err := repos.Character.ListByRoom(ctx, roomID)
 	if err != nil {
 		dblog.Error("buildRoomScreen: failed to list characters", err, slog.Int("room_id", roomID))
 	} else {
 		for _, ch := range rmChars {
+			if !isCharacterConnected(ch, connected) {
+				continue
+			}
 			chType := "player"
 			if ch.IsNPC {
 				chType = "npc"
@@ -680,10 +713,14 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 			}
 		}
 
-		// Check room characters (both NPCs and players)
+		// Check room characters (both NPCs and players, but only connected PCs)
 		if targetDescription == "" {
+			connected := connectedCharacterIDs()
 			chars, _ := repos.Character.ListByRoom(ctx, roomID)
 			for _, ch := range chars {
+				if !isCharacterConnected(ch, connected) {
+					continue
+				}
 				if strings.Contains(strings.ToLower(ch.Name), strings.ToLower(target)) {
 					// Get equipment for both NPCs and players
 					equipment, _ := repos.Equipment.ListByOwner(ctx, ch.ID)
@@ -755,6 +792,20 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 	if len(cmd) > 5 && strings.HasPrefix(cmd, "talk ") {
 		target := cmd[5:]
 		return tryTalk(target, wsc, repos)
+	}
+
+	// dialog <template_id> <node_id> [<choice_index>]
+	// Sent by the ConversationOverlay when a player picks a response.
+	if strings.HasPrefix(cmd, "dialog ") {
+		parts := strings.Fields(cmd)
+		if len(parts) < 3 {
+			return "Invalid dialog command."
+		}
+		choiceStr := ""
+		if len(parts) >= 4 {
+			choiceStr = parts[3]
+		}
+		return handleDialogChoice(parts[1], parts[2], choiceStr, wsc, repos, client)
 	}
 
 	// attack <target> and fight <target>
@@ -914,7 +965,7 @@ func tryTalk(targetName string, wsc *WSConn, repos *repository.Container) string
 		return fmt.Sprintf("There is no %s here to talk to.", targetName)
 	}
 
-	// Fetch NPC template for greeting
+	// Fetch NPC template for greeting and dialog nodes
 	if targetNPC.NpcTemplateID == "" {
 		return fmt.Sprintf("%s stares blankly and says nothing.", targetNPC.Name)
 	}
@@ -925,6 +976,27 @@ func tryTalk(targetName string, wsc *WSConn, repos *repository.Container) string
 		return fmt.Sprintf("%s seems unable to speak right now.", targetNPC.Name)
 	}
 
+	// If the NPC template has dialog nodes, open the conversation overlay
+	// with the entry node (or the first node if no entry is marked).
+	nodes, err := repos.DialogNode.ListByTemplate(ctx, tmpl.ID)
+	if err != nil {
+		dblog.Error("tryTalk: failed to list dialog nodes", err, slog.String("template_id", tmpl.ID))
+	} else if len(nodes) > 0 {
+		entryID := ""
+		for _, n := range nodes {
+			if n.IsEntry {
+				entryID = n.ID
+				break
+			}
+		}
+		if entryID == "" {
+			entryID = nodes[0].ID
+		}
+		sendConversationScreen(wsc, tmpl.Name, tmpl.ID, nodes, entryID)
+		return ""
+	}
+
+	// No dialog nodes — fall back to greeting text
 	if tmpl.Greeting != "" {
 		return fmt.Sprintf("%s says: \"%s\"", targetNPC.Name, tmpl.Greeting)
 	}
