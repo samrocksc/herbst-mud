@@ -15,8 +15,6 @@ type MapCanvasProps = Readonly<{
   isDragging: boolean
   onWheel: (e: WheelEvent) => void
   onSelectRoom: (room: Room | null) => void
-  onDragStart: (roomId: number) => void
-  onDragEnd: (roomId: number, x: number, y: number) => void
   getNPCsInRoom: (roomId: number) => NPC[]
   getEquipmentInRoom: (roomId: number) => Equipment[]
   viewportRef: React.RefObject<HTMLDivElement | null>
@@ -26,7 +24,7 @@ type MapCanvasProps = Readonly<{
 
 export function MapCanvas({
   rooms, nodePositions, selectedRoom, zoom, panOffset, isDragging,
-  onWheel, onSelectRoom, onDragStart, onDragEnd,
+  onWheel, onSelectRoom,
   getNPCsInRoom, getEquipmentInRoom, viewportRef,
   currentZLevel, onCreateRoom,
 }: MapCanvasProps) {
@@ -65,9 +63,6 @@ export function MapCanvas({
               rooms={rooms}
               zoom={zoom}
               onSelect={onSelectRoom}
-              isDragging={isDragging}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
             />
           );
         })}

@@ -12,6 +12,7 @@ import (
 	"herbst-server/db/gender"
 	"herbst-server/db/predicate"
 	"herbst-server/db/race"
+	"herbst-server/db/skill"
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
 	"herbst-server/db/world"
@@ -37,6 +38,7 @@ type WorldQuery struct {
 	withSocialCommands    *SocialCommandQuery
 	withFactionCategories *FactionCategoryQuery
 	withEffectHooks       *EffectHookQuery
+	withSkills            *SkillQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -220,6 +222,28 @@ func (_q *WorldQuery) QueryEffectHooks() *EffectHookQuery {
 			sqlgraph.From(world.Table, world.FieldID, selector),
 			sqlgraph.To(effecthook.Table, effecthook.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, world.EffectHooksTable, world.EffectHooksPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySkills chains the current query on the "skills" edge.
+func (_q *WorldQuery) QuerySkills() *SkillQuery {
+	query := (&SkillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(world.Table, world.FieldID, selector),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, world.SkillsTable, world.SkillsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -426,6 +450,7 @@ func (_q *WorldQuery) Clone() *WorldQuery {
 		withSocialCommands:    _q.withSocialCommands.Clone(),
 		withFactionCategories: _q.withFactionCategories.Clone(),
 		withEffectHooks:       _q.withEffectHooks.Clone(),
+		withSkills:            _q.withSkills.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -509,6 +534,17 @@ func (_q *WorldQuery) WithEffectHooks(opts ...func(*EffectHookQuery)) *WorldQuer
 	return _q
 }
 
+// WithSkills tells the query-builder to eager-load the nodes that are connected to
+// the "skills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *WorldQuery) WithSkills(opts ...func(*SkillQuery)) *WorldQuery {
+	query := (&SkillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSkills = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -587,7 +623,7 @@ func (_q *WorldQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*World,
 	var (
 		nodes       = []*World{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withCharacters != nil,
 			_q.withRaces != nil,
 			_q.withGenders != nil,
@@ -595,6 +631,7 @@ func (_q *WorldQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*World,
 			_q.withSocialCommands != nil,
 			_q.withFactionCategories != nil,
 			_q.withEffectHooks != nil,
+			_q.withSkills != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -661,6 +698,13 @@ func (_q *WorldQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*World,
 		if err := _q.loadEffectHooks(ctx, query, nodes,
 			func(n *World) { n.Edges.EffectHooks = []*EffectHook{} },
 			func(n *World, e *EffectHook) { n.Edges.EffectHooks = append(n.Edges.EffectHooks, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSkills; query != nil {
+		if err := _q.loadSkills(ctx, query, nodes,
+			func(n *World) { n.Edges.Skills = []*Skill{} },
+			func(n *World, e *Skill) { n.Edges.Skills = append(n.Edges.Skills, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1031,6 +1075,36 @@ func (_q *WorldQuery) loadEffectHooks(ctx context.Context, query *EffectHookQuer
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (_q *WorldQuery) loadSkills(ctx context.Context, query *SkillQuery, nodes []*World, init func(*World), assign func(*World, *Skill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*World)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(skill.FieldWorldID)
+	}
+	query.Where(predicate.Skill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(world.SkillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.WorldID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "world_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

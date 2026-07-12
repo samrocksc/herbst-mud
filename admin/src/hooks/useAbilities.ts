@@ -130,3 +130,51 @@ export function useDeleteAbility() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["abilities"] }),
   });
 }
+
+// Effect management for abilities
+export type AbilityEffect = Readonly<{
+  id: number;
+  effect_type: string;
+  target: string;
+  value: number;
+  duration: number;
+  scaling_stat: string;
+  scaling_ratio: number;
+  sort_order: number;
+  ability_id?: number;
+  effect_id?: number;
+  applied_by_id?: number;
+  duration_secs?: number;
+  multiplier?: number;
+  amount?: number;
+  parameters?: Record<string, unknown>;
+  stack_mode?: string;
+  name?: string;
+  description?: string;
+  stack_count?: number;
+  is_active?: boolean;
+  expires_at?: string;
+  effect?: {
+    id: number;
+    effect_type: string;
+    parameters?: Record<string, unknown>;
+  };
+}>;
+
+export type CreateAbilityEffectInput = Readonly<{
+  effect_id: number;
+  effect_type: string;
+  target: string;
+  value: number;
+  duration?: number;
+}>;
+
+export function useCreateAbilityEffect() {
+  const qc = useQueryClient();
+  const { currentWorld } = useWorldStore();
+  return useMutation({
+    mutationFn: ({ abilityId, input }: { readonly abilityId: number; readonly input: CreateAbilityEffectInput }) =>
+      apiPost<AbilityEffect>(`${API}/${abilityId}/effects`, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["abilities"] }),
+  });
+}

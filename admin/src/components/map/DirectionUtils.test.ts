@@ -1,10 +1,11 @@
 /* eslint-disable functional/no-return-void */
 import { describe, it, expect } from "vitest";
 import { getNoOverlapOffset, estimateNodeSize } from "./DirectionUtils";
+import { NODE_W, NODE_H } from "./constants";
 import type { Room } from "./types";
 
 describe("estimateNodeSize", () => {
-  it("returns fixed width and grows height with exit count", () => {
+  it("returns the pinned NODE_W x NODE_H box regardless of exit count", () => {
     const room: Room = {
       id: 1,
       name: "Test",
@@ -12,13 +13,13 @@ describe("estimateNodeSize", () => {
       exits: { north: 2, south: 3, east: 4, west: 5 },
     };
     const size = estimateNodeSize(room);
-    expect(size.w).toBe(120);
-    expect(size.h).toBeGreaterThan(65);
+    expect(size.w).toBe(NODE_W);
+    expect(size.h).toBe(NODE_H);
   });
 
-  it("uses the base height when there are no exits", () => {
+  it("uses the same pinned box when there are no exits", () => {
     const room: Room = { id: 1, name: "Test", description: "", exits: {} };
-    expect(estimateNodeSize(room)).toEqual({ w: 120, h: 85 });
+    expect(estimateNodeSize(room)).toEqual({ w: NODE_W, h: NODE_H });
   });
 });
 

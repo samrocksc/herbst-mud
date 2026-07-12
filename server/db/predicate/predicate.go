@@ -42,6 +42,9 @@ type CharacterFaction func(*sql.Selector)
 // CharacterIgnore is the predicate function for characterignore builders.
 type CharacterIgnore func(*sql.Selector)
 
+// CharacterSkill is the predicate function for characterskill builders.
+type CharacterSkill func(*sql.Selector)
+
 // CharacterTag is the predicate function for charactertag builders.
 type CharacterTag func(*sql.Selector)
 
@@ -110,6 +113,9 @@ type ShopItem func(*sql.Selector)
 
 // ShopTemplate is the predicate function for shoptemplate builders.
 type ShopTemplate func(*sql.Selector)
+
+// Skill is the predicate function for skill builders.
+type Skill func(*sql.Selector)
 
 // SocialCommand is the predicate function for socialcommand builders.
 type SocialCommand func(*sql.Selector)

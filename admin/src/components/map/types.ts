@@ -6,11 +6,10 @@ export type Room = Readonly<{
   isRootRoom?: boolean
   exits: Record<string, number>
   atmosphere?: string
-  posX?: number
-  posY?: number
   posZ?: number
   tags?: string[]
   version?: number
+  zoneIds?: string[]
 }>
 
 export type NPC = Readonly<{
