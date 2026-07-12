@@ -125,7 +125,11 @@ func main() {
 
 	// Initialize worlds (creates default "Herbst MUD" world if none exists)
 	if err := dbinit.InitWorlds(client); err != nil {
-		log.Printf("Warning: failed to initialize worlds: %v", err)
+		log.Fatalf("Failed to initialize worlds: %v", err)
+	}
+	// Seed default skills (9 per world) if not already present
+	if err := dbinit.InitDefaultSkills(client); err != nil {
+		log.Printf("Warning: failed to seed default skills: %v", err)
 	}
 
 	// Heal all characters with invalid HP (startup fix)
@@ -251,6 +255,9 @@ func main() {
 
 	// Register ability routes
 	routes.RegisterAbilityRoutes(router, repos, client)
+
+	// Register skill routes (DB-driven skills CRUD)
+	routes.RegisterSkillRoutes(router, client)
 
 	// Register effect routes (ability effects)
 	routes.RegisterEffectRoutes(router, repos, client)
