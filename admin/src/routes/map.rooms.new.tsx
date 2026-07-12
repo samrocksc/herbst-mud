@@ -33,8 +33,6 @@ function CreateRoomPage() {
         // Auto-set root room if none exists
         isRootRoom: !hasRootRoom,
         exits: {},
-        posX: 0,
-        posY: 0,
         posZ: 0,
       });
       navigate({ to: "/map", search: { room: room.id } });

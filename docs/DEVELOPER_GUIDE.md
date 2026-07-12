@@ -27,6 +27,47 @@
 
 ---
 
+## 🚀 Starting the Admin Panel
+
+The admin panel is a Vite/React application located in the `admin/` directory. It provides a web-based interface for managing game content (NPCs, items, abilities, quests, maps, etc.).
+
+### Quick Start
+```bash
+# Start admin on http://localhost:5173
+cd admin && npm run dev
+
+# Or using the Makefile
+make start-admin
+make dev-all  # starts admin along with SSH and web servers
+```
+
+### Available Scripts
+- `npm run dev` - Start dev server (auto-builds routes, runs on port 5173)
+- `npm run build` - Build production bundle
+- `npm run build:routes` - Generate TanStack Router tree
+- `npm run lint` - Run ESLint
+
+### Port & Access
+- **Admin UI**: http://localhost:5173 / http://100.67.206.65:5173
+- **Backend API** (proxied): http://localhost:8080
+- **Logs**: `/tmp/herbst-admin.log`
+
+### Admin Panel Features
+- Map builder with drag-and-drop room creation
+- NPC template and instance management
+- Item template and instance management
+- Ability, effect, and quest CRUD
+- Faction and category management
+- World export/import for backups
+
+---
+
+## 📝 Feature Documentation
+
+- **[Feature Catalog](./FEATURE_CATALOG.md)**: Complete list of implemented, in-progress, and planned features
+
+---
+
 ## 🛠️ Core Tech Stack
 
 | Layer | Technology | Role |

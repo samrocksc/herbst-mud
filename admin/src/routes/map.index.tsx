@@ -50,8 +50,6 @@ function MapBuilder() {
           zoom={state.zoom}
           onZoom={state.handleZoom}
           onResetView={state.handleResetView}
-          onRelayout={state.handleRelayout}
-          onRealign={state.handleRealign}
           onCleanupOrphanExits={state.handleRequestCleanupOrphanExits}
           onGoToFloor={state.handleSetZLevel}
           onAddFloor={state.handleAddFloor}

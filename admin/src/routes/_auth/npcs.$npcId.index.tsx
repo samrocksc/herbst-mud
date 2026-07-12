@@ -19,6 +19,7 @@ import {
   FormField,
   NumberField,
   TextareaField,
+  CheckboxField,
   FormError,
 } from "../../components/FormFields";
 
@@ -41,6 +42,12 @@ type NPCTemplate = Readonly<{
   greeting: string
   respawn_rooms: string[]
   respawn_cooldown: number
+  roam_pattern: string
+  roam_interval_seconds: number
+  roam_pause_min_seconds: number
+  roam_pause_max_seconds: number
+  roam_zone_ids: string[]
+  notify_on_enter: boolean
 }>
 
 type NPCInstance = Readonly<{
@@ -79,6 +86,12 @@ type EditForm = Readonly<{
   greeting: string
   respawn_rooms: string
   respawn_cooldown: number
+  roam_pattern: string
+  roam_interval_seconds: number
+  roam_pause_min_seconds: number
+  roam_pause_max_seconds: number
+  roam_zone_ids: string
+  notify_on_enter: boolean
 }>
 
 // ─── Instance table columns factory ─────────────────────────────────────────
@@ -142,6 +155,12 @@ function templateToEditForm(t: NPCTemplate): EditForm {
     greeting: t.greeting ?? "",
     respawn_rooms: rooms.join("\\n"),
     respawn_cooldown: t.respawn_cooldown,
+    roam_pattern: t.roam_pattern ?? "static",
+    roam_interval_seconds: t.roam_interval_seconds ?? 60,
+    roam_pause_min_seconds: t.roam_pause_min_seconds ?? 15,
+    roam_pause_max_seconds: t.roam_pause_max_seconds ?? 120,
+    roam_zone_ids: (t.roam_zone_ids ?? []).join(","),
+    notify_on_enter: t.notify_on_enter ?? true,
   };
 }
 
@@ -169,6 +188,12 @@ function editFormToPayload(form: EditForm) {
     greeting: form.greeting,
     respawn_rooms: form.respawn_rooms.split("\\n").map((s) => s.trim()).filter(Boolean),
     respawn_cooldown: form.respawn_cooldown,
+    roam_pattern: form.roam_pattern,
+    roam_interval_seconds: form.roam_interval_seconds,
+    roam_pause_min_seconds: form.roam_pause_min_seconds,
+    roam_pause_max_seconds: form.roam_pause_max_seconds,
+    roam_zone_ids: form.roam_zone_ids.split(",").map((s) => s.trim()).filter(Boolean),
+    notify_on_enter: form.notify_on_enter,
   };
 }
 
@@ -387,6 +412,28 @@ export function NpcTemplateDetail() {
                 <DetailField label="XP Value" value={String(template.xp_value)} />
                 <DetailField label="Respawn Cooldown" value={`${template.respawn_cooldown}s`} />
                 <DetailField label="Respawn Rooms" value={(template.respawn_rooms ?? []).join(", ") || "—"} />
+
+                <div className="col-span-2 mt-4 pt-4 border-t border-border">
+                  <h3 className="mt-0 mb-2 text-text text-sm font-semibold">Behavior</h3>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                    <DetailField
+                      label="Roam Pattern"
+                      value={
+                        template.roam_pattern === "static" ? "Static (never moves)" :
+                        template.roam_pattern === "wander" ? "Wander (random within zones)" :
+                        template.roam_pattern === "patrol" ? "Patrol (sequential through exits)" :
+                        template.roam_pattern === "return_home" ? "Return Home (back to home room)" :
+                        (template.roam_pattern || "—")
+                      }
+                    />
+                    <DetailField label="Roam Interval" value={template.roam_interval_seconds != null ? `${template.roam_interval_seconds}s` : "—"} />
+                    <DetailField label="Roam Pause Min" value={template.roam_pause_min_seconds != null ? `${template.roam_pause_min_seconds}s` : "—"} />
+                    <DetailField label="Roam Pause Max" value={template.roam_pause_max_seconds != null ? `${template.roam_pause_max_seconds}s` : "—"} />
+                    <DetailField label="Roam Zone IDs" value={(template.roam_zone_ids ?? []).join(", ") || "—"} />
+                    <DetailField label="Notify on Enter" value={template.notify_on_enter ? "Yes" : "No"} />
+                  </div>
+                </div>
+
                 <DetailField label="Greeting" value={template.greeting || "—"} />
                 <DetailField label="Trades With" value={(template.trades_with ?? []).join(", ") || "—"} />
               </div>
@@ -593,6 +640,50 @@ function TemplateEditForm({ form, onChange, saveError, races }: Readonly<{
         value={form.description}
         onChange={(val: string) => onChange({ ...form, description: val })}
       />
+
+      {/* Behavior */}
+      <h3 className="mt-6 mb-2 text-text text-sm font-semibold border-b border-border pb-1">Behavior</h3>
+      <div>
+        <label className="text-text-muted text-xs block mb-1">Roam Pattern</label>
+        <select
+          value={form.roam_pattern}
+          onChange={(e) => onChange({ ...form, roam_pattern: e.target.value })}
+          className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+        >
+          <option value="static">Static (never moves)</option>
+          <option value="wander">Wander (random within zones)</option>
+          <option value="patrol">Patrol (sequential through exits)</option>
+          <option value="return_home">Return Home (back to home room)</option>
+        </select>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <NumberField
+          label="Roam Interval (s)"
+          value={form.roam_interval_seconds}
+          onChange={(val: number) => onChange({ ...form, roam_interval_seconds: val })}
+        />
+        <NumberField
+          label="Roam Pause Min (s)"
+          value={form.roam_pause_min_seconds}
+          onChange={(val: number) => onChange({ ...form, roam_pause_min_seconds: val })}
+        />
+        <NumberField
+          label="Roam Pause Max (s)"
+          value={form.roam_pause_max_seconds}
+          onChange={(val: number) => onChange({ ...form, roam_pause_max_seconds: val })}
+        />
+      </div>
+      <FormField
+        label="Roam Zone IDs (comma-separated)"
+        value={form.roam_zone_ids}
+        onChange={(val: string) => onChange({ ...form, roam_zone_ids: val })}
+      />
+      <CheckboxField
+        label="Notify on Enter"
+        checked={form.notify_on_enter}
+        onChange={(val: boolean) => onChange({ ...form, notify_on_enter: val })}
+      />
+
       {saveError && <FormError message={saveError} />}
     </div>
   );

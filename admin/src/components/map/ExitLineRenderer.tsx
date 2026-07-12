@@ -1,10 +1,9 @@
-/* eslint-disable functional/no-loop-statements, functional/no-let, functional/immutable-data, functional/prefer-immutable-types, react-refresh/only-export-components */
 import { useState, memo } from "react";
 import type { Room } from "./types";
 
 type ExitLinesProps = {
-  rooms: Room[]
-  nodePositions: Map<number, { x: number; y: number }>
+  rooms: ReadonlyArray<Room>
+  nodePositions: ReadonlyMap<number, { x: number; y: number }>
 }
 
 /** Must match Tailwind classes in RoomNode. */
@@ -13,7 +12,7 @@ const NODE_H = 65;
 const NODE_HALF_W = NODE_W / 2;
 const NODE_HALF_H = NODE_H / 2;
 
-type Segment = {
+type Segment = Readonly<{
   key: string
   sx: number
   sy: number
@@ -21,7 +20,7 @@ type Segment = {
   ty: number
   fwdDir: string
   phantom: boolean
-}
+}>
 
 function anchorOnEdge(
   angle: number,
@@ -39,15 +38,23 @@ function angleBetween(sx: number, sy: number, tx: number, ty: number): number {
   return Math.atan2(ty - sy, tx - sx);
 }
 
+// resolveOverlaps is intentionally exported alongside ExitLines for use in
+// other layout consumers (e.g. BFS layout in useNodeLayout). Splitting it
+// into a separate file would be churn for no benefit.
+// eslint-disable-next-line react-refresh/only-export-components -- resolveOverlaps is consumed by other layout modules
 export function resolveOverlaps(
-  positions: Map<number, { x: number; y: number }>,
+  positions: ReadonlyMap<number, { x: number; y: number }>,
   minGap = 50,
   maxIterations = 50,
 ): Map<number, { x: number; y: number }> {
-  const result = new Map<number, { x: number; y: number }>();
-  for (const [id, pos] of positions) result.set(id, { ...pos });
+  const result = new Map(positions);
 
+  // eslint-disable-next-line functional/no-let -- relaxation loop counter
   let moved = true;
+  // Hot relaxation loop: classic for-loop with early-exit + mutation is the
+  // correct algorithm shape. Immer's structural copy would O(n^2) the
+  // per-iteration cost on large maps.
+  /* eslint-disable functional/no-loop-statements, functional/immutable-data -- hot relaxation loop, imperative is intentional */
   for (let iter = 0; iter < maxIterations && moved; iter++) {
     moved = false;
     const ids = Array.from(result.keys());
@@ -78,9 +85,11 @@ export function resolveOverlaps(
       }
     }
   }
+  /* eslint-enable functional/no-loop-statements, functional/immutable-data */
   return result;
 }
 
+// eslint-disable-next-line functional/prefer-immutable-types -- destructured props remain Readonly via ReadonlyArray/ReadonlyMap
 export const ExitLines = memo(function ExitLines({ rooms, nodePositions }: ExitLinesProps) {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
@@ -88,6 +97,7 @@ export const ExitLines = memo(function ExitLines({ rooms, nodePositions }: ExitL
   const drawn = new Set<string>();
   const segments: Segment[] = [];
 
+  /* eslint-disable functional/no-loop-statements, functional/immutable-data -- builder for the segments array uses imperative loops for early-exit + dedup */
   for (const room of rooms) {
     const pos = nodePositions.get(room.id);
     if (!pos) continue;
@@ -146,6 +156,7 @@ export const ExitLines = memo(function ExitLines({ rooms, nodePositions }: ExitL
       });
     }
   }
+  /* eslint-enable functional/no-loop-statements, functional/immutable-data */
 
   return (
     <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">

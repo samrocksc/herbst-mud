@@ -265,8 +265,6 @@ export function makeRoom(overrides?: Partial<Record<string, unknown>>): Record<s
     isStartingRoom: true,
     isRootRoom: true,
     exits: {},
-    posX: 0,
-    posY: 0,
     posZ: 0,
     version: 1,
     ...overrides,

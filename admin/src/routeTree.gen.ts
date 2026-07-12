@@ -23,6 +23,7 @@ import { Route as DocsSocialCommandsRouteImport } from './routes/docs/social-com
 import { Route as DocsQuestSystemRouteImport } from './routes/docs/quest-system'
 import { Route as DocsNpcSystemRouteImport } from './routes/docs/npc-system'
 import { Route as DocsItemSystemRouteImport } from './routes/docs/item-system'
+import { Route as DocsFeatureCatalogRouteImport } from './routes/docs/feature-catalog'
 import { Route as DocsFactionSystemRouteImport } from './routes/docs/faction-system'
 import { Route as DocsExamineSkillRouteImport } from './routes/docs/examine-skill'
 import { Route as DocsEffectSystemRouteImport } from './routes/docs/effect-system'
@@ -52,6 +53,7 @@ import { Route as AuthLogsRouteImport } from './routes/_auth/logs'
 import { Route as AuthItemsRouteImport } from './routes/_auth/items'
 import { Route as AuthHooksRouteImport } from './routes/_auth/hooks'
 import { Route as AuthGendersRouteImport } from './routes/_auth/genders'
+import { Route as AuthGameSkillsRouteImport } from './routes/_auth/game-skills'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthExportRouteImport } from './routes/_auth/export'
 import { Route as AuthEffectsRouteImport } from './routes/_auth/effects'
@@ -159,6 +161,11 @@ const DocsNpcSystemRoute = DocsNpcSystemRouteImport.update({
 const DocsItemSystemRoute = DocsItemSystemRouteImport.update({
   id: '/item-system',
   path: '/item-system',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsFeatureCatalogRoute = DocsFeatureCatalogRouteImport.update({
+  id: '/feature-catalog',
+  path: '/feature-catalog',
   getParentRoute: () => DocsRoute,
 } as any)
 const DocsFactionSystemRoute = DocsFactionSystemRouteImport.update({
@@ -304,6 +311,11 @@ const AuthHooksRoute = AuthHooksRouteImport.update({
 const AuthGendersRoute = AuthGendersRouteImport.update({
   id: '/genders',
   path: '/genders',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthGameSkillsRoute = AuthGameSkillsRouteImport.update({
+  id: '/game-skills',
+  path: '/game-skills',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthFactionsRoute = AuthFactionsRouteImport.update({
@@ -524,6 +536,7 @@ export interface FileRoutesByFullPath {
   '/effects': typeof AuthEffectsRoute
   '/export': typeof AuthExportRoute
   '/factions': typeof AuthFactionsRoute
+  '/game-skills': typeof AuthGameSkillsRoute
   '/genders': typeof AuthGendersRoute
   '/hooks': typeof AuthHooksRoute
   '/items': typeof AuthItemsRouteWithChildren
@@ -553,6 +566,7 @@ export interface FileRoutesByFullPath {
   '/docs/effect-system': typeof DocsEffectSystemRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
   '/docs/faction-system': typeof DocsFactionSystemRoute
+  '/docs/feature-catalog': typeof DocsFeatureCatalogRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
@@ -605,6 +619,7 @@ export interface FileRoutesByTo {
   '/effects': typeof AuthEffectsRoute
   '/export': typeof AuthExportRoute
   '/factions': typeof AuthFactionsRoute
+  '/game-skills': typeof AuthGameSkillsRoute
   '/genders': typeof AuthGendersRoute
   '/hooks': typeof AuthHooksRoute
   '/items': typeof AuthItemsRouteWithChildren
@@ -634,6 +649,7 @@ export interface FileRoutesByTo {
   '/docs/effect-system': typeof DocsEffectSystemRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
   '/docs/faction-system': typeof DocsFactionSystemRoute
+  '/docs/feature-catalog': typeof DocsFeatureCatalogRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
@@ -689,6 +705,7 @@ export interface FileRoutesById {
   '/_auth/effects': typeof AuthEffectsRoute
   '/_auth/export': typeof AuthExportRoute
   '/_auth/factions': typeof AuthFactionsRoute
+  '/_auth/game-skills': typeof AuthGameSkillsRoute
   '/_auth/genders': typeof AuthGendersRoute
   '/_auth/hooks': typeof AuthHooksRoute
   '/_auth/items': typeof AuthItemsRouteWithChildren
@@ -718,6 +735,7 @@ export interface FileRoutesById {
   '/docs/effect-system': typeof DocsEffectSystemRoute
   '/docs/examine-skill': typeof DocsExamineSkillRoute
   '/docs/faction-system': typeof DocsFactionSystemRoute
+  '/docs/feature-catalog': typeof DocsFeatureCatalogRoute
   '/docs/item-system': typeof DocsItemSystemRoute
   '/docs/npc-system': typeof DocsNpcSystemRoute
   '/docs/quest-system': typeof DocsQuestSystemRoute
@@ -774,6 +792,7 @@ export interface FileRouteTypes {
     | '/effects'
     | '/export'
     | '/factions'
+    | '/game-skills'
     | '/genders'
     | '/hooks'
     | '/items'
@@ -803,6 +822,7 @@ export interface FileRouteTypes {
     | '/docs/effect-system'
     | '/docs/examine-skill'
     | '/docs/faction-system'
+    | '/docs/feature-catalog'
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/quest-system'
@@ -855,6 +875,7 @@ export interface FileRouteTypes {
     | '/effects'
     | '/export'
     | '/factions'
+    | '/game-skills'
     | '/genders'
     | '/hooks'
     | '/items'
@@ -884,6 +905,7 @@ export interface FileRouteTypes {
     | '/docs/effect-system'
     | '/docs/examine-skill'
     | '/docs/faction-system'
+    | '/docs/feature-catalog'
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/quest-system'
@@ -938,6 +960,7 @@ export interface FileRouteTypes {
     | '/_auth/effects'
     | '/_auth/export'
     | '/_auth/factions'
+    | '/_auth/game-skills'
     | '/_auth/genders'
     | '/_auth/hooks'
     | '/_auth/items'
@@ -967,6 +990,7 @@ export interface FileRouteTypes {
     | '/docs/effect-system'
     | '/docs/examine-skill'
     | '/docs/faction-system'
+    | '/docs/feature-catalog'
     | '/docs/item-system'
     | '/docs/npc-system'
     | '/docs/quest-system'
@@ -1114,6 +1138,13 @@ declare module '@tanstack/react-router' {
       path: '/item-system'
       fullPath: '/docs/item-system'
       preLoaderRoute: typeof DocsItemSystemRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/feature-catalog': {
+      id: '/docs/feature-catalog'
+      path: '/feature-catalog'
+      fullPath: '/docs/feature-catalog'
+      preLoaderRoute: typeof DocsFeatureCatalogRouteImport
       parentRoute: typeof DocsRoute
     }
     '/docs/faction-system': {
@@ -1317,6 +1348,13 @@ declare module '@tanstack/react-router' {
       path: '/genders'
       fullPath: '/genders'
       preLoaderRoute: typeof AuthGendersRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/game-skills': {
+      id: '/_auth/game-skills'
+      path: '/game-skills'
+      fullPath: '/game-skills'
+      preLoaderRoute: typeof AuthGameSkillsRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/factions': {
@@ -1819,6 +1857,7 @@ interface AuthRouteChildren {
   AuthEffectsRoute: typeof AuthEffectsRoute
   AuthExportRoute: typeof AuthExportRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
+  AuthGameSkillsRoute: typeof AuthGameSkillsRoute
   AuthGendersRoute: typeof AuthGendersRoute
   AuthHooksRoute: typeof AuthHooksRoute
   AuthItemsRoute: typeof AuthItemsRouteWithChildren
@@ -1848,6 +1887,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthEffectsRoute: AuthEffectsRoute,
   AuthExportRoute: AuthExportRoute,
   AuthFactionsRoute: AuthFactionsRoute,
+  AuthGameSkillsRoute: AuthGameSkillsRoute,
   AuthGendersRoute: AuthGendersRoute,
   AuthHooksRoute: AuthHooksRoute,
   AuthItemsRoute: AuthItemsRouteWithChildren,
@@ -1882,6 +1922,7 @@ interface DocsRouteChildren {
   DocsEffectSystemRoute: typeof DocsEffectSystemRoute
   DocsExamineSkillRoute: typeof DocsExamineSkillRoute
   DocsFactionSystemRoute: typeof DocsFactionSystemRoute
+  DocsFeatureCatalogRoute: typeof DocsFeatureCatalogRoute
   DocsItemSystemRoute: typeof DocsItemSystemRoute
   DocsNpcSystemRoute: typeof DocsNpcSystemRoute
   DocsQuestSystemRoute: typeof DocsQuestSystemRoute
@@ -1905,6 +1946,7 @@ const DocsRouteChildren: DocsRouteChildren = {
   DocsEffectSystemRoute: DocsEffectSystemRoute,
   DocsExamineSkillRoute: DocsExamineSkillRoute,
   DocsFactionSystemRoute: DocsFactionSystemRoute,
+  DocsFeatureCatalogRoute: DocsFeatureCatalogRoute,
   DocsItemSystemRoute: DocsItemSystemRoute,
   DocsNpcSystemRoute: DocsNpcSystemRoute,
   DocsQuestSystemRoute: DocsQuestSystemRoute,

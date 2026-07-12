@@ -10,8 +10,6 @@ type Room = Readonly<{
   isStartingRoom: boolean
   isRootRoom: boolean
   exits: Record<string, number>
-  posX: number
-  posY: number
   posZ: number
   version: number
 }>
@@ -22,11 +20,10 @@ type RoomInput = {
   isStartingRoom: boolean
   isRootRoom: boolean
   exits: Record<string, number>
-  posX: number
-  posY: number
   posZ: number
   atmosphere?: string
   tags?: string[]
+  zoneIds?: string[]
 }
 
 type RoomUpdate = Partial<RoomInput> & {
@@ -45,14 +42,7 @@ export function useRooms() {
       const params = new URLSearchParams(currentWorld ? [["world_id", currentWorld]] : []);
       const qs = params.toString() ? `?${params.toString()}` : "";
       const raw = await apiGet<Room[]>(`${API_BASE}/api/rooms${qs}`);
-      // The backend omits zero-valued coordinates from JSON, so normalize
-      // them here so downstream layout math never sees undefined/Infinity.
-      return raw.map((r) => ({
-        ...r,
-        posX: r.posX ?? 0,
-        posY: r.posY ?? 0,
-        posZ: r.posZ ?? 0,
-      }));
+      return raw;
     },
   });
 
@@ -128,6 +118,7 @@ export function useRooms() {
     createRoom: createMutation.mutate,
     createRoomAsync: createMutation.mutateAsync,
     updateRoom: updateMutation.mutate,
+    updateRoomAsync: updateMutation.mutateAsync,
     deleteRoom: deleteMutation.mutate,
     deleteRoomAsync: deleteRoomAsync,
     isUpdating: updateMutation.isPending,

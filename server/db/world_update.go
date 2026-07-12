@@ -12,6 +12,7 @@ import (
 	"herbst-server/db/gender"
 	"herbst-server/db/predicate"
 	"herbst-server/db/race"
+	"herbst-server/db/skill"
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
 	"herbst-server/db/world"
@@ -201,6 +202,21 @@ func (_u *WorldUpdate) AddEffectHooks(v ...*EffectHook) *WorldUpdate {
 	return _u.AddEffectHookIDs(ids...)
 }
 
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (_u *WorldUpdate) AddSkillIDs(ids ...int) *WorldUpdate {
+	_u.mutation.AddSkillIDs(ids...)
+	return _u
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (_u *WorldUpdate) AddSkills(v ...*Skill) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSkillIDs(ids...)
+}
+
 // Mutation returns the WorldMutation object of the builder.
 func (_u *WorldUpdate) Mutation() *WorldMutation {
 	return _u.mutation
@@ -351,6 +367,27 @@ func (_u *WorldUpdate) RemoveEffectHooks(v ...*EffectHook) *WorldUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEffectHookIDs(ids...)
+}
+
+// ClearSkills clears all "skills" edges to the Skill entity.
+func (_u *WorldUpdate) ClearSkills() *WorldUpdate {
+	_u.mutation.ClearSkills()
+	return _u
+}
+
+// RemoveSkillIDs removes the "skills" edge to Skill entities by IDs.
+func (_u *WorldUpdate) RemoveSkillIDs(ids ...int) *WorldUpdate {
+	_u.mutation.RemoveSkillIDs(ids...)
+	return _u
+}
+
+// RemoveSkills removes "skills" edges to Skill entities.
+func (_u *WorldUpdate) RemoveSkills(v ...*Skill) *WorldUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSkillIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -719,6 +756,51 @@ func (_u *WorldUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.SkillsTable,
+			Columns: []string{world.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSkillsIDs(); len(nodes) > 0 && !_u.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.SkillsTable,
+			Columns: []string{world.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.SkillsTable,
+			Columns: []string{world.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{world.Label}
@@ -906,6 +988,21 @@ func (_u *WorldUpdateOne) AddEffectHooks(v ...*EffectHook) *WorldUpdateOne {
 	return _u.AddEffectHookIDs(ids...)
 }
 
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (_u *WorldUpdateOne) AddSkillIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.AddSkillIDs(ids...)
+	return _u
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (_u *WorldUpdateOne) AddSkills(v ...*Skill) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSkillIDs(ids...)
+}
+
 // Mutation returns the WorldMutation object of the builder.
 func (_u *WorldUpdateOne) Mutation() *WorldMutation {
 	return _u.mutation
@@ -1056,6 +1153,27 @@ func (_u *WorldUpdateOne) RemoveEffectHooks(v ...*EffectHook) *WorldUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEffectHookIDs(ids...)
+}
+
+// ClearSkills clears all "skills" edges to the Skill entity.
+func (_u *WorldUpdateOne) ClearSkills() *WorldUpdateOne {
+	_u.mutation.ClearSkills()
+	return _u
+}
+
+// RemoveSkillIDs removes the "skills" edge to Skill entities by IDs.
+func (_u *WorldUpdateOne) RemoveSkillIDs(ids ...int) *WorldUpdateOne {
+	_u.mutation.RemoveSkillIDs(ids...)
+	return _u
+}
+
+// RemoveSkills removes "skills" edges to Skill entities.
+func (_u *WorldUpdateOne) RemoveSkills(v ...*Skill) *WorldUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSkillIDs(ids...)
 }
 
 // Where appends a list predicates to the WorldUpdate builder.
@@ -1447,6 +1565,51 @@ func (_u *WorldUpdateOne) sqlSave(ctx context.Context) (_node *World, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.SkillsTable,
+			Columns: []string{world.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSkillsIDs(); len(nodes) > 0 && !_u.mutation.SkillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.SkillsTable,
+			Columns: []string{world.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.SkillsTable,
+			Columns: []string{world.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

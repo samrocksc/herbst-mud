@@ -1,67 +1,22 @@
-/* eslint-disable react-hooks/exhaustive-deps, functional/immutable-data, functional/prefer-immutable-types, functional/no-mixed-types */
-import { useRef, useCallback, memo } from "react";
-import { DRAG_THRESHOLD, GRID } from "./constants";
+import { useCallback, memo } from "react";
+import { Handle, Position } from "@xyflow/react";
+import { NODE_W, NODE_H } from "./constants";
 import { DirectionShortLabels } from "./DirectionUtils";
 import type { Room, NPC, Equipment } from "./types";
 
-type RoomNodeProps = {
+// eslint-disable-next-line functional/no-mixed-types -- component props conventionally mix data fields and callback handlers
+type RoomNodeProps = Readonly<{
   room: Room
-  pos: { x: number; y: number }
+  pos: Readonly<{ x: number; y: number }>
   isSelected: boolean
-  roomNpcs: NPC[]
-  roomItems: Equipment[]
-  rooms: Room[]
+  roomNpcs: ReadonlyArray<NPC>
+  roomItems: ReadonlyArray<Equipment>
+  rooms: ReadonlyArray<Room>
   zoom: number
   onSelect: (room: Room) => void
-  isDragging: boolean
-  onDragStart: (roomId: number) => void
-  onDragEnd: (roomId: number, x: number, y: number) => void
-}
+}>
 
-export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs, roomItems, rooms, zoom, onSelect, isDragging, onDragStart, onDragEnd }: RoomNodeProps) {
-  const dragRef = useRef({ startMouseX: 0, startMouseY: 0, startPosX: 0, startPosY: 0, didDrag: false });
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    const dx = (e.clientX - dragRef.current.startMouseX) / zoom;
-    const dy = (e.clientY - dragRef.current.startMouseY) / zoom;
-    if (!dragRef.current.didDrag && Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
-    if (!dragRef.current.didDrag) {
-      dragRef.current.didDrag = true;
-      onDragStart(room.id);
-    }
-    const rawX = dragRef.current.startPosX + dx;
-    const rawY = dragRef.current.startPosY + dy;
-    const snapX = Math.round(rawX / GRID) * GRID;
-    const snapY = Math.round(rawY / GRID) * GRID;
-    const nodeEl = document.querySelector(`[data-room-id="${room.id}"]`) as HTMLElement;
-    if (nodeEl) {
-      nodeEl.style.left = `${snapX}px`;
-      nodeEl.style.top = `${snapY}px`;
-    }
-  }, [room.id, onDragStart, zoom]);
-
-   
-  const handleMouseUp = useCallback((e: MouseEvent) => {
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
-    if (!dragRef.current.didDrag) return;
-    const dx = (e.clientX - dragRef.current.startMouseX) / zoom;
-    const dy = (e.clientY - dragRef.current.startMouseY) / zoom;
-    onDragEnd(room.id, dragRef.current.startPosX + dx, dragRef.current.startPosY + dy);
-  }, [room.id, onDragEnd, handleMouseMove, zoom]);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest("button")) return;
-    e.preventDefault();
-    dragRef.current = {
-      startMouseX: e.clientX, startMouseY: e.clientY,
-      startPosX: pos.x, startPosY: pos.y,
-      didDrag: false,
-    };
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-  }, [pos.x, pos.y, zoom, handleMouseMove, handleMouseUp]);
-
+export const RoomNode = memo(function RoomNode({ room, isSelected, roomNpcs, roomItems, rooms, onSelect }: RoomNodeProps) {
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -86,23 +41,20 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
       role="button"
       tabIndex={0}
       aria-label={`${room.name} (Room ${room.id})`}
-      onClick={() => { if (!dragRef.current.didDrag) onSelect(room); }}
-      onMouseDown={handleMouseDown}
+      onClick={() => { onSelect(room); }}
       onKeyDown={handleKeyDown}
-      className={`room-node absolute w-[120px] min-h-[65px] p-2 rounded-lg cursor-grab transition-all select-none ${
-        isDragging ? "opacity-50 cursor-grabbing" : ""
-      } ${
+      className={`room-node overflow-hidden p-2 rounded-lg cursor-pointer transition-all select-none ${
         room.isRootRoom
           ? "bg-accent text-white"
           : room.isStartingRoom
             ? "bg-primary text-white"
             : isSelected
-            ? "bg-primary-hover text-white shadow-lg border-2 border-accent"
+            ? "bg-yellow-400 text-black shadow-2xl border-4 border-red-600 ring-4 ring-yellow-200 scale-110 z-50"
             : "bg-surface text-text border-2 border-border hover:border-primary"
       }`}
-      style={{ left: pos.x, top: pos.y, zIndex: isDragging ? 50 : 1 }}
+      style={{ zIndex: isSelected ? 50 : 1, width: NODE_W, height: NODE_H }}
     >
-      <div className={`font-bold text-xs text-center truncate ${isColored ? "text-white" : "text-text"}`}>
+      <div className={`font-bold text-xs text-center truncate w-full ${isColored ? "text-white" : "text-text"}`}>
         {room.name}
         {room.isRootRoom && " 🏠"}
         {room.isStartingRoom && !room.isStartingRoom && " ⭐"}
@@ -129,7 +81,7 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
             return (
               <span
                 key={dir}
-                className={`text-[8px] leading-tight ${
+                className={`text-[8px] leading-tight w-full truncate text-center ${
                   dir === "up" ? isColored ? "text-white/90" : "text-warning"
                   : dir === "down" ? isColored ? "text-white/80" : "text-success"
                   : isColored ? "text-white/70" : "text-text-muted"
@@ -141,6 +93,14 @@ export const RoomNode = memo(function RoomNode({ room, pos, isSelected, roomNpcs
           })}
         </div>
       )}
+      <Handle type="target" position={Position.Top} id="north" style={{ visibility: "hidden" }} />
+      <Handle type="source" position={Position.Top} id="north" style={{ visibility: "hidden" }} />
+      <Handle type="target" position={Position.Bottom} id="south" style={{ visibility: "hidden" }} />
+      <Handle type="source" position={Position.Bottom} id="south" style={{ visibility: "hidden" }} />
+      <Handle type="target" position={Position.Right} id="east" style={{ visibility: "hidden" }} />
+      <Handle type="source" position={Position.Right} id="east" style={{ visibility: "hidden" }} />
+      <Handle type="target" position={Position.Left} id="west" style={{ visibility: "hidden" }} />
+      <Handle type="source" position={Position.Left} id="west" style={{ visibility: "hidden" }} />
     </div>
   );
 });

@@ -25,6 +25,12 @@ type NPCForm = {
   greeting: string
   skills: string
   trades_with: string
+  roam_pattern: string
+  roam_interval_seconds: number
+  roam_pause_min_seconds: number
+  roam_pause_max_seconds: number
+  roam_zone_ids: string
+  notify_on_enter: boolean
 };
 
 const EMPTY_FORM: NPCForm = {
@@ -39,6 +45,12 @@ const EMPTY_FORM: NPCForm = {
   greeting: "",
   skills: "",
   trades_with: "",
+  roam_pattern: "static",
+  roam_interval_seconds: 60,
+  roam_pause_min_seconds: 15,
+  roam_pause_max_seconds: 120,
+  roam_zone_ids: "",
+  notify_on_enter: true,
 };
 
 function CreateNPCPage() {
@@ -54,6 +66,10 @@ function CreateNPCPage() {
   const createMutation = useMutation({
     mutationFn: (input: NPCForm) => {
       const rooms = input.respawn_rooms
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s !== "");
+      const roamZoneIds = input.roam_zone_ids
         .split(",")
         .map((s) => s.trim())
         .filter((s) => s !== "");
@@ -80,6 +96,12 @@ function CreateNPCPage() {
         greeting: input.greeting,
         skills,
         trades_with: input.trades_with.split("\n").map((s) => s.trim()).filter(Boolean),
+        roam_pattern: input.roam_pattern,
+        roam_interval_seconds: input.roam_interval_seconds,
+        roam_pause_min_seconds: input.roam_pause_min_seconds,
+        roam_pause_max_seconds: input.roam_pause_max_seconds,
+        roam_zone_ids: roamZoneIds,
+        notify_on_enter: input.notify_on_enter,
       });
     },
     onSuccess: () => {
@@ -253,6 +275,82 @@ function CreateNPCPage() {
                 className="w-full p-2 bg-surface border border-border rounded text-text text-sm resize-y font-mono"
               />
             </div>
+          </div>
+
+          {/* Behavior */}
+          <h3 className="mt-6 mb-2 text-text text-sm font-semibold border-b border-border pb-1">Behavior</h3>
+          <div>
+            <label className="text-text-muted text-xs block mb-1">Roam Pattern</label>
+            <select
+              value={form.roam_pattern}
+              onChange={(e) => set({ roam_pattern: e.target.value })}
+              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+            >
+              <option value="static">Static (never moves)</option>
+              <option value="wander">Wander (random within zones)</option>
+              <option value="patrol">Patrol (sequential through exits)</option>
+              <option value="return_home">Return Home (back to home room)</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="text-text-muted text-xs block mb-1">
+                Roam Interval <span className="text-text-muted">(seconds)</span>
+              </label>
+              <input
+                type="number"
+                value={form.roam_interval_seconds}
+                onChange={(e) => set({ roam_interval_seconds: parseInt(e.target.value) || 0 })}
+                min={0}
+                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-text-muted text-xs block mb-1">
+                Roam Pause Min <span className="text-text-muted">(seconds)</span>
+              </label>
+              <input
+                type="number"
+                value={form.roam_pause_min_seconds}
+                onChange={(e) => set({ roam_pause_min_seconds: parseInt(e.target.value) || 0 })}
+                min={0}
+                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-text-muted text-xs block mb-1">
+                Roam Pause Max <span className="text-text-muted">(seconds)</span>
+              </label>
+              <input
+                type="number"
+                value={form.roam_pause_max_seconds}
+                onChange={(e) => set({ roam_pause_max_seconds: parseInt(e.target.value) || 0 })}
+                min={0}
+                className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-text-muted text-xs block mb-1">
+              Roam Zone IDs <span className="text-text-muted">(comma-separated)</span>
+            </label>
+            <input
+              type="text"
+              value={form.roam_zone_ids}
+              onChange={(e) => set({ roam_zone_ids: e.target.value })}
+              placeholder="zone-1, zone-2"
+              className="w-full p-2 bg-surface border border-border rounded text-text text-sm"
+            />
+          </div>
+          <div>
+            <label className="flex items-center gap-2 text-text-muted text-xs cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.notify_on_enter}
+                onChange={(e) => set({ notify_on_enter: e.target.checked })}
+              />
+              Notify on Enter
+            </label>
           </div>
 
           {/* Error display */}

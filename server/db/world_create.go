@@ -11,6 +11,7 @@ import (
 	"herbst-server/db/factioncategory"
 	"herbst-server/db/gender"
 	"herbst-server/db/race"
+	"herbst-server/db/skill"
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
 	"herbst-server/db/world"
@@ -169,6 +170,21 @@ func (_c *WorldCreate) AddEffectHooks(v ...*EffectHook) *WorldCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddEffectHookIDs(ids...)
+}
+
+// AddSkillIDs adds the "skills" edge to the Skill entity by IDs.
+func (_c *WorldCreate) AddSkillIDs(ids ...int) *WorldCreate {
+	_c.mutation.AddSkillIDs(ids...)
+	return _c
+}
+
+// AddSkills adds the "skills" edges to the Skill entity.
+func (_c *WorldCreate) AddSkills(v ...*Skill) *WorldCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSkillIDs(ids...)
 }
 
 // Mutation returns the WorldMutation object of the builder.
@@ -370,6 +386,22 @@ func (_c *WorldCreate) createSpec() (*World, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(effecthook.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SkillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   world.SkillsTable,
+			Columns: []string{world.SkillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

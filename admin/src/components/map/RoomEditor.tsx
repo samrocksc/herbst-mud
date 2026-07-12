@@ -10,6 +10,7 @@ import { SelectField } from "../fields/SelectField";
 import { FormError } from "../fields/FormError";
 import { showToast } from "../Toast";
 import { useRooms } from "../../hooks/useRooms";
+import { RoomZonesField } from "./RoomZonesField";
 import type { Room } from "./types";
 
 type RoomEditorProps = {
@@ -24,12 +25,11 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
     description: room.description,
     atmosphere: room.atmosphere ?? "air",
     tagsText: (room as any).tags ? (room as any).tags.join(", ") : "",
-    posX: room.posX ?? 0,
-    posY: room.posY ?? 0,
     posZ: room.posZ ?? 0,
     exits: { ...room.exits },
     isStartingRoom: room.isStartingRoom,
     isRootRoom: room.isRootRoom,
+    zoneIds: [...(room.zoneIds ?? [])],
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -71,11 +71,10 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
         description: form.description,
         atmosphere: form.atmosphere,
         tags: form.tagsText.split(",").map((t: string) => t.trim()).filter(Boolean),
-        posX: form.posX,
-        posY: form.posY,
         posZ: form.posZ,
         isStartingRoom: form.isStartingRoom,
         isRootRoom: form.isRootRoom,
+        zoneIds: form.zoneIds,
         version: room.version,
       },
     });
@@ -120,18 +119,16 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
           />
         </div>
         <div className="mb-3">
-          <label className="block text-sm font-medium text-text mb-2">Position</label>
-          <p className="text-xs text-text-muted mb-2">Defaults to (0,0,0) — the world origin on the ground floor.</p>
-          <div className="grid grid-cols-3 gap-3">
-            <NumberField label="X" value={form.posX} onChange={(v) => setForm({ ...form, posX: v })} tooltip="Horizontal position on the floor" />
-            <NumberField label="Y" value={form.posY} onChange={(v) => setForm({ ...form, posY: v })} tooltip="Vertical position on the floor" />
-            <NumberField
-              label="Z (floor)"
-              value={form.posZ}
-              onChange={(v) => setForm({ ...form, posZ: v })}
-              tooltip="Z-level / floor. 0 = ground, +1 = upstairs, -1 = basement"
-            />
-          </div>
+          <NumberField
+            label="Z (floor)"
+            value={form.posZ}
+            onChange={(v) => setForm({ ...form, posZ: v })}
+            tooltip="Z-level / floor. 0 = ground, +1 = upstairs, -1 = basement"
+          />
+          <p className="text-xs text-text-muted mt-2">
+            X and Y positions are derived from the exits graph and cannot be edited directly.
+            Connect this room to a neighbor via an exit below to set its on-screen position.
+          </p>
         </div>
         <div className="mb-3 space-y-2">
           <div className="flex items-center gap-2">
@@ -175,6 +172,12 @@ export function RoomEditor({ room, onCancel }: RoomEditorProps) {
               )}
             </div>
           ))}
+        </div>
+        <div className="mb-3">
+          <RoomZonesField
+            selectedZoneIds={form.zoneIds}
+            onChange={(next) => setForm(f => ({ ...f, zoneIds: next }))}
+          />
         </div>
       </div>
 

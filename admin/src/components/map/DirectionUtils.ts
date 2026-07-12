@@ -54,21 +54,13 @@ export const ALL_DIRECTIONS = [
   "down",
 ];
 
-const BASE_NODE_H = 85;
-const EXIT_LINE_HEIGHT = 18;
-
 /**
- * Estimate the rendered bounding box of a room node.
- * Width is fixed by Tailwind (w-[120px]). Height grows with the number of
- * visible exit lines stacked below the name/id badges plus a safety margin
- * so that diagonal/short orthogonal offsets do not produce overlaps.
+ * Pinned node box. Every room claims NODE_W × NODE_H of canvas regardless
+ * of how many exits it has or how long its name is. The BFS step is
+ * derived from these constants so siblings land at a uniform distance.
  */
-export function estimateNodeSize(room: Room): { w: number; h: number } {
-  const exitCount = Object.keys(room.exits || {}).length;
-  return {
-    w: NODE_W,
-    h: BASE_NODE_H + Math.max(0, exitCount) * EXIT_LINE_HEIGHT,
-  };
+export function estimateNodeSize(_room: Room): { w: number; h: number } {
+  return { w: NODE_W, h: NODE_H };
 }
 
 /**

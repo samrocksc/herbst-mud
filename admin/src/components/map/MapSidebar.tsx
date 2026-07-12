@@ -5,6 +5,7 @@ import { DashboardIcon } from "../icons/DashboardIcon";
 import { NPCsIcon } from "../icons/NPCsIcon";
 import { ItemsIcon } from "../icons/ItemsIcon";
 import type { Room, NPC } from "./types";
+import { ZonesPanel } from "./ZonesPanel";
 
 type MapSidebarProps = Readonly<{
   rooms: Room[]
@@ -87,6 +88,9 @@ export function MapSidebar({
           <span className="whitespace-nowrap">Items</span>
         </Link>
       </div>
+
+      {/* Zones section (admin can manually add zones, manage room chips) */}
+      <ZonesPanel />
 
       {/* Add Room button */}
       <div className="p-3 border-b border-border">

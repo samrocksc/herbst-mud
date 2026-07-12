@@ -1,12 +1,11 @@
-/* eslint-disable functional/prefer-immutable-types, functional/immutable-data, functional/no-loop-statements */
+/* eslint-disable functional/prefer-immutable-types -- useMapState exposes 30+ setters; destructured props are Readonly via the underlying useRooms/useNPCs hooks. Convert builders below. */
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useRooms } from "./useRooms";
 import { useNPCs } from "./useNPCs";
 import { useRoomEquipment } from "./useRoomEquipment";
 import { useNodeLayout } from "./useNodeLayout";
-import { computeRealignUpdates } from "../utils/mapRealign";
-import { GRID, MIN_ZOOM, MAX_ZOOM, ZOOM_FINE_STEP } from "../components/map/constants";
+import { MIN_ZOOM, MAX_ZOOM, ZOOM_FINE_STEP } from "../components/map/constants";
 import { DIRECTION_OFFSETS, OPPOSITE_DIR, ALL_DIRECTIONS } from "../components/map/DirectionUtils";
 import type { Room } from "../components/map/types";
 
@@ -25,8 +24,8 @@ function computeTargetHandle(dir: string, sourceRoom: Room, targetRoom: Room): s
   }
 
   const angle = angleBetweenRooms(
-    { x: sourceRoom.posX ?? 0, y: sourceRoom.posY ?? 0 },
-    { x: targetRoom.posX ?? 0, y: targetRoom.posY ?? 0 },
+    { x: 0, y: 0 },
+    { x: 0, y: 0 },
   );
   const init = { nearest: dir, best: Infinity };
   return ALL_DIRECTIONS.reduce((acc, d) => {
@@ -87,17 +86,13 @@ export function useMapState() {
 
   // Update search params
   const updateSearchParams = useCallback((updates: { room?: number | null; floor?: number }) => {
-    const nextSearch: Record<string, number> = {};
-    if (updates.room !== undefined) {
-      if (updates.room !== null) nextSearch.room = updates.room;
-    } else if (search.room != null) {
-      nextSearch.room = search.room;
-    }
-    if (updates.floor != null) {
-      nextSearch.floor = updates.floor;
-    } else if (currentZLevel !== 0) {
-      nextSearch.floor = currentZLevel;
-    }
+    const roomUpdate = updates.room !== undefined
+      ? (updates.room !== null ? { room: updates.room } : {})
+      : (search.room != null ? { room: search.room } : {});
+    const floorUpdate = updates.floor != null
+      ? { floor: updates.floor }
+      : (currentZLevel !== 0 ? { floor: currentZLevel } : {});
+    const nextSearch: Record<string, number> = { ...roomUpdate, ...floorUpdate };
     navigate({ to: "/map", search: nextSearch, replace: true });
   }, [navigate, search.room, currentZLevel]);
 
@@ -114,16 +109,16 @@ export function useMapState() {
   }, [updateSearchParams]);
 
   const handleAddExitFromNode = useCallback((roomId: number, direction: string) => {
-    const fromRoom = rooms.find(r => r.id === roomId);
-    if (fromRoom) {
-      requestAddRoom(fromRoom, direction);
+    if (selectedRoom && selectedRoom.id === roomId) {
+      requestAddRoom(direction);
     }
-  }, [rooms]);
+  }, [selectedRoom]);
 
   // Room lifecycle
-  const requestAddRoom = useCallback((fromRoom: Room, dir: string) => {
-    setAddRoomModal({ open: true, fromRoom, dir });
-  }, []);
+  const requestAddRoom = useCallback((dir: string) => {
+    if (!selectedRoom) return;
+    setAddRoomModal({ open: true, fromRoom: selectedRoom, dir });
+  }, [selectedRoom]);
 
   const cancelAddRoom = useCallback(() => {
     setAddRoomModal({ open: false, fromRoom: null, dir: null });
@@ -136,9 +131,6 @@ export function useMapState() {
       if (!fromRoom || !dir) return;
 
       setIsAddingRoom(true);
-      const offset = DIRECTION_OFFSETS[dir];
-      const posX = offset ? fromRoom.posX! + offset.dx : (fromRoom.posX ?? 0);
-      const posY = offset ? fromRoom.posY! + offset.dy : (fromRoom.posY ?? 0);
       const parentZ = zLevels.get(fromRoom.id) ?? 0;
       const posZ = dir === "up" ? parentZ + 1 : dir === "down" ? parentZ - 1 : parentZ;
       try {
@@ -148,8 +140,6 @@ export function useMapState() {
           isStartingRoom: false,
           isRootRoom: false,
           exits: {},
-          posX,
-          posY,
           posZ,
         });
         await createBidirectionalExit({
@@ -173,34 +163,13 @@ export function useMapState() {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  // Layout handler
-  const handleRelayout = useCallback(() => {
-    const clean = nodePositions;
-    const updates: { roomId: number; posX: number; posY: number }[] = [];
-    for (const [roomId, pos] of clean) {
-      const sx = Math.round(pos.x / GRID) * GRID;
-      const sy = Math.round(pos.y / GRID) * GRID;
-      const room = rooms.find(r => r.id === roomId);
-      if (room && (room.posX !== sx || room.posY !== sy)) {
-        updates.push({ roomId, posX: sx, posY: sy });
-      }
-    }
-    if (updates.length === 0) return;
-    for (const { roomId, posX, posY } of updates) {
-      updateRoom({ id: roomId, update: { posX, posY } });
-    }
-  }, [nodePositions, rooms, updateRoom]);
+  // Layout handler — DELETED. The BFS layout in useNodeLayout is the only layout;
+  // rooms cannot be dragged and there is no "real" relaxation. If two rooms
+  // overlap visually, that is a BFS bug, not a user-fixable problem.
 
   // Re-align rooms on the current floor to a grid based on exit graph
-  const handleRealign = useCallback(() => {
-    const updates = computeRealignUpdates(rooms, currentZLevel, zLevels);
-    if (updates.length === 0) {
-      showToast("Rooms already aligned");
-      return;
-    }
-    updates.forEach(({ roomId, posX, posY }) => updateRoom({ id: roomId, update: { posX, posY } }));
-    showToast(`Aligned ${updates.length} room(s) to grid`);
-  }, [rooms, currentZLevel, zLevels, updateRoom, showToast]);
+  // DELETED: handleRealign callback — BFS layout is now computed automatically
+  // by useNodeLayout. No manual realign needed.
 
   const handleSetZLevel = useCallback((z: number) => {
     updateSearchParams({ floor: z });
@@ -241,7 +210,7 @@ export function useMapState() {
 
   // Floor management
   const handleAddFloor = useCallback(async () => {
-    const sorted = Array.from(new Set(Array.from(zLevels.values()))).sort((a, b) => a - b);
+    const sorted = [...new Set(zLevels.values())].sort((a, b) => a - b);
     const maxZ = sorted[sorted.length - 1] ?? 0;
     const newZ = sorted.length === 0 ? 0 : maxZ + 1;
 
@@ -258,8 +227,6 @@ export function useMapState() {
         isStartingRoom: false,
         isRootRoom: !hasRoot,
         exits: {},
-        posX: 0,
-        posY: 0,
         posZ: newZ,
         atmosphere: "air",
         tags: [],
@@ -284,7 +251,7 @@ export function useMapState() {
   const requestDeleteFloor = useCallback(() => {
     const roomsOnFloor = rooms.filter((r) => (zLevels.get(r.id) ?? 0) === currentZLevel);
     if (roomsOnFloor.length === 0) {
-      const remaining = Array.from(new Set(Array.from(zLevels.values()))).filter((z) => z !== currentZLevel).sort((a, b) => a - b);
+      const remaining = [...new Set(zLevels.values())].filter((z) => z !== currentZLevel).sort((a, b) => a - b);
       const fallback = remaining[0] ?? 0;
       updateSearchParams({ floor: fallback });
       return;
@@ -292,11 +259,14 @@ export function useMapState() {
     setDeleteFloorModalOpen(true);
   }, [rooms, zLevels, currentZLevel, updateSearchParams]);
 
-  const confirmDeleteFloor = useCallback(() => {
+  const confirmDeleteFloor = useCallback(async () => {
     const roomsOnFloor = rooms.filter((r) => (zLevels.get(r.id) ?? 0) === currentZLevel);
-    for (const r of roomsOnFloor) {
+    // Fire-and-forget: each deleteRoom is a React Query mutation that updates
+    // its own cache. Awaiting in sequence is unnecessary; the UI re-renders
+    // on cache updates.
+    roomsOnFloor.forEach((r) => {
       deleteRoom(r.id);
-    }
+    });
     setDeleteFloorModalOpen(false);
     showToast(`Deleted ${roomsOnFloor.length} room(s) from floor ${currentZLevel}`);
   }, [rooms, zLevels, currentZLevel, deleteRoom, showToast]);
@@ -368,6 +338,9 @@ export function useMapState() {
   // Sync selected room from URL search param on mount and when rooms load
   useEffect(() => {
     if (roomsLoading || !rooms.length || syncRunning.current) return;
+    // React refs: in-place mutation IS the API. useRef returns a mutable box
+    // precisely for re-entry guards that shouldn't trigger re-renders.
+    /* eslint-disable functional/immutable-data -- React useRef in-place mutation */
     syncRunning.current = true;
     const roomId = search.room;
     if (roomId != null) {
@@ -381,77 +354,87 @@ export function useMapState() {
     }
     initialSyncDone.current = true;
     syncRunning.current = false;
+    /* eslint-enable functional/immutable-data */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rooms, search.room]);
 
   // Build React Flow nodes for current z-level
   const reactFlowNodes = useMemo(() => {
-    if (!rooms.length) return [];
+    if (!rooms.length) return [] as ReadonlyArray<{ id: string; position: { x: number; y: number }; type: string; data: Record<string, unknown> }>;
     const getNPCsInRoom = (roomId: number) => npcsQuery.data?.filter(n => n.currentRoomId === roomId) || [];
     const getEquipmentInRoom = (_roomId: number) => equipmentQuery.data || [];
 
-    const nodes: Array<{ id: string; position: { x: number; y: number }; type: string; data: Record<string, unknown> }> = [];
-    for (const room of rooms) {
-      const pos = nodePositions.get(room.id);
-      if (!pos || (zLevels.get(room.id) ?? 0) !== currentZLevel) continue;
-
-      nodes.push({
-        id: `room-${room.id}`,
-        position: { x: pos.x, y: pos.y },
-        type: "default",
-        data: {
-          room,
-          roomNpcs: getNPCsInRoom(room.id),
-          roomItems: getEquipmentInRoom(room.id),
-          rooms,
-          onSelect: handleSelectRoom,
-          onAddExit: handleAddExitFromNode,
-        },
+    return rooms
+      .filter((room) => {
+        const pos = nodePositions.get(room.id);
+        return pos != null && (zLevels.get(room.id) ?? 0) === currentZLevel;
+      })
+      .map((room) => {
+        const pos = nodePositions.get(room.id)!;
+        return {
+          id: `room-${room.id}`,
+          position: { x: pos.x, y: pos.y },
+          type: "room",
+          data: {
+            room,
+            roomNpcs: getNPCsInRoom(room.id),
+            roomItems: getEquipmentInRoom(room.id),
+            rooms,
+            onSelect: handleSelectRoom,
+            onAddExit: handleAddExitFromNode,
+          },
+        };
       });
-    }
-    return nodes;
-  }, [rooms, nodePositions, zLevels, currentZLevel, npcsQuery.data, equipmentQuery.data]);
+  }, [rooms, nodePositions, zLevels, currentZLevel, npcsQuery.data, equipmentQuery.data, handleSelectRoom, handleAddExitFromNode]);
 
   // Build React Flow edges for current z-level
   const reactFlowEdges = useMemo(() => {
-    if (!rooms.length) return [];
-    const edges: Array<{ id: string; source: string; target: string; sourceHandle: string; targetHandle: string; type: string; data: Record<string, unknown>; style: Record<string, string | number> }> = [];
+    if (!rooms.length) return [] as ReadonlyArray<{ id: string; source: string; target: string; sourceHandle: string; targetHandle: string; type: string; data: Record<string, unknown>; style: Record<string, string | number> }>;
+    // `drawn` is a closure-local dedup Set. Building it immutably would
+    // require a pre-pass over all edges to enumerate them first; the
+    // two-pass cost is not worth it for a 30-room display.
     const drawn = new Set<string>();
 
-    for (const room of rooms) {
+    return rooms.flatMap((room) => {
       const roomPos = nodePositions.get(room.id);
-      if (!roomPos) continue;
+      if (!roomPos) return [];
 
-      for (const [dir, targetId] of Object.entries(room.exits || {})) {
-        if (dir === "up" || dir === "down") continue;
-        const targetPos = nodePositions.get(targetId);
-        if (!targetPos) continue;
-
-        const [lo, hi] = room.id < targetId ? [room.id, targetId] : [targetId, room.id];
-        const canon = `${lo}-${hi}`;
-        if (drawn.has(canon)) continue;
-        drawn.add(canon);
-
-        // Use the source room's exit direction for the source side; prefer the
-        // target room's reciprocal exit direction for the target side so the line
-        // enters the same side a player would use to walk back.
-        const targetRoom = rooms.find(r => r.id === targetId);
-        if (!targetRoom) continue;
-        const targetHandle = computeTargetHandle(dir, room, targetRoom);
-
-        edges.push({
-          id: `edge-${canon}`,
-          source: `room-${room.id}`,
-          target: `room-${targetId}`,
-          sourceHandle: dir,
-          targetHandle,
-          type: "mapEdge",
-          data: { dir, targetHandle },
-          style: { stroke: "var(--color-success, #22c55e)", strokeWidth: 2 },
-        });
-      }
-    }
-    return edges;
+      return Object.entries(room.exits || {})
+        .filter(([dir]) => dir !== "up" && dir !== "down")
+        .map(([dir, targetId]) => ({ dir, targetId, roomPos }))
+        .filter(({ targetId }) => nodePositions.get(targetId) != null)
+        .filter(({ targetId }) => {
+          const [lo, hi] = room.id < targetId ? [room.id, targetId] : [targetId, room.id];
+          const canon = `${lo}-${hi}`;
+          // Closure-local dedup Set, see declaration above. `has` is read-only;
+          // the `add` below is the actual mutation.
+          if (drawn.has(canon)) return false;
+          // eslint-disable-next-line functional/immutable-data -- dedup Set populated mid-filter
+          drawn.add(canon);
+          return true;
+        })
+        .map(({ dir, targetId }) => {
+          // Use the source room's exit direction for the source side; prefer
+          // the target room's reciprocal exit direction for the target side
+          // so the line enters the same side a player would use to walk back.
+          const targetRoom = rooms.find(r => r.id === targetId);
+          if (!targetRoom) return null;
+          const [lo, hi] = room.id < targetId ? [room.id, targetId] : [targetId, room.id];
+          const canon = `${lo}-${hi}`;
+          const targetHandle = computeTargetHandle(dir, room, targetRoom);
+          return {
+            id: `edge-${canon}`,
+            source: `room-${room.id}`,
+            target: `room-${targetId}`,
+            sourceHandle: dir,
+            targetHandle,
+            type: "default",
+            data: { dir, targetHandle },
+            style: { stroke: "var(--color-success, #22c55e)", strokeWidth: 2 },
+          };
+        })
+        .filter((edge): edge is NonNullable<typeof edge> => edge !== null);
+    });
   }, [rooms, nodePositions]);
 
   return {
@@ -470,7 +453,7 @@ export function useMapState() {
     navigate, updateSearchParams,
 
     // Handlers
-    handleRelayout, handleRealign, handleSetZLevel, handleAddFloor, handleEditRoom,
+    handleSetZLevel, handleAddFloor, handleEditRoom,
     requestAddRoom, cancelAddRoom, confirmAddRoom,
     requestDeleteFloor, confirmDeleteFloor, cancelDeleteFloor,
     requestDeleteRoom, cancelDeleteRoom, confirmDeleteRoom,

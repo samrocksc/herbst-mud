@@ -16,7 +16,7 @@ type RoomDetailPanelProps = {
   onEditRoom: (room: Room) => void;
   onDeleteRoom: (roomId: number) => void;
   onRequestDeleteRoom?: (roomId: number) => void;
-  onAddRoom?: (room: Room, dir: string) => void;
+  onRequestAddRoom: (dir: string) => void;
   addRoomModal?: {
     open: boolean;
     fromRoom: Room | null;
@@ -39,7 +39,7 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
   onEditRoom,
   onDeleteRoom,
   onRequestDeleteRoom,
-  onAddRoom,
+  onRequestAddRoom,
   addRoomModal,
   onConfirmAddRoom,
   onCancelAddRoom,
@@ -132,12 +132,12 @@ export const RoomDetailPanel = memo(function RoomDetailPanel({
                     <div className="flex-1 p-1 rounded text-xs bg-surface-muted border border-border text-text-muted">
                       <strong>{dir}</strong> → none
                     </div>
-                    {onAddRoom && (
+                    {onRequestAddRoom && (
                       <Button
                         variant="ghost"
                         size="sm"
                         className="!px-1 !py-0.5"
-                        onClick={() => onAddRoom(selectedRoom, dir)}
+                        onClick={() => onRequestAddRoom(dir)}
                         aria-label={`Add room to the ${dir}`}
                       >
                         +

@@ -1,0 +1,86 @@
+/* Custom React Flow styles for map builder */
+
+/* Remove giant white squares around custom nodes */
+.custom-reactflow .react-flow__node,
+.custom-reactflow .react-flow__node-default,
+.custom-reactflow .react-flow__node.selected,
+.custom-reactflow .react-flow__node-default.selected {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.custom-reactflow .react-flow__node:hover,
+.custom-reactflow .react-flow__node-default:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Make edges visible and styled */
+.custom-reactflow .react-flow__edge-path {
+  stroke: var(--color-text, #374151) !important;
+  stroke-width: 4 !important;
+}
+
+.custom-reactflow .react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--color-primary, #6366f1) !important;
+  stroke-width: 5 !important;
+}
+
+.custom-reactflow .react-flow__edge.animated .react-flow__edge-path {
+  stroke: var(--color-accent, #f59e0b) !important;
+}
+
+/* Edge interaction target */
+.custom-reactflow .react-flow__edge-interaction {
+  stroke: transparent;
+  stroke-width: 20;
+}
+
+/* Hide default connection handles background */
+.custom-reactflow .react-flow__handle {
+  background: transparent;
+  border: none;
+  width: 8px;
+  height: 8px;
+}
+
+/* Position source/target handles at the actual edge of the node */
+.custom-reactflow .react-flow__handle-left {
+  left: 0;
+}
+.custom-reactflow .react-flow__handle-right {
+  right: 0;
+}
+.custom-reactflow .react-flow__handle-top {
+  top: 0;
+}
+.custom-reactflow .react-flow__handle-bottom {
+  bottom: 0;
+}
+
+/* Hide default node wrapper classes */
+.custom-reactflow .react-flow__node-default .react-flow__node-body {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Make sure node content is on top */
+.custom-reactflow .react-flow__node > * {
+  z-index: 10;
+}
+
+/* Custom background color */
+.custom-reactflow .react-flow__background {
+  background-color: var(--color-surface, #f8fafc);
+}

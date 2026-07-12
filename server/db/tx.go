@@ -36,6 +36,8 @@ type Tx struct {
 	CharacterFaction *CharacterFactionClient
 	// CharacterIgnore is the client for interacting with the CharacterIgnore builders.
 	CharacterIgnore *CharacterIgnoreClient
+	// CharacterSkill is the client for interacting with the CharacterSkill builders.
+	CharacterSkill *CharacterSkillClient
 	// CharacterTag is the client for interacting with the CharacterTag builders.
 	CharacterTag *CharacterTagClient
 	// CompetencyCategory is the client for interacting with the CompetencyCategory builders.
@@ -82,6 +84,8 @@ type Tx struct {
 	ShopItem *ShopItemClient
 	// ShopTemplate is the client for interacting with the ShopTemplate builders.
 	ShopTemplate *ShopTemplateClient
+	// Skill is the client for interacting with the Skill builders.
+	Skill *SkillClient
 	// SocialCommand is the client for interacting with the SocialCommand builders.
 	SocialCommand *SocialCommandClient
 	// SystemLog is the client for interacting with the SystemLog builders.
@@ -241,6 +245,7 @@ func (tx *Tx) init() {
 	tx.CharacterCompetency = NewCharacterCompetencyClient(tx.config)
 	tx.CharacterFaction = NewCharacterFactionClient(tx.config)
 	tx.CharacterIgnore = NewCharacterIgnoreClient(tx.config)
+	tx.CharacterSkill = NewCharacterSkillClient(tx.config)
 	tx.CharacterTag = NewCharacterTagClient(tx.config)
 	tx.CompetencyCategory = NewCompetencyCategoryClient(tx.config)
 	tx.CompetencyLevelThreshold = NewCompetencyLevelThresholdClient(tx.config)
@@ -264,6 +269,7 @@ func (tx *Tx) init() {
 	tx.Room = NewRoomClient(tx.config)
 	tx.ShopItem = NewShopItemClient(tx.config)
 	tx.ShopTemplate = NewShopTemplateClient(tx.config)
+	tx.Skill = NewSkillClient(tx.config)
 	tx.SocialCommand = NewSocialCommandClient(tx.config)
 	tx.SystemLog = NewSystemLogClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
