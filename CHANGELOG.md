@@ -1,3 +1,5 @@
+- [bf3bea0](http://github.com/samrocksc/herbst-mud/commit/bf3bea087c22d1d061b881971e7406180140d9cf) - 🔵 feat: add GetSkillLevels to character repo
+- [26d23d6](http://github.com/samrocksc/herbst-mud/commit/26d23d6a6640cea1fcd3f8987300649fd835fdba) - chore: auto-update CHANGELOG.md
 - [d5b8134](http://github.com/samrocksc/herbst-mud/commit/d5b8134c7e21412172bfff9eea891ba8edf6bafa) - 🔵 feat: Phase 0 — skill column refactor + XP system design doc
 - [36780b5](http://github.com/samrocksc/herbst-mud/commit/36780b5dcf96e84894a313ac0db21d72db66782f) - chore: auto-update CHANGELOG.md
 - [3cbf18f](http://github.com/samrocksc/herbst-mud/commit/3cbf18fca416334e692947e470a778376b57bda4) - 🔵 feat: DB-driven classes + world export/import parity
