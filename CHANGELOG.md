@@ -1,13 +1,3 @@
-- [cdc4fe4](http://github.com/samrocksc/herbst-mud/commit/cdc4fe4e8325fee921112a25e901b37c23da96aa) - 🔵 fix(player): offline PC visibility + NPC conversation overlay + stale conversation state
-- [dc3317a](http://github.com/samrocksc/herbst-mud/commit/dc3317a9510ac57ab598a3c5a1ca3a89cf47020c) - 🟣 fix(events): correct dblog.Error calls and import in defeat_subscriber
-- [4d0bb5d](http://github.com/samrocksc/herbst-mud/commit/4d0bb5dbdc84ef2d214da11e2935e77f130964fa) - 🟣 fix(admin/players): guard user-characters data with Array.isArray before .map
-- [366d471](http://github.com/samrocksc/herbst-mud/commit/366d471d554fcca6ac88438797c715c2fdfc8545) - 🐀 fix(admin/map): size-aware layout formula and zero-coordinate serialization
-- [3f61447](http://github.com/samrocksc/herbst-mud/commit/3f61447f0385e06e47c7bbac8bf1eae14a9fac8b) - 🐀 fix(admin/map): deterministic realign, sidebar handler wiring, and idempotent grid snaps
-- [70afa5f](http://github.com/samrocksc/herbst-mud/commit/70afa5f81b2437a85611f5c623ec102ef126e2de) - 🟣 fix(player): show Trade button for shopkeeper NPCs; treat shopkeeper as non-hostile
-- [45e7efd](http://github.com/samrocksc/herbst-mud/commit/45e7efd9238dd6c3d3084b1123c1324ff47beae3) - 🟣 fix(web-client): restore truncated api.ts and add missing exports; add crawler Gherkin guards
-- [5d4adb8](http://github.com/samrocksc/herbst-mud/commit/5d4adb87519f47812e5d5afc41c012dc2b431fef) - 🟣 feat(currency): add gold_credits to Character with admin management UI
-- [358c49f](http://github.com/samrocksc/herbst-mud/commit/358c49fe024d9d89fee630c54cb56dcd20da1e26) - 🟣 feat(admin): NPC instance equipment management UI
-- [17ecac5](http://github.com/samrocksc/herbst-mud/commit/17ecac58988e7cb8b6bb26b460401279b1193eaf) - 🔴 fix(equipment): store equipment_template_id on create and expose it in responses
-- [0cbd562](http://github.com/samrocksc/herbst-mud/commit/0cbd5622c88b3215e7f027ef38845386edb0f649) - 🛡️ fix(dbinit): hash admin password with bcrypt on database init
-- [8092bad](http://github.com/samrocksc/herbst-mud/commit/8092bad90a3e0bd9aa3865cf0a3693b348b99ce0) - chore: auto-update CHANGELOG.md
+- [cc4e002](http://github.com/samrocksc/herbst-mud/commit/cc4e0020550b8010add4a29acafaabe1618cbbd3) - 🔵 feat(abilities): class-specific abilities for Ooze Surfers + eligibility fix
+- [be7f0bc](http://github.com/samrocksc/herbst-mud/commit/be7f0bc7ed46f4591e8b1ba0542abe4adeb42de0) - chore: auto-update CHANGELOG.md
 
