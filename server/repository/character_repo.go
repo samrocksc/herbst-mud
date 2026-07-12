@@ -6,6 +6,7 @@ import (
 	"herbst-server/db"
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
+	"herbst-server/db/characterskill"
 	"herbst-server/db/user"
 )
 
@@ -117,4 +118,21 @@ func (r *entCharacterRepo) QueryQuestProgress(ctx context.Context, charID int) (
 		return nil, err
 	}
 	return char.QueryQuestProgress().All(ctx)
+}
+
+func (r *entCharacterRepo) GetSkillLevels(ctx context.Context, charID int) (map[string]int, error) {
+	charSkills, err := r.client.CharacterSkill.Query().
+		Where(characterskill.HasCharacterWith(character.IDEQ(charID))).
+		WithSkill().
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	levels := make(map[string]int, len(charSkills))
+	for _, cs := range charSkills {
+		if cs.Edges.Skill != nil {
+			levels[cs.Edges.Skill.Name] = cs.Level
+		}
+	}
+	return levels, nil
 }
