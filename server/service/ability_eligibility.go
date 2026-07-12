@@ -29,6 +29,7 @@ func (s *abilityEligibilityService) characterActiveFactionIDs(ctx context.Contex
 			characterfaction.HasCharacterWith(character.ID(charID)),
 			characterfaction.StatusEQ("active"),
 		).
+		WithFaction().
 		All(ctx)
 	if err != nil {
 		return nil, err
