@@ -204,15 +204,7 @@ var (
 		{Name: "dexterity", Type: field.TypeInt, Default: 10},
 		{Name: "intelligence", Type: field.TypeInt, Default: 10},
 		{Name: "wisdom", Type: field.TypeInt, Default: 10},
-		{Name: "skill_blades", Type: field.TypeInt, Default: 0},
-		{Name: "skill_staves", Type: field.TypeInt, Default: 0},
-		{Name: "skill_knives", Type: field.TypeInt, Default: 0},
-		{Name: "skill_martial", Type: field.TypeInt, Default: 0},
-		{Name: "skill_brawling", Type: field.TypeInt, Default: 0},
-		{Name: "skill_tech", Type: field.TypeInt, Default: 0},
-		{Name: "skill_light_armor", Type: field.TypeInt, Default: 0},
-		{Name: "skill_cloth_armor", Type: field.TypeInt, Default: 0},
-		{Name: "skill_heavy_armor", Type: field.TypeInt, Default: 0},
+		{Name: "charisma", Type: field.TypeInt, Default: 10},
 		{Name: "current_room_id", Type: field.TypeInt},
 		{Name: "npc_template_id", Type: field.TypeString, Nullable: true},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
@@ -227,31 +219,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[43]},
+				Columns:    []*schema.Column{CharactersColumns[35]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[44]},
+				Columns:    []*schema.Column{CharactersColumns[36]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[45]},
+				Columns:    []*schema.Column{CharactersColumns[37]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[46]},
+				Columns:    []*schema.Column{CharactersColumns[38]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_worlds_characters",
-				Columns:    []*schema.Column{CharactersColumns[47]},
+				Columns:    []*schema.Column{CharactersColumns[39]},
 				RefColumns: []*schema.Column{WorldsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -390,6 +382,34 @@ var (
 				Columns:    []*schema.Column{CharacterIgnoresColumns[4]},
 				RefColumns: []*schema.Column{CharactersColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CharacterSkillsColumns holds the columns for the "character_skills" table.
+	CharacterSkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "level", Type: field.TypeInt, Default: 0},
+		{Name: "xp", Type: field.TypeInt, Default: 0},
+		{Name: "character_id", Type: field.TypeInt},
+		{Name: "skill_id", Type: field.TypeInt},
+	}
+	// CharacterSkillsTable holds the schema information for the "character_skills" table.
+	CharacterSkillsTable = &schema.Table{
+		Name:       "character_skills",
+		Columns:    CharacterSkillsColumns,
+		PrimaryKey: []*schema.Column{CharacterSkillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_skills_characters_character_skills",
+				Columns:    []*schema.Column{CharacterSkillsColumns[3]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "character_skills_skills_character_skills",
+				Columns:    []*schema.Column{CharacterSkillsColumns[4]},
+				RefColumns: []*schema.Column{SkillsColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -1007,6 +1027,46 @@ var (
 			},
 		},
 	}
+	// SkillsColumns holds the columns for the "skills" table.
+	SkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "display_name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "category", Type: field.TypeString, Default: "weapon"},
+		{Name: "max_level", Type: field.TypeInt, Default: 100},
+		{Name: "xp_curve_mode", Type: field.TypeString, Default: "percentage"},
+		{Name: "xp_curve_data", Type: field.TypeJSON, Nullable: true},
+		{Name: "parent_skill_id", Type: field.TypeInt, Nullable: true},
+		{Name: "world_id", Type: field.TypeInt},
+	}
+	// SkillsTable holds the schema information for the "skills" table.
+	SkillsTable = &schema.Table{
+		Name:       "skills",
+		Columns:    SkillsColumns,
+		PrimaryKey: []*schema.Column{SkillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "skills_skills_children",
+				Columns:    []*schema.Column{SkillsColumns[8]},
+				RefColumns: []*schema.Column{SkillsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "skills_worlds_skills",
+				Columns:    []*schema.Column{SkillsColumns[9]},
+				RefColumns: []*schema.Column{WorldsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "skill_name_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{SkillsColumns[1], SkillsColumns[9]},
+			},
+		},
+	}
 	// SocialCommandsColumns holds the columns for the "social_commands" table.
 	SocialCommandsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1448,6 +1508,7 @@ var (
 		CharacterCompetenciesTable,
 		CharacterFactionsTable,
 		CharacterIgnoresTable,
+		CharacterSkillsTable,
 		CharacterTagsTable,
 		CompetencyCategoriesTable,
 		CompetencyLevelThresholdsTable,
@@ -1471,6 +1532,7 @@ var (
 		RoomsTable,
 		ShopItemsTable,
 		ShopTemplatesTable,
+		SkillsTable,
 		SocialCommandsTable,
 		SystemLogsTable,
 		TagsTable,
@@ -1509,6 +1571,8 @@ func init() {
 	CharacterFactionsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterFactionsTable.ForeignKeys[1].RefTable = FactionsTable
 	CharacterIgnoresTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterSkillsTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterSkillsTable.ForeignKeys[1].RefTable = SkillsTable
 	CharacterTagsTable.ForeignKeys[0].RefTable = CharactersTable
 	CompetencyLevelThresholdsTable.ForeignKeys[0].RefTable = CompetencyCategoriesTable
 	DialogNodesTable.ForeignKeys[0].RefTable = NpcTemplatesTable
@@ -1523,6 +1587,8 @@ func init() {
 	QuestProgressesTable.ForeignKeys[0].RefTable = CharactersTable
 	QuestProgressesTable.ForeignKeys[1].RefTable = QuestsTable
 	ShopTemplatesTable.ForeignKeys[0].RefTable = CharactersTable
+	SkillsTable.ForeignKeys[0].RefTable = SkillsTable
+	SkillsTable.ForeignKeys[1].RefTable = WorldsTable
 	TellQueuesTable.ForeignKeys[0].RefTable = CharactersTable
 	TriggersTable.ForeignKeys[0].RefTable = CraftingRecipesTable
 	TriggersTable.ForeignKeys[1].RefTable = DialogNodesTable

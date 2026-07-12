@@ -46,9 +46,11 @@ type WorldEdges struct {
 	FactionCategories []*FactionCategory `json:"faction_categories,omitempty"`
 	// EffectHooks holds the value of the effect_hooks edge.
 	EffectHooks []*EffectHook `json:"effect_hooks,omitempty"`
+	// Skills holds the value of the skills edge.
+	Skills []*Skill `json:"skills,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -112,6 +114,15 @@ func (e WorldEdges) EffectHooksOrErr() ([]*EffectHook, error) {
 		return e.EffectHooks, nil
 	}
 	return nil, &NotLoadedError{edge: "effect_hooks"}
+}
+
+// SkillsOrErr returns the Skills value or an error if the edge
+// was not loaded in eager-loading.
+func (e WorldEdges) SkillsOrErr() ([]*Skill, error) {
+	if e.loadedTypes[7] {
+		return e.Skills, nil
+	}
+	return nil, &NotLoadedError{edge: "skills"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -216,6 +227,11 @@ func (_m *World) QueryFactionCategories() *FactionCategoryQuery {
 // QueryEffectHooks queries the "effect_hooks" edge of the World entity.
 func (_m *World) QueryEffectHooks() *EffectHookQuery {
 	return NewWorldClient(_m.config).QueryEffectHooks(_m)
+}
+
+// QuerySkills queries the "skills" edge of the World entity.
+func (_m *World) QuerySkills() *SkillQuery {
+	return NewWorldClient(_m.config).QuerySkills(_m)
 }
 
 // Update returns a builder for updating this World.

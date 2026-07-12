@@ -8,6 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"herbst-server/db"
+	"herbst-server/db/character"
+	"herbst-server/db/characterskill"
+	"herbst-server/db/skill"
 	"herbst-server/dblog"
 	"herbst-server/repository"
 	"herbst-server/service"
@@ -253,22 +256,31 @@ func getCharacterSkills(repos *repository.Container, svc *service.Container) gin
 				factionAbilities = append(factionAbilities, entry)
 			}
 		}
+		// Query character skills from the character_skills join table
+		client := c.MustGet("db_client").(*db.Client)
+		charSkills, err := client.CharacterSkill.Query().
+			Where(characterskill.HasCharacterWith(character.IDEQ(id))).
+			WithSkill().
+			All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load skills"})
+			return
+		}
+		skillsMap := gin.H{}
+		for _, cs := range charSkills {
+			if cs.Edges.Skill != nil {
+				skillsMap[cs.Edges.Skill.Name] = gin.H{
+					"level": cs.Level,
+					"bonus": service.CalcSkillBonus(cs.Level),
+				}
+			}
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"id":   char.ID,
-			"name": char.Name,
-			"skills": gin.H{
-				"blades":      gin.H{"level": char.SkillBlades, "bonus": service.CalcSkillBonus(char.SkillBlades)},
-				"staves":      gin.H{"level": char.SkillStaves, "bonus": service.CalcSkillBonus(char.SkillStaves)},
-				"knives":      gin.H{"level": char.SkillKnives, "bonus": service.CalcSkillBonus(char.SkillKnives)},
-				"martial":     gin.H{"level": char.SkillMartial, "bonus": service.CalcSkillBonus(char.SkillMartial)},
-				"brawling":    gin.H{"level": char.SkillBrawling, "bonus": service.CalcSkillBonus(char.SkillBrawling)},
-				"tech":        gin.H{"level": char.SkillTech, "bonus": service.CalcSkillBonus(char.SkillTech)},
-				"light_armor": gin.H{"level": char.SkillLightArmor, "bonus": service.CalcSkillBonus(char.SkillLightArmor)},
-				"cloth_armor": gin.H{"level": char.SkillClothArmor, "bonus": service.CalcSkillBonus(char.SkillClothArmor)},
-				"heavy_armor": gin.H{"level": char.SkillHeavyArmor, "bonus": service.CalcSkillBonus(char.SkillHeavyArmor)},
-			},
-			"faction_abilities": factionAbilities,
-		})
+		"id":               char.ID,
+		"name":             char.Name,
+		"skills":           skillsMap,
+		"faction_abilities": factionAbilities,
+	})
 	}
 }
 
@@ -280,63 +292,89 @@ func updateCharacterSkills(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 		var req struct {
-			Blades      *int `json:"blades"`
-			Staves      *int `json:"staves"`
-			Knives      *int `json:"knives"`
-			Martial     *int `json:"martial"`
-			Brawling    *int `json:"brawling"`
-			Tech        *int `json:"tech"`
-			LightArmor  *int `json:"light_armor"`
-			ClothArmor  *int `json:"cloth_armor"`
-			HeavyArmor  *int `json:"heavy_armor"`
+			Skills map[string]int `json:"skills"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		validateSkill := func(skill *int, name string) error {
-			if skill != nil && (*skill < 0 || *skill > 100) {
-				return fmt.Errorf("%s must be between 0 and 100", name)
-			}
-			return nil
-		}
-		for name, stat := range map[string]*int{
-			"blades": req.Blades, "staves": req.Staves, "knives": req.Knives,
-			"martial": req.Martial, "brawling": req.Brawling, "tech": req.Tech,
-			"light_armor": req.LightArmor, "cloth_armor": req.ClothArmor, "heavy_armor": req.HeavyArmor,
-		} {
-			if err := validateSkill(stat, name); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// Validate all skill levels
+		for name, level := range req.Skills {
+			if level < 0 || level > 100 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s must be between 0 and 100", name)})
 				return
 			}
 		}
-		char, err := repos.Character.Update(c.Request.Context(), id, repository.CharacterUpdates{
-			SkillBlades:      req.Blades,
-			SkillStaves:      req.Staves,
-			SkillKnives:      req.Knives,
-			SkillMartial:     req.Martial,
-			SkillBrawling:    req.Brawling,
-			SkillTech:        req.Tech,
-			SkillLightArmor:  req.LightArmor,
-			SkillClothArmor:  req.ClothArmor,
-			SkillHeavyArmor:  req.HeavyArmor,
-		})
+		client := c.MustGet("db_client").(*db.Client)
+		ctx := c.Request.Context()
+		// Verify character exists
+		char, err := repos.Character.Get(ctx, id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
 			return
 		}
+		// For each skill name, find or create the character_skills record
+		for skillName, level := range req.Skills {
+			// Find the skill by name in this world
+			sk, err := client.Skill.Query().
+				Where(skill.NameEQ(skillName), skill.WorldIDEQ(char.WorldID)).
+				Only(ctx)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("skill not found: %s", skillName)})
+				return
+			}
+			// Check if character_skill record already exists
+			existing, err := client.CharacterSkill.Query().
+				Where(
+					characterskill.HasCharacterWith(character.IDEQ(id)),
+					characterskill.HasSkillWith(skill.IDEQ(sk.ID)),
+				).
+				Only(ctx)
+			if err != nil && !db.IsNotFound(err) {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query character skills"})
+				return
+			}
+			if existing != nil {
+				// Update existing record
+				_, err = client.CharacterSkill.UpdateOneID(existing.ID).
+					SetLevel(level).
+					Save(ctx)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update skill"})
+					return
+				}
+			} else {
+				// Create new record
+				err = client.CharacterSkill.Create().
+					SetCharacterID(id).
+					SetSkillID(sk.ID).
+					SetLevel(level).
+					Exec(ctx)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create skill"})
+					return
+				}
+			}
+		}
+		// Return updated skills
+		charSkills, err := client.CharacterSkill.Query().
+			Where(characterskill.HasCharacterWith(character.IDEQ(id))).
+			WithSkill().
+			All(ctx)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load skills"})
+			return
+		}
+		skillsMap := gin.H{}
+		for _, cs := range charSkills {
+			if cs.Edges.Skill != nil {
+				skillsMap[cs.Edges.Skill.Name] = cs.Level
+			}
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"id":           char.ID,
-			"name":         char.Name,
-			"blades":       char.SkillBlades,
-			"staves":       char.SkillStaves,
-			"knives":       char.SkillKnives,
-			"martial":      char.SkillMartial,
-			"brawling":     char.SkillBrawling,
-			"tech":         char.SkillTech,
-			"light_armor":  char.SkillLightArmor,
-			"cloth_armor":  char.SkillClothArmor,
-			"heavy_armor":  char.SkillHeavyArmor,
+			"id":     char.ID,
+			"name":   char.Name,
+			"skills": skillsMap,
 		})
 	}
 }

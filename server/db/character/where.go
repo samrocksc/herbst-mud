@@ -235,49 +235,9 @@ func Wisdom(v int) predicate.Character {
 	return predicate.Character(sql.FieldEQ(FieldWisdom, v))
 }
 
-// SkillBlades applies equality check predicate on the "skill_blades" field. It's identical to SkillBladesEQ.
-func SkillBlades(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillBlades, v))
-}
-
-// SkillStaves applies equality check predicate on the "skill_staves" field. It's identical to SkillStavesEQ.
-func SkillStaves(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillStaves, v))
-}
-
-// SkillKnives applies equality check predicate on the "skill_knives" field. It's identical to SkillKnivesEQ.
-func SkillKnives(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillKnives, v))
-}
-
-// SkillMartial applies equality check predicate on the "skill_martial" field. It's identical to SkillMartialEQ.
-func SkillMartial(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillMartial, v))
-}
-
-// SkillBrawling applies equality check predicate on the "skill_brawling" field. It's identical to SkillBrawlingEQ.
-func SkillBrawling(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillBrawling, v))
-}
-
-// SkillTech applies equality check predicate on the "skill_tech" field. It's identical to SkillTechEQ.
-func SkillTech(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillTech, v))
-}
-
-// SkillLightArmor applies equality check predicate on the "skill_light_armor" field. It's identical to SkillLightArmorEQ.
-func SkillLightArmor(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillLightArmor, v))
-}
-
-// SkillClothArmor applies equality check predicate on the "skill_cloth_armor" field. It's identical to SkillClothArmorEQ.
-func SkillClothArmor(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillClothArmor, v))
-}
-
-// SkillHeavyArmor applies equality check predicate on the "skill_heavy_armor" field. It's identical to SkillHeavyArmorEQ.
-func SkillHeavyArmor(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillHeavyArmor, v))
+// Charisma applies equality check predicate on the "charisma" field. It's identical to CharismaEQ.
+func Charisma(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldCharisma, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -1845,364 +1805,44 @@ func WisdomLTE(v int) predicate.Character {
 	return predicate.Character(sql.FieldLTE(FieldWisdom, v))
 }
 
-// SkillBladesEQ applies the EQ predicate on the "skill_blades" field.
-func SkillBladesEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillBlades, v))
+// CharismaEQ applies the EQ predicate on the "charisma" field.
+func CharismaEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldEQ(FieldCharisma, v))
 }
 
-// SkillBladesNEQ applies the NEQ predicate on the "skill_blades" field.
-func SkillBladesNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillBlades, v))
+// CharismaNEQ applies the NEQ predicate on the "charisma" field.
+func CharismaNEQ(v int) predicate.Character {
+	return predicate.Character(sql.FieldNEQ(FieldCharisma, v))
 }
 
-// SkillBladesIn applies the In predicate on the "skill_blades" field.
-func SkillBladesIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillBlades, vs...))
+// CharismaIn applies the In predicate on the "charisma" field.
+func CharismaIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldIn(FieldCharisma, vs...))
 }
 
-// SkillBladesNotIn applies the NotIn predicate on the "skill_blades" field.
-func SkillBladesNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillBlades, vs...))
+// CharismaNotIn applies the NotIn predicate on the "charisma" field.
+func CharismaNotIn(vs ...int) predicate.Character {
+	return predicate.Character(sql.FieldNotIn(FieldCharisma, vs...))
 }
 
-// SkillBladesGT applies the GT predicate on the "skill_blades" field.
-func SkillBladesGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillBlades, v))
+// CharismaGT applies the GT predicate on the "charisma" field.
+func CharismaGT(v int) predicate.Character {
+	return predicate.Character(sql.FieldGT(FieldCharisma, v))
 }
 
-// SkillBladesGTE applies the GTE predicate on the "skill_blades" field.
-func SkillBladesGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillBlades, v))
+// CharismaGTE applies the GTE predicate on the "charisma" field.
+func CharismaGTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldGTE(FieldCharisma, v))
 }
 
-// SkillBladesLT applies the LT predicate on the "skill_blades" field.
-func SkillBladesLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillBlades, v))
+// CharismaLT applies the LT predicate on the "charisma" field.
+func CharismaLT(v int) predicate.Character {
+	return predicate.Character(sql.FieldLT(FieldCharisma, v))
 }
 
-// SkillBladesLTE applies the LTE predicate on the "skill_blades" field.
-func SkillBladesLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillBlades, v))
-}
-
-// SkillStavesEQ applies the EQ predicate on the "skill_staves" field.
-func SkillStavesEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillStaves, v))
-}
-
-// SkillStavesNEQ applies the NEQ predicate on the "skill_staves" field.
-func SkillStavesNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillStaves, v))
-}
-
-// SkillStavesIn applies the In predicate on the "skill_staves" field.
-func SkillStavesIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillStaves, vs...))
-}
-
-// SkillStavesNotIn applies the NotIn predicate on the "skill_staves" field.
-func SkillStavesNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillStaves, vs...))
-}
-
-// SkillStavesGT applies the GT predicate on the "skill_staves" field.
-func SkillStavesGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillStaves, v))
-}
-
-// SkillStavesGTE applies the GTE predicate on the "skill_staves" field.
-func SkillStavesGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillStaves, v))
-}
-
-// SkillStavesLT applies the LT predicate on the "skill_staves" field.
-func SkillStavesLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillStaves, v))
-}
-
-// SkillStavesLTE applies the LTE predicate on the "skill_staves" field.
-func SkillStavesLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillStaves, v))
-}
-
-// SkillKnivesEQ applies the EQ predicate on the "skill_knives" field.
-func SkillKnivesEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillKnives, v))
-}
-
-// SkillKnivesNEQ applies the NEQ predicate on the "skill_knives" field.
-func SkillKnivesNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillKnives, v))
-}
-
-// SkillKnivesIn applies the In predicate on the "skill_knives" field.
-func SkillKnivesIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillKnives, vs...))
-}
-
-// SkillKnivesNotIn applies the NotIn predicate on the "skill_knives" field.
-func SkillKnivesNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillKnives, vs...))
-}
-
-// SkillKnivesGT applies the GT predicate on the "skill_knives" field.
-func SkillKnivesGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillKnives, v))
-}
-
-// SkillKnivesGTE applies the GTE predicate on the "skill_knives" field.
-func SkillKnivesGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillKnives, v))
-}
-
-// SkillKnivesLT applies the LT predicate on the "skill_knives" field.
-func SkillKnivesLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillKnives, v))
-}
-
-// SkillKnivesLTE applies the LTE predicate on the "skill_knives" field.
-func SkillKnivesLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillKnives, v))
-}
-
-// SkillMartialEQ applies the EQ predicate on the "skill_martial" field.
-func SkillMartialEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillMartial, v))
-}
-
-// SkillMartialNEQ applies the NEQ predicate on the "skill_martial" field.
-func SkillMartialNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillMartial, v))
-}
-
-// SkillMartialIn applies the In predicate on the "skill_martial" field.
-func SkillMartialIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillMartial, vs...))
-}
-
-// SkillMartialNotIn applies the NotIn predicate on the "skill_martial" field.
-func SkillMartialNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillMartial, vs...))
-}
-
-// SkillMartialGT applies the GT predicate on the "skill_martial" field.
-func SkillMartialGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillMartial, v))
-}
-
-// SkillMartialGTE applies the GTE predicate on the "skill_martial" field.
-func SkillMartialGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillMartial, v))
-}
-
-// SkillMartialLT applies the LT predicate on the "skill_martial" field.
-func SkillMartialLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillMartial, v))
-}
-
-// SkillMartialLTE applies the LTE predicate on the "skill_martial" field.
-func SkillMartialLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillMartial, v))
-}
-
-// SkillBrawlingEQ applies the EQ predicate on the "skill_brawling" field.
-func SkillBrawlingEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillBrawling, v))
-}
-
-// SkillBrawlingNEQ applies the NEQ predicate on the "skill_brawling" field.
-func SkillBrawlingNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillBrawling, v))
-}
-
-// SkillBrawlingIn applies the In predicate on the "skill_brawling" field.
-func SkillBrawlingIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillBrawling, vs...))
-}
-
-// SkillBrawlingNotIn applies the NotIn predicate on the "skill_brawling" field.
-func SkillBrawlingNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillBrawling, vs...))
-}
-
-// SkillBrawlingGT applies the GT predicate on the "skill_brawling" field.
-func SkillBrawlingGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillBrawling, v))
-}
-
-// SkillBrawlingGTE applies the GTE predicate on the "skill_brawling" field.
-func SkillBrawlingGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillBrawling, v))
-}
-
-// SkillBrawlingLT applies the LT predicate on the "skill_brawling" field.
-func SkillBrawlingLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillBrawling, v))
-}
-
-// SkillBrawlingLTE applies the LTE predicate on the "skill_brawling" field.
-func SkillBrawlingLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillBrawling, v))
-}
-
-// SkillTechEQ applies the EQ predicate on the "skill_tech" field.
-func SkillTechEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillTech, v))
-}
-
-// SkillTechNEQ applies the NEQ predicate on the "skill_tech" field.
-func SkillTechNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillTech, v))
-}
-
-// SkillTechIn applies the In predicate on the "skill_tech" field.
-func SkillTechIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillTech, vs...))
-}
-
-// SkillTechNotIn applies the NotIn predicate on the "skill_tech" field.
-func SkillTechNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillTech, vs...))
-}
-
-// SkillTechGT applies the GT predicate on the "skill_tech" field.
-func SkillTechGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillTech, v))
-}
-
-// SkillTechGTE applies the GTE predicate on the "skill_tech" field.
-func SkillTechGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillTech, v))
-}
-
-// SkillTechLT applies the LT predicate on the "skill_tech" field.
-func SkillTechLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillTech, v))
-}
-
-// SkillTechLTE applies the LTE predicate on the "skill_tech" field.
-func SkillTechLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillTech, v))
-}
-
-// SkillLightArmorEQ applies the EQ predicate on the "skill_light_armor" field.
-func SkillLightArmorEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillLightArmor, v))
-}
-
-// SkillLightArmorNEQ applies the NEQ predicate on the "skill_light_armor" field.
-func SkillLightArmorNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillLightArmor, v))
-}
-
-// SkillLightArmorIn applies the In predicate on the "skill_light_armor" field.
-func SkillLightArmorIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillLightArmor, vs...))
-}
-
-// SkillLightArmorNotIn applies the NotIn predicate on the "skill_light_armor" field.
-func SkillLightArmorNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillLightArmor, vs...))
-}
-
-// SkillLightArmorGT applies the GT predicate on the "skill_light_armor" field.
-func SkillLightArmorGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillLightArmor, v))
-}
-
-// SkillLightArmorGTE applies the GTE predicate on the "skill_light_armor" field.
-func SkillLightArmorGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillLightArmor, v))
-}
-
-// SkillLightArmorLT applies the LT predicate on the "skill_light_armor" field.
-func SkillLightArmorLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillLightArmor, v))
-}
-
-// SkillLightArmorLTE applies the LTE predicate on the "skill_light_armor" field.
-func SkillLightArmorLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillLightArmor, v))
-}
-
-// SkillClothArmorEQ applies the EQ predicate on the "skill_cloth_armor" field.
-func SkillClothArmorEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillClothArmor, v))
-}
-
-// SkillClothArmorNEQ applies the NEQ predicate on the "skill_cloth_armor" field.
-func SkillClothArmorNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillClothArmor, v))
-}
-
-// SkillClothArmorIn applies the In predicate on the "skill_cloth_armor" field.
-func SkillClothArmorIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillClothArmor, vs...))
-}
-
-// SkillClothArmorNotIn applies the NotIn predicate on the "skill_cloth_armor" field.
-func SkillClothArmorNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillClothArmor, vs...))
-}
-
-// SkillClothArmorGT applies the GT predicate on the "skill_cloth_armor" field.
-func SkillClothArmorGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillClothArmor, v))
-}
-
-// SkillClothArmorGTE applies the GTE predicate on the "skill_cloth_armor" field.
-func SkillClothArmorGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillClothArmor, v))
-}
-
-// SkillClothArmorLT applies the LT predicate on the "skill_cloth_armor" field.
-func SkillClothArmorLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillClothArmor, v))
-}
-
-// SkillClothArmorLTE applies the LTE predicate on the "skill_cloth_armor" field.
-func SkillClothArmorLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillClothArmor, v))
-}
-
-// SkillHeavyArmorEQ applies the EQ predicate on the "skill_heavy_armor" field.
-func SkillHeavyArmorEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldEQ(FieldSkillHeavyArmor, v))
-}
-
-// SkillHeavyArmorNEQ applies the NEQ predicate on the "skill_heavy_armor" field.
-func SkillHeavyArmorNEQ(v int) predicate.Character {
-	return predicate.Character(sql.FieldNEQ(FieldSkillHeavyArmor, v))
-}
-
-// SkillHeavyArmorIn applies the In predicate on the "skill_heavy_armor" field.
-func SkillHeavyArmorIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldIn(FieldSkillHeavyArmor, vs...))
-}
-
-// SkillHeavyArmorNotIn applies the NotIn predicate on the "skill_heavy_armor" field.
-func SkillHeavyArmorNotIn(vs ...int) predicate.Character {
-	return predicate.Character(sql.FieldNotIn(FieldSkillHeavyArmor, vs...))
-}
-
-// SkillHeavyArmorGT applies the GT predicate on the "skill_heavy_armor" field.
-func SkillHeavyArmorGT(v int) predicate.Character {
-	return predicate.Character(sql.FieldGT(FieldSkillHeavyArmor, v))
-}
-
-// SkillHeavyArmorGTE applies the GTE predicate on the "skill_heavy_armor" field.
-func SkillHeavyArmorGTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldGTE(FieldSkillHeavyArmor, v))
-}
-
-// SkillHeavyArmorLT applies the LT predicate on the "skill_heavy_armor" field.
-func SkillHeavyArmorLT(v int) predicate.Character {
-	return predicate.Character(sql.FieldLT(FieldSkillHeavyArmor, v))
-}
-
-// SkillHeavyArmorLTE applies the LTE predicate on the "skill_heavy_armor" field.
-func SkillHeavyArmorLTE(v int) predicate.Character {
-	return predicate.Character(sql.FieldLTE(FieldSkillHeavyArmor, v))
+// CharismaLTE applies the LTE predicate on the "charisma" field.
+func CharismaLTE(v int) predicate.Character {
+	return predicate.Character(sql.FieldLTE(FieldCharisma, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.
@@ -2519,6 +2159,29 @@ func HasShopTemplate() predicate.Character {
 func HasShopTemplateWith(preds ...predicate.ShopTemplate) predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {
 		step := newShopTemplateStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCharacterSkills applies the HasEdge predicate on the "character_skills" edge.
+func HasCharacterSkills() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CharacterSkillsTable, CharacterSkillsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCharacterSkillsWith applies the HasEdge predicate on the "character_skills" edge with a given conditions (other predicates).
+func HasCharacterSkillsWith(preds ...predicate.CharacterSkill) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newCharacterSkillsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

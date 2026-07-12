@@ -84,24 +84,8 @@ const (
 	FieldIntelligence = "intelligence"
 	// FieldWisdom holds the string denoting the wisdom field in the database.
 	FieldWisdom = "wisdom"
-	// FieldSkillBlades holds the string denoting the skill_blades field in the database.
-	FieldSkillBlades = "skill_blades"
-	// FieldSkillStaves holds the string denoting the skill_staves field in the database.
-	FieldSkillStaves = "skill_staves"
-	// FieldSkillKnives holds the string denoting the skill_knives field in the database.
-	FieldSkillKnives = "skill_knives"
-	// FieldSkillMartial holds the string denoting the skill_martial field in the database.
-	FieldSkillMartial = "skill_martial"
-	// FieldSkillBrawling holds the string denoting the skill_brawling field in the database.
-	FieldSkillBrawling = "skill_brawling"
-	// FieldSkillTech holds the string denoting the skill_tech field in the database.
-	FieldSkillTech = "skill_tech"
-	// FieldSkillLightArmor holds the string denoting the skill_light_armor field in the database.
-	FieldSkillLightArmor = "skill_light_armor"
-	// FieldSkillClothArmor holds the string denoting the skill_cloth_armor field in the database.
-	FieldSkillClothArmor = "skill_cloth_armor"
-	// FieldSkillHeavyArmor holds the string denoting the skill_heavy_armor field in the database.
-	FieldSkillHeavyArmor = "skill_heavy_armor"
+	// FieldCharisma holds the string denoting the charisma field in the database.
+	FieldCharisma = "charisma"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeWorld holds the string denoting the world edge name in mutations.
@@ -130,6 +114,8 @@ const (
 	EdgeTellQueue = "tellQueue"
 	// EdgeShopTemplate holds the string denoting the shop_template edge name in mutations.
 	EdgeShopTemplate = "shop_template"
+	// EdgeCharacterSkills holds the string denoting the character_skills edge name in mutations.
+	EdgeCharacterSkills = "character_skills"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -230,6 +216,13 @@ const (
 	ShopTemplateInverseTable = "shop_templates"
 	// ShopTemplateColumn is the table column denoting the shop_template relation/edge.
 	ShopTemplateColumn = "character_shop_template"
+	// CharacterSkillsTable is the table that holds the character_skills relation/edge.
+	CharacterSkillsTable = "character_skills"
+	// CharacterSkillsInverseTable is the table name for the CharacterSkill entity.
+	// It exists in this package in order to avoid circular dependency with the "characterskill" package.
+	CharacterSkillsInverseTable = "character_skills"
+	// CharacterSkillsColumn is the table column denoting the character_skills relation/edge.
+	CharacterSkillsColumn = "character_id"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -271,15 +264,7 @@ var Columns = []string{
 	FieldDexterity,
 	FieldIntelligence,
 	FieldWisdom,
-	FieldSkillBlades,
-	FieldSkillStaves,
-	FieldSkillKnives,
-	FieldSkillMartial,
-	FieldSkillBrawling,
-	FieldSkillTech,
-	FieldSkillLightArmor,
-	FieldSkillClothArmor,
-	FieldSkillHeavyArmor,
+	FieldCharisma,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "characters"
@@ -355,24 +340,8 @@ var (
 	DefaultIntelligence int
 	// DefaultWisdom holds the default value on creation for the "wisdom" field.
 	DefaultWisdom int
-	// DefaultSkillBlades holds the default value on creation for the "skill_blades" field.
-	DefaultSkillBlades int
-	// DefaultSkillStaves holds the default value on creation for the "skill_staves" field.
-	DefaultSkillStaves int
-	// DefaultSkillKnives holds the default value on creation for the "skill_knives" field.
-	DefaultSkillKnives int
-	// DefaultSkillMartial holds the default value on creation for the "skill_martial" field.
-	DefaultSkillMartial int
-	// DefaultSkillBrawling holds the default value on creation for the "skill_brawling" field.
-	DefaultSkillBrawling int
-	// DefaultSkillTech holds the default value on creation for the "skill_tech" field.
-	DefaultSkillTech int
-	// DefaultSkillLightArmor holds the default value on creation for the "skill_light_armor" field.
-	DefaultSkillLightArmor int
-	// DefaultSkillClothArmor holds the default value on creation for the "skill_cloth_armor" field.
-	DefaultSkillClothArmor int
-	// DefaultSkillHeavyArmor holds the default value on creation for the "skill_heavy_armor" field.
-	DefaultSkillHeavyArmor int
+	// DefaultCharisma holds the default value on creation for the "charisma" field.
+	DefaultCharisma int
 )
 
 // OrderOption defines the ordering options for the Character queries.
@@ -563,49 +532,9 @@ func ByWisdom(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWisdom, opts...).ToFunc()
 }
 
-// BySkillBlades orders the results by the skill_blades field.
-func BySkillBlades(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillBlades, opts...).ToFunc()
-}
-
-// BySkillStaves orders the results by the skill_staves field.
-func BySkillStaves(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillStaves, opts...).ToFunc()
-}
-
-// BySkillKnives orders the results by the skill_knives field.
-func BySkillKnives(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillKnives, opts...).ToFunc()
-}
-
-// BySkillMartial orders the results by the skill_martial field.
-func BySkillMartial(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillMartial, opts...).ToFunc()
-}
-
-// BySkillBrawling orders the results by the skill_brawling field.
-func BySkillBrawling(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillBrawling, opts...).ToFunc()
-}
-
-// BySkillTech orders the results by the skill_tech field.
-func BySkillTech(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillTech, opts...).ToFunc()
-}
-
-// BySkillLightArmor orders the results by the skill_light_armor field.
-func BySkillLightArmor(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillLightArmor, opts...).ToFunc()
-}
-
-// BySkillClothArmor orders the results by the skill_cloth_armor field.
-func BySkillClothArmor(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillClothArmor, opts...).ToFunc()
-}
-
-// BySkillHeavyArmor orders the results by the skill_heavy_armor field.
-func BySkillHeavyArmor(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSkillHeavyArmor, opts...).ToFunc()
+// ByCharisma orders the results by the charisma field.
+func ByCharisma(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCharisma, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.
@@ -775,6 +704,20 @@ func ByShopTemplate(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newShopTemplateStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCharacterSkillsCount orders the results by character_skills count.
+func ByCharacterSkillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCharacterSkillsStep(), opts...)
+	}
+}
+
+// ByCharacterSkills orders the results by character_skills terms.
+func ByCharacterSkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCharacterSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -871,5 +814,12 @@ func newShopTemplateStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ShopTemplateInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ShopTemplateTable, ShopTemplateColumn),
+	)
+}
+func newCharacterSkillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CharacterSkillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CharacterSkillsTable, CharacterSkillsColumn),
 	)
 }

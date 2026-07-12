@@ -14,6 +14,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"herbst-server/db"
+	"herbst-server/db/character"
+	"herbst-server/db/characterskill"
+	"herbst-server/db/skill"
 	"herbst-server/dblog"
 	"herbst-server/middleware"
 	"herbst-server/repository"
@@ -475,17 +478,27 @@ func SendVitalsToCharacter(characterID int, payload VitalsPayload) {
 
 // ─── Examine helpers ─────────────────────────────────────────────────────────
 
-// getExamineLevel calculates the player's examine skill level
-func getExamineLevel(char *db.Character) int {
-	// Examine skill bonus from examine_skill.go pattern
+// getExamineLevel calculates the player's examine skill level from the tech skill
+func getExamineLevel(ctx context.Context, client *db.Client, charID int) int {
+	// Query the character's tech skill level from character_skills join table
+	cs, err := client.CharacterSkill.Query().
+		Where(
+			characterskill.HasCharacterWith(character.IDEQ(charID)),
+			characterskill.HasSkillWith(skill.NameEQ("tech")),
+		).
+		Only(ctx)
+	if err != nil || cs == nil {
+		return 0
+	}
+	techLevel := cs.Level
 	switch {
-	case char.SkillTech >= 91:
+	case techLevel >= 91:
 		return 75
-	case char.SkillTech >= 76:
+	case techLevel >= 76:
 		return 50
-	case char.SkillTech >= 51:
+	case techLevel >= 51:
 		return 25
-	case char.SkillTech >= 26:
+	case techLevel >= 26:
 		return 10
 	default:
 		return 0
@@ -697,7 +710,7 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 			return "You try to examine, but something is wrong with your character."
 		}
 
-		examineLevel := getExamineLevel(char)
+		examineLevel := getExamineLevel(ctx, client, char.ID)
 		roomID := char.CurrentRoomId
 
 		// Try to find the target as an item, NPC, or player character

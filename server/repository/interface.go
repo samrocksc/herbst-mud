@@ -30,6 +30,7 @@ type CharacterRepo interface {
 	QueryFactions(ctx context.Context, charID int) ([]*db.CharacterFaction, error)
 	QueryActiveEffects(ctx context.Context, charID int) ([]*db.ActiveEffect, error)
 	QueryQuestProgress(ctx context.Context, charID int) ([]*db.QuestProgress, error)
+	GetSkillLevels(ctx context.Context, charID int) (map[string]int, error)
 }
 
 // RoomRepo defines data access for rooms.
@@ -349,15 +350,6 @@ type CreateCharacterInput struct {
 	MaxMana          int
 	Level            int
 	XP               int
-	SkillBlades      int
-	SkillStaves      int
-	SkillKnives      int
-	SkillMartial     int
-	SkillBrawling    int
-	SkillTech        int
-	SkillLightArmor  int
-	SkillClothArmor  int
-	SkillHeavyArmor  int
 }
 
 type CharacterUpdates struct {
@@ -389,15 +381,7 @@ type CharacterUpdates struct {
 	Constitution    *int
 	Intelligence    *int
 	Wisdom          *int
-	SkillBlades     *int
-	SkillStaves     *int
-	SkillKnives     *int
-	SkillMartial    *int
-	SkillBrawling   *int
-	SkillTech       *int
-	SkillLightArmor *int
-	SkillClothArmor *int
-	SkillHeavyArmor *int
+	Charisma        *int
 	DiedAt          *time.Time
 }
 

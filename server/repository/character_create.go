@@ -47,33 +47,7 @@ func (r *entCharacterRepo) Create(ctx context.Context, input CreateCharacterInpu
 	if input.Description != "" {
 		builder.SetDescription(input.Description)
 	}
-	if input.SkillBlades > 0 {
-		builder.SetSkillBlades(input.SkillBlades)
-	}
-	if input.SkillStaves > 0 {
-		builder.SetSkillStaves(input.SkillStaves)
-	}
-	if input.SkillKnives > 0 {
-		builder.SetSkillKnives(input.SkillKnives)
-	}
-	if input.SkillMartial > 0 {
-		builder.SetSkillMartial(input.SkillMartial)
-	}
-	if input.SkillBrawling > 0 {
-		builder.SetSkillBrawling(input.SkillBrawling)
-	}
-	if input.SkillTech > 0 {
-		builder.SetSkillTech(input.SkillTech)
-	}
-	if input.SkillLightArmor > 0 {
-		builder.SetSkillLightArmor(input.SkillLightArmor)
-	}
-	if input.SkillClothArmor > 0 {
-		builder.SetSkillClothArmor(input.SkillClothArmor)
-	}
-	if input.SkillHeavyArmor > 0 {
-		builder.SetSkillHeavyArmor(input.SkillHeavyArmor)
-	}
+	builder.SetCharisma(input.Charisma)
 	return builder.Save(ctx)
 }
 
@@ -163,32 +137,8 @@ func (r *entCharacterRepo) Update(ctx context.Context, id int, updates Character
 	if updates.Wisdom != nil {
 		builder = builder.SetWisdom(*updates.Wisdom)
 	}
-	if updates.SkillBlades != nil {
-		builder = builder.SetSkillBlades(*updates.SkillBlades)
-	}
-	if updates.SkillStaves != nil {
-		builder = builder.SetSkillStaves(*updates.SkillStaves)
-	}
-	if updates.SkillKnives != nil {
-		builder = builder.SetSkillKnives(*updates.SkillKnives)
-	}
-	if updates.SkillMartial != nil {
-		builder = builder.SetSkillMartial(*updates.SkillMartial)
-	}
-	if updates.SkillBrawling != nil {
-		builder = builder.SetSkillBrawling(*updates.SkillBrawling)
-	}
-	if updates.SkillTech != nil {
-		builder = builder.SetSkillTech(*updates.SkillTech)
-	}
-	if updates.SkillLightArmor != nil {
-		builder = builder.SetSkillLightArmor(*updates.SkillLightArmor)
-	}
-	if updates.SkillClothArmor != nil {
-		builder = builder.SetSkillClothArmor(*updates.SkillClothArmor)
-	}
-	if updates.SkillHeavyArmor != nil {
-		builder = builder.SetSkillHeavyArmor(*updates.SkillHeavyArmor)
+	if updates.Charisma != nil {
+		builder = builder.SetCharisma(*updates.Charisma)
 	}
 	if updates.DiedAt != nil {
 		builder = builder.SetDiedAt(*updates.DiedAt)
