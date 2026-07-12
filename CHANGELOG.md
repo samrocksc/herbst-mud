@@ -1,3 +1,5 @@
+- [64ee565](http://github.com/samrocksc/herbst-mud/commit/64ee565325961f6e8dda9df91f7a4b04467b3a69) - 🔵 feat: Phase 0 complete — skills DB-driven, admin UI verified
+- [f8688e2](http://github.com/samrocksc/herbst-mud/commit/f8688e2ad08bf0a1f1d4e35c36438f9d7cb647b6) - chore: auto-update CHANGELOG.md
 - [2eb63cf](http://github.com/samrocksc/herbst-mud/commit/2eb63cff97993bd34f9a590933d979561448775b) - 🔵 feat: skill CRUD API + admin UI + auto-seed 9 skills per world
 - [176c13e](http://github.com/samrocksc/herbst-mud/commit/176c13e2066f05ca0d7d2e71d879358cafe09034) - chore: auto-update CHANGELOG.md
 - [bf3bea0](http://github.com/samrocksc/herbst-mud/commit/bf3bea087c22d1d061b881971e7406180140d9cf) - 🔵 feat: add GetSkillLevels to character repo
