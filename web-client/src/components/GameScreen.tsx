@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useTheme } from "../lib/theme";
-import { type Character, type Ability, getCharacterAbilities, listClasslessAbilities, equipAbility, unequipAbility } from "../lib/api";
-import { type CharacterSkill, type CharacterPanelTab, type InventoryItem, type RoomScreenPayload } from "../lib/types";
-import { useMUDSocket } from "../hooks/useMUDSocket";
+import { type Character, type Ability, getCharacterAbilities, listClasslessAbilities, equipAbility, unequipAbility, deleteCharacter } from "../lib/api";
+import { type CharacterSkill, type CharacterPanelTab, type InventoryItem, type RoomCharacter, type ShopSession } from "../lib/types";
+import { useMUDConnection } from "../context/MUDConnectionProvider";
 import { Button } from "../ui";
 import { useCombatEngine } from "../hooks/useCombatEngine";
 import CombatScreen from "./CombatScreen";
@@ -11,8 +11,11 @@ import RoomScreen from "./RoomScreen";
 import InputBar, { type InputBarHandle } from "./InputBar";
 import CharacterPanel from "./CharacterPanel";
 import EquipmentScreen from "./EquipmentScreen";
+import ShopScreen from "./ShopScreen";
+import ConversationOverlay from "./ConversationOverlay";
 
 export type GameScreenProps = {
+  worldId: string;
   worldName: string;
   character: Character;
   onDisconnect: () => void;
@@ -35,13 +38,14 @@ const INITIAL_SKILLS: readonly CharacterSkill[] = [
 const INITIAL_INVENTORY: readonly InventoryItem[] = [];
 
 export default function GameScreen({
+  worldId,
   worldName,
   character,
   onDisconnect,
   token,
 }: Readonly<GameScreenProps>) {
-  const { state, lines, roomScreen, vitals, debugLog, connect, send, disconnect, pushLocal } =
-    useMUDSocket();
+  const { state, lines, roomScreen, conversation, clearConversation, vitals, debugLog, connect, send, pushLocal } =
+    useMUDConnection();
   const { theme, toggle } = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputBarRef = useRef<InputBarHandle>(null);
@@ -58,6 +62,32 @@ export default function GameScreen({
   const [pendingTargets, setPendingTargets] = useState<Set<number>>(new Set());
   const [potionCount] = useState(0);
   const [equipmentOpen, setEquipmentOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [shopSession, setShopSession] = useState<{ shop: ShopSession; npcName: string } | null>(null);
+  const [conversationOpen, setConversationOpen] = useState(false);
+
+  // Convert API Ability type to useCombatEngine's AbilityData type
+  // This ensures damage messages include the ability name
+  const abilities = availableAbilities.map((a) => ({
+    id: a.id,
+    name: a.name,
+    description: a.description,
+    casterMessage: a.caster_message,
+    recipientMessage: a.recipient_message,
+    manaCost: a.mana_cost,
+    staminaCost: a.stamina_cost,
+    cooldown: a.cooldown,
+  }));
+
+  // Extract all effects from all abilities for use in combat messages
+  const effects = availableAbilities.flatMap((a) =>
+    (a.effects ?? []).map((e) => ({
+      effectType: e.effectType,
+      effectMessage: e.effectMessage,
+      target: e.target,
+      value: e.value,
+    }))
+  );
 
   const {
     inCombat,
@@ -66,6 +96,8 @@ export default function GameScreen({
     round: combatRound,
     queuedAction,
     playerHP: combatPlayerHP,
+    playerMana: combatPlayerMana,
+    playerMaxMana: combatPlayerMaxMana,
     startCombat,
     queueAction,
   } = useCombatEngine({
@@ -74,6 +106,8 @@ export default function GameScreen({
     characterStrength: 10, // TODO: fetch from server
     initialHP: character.hitpoints,
     initialMaxHP: character.max_hitpoints,
+    initialMana: character.mana,
+    initialMaxMana: character.max_mana,
     skills,
     onLog: (text, kind) => {
       const styleMap: Record<string, "system" | "output" | "error" | "input" | "ping"> = {
@@ -91,6 +125,8 @@ export default function GameScreen({
       // The vitals updates from WebSocket will handle this
       void hp;
     },
+    abilities,
+    effects,
   });
 
   const loadAbilities = useCallback(async () => {
@@ -135,6 +171,16 @@ export default function GameScreen({
     }
   }, [character.id, loadAbilities, pushLocal]);
 
+  const handleDeleteCharacter = useCallback(async () => {
+    try {
+      await deleteCharacter(character.id);
+      pushLocal("Character deleted.", "system");
+      onDisconnect();
+    } catch (err) {
+      pushLocal(`Delete failed: ${err instanceof Error ? err.message : String(err)}`, "error");
+    }
+  }, [character.id, onDisconnect, pushLocal]);
+
   const handleToggleExpand = useCallback((id: string) => {
     setExpandedRoomId((prev) => (prev === id ? null : id));
   }, []);
@@ -152,7 +198,7 @@ export default function GameScreen({
   }, []);
 
   const handleConfirmAttack = useCallback(
-    async (char: RoomScreenPayload["characters"][number]) => {
+    async (char: RoomCharacter) => {
       setPendingTargets((prev) => {
         const next = new Set(prev);
         next.delete(char.id);
@@ -165,15 +211,19 @@ export default function GameScreen({
 
   void worldName;
 
+  // Trigger initial connection when GameScreen mounts
+  // The connection is shared via the provider, so this won't create a new connection
+  // if one already exists. It just ensures the connection is established.
   useEffect(() => {
+    if (state === "connected") return;
+
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const { hostname, port } = window.location;
-    // Same-origin in production (nginx proxy), port 8080 for local dev
     const wsHost = port === "8080" || port === "5174" || port === "5173" ? `${hostname}:8080` : hostname;
     const url = `${protocol}//${wsHost}/ws?token=${encodeURIComponent(token)}&character_id=${character.id}`;
     connect(url);
-    return () => disconnect();
-  }, [connect, disconnect, token, character.id]);
+    // Note: no disconnect cleanup here - the provider manages connection lifecycle
+  }, [connect, token, character.id]); // Removed state from deps to prevent reconnect storm
 
   // Load abilities when connected and once after mount
   useEffect(() => {
@@ -194,10 +244,33 @@ export default function GameScreen({
       pushLocal(`> ${text}`, "input");
       setCommandHistory((prev) => [text, ...prev].slice(0, 50));
       setHistoryIndex(-1);
+      // Handle shop command locally - don't send to server
+      if (text.startsWith("shop ")) {
+        const parts = text.split(" ");
+        if (parts.length < 2) {
+          pushLocal("Shop with whom? (shop <npc_name>)", "error");
+          return;
+        }
+        const npcName = parts.slice(1).join(" ");
+        // Set shopOpen with the NPC name for selection
+        setShopSession({ shop: { id: 0, name: "Shop", vendorName: npcName, currencyName: "gold", gold: 0, items: [] }, npcName });
+        setShopOpen(true);
+        return;
+      }
       send("command", text.trim());
     },
     [send, pushLocal],
   );
+
+  // Handle conversation screen from WebSocket
+  useEffect(() => {
+    if (conversation && conversation.npc_name) {
+      setConversationOpen(true);
+    } else if (roomScreen) {
+      // Close conversation when we get a room screen
+      setConversationOpen(false);
+    }
+  }, [conversation, roomScreen]);
 
   const closePanel = useCallback(() => {
     setPanelOpen(false);
@@ -330,6 +403,14 @@ export default function GameScreen({
     [handleSubmit, pushLocal],
   );
 
+  const handleConversationChoice = useCallback(
+    (index: number) => {
+      if (!conversation) return;
+      send("command", `dialog ${conversation.npc_template_id} ${conversation.current_node_id} ${index + 1}`);
+    },
+    [conversation, send],
+  );
+
   return (
     <div className="flex flex-col h-screen w-full bg-background text-foreground font-mono overflow-hidden">
       <header className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border bg-surface">
@@ -354,7 +435,9 @@ export default function GameScreen({
           </span>
           <span className="text-muted">&bull;</span>
           <span className="text-info">
-            MANA {vitals?.mana ?? character.mana}/{vitals?.max_mana ?? character.max_mana}
+            {inCombat
+              ? `MANA ${combatPlayerMana}/${combatPlayerMaxMana}`
+              : `MANA ${vitals?.mana ?? character.mana}/${vitals?.max_mana ?? character.max_mana}`}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -416,8 +499,8 @@ export default function GameScreen({
               playerMaxHP={vitals?.max_hp ?? character.max_hitpoints}
               playerStamina={vitals?.stamina ?? character.stamina}
               playerMaxStamina={vitals?.max_stamina ?? character.max_stamina}
-              playerMana={vitals?.mana ?? character.mana}
-              playerMaxMana={vitals?.max_mana ?? character.max_mana}
+              playerMana={combatPlayerMana}
+              playerMaxMana={combatPlayerMaxMana}
               skills={skills}
               potionCount={potionCount}
               onSkill={(slot) => {
@@ -426,6 +509,27 @@ export default function GameScreen({
               }}
               onPotion={() => queueAction("use potion")}
               onFlee={() => queueAction("flee")}
+            />
+          ) : conversationOpen && conversation ? (
+            <ConversationOverlay
+              npcName={conversation.npc_name}
+              nodes={new Map(Object.entries(conversation.nodes))}
+              currentNodeId={conversation.current_node_id}
+              onChoice={(index) => handleConversationChoice(index)}
+              onClose={() => {
+                clearConversation();
+                setConversationOpen(false);
+              }}
+            />
+          ) : shopOpen && shopSession ? (
+            <ShopScreen
+              shop={shopSession.shop}
+              onTransactionLog={(text) => pushLocal(text, "system")}
+              onShopClose={() => setShopOpen(false)}
+              onGoldChange={(gold) => {
+                // Update vitals gold if available
+                void gold;
+              }}
             />
           ) : roomScreen ? (
             <RoomScreen
@@ -449,31 +553,34 @@ export default function GameScreen({
           )}
         </div>
 
-        {/* Desktop sidebar panel */}
+        {/* Desktop sidebar panel - reduced by 25% (w-64 * 0.75 ≈ w-48) */}
         {panelOpen && (
-          <div className="hidden md:flex w-64 shrink-0 border-l border-border">
+          <div className="hidden md:flex w-48 shrink-0 border-l border-border">
             <CharacterPanel
               activeTab={panelTab}
               onTabChange={setPanelTab}
               onClose={closePanel}
+              characterId={character.id}
+              characterName={character.name}
               skills={skills}
               onSkillSwap={handleSkillSwap}
               inventory={INITIAL_INVENTORY}
               availableAbilities={availableAbilities}
               onEquip={handleEquip}
               onUnequip={handleUnequip}
+              onDelete={handleDeleteCharacter}
             />
           </div>
         )}
       </div>
 
-      {/* Mobile overlay panel */}
+      {/* Mobile overlay panel - reduced by 25% */}
       {panelOpen && (
         <div className="flex md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50" onClick={closePanel} />
           <div
             className="relative ml-auto bg-surface border-l border-border flex flex-col"
-            style={{ width: panelWidth }}
+            style={{ width: Math.min(panelWidth, 240) }}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
@@ -489,12 +596,15 @@ export default function GameScreen({
               activeTab={panelTab}
               onTabChange={setPanelTab}
               onClose={closePanel}
+              characterId={character.id}
+              characterName={character.name}
               skills={skills}
               onSkillSwap={handleSkillSwap}
               inventory={INITIAL_INVENTORY}
               availableAbilities={availableAbilities}
               onEquip={handleEquip}
               onUnequip={handleUnequip}
+              onDelete={handleDeleteCharacter}
             />
           </div>
         </div>
@@ -511,6 +621,7 @@ export default function GameScreen({
       {equipmentOpen && (
         <EquipmentScreen
           character={character}
+          worldId={worldId}
           onClose={() => setEquipmentOpen(false)}
         />
       )}
