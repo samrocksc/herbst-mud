@@ -89,17 +89,13 @@ func (s *abilityService) validateSkillRequirements(ctx context.Context, charID i
 	if err := json.Unmarshal([]byte(abilityObj.Requirements), &requirements); err != nil {
 		return nil
 	}
-	char, err := s.charRepo.Get(ctx, charID)
+	_, err = s.charRepo.Get(ctx, charID)
 	if err != nil {
 		return ErrCharNotFound
 	}
-	skillLevels := map[string]int{
-		"blades":   char.SkillBlades,
-		"staves":   char.SkillStaves,
-		"knives":   char.SkillKnives,
-		"martial":  char.SkillMartial,
-		"brawling": char.SkillBrawling,
-		"tech":     char.SkillTech,
+	skillLevels, err := s.charRepo.GetSkillLevels(ctx, charID)
+	if err != nil {
+		return nil
 	}
 	for skillName, requiredLevel := range requirements {
 		if skillLevels[skillName] < requiredLevel {

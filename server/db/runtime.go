@@ -14,6 +14,7 @@ import (
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterignore"
+	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
@@ -35,6 +36,7 @@ import (
 	"herbst-server/db/schema"
 	"herbst-server/db/shopitem"
 	"herbst-server/db/shoptemplate"
+	"herbst-server/db/skill"
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/systemlog"
 	"herbst-server/db/tag"
@@ -272,42 +274,10 @@ func init() {
 	characterDescWisdom := characterFields[35].Descriptor()
 	// character.DefaultWisdom holds the default value on creation for the wisdom field.
 	character.DefaultWisdom = characterDescWisdom.Default.(int)
-	// characterDescSkillBlades is the schema descriptor for skill_blades field.
-	characterDescSkillBlades := characterFields[36].Descriptor()
-	// character.DefaultSkillBlades holds the default value on creation for the skill_blades field.
-	character.DefaultSkillBlades = characterDescSkillBlades.Default.(int)
-	// characterDescSkillStaves is the schema descriptor for skill_staves field.
-	characterDescSkillStaves := characterFields[37].Descriptor()
-	// character.DefaultSkillStaves holds the default value on creation for the skill_staves field.
-	character.DefaultSkillStaves = characterDescSkillStaves.Default.(int)
-	// characterDescSkillKnives is the schema descriptor for skill_knives field.
-	characterDescSkillKnives := characterFields[38].Descriptor()
-	// character.DefaultSkillKnives holds the default value on creation for the skill_knives field.
-	character.DefaultSkillKnives = characterDescSkillKnives.Default.(int)
-	// characterDescSkillMartial is the schema descriptor for skill_martial field.
-	characterDescSkillMartial := characterFields[39].Descriptor()
-	// character.DefaultSkillMartial holds the default value on creation for the skill_martial field.
-	character.DefaultSkillMartial = characterDescSkillMartial.Default.(int)
-	// characterDescSkillBrawling is the schema descriptor for skill_brawling field.
-	characterDescSkillBrawling := characterFields[40].Descriptor()
-	// character.DefaultSkillBrawling holds the default value on creation for the skill_brawling field.
-	character.DefaultSkillBrawling = characterDescSkillBrawling.Default.(int)
-	// characterDescSkillTech is the schema descriptor for skill_tech field.
-	characterDescSkillTech := characterFields[41].Descriptor()
-	// character.DefaultSkillTech holds the default value on creation for the skill_tech field.
-	character.DefaultSkillTech = characterDescSkillTech.Default.(int)
-	// characterDescSkillLightArmor is the schema descriptor for skill_light_armor field.
-	characterDescSkillLightArmor := characterFields[42].Descriptor()
-	// character.DefaultSkillLightArmor holds the default value on creation for the skill_light_armor field.
-	character.DefaultSkillLightArmor = characterDescSkillLightArmor.Default.(int)
-	// characterDescSkillClothArmor is the schema descriptor for skill_cloth_armor field.
-	characterDescSkillClothArmor := characterFields[43].Descriptor()
-	// character.DefaultSkillClothArmor holds the default value on creation for the skill_cloth_armor field.
-	character.DefaultSkillClothArmor = characterDescSkillClothArmor.Default.(int)
-	// characterDescSkillHeavyArmor is the schema descriptor for skill_heavy_armor field.
-	characterDescSkillHeavyArmor := characterFields[44].Descriptor()
-	// character.DefaultSkillHeavyArmor holds the default value on creation for the skill_heavy_armor field.
-	character.DefaultSkillHeavyArmor = characterDescSkillHeavyArmor.Default.(int)
+	// characterDescCharisma is the schema descriptor for charisma field.
+	characterDescCharisma := characterFields[36].Descriptor()
+	// character.DefaultCharisma holds the default value on creation for the charisma field.
+	character.DefaultCharisma = characterDescCharisma.Default.(int)
 	characterchannelFields := schema.CharacterChannel{}.Fields()
 	_ = characterchannelFields
 	// characterchannelDescChatEnabled is the schema descriptor for chatEnabled field.
@@ -384,6 +354,16 @@ func init() {
 	characterignoreDescIgnoredAt := characterignoreFields[1].Descriptor()
 	// characterignore.DefaultIgnoredAt holds the default value on creation for the ignoredAt field.
 	characterignore.DefaultIgnoredAt = characterignoreDescIgnoredAt.Default.(func() time.Time)
+	characterskillFields := schema.CharacterSkill{}.Fields()
+	_ = characterskillFields
+	// characterskillDescLevel is the schema descriptor for level field.
+	characterskillDescLevel := characterskillFields[2].Descriptor()
+	// characterskill.DefaultLevel holds the default value on creation for the level field.
+	characterskill.DefaultLevel = characterskillDescLevel.Default.(int)
+	// characterskillDescXp is the schema descriptor for xp field.
+	characterskillDescXp := characterskillFields[3].Descriptor()
+	// characterskill.DefaultXp holds the default value on creation for the xp field.
+	characterskill.DefaultXp = characterskillDescXp.Default.(int)
 	charactertagFields := schema.CharacterTag{}.Fields()
 	_ = charactertagFields
 	// charactertagDescSource is the schema descriptor for source field.
@@ -884,6 +864,20 @@ func init() {
 	shoptemplateDescIsActive := shoptemplateFields[6].Descriptor()
 	// shoptemplate.DefaultIsActive holds the default value on creation for the is_active field.
 	shoptemplate.DefaultIsActive = shoptemplateDescIsActive.Default.(bool)
+	skillFields := schema.Skill{}.Fields()
+	_ = skillFields
+	// skillDescCategory is the schema descriptor for category field.
+	skillDescCategory := skillFields[4].Descriptor()
+	// skill.DefaultCategory holds the default value on creation for the category field.
+	skill.DefaultCategory = skillDescCategory.Default.(string)
+	// skillDescMaxLevel is the schema descriptor for max_level field.
+	skillDescMaxLevel := skillFields[6].Descriptor()
+	// skill.DefaultMaxLevel holds the default value on creation for the max_level field.
+	skill.DefaultMaxLevel = skillDescMaxLevel.Default.(int)
+	// skillDescXpCurveMode is the schema descriptor for xp_curve_mode field.
+	skillDescXpCurveMode := skillFields[7].Descriptor()
+	// skill.DefaultXpCurveMode holds the default value on creation for the xp_curve_mode field.
+	skill.DefaultXpCurveMode = skillDescXpCurveMode.Default.(string)
 	socialcommandFields := schema.SocialCommand{}.Fields()
 	_ = socialcommandFields
 	// socialcommandDescWorldID is the schema descriptor for world_id field.

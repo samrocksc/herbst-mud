@@ -34,6 +34,8 @@ const (
 	EdgeFactionCategories = "faction_categories"
 	// EdgeEffectHooks holds the string denoting the effect_hooks edge name in mutations.
 	EdgeEffectHooks = "effect_hooks"
+	// EdgeSkills holds the string denoting the skills edge name in mutations.
+	EdgeSkills = "skills"
 	// Table holds the table name of the world in the database.
 	Table = "worlds"
 	// CharactersTable is the table that holds the characters relation/edge.
@@ -75,6 +77,13 @@ const (
 	// EffectHooksInverseTable is the table name for the EffectHook entity.
 	// It exists in this package in order to avoid circular dependency with the "effecthook" package.
 	EffectHooksInverseTable = "effect_hooks"
+	// SkillsTable is the table that holds the skills relation/edge.
+	SkillsTable = "skills"
+	// SkillsInverseTable is the table name for the Skill entity.
+	// It exists in this package in order to avoid circular dependency with the "skill" package.
+	SkillsInverseTable = "skills"
+	// SkillsColumn is the table column denoting the skills relation/edge.
+	SkillsColumn = "world_id"
 )
 
 // Columns holds all SQL columns for world fields.
@@ -244,6 +253,20 @@ func ByEffectHooks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newEffectHooksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySkillsCount orders the results by skills count.
+func BySkillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSkillsStep(), opts...)
+	}
+}
+
+// BySkills orders the results by skills terms.
+func BySkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -291,5 +314,12 @@ func newEffectHooksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EffectHooksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, EffectHooksTable, EffectHooksPrimaryKey...),
+	)
+}
+func newSkillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SkillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SkillsTable, SkillsColumn),
 	)
 }

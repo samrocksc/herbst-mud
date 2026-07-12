@@ -34,5 +34,6 @@ func (World) Edges() []ent.Edge {
 		edge.To("social_commands", SocialCommand.Type),
 		edge.To("faction_categories", FactionCategory.Type),
 		edge.To("effect_hooks", EffectHook.Type),
+		edge.To("skills", Skill.Type),
 	}
 }

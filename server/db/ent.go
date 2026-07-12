@@ -18,6 +18,7 @@ import (
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterignore"
+	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
@@ -41,6 +42,7 @@ import (
 	"herbst-server/db/room"
 	"herbst-server/db/shopitem"
 	"herbst-server/db/shoptemplate"
+	"herbst-server/db/skill"
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/systemlog"
 	"herbst-server/db/tag"
@@ -127,6 +129,7 @@ func checkColumn(t, c string) error {
 			charactercompetency.Table:      charactercompetency.ValidColumn,
 			characterfaction.Table:         characterfaction.ValidColumn,
 			characterignore.Table:          characterignore.ValidColumn,
+			characterskill.Table:           characterskill.ValidColumn,
 			charactertag.Table:             charactertag.ValidColumn,
 			competencycategory.Table:       competencycategory.ValidColumn,
 			competencylevelthreshold.Table: competencylevelthreshold.ValidColumn,
@@ -150,6 +153,7 @@ func checkColumn(t, c string) error {
 			room.Table:                     room.ValidColumn,
 			shopitem.Table:                 shopitem.ValidColumn,
 			shoptemplate.Table:             shoptemplate.ValidColumn,
+			skill.Table:                    skill.ValidColumn,
 			socialcommand.Table:            socialcommand.ValidColumn,
 			systemlog.Table:                systemlog.ValidColumn,
 			tag.Table:                      tag.ValidColumn,

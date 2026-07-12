@@ -102,24 +102,8 @@ func (Character) Fields() []ent.Field {
 			Default(10),
 		field.Int("wisdom").
 			Default(10),
-		field.Int("skill_blades").
-			Default(0),
-		field.Int("skill_staves").
-			Default(0),
-		field.Int("skill_knives").
-			Default(0),
-		field.Int("skill_martial").
-			Default(0),
-		field.Int("skill_brawling").
-			Default(0),
-		field.Int("skill_tech").
-			Default(0),
-		field.Int("skill_light_armor").
-			Default(0),
-		field.Int("skill_cloth_armor").
-			Default(0),
-		field.Int("skill_heavy_armor").
-			Default(0),
+		field.Int("charisma").
+			Default(10),
 	}
 }
 
@@ -151,5 +135,6 @@ func (Character) Edges() []ent.Edge {
 		edge.To("tellQueue", TellQueue.Type),
 		edge.To("shop_template", ShopTemplate.Type).
 			Comment("Shop template this NPC instance serves (if vendor)"),
+		edge.To("character_skills", CharacterSkill.Type),
 	}
 }

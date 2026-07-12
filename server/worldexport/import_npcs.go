@@ -58,15 +58,6 @@ func importNPCs(ctx context.Context, client *db.Client, npcs []map[string]interf
 			SetXp(intValOr(n["xp"], 0)).
 			SetGoldCredits(intValOr(n["gold_credits"], 0)).
 			SetIsImmortal(boolVal(n["is_immortal"])).
-			SetSkillBlades(intValOr(n["skill_blades"], 0)).
-			SetSkillStaves(intValOr(n["skill_staves"], 0)).
-			SetSkillKnives(intValOr(n["skill_knives"], 0)).
-			SetSkillMartial(intValOr(n["skill_martial"], 0)).
-			SetSkillBrawling(intValOr(n["skill_brawling"], 0)).
-			SetSkillTech(intValOr(n["skill_tech"], 0)).
-			SetSkillLightArmor(intValOr(n["skill_light_armor"], 0)).
-			SetSkillClothArmor(intValOr(n["skill_cloth_armor"], 0)).
-			SetSkillHeavyArmor(intValOr(n["skill_heavy_armor"], 0)).
 			Save(ctx)
 		if err != nil {
 			return count, fmt.Errorf("npc %d: %w", oldID, err)
