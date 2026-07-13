@@ -30,6 +30,8 @@ const (
 	FieldLevel = "level"
 	// FieldXpValue holds the string denoting the xp_value field in the database.
 	FieldXpValue = "xp_value"
+	// FieldXpMultiplier holds the string denoting the xp_multiplier field in the database.
+	FieldXpMultiplier = "xp_multiplier"
 	// FieldSkills holds the string denoting the skills field in the database.
 	FieldSkills = "skills"
 	// FieldTradesWith holds the string denoting the trades_with field in the database.
@@ -112,6 +114,7 @@ var Columns = []string{
 	FieldDisposition,
 	FieldLevel,
 	FieldXpValue,
+	FieldXpMultiplier,
 	FieldSkills,
 	FieldTradesWith,
 	FieldGreeting,
@@ -149,6 +152,8 @@ var (
 	DefaultLevel int
 	// DefaultXpValue holds the default value on creation for the "xp_value" field.
 	DefaultXpValue int
+	// DefaultXpMultiplier holds the default value on creation for the "xp_multiplier" field.
+	DefaultXpMultiplier float64
 	// DefaultRespawnCooldown holds the default value on creation for the "respawn_cooldown" field.
 	DefaultRespawnCooldown int
 	// DefaultRoamIntervalSeconds holds the default value on creation for the "roam_interval_seconds" field.
@@ -262,6 +267,11 @@ func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 // ByXpValue orders the results by the xp_value field.
 func ByXpValue(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldXpValue, opts...).ToFunc()
+}
+
+// ByXpMultiplier orders the results by the xp_multiplier field.
+func ByXpMultiplier(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldXpMultiplier, opts...).ToFunc()
 }
 
 // ByGreeting orders the results by the greeting field.

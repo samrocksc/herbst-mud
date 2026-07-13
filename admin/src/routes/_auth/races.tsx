@@ -67,6 +67,9 @@ function RacesManagement() {
       display_name: row.display_name,
       description: row.description ?? "",
       stat_modifiers: row.stat_modifiers ? JSON.stringify(row.stat_modifiers) : "",
+      stat_growth_multipliers: row.stat_growth_multipliers
+        ? { hp: row.stat_growth_multipliers.hp ?? 1.0, mana: row.stat_growth_multipliers.mana ?? 1.0, stamina: row.stat_growth_multipliers.stamina ?? 1.0 }
+        : { hp: 1.0, mana: 1.0, stamina: 1.0 },
       equipment_slots: [...(row.equipment_slots ?? [])] as unknown as ReadonlyArray<string>,
       requirement_tags: playable ? ["restricted"] as unknown as ReadonlyArray<string> : [] as unknown as ReadonlyArray<string>,
       color: row.color ?? "",

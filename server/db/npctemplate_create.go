@@ -121,6 +121,20 @@ func (_c *NPCTemplateCreate) SetNillableXpValue(v *int) *NPCTemplateCreate {
 	return _c
 }
 
+// SetXpMultiplier sets the "xp_multiplier" field.
+func (_c *NPCTemplateCreate) SetXpMultiplier(v float64) *NPCTemplateCreate {
+	_c.mutation.SetXpMultiplier(v)
+	return _c
+}
+
+// SetNillableXpMultiplier sets the "xp_multiplier" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableXpMultiplier(v *float64) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetXpMultiplier(*v)
+	}
+	return _c
+}
+
 // SetSkills sets the "skills" field.
 func (_c *NPCTemplateCreate) SetSkills(v map[string]int) *NPCTemplateCreate {
 	_c.mutation.SetSkills(v)
@@ -371,6 +385,10 @@ func (_c *NPCTemplateCreate) defaults() {
 		v := npctemplate.DefaultXpValue
 		_c.mutation.SetXpValue(v)
 	}
+	if _, ok := _c.mutation.XpMultiplier(); !ok {
+		v := npctemplate.DefaultXpMultiplier
+		_c.mutation.SetXpMultiplier(v)
+	}
 	if _, ok := _c.mutation.RespawnCooldown(); !ok {
 		v := npctemplate.DefaultRespawnCooldown
 		_c.mutation.SetRespawnCooldown(v)
@@ -421,6 +439,9 @@ func (_c *NPCTemplateCreate) check() error {
 	}
 	if _, ok := _c.mutation.XpValue(); !ok {
 		return &ValidationError{Name: "xp_value", err: errors.New(`db: missing required field "NPCTemplate.xp_value"`)}
+	}
+	if _, ok := _c.mutation.XpMultiplier(); !ok {
+		return &ValidationError{Name: "xp_multiplier", err: errors.New(`db: missing required field "NPCTemplate.xp_multiplier"`)}
 	}
 	if _, ok := _c.mutation.Skills(); !ok {
 		return &ValidationError{Name: "skills", err: errors.New(`db: missing required field "NPCTemplate.skills"`)}
@@ -501,6 +522,10 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.XpValue(); ok {
 		_spec.SetField(npctemplate.FieldXpValue, field.TypeInt, value)
 		_node.XpValue = value
+	}
+	if value, ok := _c.mutation.XpMultiplier(); ok {
+		_spec.SetField(npctemplate.FieldXpMultiplier, field.TypeFloat64, value)
+		_node.XpMultiplier = value
 	}
 	if value, ok := _c.mutation.Skills(); ok {
 		_spec.SetField(npctemplate.FieldSkills, field.TypeJSON, value)

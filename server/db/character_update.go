@@ -748,6 +748,18 @@ func (_u *CharacterUpdate) AddCharisma(v int) *CharacterUpdate {
 	return _u
 }
 
+// SetKillCounts sets the "kill_counts" field.
+func (_u *CharacterUpdate) SetKillCounts(v map[string]int) *CharacterUpdate {
+	_u.mutation.SetKillCounts(v)
+	return _u
+}
+
+// ClearKillCounts clears the value of the "kill_counts" field.
+func (_u *CharacterUpdate) ClearKillCounts() *CharacterUpdate {
+	_u.mutation.ClearKillCounts()
+	return _u
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_u *CharacterUpdate) SetUserID(id int) *CharacterUpdate {
 	_u.mutation.SetUserID(id)
@@ -1439,6 +1451,12 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedCharisma(); ok {
 		_spec.AddField(character.FieldCharisma, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.KillCounts(); ok {
+		_spec.SetField(character.FieldKillCounts, field.TypeJSON, value)
+	}
+	if _u.mutation.KillCountsCleared() {
+		_spec.ClearField(character.FieldKillCounts, field.TypeJSON)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2776,6 +2794,18 @@ func (_u *CharacterUpdateOne) AddCharisma(v int) *CharacterUpdateOne {
 	return _u
 }
 
+// SetKillCounts sets the "kill_counts" field.
+func (_u *CharacterUpdateOne) SetKillCounts(v map[string]int) *CharacterUpdateOne {
+	_u.mutation.SetKillCounts(v)
+	return _u
+}
+
+// ClearKillCounts clears the value of the "kill_counts" field.
+func (_u *CharacterUpdateOne) ClearKillCounts() *CharacterUpdateOne {
+	_u.mutation.ClearKillCounts()
+	return _u
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_u *CharacterUpdateOne) SetUserID(id int) *CharacterUpdateOne {
 	_u.mutation.SetUserID(id)
@@ -3497,6 +3527,12 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 	}
 	if value, ok := _u.mutation.AddedCharisma(); ok {
 		_spec.AddField(character.FieldCharisma, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.KillCounts(); ok {
+		_spec.SetField(character.FieldKillCounts, field.TypeJSON, value)
+	}
+	if _u.mutation.KillCountsCleared() {
+		_spec.ClearField(character.FieldKillCounts, field.TypeJSON)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

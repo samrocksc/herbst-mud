@@ -28,7 +28,7 @@ func XPSubscriber(xpSvc XPAwarder, logger *slog.Logger) Subscriber {
 		}
 
 		ctx := context.Background()
-		newXP, newLevel, leveledUp, err := xpSvc.AwardXP(ctx, int(charID), int(xpGained))
+		newXP, newLevel, leveledUp, err := xpSvc.AwardXPWithSource(ctx, int(charID), int(xpGained), "kill")
 		if err != nil {
 			dblog.Error("failed to award XP", err, slog.String("service", "events"))
 			return fmt.Errorf("failed to award XP: %w", err)
@@ -120,7 +120,7 @@ func QuestXPSubscriber(xpSvc QuestXPAwarder, logger *slog.Logger) Subscriber {
 		xpRewardInt := int(xpReward)
 
 		// Award base XP for quest completion
-		newXP, newLevel, leveledUp, err := xpSvc.AwardXP(ctx, charIDInt, xpRewardInt)
+		newXP, newLevel, leveledUp, err := xpSvc.AwardXPWithSource(ctx, charIDInt, xpRewardInt, "quest")
 		if err != nil {
 			return fmt.Errorf("failed to award quest XP: %w", err)
 		}

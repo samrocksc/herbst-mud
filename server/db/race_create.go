@@ -108,6 +108,12 @@ func (_c *RaceCreate) SetNillableColor(v *string) *RaceCreate {
 	return _c
 }
 
+// SetStatGrowthMultipliers sets the "stat_growth_multipliers" field.
+func (_c *RaceCreate) SetStatGrowthMultipliers(v map[string]float64) *RaceCreate {
+	_c.mutation.SetStatGrowthMultipliers(v)
+	return _c
+}
+
 // AddWorldIDs adds the "world" edge to the World entity by IDs.
 func (_c *RaceCreate) AddWorldIDs(ids ...int) *RaceCreate {
 	_c.mutation.AddWorldIDs(ids...)
@@ -280,6 +286,10 @@ func (_c *RaceCreate) createSpec() (*Race, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Color(); ok {
 		_spec.SetField(race.FieldColor, field.TypeString, value)
 		_node.Color = value
+	}
+	if value, ok := _c.mutation.StatGrowthMultipliers(); ok {
+		_spec.SetField(race.FieldStatGrowthMultipliers, field.TypeJSON, value)
+		_node.StatGrowthMultipliers = value
 	}
 	if nodes := _c.mutation.WorldIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

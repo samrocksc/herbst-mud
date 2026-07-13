@@ -3,6 +3,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"herbst-server/db/character"
 	"herbst-server/db/npctemplate"
@@ -95,6 +96,8 @@ type Character struct {
 	Wisdom int `json:"wisdom,omitempty"`
 	// Charisma holds the value of the "charisma" field.
 	Charisma int `json:"charisma,omitempty"`
+	// Anti-grind: kill counts per NPC template ID
+	KillCounts map[string]int `json:"kill_counts,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CharacterQuery when eager-loading is set.
 	Edges           CharacterEdges `json:"edges"`
@@ -288,6 +291,8 @@ func (*Character) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case character.FieldKillCounts:
+			values[i] = new([]byte)
 		case character.FieldIsNPC, character.FieldIsAdmin, character.FieldIsImmortal, character.FieldIsTest, character.FieldIsInstance:
 			values[i] = new(sql.NullBool)
 		case character.FieldID, character.FieldCurrentRoomId, character.FieldStartingRoomId, character.FieldRespawnRoomId, character.FieldInstanceNumber, character.FieldWorldID, character.FieldNpcSkillCooldown, character.FieldHitpoints, character.FieldMaxHitpoints, character.FieldStamina, character.FieldMaxStamina, character.FieldMana, character.FieldMaxMana, character.FieldLevel, character.FieldXp, character.FieldGoldCredits, character.FieldConstitution, character.FieldStrength, character.FieldDexterity, character.FieldIntelligence, character.FieldWisdom, character.FieldCharisma:
@@ -545,6 +550,14 @@ func (_m *Character) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Charisma = int(value.Int64)
 			}
+		case character.FieldKillCounts:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field kill_counts", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.KillCounts); err != nil {
+					return fmt.Errorf("unmarshal field kill_counts: %w", err)
+				}
+			}
 		case character.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field room_characters", value)
@@ -784,6 +797,9 @@ func (_m *Character) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("charisma=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Charisma))
+	builder.WriteString(", ")
+	builder.WriteString("kill_counts=")
+	builder.WriteString(fmt.Sprintf("%v", _m.KillCounts))
 	builder.WriteByte(')')
 	return builder.String()
 }

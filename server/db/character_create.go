@@ -529,6 +529,12 @@ func (_c *CharacterCreate) SetNillableCharisma(v *int) *CharacterCreate {
 	return _c
 }
 
+// SetKillCounts sets the "kill_counts" field.
+func (_c *CharacterCreate) SetKillCounts(v map[string]int) *CharacterCreate {
+	_c.mutation.SetKillCounts(v)
+	return _c
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_c *CharacterCreate) SetUserID(id int) *CharacterCreate {
 	_c.mutation.SetUserID(id)
@@ -1125,6 +1131,10 @@ func (_c *CharacterCreate) createSpec() (*Character, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Charisma(); ok {
 		_spec.SetField(character.FieldCharisma, field.TypeInt, value)
 		_node.Charisma = value
+	}
+	if value, ok := _c.mutation.KillCounts(); ok {
+		_spec.SetField(character.FieldKillCounts, field.TypeJSON, value)
+		_node.KillCounts = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

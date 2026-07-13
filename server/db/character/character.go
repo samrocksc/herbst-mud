@@ -86,6 +86,8 @@ const (
 	FieldWisdom = "wisdom"
 	// FieldCharisma holds the string denoting the charisma field in the database.
 	FieldCharisma = "charisma"
+	// FieldKillCounts holds the string denoting the kill_counts field in the database.
+	FieldKillCounts = "kill_counts"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeWorld holds the string denoting the world edge name in mutations.
@@ -265,6 +267,7 @@ var Columns = []string{
 	FieldIntelligence,
 	FieldWisdom,
 	FieldCharisma,
+	FieldKillCounts,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "characters"

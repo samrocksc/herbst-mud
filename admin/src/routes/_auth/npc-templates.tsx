@@ -13,6 +13,7 @@ type NPCTemplate = Readonly<{
   name: string
   level: number
   xp_value: number
+  xp_multiplier: number
   respawn_rooms: string[]
   respawn_cooldown: number
 }>
@@ -44,7 +45,7 @@ function NPCTemplatePage() {
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({
     id: "", name: "", description: "", race_id: "", disposition: "neutral",
-    level: 1, xp_value: 0, greeting: "", respawn_cooldown: 60, respawn_rooms: "",
+    level: 1, xp_value: 0, xp_multiplier: 1.0, greeting: "", respawn_cooldown: 60, respawn_rooms: "",
   });
   const [createError, setCreateError] = useState("");
 
@@ -69,7 +70,7 @@ function NPCTemplatePage() {
       const cooldown = parseInt(cooldownInput, 10) || 0;
       const current = templates.find((t) => t.id === id);
       await apiPut(`${window.location.origin}/api/npc-templates/${id}`, {
-        xp_value: current?.xp_value ?? 0, respawn_rooms: rooms, respawn_cooldown: cooldown,
+        xp_value: current?.xp_value ?? 0, xp_multiplier: current?.xp_multiplier ?? 1.0, respawn_rooms: rooms, respawn_cooldown: cooldown,
       });
       await load(); setEditingID(null);
       showToast("NPC template saved", "success");
@@ -84,13 +85,14 @@ function NPCTemplatePage() {
       const payload: Record<string, unknown> = {
         id: createForm.id, name: createForm.name, description: createForm.description,
         disposition: createForm.disposition, level: createForm.level,
-        xp_value: createForm.xp_value, greeting: createForm.greeting,
+        xp_value: createForm.xp_value, xp_multiplier: createForm.xp_multiplier,
+        greeting: createForm.greeting,
         respawn_cooldown: createForm.respawn_cooldown, respawn_rooms: rooms, skills: {}, trades_with: [],
       };
       if (createForm.race_id !== "") payload.race_id = Number(createForm.race_id);
       await apiPost(`${window.location.origin}/api/npc-templates`, payload);
       await load(); setShowCreate(false);
-      setCreateForm({ id: "", name: "", description: "", race_id: "", disposition: "neutral", level: 1, xp_value: 0, greeting: "", respawn_cooldown: 60, respawn_rooms: "" });
+      setCreateForm({ id: "", name: "", description: "", race_id: "", disposition: "neutral", level: 1, xp_value: 0, xp_multiplier: 1.0, greeting: "", respawn_cooldown: 60, respawn_rooms: "" });
     } catch (e: unknown) { setCreateError(e instanceof Error ? e.message : String(e)); }
   }
 
@@ -143,6 +145,22 @@ function NPCTemplatePage() {
           <div className="flex gap-3">
             <div className="flex-1"><NumberField label="Level" value={createForm.level} onChange={(v) => setCreateForm({...createForm, level: v})} /></div>
             <div className="flex-1"><NumberField label="XP Value" value={createForm.xp_value} onChange={(v) => setCreateForm({...createForm, xp_value: v})} /></div>
+            <div className="flex-1">
+              <label className="text-text-muted text-xs block mb-1">XP Multiplier</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={String(createForm.xp_multiplier)}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "" || raw === "-") { setCreateForm({...createForm, xp_multiplier: 0}); return; }
+                  const parsed = parseFloat(raw);
+                  if (!isNaN(parsed)) setCreateForm({...createForm, xp_multiplier: parsed});
+                }}
+                className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:outline-none focus:border-primary"
+                placeholder="1.0"
+              />
+            </div>
           </div>
           <TextareaField label="Greeting" value={createForm.greeting} onChange={(v) => setCreateForm({...createForm, greeting: v})} rows={2} placeholder="NPC greeting message..." />
           <div className="flex gap-3">

@@ -35,6 +35,8 @@ type NPCTemplate struct {
 	Level int `json:"level,omitempty"`
 	// Base XP awarded when this NPC is killed by a player
 	XpValue int `json:"xp_value,omitempty"`
+	// Multiplier for XP gain scaling (1.0 = normal)
+	XpMultiplier float64 `json:"xp_multiplier,omitempty"`
 	// Skills holds the value of the "skills" field.
 	Skills map[string]int `json:"skills,omitempty"`
 	// TradesWith holds the value of the "trades_with" field.
@@ -138,6 +140,8 @@ func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case npctemplate.FieldNotifyOnEnter:
 			values[i] = new(sql.NullBool)
+		case npctemplate.FieldXpMultiplier:
+			values[i] = new(sql.NullFloat64)
 		case npctemplate.FieldRaceID, npctemplate.FieldLevel, npctemplate.FieldXpValue, npctemplate.FieldRespawnCooldown, npctemplate.FieldRoamIntervalSeconds, npctemplate.FieldRoamPauseMinSeconds, npctemplate.FieldRoamPauseMaxSeconds:
 			values[i] = new(sql.NullInt64)
 		case npctemplate.FieldID, npctemplate.FieldSlug, npctemplate.FieldWorldID, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldDisposition, npctemplate.FieldGreeting, npctemplate.FieldRoamPattern:
@@ -212,6 +216,12 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field xp_value", values[i])
 			} else if value.Valid {
 				_m.XpValue = int(value.Int64)
+			}
+		case npctemplate.FieldXpMultiplier:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field xp_multiplier", values[i])
+			} else if value.Valid {
+				_m.XpMultiplier = value.Float64
 			}
 		case npctemplate.FieldSkills:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -378,6 +388,9 @@ func (_m *NPCTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("xp_value=")
 	builder.WriteString(fmt.Sprintf("%v", _m.XpValue))
+	builder.WriteString(", ")
+	builder.WriteString("xp_multiplier=")
+	builder.WriteString(fmt.Sprintf("%v", _m.XpMultiplier))
 	builder.WriteString(", ")
 	builder.WriteString("skills=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Skills))

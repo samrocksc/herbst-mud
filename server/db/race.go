@@ -35,6 +35,8 @@ type Race struct {
 	RequirementTags []string `json:"requirement_tags,omitempty"`
 	// Hex color for UI display, e.g. '#8b5cf6'
 	Color string `json:"color,omitempty"`
+	// Racial stat growth multipliers per level, e.g., {"hp": 1.1, "mana": 0.9}
+	StatGrowthMultipliers map[string]float64 `json:"stat_growth_multipliers,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RaceQuery when eager-loading is set.
 	Edges        RaceEdges `json:"edges"`
@@ -86,7 +88,7 @@ func (*Race) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case race.FieldEquipmentSlots, race.FieldRequirementTags:
+		case race.FieldEquipmentSlots, race.FieldRequirementTags, race.FieldStatGrowthMultipliers:
 			values[i] = new([]byte)
 		case race.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -171,6 +173,14 @@ func (_m *Race) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Color = value.String
 			}
+		case race.FieldStatGrowthMultipliers:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field stat_growth_multipliers", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.StatGrowthMultipliers); err != nil {
+					return fmt.Errorf("unmarshal field stat_growth_multipliers: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -248,6 +258,9 @@ func (_m *Race) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("color=")
 	builder.WriteString(_m.Color)
+	builder.WriteString(", ")
+	builder.WriteString("stat_growth_multipliers=")
+	builder.WriteString(fmt.Sprintf("%v", _m.StatGrowthMultipliers))
 	builder.WriteByte(')')
 	return builder.String()
 }

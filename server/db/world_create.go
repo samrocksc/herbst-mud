@@ -67,6 +67,12 @@ func (_c *WorldCreate) SetNillableActive(v *bool) *WorldCreate {
 	return _c
 }
 
+// SetConfig sets the "config" field.
+func (_c *WorldCreate) SetConfig(v map[string]interface{}) *WorldCreate {
+	_c.mutation.SetConfig(v)
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_c *WorldCreate) AddCharacterIDs(ids ...int) *WorldCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -280,6 +286,10 @@ func (_c *WorldCreate) createSpec() (*World, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Active(); ok {
 		_spec.SetField(world.FieldActive, field.TypeBool, value)
 		_node.Active = value
+	}
+	if value, ok := _c.mutation.Config(); ok {
+		_spec.SetField(world.FieldConfig, field.TypeJSON, value)
+		_node.Config = value
 	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

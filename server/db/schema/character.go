@@ -104,6 +104,9 @@ func (Character) Fields() []ent.Field {
 			Default(10),
 		field.Int("charisma").
 			Default(10),
+		field.JSON("kill_counts", map[string]int{}).
+			Optional().
+			Comment("Anti-grind: kill counts per NPC template ID"),
 	}
 }
 

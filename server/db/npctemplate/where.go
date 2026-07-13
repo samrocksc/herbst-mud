@@ -100,6 +100,11 @@ func XpValue(v int) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldXpValue, v))
 }
 
+// XpMultiplier applies equality check predicate on the "xp_multiplier" field. It's identical to XpMultiplierEQ.
+func XpMultiplier(v float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldXpMultiplier, v))
+}
+
 // Greeting applies equality check predicate on the "greeting" field. It's identical to GreetingEQ.
 func Greeting(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldGreeting, v))
@@ -533,6 +538,46 @@ func XpValueLT(v int) predicate.NPCTemplate {
 // XpValueLTE applies the LTE predicate on the "xp_value" field.
 func XpValueLTE(v int) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldLTE(FieldXpValue, v))
+}
+
+// XpMultiplierEQ applies the EQ predicate on the "xp_multiplier" field.
+func XpMultiplierEQ(v float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldXpMultiplier, v))
+}
+
+// XpMultiplierNEQ applies the NEQ predicate on the "xp_multiplier" field.
+func XpMultiplierNEQ(v float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldXpMultiplier, v))
+}
+
+// XpMultiplierIn applies the In predicate on the "xp_multiplier" field.
+func XpMultiplierIn(vs ...float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldXpMultiplier, vs...))
+}
+
+// XpMultiplierNotIn applies the NotIn predicate on the "xp_multiplier" field.
+func XpMultiplierNotIn(vs ...float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldXpMultiplier, vs...))
+}
+
+// XpMultiplierGT applies the GT predicate on the "xp_multiplier" field.
+func XpMultiplierGT(v float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldXpMultiplier, v))
+}
+
+// XpMultiplierGTE applies the GTE predicate on the "xp_multiplier" field.
+func XpMultiplierGTE(v float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldXpMultiplier, v))
+}
+
+// XpMultiplierLT applies the LT predicate on the "xp_multiplier" field.
+func XpMultiplierLT(v float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldXpMultiplier, v))
+}
+
+// XpMultiplierLTE applies the LTE predicate on the "xp_multiplier" field.
+func XpMultiplierLTE(v float64) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldXpMultiplier, v))
 }
 
 // GreetingEQ applies the EQ predicate on the "greeting" field.

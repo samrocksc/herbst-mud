@@ -20,6 +20,8 @@ const (
 	FieldDescription = "description"
 	// FieldActive holds the string denoting the active field in the database.
 	FieldActive = "active"
+	// FieldConfig holds the string denoting the config field in the database.
+	FieldConfig = "config"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// EdgeRaces holds the string denoting the races edge name in mutations.
@@ -93,6 +95,7 @@ var Columns = []string{
 	FieldTitle,
 	FieldDescription,
 	FieldActive,
+	FieldConfig,
 }
 
 var (

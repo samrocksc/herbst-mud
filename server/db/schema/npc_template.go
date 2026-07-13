@@ -39,6 +39,9 @@ func (NPCTemplate) Fields() []ent.Field {
 		field.Int("xp_value").
 			Default(0).
 			Comment("Base XP awarded when this NPC is killed by a player"),
+		field.Float("xp_multiplier").
+			Default(1.0).
+			Comment("Multiplier for XP gain scaling (1.0 = normal)"),
 		field.JSON("skills", map[string]int{}),
 		field.Strings("trades_with"),
 		field.Text("greeting"),

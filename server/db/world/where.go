@@ -289,6 +289,16 @@ func ActiveNEQ(v bool) predicate.World {
 	return predicate.World(sql.FieldNEQ(FieldActive, v))
 }
 
+// ConfigIsNil applies the IsNil predicate on the "config" field.
+func ConfigIsNil() predicate.World {
+	return predicate.World(sql.FieldIsNull(FieldConfig))
+}
+
+// ConfigNotNil applies the NotNil predicate on the "config" field.
+func ConfigNotNil() predicate.World {
+	return predicate.World(sql.FieldNotNull(FieldConfig))
+}
+
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
 func HasCharacters() predicate.World {
 	return predicate.World(func(s *sql.Selector) {

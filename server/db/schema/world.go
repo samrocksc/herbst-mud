@@ -21,6 +21,9 @@ func (World) Fields() []ent.Field {
 			Optional(),
 		field.Bool("active").
 			Default(false),
+		field.JSON("config", map[string]interface{}{}).
+			Optional().
+			Comment("World configuration: level curve, stat growth, skill XP, reclass/rerace settings"),
 	}
 }
 
