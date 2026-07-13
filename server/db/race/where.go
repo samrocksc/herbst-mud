@@ -584,6 +584,16 @@ func ColorContainsFold(v string) predicate.Race {
 	return predicate.Race(sql.FieldContainsFold(FieldColor, v))
 }
 
+// StatGrowthMultipliersIsNil applies the IsNil predicate on the "stat_growth_multipliers" field.
+func StatGrowthMultipliersIsNil() predicate.Race {
+	return predicate.Race(sql.FieldIsNull(FieldStatGrowthMultipliers))
+}
+
+// StatGrowthMultipliersNotNil applies the NotNil predicate on the "stat_growth_multipliers" field.
+func StatGrowthMultipliersNotNil() predicate.Race {
+	return predicate.Race(sql.FieldNotNull(FieldStatGrowthMultipliers))
+}
+
 // HasWorld applies the HasEdge predicate on the "world" edge.
 func HasWorld() predicate.Race {
 	return predicate.Race(func(s *sql.Selector) {

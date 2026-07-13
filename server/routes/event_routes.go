@@ -50,6 +50,11 @@ func (w *xpServiceWrapper) AwardXP(ctx context.Context, characterID, xpGained in
 	return w.awardXPImpl(ctx, characterID, xpGained)
 }
 
+func (w *xpServiceWrapper) AwardXPWithSource(ctx context.Context, characterID, xpGained int, source string) (newXP, newLevel int, leveledUp bool, err error) {
+	// Delegate to the XP service logic directly (source is used for xp.gained event).
+	return w.awardXPImpl(ctx, characterID, xpGained)
+}
+
 func (w *xpServiceWrapper) ApplyDeathPenalty(ctx context.Context, characterID, penaltyPercent int) (xpLost, newXP int, err error) {
 	char, err := w.client.Character.Get(ctx, characterID)
 	if err != nil {

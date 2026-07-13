@@ -30,6 +30,8 @@ const (
 	FieldRequirementTags = "requirement_tags"
 	// FieldColor holds the string denoting the color field in the database.
 	FieldColor = "color"
+	// FieldStatGrowthMultipliers holds the string denoting the stat_growth_multipliers field in the database.
+	FieldStatGrowthMultipliers = "stat_growth_multipliers"
 	// EdgeWorld holds the string denoting the world edge name in mutations.
 	EdgeWorld = "world"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
@@ -69,6 +71,7 @@ var Columns = []string{
 	FieldEquipmentSlots,
 	FieldRequirementTags,
 	FieldColor,
+	FieldStatGrowthMultipliers,
 }
 
 var (

@@ -38,6 +38,7 @@ import { Route as DocsAchievementsRouteImport } from './routes/docs/achievements
 import { Route as DocsAbilitySystemRouteImport } from './routes/docs/ability-system'
 import { Route as AuthXpRouteImport } from './routes/_auth/xp'
 import { Route as AuthWorldsRouteImport } from './routes/_auth/worlds'
+import { Route as AuthWorldConfigRouteImport } from './routes/_auth/world-config'
 import { Route as AuthTriggersRouteImport } from './routes/_auth/triggers'
 import { Route as AuthTellQueueRouteImport } from './routes/_auth/tell-queue'
 import { Route as AuthTagsRouteImport } from './routes/_auth/tags'
@@ -236,6 +237,11 @@ const AuthXpRoute = AuthXpRouteImport.update({
 const AuthWorldsRoute = AuthWorldsRouteImport.update({
   id: '/worlds',
   path: '/worlds',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthWorldConfigRoute = AuthWorldConfigRouteImport.update({
+  id: '/world-config',
+  path: '/world-config',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthTriggersRoute = AuthTriggersRouteImport.update({
@@ -552,6 +558,7 @@ export interface FileRoutesByFullPath {
   '/tags': typeof AuthTagsRoute
   '/tell-queue': typeof AuthTellQueueRoute
   '/triggers': typeof AuthTriggersRouteWithChildren
+  '/world-config': typeof AuthWorldConfigRoute
   '/worlds': typeof AuthWorldsRouteWithChildren
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
@@ -635,6 +642,7 @@ export interface FileRoutesByTo {
   '/tags': typeof AuthTagsRoute
   '/tell-queue': typeof AuthTellQueueRoute
   '/triggers': typeof AuthTriggersRouteWithChildren
+  '/world-config': typeof AuthWorldConfigRoute
   '/worlds': typeof AuthWorldsRouteWithChildren
   '/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
@@ -721,6 +729,7 @@ export interface FileRoutesById {
   '/_auth/tags': typeof AuthTagsRoute
   '/_auth/tell-queue': typeof AuthTellQueueRoute
   '/_auth/triggers': typeof AuthTriggersRouteWithChildren
+  '/_auth/world-config': typeof AuthWorldConfigRoute
   '/_auth/worlds': typeof AuthWorldsRouteWithChildren
   '/_auth/xp': typeof AuthXpRoute
   '/docs/ability-system': typeof DocsAbilitySystemRoute
@@ -808,6 +817,7 @@ export interface FileRouteTypes {
     | '/tags'
     | '/tell-queue'
     | '/triggers'
+    | '/world-config'
     | '/worlds'
     | '/xp'
     | '/docs/ability-system'
@@ -891,6 +901,7 @@ export interface FileRouteTypes {
     | '/tags'
     | '/tell-queue'
     | '/triggers'
+    | '/world-config'
     | '/worlds'
     | '/xp'
     | '/docs/ability-system'
@@ -976,6 +987,7 @@ export interface FileRouteTypes {
     | '/_auth/tags'
     | '/_auth/tell-queue'
     | '/_auth/triggers'
+    | '/_auth/world-config'
     | '/_auth/worlds'
     | '/_auth/xp'
     | '/docs/ability-system'
@@ -1243,6 +1255,13 @@ declare module '@tanstack/react-router' {
       path: '/worlds'
       fullPath: '/worlds'
       preLoaderRoute: typeof AuthWorldsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/world-config': {
+      id: '/_auth/world-config'
+      path: '/world-config'
+      fullPath: '/world-config'
+      preLoaderRoute: typeof AuthWorldConfigRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/triggers': {
@@ -1873,6 +1892,7 @@ interface AuthRouteChildren {
   AuthTagsRoute: typeof AuthTagsRoute
   AuthTellQueueRoute: typeof AuthTellQueueRoute
   AuthTriggersRoute: typeof AuthTriggersRouteWithChildren
+  AuthWorldConfigRoute: typeof AuthWorldConfigRoute
   AuthWorldsRoute: typeof AuthWorldsRouteWithChildren
   AuthXpRoute: typeof AuthXpRoute
 }
@@ -1903,6 +1923,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthTagsRoute: AuthTagsRoute,
   AuthTellQueueRoute: AuthTellQueueRoute,
   AuthTriggersRoute: AuthTriggersRouteWithChildren,
+  AuthWorldConfigRoute: AuthWorldConfigRoute,
   AuthWorldsRoute: AuthWorldsRouteWithChildren,
   AuthXpRoute: AuthXpRoute,
 }

@@ -17,11 +17,13 @@ const (
 	EventLevelUp       EventType = "level_up"
 	EventQuestComplete EventType = "quest_complete"
 	EventSkillLearned  EventType = "skill_learned"
+	EventXPGained      EventType = "xp.gained"
 )
 
 // XPAwarder abstracts the XP award logic so subscribers don't need a concrete service import.
 type XPAwarder interface {
 	AwardXP(ctx context.Context, characterID, xpGained int) (newXP, newLevel int, leveledUp bool, err error)
+	AwardXPWithSource(ctx context.Context, characterID, xpGained int, source string) (newXP, newLevel int, leveledUp bool, err error)
 	ApplyDeathPenalty(ctx context.Context, characterID, penaltyPercent int) (xpLost, newXP int, err error)
 }
 

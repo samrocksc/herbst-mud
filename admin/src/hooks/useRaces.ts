@@ -11,6 +11,7 @@ export type Race = Readonly<{
   display_name: string
   description: string
   stat_modifiers: Record<string, unknown> | null
+  stat_growth_multipliers: Record<string, number> | null
   skill_grants: string[]
   ability_modifiers: string[]
   equipment_slots: string[]
@@ -25,6 +26,7 @@ export type RaceInput = Readonly<{
   display_name: string
   description: string
   stat_modifiers: string
+  stat_growth_multipliers: Readonly<{ hp: number; mana: number; stamina: number }>
   skill_grants: ReadonlyArray<string>
   equipment_slots: ReadonlyArray<string>
   requirement_tags: ReadonlyArray<string>
@@ -57,6 +59,7 @@ function parseRaceForApi(input: RaceInput, worldId?: string): Record<string, unk
   if (input.stat_modifiers.trim()) {
     body.stat_modifiers = input.stat_modifiers;
   }
+  body.stat_growth_multipliers = input.stat_growth_multipliers;
   return body;
 }
 

@@ -172,6 +172,27 @@ func (_u *NPCTemplateUpdate) AddXpValue(v int) *NPCTemplateUpdate {
 	return _u
 }
 
+// SetXpMultiplier sets the "xp_multiplier" field.
+func (_u *NPCTemplateUpdate) SetXpMultiplier(v float64) *NPCTemplateUpdate {
+	_u.mutation.ResetXpMultiplier()
+	_u.mutation.SetXpMultiplier(v)
+	return _u
+}
+
+// SetNillableXpMultiplier sets the "xp_multiplier" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableXpMultiplier(v *float64) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetXpMultiplier(*v)
+	}
+	return _u
+}
+
+// AddXpMultiplier adds value to the "xp_multiplier" field.
+func (_u *NPCTemplateUpdate) AddXpMultiplier(v float64) *NPCTemplateUpdate {
+	_u.mutation.AddXpMultiplier(v)
+	return _u
+}
+
 // SetSkills sets the "skills" field.
 func (_u *NPCTemplateUpdate) SetSkills(v map[string]int) *NPCTemplateUpdate {
 	_u.mutation.SetSkills(v)
@@ -646,6 +667,12 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.AddedXpValue(); ok {
 		_spec.AddField(npctemplate.FieldXpValue, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.XpMultiplier(); ok {
+		_spec.SetField(npctemplate.FieldXpMultiplier, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedXpMultiplier(); ok {
+		_spec.AddField(npctemplate.FieldXpMultiplier, field.TypeFloat64, value)
+	}
 	if value, ok := _u.mutation.Skills(); ok {
 		_spec.SetField(npctemplate.FieldSkills, field.TypeJSON, value)
 	}
@@ -1097,6 +1124,27 @@ func (_u *NPCTemplateUpdateOne) SetNillableXpValue(v *int) *NPCTemplateUpdateOne
 // AddXpValue adds value to the "xp_value" field.
 func (_u *NPCTemplateUpdateOne) AddXpValue(v int) *NPCTemplateUpdateOne {
 	_u.mutation.AddXpValue(v)
+	return _u
+}
+
+// SetXpMultiplier sets the "xp_multiplier" field.
+func (_u *NPCTemplateUpdateOne) SetXpMultiplier(v float64) *NPCTemplateUpdateOne {
+	_u.mutation.ResetXpMultiplier()
+	_u.mutation.SetXpMultiplier(v)
+	return _u
+}
+
+// SetNillableXpMultiplier sets the "xp_multiplier" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableXpMultiplier(v *float64) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetXpMultiplier(*v)
+	}
+	return _u
+}
+
+// AddXpMultiplier adds value to the "xp_multiplier" field.
+func (_u *NPCTemplateUpdateOne) AddXpMultiplier(v float64) *NPCTemplateUpdateOne {
+	_u.mutation.AddXpMultiplier(v)
 	return _u
 }
 
@@ -1603,6 +1651,12 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 	}
 	if value, ok := _u.mutation.AddedXpValue(); ok {
 		_spec.AddField(npctemplate.FieldXpValue, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.XpMultiplier(); ok {
+		_spec.SetField(npctemplate.FieldXpMultiplier, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedXpMultiplier(); ok {
+		_spec.AddField(npctemplate.FieldXpMultiplier, field.TypeFloat64, value)
 	}
 	if value, ok := _u.mutation.Skills(); ok {
 		_spec.SetField(npctemplate.FieldSkills, field.TypeJSON, value)

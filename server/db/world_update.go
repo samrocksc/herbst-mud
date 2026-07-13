@@ -97,6 +97,18 @@ func (_u *WorldUpdate) SetNillableActive(v *bool) *WorldUpdate {
 	return _u
 }
 
+// SetConfig sets the "config" field.
+func (_u *WorldUpdate) SetConfig(v map[string]interface{}) *WorldUpdate {
+	_u.mutation.SetConfig(v)
+	return _u
+}
+
+// ClearConfig clears the value of the "config" field.
+func (_u *WorldUpdate) ClearConfig() *WorldUpdate {
+	_u.mutation.ClearConfig()
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *WorldUpdate) AddCharacterIDs(ids ...int) *WorldUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -440,6 +452,12 @@ func (_u *WorldUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(world.FieldActive, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Config(); ok {
+		_spec.SetField(world.FieldConfig, field.TypeJSON, value)
+	}
+	if _u.mutation.ConfigCleared() {
+		_spec.ClearField(world.FieldConfig, field.TypeJSON)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -883,6 +901,18 @@ func (_u *WorldUpdateOne) SetNillableActive(v *bool) *WorldUpdateOne {
 	return _u
 }
 
+// SetConfig sets the "config" field.
+func (_u *WorldUpdateOne) SetConfig(v map[string]interface{}) *WorldUpdateOne {
+	_u.mutation.SetConfig(v)
+	return _u
+}
+
+// ClearConfig clears the value of the "config" field.
+func (_u *WorldUpdateOne) ClearConfig() *WorldUpdateOne {
+	_u.mutation.ClearConfig()
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by IDs.
 func (_u *WorldUpdateOne) AddCharacterIDs(ids ...int) *WorldUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -1256,6 +1286,12 @@ func (_u *WorldUpdateOne) sqlSave(ctx context.Context) (_node *World, err error)
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(world.FieldActive, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Config(); ok {
+		_spec.SetField(world.FieldConfig, field.TypeJSON, value)
+	}
+	if _u.mutation.ConfigCleared() {
+		_spec.ClearField(world.FieldConfig, field.TypeJSON)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{

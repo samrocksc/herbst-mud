@@ -43,11 +43,29 @@ func DefeatXPSubscriber(xpSvc XPAwarder, client *db.Client, logger *slog.Logger)
 		}
 		baseXP := int(baseXPf)
 
+		// Apply NPC xp_multiplier from the event payload (if present)
+		if mult, ok := event.Payload["xp_multiplier"].(float64); ok && mult > 0 {
+			baseXP = int(float64(baseXP) * mult)
+		}
+
 		npcLevelf, ok := event.Payload["npc_level"].(float64)
 		if !ok {
 			npcLevelf = 1
 		}
 		npcLevel := int(npcLevelf)
+
+		// Get NPC template ID for anti-grind tracking
+		npcTemplateID, _ := event.Payload["npc_template_id"].(string)
+
+		// Get anti-grind kill threshold from world config (if present)
+		antiGrindThreshold := 20 // default
+		if worldCfgJSON, ok := event.Payload["world_config"].(map[string]interface{}); ok {
+			if sx, ok := worldCfgJSON["skill_xp"].(map[string]interface{}); ok {
+				if t, ok := sx["anti_grind_kill_threshold"].(float64); ok && t > 0 {
+					antiGrindThreshold = int(t)
+				}
+			}
+		}
 
 		ctx := context.Background()
 
@@ -92,15 +110,43 @@ func DefeatXPSubscriber(xpSvc XPAwarder, client *db.Client, logger *slog.Logger)
 			}
 
 			adjustedXP := int(share * (1.0 - penaltyPercent))
+
+			// Anti-grind: check kill counts for this NPC template
+			if npcTemplateID != "" && attacker.KillCounts != nil {
+				if kills, ok := attacker.KillCounts[npcTemplateID]; ok && kills >= antiGrindThreshold {
+					// Reduce XP to 10% of normal
+					adjustedXP = int(float64(adjustedXP) * 0.1)
+					logger.Info("anti-grind: reduced XP for over-killed NPC",
+						"attacker_id", attackerID,
+						"npc_template_id", npcTemplateID,
+						"kill_count", kills,
+						"threshold", antiGrindThreshold,
+						"reduced_xp", adjustedXP,
+					)
+				}
+			}
+
 			if adjustedXP < 1 {
 				adjustedXP = 1
 			}
 
-			newXP, newLevel, leveledUp, err := xpSvc.AwardXP(ctx, attackerID, adjustedXP)
+			newXP, newLevel, leveledUp, err := xpSvc.AwardXPWithSource(ctx, attackerID, adjustedXP, "kill")
 			if err != nil {
 				dblog.Error("failed to award defeat XP",
 					err, slog.String("service", "events"), slog.Int("attacker_id", attackerID))
 				continue
+			}
+
+			// Increment kill_counts for anti-grind tracking
+			if npcTemplateID != "" {
+				killCounts := attacker.KillCounts
+				if killCounts == nil {
+					killCounts = make(map[string]int)
+				}
+				killCounts[npcTemplateID]++
+				_, _ = client.Character.UpdateOne(attacker).
+					SetKillCounts(killCounts).
+					Save(ctx)
 			}
 
 			if leveledUp {
@@ -244,3 +290,4 @@ func (s *RespawnService) processRespawns() error {
 
 	return nil
 }
+

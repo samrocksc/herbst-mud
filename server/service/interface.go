@@ -19,6 +19,7 @@ type CharacterService interface {
 // XPAwardService handles XP awards, death penalties, and competency tracking.
 type XPAwardService interface {
 	AwardXP(ctx context.Context, characterID, xpGained int) (newXP, newLevel int, leveledUp bool, err error)
+	AwardXPWithSource(ctx context.Context, characterID, xpGained int, source string) (newXP, newLevel int, leveledUp bool, err error)
 	ApplyDeathPenalty(ctx context.Context, characterID, penaltyPercent int) (xpLost, newXP int, err error)
 	AwardCompetencyXP(ctx context.Context, characterID int, categoryID string, rawXP int) error
 	SeedCompetencyCategories(ctx context.Context) error

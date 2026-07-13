@@ -205,6 +205,7 @@ var (
 		{Name: "intelligence", Type: field.TypeInt, Default: 10},
 		{Name: "wisdom", Type: field.TypeInt, Default: 10},
 		{Name: "charisma", Type: field.TypeInt, Default: 10},
+		{Name: "kill_counts", Type: field.TypeJSON, Nullable: true},
 		{Name: "current_room_id", Type: field.TypeInt},
 		{Name: "npc_template_id", Type: field.TypeString, Nullable: true},
 		{Name: "room_characters", Type: field.TypeInt, Nullable: true},
@@ -219,31 +220,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "characters_rooms_room",
-				Columns:    []*schema.Column{CharactersColumns[35]},
+				Columns:    []*schema.Column{CharactersColumns[36]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "characters_npc_templates_npcTemplate",
-				Columns:    []*schema.Column{CharactersColumns[36]},
+				Columns:    []*schema.Column{CharactersColumns[37]},
 				RefColumns: []*schema.Column{NpcTemplatesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_rooms_characters",
-				Columns:    []*schema.Column{CharactersColumns[37]},
+				Columns:    []*schema.Column{CharactersColumns[38]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_users_characters",
-				Columns:    []*schema.Column{CharactersColumns[38]},
+				Columns:    []*schema.Column{CharactersColumns[39]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "characters_worlds_characters",
-				Columns:    []*schema.Column{CharactersColumns[39]},
+				Columns:    []*schema.Column{CharactersColumns[40]},
 				RefColumns: []*schema.Column{WorldsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -830,6 +831,7 @@ var (
 		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral"}, Default: "neutral"},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "xp_value", Type: field.TypeInt, Default: 0},
+		{Name: "xp_multiplier", Type: field.TypeFloat64, Default: 1},
 		{Name: "skills", Type: field.TypeJSON},
 		{Name: "trades_with", Type: field.TypeJSON},
 		{Name: "greeting", Type: field.TypeString, Size: 2147483647},
@@ -852,7 +854,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "npc_templates_races_npc_templates",
-				Columns:    []*schema.Column{NpcTemplatesColumns[20]},
+				Columns:    []*schema.Column{NpcTemplatesColumns[21]},
 				RefColumns: []*schema.Column{RacesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -921,6 +923,7 @@ var (
 		{Name: "equipment_slots", Type: field.TypeJSON},
 		{Name: "requirement_tags", Type: field.TypeJSON, Nullable: true},
 		{Name: "color", Type: field.TypeString, Nullable: true},
+		{Name: "stat_growth_multipliers", Type: field.TypeJSON, Nullable: true},
 	}
 	// RacesTable holds the schema information for the "races" table.
 	RacesTable = &schema.Table{
@@ -1237,6 +1240,7 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "active", Type: field.TypeBool, Default: false},
+		{Name: "config", Type: field.TypeJSON, Nullable: true},
 	}
 	// WorldsTable holds the schema information for the "worlds" table.
 	WorldsTable = &schema.Table{

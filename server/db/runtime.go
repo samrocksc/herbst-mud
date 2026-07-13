@@ -744,24 +744,28 @@ func init() {
 	npctemplateDescXpValue := npctemplateFields[8].Descriptor()
 	// npctemplate.DefaultXpValue holds the default value on creation for the xp_value field.
 	npctemplate.DefaultXpValue = npctemplateDescXpValue.Default.(int)
+	// npctemplateDescXpMultiplier is the schema descriptor for xp_multiplier field.
+	npctemplateDescXpMultiplier := npctemplateFields[9].Descriptor()
+	// npctemplate.DefaultXpMultiplier holds the default value on creation for the xp_multiplier field.
+	npctemplate.DefaultXpMultiplier = npctemplateDescXpMultiplier.Default.(float64)
 	// npctemplateDescRespawnCooldown is the schema descriptor for respawn_cooldown field.
-	npctemplateDescRespawnCooldown := npctemplateFields[13].Descriptor()
+	npctemplateDescRespawnCooldown := npctemplateFields[14].Descriptor()
 	// npctemplate.DefaultRespawnCooldown holds the default value on creation for the respawn_cooldown field.
 	npctemplate.DefaultRespawnCooldown = npctemplateDescRespawnCooldown.Default.(int)
 	// npctemplateDescRoamIntervalSeconds is the schema descriptor for roam_interval_seconds field.
-	npctemplateDescRoamIntervalSeconds := npctemplateFields[16].Descriptor()
+	npctemplateDescRoamIntervalSeconds := npctemplateFields[17].Descriptor()
 	// npctemplate.DefaultRoamIntervalSeconds holds the default value on creation for the roam_interval_seconds field.
 	npctemplate.DefaultRoamIntervalSeconds = npctemplateDescRoamIntervalSeconds.Default.(int)
 	// npctemplateDescRoamPauseMinSeconds is the schema descriptor for roam_pause_min_seconds field.
-	npctemplateDescRoamPauseMinSeconds := npctemplateFields[17].Descriptor()
+	npctemplateDescRoamPauseMinSeconds := npctemplateFields[18].Descriptor()
 	// npctemplate.DefaultRoamPauseMinSeconds holds the default value on creation for the roam_pause_min_seconds field.
 	npctemplate.DefaultRoamPauseMinSeconds = npctemplateDescRoamPauseMinSeconds.Default.(int)
 	// npctemplateDescRoamPauseMaxSeconds is the schema descriptor for roam_pause_max_seconds field.
-	npctemplateDescRoamPauseMaxSeconds := npctemplateFields[18].Descriptor()
+	npctemplateDescRoamPauseMaxSeconds := npctemplateFields[19].Descriptor()
 	// npctemplate.DefaultRoamPauseMaxSeconds holds the default value on creation for the roam_pause_max_seconds field.
 	npctemplate.DefaultRoamPauseMaxSeconds = npctemplateDescRoamPauseMaxSeconds.Default.(int)
 	// npctemplateDescNotifyOnEnter is the schema descriptor for notify_on_enter field.
-	npctemplateDescNotifyOnEnter := npctemplateFields[20].Descriptor()
+	npctemplateDescNotifyOnEnter := npctemplateFields[21].Descriptor()
 	// npctemplate.DefaultNotifyOnEnter holds the default value on creation for the notify_on_enter field.
 	npctemplate.DefaultNotifyOnEnter = npctemplateDescNotifyOnEnter.Default.(bool)
 	questFields := schema.Quest{}.Fields()

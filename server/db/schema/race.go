@@ -41,6 +41,9 @@ func (Race) Fields() []ent.Field {
 		field.String("color").
 			Optional().
 			Comment("Hex color for UI display, e.g. '#8b5cf6'"),
+		field.JSON("stat_growth_multipliers", map[string]float64{}).
+			Optional().
+			Comment("Racial stat growth multipliers per level, e.g., {\"hp\": 1.1, \"mana\": 0.9}"),
 	}
 }
 

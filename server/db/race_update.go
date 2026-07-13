@@ -177,6 +177,18 @@ func (_u *RaceUpdate) ClearColor() *RaceUpdate {
 	return _u
 }
 
+// SetStatGrowthMultipliers sets the "stat_growth_multipliers" field.
+func (_u *RaceUpdate) SetStatGrowthMultipliers(v map[string]float64) *RaceUpdate {
+	_u.mutation.SetStatGrowthMultipliers(v)
+	return _u
+}
+
+// ClearStatGrowthMultipliers clears the value of the "stat_growth_multipliers" field.
+func (_u *RaceUpdate) ClearStatGrowthMultipliers() *RaceUpdate {
+	_u.mutation.ClearStatGrowthMultipliers()
+	return _u
+}
+
 // AddWorldIDs adds the "world" edge to the World entity by IDs.
 func (_u *RaceUpdate) AddWorldIDs(ids ...int) *RaceUpdate {
 	_u.mutation.AddWorldIDs(ids...)
@@ -374,6 +386,12 @@ func (_u *RaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ColorCleared() {
 		_spec.ClearField(race.FieldColor, field.TypeString)
+	}
+	if value, ok := _u.mutation.StatGrowthMultipliers(); ok {
+		_spec.SetField(race.FieldStatGrowthMultipliers, field.TypeJSON, value)
+	}
+	if _u.mutation.StatGrowthMultipliersCleared() {
+		_spec.ClearField(race.FieldStatGrowthMultipliers, field.TypeJSON)
 	}
 	if _u.mutation.WorldCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -676,6 +694,18 @@ func (_u *RaceUpdateOne) ClearColor() *RaceUpdateOne {
 	return _u
 }
 
+// SetStatGrowthMultipliers sets the "stat_growth_multipliers" field.
+func (_u *RaceUpdateOne) SetStatGrowthMultipliers(v map[string]float64) *RaceUpdateOne {
+	_u.mutation.SetStatGrowthMultipliers(v)
+	return _u
+}
+
+// ClearStatGrowthMultipliers clears the value of the "stat_growth_multipliers" field.
+func (_u *RaceUpdateOne) ClearStatGrowthMultipliers() *RaceUpdateOne {
+	_u.mutation.ClearStatGrowthMultipliers()
+	return _u
+}
+
 // AddWorldIDs adds the "world" edge to the World entity by IDs.
 func (_u *RaceUpdateOne) AddWorldIDs(ids ...int) *RaceUpdateOne {
 	_u.mutation.AddWorldIDs(ids...)
@@ -903,6 +933,12 @@ func (_u *RaceUpdateOne) sqlSave(ctx context.Context) (_node *Race, err error) {
 	}
 	if _u.mutation.ColorCleared() {
 		_spec.ClearField(race.FieldColor, field.TypeString)
+	}
+	if value, ok := _u.mutation.StatGrowthMultipliers(); ok {
+		_spec.SetField(race.FieldStatGrowthMultipliers, field.TypeJSON, value)
+	}
+	if _u.mutation.StatGrowthMultipliersCleared() {
+		_spec.ClearField(race.FieldStatGrowthMultipliers, field.TypeJSON)
 	}
 	if _u.mutation.WorldCleared() {
 		edge := &sqlgraph.EdgeSpec{

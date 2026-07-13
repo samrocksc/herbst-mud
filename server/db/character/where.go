@@ -1845,6 +1845,16 @@ func CharismaLTE(v int) predicate.Character {
 	return predicate.Character(sql.FieldLTE(FieldCharisma, v))
 }
 
+// KillCountsIsNil applies the IsNil predicate on the "kill_counts" field.
+func KillCountsIsNil() predicate.Character {
+	return predicate.Character(sql.FieldIsNull(FieldKillCounts))
+}
+
+// KillCountsNotNil applies the NotNil predicate on the "kill_counts" field.
+func KillCountsNotNil() predicate.Character {
+	return predicate.Character(sql.FieldNotNull(FieldKillCounts))
+}
+
 // HasUser applies the HasEdge predicate on the "user" edge.
 func HasUser() predicate.Character {
 	return predicate.Character(func(s *sql.Selector) {

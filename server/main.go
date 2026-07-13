@@ -132,6 +132,11 @@ func main() {
 		log.Printf("Warning: failed to seed default skills: %v", err)
 	}
 
+	// Seed default world config for worlds that don't have one
+	if err := dbinit.SeedDefaultWorldConfig(client); err != nil {
+		log.Printf("Warning: failed to seed default world config: %v", err)
+	}
+
 	// Heal all characters with invalid HP (startup fix)
 	if err := dbinit.InitCharacterHealth(client); err != nil {
 		log.Printf("Warning: failed to initialize character health: %v", err)

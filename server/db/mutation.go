@@ -5914,6 +5914,7 @@ type CharacterMutation struct {
 	addwisdom                  *int
 	charisma                   *int
 	addcharisma                *int
+	kill_counts                *map[string]int
 	clearedFields              map[string]struct{}
 	user                       *int
 	cleareduser                bool
@@ -7888,6 +7889,55 @@ func (m *CharacterMutation) ResetCharisma() {
 	m.addcharisma = nil
 }
 
+// SetKillCounts sets the "kill_counts" field.
+func (m *CharacterMutation) SetKillCounts(value map[string]int) {
+	m.kill_counts = &value
+}
+
+// KillCounts returns the value of the "kill_counts" field in the mutation.
+func (m *CharacterMutation) KillCounts() (r map[string]int, exists bool) {
+	v := m.kill_counts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKillCounts returns the old "kill_counts" field's value of the Character entity.
+// If the Character object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterMutation) OldKillCounts(ctx context.Context) (v map[string]int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKillCounts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKillCounts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKillCounts: %w", err)
+	}
+	return oldValue.KillCounts, nil
+}
+
+// ClearKillCounts clears the value of the "kill_counts" field.
+func (m *CharacterMutation) ClearKillCounts() {
+	m.kill_counts = nil
+	m.clearedFields[character.FieldKillCounts] = struct{}{}
+}
+
+// KillCountsCleared returns if the "kill_counts" field was cleared in this mutation.
+func (m *CharacterMutation) KillCountsCleared() bool {
+	_, ok := m.clearedFields[character.FieldKillCounts]
+	return ok
+}
+
+// ResetKillCounts resets all changes to the "kill_counts" field.
+func (m *CharacterMutation) ResetKillCounts() {
+	m.kill_counts = nil
+	delete(m.clearedFields, character.FieldKillCounts)
+}
+
 // SetUserID sets the "user" edge to the User entity by id.
 func (m *CharacterMutation) SetUserID(id int) {
 	m.user = &id
@@ -8649,7 +8699,7 @@ func (m *CharacterMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CharacterMutation) Fields() []string {
-	fields := make([]string, 0, 37)
+	fields := make([]string, 0, 38)
 	if m.name != nil {
 		fields = append(fields, character.FieldName)
 	}
@@ -8761,6 +8811,9 @@ func (m *CharacterMutation) Fields() []string {
 	if m.charisma != nil {
 		fields = append(fields, character.FieldCharisma)
 	}
+	if m.kill_counts != nil {
+		fields = append(fields, character.FieldKillCounts)
+	}
 	return fields
 }
 
@@ -8843,6 +8896,8 @@ func (m *CharacterMutation) Field(name string) (ent.Value, bool) {
 		return m.Wisdom()
 	case character.FieldCharisma:
 		return m.Charisma()
+	case character.FieldKillCounts:
+		return m.KillCounts()
 	}
 	return nil, false
 }
@@ -8926,6 +8981,8 @@ func (m *CharacterMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldWisdom(ctx)
 	case character.FieldCharisma:
 		return m.OldCharisma(ctx)
+	case character.FieldKillCounts:
+		return m.OldKillCounts(ctx)
 	}
 	return nil, fmt.Errorf("unknown Character field %s", name)
 }
@@ -9193,6 +9250,13 @@ func (m *CharacterMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCharisma(v)
+		return nil
+	case character.FieldKillCounts:
+		v, ok := value.(map[string]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKillCounts(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Character field %s", name)
@@ -9482,6 +9546,9 @@ func (m *CharacterMutation) ClearedFields() []string {
 	if m.FieldCleared(character.FieldDescription) {
 		fields = append(fields, character.FieldDescription)
 	}
+	if m.FieldCleared(character.FieldKillCounts) {
+		fields = append(fields, character.FieldKillCounts)
+	}
 	return fields
 }
 
@@ -9522,6 +9589,9 @@ func (m *CharacterMutation) ClearField(name string) error {
 		return nil
 	case character.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case character.FieldKillCounts:
+		m.ClearKillCounts()
 		return nil
 	}
 	return fmt.Errorf("unknown Character nullable field %s", name)
@@ -9641,6 +9711,9 @@ func (m *CharacterMutation) ResetField(name string) error {
 		return nil
 	case character.FieldCharisma:
 		m.ResetCharisma()
+		return nil
+	case character.FieldKillCounts:
+		m.ResetKillCounts()
 		return nil
 	}
 	return fmt.Errorf("unknown Character field %s", name)
@@ -29623,6 +29696,8 @@ type NPCTemplateMutation struct {
 	addlevel                  *int
 	xp_value                  *int
 	addxp_value               *int
+	xp_multiplier             *float64
+	addxp_multiplier          *float64
 	skills                    *map[string]int
 	trades_with               *[]string
 	appendtrades_with         []string
@@ -30118,6 +30193,62 @@ func (m *NPCTemplateMutation) AddedXpValue() (r int, exists bool) {
 func (m *NPCTemplateMutation) ResetXpValue() {
 	m.xp_value = nil
 	m.addxp_value = nil
+}
+
+// SetXpMultiplier sets the "xp_multiplier" field.
+func (m *NPCTemplateMutation) SetXpMultiplier(f float64) {
+	m.xp_multiplier = &f
+	m.addxp_multiplier = nil
+}
+
+// XpMultiplier returns the value of the "xp_multiplier" field in the mutation.
+func (m *NPCTemplateMutation) XpMultiplier() (r float64, exists bool) {
+	v := m.xp_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldXpMultiplier returns the old "xp_multiplier" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldXpMultiplier(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldXpMultiplier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldXpMultiplier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldXpMultiplier: %w", err)
+	}
+	return oldValue.XpMultiplier, nil
+}
+
+// AddXpMultiplier adds f to the "xp_multiplier" field.
+func (m *NPCTemplateMutation) AddXpMultiplier(f float64) {
+	if m.addxp_multiplier != nil {
+		*m.addxp_multiplier += f
+	} else {
+		m.addxp_multiplier = &f
+	}
+}
+
+// AddedXpMultiplier returns the value that was added to the "xp_multiplier" field in this mutation.
+func (m *NPCTemplateMutation) AddedXpMultiplier() (r float64, exists bool) {
+	v := m.addxp_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetXpMultiplier resets all changes to the "xp_multiplier" field.
+func (m *NPCTemplateMutation) ResetXpMultiplier() {
+	m.xp_multiplier = nil
+	m.addxp_multiplier = nil
 }
 
 // SetSkills sets the "skills" field.
@@ -31064,7 +31195,7 @@ func (m *NPCTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NPCTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.slug != nil {
 		fields = append(fields, npctemplate.FieldSlug)
 	}
@@ -31088,6 +31219,9 @@ func (m *NPCTemplateMutation) Fields() []string {
 	}
 	if m.xp_value != nil {
 		fields = append(fields, npctemplate.FieldXpValue)
+	}
+	if m.xp_multiplier != nil {
+		fields = append(fields, npctemplate.FieldXpMultiplier)
 	}
 	if m.skills != nil {
 		fields = append(fields, npctemplate.FieldSkills)
@@ -31149,6 +31283,8 @@ func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.Level()
 	case npctemplate.FieldXpValue:
 		return m.XpValue()
+	case npctemplate.FieldXpMultiplier:
+		return m.XpMultiplier()
 	case npctemplate.FieldSkills:
 		return m.Skills()
 	case npctemplate.FieldTradesWith:
@@ -31198,6 +31334,8 @@ func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldLevel(ctx)
 	case npctemplate.FieldXpValue:
 		return m.OldXpValue(ctx)
+	case npctemplate.FieldXpMultiplier:
+		return m.OldXpMultiplier(ctx)
 	case npctemplate.FieldSkills:
 		return m.OldSkills(ctx)
 	case npctemplate.FieldTradesWith:
@@ -31286,6 +31424,13 @@ func (m *NPCTemplateMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetXpValue(v)
+		return nil
+	case npctemplate.FieldXpMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetXpMultiplier(v)
 		return nil
 	case npctemplate.FieldSkills:
 		v, ok := value.(map[string]int)
@@ -31385,6 +31530,9 @@ func (m *NPCTemplateMutation) AddedFields() []string {
 	if m.addxp_value != nil {
 		fields = append(fields, npctemplate.FieldXpValue)
 	}
+	if m.addxp_multiplier != nil {
+		fields = append(fields, npctemplate.FieldXpMultiplier)
+	}
 	if m.addrespawn_cooldown != nil {
 		fields = append(fields, npctemplate.FieldRespawnCooldown)
 	}
@@ -31409,6 +31557,8 @@ func (m *NPCTemplateMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedLevel()
 	case npctemplate.FieldXpValue:
 		return m.AddedXpValue()
+	case npctemplate.FieldXpMultiplier:
+		return m.AddedXpMultiplier()
 	case npctemplate.FieldRespawnCooldown:
 		return m.AddedRespawnCooldown()
 	case npctemplate.FieldRoamIntervalSeconds:
@@ -31439,6 +31589,13 @@ func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddXpValue(v)
+		return nil
+	case npctemplate.FieldXpMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddXpMultiplier(v)
 		return nil
 	case npctemplate.FieldRespawnCooldown:
 		v, ok := value.(int)
@@ -31581,6 +31738,9 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 		return nil
 	case npctemplate.FieldXpValue:
 		m.ResetXpValue()
+		return nil
+	case npctemplate.FieldXpMultiplier:
+		m.ResetXpMultiplier()
 		return nil
 	case npctemplate.FieldSkills:
 		m.ResetSkills()
@@ -33527,33 +33687,34 @@ func (m *QuestProgressMutation) ResetEdge(name string) error {
 // RaceMutation represents an operation that mutates the Race nodes in the graph.
 type RaceMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *int
-	world_id               *string
-	name                   *string
-	display_name           *string
-	description            *string
-	stat_modifiers         *string
-	skill_grants           *string
-	equipment_slots        *[]string
-	appendequipment_slots  []string
-	requirement_tags       *[]string
-	appendrequirement_tags []string
-	color                  *string
-	clearedFields          map[string]struct{}
-	world                  map[int]struct{}
-	removedworld           map[int]struct{}
-	clearedworld           bool
-	tags                   map[int]struct{}
-	removedtags            map[int]struct{}
-	clearedtags            bool
-	npc_templates          map[string]struct{}
-	removednpc_templates   map[string]struct{}
-	clearednpc_templates   bool
-	done                   bool
-	oldValue               func(context.Context) (*Race, error)
-	predicates             []predicate.Race
+	op                      Op
+	typ                     string
+	id                      *int
+	world_id                *string
+	name                    *string
+	display_name            *string
+	description             *string
+	stat_modifiers          *string
+	skill_grants            *string
+	equipment_slots         *[]string
+	appendequipment_slots   []string
+	requirement_tags        *[]string
+	appendrequirement_tags  []string
+	color                   *string
+	stat_growth_multipliers *map[string]float64
+	clearedFields           map[string]struct{}
+	world                   map[int]struct{}
+	removedworld            map[int]struct{}
+	clearedworld            bool
+	tags                    map[int]struct{}
+	removedtags             map[int]struct{}
+	clearedtags             bool
+	npc_templates           map[string]struct{}
+	removednpc_templates    map[string]struct{}
+	clearednpc_templates    bool
+	done                    bool
+	oldValue                func(context.Context) (*Race, error)
+	predicates              []predicate.Race
 }
 
 var _ ent.Mutation = (*RaceMutation)(nil)
@@ -34061,6 +34222,55 @@ func (m *RaceMutation) ResetColor() {
 	delete(m.clearedFields, race.FieldColor)
 }
 
+// SetStatGrowthMultipliers sets the "stat_growth_multipliers" field.
+func (m *RaceMutation) SetStatGrowthMultipliers(value map[string]float64) {
+	m.stat_growth_multipliers = &value
+}
+
+// StatGrowthMultipliers returns the value of the "stat_growth_multipliers" field in the mutation.
+func (m *RaceMutation) StatGrowthMultipliers() (r map[string]float64, exists bool) {
+	v := m.stat_growth_multipliers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatGrowthMultipliers returns the old "stat_growth_multipliers" field's value of the Race entity.
+// If the Race object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RaceMutation) OldStatGrowthMultipliers(ctx context.Context) (v map[string]float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatGrowthMultipliers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatGrowthMultipliers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatGrowthMultipliers: %w", err)
+	}
+	return oldValue.StatGrowthMultipliers, nil
+}
+
+// ClearStatGrowthMultipliers clears the value of the "stat_growth_multipliers" field.
+func (m *RaceMutation) ClearStatGrowthMultipliers() {
+	m.stat_growth_multipliers = nil
+	m.clearedFields[race.FieldStatGrowthMultipliers] = struct{}{}
+}
+
+// StatGrowthMultipliersCleared returns if the "stat_growth_multipliers" field was cleared in this mutation.
+func (m *RaceMutation) StatGrowthMultipliersCleared() bool {
+	_, ok := m.clearedFields[race.FieldStatGrowthMultipliers]
+	return ok
+}
+
+// ResetStatGrowthMultipliers resets all changes to the "stat_growth_multipliers" field.
+func (m *RaceMutation) ResetStatGrowthMultipliers() {
+	m.stat_growth_multipliers = nil
+	delete(m.clearedFields, race.FieldStatGrowthMultipliers)
+}
+
 // AddWorldIDs adds the "world" edge to the World entity by ids.
 func (m *RaceMutation) AddWorldIDs(ids ...int) {
 	if m.world == nil {
@@ -34257,7 +34467,7 @@ func (m *RaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RaceMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.world_id != nil {
 		fields = append(fields, race.FieldWorldID)
 	}
@@ -34285,6 +34495,9 @@ func (m *RaceMutation) Fields() []string {
 	if m.color != nil {
 		fields = append(fields, race.FieldColor)
 	}
+	if m.stat_growth_multipliers != nil {
+		fields = append(fields, race.FieldStatGrowthMultipliers)
+	}
 	return fields
 }
 
@@ -34311,6 +34524,8 @@ func (m *RaceMutation) Field(name string) (ent.Value, bool) {
 		return m.RequirementTags()
 	case race.FieldColor:
 		return m.Color()
+	case race.FieldStatGrowthMultipliers:
+		return m.StatGrowthMultipliers()
 	}
 	return nil, false
 }
@@ -34338,6 +34553,8 @@ func (m *RaceMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldRequirementTags(ctx)
 	case race.FieldColor:
 		return m.OldColor(ctx)
+	case race.FieldStatGrowthMultipliers:
+		return m.OldStatGrowthMultipliers(ctx)
 	}
 	return nil, fmt.Errorf("unknown Race field %s", name)
 }
@@ -34410,6 +34627,13 @@ func (m *RaceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetColor(v)
 		return nil
+	case race.FieldStatGrowthMultipliers:
+		v, ok := value.(map[string]float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatGrowthMultipliers(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Race field %s", name)
 }
@@ -34452,6 +34676,9 @@ func (m *RaceMutation) ClearedFields() []string {
 	if m.FieldCleared(race.FieldColor) {
 		fields = append(fields, race.FieldColor)
 	}
+	if m.FieldCleared(race.FieldStatGrowthMultipliers) {
+		fields = append(fields, race.FieldStatGrowthMultipliers)
+	}
 	return fields
 }
 
@@ -34477,6 +34704,9 @@ func (m *RaceMutation) ClearField(name string) error {
 		return nil
 	case race.FieldColor:
 		m.ClearColor()
+		return nil
+	case race.FieldStatGrowthMultipliers:
+		m.ClearStatGrowthMultipliers()
 		return nil
 	}
 	return fmt.Errorf("unknown Race nullable field %s", name)
@@ -34512,6 +34742,9 @@ func (m *RaceMutation) ResetField(name string) error {
 		return nil
 	case race.FieldColor:
 		m.ResetColor()
+		return nil
+	case race.FieldStatGrowthMultipliers:
+		m.ResetStatGrowthMultipliers()
 		return nil
 	}
 	return fmt.Errorf("unknown Race field %s", name)
@@ -43882,6 +44115,7 @@ type WorldMutation struct {
 	title                     *string
 	description               *string
 	active                    *bool
+	_config                   *map[string]interface{}
 	clearedFields             map[string]struct{}
 	characters                map[int]struct{}
 	removedcharacters         map[int]struct{}
@@ -44165,6 +44399,55 @@ func (m *WorldMutation) OldActive(ctx context.Context) (v bool, err error) {
 // ResetActive resets all changes to the "active" field.
 func (m *WorldMutation) ResetActive() {
 	m.active = nil
+}
+
+// SetConfig sets the "config" field.
+func (m *WorldMutation) SetConfig(value map[string]interface{}) {
+	m._config = &value
+}
+
+// Config returns the value of the "config" field in the mutation.
+func (m *WorldMutation) Config() (r map[string]interface{}, exists bool) {
+	v := m._config
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfig returns the old "config" field's value of the World entity.
+// If the World object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorldMutation) OldConfig(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfig is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfig requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfig: %w", err)
+	}
+	return oldValue.Config, nil
+}
+
+// ClearConfig clears the value of the "config" field.
+func (m *WorldMutation) ClearConfig() {
+	m._config = nil
+	m.clearedFields[world.FieldConfig] = struct{}{}
+}
+
+// ConfigCleared returns if the "config" field was cleared in this mutation.
+func (m *WorldMutation) ConfigCleared() bool {
+	_, ok := m.clearedFields[world.FieldConfig]
+	return ok
+}
+
+// ResetConfig resets all changes to the "config" field.
+func (m *WorldMutation) ResetConfig() {
+	m._config = nil
+	delete(m.clearedFields, world.FieldConfig)
 }
 
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
@@ -44633,7 +44916,7 @@ func (m *WorldMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *WorldMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, world.FieldName)
 	}
@@ -44645,6 +44928,9 @@ func (m *WorldMutation) Fields() []string {
 	}
 	if m.active != nil {
 		fields = append(fields, world.FieldActive)
+	}
+	if m._config != nil {
+		fields = append(fields, world.FieldConfig)
 	}
 	return fields
 }
@@ -44662,6 +44948,8 @@ func (m *WorldMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case world.FieldActive:
 		return m.Active()
+	case world.FieldConfig:
+		return m.Config()
 	}
 	return nil, false
 }
@@ -44679,6 +44967,8 @@ func (m *WorldMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldDescription(ctx)
 	case world.FieldActive:
 		return m.OldActive(ctx)
+	case world.FieldConfig:
+		return m.OldConfig(ctx)
 	}
 	return nil, fmt.Errorf("unknown World field %s", name)
 }
@@ -44716,6 +45006,13 @@ func (m *WorldMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetActive(v)
 		return nil
+	case world.FieldConfig:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfig(v)
+		return nil
 	}
 	return fmt.Errorf("unknown World field %s", name)
 }
@@ -44749,6 +45046,9 @@ func (m *WorldMutation) ClearedFields() []string {
 	if m.FieldCleared(world.FieldDescription) {
 		fields = append(fields, world.FieldDescription)
 	}
+	if m.FieldCleared(world.FieldConfig) {
+		fields = append(fields, world.FieldConfig)
+	}
 	return fields
 }
 
@@ -44765,6 +45065,9 @@ func (m *WorldMutation) ClearField(name string) error {
 	switch name {
 	case world.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case world.FieldConfig:
+		m.ClearConfig()
 		return nil
 	}
 	return fmt.Errorf("unknown World nullable field %s", name)
@@ -44785,6 +45088,9 @@ func (m *WorldMutation) ResetField(name string) error {
 		return nil
 	case world.FieldActive:
 		m.ResetActive()
+		return nil
+	case world.FieldConfig:
+		m.ResetConfig()
 		return nil
 	}
 	return fmt.Errorf("unknown World field %s", name)
