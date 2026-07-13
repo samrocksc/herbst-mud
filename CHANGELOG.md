@@ -1,3 +1,5 @@
+- [a7ad4d8](http://github.com/samrocksc/herbst-mud/commit/a7ad4d82252233931117b6e7537d86ddd69e03b4) - 🔵 feat: Phase 5 + 6 — Event System + Charisma & Polish
+- [c3090bf](http://github.com/samrocksc/herbst-mud/commit/c3090bf4cd9334418e6ad8b5b9b9ccbc15e7bcdf) - chore: auto-update CHANGELOG.md
 - [134df9c](http://github.com/samrocksc/herbst-mud/commit/134df9c384a7aa67efb7e9f542bae8cb1e0d8013) - 🔵 feat: Phase 4 — Re-classing & Re-racing with history tracking
 - [568da3b](http://github.com/samrocksc/herbst-mud/commit/568da3b23cd80a5a51486ed68a495b9af5034c1a) - chore: auto-update CHANGELOG.md
 - [7d8728c](http://github.com/samrocksc/herbst-mud/commit/7d8728c2f13e51876af040f01a3a434fc82a543b) - 🔵 feat: Phase 3 — Resistances system with race base + equipment mods
