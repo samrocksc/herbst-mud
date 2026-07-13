@@ -44,6 +44,10 @@ const (
 	FieldProcEvent = "proc_event"
 	// FieldCooldownSeconds holds the string denoting the cooldown_seconds field in the database.
 	FieldCooldownSeconds = "cooldown_seconds"
+	// FieldRequiredSkillID holds the string denoting the required_skill_id field in the database.
+	FieldRequiredSkillID = "required_skill_id"
+	// FieldRequiredSkillLevel holds the string denoting the required_skill_level field in the database.
+	FieldRequiredSkillLevel = "required_skill_level"
 	// EdgeCharacters holds the string denoting the characters edge name in mutations.
 	EdgeCharacters = "characters"
 	// EdgeNpcAbilities holds the string denoting the npc_abilities edge name in mutations.
@@ -52,6 +56,8 @@ const (
 	EdgeEffects = "effects"
 	// EdgeFaction holds the string denoting the faction edge name in mutations.
 	EdgeFaction = "faction"
+	// EdgeRequiredSkill holds the string denoting the required_skill edge name in mutations.
+	EdgeRequiredSkill = "required_skill"
 	// Table holds the table name of the ability in the database.
 	Table = "abilities"
 	// CharactersTable is the table that holds the characters relation/edge.
@@ -80,6 +86,13 @@ const (
 	FactionInverseTable = "factions"
 	// FactionColumn is the table column denoting the faction relation/edge.
 	FactionColumn = "faction_abilities"
+	// RequiredSkillTable is the table that holds the required_skill relation/edge.
+	RequiredSkillTable = "abilities"
+	// RequiredSkillInverseTable is the table name for the Skill entity.
+	// It exists in this package in order to avoid circular dependency with the "skill" package.
+	RequiredSkillInverseTable = "skills"
+	// RequiredSkillColumn is the table column denoting the required_skill relation/edge.
+	RequiredSkillColumn = "required_skill_id"
 )
 
 // Columns holds all SQL columns for ability fields.
@@ -101,6 +114,8 @@ var Columns = []string{
 	FieldProcChance,
 	FieldProcEvent,
 	FieldCooldownSeconds,
+	FieldRequiredSkillID,
+	FieldRequiredSkillLevel,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "abilities"
@@ -149,6 +164,8 @@ var (
 	DefaultProcChance float64
 	// DefaultCooldownSeconds holds the default value on creation for the "cooldown_seconds" field.
 	DefaultCooldownSeconds int
+	// DefaultRequiredSkillLevel holds the default value on creation for the "required_skill_level" field.
+	DefaultRequiredSkillLevel int
 )
 
 // OrderOption defines the ordering options for the Ability queries.
@@ -239,6 +256,16 @@ func ByCooldownSeconds(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCooldownSeconds, opts...).ToFunc()
 }
 
+// ByRequiredSkillID orders the results by the required_skill_id field.
+func ByRequiredSkillID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequiredSkillID, opts...).ToFunc()
+}
+
+// ByRequiredSkillLevel orders the results by the required_skill_level field.
+func ByRequiredSkillLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequiredSkillLevel, opts...).ToFunc()
+}
+
 // ByCharactersCount orders the results by characters count.
 func ByCharactersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -287,6 +314,13 @@ func ByFactionField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFactionStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByRequiredSkillField orders the results by required_skill field.
+func ByRequiredSkillField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRequiredSkillStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newCharactersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -313,5 +347,12 @@ func newFactionStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FactionInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, FactionTable, FactionColumn),
+	)
+}
+func newRequiredSkillStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RequiredSkillInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RequiredSkillTable, RequiredSkillColumn),
 	)
 }

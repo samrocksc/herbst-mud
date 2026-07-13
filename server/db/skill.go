@@ -52,9 +52,11 @@ type SkillEdges struct {
 	Parent *Skill `json:"parent,omitempty"`
 	// Children holds the value of the children edge.
 	Children []*Skill `json:"children,omitempty"`
+	// Abilities holds the value of the abilities edge.
+	Abilities []*Ability `json:"abilities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // WorldOrErr returns the World value or an error if the edge
@@ -95,6 +97,15 @@ func (e SkillEdges) ChildrenOrErr() ([]*Skill, error) {
 		return e.Children, nil
 	}
 	return nil, &NotLoadedError{edge: "children"}
+}
+
+// AbilitiesOrErr returns the Abilities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SkillEdges) AbilitiesOrErr() ([]*Ability, error) {
+	if e.loadedTypes[4] {
+		return e.Abilities, nil
+	}
+	return nil, &NotLoadedError{edge: "abilities"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -217,6 +228,11 @@ func (_m *Skill) QueryParent() *SkillQuery {
 // QueryChildren queries the "children" edge of the Skill entity.
 func (_m *Skill) QueryChildren() *SkillQuery {
 	return NewSkillClient(_m.config).QueryChildren(_m)
+}
+
+// QueryAbilities queries the "abilities" edge of the Skill entity.
+func (_m *Skill) QueryAbilities() *AbilityQuery {
+	return NewSkillClient(_m.config).QueryAbilities(_m)
 }
 
 // Update returns a builder for updating this Skill.

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"herbst-server/db/ability"
 	"herbst-server/db/faction"
+	"herbst-server/db/skill"
 	"strings"
 
 	"entgo.io/ent"
@@ -49,6 +50,10 @@ type Ability struct {
 	ProcEvent string `json:"proc_event,omitempty"`
 	// For actives: cooldown in seconds
 	CooldownSeconds int `json:"cooldown_seconds,omitempty"`
+	// FK to skills table — which skill must be leveled to unlock this ability
+	RequiredSkillID *int `json:"required_skill_id,omitempty"`
+	// Minimum skill level required to unlock this ability (0 = no requirement)
+	RequiredSkillLevel int `json:"required_skill_level,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AbilityQuery when eager-loading is set.
 	Edges             AbilityEdges `json:"edges"`
@@ -66,9 +71,11 @@ type AbilityEdges struct {
 	Effects []*AbilityEffect `json:"effects,omitempty"`
 	// Faction holds the value of the faction edge.
 	Faction *Faction `json:"faction,omitempty"`
+	// RequiredSkill holds the value of the required_skill edge.
+	RequiredSkill *Skill `json:"required_skill,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // CharactersOrErr returns the Characters value or an error if the edge
@@ -109,6 +116,17 @@ func (e AbilityEdges) FactionOrErr() (*Faction, error) {
 	return nil, &NotLoadedError{edge: "faction"}
 }
 
+// RequiredSkillOrErr returns the RequiredSkill value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AbilityEdges) RequiredSkillOrErr() (*Skill, error) {
+	if e.RequiredSkill != nil {
+		return e.RequiredSkill, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: skill.Label}
+	}
+	return nil, &NotLoadedError{edge: "required_skill"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Ability) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -116,7 +134,7 @@ func (*Ability) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case ability.FieldProcChance:
 			values[i] = new(sql.NullFloat64)
-		case ability.FieldID, ability.FieldCost, ability.FieldCooldown, ability.FieldManaCost, ability.FieldStaminaCost, ability.FieldHpCost, ability.FieldCooldownSeconds:
+		case ability.FieldID, ability.FieldCost, ability.FieldCooldown, ability.FieldManaCost, ability.FieldStaminaCost, ability.FieldHpCost, ability.FieldCooldownSeconds, ability.FieldRequiredSkillID, ability.FieldRequiredSkillLevel:
 			values[i] = new(sql.NullInt64)
 		case ability.FieldWorldID, ability.FieldName, ability.FieldDescription, ability.FieldAbilityType, ability.FieldRequirements, ability.FieldSlug, ability.FieldRequiredTag, ability.FieldAbilityClass, ability.FieldProcEvent:
 			values[i] = new(sql.NullString)
@@ -239,6 +257,19 @@ func (_m *Ability) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.CooldownSeconds = int(value.Int64)
 			}
+		case ability.FieldRequiredSkillID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field required_skill_id", values[i])
+			} else if value.Valid {
+				_m.RequiredSkillID = new(int)
+				*_m.RequiredSkillID = int(value.Int64)
+			}
+		case ability.FieldRequiredSkillLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field required_skill_level", values[i])
+			} else if value.Valid {
+				_m.RequiredSkillLevel = int(value.Int64)
+			}
 		case ability.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field faction_abilities", value)
@@ -277,6 +308,11 @@ func (_m *Ability) QueryEffects() *AbilityEffectQuery {
 // QueryFaction queries the "faction" edge of the Ability entity.
 func (_m *Ability) QueryFaction() *FactionQuery {
 	return NewAbilityClient(_m.config).QueryFaction(_m)
+}
+
+// QueryRequiredSkill queries the "required_skill" edge of the Ability entity.
+func (_m *Ability) QueryRequiredSkill() *SkillQuery {
+	return NewAbilityClient(_m.config).QueryRequiredSkill(_m)
 }
 
 // Update returns a builder for updating this Ability.
@@ -349,6 +385,14 @@ func (_m *Ability) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("cooldown_seconds=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CooldownSeconds))
+	builder.WriteString(", ")
+	if v := _m.RequiredSkillID; v != nil {
+		builder.WriteString("required_skill_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("required_skill_level=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RequiredSkillLevel))
 	builder.WriteByte(')')
 	return builder.String()
 }

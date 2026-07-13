@@ -748,6 +748,22 @@ func (c *AbilityClient) QueryFaction(_m *Ability) *FactionQuery {
 	return query
 }
 
+// QueryRequiredSkill queries the required_skill edge of a Ability.
+func (c *AbilityClient) QueryRequiredSkill(_m *Ability) *SkillQuery {
+	query := (&SkillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ability.Table, ability.FieldID, id),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ability.RequiredSkillTable, ability.RequiredSkillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AbilityClient) Hooks() []Hook {
 	return c.hooks.Ability
@@ -6665,6 +6681,22 @@ func (c *SkillClient) QueryChildren(_m *Skill) *SkillQuery {
 			sqlgraph.From(skill.Table, skill.FieldID, id),
 			sqlgraph.To(skill.Table, skill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, skill.ChildrenTable, skill.ChildrenColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAbilities queries the abilities edge of a Skill.
+func (c *SkillClient) QueryAbilities(_m *Skill) *AbilityQuery {
+	query := (&AbilityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, id),
+			sqlgraph.To(ability.Table, ability.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, skill.AbilitiesTable, skill.AbilitiesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

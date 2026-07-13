@@ -11,6 +11,7 @@ import (
 type Container struct {
 	Character          CharacterService
 	XP                 XPAwardService
+	SkillXP            SkillXPService
 	AbilityEligibility AbilityEligibilityService
 	Room               RoomService
 	Quest              QuestService

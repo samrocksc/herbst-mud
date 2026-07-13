@@ -1,6 +1,12 @@
 import type { Ability } from "../../hooks/useAbilities";
+import { useGameSkills } from "../../hooks/useGameSkills";
 
 export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
+  const { data: gameSkills } = useGameSkills();
+  const skillName = ability.required_skill_id
+    ? (gameSkills ?? []).find((s) => s.id === ability.required_skill_id)?.display_name ?? `Skill #${ability.required_skill_id}`
+    : null;
+
   return (
     <div className="bg-surface-muted rounded-lg p-6 border border-border">
       <h2 className="mt-0 mb-4 text-text text-lg font-semibold">Ability Details</h2>
@@ -26,6 +32,8 @@ export function AbilityDetailView({ ability }: Readonly<{ ability: Ability }>) {
         {ability.faction_skills != null && (
           <DetailField label="Faction Skills" value={String(ability.faction_skills)} />
         )}
+        <DetailField label="Required Skill" value={skillName ?? "—"} />
+        <DetailField label="Required Skill Level" value={ability.required_skill_level > 0 ? String(ability.required_skill_level) : "—"} />
       </div>
       {ability.description && (
         <p className="text-text text-sm mt-4">{ability.description}</p>

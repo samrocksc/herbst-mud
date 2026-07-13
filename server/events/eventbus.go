@@ -17,7 +17,10 @@ const (
 	EventLevelUp       EventType = "level_up"
 	EventQuestComplete EventType = "quest_complete"
 	EventSkillLearned  EventType = "skill_learned"
-	EventXPGained      EventType = "xp.gained"
+	EventXPGained          EventType = "xp.gained"
+	EventSkillLeveledUp    EventType = "skill.leveled_up"
+	EventSkillAbilityUnlocked EventType = "skill.ability_unlocked"
+	EventSkillXPGained     EventType = "skill_xp.gained"
 )
 
 // XPAwarder abstracts the XP award logic so subscribers don't need a concrete service import.

@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"herbst-server/db/ability"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/predicate"
 	"herbst-server/db/skill"
@@ -29,6 +30,7 @@ type SkillQuery struct {
 	withCharacterSkills *CharacterSkillQuery
 	withParent          *SkillQuery
 	withChildren        *SkillQuery
+	withAbilities       *AbilityQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -146,6 +148,28 @@ func (_q *SkillQuery) QueryChildren() *SkillQuery {
 			sqlgraph.From(skill.Table, skill.FieldID, selector),
 			sqlgraph.To(skill.Table, skill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, skill.ChildrenTable, skill.ChildrenColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAbilities chains the current query on the "abilities" edge.
+func (_q *SkillQuery) QueryAbilities() *AbilityQuery {
+	query := (&AbilityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skill.Table, skill.FieldID, selector),
+			sqlgraph.To(ability.Table, ability.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, skill.AbilitiesTable, skill.AbilitiesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -349,6 +373,7 @@ func (_q *SkillQuery) Clone() *SkillQuery {
 		withCharacterSkills: _q.withCharacterSkills.Clone(),
 		withParent:          _q.withParent.Clone(),
 		withChildren:        _q.withChildren.Clone(),
+		withAbilities:       _q.withAbilities.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -396,6 +421,17 @@ func (_q *SkillQuery) WithChildren(opts ...func(*SkillQuery)) *SkillQuery {
 		opt(query)
 	}
 	_q.withChildren = query
+	return _q
+}
+
+// WithAbilities tells the query-builder to eager-load the nodes that are connected to
+// the "abilities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SkillQuery) WithAbilities(opts ...func(*AbilityQuery)) *SkillQuery {
+	query := (&AbilityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAbilities = query
 	return _q
 }
 
@@ -477,11 +513,12 @@ func (_q *SkillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Skill,
 	var (
 		nodes       = []*Skill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withWorld != nil,
 			_q.withCharacterSkills != nil,
 			_q.withParent != nil,
 			_q.withChildren != nil,
+			_q.withAbilities != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -525,6 +562,13 @@ func (_q *SkillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Skill,
 		if err := _q.loadChildren(ctx, query, nodes,
 			func(n *Skill) { n.Edges.Children = []*Skill{} },
 			func(n *Skill, e *Skill) { n.Edges.Children = append(n.Edges.Children, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAbilities; query != nil {
+		if err := _q.loadAbilities(ctx, query, nodes,
+			func(n *Skill) { n.Edges.Abilities = []*Ability{} },
+			func(n *Skill, e *Ability) { n.Edges.Abilities = append(n.Edges.Abilities, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -650,6 +694,40 @@ func (_q *SkillQuery) loadChildren(ctx context.Context, query *SkillQuery, nodes
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "parent_skill_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SkillQuery) loadAbilities(ctx context.Context, query *AbilityQuery, nodes []*Skill, init func(*Skill), assign func(*Skill, *Ability)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Skill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(ability.FieldRequiredSkillID)
+	}
+	query.Where(predicate.Ability(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(skill.AbilitiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RequiredSkillID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "required_skill_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "required_skill_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

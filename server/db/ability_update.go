@@ -12,6 +12,7 @@ import (
 	"herbst-server/db/faction"
 	"herbst-server/db/npcability"
 	"herbst-server/db/predicate"
+	"herbst-server/db/skill"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -328,6 +329,47 @@ func (_u *AbilityUpdate) AddCooldownSeconds(v int) *AbilityUpdate {
 	return _u
 }
 
+// SetRequiredSkillID sets the "required_skill_id" field.
+func (_u *AbilityUpdate) SetRequiredSkillID(v int) *AbilityUpdate {
+	_u.mutation.SetRequiredSkillID(v)
+	return _u
+}
+
+// SetNillableRequiredSkillID sets the "required_skill_id" field if the given value is not nil.
+func (_u *AbilityUpdate) SetNillableRequiredSkillID(v *int) *AbilityUpdate {
+	if v != nil {
+		_u.SetRequiredSkillID(*v)
+	}
+	return _u
+}
+
+// ClearRequiredSkillID clears the value of the "required_skill_id" field.
+func (_u *AbilityUpdate) ClearRequiredSkillID() *AbilityUpdate {
+	_u.mutation.ClearRequiredSkillID()
+	return _u
+}
+
+// SetRequiredSkillLevel sets the "required_skill_level" field.
+func (_u *AbilityUpdate) SetRequiredSkillLevel(v int) *AbilityUpdate {
+	_u.mutation.ResetRequiredSkillLevel()
+	_u.mutation.SetRequiredSkillLevel(v)
+	return _u
+}
+
+// SetNillableRequiredSkillLevel sets the "required_skill_level" field if the given value is not nil.
+func (_u *AbilityUpdate) SetNillableRequiredSkillLevel(v *int) *AbilityUpdate {
+	if v != nil {
+		_u.SetRequiredSkillLevel(*v)
+	}
+	return _u
+}
+
+// AddRequiredSkillLevel adds value to the "required_skill_level" field.
+func (_u *AbilityUpdate) AddRequiredSkillLevel(v int) *AbilityUpdate {
+	_u.mutation.AddRequiredSkillLevel(v)
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterAbility entity by IDs.
 func (_u *AbilityUpdate) AddCharacterIDs(ids ...int) *AbilityUpdate {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -390,6 +432,11 @@ func (_u *AbilityUpdate) SetNillableFactionID(id *int) *AbilityUpdate {
 // SetFaction sets the "faction" edge to the Faction entity.
 func (_u *AbilityUpdate) SetFaction(v *Faction) *AbilityUpdate {
 	return _u.SetFactionID(v.ID)
+}
+
+// SetRequiredSkill sets the "required_skill" edge to the Skill entity.
+func (_u *AbilityUpdate) SetRequiredSkill(v *Skill) *AbilityUpdate {
+	return _u.SetRequiredSkillID(v.ID)
 }
 
 // Mutation returns the AbilityMutation object of the builder.
@@ -463,6 +510,12 @@ func (_u *AbilityUpdate) RemoveEffects(v ...*AbilityEffect) *AbilityUpdate {
 // ClearFaction clears the "faction" edge to the Faction entity.
 func (_u *AbilityUpdate) ClearFaction() *AbilityUpdate {
 	_u.mutation.ClearFaction()
+	return _u
+}
+
+// ClearRequiredSkill clears the "required_skill" edge to the Skill entity.
+func (_u *AbilityUpdate) ClearRequiredSkill() *AbilityUpdate {
+	_u.mutation.ClearRequiredSkill()
 	return _u
 }
 
@@ -582,6 +635,12 @@ func (_u *AbilityUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedCooldownSeconds(); ok {
 		_spec.AddField(ability.FieldCooldownSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RequiredSkillLevel(); ok {
+		_spec.SetField(ability.FieldRequiredSkillLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRequiredSkillLevel(); ok {
+		_spec.AddField(ability.FieldRequiredSkillLevel, field.TypeInt, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -740,6 +799,35 @@ func (_u *AbilityUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(faction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RequiredSkillCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ability.RequiredSkillTable,
+			Columns: []string{ability.RequiredSkillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RequiredSkillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ability.RequiredSkillTable,
+			Columns: []string{ability.RequiredSkillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1064,6 +1152,47 @@ func (_u *AbilityUpdateOne) AddCooldownSeconds(v int) *AbilityUpdateOne {
 	return _u
 }
 
+// SetRequiredSkillID sets the "required_skill_id" field.
+func (_u *AbilityUpdateOne) SetRequiredSkillID(v int) *AbilityUpdateOne {
+	_u.mutation.SetRequiredSkillID(v)
+	return _u
+}
+
+// SetNillableRequiredSkillID sets the "required_skill_id" field if the given value is not nil.
+func (_u *AbilityUpdateOne) SetNillableRequiredSkillID(v *int) *AbilityUpdateOne {
+	if v != nil {
+		_u.SetRequiredSkillID(*v)
+	}
+	return _u
+}
+
+// ClearRequiredSkillID clears the value of the "required_skill_id" field.
+func (_u *AbilityUpdateOne) ClearRequiredSkillID() *AbilityUpdateOne {
+	_u.mutation.ClearRequiredSkillID()
+	return _u
+}
+
+// SetRequiredSkillLevel sets the "required_skill_level" field.
+func (_u *AbilityUpdateOne) SetRequiredSkillLevel(v int) *AbilityUpdateOne {
+	_u.mutation.ResetRequiredSkillLevel()
+	_u.mutation.SetRequiredSkillLevel(v)
+	return _u
+}
+
+// SetNillableRequiredSkillLevel sets the "required_skill_level" field if the given value is not nil.
+func (_u *AbilityUpdateOne) SetNillableRequiredSkillLevel(v *int) *AbilityUpdateOne {
+	if v != nil {
+		_u.SetRequiredSkillLevel(*v)
+	}
+	return _u
+}
+
+// AddRequiredSkillLevel adds value to the "required_skill_level" field.
+func (_u *AbilityUpdateOne) AddRequiredSkillLevel(v int) *AbilityUpdateOne {
+	_u.mutation.AddRequiredSkillLevel(v)
+	return _u
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterAbility entity by IDs.
 func (_u *AbilityUpdateOne) AddCharacterIDs(ids ...int) *AbilityUpdateOne {
 	_u.mutation.AddCharacterIDs(ids...)
@@ -1126,6 +1255,11 @@ func (_u *AbilityUpdateOne) SetNillableFactionID(id *int) *AbilityUpdateOne {
 // SetFaction sets the "faction" edge to the Faction entity.
 func (_u *AbilityUpdateOne) SetFaction(v *Faction) *AbilityUpdateOne {
 	return _u.SetFactionID(v.ID)
+}
+
+// SetRequiredSkill sets the "required_skill" edge to the Skill entity.
+func (_u *AbilityUpdateOne) SetRequiredSkill(v *Skill) *AbilityUpdateOne {
+	return _u.SetRequiredSkillID(v.ID)
 }
 
 // Mutation returns the AbilityMutation object of the builder.
@@ -1199,6 +1333,12 @@ func (_u *AbilityUpdateOne) RemoveEffects(v ...*AbilityEffect) *AbilityUpdateOne
 // ClearFaction clears the "faction" edge to the Faction entity.
 func (_u *AbilityUpdateOne) ClearFaction() *AbilityUpdateOne {
 	_u.mutation.ClearFaction()
+	return _u
+}
+
+// ClearRequiredSkill clears the "required_skill" edge to the Skill entity.
+func (_u *AbilityUpdateOne) ClearRequiredSkill() *AbilityUpdateOne {
+	_u.mutation.ClearRequiredSkill()
 	return _u
 }
 
@@ -1348,6 +1488,12 @@ func (_u *AbilityUpdateOne) sqlSave(ctx context.Context) (_node *Ability, err er
 	}
 	if value, ok := _u.mutation.AddedCooldownSeconds(); ok {
 		_spec.AddField(ability.FieldCooldownSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RequiredSkillLevel(); ok {
+		_spec.SetField(ability.FieldRequiredSkillLevel, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedRequiredSkillLevel(); ok {
+		_spec.AddField(ability.FieldRequiredSkillLevel, field.TypeInt, value)
 	}
 	if _u.mutation.CharactersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1506,6 +1652,35 @@ func (_u *AbilityUpdateOne) sqlSave(ctx context.Context) (_node *Ability, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(faction.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RequiredSkillCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ability.RequiredSkillTable,
+			Columns: []string{ability.RequiredSkillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RequiredSkillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ability.RequiredSkillTable,
+			Columns: []string{ability.RequiredSkillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

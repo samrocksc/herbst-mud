@@ -134,6 +134,16 @@ func CooldownSeconds(v int) predicate.Ability {
 	return predicate.Ability(sql.FieldEQ(FieldCooldownSeconds, v))
 }
 
+// RequiredSkillID applies equality check predicate on the "required_skill_id" field. It's identical to RequiredSkillIDEQ.
+func RequiredSkillID(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldEQ(FieldRequiredSkillID, v))
+}
+
+// RequiredSkillLevel applies equality check predicate on the "required_skill_level" field. It's identical to RequiredSkillLevelEQ.
+func RequiredSkillLevel(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldEQ(FieldRequiredSkillLevel, v))
+}
+
 // WorldIDEQ applies the EQ predicate on the "world_id" field.
 func WorldIDEQ(v string) predicate.Ability {
 	return predicate.Ability(sql.FieldEQ(FieldWorldID, v))
@@ -1039,6 +1049,76 @@ func CooldownSecondsLTE(v int) predicate.Ability {
 	return predicate.Ability(sql.FieldLTE(FieldCooldownSeconds, v))
 }
 
+// RequiredSkillIDEQ applies the EQ predicate on the "required_skill_id" field.
+func RequiredSkillIDEQ(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldEQ(FieldRequiredSkillID, v))
+}
+
+// RequiredSkillIDNEQ applies the NEQ predicate on the "required_skill_id" field.
+func RequiredSkillIDNEQ(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldNEQ(FieldRequiredSkillID, v))
+}
+
+// RequiredSkillIDIn applies the In predicate on the "required_skill_id" field.
+func RequiredSkillIDIn(vs ...int) predicate.Ability {
+	return predicate.Ability(sql.FieldIn(FieldRequiredSkillID, vs...))
+}
+
+// RequiredSkillIDNotIn applies the NotIn predicate on the "required_skill_id" field.
+func RequiredSkillIDNotIn(vs ...int) predicate.Ability {
+	return predicate.Ability(sql.FieldNotIn(FieldRequiredSkillID, vs...))
+}
+
+// RequiredSkillIDIsNil applies the IsNil predicate on the "required_skill_id" field.
+func RequiredSkillIDIsNil() predicate.Ability {
+	return predicate.Ability(sql.FieldIsNull(FieldRequiredSkillID))
+}
+
+// RequiredSkillIDNotNil applies the NotNil predicate on the "required_skill_id" field.
+func RequiredSkillIDNotNil() predicate.Ability {
+	return predicate.Ability(sql.FieldNotNull(FieldRequiredSkillID))
+}
+
+// RequiredSkillLevelEQ applies the EQ predicate on the "required_skill_level" field.
+func RequiredSkillLevelEQ(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldEQ(FieldRequiredSkillLevel, v))
+}
+
+// RequiredSkillLevelNEQ applies the NEQ predicate on the "required_skill_level" field.
+func RequiredSkillLevelNEQ(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldNEQ(FieldRequiredSkillLevel, v))
+}
+
+// RequiredSkillLevelIn applies the In predicate on the "required_skill_level" field.
+func RequiredSkillLevelIn(vs ...int) predicate.Ability {
+	return predicate.Ability(sql.FieldIn(FieldRequiredSkillLevel, vs...))
+}
+
+// RequiredSkillLevelNotIn applies the NotIn predicate on the "required_skill_level" field.
+func RequiredSkillLevelNotIn(vs ...int) predicate.Ability {
+	return predicate.Ability(sql.FieldNotIn(FieldRequiredSkillLevel, vs...))
+}
+
+// RequiredSkillLevelGT applies the GT predicate on the "required_skill_level" field.
+func RequiredSkillLevelGT(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldGT(FieldRequiredSkillLevel, v))
+}
+
+// RequiredSkillLevelGTE applies the GTE predicate on the "required_skill_level" field.
+func RequiredSkillLevelGTE(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldGTE(FieldRequiredSkillLevel, v))
+}
+
+// RequiredSkillLevelLT applies the LT predicate on the "required_skill_level" field.
+func RequiredSkillLevelLT(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldLT(FieldRequiredSkillLevel, v))
+}
+
+// RequiredSkillLevelLTE applies the LTE predicate on the "required_skill_level" field.
+func RequiredSkillLevelLTE(v int) predicate.Ability {
+	return predicate.Ability(sql.FieldLTE(FieldRequiredSkillLevel, v))
+}
+
 // HasCharacters applies the HasEdge predicate on the "characters" edge.
 func HasCharacters() predicate.Ability {
 	return predicate.Ability(func(s *sql.Selector) {
@@ -1123,6 +1203,29 @@ func HasFaction() predicate.Ability {
 func HasFactionWith(preds ...predicate.Faction) predicate.Ability {
 	return predicate.Ability(func(s *sql.Selector) {
 		step := newFactionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRequiredSkill applies the HasEdge predicate on the "required_skill" edge.
+func HasRequiredSkill() predicate.Ability {
+	return predicate.Ability(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RequiredSkillTable, RequiredSkillColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRequiredSkillWith applies the HasEdge predicate on the "required_skill" edge with a given conditions (other predicates).
+func HasRequiredSkillWith(preds ...predicate.Skill) predicate.Ability {
+	return predicate.Ability(func(s *sql.Selector) {
+		step := newRequiredSkillStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

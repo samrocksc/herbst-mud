@@ -12,6 +12,7 @@ import (
 	"herbst-server/db/faction"
 	"herbst-server/db/npcability"
 	"herbst-server/db/predicate"
+	"herbst-server/db/skill"
 	"math"
 
 	"entgo.io/ent"
@@ -23,15 +24,16 @@ import (
 // AbilityQuery is the builder for querying Ability entities.
 type AbilityQuery struct {
 	config
-	ctx              *QueryContext
-	order            []ability.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.Ability
-	withCharacters   *CharacterAbilityQuery
-	withNpcAbilities *NPCAbilityQuery
-	withEffects      *AbilityEffectQuery
-	withFaction      *FactionQuery
-	withFKs          bool
+	ctx               *QueryContext
+	order             []ability.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Ability
+	withCharacters    *CharacterAbilityQuery
+	withNpcAbilities  *NPCAbilityQuery
+	withEffects       *AbilityEffectQuery
+	withFaction       *FactionQuery
+	withRequiredSkill *SkillQuery
+	withFKs           bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -149,6 +151,28 @@ func (_q *AbilityQuery) QueryFaction() *FactionQuery {
 			sqlgraph.From(ability.Table, ability.FieldID, selector),
 			sqlgraph.To(faction.Table, faction.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ability.FactionTable, ability.FactionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRequiredSkill chains the current query on the "required_skill" edge.
+func (_q *AbilityQuery) QueryRequiredSkill() *SkillQuery {
+	query := (&SkillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ability.Table, ability.FieldID, selector),
+			sqlgraph.To(skill.Table, skill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ability.RequiredSkillTable, ability.RequiredSkillColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -343,15 +367,16 @@ func (_q *AbilityQuery) Clone() *AbilityQuery {
 		return nil
 	}
 	return &AbilityQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]ability.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.Ability{}, _q.predicates...),
-		withCharacters:   _q.withCharacters.Clone(),
-		withNpcAbilities: _q.withNpcAbilities.Clone(),
-		withEffects:      _q.withEffects.Clone(),
-		withFaction:      _q.withFaction.Clone(),
+		config:            _q.config,
+		ctx:               _q.ctx.Clone(),
+		order:             append([]ability.OrderOption{}, _q.order...),
+		inters:            append([]Interceptor{}, _q.inters...),
+		predicates:        append([]predicate.Ability{}, _q.predicates...),
+		withCharacters:    _q.withCharacters.Clone(),
+		withNpcAbilities:  _q.withNpcAbilities.Clone(),
+		withEffects:       _q.withEffects.Clone(),
+		withFaction:       _q.withFaction.Clone(),
+		withRequiredSkill: _q.withRequiredSkill.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -399,6 +424,17 @@ func (_q *AbilityQuery) WithFaction(opts ...func(*FactionQuery)) *AbilityQuery {
 		opt(query)
 	}
 	_q.withFaction = query
+	return _q
+}
+
+// WithRequiredSkill tells the query-builder to eager-load the nodes that are connected to
+// the "required_skill" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AbilityQuery) WithRequiredSkill(opts ...func(*SkillQuery)) *AbilityQuery {
+	query := (&SkillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRequiredSkill = query
 	return _q
 }
 
@@ -481,11 +517,12 @@ func (_q *AbilityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Abil
 		nodes       = []*Ability{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withCharacters != nil,
 			_q.withNpcAbilities != nil,
 			_q.withEffects != nil,
 			_q.withFaction != nil,
+			_q.withRequiredSkill != nil,
 		}
 	)
 	if _q.withFaction != nil {
@@ -536,6 +573,12 @@ func (_q *AbilityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Abil
 	if query := _q.withFaction; query != nil {
 		if err := _q.loadFaction(ctx, query, nodes, nil,
 			func(n *Ability, e *Faction) { n.Edges.Faction = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRequiredSkill; query != nil {
+		if err := _q.loadRequiredSkill(ctx, query, nodes, nil,
+			func(n *Ability, e *Skill) { n.Edges.RequiredSkill = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -697,6 +740,38 @@ func (_q *AbilityQuery) loadFaction(ctx context.Context, query *FactionQuery, no
 	}
 	return nil
 }
+func (_q *AbilityQuery) loadRequiredSkill(ctx context.Context, query *SkillQuery, nodes []*Ability, init func(*Ability), assign func(*Ability, *Skill)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Ability)
+	for i := range nodes {
+		if nodes[i].RequiredSkillID == nil {
+			continue
+		}
+		fk := *nodes[i].RequiredSkillID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(skill.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "required_skill_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *AbilityQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -722,6 +797,9 @@ func (_q *AbilityQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != ability.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withRequiredSkill != nil {
+			_spec.Node.AddColumnOnce(ability.FieldRequiredSkillID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

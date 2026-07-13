@@ -55,6 +55,7 @@ func (Skill) Edges() []ent.Edge {
 			Field("parent_skill_id").
 			Unique(),
 		edge.To("children", Skill.Type),
+		edge.To("abilities", Ability.Type),
 	}
 }
 

@@ -16,6 +16,13 @@ type CharacterService interface {
 	QueryCharacterByName(ctx context.Context, name string) (*db.Character, error)
 }
 
+// SkillXPService handles skill XP awards, skill level-ups, and ability unlock checks.
+type SkillXPService interface {
+	AwardSkillXP(ctx context.Context, characterID int, skillName string, xpGained int, source string) (newXP, newLevel int, leveledUp bool, err error)
+	GetSkillLevel(ctx context.Context, characterID int, skillName string) (level int, err error)
+	CheckAbilityUnlocks(ctx context.Context, characterID int, skillName string, newLevel int) ([]int, error)
+}
+
 // XPAwardService handles XP awards, death penalties, and competency tracking.
 type XPAwardService interface {
 	AwardXP(ctx context.Context, characterID, xpGained int) (newXP, newLevel int, leveledUp bool, err error)

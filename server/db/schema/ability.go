@@ -58,6 +58,13 @@ func (Ability) Fields() []ent.Field {
 		field.Int("cooldown_seconds").
 			Default(0).
 			Comment("For actives: cooldown in seconds"),
+		field.Int("required_skill_id").
+			Optional().
+			Nillable().
+			Comment("FK to skills table — which skill must be leveled to unlock this ability"),
+		field.Int("required_skill_level").
+			Default(0).
+			Comment("Minimum skill level required to unlock this ability (0 = no requirement)"),
 	}
 }
 
@@ -69,6 +76,10 @@ func (Ability) Edges() []ent.Edge {
 		edge.To("effects", AbilityEffect.Type),
 		edge.From("faction", Faction.Type).
 			Ref("abilities").
+			Unique(),
+		edge.From("required_skill", Skill.Type).
+			Ref("abilities").
+			Field("required_skill_id").
 			Unique(),
 	}
 }

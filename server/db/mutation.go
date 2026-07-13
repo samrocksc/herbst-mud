@@ -119,47 +119,51 @@ const (
 // AbilityMutation represents an operation that mutates the Ability nodes in the graph.
 type AbilityMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	world_id             *string
-	name                 *string
-	description          *string
-	ability_type         *string
-	cost                 *int
-	addcost              *int
-	cooldown             *int
-	addcooldown          *int
-	requirements         *string
-	mana_cost            *int
-	addmana_cost         *int
-	stamina_cost         *int
-	addstamina_cost      *int
-	hp_cost              *int
-	addhp_cost           *int
-	slug                 *string
-	required_tag         *string
-	ability_class        *string
-	proc_chance          *float64
-	addproc_chance       *float64
-	proc_event           *string
-	cooldown_seconds     *int
-	addcooldown_seconds  *int
-	clearedFields        map[string]struct{}
-	characters           map[int]struct{}
-	removedcharacters    map[int]struct{}
-	clearedcharacters    bool
-	npc_abilities        map[int]struct{}
-	removednpc_abilities map[int]struct{}
-	clearednpc_abilities bool
-	effects              map[int]struct{}
-	removedeffects       map[int]struct{}
-	clearedeffects       bool
-	faction              *int
-	clearedfaction       bool
-	done                 bool
-	oldValue             func(context.Context) (*Ability, error)
-	predicates           []predicate.Ability
+	op                      Op
+	typ                     string
+	id                      *int
+	world_id                *string
+	name                    *string
+	description             *string
+	ability_type            *string
+	cost                    *int
+	addcost                 *int
+	cooldown                *int
+	addcooldown             *int
+	requirements            *string
+	mana_cost               *int
+	addmana_cost            *int
+	stamina_cost            *int
+	addstamina_cost         *int
+	hp_cost                 *int
+	addhp_cost              *int
+	slug                    *string
+	required_tag            *string
+	ability_class           *string
+	proc_chance             *float64
+	addproc_chance          *float64
+	proc_event              *string
+	cooldown_seconds        *int
+	addcooldown_seconds     *int
+	required_skill_level    *int
+	addrequired_skill_level *int
+	clearedFields           map[string]struct{}
+	characters              map[int]struct{}
+	removedcharacters       map[int]struct{}
+	clearedcharacters       bool
+	npc_abilities           map[int]struct{}
+	removednpc_abilities    map[int]struct{}
+	clearednpc_abilities    bool
+	effects                 map[int]struct{}
+	removedeffects          map[int]struct{}
+	clearedeffects          bool
+	faction                 *int
+	clearedfaction          bool
+	required_skill          *int
+	clearedrequired_skill   bool
+	done                    bool
+	oldValue                func(context.Context) (*Ability, error)
+	predicates              []predicate.Ability
 }
 
 var _ ent.Mutation = (*AbilityMutation)(nil)
@@ -1028,6 +1032,111 @@ func (m *AbilityMutation) ResetCooldownSeconds() {
 	m.addcooldown_seconds = nil
 }
 
+// SetRequiredSkillID sets the "required_skill_id" field.
+func (m *AbilityMutation) SetRequiredSkillID(i int) {
+	m.required_skill = &i
+}
+
+// RequiredSkillID returns the value of the "required_skill_id" field in the mutation.
+func (m *AbilityMutation) RequiredSkillID() (r int, exists bool) {
+	v := m.required_skill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiredSkillID returns the old "required_skill_id" field's value of the Ability entity.
+// If the Ability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbilityMutation) OldRequiredSkillID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiredSkillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiredSkillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiredSkillID: %w", err)
+	}
+	return oldValue.RequiredSkillID, nil
+}
+
+// ClearRequiredSkillID clears the value of the "required_skill_id" field.
+func (m *AbilityMutation) ClearRequiredSkillID() {
+	m.required_skill = nil
+	m.clearedFields[ability.FieldRequiredSkillID] = struct{}{}
+}
+
+// RequiredSkillIDCleared returns if the "required_skill_id" field was cleared in this mutation.
+func (m *AbilityMutation) RequiredSkillIDCleared() bool {
+	_, ok := m.clearedFields[ability.FieldRequiredSkillID]
+	return ok
+}
+
+// ResetRequiredSkillID resets all changes to the "required_skill_id" field.
+func (m *AbilityMutation) ResetRequiredSkillID() {
+	m.required_skill = nil
+	delete(m.clearedFields, ability.FieldRequiredSkillID)
+}
+
+// SetRequiredSkillLevel sets the "required_skill_level" field.
+func (m *AbilityMutation) SetRequiredSkillLevel(i int) {
+	m.required_skill_level = &i
+	m.addrequired_skill_level = nil
+}
+
+// RequiredSkillLevel returns the value of the "required_skill_level" field in the mutation.
+func (m *AbilityMutation) RequiredSkillLevel() (r int, exists bool) {
+	v := m.required_skill_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiredSkillLevel returns the old "required_skill_level" field's value of the Ability entity.
+// If the Ability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbilityMutation) OldRequiredSkillLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiredSkillLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiredSkillLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiredSkillLevel: %w", err)
+	}
+	return oldValue.RequiredSkillLevel, nil
+}
+
+// AddRequiredSkillLevel adds i to the "required_skill_level" field.
+func (m *AbilityMutation) AddRequiredSkillLevel(i int) {
+	if m.addrequired_skill_level != nil {
+		*m.addrequired_skill_level += i
+	} else {
+		m.addrequired_skill_level = &i
+	}
+}
+
+// AddedRequiredSkillLevel returns the value that was added to the "required_skill_level" field in this mutation.
+func (m *AbilityMutation) AddedRequiredSkillLevel() (r int, exists bool) {
+	v := m.addrequired_skill_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRequiredSkillLevel resets all changes to the "required_skill_level" field.
+func (m *AbilityMutation) ResetRequiredSkillLevel() {
+	m.required_skill_level = nil
+	m.addrequired_skill_level = nil
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterAbility entity by ids.
 func (m *AbilityMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -1229,6 +1338,33 @@ func (m *AbilityMutation) ResetFaction() {
 	m.clearedfaction = false
 }
 
+// ClearRequiredSkill clears the "required_skill" edge to the Skill entity.
+func (m *AbilityMutation) ClearRequiredSkill() {
+	m.clearedrequired_skill = true
+	m.clearedFields[ability.FieldRequiredSkillID] = struct{}{}
+}
+
+// RequiredSkillCleared reports if the "required_skill" edge to the Skill entity was cleared.
+func (m *AbilityMutation) RequiredSkillCleared() bool {
+	return m.RequiredSkillIDCleared() || m.clearedrequired_skill
+}
+
+// RequiredSkillIDs returns the "required_skill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RequiredSkillID instead. It exists only for internal usage by the builders.
+func (m *AbilityMutation) RequiredSkillIDs() (ids []int) {
+	if id := m.required_skill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRequiredSkill resets all changes to the "required_skill" edge.
+func (m *AbilityMutation) ResetRequiredSkill() {
+	m.required_skill = nil
+	m.clearedrequired_skill = false
+}
+
 // Where appends a list predicates to the AbilityMutation builder.
 func (m *AbilityMutation) Where(ps ...predicate.Ability) {
 	m.predicates = append(m.predicates, ps...)
@@ -1263,7 +1399,7 @@ func (m *AbilityMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AbilityMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 18)
 	if m.world_id != nil {
 		fields = append(fields, ability.FieldWorldID)
 	}
@@ -1312,6 +1448,12 @@ func (m *AbilityMutation) Fields() []string {
 	if m.cooldown_seconds != nil {
 		fields = append(fields, ability.FieldCooldownSeconds)
 	}
+	if m.required_skill != nil {
+		fields = append(fields, ability.FieldRequiredSkillID)
+	}
+	if m.required_skill_level != nil {
+		fields = append(fields, ability.FieldRequiredSkillLevel)
+	}
 	return fields
 }
 
@@ -1352,6 +1494,10 @@ func (m *AbilityMutation) Field(name string) (ent.Value, bool) {
 		return m.ProcEvent()
 	case ability.FieldCooldownSeconds:
 		return m.CooldownSeconds()
+	case ability.FieldRequiredSkillID:
+		return m.RequiredSkillID()
+	case ability.FieldRequiredSkillLevel:
+		return m.RequiredSkillLevel()
 	}
 	return nil, false
 }
@@ -1393,6 +1539,10 @@ func (m *AbilityMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldProcEvent(ctx)
 	case ability.FieldCooldownSeconds:
 		return m.OldCooldownSeconds(ctx)
+	case ability.FieldRequiredSkillID:
+		return m.OldRequiredSkillID(ctx)
+	case ability.FieldRequiredSkillLevel:
+		return m.OldRequiredSkillLevel(ctx)
 	}
 	return nil, fmt.Errorf("unknown Ability field %s", name)
 }
@@ -1514,6 +1664,20 @@ func (m *AbilityMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCooldownSeconds(v)
 		return nil
+	case ability.FieldRequiredSkillID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiredSkillID(v)
+		return nil
+	case ability.FieldRequiredSkillLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiredSkillLevel(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Ability field %s", name)
 }
@@ -1543,6 +1707,9 @@ func (m *AbilityMutation) AddedFields() []string {
 	if m.addcooldown_seconds != nil {
 		fields = append(fields, ability.FieldCooldownSeconds)
 	}
+	if m.addrequired_skill_level != nil {
+		fields = append(fields, ability.FieldRequiredSkillLevel)
+	}
 	return fields
 }
 
@@ -1565,6 +1732,8 @@ func (m *AbilityMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedProcChance()
 	case ability.FieldCooldownSeconds:
 		return m.AddedCooldownSeconds()
+	case ability.FieldRequiredSkillLevel:
+		return m.AddedRequiredSkillLevel()
 	}
 	return nil, false
 }
@@ -1623,6 +1792,13 @@ func (m *AbilityMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddCooldownSeconds(v)
 		return nil
+	case ability.FieldRequiredSkillLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRequiredSkillLevel(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Ability numeric field %s", name)
 }
@@ -1642,6 +1818,9 @@ func (m *AbilityMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(ability.FieldProcEvent) {
 		fields = append(fields, ability.FieldProcEvent)
+	}
+	if m.FieldCleared(ability.FieldRequiredSkillID) {
+		fields = append(fields, ability.FieldRequiredSkillID)
 	}
 	return fields
 }
@@ -1668,6 +1847,9 @@ func (m *AbilityMutation) ClearField(name string) error {
 		return nil
 	case ability.FieldProcEvent:
 		m.ClearProcEvent()
+		return nil
+	case ability.FieldRequiredSkillID:
+		m.ClearRequiredSkillID()
 		return nil
 	}
 	return fmt.Errorf("unknown Ability nullable field %s", name)
@@ -1725,13 +1907,19 @@ func (m *AbilityMutation) ResetField(name string) error {
 	case ability.FieldCooldownSeconds:
 		m.ResetCooldownSeconds()
 		return nil
+	case ability.FieldRequiredSkillID:
+		m.ResetRequiredSkillID()
+		return nil
+	case ability.FieldRequiredSkillLevel:
+		m.ResetRequiredSkillLevel()
+		return nil
 	}
 	return fmt.Errorf("unknown Ability field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AbilityMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.characters != nil {
 		edges = append(edges, ability.EdgeCharacters)
 	}
@@ -1743,6 +1931,9 @@ func (m *AbilityMutation) AddedEdges() []string {
 	}
 	if m.faction != nil {
 		edges = append(edges, ability.EdgeFaction)
+	}
+	if m.required_skill != nil {
+		edges = append(edges, ability.EdgeRequiredSkill)
 	}
 	return edges
 }
@@ -1773,13 +1964,17 @@ func (m *AbilityMutation) AddedIDs(name string) []ent.Value {
 		if id := m.faction; id != nil {
 			return []ent.Value{*id}
 		}
+	case ability.EdgeRequiredSkill:
+		if id := m.required_skill; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AbilityMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedcharacters != nil {
 		edges = append(edges, ability.EdgeCharacters)
 	}
@@ -1820,7 +2015,7 @@ func (m *AbilityMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AbilityMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedcharacters {
 		edges = append(edges, ability.EdgeCharacters)
 	}
@@ -1832,6 +2027,9 @@ func (m *AbilityMutation) ClearedEdges() []string {
 	}
 	if m.clearedfaction {
 		edges = append(edges, ability.EdgeFaction)
+	}
+	if m.clearedrequired_skill {
+		edges = append(edges, ability.EdgeRequiredSkill)
 	}
 	return edges
 }
@@ -1848,6 +2046,8 @@ func (m *AbilityMutation) EdgeCleared(name string) bool {
 		return m.clearedeffects
 	case ability.EdgeFaction:
 		return m.clearedfaction
+	case ability.EdgeRequiredSkill:
+		return m.clearedrequired_skill
 	}
 	return false
 }
@@ -1858,6 +2058,9 @@ func (m *AbilityMutation) ClearEdge(name string) error {
 	switch name {
 	case ability.EdgeFaction:
 		m.ClearFaction()
+		return nil
+	case ability.EdgeRequiredSkill:
+		m.ClearRequiredSkill()
 		return nil
 	}
 	return fmt.Errorf("unknown Ability unique edge %s", name)
@@ -1878,6 +2081,9 @@ func (m *AbilityMutation) ResetEdge(name string) error {
 		return nil
 	case ability.EdgeFaction:
 		m.ResetFaction()
+		return nil
+	case ability.EdgeRequiredSkill:
+		m.ResetRequiredSkill()
 		return nil
 	}
 	return fmt.Errorf("unknown Ability edge %s", name)
@@ -38194,6 +38400,9 @@ type SkillMutation struct {
 	children                map[int]struct{}
 	removedchildren         map[int]struct{}
 	clearedchildren         bool
+	abilities               map[int]struct{}
+	removedabilities        map[int]struct{}
+	clearedabilities        bool
 	done                    bool
 	oldValue                func(context.Context) (*Skill, error)
 	predicates              []predicate.Skill
@@ -38855,6 +39064,60 @@ func (m *SkillMutation) ResetChildren() {
 	m.removedchildren = nil
 }
 
+// AddAbilityIDs adds the "abilities" edge to the Ability entity by ids.
+func (m *SkillMutation) AddAbilityIDs(ids ...int) {
+	if m.abilities == nil {
+		m.abilities = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.abilities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAbilities clears the "abilities" edge to the Ability entity.
+func (m *SkillMutation) ClearAbilities() {
+	m.clearedabilities = true
+}
+
+// AbilitiesCleared reports if the "abilities" edge to the Ability entity was cleared.
+func (m *SkillMutation) AbilitiesCleared() bool {
+	return m.clearedabilities
+}
+
+// RemoveAbilityIDs removes the "abilities" edge to the Ability entity by IDs.
+func (m *SkillMutation) RemoveAbilityIDs(ids ...int) {
+	if m.removedabilities == nil {
+		m.removedabilities = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.abilities, ids[i])
+		m.removedabilities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAbilities returns the removed IDs of the "abilities" edge to the Ability entity.
+func (m *SkillMutation) RemovedAbilitiesIDs() (ids []int) {
+	for id := range m.removedabilities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AbilitiesIDs returns the "abilities" edge IDs in the mutation.
+func (m *SkillMutation) AbilitiesIDs() (ids []int) {
+	for id := range m.abilities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAbilities resets all changes to the "abilities" edge.
+func (m *SkillMutation) ResetAbilities() {
+	m.abilities = nil
+	m.clearedabilities = false
+	m.removedabilities = nil
+}
+
 // Where appends a list predicates to the SkillMutation builder.
 func (m *SkillMutation) Where(ps ...predicate.Skill) {
 	m.predicates = append(m.predicates, ps...)
@@ -39160,7 +39423,7 @@ func (m *SkillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SkillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.world != nil {
 		edges = append(edges, skill.EdgeWorld)
 	}
@@ -39172,6 +39435,9 @@ func (m *SkillMutation) AddedEdges() []string {
 	}
 	if m.children != nil {
 		edges = append(edges, skill.EdgeChildren)
+	}
+	if m.abilities != nil {
+		edges = append(edges, skill.EdgeAbilities)
 	}
 	return edges
 }
@@ -39200,18 +39466,27 @@ func (m *SkillMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case skill.EdgeAbilities:
+		ids := make([]ent.Value, 0, len(m.abilities))
+		for id := range m.abilities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SkillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedcharacter_skills != nil {
 		edges = append(edges, skill.EdgeCharacterSkills)
 	}
 	if m.removedchildren != nil {
 		edges = append(edges, skill.EdgeChildren)
+	}
+	if m.removedabilities != nil {
+		edges = append(edges, skill.EdgeAbilities)
 	}
 	return edges
 }
@@ -39232,13 +39507,19 @@ func (m *SkillMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case skill.EdgeAbilities:
+		ids := make([]ent.Value, 0, len(m.removedabilities))
+		for id := range m.removedabilities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SkillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedworld {
 		edges = append(edges, skill.EdgeWorld)
 	}
@@ -39250,6 +39531,9 @@ func (m *SkillMutation) ClearedEdges() []string {
 	}
 	if m.clearedchildren {
 		edges = append(edges, skill.EdgeChildren)
+	}
+	if m.clearedabilities {
+		edges = append(edges, skill.EdgeAbilities)
 	}
 	return edges
 }
@@ -39266,6 +39550,8 @@ func (m *SkillMutation) EdgeCleared(name string) bool {
 		return m.clearedparent
 	case skill.EdgeChildren:
 		return m.clearedchildren
+	case skill.EdgeAbilities:
+		return m.clearedabilities
 	}
 	return false
 }
@@ -39299,6 +39585,9 @@ func (m *SkillMutation) ResetEdge(name string) error {
 		return nil
 	case skill.EdgeChildren:
 		m.ResetChildren()
+		return nil
+	case skill.EdgeAbilities:
+		m.ResetAbilities()
 		return nil
 	}
 	return fmt.Errorf("unknown Skill edge %s", name)
