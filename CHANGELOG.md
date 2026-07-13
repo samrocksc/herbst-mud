@@ -1,3 +1,5 @@
+- [b4c3b2c](http://github.com/samrocksc/herbst-mud/commit/b4c3b2ccfacad714ecbe9b9750eacfd6696ff3c4) - 🔵 feat: Phase 1 — Level XP System with world config + stat scaling
+- [00cc79c](http://github.com/samrocksc/herbst-mud/commit/00cc79c412b2310a2de921a927ff859f45f92a4c) - chore: auto-update CHANGELOG.md
 - [64ee565](http://github.com/samrocksc/herbst-mud/commit/64ee565325961f6e8dda9df91f7a4b04467b3a69) - 🔵 feat: Phase 0 complete — skills DB-driven, admin UI verified
 - [f8688e2](http://github.com/samrocksc/herbst-mud/commit/f8688e2ad08bf0a1f1d4e35c36438f9d7cb647b6) - chore: auto-update CHANGELOG.md
 - [2eb63cf](http://github.com/samrocksc/herbst-mud/commit/2eb63cff97993bd34f9a590933d979561448775b) - 🔵 feat: skill CRUD API + admin UI + auto-seed 9 skills per world
