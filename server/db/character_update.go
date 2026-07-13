@@ -10,9 +10,11 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/characterchannel"
+	"herbst-server/db/characterclasshistory"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterignore"
+	"herbst-server/db/characterracehistory"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/npctemplate"
@@ -965,6 +967,36 @@ func (_u *CharacterUpdate) AddCharacterSkills(v ...*CharacterSkill) *CharacterUp
 	return _u.AddCharacterSkillIDs(ids...)
 }
 
+// AddClassHistoryIDs adds the "class_history" edge to the CharacterClassHistory entity by IDs.
+func (_u *CharacterUpdate) AddClassHistoryIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddClassHistoryIDs(ids...)
+	return _u
+}
+
+// AddClassHistory adds the "class_history" edges to the CharacterClassHistory entity.
+func (_u *CharacterUpdate) AddClassHistory(v ...*CharacterClassHistory) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddClassHistoryIDs(ids...)
+}
+
+// AddRaceHistoryIDs adds the "race_history" edge to the CharacterRaceHistory entity by IDs.
+func (_u *CharacterUpdate) AddRaceHistoryIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.AddRaceHistoryIDs(ids...)
+	return _u
+}
+
+// AddRaceHistory adds the "race_history" edges to the CharacterRaceHistory entity.
+func (_u *CharacterUpdate) AddRaceHistory(v ...*CharacterRaceHistory) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRaceHistoryIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdate) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -1223,6 +1255,48 @@ func (_u *CharacterUpdate) RemoveCharacterSkills(v ...*CharacterSkill) *Characte
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterSkillIDs(ids...)
+}
+
+// ClearClassHistory clears all "class_history" edges to the CharacterClassHistory entity.
+func (_u *CharacterUpdate) ClearClassHistory() *CharacterUpdate {
+	_u.mutation.ClearClassHistory()
+	return _u
+}
+
+// RemoveClassHistoryIDs removes the "class_history" edge to CharacterClassHistory entities by IDs.
+func (_u *CharacterUpdate) RemoveClassHistoryIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveClassHistoryIDs(ids...)
+	return _u
+}
+
+// RemoveClassHistory removes "class_history" edges to CharacterClassHistory entities.
+func (_u *CharacterUpdate) RemoveClassHistory(v ...*CharacterClassHistory) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveClassHistoryIDs(ids...)
+}
+
+// ClearRaceHistory clears all "race_history" edges to the CharacterRaceHistory entity.
+func (_u *CharacterUpdate) ClearRaceHistory() *CharacterUpdate {
+	_u.mutation.ClearRaceHistory()
+	return _u
+}
+
+// RemoveRaceHistoryIDs removes the "race_history" edge to CharacterRaceHistory entities by IDs.
+func (_u *CharacterUpdate) RemoveRaceHistoryIDs(ids ...int) *CharacterUpdate {
+	_u.mutation.RemoveRaceHistoryIDs(ids...)
+	return _u
+}
+
+// RemoveRaceHistory removes "race_history" edges to CharacterRaceHistory entities.
+func (_u *CharacterUpdate) RemoveRaceHistory(v ...*CharacterRaceHistory) *CharacterUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRaceHistoryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2062,6 +2136,96 @@ func (_u *CharacterUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ClassHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ClassHistoryTable,
+			Columns: []string{character.ClassHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterclasshistory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedClassHistoryIDs(); len(nodes) > 0 && !_u.mutation.ClassHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ClassHistoryTable,
+			Columns: []string{character.ClassHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterclasshistory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ClassHistoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ClassHistoryTable,
+			Columns: []string{character.ClassHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterclasshistory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RaceHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.RaceHistoryTable,
+			Columns: []string{character.RaceHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterracehistory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRaceHistoryIDs(); len(nodes) > 0 && !_u.mutation.RaceHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.RaceHistoryTable,
+			Columns: []string{character.RaceHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterracehistory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RaceHistoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.RaceHistoryTable,
+			Columns: []string{character.RaceHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterracehistory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -3011,6 +3175,36 @@ func (_u *CharacterUpdateOne) AddCharacterSkills(v ...*CharacterSkill) *Characte
 	return _u.AddCharacterSkillIDs(ids...)
 }
 
+// AddClassHistoryIDs adds the "class_history" edge to the CharacterClassHistory entity by IDs.
+func (_u *CharacterUpdateOne) AddClassHistoryIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddClassHistoryIDs(ids...)
+	return _u
+}
+
+// AddClassHistory adds the "class_history" edges to the CharacterClassHistory entity.
+func (_u *CharacterUpdateOne) AddClassHistory(v ...*CharacterClassHistory) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddClassHistoryIDs(ids...)
+}
+
+// AddRaceHistoryIDs adds the "race_history" edge to the CharacterRaceHistory entity by IDs.
+func (_u *CharacterUpdateOne) AddRaceHistoryIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.AddRaceHistoryIDs(ids...)
+	return _u
+}
+
+// AddRaceHistory adds the "race_history" edges to the CharacterRaceHistory entity.
+func (_u *CharacterUpdateOne) AddRaceHistory(v ...*CharacterRaceHistory) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRaceHistoryIDs(ids...)
+}
+
 // Mutation returns the CharacterMutation object of the builder.
 func (_u *CharacterUpdateOne) Mutation() *CharacterMutation {
 	return _u.mutation
@@ -3269,6 +3463,48 @@ func (_u *CharacterUpdateOne) RemoveCharacterSkills(v ...*CharacterSkill) *Chara
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCharacterSkillIDs(ids...)
+}
+
+// ClearClassHistory clears all "class_history" edges to the CharacterClassHistory entity.
+func (_u *CharacterUpdateOne) ClearClassHistory() *CharacterUpdateOne {
+	_u.mutation.ClearClassHistory()
+	return _u
+}
+
+// RemoveClassHistoryIDs removes the "class_history" edge to CharacterClassHistory entities by IDs.
+func (_u *CharacterUpdateOne) RemoveClassHistoryIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveClassHistoryIDs(ids...)
+	return _u
+}
+
+// RemoveClassHistory removes "class_history" edges to CharacterClassHistory entities.
+func (_u *CharacterUpdateOne) RemoveClassHistory(v ...*CharacterClassHistory) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveClassHistoryIDs(ids...)
+}
+
+// ClearRaceHistory clears all "race_history" edges to the CharacterRaceHistory entity.
+func (_u *CharacterUpdateOne) ClearRaceHistory() *CharacterUpdateOne {
+	_u.mutation.ClearRaceHistory()
+	return _u
+}
+
+// RemoveRaceHistoryIDs removes the "race_history" edge to CharacterRaceHistory entities by IDs.
+func (_u *CharacterUpdateOne) RemoveRaceHistoryIDs(ids ...int) *CharacterUpdateOne {
+	_u.mutation.RemoveRaceHistoryIDs(ids...)
+	return _u
+}
+
+// RemoveRaceHistory removes "race_history" edges to CharacterRaceHistory entities.
+func (_u *CharacterUpdateOne) RemoveRaceHistory(v ...*CharacterRaceHistory) *CharacterUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRaceHistoryIDs(ids...)
 }
 
 // Where appends a list predicates to the CharacterUpdate builder.
@@ -4138,6 +4374,96 @@ func (_u *CharacterUpdateOne) sqlSave(ctx context.Context) (_node *Character, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(characterskill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ClassHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ClassHistoryTable,
+			Columns: []string{character.ClassHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterclasshistory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedClassHistoryIDs(); len(nodes) > 0 && !_u.mutation.ClassHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ClassHistoryTable,
+			Columns: []string{character.ClassHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterclasshistory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ClassHistoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.ClassHistoryTable,
+			Columns: []string{character.ClassHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterclasshistory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RaceHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.RaceHistoryTable,
+			Columns: []string{character.RaceHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterracehistory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRaceHistoryIDs(); len(nodes) > 0 && !_u.mutation.RaceHistoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.RaceHistoryTable,
+			Columns: []string{character.RaceHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterracehistory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RaceHistoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   character.RaceHistoryTable,
+			Columns: []string{character.RaceHistoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(characterracehistory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -2200,6 +2200,52 @@ func HasCharacterSkillsWith(preds ...predicate.CharacterSkill) predicate.Charact
 	})
 }
 
+// HasClassHistory applies the HasEdge predicate on the "class_history" edge.
+func HasClassHistory() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ClassHistoryTable, ClassHistoryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasClassHistoryWith applies the HasEdge predicate on the "class_history" edge with a given conditions (other predicates).
+func HasClassHistoryWith(preds ...predicate.CharacterClassHistory) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newClassHistoryStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRaceHistory applies the HasEdge predicate on the "race_history" edge.
+func HasRaceHistory() predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RaceHistoryTable, RaceHistoryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRaceHistoryWith applies the HasEdge predicate on the "race_history" edge with a given conditions (other predicates).
+func HasRaceHistoryWith(preds ...predicate.CharacterRaceHistory) predicate.Character {
+	return predicate.Character(func(s *sql.Selector) {
+		step := newRaceHistoryStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Character) predicate.Character {
 	return predicate.Character(sql.AndPredicates(predicates...))

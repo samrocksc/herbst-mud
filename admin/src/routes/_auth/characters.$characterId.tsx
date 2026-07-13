@@ -10,6 +10,8 @@ import { ActiveEffectsPanel } from "../../components/ActiveEffectsPanel";
 import { ResourceIdField } from "../../components/ResourceIdField";
 import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import { AddItemModal } from "./-characters.$characterId.addItemModal";
+import { CharacterHistoryPanel } from "../../components/CharacterHistoryPanel";
+import { ReclassReraceDialog } from "../../components/ReclassReraceDialog";
 
 function GoldManager({ id, balance }: Readonly<{ id: number; balance: number }>) {
   const [amount, setAmount] = useState(0);
@@ -61,6 +63,8 @@ function CharacterDetail() {
   const [addItemOpen, setAddItemOpen] = useState(false);
   const [spawnError, setSpawnError] = useState<string | null>(null);
   const [spawning, setSpawning] = useState(false);
+  const [reclassOpen, setReclassOpen] = useState(false);
+  const [reraceOpen, setReraceOpen] = useState(false);
 
   const handleSpawnItem = async (templateId: string) => {
     setSpawning(true);
@@ -88,6 +92,20 @@ function CharacterDetail() {
     <div className="p-6 max-w-[800px] mx-auto">
       <PageHeader title={character.name} showBack backTo="/characters" actions={
         <div className="flex gap-2">
+          <button
+            onClick={() => setReclassOpen(true)}
+            className="px-3 py-1.5 bg-warning/20 border border-warning text-warning rounded text-sm hover:bg-warning/30"
+            title="Change this character's class (faction)"
+          >
+            Reclass
+          </button>
+          <button
+            onClick={() => setReraceOpen(true)}
+            className="px-3 py-1.5 bg-warning/20 border border-warning text-warning rounded text-sm hover:bg-warning/30"
+            title="Change this character's race"
+          >
+            Rerace
+          </button>
           <button
             onClick={() => setAddItemOpen(true)}
             className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-text hover:bg-surface-muted"
@@ -124,8 +142,35 @@ function CharacterDetail() {
       )}
       {showEquipped && <EquippedItemsView characterId={character.id} characterRace={character.race} />}
       <ActiveEffectsPanel characterId={character.id} />
+
+      {/* Class & Race History */}
+      <div className="mt-6">
+        <h3 className="text-sm font-semibold text-text mb-2 pb-1 border-b border-border">History</h3>
+        <CharacterHistoryPanel characterId={character.id} />
+      </div>
+
       <AddItemModal open={addItemOpen} onClose={() => { setAddItemOpen(false); setSpawnError(null); }}
         onSpawn={handleSpawnItem} isLoading={spawning} error={spawnError} />
+
+      {/* Reclass / Rerace dialogs */}
+      <ReclassReraceDialog
+        open={reclassOpen}
+        mode="reclass"
+        characterId={character.id}
+        currentName={character.name}
+        currentClassName={character.class}
+        currentRaceName={character.race}
+        onClose={() => setReclassOpen(false)}
+      />
+      <ReclassReraceDialog
+        open={reraceOpen}
+        mode="rerace"
+        characterId={character.id}
+        currentName={character.name}
+        currentClassName={character.class}
+        currentRaceName={character.race}
+        onClose={() => setReraceOpen(false)}
+      />
     </div>
   );
 }

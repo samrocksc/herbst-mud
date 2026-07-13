@@ -33,6 +33,9 @@ type CharacterAbility func(*sql.Selector)
 // CharacterChannel is the predicate function for characterchannel builders.
 type CharacterChannel func(*sql.Selector)
 
+// CharacterClassHistory is the predicate function for characterclasshistory builders.
+type CharacterClassHistory func(*sql.Selector)
+
 // CharacterCompetency is the predicate function for charactercompetency builders.
 type CharacterCompetency func(*sql.Selector)
 
@@ -41,6 +44,9 @@ type CharacterFaction func(*sql.Selector)
 
 // CharacterIgnore is the predicate function for characterignore builders.
 type CharacterIgnore func(*sql.Selector)
+
+// CharacterRaceHistory is the predicate function for characterracehistory builders.
+type CharacterRaceHistory func(*sql.Selector)
 
 // CharacterSkill is the predicate function for characterskill builders.
 type CharacterSkill func(*sql.Selector)

@@ -168,6 +168,14 @@ type ChatService interface {
 	DeliverQueuedTells(ctx context.Context, charID int) ([]QueuedTell, error)
 }
 
+// ReclassReraceService handles reclassing (faction switch with skill retention) and reracing (race change with stat recalc).
+type ReclassReraceService interface {
+	Reclass(ctx context.Context, characterID int, newFactionID int) error
+	Rerace(ctx context.Context, characterID int, newRaceName string) error
+	GetClassHistory(ctx context.Context, characterID int) ([]*db.CharacterClassHistory, error)
+	GetRaceHistory(ctx context.Context, characterID int) ([]*db.CharacterRaceHistory, error)
+}
+
 // --- View/Result types (service-layer DTOs) ---
 
 // CombatResult is returned by combat operations.

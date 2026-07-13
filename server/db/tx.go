@@ -30,12 +30,16 @@ type Tx struct {
 	CharacterAbility *CharacterAbilityClient
 	// CharacterChannel is the client for interacting with the CharacterChannel builders.
 	CharacterChannel *CharacterChannelClient
+	// CharacterClassHistory is the client for interacting with the CharacterClassHistory builders.
+	CharacterClassHistory *CharacterClassHistoryClient
 	// CharacterCompetency is the client for interacting with the CharacterCompetency builders.
 	CharacterCompetency *CharacterCompetencyClient
 	// CharacterFaction is the client for interacting with the CharacterFaction builders.
 	CharacterFaction *CharacterFactionClient
 	// CharacterIgnore is the client for interacting with the CharacterIgnore builders.
 	CharacterIgnore *CharacterIgnoreClient
+	// CharacterRaceHistory is the client for interacting with the CharacterRaceHistory builders.
+	CharacterRaceHistory *CharacterRaceHistoryClient
 	// CharacterSkill is the client for interacting with the CharacterSkill builders.
 	CharacterSkill *CharacterSkillClient
 	// CharacterTag is the client for interacting with the CharacterTag builders.
@@ -242,9 +246,11 @@ func (tx *Tx) init() {
 	tx.Character = NewCharacterClient(tx.config)
 	tx.CharacterAbility = NewCharacterAbilityClient(tx.config)
 	tx.CharacterChannel = NewCharacterChannelClient(tx.config)
+	tx.CharacterClassHistory = NewCharacterClassHistoryClient(tx.config)
 	tx.CharacterCompetency = NewCharacterCompetencyClient(tx.config)
 	tx.CharacterFaction = NewCharacterFactionClient(tx.config)
 	tx.CharacterIgnore = NewCharacterIgnoreClient(tx.config)
+	tx.CharacterRaceHistory = NewCharacterRaceHistoryClient(tx.config)
 	tx.CharacterSkill = NewCharacterSkillClient(tx.config)
 	tx.CharacterTag = NewCharacterTagClient(tx.config)
 	tx.CompetencyCategory = NewCompetencyCategoryClient(tx.config)

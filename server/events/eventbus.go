@@ -21,6 +21,8 @@ const (
 	EventSkillLeveledUp    EventType = "skill.leveled_up"
 	EventSkillAbilityUnlocked EventType = "skill.ability_unlocked"
 	EventSkillXPGained     EventType = "skill_xp.gained"
+	EventReclass           EventType = "reclass"
+	EventRerace            EventType = "rerace"
 )
 
 // XPAwarder abstracts the XP award logic so subscribers don't need a concrete service import.
