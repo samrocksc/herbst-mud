@@ -1,3 +1,5 @@
+- [7d8728c](http://github.com/samrocksc/herbst-mud/commit/7d8728c2f13e51876af040f01a3a434fc82a543b) - 🔵 feat: Phase 3 — Resistances system with race base + equipment mods
+- [de47a72](http://github.com/samrocksc/herbst-mud/commit/de47a727ed0f3850c76e704e587695bd58ae8f0a) - chore: auto-update CHANGELOG.md
 - [14c5cbe](http://github.com/samrocksc/herbst-mud/commit/14c5cbe1f34e80d908bb4ae9778dbe6194be1323) - 🔵 feat: Phase 2 — Skill XP System with ability unlock checks
 - [81f2ad4](http://github.com/samrocksc/herbst-mud/commit/81f2ad47d449faa929607e3662798f24596e4c3a) - chore: auto-update CHANGELOG.md
 - [b4c3b2c](http://github.com/samrocksc/herbst-mud/commit/b4c3b2ccfacad714ecbe9b9750eacfd6696ff3c4) - 🔵 feat: Phase 1 — Level XP System with world config + stat scaling
