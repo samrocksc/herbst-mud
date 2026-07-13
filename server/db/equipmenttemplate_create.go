@@ -429,6 +429,12 @@ func (_c *EquipmentTemplateCreate) SetNillableIsTwoHanded(v *bool) *EquipmentTem
 	return _c
 }
 
+// SetResistanceModifiers sets the "resistance_modifiers" field.
+func (_c *EquipmentTemplateCreate) SetResistanceModifiers(v map[string]int) *EquipmentTemplateCreate {
+	_c.mutation.SetResistanceModifiers(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *EquipmentTemplateCreate) SetID(v int) *EquipmentTemplateCreate {
 	_c.mutation.SetID(v)
@@ -835,6 +841,10 @@ func (_c *EquipmentTemplateCreate) createSpec() (*EquipmentTemplate, *sqlgraph.C
 	if value, ok := _c.mutation.IsTwoHanded(); ok {
 		_spec.SetField(equipmenttemplate.FieldIsTwoHanded, field.TypeBool, value)
 		_node.IsTwoHanded = value
+	}
+	if value, ok := _c.mutation.ResistanceModifiers(); ok {
+		_spec.SetField(equipmenttemplate.FieldResistanceModifiers, field.TypeJSON, value)
+		_node.ResistanceModifiers = value
 	}
 	if nodes := _c.mutation.EquipmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

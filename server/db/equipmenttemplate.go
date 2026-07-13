@@ -83,6 +83,8 @@ type EquipmentTemplate struct {
 	WeaponType string `json:"weapon_type,omitempty"`
 	// Occupies both hand slots
 	IsTwoHanded bool `json:"is_two_handed,omitempty"`
+	// Equipment resistance bonuses by damage type, e.g., {"fire": 15, "cold": 10}
+	ResistanceModifiers map[string]int `json:"resistance_modifiers,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentTemplateQuery when eager-loading is set.
 	Edges        EquipmentTemplateEdges `json:"edges"`
@@ -112,7 +114,7 @@ func (*EquipmentTemplate) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case equipmenttemplate.FieldStats:
+		case equipmenttemplate.FieldStats, equipmenttemplate.FieldResistanceModifiers:
 			values[i] = new([]byte)
 		case equipmenttemplate.FieldIsVisible, equipmenttemplate.FieldIsImmovable, equipmenttemplate.FieldIsContainer, equipmenttemplate.FieldIsLocked, equipmenttemplate.FieldIsTwoHanded:
 			values[i] = new(sql.NullBool)
@@ -338,6 +340,14 @@ func (_m *EquipmentTemplate) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_m.IsTwoHanded = value.Bool
 			}
+		case equipmenttemplate.FieldResistanceModifiers:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field resistance_modifiers", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.ResistanceModifiers); err != nil {
+					return fmt.Errorf("unmarshal field resistance_modifiers: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -476,6 +486,9 @@ func (_m *EquipmentTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_two_handed=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsTwoHanded))
+	builder.WriteString(", ")
+	builder.WriteString("resistance_modifiers=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ResistanceModifiers))
 	builder.WriteByte(')')
 	return builder.String()
 }

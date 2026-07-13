@@ -189,6 +189,30 @@ func (_u *RaceUpdate) ClearStatGrowthMultipliers() *RaceUpdate {
 	return _u
 }
 
+// SetResistances sets the "resistances" field.
+func (_u *RaceUpdate) SetResistances(v map[string]int) *RaceUpdate {
+	_u.mutation.SetResistances(v)
+	return _u
+}
+
+// ClearResistances clears the value of the "resistances" field.
+func (_u *RaceUpdate) ClearResistances() *RaceUpdate {
+	_u.mutation.ClearResistances()
+	return _u
+}
+
+// SetVulnerabilities sets the "vulnerabilities" field.
+func (_u *RaceUpdate) SetVulnerabilities(v map[string]int) *RaceUpdate {
+	_u.mutation.SetVulnerabilities(v)
+	return _u
+}
+
+// ClearVulnerabilities clears the value of the "vulnerabilities" field.
+func (_u *RaceUpdate) ClearVulnerabilities() *RaceUpdate {
+	_u.mutation.ClearVulnerabilities()
+	return _u
+}
+
 // AddWorldIDs adds the "world" edge to the World entity by IDs.
 func (_u *RaceUpdate) AddWorldIDs(ids ...int) *RaceUpdate {
 	_u.mutation.AddWorldIDs(ids...)
@@ -392,6 +416,18 @@ func (_u *RaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.StatGrowthMultipliersCleared() {
 		_spec.ClearField(race.FieldStatGrowthMultipliers, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Resistances(); ok {
+		_spec.SetField(race.FieldResistances, field.TypeJSON, value)
+	}
+	if _u.mutation.ResistancesCleared() {
+		_spec.ClearField(race.FieldResistances, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Vulnerabilities(); ok {
+		_spec.SetField(race.FieldVulnerabilities, field.TypeJSON, value)
+	}
+	if _u.mutation.VulnerabilitiesCleared() {
+		_spec.ClearField(race.FieldVulnerabilities, field.TypeJSON)
 	}
 	if _u.mutation.WorldCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -706,6 +742,30 @@ func (_u *RaceUpdateOne) ClearStatGrowthMultipliers() *RaceUpdateOne {
 	return _u
 }
 
+// SetResistances sets the "resistances" field.
+func (_u *RaceUpdateOne) SetResistances(v map[string]int) *RaceUpdateOne {
+	_u.mutation.SetResistances(v)
+	return _u
+}
+
+// ClearResistances clears the value of the "resistances" field.
+func (_u *RaceUpdateOne) ClearResistances() *RaceUpdateOne {
+	_u.mutation.ClearResistances()
+	return _u
+}
+
+// SetVulnerabilities sets the "vulnerabilities" field.
+func (_u *RaceUpdateOne) SetVulnerabilities(v map[string]int) *RaceUpdateOne {
+	_u.mutation.SetVulnerabilities(v)
+	return _u
+}
+
+// ClearVulnerabilities clears the value of the "vulnerabilities" field.
+func (_u *RaceUpdateOne) ClearVulnerabilities() *RaceUpdateOne {
+	_u.mutation.ClearVulnerabilities()
+	return _u
+}
+
 // AddWorldIDs adds the "world" edge to the World entity by IDs.
 func (_u *RaceUpdateOne) AddWorldIDs(ids ...int) *RaceUpdateOne {
 	_u.mutation.AddWorldIDs(ids...)
@@ -939,6 +999,18 @@ func (_u *RaceUpdateOne) sqlSave(ctx context.Context) (_node *Race, err error) {
 	}
 	if _u.mutation.StatGrowthMultipliersCleared() {
 		_spec.ClearField(race.FieldStatGrowthMultipliers, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Resistances(); ok {
+		_spec.SetField(race.FieldResistances, field.TypeJSON, value)
+	}
+	if _u.mutation.ResistancesCleared() {
+		_spec.ClearField(race.FieldResistances, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Vulnerabilities(); ok {
+		_spec.SetField(race.FieldVulnerabilities, field.TypeJSON, value)
+	}
+	if _u.mutation.VulnerabilitiesCleared() {
+		_spec.ClearField(race.FieldVulnerabilities, field.TypeJSON)
 	}
 	if _u.mutation.WorldCleared() {
 		edge := &sqlgraph.EdgeSpec{

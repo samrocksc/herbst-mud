@@ -594,6 +594,26 @@ func StatGrowthMultipliersNotNil() predicate.Race {
 	return predicate.Race(sql.FieldNotNull(FieldStatGrowthMultipliers))
 }
 
+// ResistancesIsNil applies the IsNil predicate on the "resistances" field.
+func ResistancesIsNil() predicate.Race {
+	return predicate.Race(sql.FieldIsNull(FieldResistances))
+}
+
+// ResistancesNotNil applies the NotNil predicate on the "resistances" field.
+func ResistancesNotNil() predicate.Race {
+	return predicate.Race(sql.FieldNotNull(FieldResistances))
+}
+
+// VulnerabilitiesIsNil applies the IsNil predicate on the "vulnerabilities" field.
+func VulnerabilitiesIsNil() predicate.Race {
+	return predicate.Race(sql.FieldIsNull(FieldVulnerabilities))
+}
+
+// VulnerabilitiesNotNil applies the NotNil predicate on the "vulnerabilities" field.
+func VulnerabilitiesNotNil() predicate.Race {
+	return predicate.Race(sql.FieldNotNull(FieldVulnerabilities))
+}
+
 // HasWorld applies the HasEdge predicate on the "world" edge.
 func HasWorld() predicate.Race {
 	return predicate.Race(func(s *sql.Selector) {

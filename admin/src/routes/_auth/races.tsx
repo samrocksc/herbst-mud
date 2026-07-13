@@ -74,6 +74,9 @@ function RacesManagement() {
       requirement_tags: playable ? ["restricted"] as unknown as ReadonlyArray<string> : [] as unknown as ReadonlyArray<string>,
       color: row.color ?? "",
       tags: [...(row.tags ?? [])] as unknown as ReadonlyArray<string>,
+      resistances: row.resistances ? { ...row.resistances } : {},
+      vulnerabilities: row.vulnerabilities ? { ...row.vulnerabilities } : {},
+      world_id: row.world_id,
     };
     try {
       await updateMutation.mutateAsync({ id: row.id, input });

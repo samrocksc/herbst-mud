@@ -11,19 +11,30 @@ import (
 )
 
 type combatService struct {
-	charRepo    repository.CharacterRepo
-	damageRepo  repository.DamageLogRepo
-	npcTmplRepo repository.NPCTemplateRepo
-	logger      *slog.Logger
+	charRepo        repository.CharacterRepo
+	damageRepo      repository.DamageLogRepo
+	npcTmplRepo     repository.NPCTemplateRepo
+	equipRepo       repository.EquipmentRepo
+	resistanceSvc   ResistanceService
+	logger          *slog.Logger
 }
 
 func NewCombatService(
 	charRepo repository.CharacterRepo,
 	damageRepo repository.DamageLogRepo,
 	npcTmplRepo repository.NPCTemplateRepo,
+	equipRepo repository.EquipmentRepo,
+	resistanceSvc ResistanceService,
 	logger *slog.Logger,
 ) CombatService {
-	return &combatService{charRepo: charRepo, damageRepo: damageRepo, npcTmplRepo: npcTmplRepo, logger: logger}
+	return &combatService{
+		charRepo:      charRepo,
+		damageRepo:    damageRepo,
+		npcTmplRepo:   npcTmplRepo,
+		equipRepo:     equipRepo,
+		resistanceSvc: resistanceSvc,
+		logger:        logger,
+	}
 }
 
 var ErrCharNotFound = errors.New("character not found")
@@ -36,6 +47,24 @@ func (s *combatService) ApplyDamage(ctx context.Context, attackerID, targetID in
 	if err != nil {
 		return nil, ErrCharNotFound
 	}
+
+	// Apply resistance-based damage adjustment
+	if s.resistanceSvc != nil && damage > 0 {
+		damageType := s.getDamageType(ctx, attackerID)
+		resistances, err := s.resistanceSvc.GetCharacterResistances(ctx, targetID)
+		if err != nil {
+			s.logger.Error("failed to get character resistances", "target_id", targetID, "error", err)
+		} else if len(resistances) > 0 {
+			adjusted := s.resistanceSvc.ApplyResistances(damage, damageType, resistances)
+			if adjusted != damage {
+				s.logger.Debug("damage adjusted by resistances",
+					"target_id", targetID, "damage_type", damageType,
+					"original_damage", damage, "adjusted_damage", adjusted)
+			}
+			damage = adjusted
+		}
+	}
+
 	if char.IsImmortal {
 		newHP := char.Hitpoints - damage
 		if newHP < 1 {
@@ -93,4 +122,25 @@ func (s *combatService) GetCombatStatus(ctx context.Context, charID int) (*Comba
 		return nil, ErrCharNotFound
 	}
 	return &CombatStatusResult{ID: char.ID, HP: char.Hitpoints, MaxHP: char.MaxHitpoints, IsNPC: char.IsNPC}, nil
+}
+
+// getDamageType determines the damage type from the attacker's equipped weapon.
+// Returns "physical" as the default when no weapon is found or attackerID is 0.
+func (s *combatService) getDamageType(ctx context.Context, attackerID int) string {
+	if attackerID == 0 || s.equipRepo == nil {
+		return "physical"
+	}
+
+	items, err := s.equipRepo.ListByOwner(ctx, attackerID)
+	if err != nil {
+		return "physical"
+	}
+
+	for _, item := range items {
+		if item.IsEquipped && item.DamageType != "" {
+			return item.DamageType
+		}
+	}
+
+	return "physical"
 }

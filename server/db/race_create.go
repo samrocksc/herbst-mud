@@ -114,6 +114,18 @@ func (_c *RaceCreate) SetStatGrowthMultipliers(v map[string]float64) *RaceCreate
 	return _c
 }
 
+// SetResistances sets the "resistances" field.
+func (_c *RaceCreate) SetResistances(v map[string]int) *RaceCreate {
+	_c.mutation.SetResistances(v)
+	return _c
+}
+
+// SetVulnerabilities sets the "vulnerabilities" field.
+func (_c *RaceCreate) SetVulnerabilities(v map[string]int) *RaceCreate {
+	_c.mutation.SetVulnerabilities(v)
+	return _c
+}
+
 // AddWorldIDs adds the "world" edge to the World entity by IDs.
 func (_c *RaceCreate) AddWorldIDs(ids ...int) *RaceCreate {
 	_c.mutation.AddWorldIDs(ids...)
@@ -290,6 +302,14 @@ func (_c *RaceCreate) createSpec() (*Race, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.StatGrowthMultipliers(); ok {
 		_spec.SetField(race.FieldStatGrowthMultipliers, field.TypeJSON, value)
 		_node.StatGrowthMultipliers = value
+	}
+	if value, ok := _c.mutation.Resistances(); ok {
+		_spec.SetField(race.FieldResistances, field.TypeJSON, value)
+		_node.Resistances = value
+	}
+	if value, ok := _c.mutation.Vulnerabilities(); ok {
+		_spec.SetField(race.FieldVulnerabilities, field.TypeJSON, value)
+		_node.Vulnerabilities = value
 	}
 	if nodes := _c.mutation.WorldIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

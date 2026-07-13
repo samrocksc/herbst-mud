@@ -18,6 +18,8 @@ export type Race = Readonly<{
   requirement_tags: string[]
   color: string
   tags: string[]
+  resistances: Record<string, number> | null
+  vulnerabilities: Record<string, number> | null
   world_id: string
 }>
 
@@ -32,6 +34,8 @@ export type RaceInput = Readonly<{
   requirement_tags: ReadonlyArray<string>
   color: string
   tags: ReadonlyArray<string>
+  resistances: Readonly<Record<string, number>>
+  vulnerabilities: Readonly<Record<string, number>>
   world_id: string
 }>
 
@@ -54,6 +58,8 @@ function parseRaceForApi(input: RaceInput, worldId?: string): Record<string, unk
     requirement_tags: reqTags,
     color: input.color,
     tags: tags,
+    resistances: { ...input.resistances },
+    vulnerabilities: { ...input.vulnerabilities },
     world_id: effectiveWorldId,
   };
   if (input.stat_modifiers.trim()) {

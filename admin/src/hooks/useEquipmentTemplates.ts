@@ -37,6 +37,7 @@ export type EquipmentTemplate = Readonly<{
   damage_type: string
   weapon_type: string
   is_two_handed: boolean
+  resistance_modifiers: Record<string, number> | null
 }>
 
 export type EquipmentTemplateInput = Partial<{
@@ -70,6 +71,7 @@ export type EquipmentTemplateInput = Partial<{
   damage_type: string
   weapon_type: string
   is_two_handed: boolean
+  resistance_modifiers: Record<string, number>
   world_id: string
 }>
 

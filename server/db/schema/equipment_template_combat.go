@@ -41,5 +41,8 @@ func equipmentTemplateCombatFields() []ent.Field {
 		field.Bool("is_two_handed").
 			Default(false).
 			Comment("Occupies both hand slots"),
+		field.JSON("resistance_modifiers", map[string]int{}).
+			Optional().
+			Comment("Equipment resistance bonuses by damage type, e.g., {\"fire\": 15, \"cold\": 10}"),
 	}
 }

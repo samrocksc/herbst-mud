@@ -697,6 +697,7 @@ var (
 		{Name: "damage_type", Type: field.TypeString, Default: ""},
 		{Name: "weapon_type", Type: field.TypeString, Default: ""},
 		{Name: "is_two_handed", Type: field.TypeBool, Default: false},
+		{Name: "resistance_modifiers", Type: field.TypeJSON, Nullable: true},
 	}
 	// EquipmentTemplatesTable holds the schema information for the "equipment_templates" table.
 	EquipmentTemplatesTable = &schema.Table{
@@ -932,6 +933,8 @@ var (
 		{Name: "requirement_tags", Type: field.TypeJSON, Nullable: true},
 		{Name: "color", Type: field.TypeString, Nullable: true},
 		{Name: "stat_growth_multipliers", Type: field.TypeJSON, Nullable: true},
+		{Name: "resistances", Type: field.TypeJSON, Nullable: true},
+		{Name: "vulnerabilities", Type: field.TypeJSON, Nullable: true},
 	}
 	// RacesTable holds the schema information for the "races" table.
 	RacesTable = &schema.Table{

@@ -772,6 +772,8 @@ type RaceUpdates struct {
 	EquipmentSlots []string
 	ClearTags      bool
 	AddTagIDs      []int
+	Resistances     map[string]int
+	Vulnerabilities map[string]int
 }
 
 type CreateEquipmentTemplateInput struct {

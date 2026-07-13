@@ -73,6 +73,12 @@ type QuestProgressService interface {
 	ValidateAcceptance(ctx context.Context, charID int, questID int) error
 }
 
+// ResistanceService handles character resistance calculation and damage adjustment.
+type ResistanceService interface {
+	GetCharacterResistances(ctx context.Context, characterID int) (map[string]int, error)
+	ApplyResistances(damage int, damageType string, resistances map[string]int) int
+}
+
 // CombatService handles damage, healing, stamina, mana, and NPC combat.
 type CombatService interface {
 	ApplyDamage(ctx context.Context, attackerID, targetID int, damage int) (*CombatResult, error)

@@ -44,6 +44,12 @@ func (Race) Fields() []ent.Field {
 		field.JSON("stat_growth_multipliers", map[string]float64{}).
 			Optional().
 			Comment("Racial stat growth multipliers per level, e.g., {\"hp\": 1.1, \"mana\": 0.9}"),
+		field.JSON("resistances", map[string]int{}).
+			Optional().
+			Comment("Racial resistance percentages by damage type, e.g., {\"fire\": 25, \"cold\": 10}"),
+		field.JSON("vulnerabilities", map[string]int{}).
+			Optional().
+			Comment("Racial vulnerability percentages by damage type, e.g., {\"lightning\": -25}"),
 	}
 }
 

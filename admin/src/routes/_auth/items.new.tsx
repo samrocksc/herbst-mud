@@ -8,6 +8,7 @@ import { FormField, NumberField, SelectField, CheckboxField, TextareaField } fro
 import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
 import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import { CombatFieldsEditor, type CombatFields } from "../../components/CombatFieldsEditor";
+import { KeyValueEditor } from "../../components/KeyValueEditor";
 import { showToast } from "../../components/Toast";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
 import { PageContainer } from "../../components/PageContainer";
@@ -62,6 +63,7 @@ export function CreateItemPage() {
     is_container: boolean; container_capacity: number; is_locked: boolean
     key_item_id: string; reveal_condition: string
     world_id: string
+    resistance_modifiers: Record<string, number>
   } & CombatFields>({
     name: "",
     description: "",
@@ -92,6 +94,7 @@ export function CreateItemPage() {
     weapon_type: "",
     is_two_handed: false,
     stats: "{}",
+    resistance_modifiers: {},
     world_id: currentWorld || "default",
   });
 
@@ -171,6 +174,20 @@ export function CreateItemPage() {
 
           <div className="mt-4 pt-4 border-t border-border">
             <CombatFieldsEditor form={form} onChange={(u) => setForm(prev => ({ ...prev, ...u }))} slot={form.slot} />
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-border">
+            <h3 className="text-text text-sm font-semibold mb-1">Resistance Modifiers</h3>
+            <p className="text-xs text-text-muted mb-2">
+              Damage type → percentage. Applied to the wearer when this equipment is equipped (e.g. fire: 10 = +10% fire resistance).
+            </p>
+            <KeyValueEditor
+              label="Resistance Modifiers"
+              value={{ ...form.resistance_modifiers }}
+              onChange={(v) => setForm(prev => ({ ...prev, resistance_modifiers: v }))}
+              keyPlaceholder="e.g. fire"
+              tooltip="Map of damage type to resistance modifier percentage. Positive = more resistance."
+            />
           </div>
 
           <div className="flex gap-2 justify-end mt-6">

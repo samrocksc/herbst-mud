@@ -23571,6 +23571,7 @@ type EquipmentTemplateMutation struct {
 	damage_type                *string
 	weapon_type                *string
 	is_two_handed              *bool
+	resistance_modifiers       *map[string]int
 	clearedFields              map[string]struct{}
 	equipment                  map[int]struct{}
 	removedequipment           map[int]struct{}
@@ -25075,6 +25076,55 @@ func (m *EquipmentTemplateMutation) ResetIsTwoHanded() {
 	m.is_two_handed = nil
 }
 
+// SetResistanceModifiers sets the "resistance_modifiers" field.
+func (m *EquipmentTemplateMutation) SetResistanceModifiers(value map[string]int) {
+	m.resistance_modifiers = &value
+}
+
+// ResistanceModifiers returns the value of the "resistance_modifiers" field in the mutation.
+func (m *EquipmentTemplateMutation) ResistanceModifiers() (r map[string]int, exists bool) {
+	v := m.resistance_modifiers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResistanceModifiers returns the old "resistance_modifiers" field's value of the EquipmentTemplate entity.
+// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EquipmentTemplateMutation) OldResistanceModifiers(ctx context.Context) (v map[string]int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResistanceModifiers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResistanceModifiers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResistanceModifiers: %w", err)
+	}
+	return oldValue.ResistanceModifiers, nil
+}
+
+// ClearResistanceModifiers clears the value of the "resistance_modifiers" field.
+func (m *EquipmentTemplateMutation) ClearResistanceModifiers() {
+	m.resistance_modifiers = nil
+	m.clearedFields[equipmenttemplate.FieldResistanceModifiers] = struct{}{}
+}
+
+// ResistanceModifiersCleared returns if the "resistance_modifiers" field was cleared in this mutation.
+func (m *EquipmentTemplateMutation) ResistanceModifiersCleared() bool {
+	_, ok := m.clearedFields[equipmenttemplate.FieldResistanceModifiers]
+	return ok
+}
+
+// ResetResistanceModifiers resets all changes to the "resistance_modifiers" field.
+func (m *EquipmentTemplateMutation) ResetResistanceModifiers() {
+	m.resistance_modifiers = nil
+	delete(m.clearedFields, equipmenttemplate.FieldResistanceModifiers)
+}
+
 // AddEquipmentIDs adds the "equipment" edge to the Equipment entity by ids.
 func (m *EquipmentTemplateMutation) AddEquipmentIDs(ids ...int) {
 	if m.equipment == nil {
@@ -25163,7 +25213,7 @@ func (m *EquipmentTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 32)
+	fields := make([]string, 0, 33)
 	if m.slug != nil {
 		fields = append(fields, equipmenttemplate.FieldSlug)
 	}
@@ -25260,6 +25310,9 @@ func (m *EquipmentTemplateMutation) Fields() []string {
 	if m.is_two_handed != nil {
 		fields = append(fields, equipmenttemplate.FieldIsTwoHanded)
 	}
+	if m.resistance_modifiers != nil {
+		fields = append(fields, equipmenttemplate.FieldResistanceModifiers)
+	}
 	return fields
 }
 
@@ -25332,6 +25385,8 @@ func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.WeaponType()
 	case equipmenttemplate.FieldIsTwoHanded:
 		return m.IsTwoHanded()
+	case equipmenttemplate.FieldResistanceModifiers:
+		return m.ResistanceModifiers()
 	}
 	return nil, false
 }
@@ -25405,6 +25460,8 @@ func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (
 		return m.OldWeaponType(ctx)
 	case equipmenttemplate.FieldIsTwoHanded:
 		return m.OldIsTwoHanded(ctx)
+	case equipmenttemplate.FieldResistanceModifiers:
+		return m.OldResistanceModifiers(ctx)
 	}
 	return nil, fmt.Errorf("unknown EquipmentTemplate field %s", name)
 }
@@ -25638,6 +25695,13 @@ func (m *EquipmentTemplateMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetIsTwoHanded(v)
 		return nil
+	case equipmenttemplate.FieldResistanceModifiers:
+		v, ok := value.(map[string]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResistanceModifiers(v)
+		return nil
 	}
 	return fmt.Errorf("unknown EquipmentTemplate field %s", name)
 }
@@ -25800,6 +25864,9 @@ func (m *EquipmentTemplateMutation) ClearedFields() []string {
 	if m.FieldCleared(equipmenttemplate.FieldExpiresAt) {
 		fields = append(fields, equipmenttemplate.FieldExpiresAt)
 	}
+	if m.FieldCleared(equipmenttemplate.FieldResistanceModifiers) {
+		fields = append(fields, equipmenttemplate.FieldResistanceModifiers)
+	}
 	return fields
 }
 
@@ -25822,6 +25889,9 @@ func (m *EquipmentTemplateMutation) ClearField(name string) error {
 		return nil
 	case equipmenttemplate.FieldExpiresAt:
 		m.ClearExpiresAt()
+		return nil
+	case equipmenttemplate.FieldResistanceModifiers:
+		m.ClearResistanceModifiers()
 		return nil
 	}
 	return fmt.Errorf("unknown EquipmentTemplate nullable field %s", name)
@@ -25926,6 +25996,9 @@ func (m *EquipmentTemplateMutation) ResetField(name string) error {
 		return nil
 	case equipmenttemplate.FieldIsTwoHanded:
 		m.ResetIsTwoHanded()
+		return nil
+	case equipmenttemplate.FieldResistanceModifiers:
+		m.ResetResistanceModifiers()
 		return nil
 	}
 	return fmt.Errorf("unknown EquipmentTemplate field %s", name)
@@ -33908,6 +33981,8 @@ type RaceMutation struct {
 	appendrequirement_tags  []string
 	color                   *string
 	stat_growth_multipliers *map[string]float64
+	resistances             *map[string]int
+	vulnerabilities         *map[string]int
 	clearedFields           map[string]struct{}
 	world                   map[int]struct{}
 	removedworld            map[int]struct{}
@@ -34477,6 +34552,104 @@ func (m *RaceMutation) ResetStatGrowthMultipliers() {
 	delete(m.clearedFields, race.FieldStatGrowthMultipliers)
 }
 
+// SetResistances sets the "resistances" field.
+func (m *RaceMutation) SetResistances(value map[string]int) {
+	m.resistances = &value
+}
+
+// Resistances returns the value of the "resistances" field in the mutation.
+func (m *RaceMutation) Resistances() (r map[string]int, exists bool) {
+	v := m.resistances
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResistances returns the old "resistances" field's value of the Race entity.
+// If the Race object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RaceMutation) OldResistances(ctx context.Context) (v map[string]int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResistances is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResistances requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResistances: %w", err)
+	}
+	return oldValue.Resistances, nil
+}
+
+// ClearResistances clears the value of the "resistances" field.
+func (m *RaceMutation) ClearResistances() {
+	m.resistances = nil
+	m.clearedFields[race.FieldResistances] = struct{}{}
+}
+
+// ResistancesCleared returns if the "resistances" field was cleared in this mutation.
+func (m *RaceMutation) ResistancesCleared() bool {
+	_, ok := m.clearedFields[race.FieldResistances]
+	return ok
+}
+
+// ResetResistances resets all changes to the "resistances" field.
+func (m *RaceMutation) ResetResistances() {
+	m.resistances = nil
+	delete(m.clearedFields, race.FieldResistances)
+}
+
+// SetVulnerabilities sets the "vulnerabilities" field.
+func (m *RaceMutation) SetVulnerabilities(value map[string]int) {
+	m.vulnerabilities = &value
+}
+
+// Vulnerabilities returns the value of the "vulnerabilities" field in the mutation.
+func (m *RaceMutation) Vulnerabilities() (r map[string]int, exists bool) {
+	v := m.vulnerabilities
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVulnerabilities returns the old "vulnerabilities" field's value of the Race entity.
+// If the Race object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RaceMutation) OldVulnerabilities(ctx context.Context) (v map[string]int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVulnerabilities is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVulnerabilities requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVulnerabilities: %w", err)
+	}
+	return oldValue.Vulnerabilities, nil
+}
+
+// ClearVulnerabilities clears the value of the "vulnerabilities" field.
+func (m *RaceMutation) ClearVulnerabilities() {
+	m.vulnerabilities = nil
+	m.clearedFields[race.FieldVulnerabilities] = struct{}{}
+}
+
+// VulnerabilitiesCleared returns if the "vulnerabilities" field was cleared in this mutation.
+func (m *RaceMutation) VulnerabilitiesCleared() bool {
+	_, ok := m.clearedFields[race.FieldVulnerabilities]
+	return ok
+}
+
+// ResetVulnerabilities resets all changes to the "vulnerabilities" field.
+func (m *RaceMutation) ResetVulnerabilities() {
+	m.vulnerabilities = nil
+	delete(m.clearedFields, race.FieldVulnerabilities)
+}
+
 // AddWorldIDs adds the "world" edge to the World entity by ids.
 func (m *RaceMutation) AddWorldIDs(ids ...int) {
 	if m.world == nil {
@@ -34673,7 +34846,7 @@ func (m *RaceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RaceMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.world_id != nil {
 		fields = append(fields, race.FieldWorldID)
 	}
@@ -34704,6 +34877,12 @@ func (m *RaceMutation) Fields() []string {
 	if m.stat_growth_multipliers != nil {
 		fields = append(fields, race.FieldStatGrowthMultipliers)
 	}
+	if m.resistances != nil {
+		fields = append(fields, race.FieldResistances)
+	}
+	if m.vulnerabilities != nil {
+		fields = append(fields, race.FieldVulnerabilities)
+	}
 	return fields
 }
 
@@ -34732,6 +34911,10 @@ func (m *RaceMutation) Field(name string) (ent.Value, bool) {
 		return m.Color()
 	case race.FieldStatGrowthMultipliers:
 		return m.StatGrowthMultipliers()
+	case race.FieldResistances:
+		return m.Resistances()
+	case race.FieldVulnerabilities:
+		return m.Vulnerabilities()
 	}
 	return nil, false
 }
@@ -34761,6 +34944,10 @@ func (m *RaceMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldColor(ctx)
 	case race.FieldStatGrowthMultipliers:
 		return m.OldStatGrowthMultipliers(ctx)
+	case race.FieldResistances:
+		return m.OldResistances(ctx)
+	case race.FieldVulnerabilities:
+		return m.OldVulnerabilities(ctx)
 	}
 	return nil, fmt.Errorf("unknown Race field %s", name)
 }
@@ -34840,6 +35027,20 @@ func (m *RaceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatGrowthMultipliers(v)
 		return nil
+	case race.FieldResistances:
+		v, ok := value.(map[string]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResistances(v)
+		return nil
+	case race.FieldVulnerabilities:
+		v, ok := value.(map[string]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVulnerabilities(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Race field %s", name)
 }
@@ -34885,6 +35086,12 @@ func (m *RaceMutation) ClearedFields() []string {
 	if m.FieldCleared(race.FieldStatGrowthMultipliers) {
 		fields = append(fields, race.FieldStatGrowthMultipliers)
 	}
+	if m.FieldCleared(race.FieldResistances) {
+		fields = append(fields, race.FieldResistances)
+	}
+	if m.FieldCleared(race.FieldVulnerabilities) {
+		fields = append(fields, race.FieldVulnerabilities)
+	}
 	return fields
 }
 
@@ -34913,6 +35120,12 @@ func (m *RaceMutation) ClearField(name string) error {
 		return nil
 	case race.FieldStatGrowthMultipliers:
 		m.ClearStatGrowthMultipliers()
+		return nil
+	case race.FieldResistances:
+		m.ClearResistances()
+		return nil
+	case race.FieldVulnerabilities:
+		m.ClearVulnerabilities()
 		return nil
 	}
 	return fmt.Errorf("unknown Race nullable field %s", name)
@@ -34951,6 +35164,12 @@ func (m *RaceMutation) ResetField(name string) error {
 		return nil
 	case race.FieldStatGrowthMultipliers:
 		m.ResetStatGrowthMultipliers()
+		return nil
+	case race.FieldResistances:
+		m.ResetResistances()
+		return nil
+	case race.FieldVulnerabilities:
+		m.ResetVulnerabilities()
 		return nil
 	}
 	return fmt.Errorf("unknown Race field %s", name)
