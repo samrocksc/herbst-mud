@@ -13,6 +13,8 @@ const TOOLS = [
   { to: "/logs", emoji: "📋", title: "Log Viewer", desc: "View and filter application logs with live tail" },
   { to: "/skills", emoji: "🎯", title: "Skills Manager", desc: "Manage trainable skill specializations" },
   { to: "/factions", emoji: "⚔️", title: "Factions Manager", desc: "Manage factions, categories, and member standing" },
+  { to: "/event-logs", emoji: "📊", title: "Event Logs", desc: "View game events with filters and auto-refresh" },
+  { to: "/achievements", emoji: "🏆", title: "Achievements", desc: "View achievement definitions and completion stats" },
 ] as const;
 
 export function ToolGrid() {
@@ -21,7 +23,7 @@ export function ToolGrid() {
       {TOOLS.map((tool) => (
         <Link
           key={tool.to}
-          to={tool.to as "/map" | "/npcs" | "/items" | "/export" | "/players" | "/characters" | "/abilities" | "/quests" | "/logs" | "/skills" | "/factions"}
+          to={tool.to as "/map" | "/npcs" | "/items" | "/export" | "/players" | "/characters" | "/abilities" | "/quests" | "/logs" | "/skills" | "/factions" | "/event-logs" | "/achievements"}
           className="block bg-surface-muted rounded-lg p-6 no-underline text-text border border-border transition-colors hover:border-primary hover:bg-surface-muted/70"
         >
           <div className="text-2xl mb-2">{tool.emoji}</div>

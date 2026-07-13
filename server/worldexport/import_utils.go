@@ -25,6 +25,7 @@ type idMaps struct {
 	ShopTemplates     map[int]int
 	EffectHooks       map[int]int
 	Effects           map[int]int // standalone Effects are global, ID stays same
+	Skills            map[int]int
 }
 
 func newIDMaps() *idMaps {
@@ -48,6 +49,7 @@ func newIDMaps() *idMaps {
 		ShopTemplates:     make(map[int]int),
 		EffectHooks:       make(map[int]int),
 		Effects:           make(map[int]int),
+		Skills:            make(map[int]int),
 	}
 }
 

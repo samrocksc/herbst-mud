@@ -29,6 +29,7 @@ type WorldSnapshot struct {
 	SocialCommands []map[string]interface{} `json:"social_commands"`
 	ShopTemplates []map[string]interface{} `json:"shop_templates"`
 	Zones        []map[string]interface{} `json:"zones"`
+	Skills        []map[string]interface{} `json:"skills"`
 }
 
 // ImportResult reports what was created during import.
@@ -54,4 +55,5 @@ type ImportResult struct {
 	SocialCommands      int `json:"social_commands"`
 	ShopTemplates       int `json:"shop_templates"`
 	Zones               int `json:"zones"`
+	Skills              int `json:"skills"`
 }

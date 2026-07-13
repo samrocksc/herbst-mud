@@ -109,6 +109,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 	baseConstitution := constants.DefaultStats.Constitution + statBonuses.Constitution
 	baseIntelligence := constants.DefaultStats.Intelligence + statBonuses.Intelligence
 	baseWisdom := constants.DefaultStats.Wisdom + statBonuses.Wisdom
+	baseCharisma := constants.DefaultStats.Charisma + statBonuses.Charisma
 	worldIntID := 0
 	if input.WorldID != "" {
 		worldObj, err := s.repos.World.GetByName(ctx, input.WorldID)
@@ -162,6 +163,7 @@ func (s *characterService) CreateCharacter(ctx context.Context, input CreateChar
 		Constitution:    baseConstitution,
 		Intelligence:    baseIntelligence,
 		Wisdom:          baseWisdom,
+		Charisma:        baseCharisma,
 	})
 	if err != nil {
 		return nil, err

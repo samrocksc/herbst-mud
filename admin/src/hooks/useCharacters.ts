@@ -31,6 +31,7 @@ export type Character = Readonly<{
   constitution: number
   intelligence: number
   wisdom: number
+  charisma: number
   lastSeenAt: string | null
 }>
 
@@ -108,6 +109,31 @@ export function useAddCharacterGold() {
       queryClient.invalidateQueries({ queryKey: ["character-gold", vars.id] });
       queryClient.invalidateQueries({ queryKey: ["character", vars.id] });
     },
+  });
+}
+
+export type CharacterSkills = Readonly<{
+  id: number
+  name: string
+  skills: Readonly<Record<string, Readonly<{ level: number; bonus: number }>>>
+  faction_abilities: ReadonlyArray<Readonly<{
+    id: number
+    name: string
+    slug: string
+    ability_type: string
+    eligible: boolean
+    reason: string
+  }>>
+}>
+
+export function useCharacterSkills(id: number) {
+  return useQuery({
+    queryKey: ["character-skills", id],
+    queryFn: async (): Promise<CharacterSkills | null> => {
+      const data = await apiGet<CharacterSkills>(`${API}/characters/${id}/skills`);
+      return data ?? null;
+    },
+    enabled: !!id,
   });
 }
 

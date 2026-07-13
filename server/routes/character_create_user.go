@@ -86,6 +86,7 @@ func createCharacterForUser(svc *service.Container, repos *repository.Container)
 			"constitution":   char.Constitution,
 			"intelligence":   char.Intelligence,
 			"wisdom":         char.Wisdom,
+			"charisma":       char.Charisma,
 			"level":          char.Level,
 			"xp":            char.Xp,
 		})
