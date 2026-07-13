@@ -11,6 +11,7 @@ import (
 	"herbst-server/db/characterability"
 	"herbst-server/db/faction"
 	"herbst-server/db/npcability"
+	"herbst-server/db/skill"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -223,6 +224,34 @@ func (_c *AbilityCreate) SetNillableCooldownSeconds(v *int) *AbilityCreate {
 	return _c
 }
 
+// SetRequiredSkillID sets the "required_skill_id" field.
+func (_c *AbilityCreate) SetRequiredSkillID(v int) *AbilityCreate {
+	_c.mutation.SetRequiredSkillID(v)
+	return _c
+}
+
+// SetNillableRequiredSkillID sets the "required_skill_id" field if the given value is not nil.
+func (_c *AbilityCreate) SetNillableRequiredSkillID(v *int) *AbilityCreate {
+	if v != nil {
+		_c.SetRequiredSkillID(*v)
+	}
+	return _c
+}
+
+// SetRequiredSkillLevel sets the "required_skill_level" field.
+func (_c *AbilityCreate) SetRequiredSkillLevel(v int) *AbilityCreate {
+	_c.mutation.SetRequiredSkillLevel(v)
+	return _c
+}
+
+// SetNillableRequiredSkillLevel sets the "required_skill_level" field if the given value is not nil.
+func (_c *AbilityCreate) SetNillableRequiredSkillLevel(v *int) *AbilityCreate {
+	if v != nil {
+		_c.SetRequiredSkillLevel(*v)
+	}
+	return _c
+}
+
 // AddCharacterIDs adds the "characters" edge to the CharacterAbility entity by IDs.
 func (_c *AbilityCreate) AddCharacterIDs(ids ...int) *AbilityCreate {
 	_c.mutation.AddCharacterIDs(ids...)
@@ -285,6 +314,11 @@ func (_c *AbilityCreate) SetNillableFactionID(id *int) *AbilityCreate {
 // SetFaction sets the "faction" edge to the Faction entity.
 func (_c *AbilityCreate) SetFaction(v *Faction) *AbilityCreate {
 	return _c.SetFactionID(v.ID)
+}
+
+// SetRequiredSkill sets the "required_skill" edge to the Skill entity.
+func (_c *AbilityCreate) SetRequiredSkill(v *Skill) *AbilityCreate {
+	return _c.SetRequiredSkillID(v.ID)
 }
 
 // Mutation returns the AbilityMutation object of the builder.
@@ -358,6 +392,10 @@ func (_c *AbilityCreate) defaults() {
 		v := ability.DefaultCooldownSeconds
 		_c.mutation.SetCooldownSeconds(v)
 	}
+	if _, ok := _c.mutation.RequiredSkillLevel(); !ok {
+		v := ability.DefaultRequiredSkillLevel
+		_c.mutation.SetRequiredSkillLevel(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -397,6 +435,9 @@ func (_c *AbilityCreate) check() error {
 	}
 	if _, ok := _c.mutation.CooldownSeconds(); !ok {
 		return &ValidationError{Name: "cooldown_seconds", err: errors.New(`db: missing required field "Ability.cooldown_seconds"`)}
+	}
+	if _, ok := _c.mutation.RequiredSkillLevel(); !ok {
+		return &ValidationError{Name: "required_skill_level", err: errors.New(`db: missing required field "Ability.required_skill_level"`)}
 	}
 	return nil
 }
@@ -488,6 +529,10 @@ func (_c *AbilityCreate) createSpec() (*Ability, *sqlgraph.CreateSpec) {
 		_spec.SetField(ability.FieldCooldownSeconds, field.TypeInt, value)
 		_node.CooldownSeconds = value
 	}
+	if value, ok := _c.mutation.RequiredSkillLevel(); ok {
+		_spec.SetField(ability.FieldRequiredSkillLevel, field.TypeInt, value)
+		_node.RequiredSkillLevel = value
+	}
 	if nodes := _c.mutation.CharactersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -551,6 +596,23 @@ func (_c *AbilityCreate) createSpec() (*Ability, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.faction_abilities = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RequiredSkillIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ability.RequiredSkillTable,
+			Columns: []string{ability.RequiredSkillColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RequiredSkillID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

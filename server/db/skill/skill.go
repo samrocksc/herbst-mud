@@ -38,6 +38,8 @@ const (
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
 	EdgeChildren = "children"
+	// EdgeAbilities holds the string denoting the abilities edge name in mutations.
+	EdgeAbilities = "abilities"
 	// Table holds the table name of the skill in the database.
 	Table = "skills"
 	// WorldTable is the table that holds the world relation/edge.
@@ -62,6 +64,13 @@ const (
 	ChildrenTable = "skills"
 	// ChildrenColumn is the table column denoting the children relation/edge.
 	ChildrenColumn = "parent_skill_id"
+	// AbilitiesTable is the table that holds the abilities relation/edge.
+	AbilitiesTable = "abilities"
+	// AbilitiesInverseTable is the table name for the Ability entity.
+	// It exists in this package in order to avoid circular dependency with the "ability" package.
+	AbilitiesInverseTable = "abilities"
+	// AbilitiesColumn is the table column denoting the abilities relation/edge.
+	AbilitiesColumn = "required_skill_id"
 )
 
 // Columns holds all SQL columns for skill fields.
@@ -186,6 +195,20 @@ func ByChildren(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newChildrenStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAbilitiesCount orders the results by abilities count.
+func ByAbilitiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAbilitiesStep(), opts...)
+	}
+}
+
+// ByAbilities orders the results by abilities terms.
+func ByAbilities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAbilitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newWorldStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -212,5 +235,12 @@ func newChildrenStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ChildrenTable, ChildrenColumn),
+	)
+}
+func newAbilitiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AbilitiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AbilitiesTable, AbilitiesColumn),
 	)
 }

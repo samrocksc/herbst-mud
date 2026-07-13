@@ -90,6 +90,10 @@ func init() {
 	abilityDescCooldownSeconds := abilityFields[15].Descriptor()
 	// ability.DefaultCooldownSeconds holds the default value on creation for the cooldown_seconds field.
 	ability.DefaultCooldownSeconds = abilityDescCooldownSeconds.Default.(int)
+	// abilityDescRequiredSkillLevel is the schema descriptor for required_skill_level field.
+	abilityDescRequiredSkillLevel := abilityFields[17].Descriptor()
+	// ability.DefaultRequiredSkillLevel holds the default value on creation for the required_skill_level field.
+	ability.DefaultRequiredSkillLevel = abilityDescRequiredSkillLevel.Default.(int)
 	abilityeffectFields := schema.AbilityEffect{}.Fields()
 	_ = abilityeffectFields
 	// abilityeffectDescDamageSubtype is the schema descriptor for damage_subtype field.

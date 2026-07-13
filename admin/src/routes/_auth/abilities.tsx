@@ -2,6 +2,7 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAbilities } from "../../hooks/useAbilities";
+import { useGameSkills, type GameSkill } from "../../hooks/useGameSkills";
 import { PageHeader } from "../../components/PageHeader";
 import { DataTable, type Column } from "../../components/DataTable";
 import { Button } from "../../components/Button";
@@ -13,63 +14,79 @@ export const Route = createFileRoute("/_auth/abilities")({
   component: AbilitiesManagement,
 });
 
-const COLUMNS: Column<Ability>[] = [
-  {
-    header: "Name",
-    accessor: "name",
-    render: (_, row) => (
-      <Link
-        to="/abilities/$abilityId"
-        params={{ abilityId: String(row.id) }}
-        className="no-underline text-primary hover:underline font-bold"
-      >
-        {row.name}
-      </Link>
-    ),
-  },
-  {
-    header: "Description",
-    accessor: "description",
-    // Refinement #11: show a 1-line truncated description instead of the full text
-    render: (val: unknown) => (
-      <span className="text-text-muted text-xs" title={String(val ?? "")}>
-        {String(val ?? "").slice(0, 80)}
-        {String(val ?? "").length > 80 ? "…" : ""}
-      </span>
-    ),
-  },
-  {
-    header: "Type",
-    accessor: "ability_type",
-    // Refinement #11: capitalize raw type values
-    render: (val: unknown) => (
-      <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-text border border-primary/30 capitalize">
-        {String(val)}
-      </span>
-    ),
-  },
-  {
-    header: "Class",
-    accessor: "ability_class",
-    render: (val: unknown) => (
-      <span className="text-xs px-2 py-0.5 rounded bg-accent/15 text-text border border-accent/30 capitalize">
-        {String(val)}
-      </span>
-    ),
-  },
-  {
-    header: "Costs",
-    accessor: "mana_cost",
-    render: (_, row: Ability) => {
-      const parts: React.ReactNode[] = [];
-      if (row.mana_cost > 0) parts.push(<span key="mp" className="cost-badge" title="Mana Cost">MP: {row.mana_cost}</span>);
-      if (row.stamina_cost > 0) parts.push(<span key="sp" className="cost-badge" title="Stamina Cost">SP: {row.stamina_cost}</span>);
-      if (row.hp_cost > 0) parts.push(<span key="hp" className="cost-badge" title="HP Cost">HP: {row.hp_cost}</span>);
-      if (row.cooldown_seconds > 0) parts.push(<span key="cd" className="cost-badge" title="Cooldown">CD: {row.cooldown_seconds}s</span>);
-      return parts.length > 0 ? parts : <span className="text-muted">—</span>;
+function buildColumns(skillsMap: Map<number, GameSkill>): Column<Ability>[] {
+  return [
+    {
+      header: "Name",
+      accessor: "name",
+      render: (_, row) => (
+        <Link
+          to="/abilities/$abilityId"
+          params={{ abilityId: String(row.id) }}
+          className="no-underline text-primary hover:underline font-bold"
+        >
+          {row.name}
+        </Link>
+      ),
     },
-  },
-];
+    {
+      header: "Description",
+      accessor: "description",
+      // Refinement #11: show a 1-line truncated description instead of the full text
+      render: (val: unknown) => (
+        <span className="text-text-muted text-xs" title={String(val ?? "")}>
+          {String(val ?? "").slice(0, 80)}
+          {String(val ?? "").length > 80 ? "…" : ""}
+        </span>
+      ),
+    },
+    {
+      header: "Type",
+      accessor: "ability_type",
+      // Refinement #11: capitalize raw type values
+      render: (val: unknown) => (
+        <span className="text-xs px-2 py-0.5 rounded bg-primary/15 text-text border border-primary/30 capitalize">
+          {String(val)}
+        </span>
+      ),
+    },
+    {
+      header: "Class",
+      accessor: "ability_class",
+      render: (val: unknown) => (
+        <span className="text-xs px-2 py-0.5 rounded bg-accent/15 text-text border border-accent/30 capitalize">
+          {String(val)}
+        </span>
+      ),
+    },
+    {
+      header: "Costs",
+      accessor: "mana_cost",
+      render: (_, row: Ability) => {
+        const parts: React.ReactNode[] = [];
+        if (row.mana_cost > 0) parts.push(<span key="mp" className="cost-badge" title="Mana Cost">MP: {row.mana_cost}</span>);
+        if (row.stamina_cost > 0) parts.push(<span key="sp" className="cost-badge" title="Stamina Cost">SP: {row.stamina_cost}</span>);
+        if (row.hp_cost > 0) parts.push(<span key="hp" className="cost-badge" title="HP Cost">HP: {row.hp_cost}</span>);
+        if (row.cooldown_seconds > 0) parts.push(<span key="cd" className="cost-badge" title="Cooldown">CD: {row.cooldown_seconds}s</span>);
+        return parts.length > 0 ? parts : <span className="text-muted">—</span>;
+      },
+    },
+    {
+      header: "Skill Req",
+      accessor: "required_skill_id",
+      render: (_, row: Ability) => {
+        if (!row.required_skill_id) return <span className="text-muted">—</span>;
+        const skill = skillsMap.get(row.required_skill_id);
+        const name = skill?.display_name ?? `Skill #${row.required_skill_id}`;
+        return (
+          <span className="text-xs px-2 py-0.5 rounded bg-warning/15 text-text border border-warning/30">
+            {name} ≥ Lv {row.required_skill_level}
+          </span>
+        );
+      },
+    },
+  ];
+}
 
 export function AbilitiesManagement() {
   const [filterType, setFilterType] = useState<string>("");
@@ -80,6 +97,9 @@ export function AbilitiesManagement() {
     type: filterType || undefined,
     abilityClass: filterClass || undefined,
   });
+  const { data: gameSkills } = useGameSkills();
+  const skillsMap = new Map<number, GameSkill>((gameSkills ?? []).map((s) => [s.id, s]));
+  const columns = buildColumns(skillsMap);
 
   if (location.pathname !== "/abilities") return <Outlet />;
 
@@ -134,7 +154,7 @@ export function AbilitiesManagement() {
       </FilterBar>
 
       <DataTable
-        columns={COLUMNS}
+        columns={columns}
         data={abilities ?? []}
         getKey={(row) => row.id}
         emptyMessage={

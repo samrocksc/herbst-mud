@@ -8,6 +8,7 @@ import {
   type CreateAbilityEffectInput,
 } from "../../hooks/useAbilities";
 import { useTags } from "../../hooks/useTags";
+import { useGameSkills } from "../../hooks/useGameSkills";
 import { PageHeader } from "../../components/PageHeader";
 import { Button } from "../../components/Button";
 import { SearchableSelect } from "../../components/SearchableSelect";
@@ -97,6 +98,8 @@ const EMPTY_ABILITY: AbilityInput = {
   slug: "",
   caster_message: "",
   recipient_message: "",
+  required_skill_id: null,
+  required_skill_level: 0,
 };
 
 const EMPTY_EFFECT: AbilityEffect = {
@@ -117,6 +120,7 @@ export function CreateAbilityPage() {
   const createAbility = useCreateAbility();
   const createAbilityEffect = useCreateAbilityEffect();
   const { data: availableTags } = useTags();
+  const { data: gameSkills } = useGameSkills();
   const [formData, setFormData] = useState<AbilityInput>(EMPTY_ABILITY);
   const [effects, setEffects] = useState<AbilityEffect[]>([]);
   const [currentEffect, setCurrentEffect] = useState<AbilityEffect>(EMPTY_EFFECT);
@@ -294,6 +298,30 @@ export function CreateAbilityPage() {
                 value={formData.recipient_message}
                 onChange={(v) => set({ recipient_message: v })}
                 placeholder="e.g., {actor} casts fireball at you"
+              />
+            </div>
+          </section>
+
+          {/* Phase 2: Skill Requirement */}
+          <section>
+            <h3 className="text-text font-semibold mb-1 border-l-4 border-primary pl-3">Skill Requirement (optional)</h3>
+            <p className="text-xs text-muted mb-3 ml-1">
+ Gate this ability behind a skill level. Characters must have the selected skill at or above the required level to use this ability. Leave blank for no requirement.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <SelectField
+                label="Required Skill"
+                value={String(formData.required_skill_id ?? "")}
+                onChange={(v) => set({ required_skill_id: v ? Number(v) : null, required_skill_level: v ? formData.required_skill_level : 0 })}
+                options={(gameSkills ?? []).map((s) => ({ value: String(s.id), label: s.display_name }))}
+                placeholder="— None —"
+                tooltip="Select a skill that the character must possess to use this ability."
+              />
+              <NumberField
+                label="Required Skill Level"
+                value={formData.required_skill_level}
+                onChange={(v) => set({ required_skill_level: v })}
+                tooltip="Minimum skill level required. 0 means no level requirement."
               />
             </div>
           </section>

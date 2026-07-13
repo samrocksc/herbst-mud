@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/ability"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/skill"
 	"herbst-server/db/world"
@@ -167,6 +168,21 @@ func (_c *SkillCreate) AddChildren(v ...*Skill) *SkillCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddChildIDs(ids...)
+}
+
+// AddAbilityIDs adds the "abilities" edge to the Ability entity by IDs.
+func (_c *SkillCreate) AddAbilityIDs(ids ...int) *SkillCreate {
+	_c.mutation.AddAbilityIDs(ids...)
+	return _c
+}
+
+// AddAbilities adds the "abilities" edges to the Ability entity.
+func (_c *SkillCreate) AddAbilities(v ...*Ability) *SkillCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAbilityIDs(ids...)
 }
 
 // Mutation returns the SkillMutation object of the builder.
@@ -354,6 +370,22 @@ func (_c *SkillCreate) createSpec() (*Skill, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AbilitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.AbilitiesTable,
+			Columns: []string{skill.AbilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -27,7 +27,9 @@ var (
 		{Name: "proc_chance", Type: field.TypeFloat64, Default: 0},
 		{Name: "proc_event", Type: field.TypeString, Nullable: true},
 		{Name: "cooldown_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "required_skill_level", Type: field.TypeInt, Default: 0},
 		{Name: "faction_abilities", Type: field.TypeInt, Nullable: true},
+		{Name: "required_skill_id", Type: field.TypeInt, Nullable: true},
 	}
 	// AbilitiesTable holds the schema information for the "abilities" table.
 	AbilitiesTable = &schema.Table{
@@ -37,8 +39,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "abilities_factions_abilities",
-				Columns:    []*schema.Column{AbilitiesColumns[17]},
+				Columns:    []*schema.Column{AbilitiesColumns[18]},
 				RefColumns: []*schema.Column{FactionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "abilities_skills_abilities",
+				Columns:    []*schema.Column{AbilitiesColumns[19]},
+				RefColumns: []*schema.Column{SkillsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -1559,6 +1567,7 @@ var (
 
 func init() {
 	AbilitiesTable.ForeignKeys[0].RefTable = FactionsTable
+	AbilitiesTable.ForeignKeys[1].RefTable = SkillsTable
 	AbilityEffectsTable.ForeignKeys[0].RefTable = AbilitiesTable
 	ActiveEffectsTable.ForeignKeys[0].RefTable = CharactersTable
 	ActiveEffectsTable.ForeignKeys[1].RefTable = EffectsTable

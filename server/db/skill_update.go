@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"herbst-server/db/ability"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/predicate"
 	"herbst-server/db/skill"
@@ -226,6 +227,21 @@ func (_u *SkillUpdate) AddChildren(v ...*Skill) *SkillUpdate {
 	return _u.AddChildIDs(ids...)
 }
 
+// AddAbilityIDs adds the "abilities" edge to the Ability entity by IDs.
+func (_u *SkillUpdate) AddAbilityIDs(ids ...int) *SkillUpdate {
+	_u.mutation.AddAbilityIDs(ids...)
+	return _u
+}
+
+// AddAbilities adds the "abilities" edges to the Ability entity.
+func (_u *SkillUpdate) AddAbilities(v ...*Ability) *SkillUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAbilityIDs(ids...)
+}
+
 // Mutation returns the SkillMutation object of the builder.
 func (_u *SkillUpdate) Mutation() *SkillMutation {
 	return _u.mutation
@@ -283,6 +299,27 @@ func (_u *SkillUpdate) RemoveChildren(v ...*Skill) *SkillUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveChildIDs(ids...)
+}
+
+// ClearAbilities clears all "abilities" edges to the Ability entity.
+func (_u *SkillUpdate) ClearAbilities() *SkillUpdate {
+	_u.mutation.ClearAbilities()
+	return _u
+}
+
+// RemoveAbilityIDs removes the "abilities" edge to Ability entities by IDs.
+func (_u *SkillUpdate) RemoveAbilityIDs(ids ...int) *SkillUpdate {
+	_u.mutation.RemoveAbilityIDs(ids...)
+	return _u
+}
+
+// RemoveAbilities removes "abilities" edges to Ability entities.
+func (_u *SkillUpdate) RemoveAbilities(v ...*Ability) *SkillUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAbilityIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -510,6 +547,51 @@ func (_u *SkillUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AbilitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.AbilitiesTable,
+			Columns: []string{skill.AbilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAbilitiesIDs(); len(nodes) > 0 && !_u.mutation.AbilitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.AbilitiesTable,
+			Columns: []string{skill.AbilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AbilitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.AbilitiesTable,
+			Columns: []string{skill.AbilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{skill.Label}
@@ -727,6 +809,21 @@ func (_u *SkillUpdateOne) AddChildren(v ...*Skill) *SkillUpdateOne {
 	return _u.AddChildIDs(ids...)
 }
 
+// AddAbilityIDs adds the "abilities" edge to the Ability entity by IDs.
+func (_u *SkillUpdateOne) AddAbilityIDs(ids ...int) *SkillUpdateOne {
+	_u.mutation.AddAbilityIDs(ids...)
+	return _u
+}
+
+// AddAbilities adds the "abilities" edges to the Ability entity.
+func (_u *SkillUpdateOne) AddAbilities(v ...*Ability) *SkillUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAbilityIDs(ids...)
+}
+
 // Mutation returns the SkillMutation object of the builder.
 func (_u *SkillUpdateOne) Mutation() *SkillMutation {
 	return _u.mutation
@@ -784,6 +881,27 @@ func (_u *SkillUpdateOne) RemoveChildren(v ...*Skill) *SkillUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveChildIDs(ids...)
+}
+
+// ClearAbilities clears all "abilities" edges to the Ability entity.
+func (_u *SkillUpdateOne) ClearAbilities() *SkillUpdateOne {
+	_u.mutation.ClearAbilities()
+	return _u
+}
+
+// RemoveAbilityIDs removes the "abilities" edge to Ability entities by IDs.
+func (_u *SkillUpdateOne) RemoveAbilityIDs(ids ...int) *SkillUpdateOne {
+	_u.mutation.RemoveAbilityIDs(ids...)
+	return _u
+}
+
+// RemoveAbilities removes "abilities" edges to Ability entities.
+func (_u *SkillUpdateOne) RemoveAbilities(v ...*Ability) *SkillUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAbilityIDs(ids...)
 }
 
 // Where appends a list predicates to the SkillUpdate builder.
@@ -1034,6 +1152,51 @@ func (_u *SkillUpdateOne) sqlSave(ctx context.Context) (_node *Skill, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(skill.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AbilitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.AbilitiesTable,
+			Columns: []string{skill.AbilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAbilitiesIDs(); len(nodes) > 0 && !_u.mutation.AbilitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.AbilitiesTable,
+			Columns: []string{skill.AbilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AbilitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   skill.AbilitiesTable,
+			Columns: []string{skill.AbilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

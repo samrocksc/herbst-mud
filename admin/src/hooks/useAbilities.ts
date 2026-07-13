@@ -23,6 +23,8 @@ export type Ability = Readonly<{
   proc_chance: number
   proc_event: string
   faction_skills: number | null
+  required_skill_id: number | null
+  required_skill_level: number
 }>
 
 export type AbilityInput = Readonly<{
@@ -43,6 +45,8 @@ export type AbilityInput = Readonly<{
   required_tag: string
   slug?: string
   world_id?: string
+  required_skill_id: number | null
+  required_skill_level: number
 }>
 
 function parseForApi(input: AbilityInput, worldId?: string): Record<string, unknown> {
@@ -63,6 +67,8 @@ function parseForApi(input: AbilityInput, worldId?: string): Record<string, unkn
     required_tag: input.required_tag,
     slug: input.slug || undefined,
     world_id: worldId || undefined,
+    required_skill_id: input.required_skill_id,
+    required_skill_level: input.required_skill_level,
   };
 }
 
