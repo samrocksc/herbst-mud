@@ -139,5 +139,7 @@ func (Character) Edges() []ent.Edge {
 		edge.To("shop_template", ShopTemplate.Type).
 			Comment("Shop template this NPC instance serves (if vendor)"),
 		edge.To("character_skills", CharacterSkill.Type),
+		edge.To("class_history", CharacterClassHistory.Type),
+		edge.To("race_history", CharacterRaceHistory.Type),
 	}
 }

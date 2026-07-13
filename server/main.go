@@ -366,6 +366,9 @@ func main() {
 	// Register chat/messaging routes (RFC-009)
 	routes.RegisterChatRoutes(router, services)
 
+	// Register reclass/rerace routes (Phase 4)
+	routes.RegisterReclassRoutes(router, services)
+
 	// Register dialog node routes
 	routes.RegisterDialogNodeRoutes(router, repos, client)
 

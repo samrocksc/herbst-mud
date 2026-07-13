@@ -315,6 +315,30 @@ var (
 			},
 		},
 	}
+	// CharacterClassHistoriesColumns holds the columns for the "character_class_histories" table.
+	CharacterClassHistoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "faction_id", Type: field.TypeInt},
+		{Name: "faction_name", Type: field.TypeString},
+		{Name: "joined_at", Type: field.TypeTime},
+		{Name: "left_at", Type: field.TypeTime, Nullable: true},
+		{Name: "reason", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "character_id", Type: field.TypeInt},
+	}
+	// CharacterClassHistoriesTable holds the schema information for the "character_class_histories" table.
+	CharacterClassHistoriesTable = &schema.Table{
+		Name:       "character_class_histories",
+		Columns:    CharacterClassHistoriesColumns,
+		PrimaryKey: []*schema.Column{CharacterClassHistoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_class_histories_characters_class_history",
+				Columns:    []*schema.Column{CharacterClassHistoriesColumns[6]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// CharacterCompetenciesColumns holds the columns for the "character_competencies" table.
 	CharacterCompetenciesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -391,6 +415,29 @@ var (
 				Columns:    []*schema.Column{CharacterIgnoresColumns[4]},
 				RefColumns: []*schema.Column{CharactersColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CharacterRaceHistoriesColumns holds the columns for the "character_race_histories" table.
+	CharacterRaceHistoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "race_id", Type: field.TypeInt, Nullable: true},
+		{Name: "race_name", Type: field.TypeString},
+		{Name: "changed_at", Type: field.TypeTime},
+		{Name: "reason", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "character_id", Type: field.TypeInt},
+	}
+	// CharacterRaceHistoriesTable holds the schema information for the "character_race_histories" table.
+	CharacterRaceHistoriesTable = &schema.Table{
+		Name:       "character_race_histories",
+		Columns:    CharacterRaceHistoriesColumns,
+		PrimaryKey: []*schema.Column{CharacterRaceHistoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "character_race_histories_characters_race_history",
+				Columns:    []*schema.Column{CharacterRaceHistoriesColumns[5]},
+				RefColumns: []*schema.Column{CharactersColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -1520,9 +1567,11 @@ var (
 		CharactersTable,
 		CharacterAbilitiesTable,
 		CharacterChannelsTable,
+		CharacterClassHistoriesTable,
 		CharacterCompetenciesTable,
 		CharacterFactionsTable,
 		CharacterIgnoresTable,
+		CharacterRaceHistoriesTable,
 		CharacterSkillsTable,
 		CharacterTagsTable,
 		CompetencyCategoriesTable,
@@ -1582,11 +1631,13 @@ func init() {
 	CharacterAbilitiesTable.ForeignKeys[0].RefTable = AbilitiesTable
 	CharacterAbilitiesTable.ForeignKeys[1].RefTable = CharactersTable
 	CharacterChannelsTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterClassHistoriesTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterCompetenciesTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterCompetenciesTable.ForeignKeys[1].RefTable = CompetencyCategoriesTable
 	CharacterFactionsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterFactionsTable.ForeignKeys[1].RefTable = FactionsTable
 	CharacterIgnoresTable.ForeignKeys[0].RefTable = CharactersTable
+	CharacterRaceHistoriesTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterSkillsTable.ForeignKeys[0].RefTable = CharactersTable
 	CharacterSkillsTable.ForeignKeys[1].RefTable = SkillsTable
 	CharacterTagsTable.ForeignKeys[0].RefTable = CharactersTable

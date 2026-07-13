@@ -15,9 +15,11 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/characterchannel"
+	"herbst-server/db/characterclasshistory"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterignore"
+	"herbst-server/db/characterracehistory"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
@@ -78,9 +80,11 @@ const (
 	TypeCharacter                = "Character"
 	TypeCharacterAbility         = "CharacterAbility"
 	TypeCharacterChannel         = "CharacterChannel"
+	TypeCharacterClassHistory    = "CharacterClassHistory"
 	TypeCharacterCompetency      = "CharacterCompetency"
 	TypeCharacterFaction         = "CharacterFaction"
 	TypeCharacterIgnore          = "CharacterIgnore"
+	TypeCharacterRaceHistory     = "CharacterRaceHistory"
 	TypeCharacterSkill           = "CharacterSkill"
 	TypeCharacterTag             = "CharacterTag"
 	TypeCompetencyCategory       = "CompetencyCategory"
@@ -6163,6 +6167,12 @@ type CharacterMutation struct {
 	character_skills           map[int]struct{}
 	removedcharacter_skills    map[int]struct{}
 	clearedcharacter_skills    bool
+	class_history              map[int]struct{}
+	removedclass_history       map[int]struct{}
+	clearedclass_history       bool
+	race_history               map[int]struct{}
+	removedrace_history        map[int]struct{}
+	clearedrace_history        bool
 	done                       bool
 	oldValue                   func(context.Context) (*Character, error)
 	predicates                 []predicate.Character
@@ -8871,6 +8881,114 @@ func (m *CharacterMutation) ResetCharacterSkills() {
 	m.removedcharacter_skills = nil
 }
 
+// AddClassHistoryIDs adds the "class_history" edge to the CharacterClassHistory entity by ids.
+func (m *CharacterMutation) AddClassHistoryIDs(ids ...int) {
+	if m.class_history == nil {
+		m.class_history = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.class_history[ids[i]] = struct{}{}
+	}
+}
+
+// ClearClassHistory clears the "class_history" edge to the CharacterClassHistory entity.
+func (m *CharacterMutation) ClearClassHistory() {
+	m.clearedclass_history = true
+}
+
+// ClassHistoryCleared reports if the "class_history" edge to the CharacterClassHistory entity was cleared.
+func (m *CharacterMutation) ClassHistoryCleared() bool {
+	return m.clearedclass_history
+}
+
+// RemoveClassHistoryIDs removes the "class_history" edge to the CharacterClassHistory entity by IDs.
+func (m *CharacterMutation) RemoveClassHistoryIDs(ids ...int) {
+	if m.removedclass_history == nil {
+		m.removedclass_history = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.class_history, ids[i])
+		m.removedclass_history[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedClassHistory returns the removed IDs of the "class_history" edge to the CharacterClassHistory entity.
+func (m *CharacterMutation) RemovedClassHistoryIDs() (ids []int) {
+	for id := range m.removedclass_history {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ClassHistoryIDs returns the "class_history" edge IDs in the mutation.
+func (m *CharacterMutation) ClassHistoryIDs() (ids []int) {
+	for id := range m.class_history {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetClassHistory resets all changes to the "class_history" edge.
+func (m *CharacterMutation) ResetClassHistory() {
+	m.class_history = nil
+	m.clearedclass_history = false
+	m.removedclass_history = nil
+}
+
+// AddRaceHistoryIDs adds the "race_history" edge to the CharacterRaceHistory entity by ids.
+func (m *CharacterMutation) AddRaceHistoryIDs(ids ...int) {
+	if m.race_history == nil {
+		m.race_history = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.race_history[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRaceHistory clears the "race_history" edge to the CharacterRaceHistory entity.
+func (m *CharacterMutation) ClearRaceHistory() {
+	m.clearedrace_history = true
+}
+
+// RaceHistoryCleared reports if the "race_history" edge to the CharacterRaceHistory entity was cleared.
+func (m *CharacterMutation) RaceHistoryCleared() bool {
+	return m.clearedrace_history
+}
+
+// RemoveRaceHistoryIDs removes the "race_history" edge to the CharacterRaceHistory entity by IDs.
+func (m *CharacterMutation) RemoveRaceHistoryIDs(ids ...int) {
+	if m.removedrace_history == nil {
+		m.removedrace_history = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.race_history, ids[i])
+		m.removedrace_history[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRaceHistory returns the removed IDs of the "race_history" edge to the CharacterRaceHistory entity.
+func (m *CharacterMutation) RemovedRaceHistoryIDs() (ids []int) {
+	for id := range m.removedrace_history {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RaceHistoryIDs returns the "race_history" edge IDs in the mutation.
+func (m *CharacterMutation) RaceHistoryIDs() (ids []int) {
+	for id := range m.race_history {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRaceHistory resets all changes to the "race_history" edge.
+func (m *CharacterMutation) ResetRaceHistory() {
+	m.race_history = nil
+	m.clearedrace_history = false
+	m.removedrace_history = nil
+}
+
 // Where appends a list predicates to the CharacterMutation builder.
 func (m *CharacterMutation) Where(ps ...predicate.Character) {
 	m.predicates = append(m.predicates, ps...)
@@ -9927,7 +10045,7 @@ func (m *CharacterMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CharacterMutation) AddedEdges() []string {
-	edges := make([]string, 0, 15)
+	edges := make([]string, 0, 17)
 	if m.user != nil {
 		edges = append(edges, character.EdgeUser)
 	}
@@ -9972,6 +10090,12 @@ func (m *CharacterMutation) AddedEdges() []string {
 	}
 	if m.character_skills != nil {
 		edges = append(edges, character.EdgeCharacterSkills)
+	}
+	if m.class_history != nil {
+		edges = append(edges, character.EdgeClassHistory)
+	}
+	if m.race_history != nil {
+		edges = append(edges, character.EdgeRaceHistory)
 	}
 	return edges
 }
@@ -10062,13 +10186,25 @@ func (m *CharacterMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case character.EdgeClassHistory:
+		ids := make([]ent.Value, 0, len(m.class_history))
+		for id := range m.class_history {
+			ids = append(ids, id)
+		}
+		return ids
+	case character.EdgeRaceHistory:
+		ids := make([]ent.Value, 0, len(m.race_history))
+		for id := range m.race_history {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CharacterMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 15)
+	edges := make([]string, 0, 17)
 	if m.removedabilities != nil {
 		edges = append(edges, character.EdgeAbilities)
 	}
@@ -10101,6 +10237,12 @@ func (m *CharacterMutation) RemovedEdges() []string {
 	}
 	if m.removedcharacter_skills != nil {
 		edges = append(edges, character.EdgeCharacterSkills)
+	}
+	if m.removedclass_history != nil {
+		edges = append(edges, character.EdgeClassHistory)
+	}
+	if m.removedrace_history != nil {
+		edges = append(edges, character.EdgeRaceHistory)
 	}
 	return edges
 }
@@ -10175,13 +10317,25 @@ func (m *CharacterMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case character.EdgeClassHistory:
+		ids := make([]ent.Value, 0, len(m.removedclass_history))
+		for id := range m.removedclass_history {
+			ids = append(ids, id)
+		}
+		return ids
+	case character.EdgeRaceHistory:
+		ids := make([]ent.Value, 0, len(m.removedrace_history))
+		for id := range m.removedrace_history {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CharacterMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 15)
+	edges := make([]string, 0, 17)
 	if m.cleareduser {
 		edges = append(edges, character.EdgeUser)
 	}
@@ -10227,6 +10381,12 @@ func (m *CharacterMutation) ClearedEdges() []string {
 	if m.clearedcharacter_skills {
 		edges = append(edges, character.EdgeCharacterSkills)
 	}
+	if m.clearedclass_history {
+		edges = append(edges, character.EdgeClassHistory)
+	}
+	if m.clearedrace_history {
+		edges = append(edges, character.EdgeRaceHistory)
+	}
 	return edges
 }
 
@@ -10264,6 +10424,10 @@ func (m *CharacterMutation) EdgeCleared(name string) bool {
 		return m.clearedshop_template
 	case character.EdgeCharacterSkills:
 		return m.clearedcharacter_skills
+	case character.EdgeClassHistory:
+		return m.clearedclass_history
+	case character.EdgeRaceHistory:
+		return m.clearedrace_history
 	}
 	return false
 }
@@ -10336,6 +10500,12 @@ func (m *CharacterMutation) ResetEdge(name string) error {
 		return nil
 	case character.EdgeCharacterSkills:
 		m.ResetCharacterSkills()
+		return nil
+	case character.EdgeClassHistory:
+		m.ResetClassHistory()
+		return nil
+	case character.EdgeRaceHistory:
+		m.ResetRaceHistory()
 		return nil
 	}
 	return fmt.Errorf("unknown Character edge %s", name)
@@ -11760,6 +11930,733 @@ func (m *CharacterChannelMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CharacterChannel edge %s", name)
+}
+
+// CharacterClassHistoryMutation represents an operation that mutates the CharacterClassHistory nodes in the graph.
+type CharacterClassHistoryMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	faction_id       *int
+	addfaction_id    *int
+	faction_name     *string
+	joined_at        *time.Time
+	left_at          *time.Time
+	reason           *string
+	clearedFields    map[string]struct{}
+	character        *int
+	clearedcharacter bool
+	done             bool
+	oldValue         func(context.Context) (*CharacterClassHistory, error)
+	predicates       []predicate.CharacterClassHistory
+}
+
+var _ ent.Mutation = (*CharacterClassHistoryMutation)(nil)
+
+// characterclasshistoryOption allows management of the mutation configuration using functional options.
+type characterclasshistoryOption func(*CharacterClassHistoryMutation)
+
+// newCharacterClassHistoryMutation creates new mutation for the CharacterClassHistory entity.
+func newCharacterClassHistoryMutation(c config, op Op, opts ...characterclasshistoryOption) *CharacterClassHistoryMutation {
+	m := &CharacterClassHistoryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCharacterClassHistory,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCharacterClassHistoryID sets the ID field of the mutation.
+func withCharacterClassHistoryID(id int) characterclasshistoryOption {
+	return func(m *CharacterClassHistoryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CharacterClassHistory
+		)
+		m.oldValue = func(ctx context.Context) (*CharacterClassHistory, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CharacterClassHistory.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCharacterClassHistory sets the old CharacterClassHistory of the mutation.
+func withCharacterClassHistory(node *CharacterClassHistory) characterclasshistoryOption {
+	return func(m *CharacterClassHistoryMutation) {
+		m.oldValue = func(context.Context) (*CharacterClassHistory, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CharacterClassHistoryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CharacterClassHistoryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CharacterClassHistoryMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CharacterClassHistoryMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CharacterClassHistory.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCharacterID sets the "character_id" field.
+func (m *CharacterClassHistoryMutation) SetCharacterID(i int) {
+	m.character = &i
+}
+
+// CharacterID returns the value of the "character_id" field in the mutation.
+func (m *CharacterClassHistoryMutation) CharacterID() (r int, exists bool) {
+	v := m.character
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharacterID returns the old "character_id" field's value of the CharacterClassHistory entity.
+// If the CharacterClassHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterClassHistoryMutation) OldCharacterID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharacterID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharacterID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharacterID: %w", err)
+	}
+	return oldValue.CharacterID, nil
+}
+
+// ResetCharacterID resets all changes to the "character_id" field.
+func (m *CharacterClassHistoryMutation) ResetCharacterID() {
+	m.character = nil
+}
+
+// SetFactionID sets the "faction_id" field.
+func (m *CharacterClassHistoryMutation) SetFactionID(i int) {
+	m.faction_id = &i
+	m.addfaction_id = nil
+}
+
+// FactionID returns the value of the "faction_id" field in the mutation.
+func (m *CharacterClassHistoryMutation) FactionID() (r int, exists bool) {
+	v := m.faction_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFactionID returns the old "faction_id" field's value of the CharacterClassHistory entity.
+// If the CharacterClassHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterClassHistoryMutation) OldFactionID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFactionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFactionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFactionID: %w", err)
+	}
+	return oldValue.FactionID, nil
+}
+
+// AddFactionID adds i to the "faction_id" field.
+func (m *CharacterClassHistoryMutation) AddFactionID(i int) {
+	if m.addfaction_id != nil {
+		*m.addfaction_id += i
+	} else {
+		m.addfaction_id = &i
+	}
+}
+
+// AddedFactionID returns the value that was added to the "faction_id" field in this mutation.
+func (m *CharacterClassHistoryMutation) AddedFactionID() (r int, exists bool) {
+	v := m.addfaction_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFactionID resets all changes to the "faction_id" field.
+func (m *CharacterClassHistoryMutation) ResetFactionID() {
+	m.faction_id = nil
+	m.addfaction_id = nil
+}
+
+// SetFactionName sets the "faction_name" field.
+func (m *CharacterClassHistoryMutation) SetFactionName(s string) {
+	m.faction_name = &s
+}
+
+// FactionName returns the value of the "faction_name" field in the mutation.
+func (m *CharacterClassHistoryMutation) FactionName() (r string, exists bool) {
+	v := m.faction_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFactionName returns the old "faction_name" field's value of the CharacterClassHistory entity.
+// If the CharacterClassHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterClassHistoryMutation) OldFactionName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFactionName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFactionName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFactionName: %w", err)
+	}
+	return oldValue.FactionName, nil
+}
+
+// ResetFactionName resets all changes to the "faction_name" field.
+func (m *CharacterClassHistoryMutation) ResetFactionName() {
+	m.faction_name = nil
+}
+
+// SetJoinedAt sets the "joined_at" field.
+func (m *CharacterClassHistoryMutation) SetJoinedAt(t time.Time) {
+	m.joined_at = &t
+}
+
+// JoinedAt returns the value of the "joined_at" field in the mutation.
+func (m *CharacterClassHistoryMutation) JoinedAt() (r time.Time, exists bool) {
+	v := m.joined_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJoinedAt returns the old "joined_at" field's value of the CharacterClassHistory entity.
+// If the CharacterClassHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterClassHistoryMutation) OldJoinedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJoinedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJoinedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJoinedAt: %w", err)
+	}
+	return oldValue.JoinedAt, nil
+}
+
+// ResetJoinedAt resets all changes to the "joined_at" field.
+func (m *CharacterClassHistoryMutation) ResetJoinedAt() {
+	m.joined_at = nil
+}
+
+// SetLeftAt sets the "left_at" field.
+func (m *CharacterClassHistoryMutation) SetLeftAt(t time.Time) {
+	m.left_at = &t
+}
+
+// LeftAt returns the value of the "left_at" field in the mutation.
+func (m *CharacterClassHistoryMutation) LeftAt() (r time.Time, exists bool) {
+	v := m.left_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLeftAt returns the old "left_at" field's value of the CharacterClassHistory entity.
+// If the CharacterClassHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterClassHistoryMutation) OldLeftAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLeftAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLeftAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLeftAt: %w", err)
+	}
+	return oldValue.LeftAt, nil
+}
+
+// ClearLeftAt clears the value of the "left_at" field.
+func (m *CharacterClassHistoryMutation) ClearLeftAt() {
+	m.left_at = nil
+	m.clearedFields[characterclasshistory.FieldLeftAt] = struct{}{}
+}
+
+// LeftAtCleared returns if the "left_at" field was cleared in this mutation.
+func (m *CharacterClassHistoryMutation) LeftAtCleared() bool {
+	_, ok := m.clearedFields[characterclasshistory.FieldLeftAt]
+	return ok
+}
+
+// ResetLeftAt resets all changes to the "left_at" field.
+func (m *CharacterClassHistoryMutation) ResetLeftAt() {
+	m.left_at = nil
+	delete(m.clearedFields, characterclasshistory.FieldLeftAt)
+}
+
+// SetReason sets the "reason" field.
+func (m *CharacterClassHistoryMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *CharacterClassHistoryMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the CharacterClassHistory entity.
+// If the CharacterClassHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterClassHistoryMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ClearReason clears the value of the "reason" field.
+func (m *CharacterClassHistoryMutation) ClearReason() {
+	m.reason = nil
+	m.clearedFields[characterclasshistory.FieldReason] = struct{}{}
+}
+
+// ReasonCleared returns if the "reason" field was cleared in this mutation.
+func (m *CharacterClassHistoryMutation) ReasonCleared() bool {
+	_, ok := m.clearedFields[characterclasshistory.FieldReason]
+	return ok
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *CharacterClassHistoryMutation) ResetReason() {
+	m.reason = nil
+	delete(m.clearedFields, characterclasshistory.FieldReason)
+}
+
+// ClearCharacter clears the "character" edge to the Character entity.
+func (m *CharacterClassHistoryMutation) ClearCharacter() {
+	m.clearedcharacter = true
+	m.clearedFields[characterclasshistory.FieldCharacterID] = struct{}{}
+}
+
+// CharacterCleared reports if the "character" edge to the Character entity was cleared.
+func (m *CharacterClassHistoryMutation) CharacterCleared() bool {
+	return m.clearedcharacter
+}
+
+// CharacterIDs returns the "character" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CharacterID instead. It exists only for internal usage by the builders.
+func (m *CharacterClassHistoryMutation) CharacterIDs() (ids []int) {
+	if id := m.character; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCharacter resets all changes to the "character" edge.
+func (m *CharacterClassHistoryMutation) ResetCharacter() {
+	m.character = nil
+	m.clearedcharacter = false
+}
+
+// Where appends a list predicates to the CharacterClassHistoryMutation builder.
+func (m *CharacterClassHistoryMutation) Where(ps ...predicate.CharacterClassHistory) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CharacterClassHistoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CharacterClassHistoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CharacterClassHistory, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CharacterClassHistoryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CharacterClassHistoryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CharacterClassHistory).
+func (m *CharacterClassHistoryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CharacterClassHistoryMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.character != nil {
+		fields = append(fields, characterclasshistory.FieldCharacterID)
+	}
+	if m.faction_id != nil {
+		fields = append(fields, characterclasshistory.FieldFactionID)
+	}
+	if m.faction_name != nil {
+		fields = append(fields, characterclasshistory.FieldFactionName)
+	}
+	if m.joined_at != nil {
+		fields = append(fields, characterclasshistory.FieldJoinedAt)
+	}
+	if m.left_at != nil {
+		fields = append(fields, characterclasshistory.FieldLeftAt)
+	}
+	if m.reason != nil {
+		fields = append(fields, characterclasshistory.FieldReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CharacterClassHistoryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case characterclasshistory.FieldCharacterID:
+		return m.CharacterID()
+	case characterclasshistory.FieldFactionID:
+		return m.FactionID()
+	case characterclasshistory.FieldFactionName:
+		return m.FactionName()
+	case characterclasshistory.FieldJoinedAt:
+		return m.JoinedAt()
+	case characterclasshistory.FieldLeftAt:
+		return m.LeftAt()
+	case characterclasshistory.FieldReason:
+		return m.Reason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CharacterClassHistoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case characterclasshistory.FieldCharacterID:
+		return m.OldCharacterID(ctx)
+	case characterclasshistory.FieldFactionID:
+		return m.OldFactionID(ctx)
+	case characterclasshistory.FieldFactionName:
+		return m.OldFactionName(ctx)
+	case characterclasshistory.FieldJoinedAt:
+		return m.OldJoinedAt(ctx)
+	case characterclasshistory.FieldLeftAt:
+		return m.OldLeftAt(ctx)
+	case characterclasshistory.FieldReason:
+		return m.OldReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown CharacterClassHistory field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterClassHistoryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case characterclasshistory.FieldCharacterID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharacterID(v)
+		return nil
+	case characterclasshistory.FieldFactionID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFactionID(v)
+		return nil
+	case characterclasshistory.FieldFactionName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFactionName(v)
+		return nil
+	case characterclasshistory.FieldJoinedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJoinedAt(v)
+		return nil
+	case characterclasshistory.FieldLeftAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLeftAt(v)
+		return nil
+	case characterclasshistory.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterClassHistory field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CharacterClassHistoryMutation) AddedFields() []string {
+	var fields []string
+	if m.addfaction_id != nil {
+		fields = append(fields, characterclasshistory.FieldFactionID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CharacterClassHistoryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case characterclasshistory.FieldFactionID:
+		return m.AddedFactionID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterClassHistoryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case characterclasshistory.FieldFactionID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFactionID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterClassHistory numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CharacterClassHistoryMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(characterclasshistory.FieldLeftAt) {
+		fields = append(fields, characterclasshistory.FieldLeftAt)
+	}
+	if m.FieldCleared(characterclasshistory.FieldReason) {
+		fields = append(fields, characterclasshistory.FieldReason)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CharacterClassHistoryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CharacterClassHistoryMutation) ClearField(name string) error {
+	switch name {
+	case characterclasshistory.FieldLeftAt:
+		m.ClearLeftAt()
+		return nil
+	case characterclasshistory.FieldReason:
+		m.ClearReason()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterClassHistory nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CharacterClassHistoryMutation) ResetField(name string) error {
+	switch name {
+	case characterclasshistory.FieldCharacterID:
+		m.ResetCharacterID()
+		return nil
+	case characterclasshistory.FieldFactionID:
+		m.ResetFactionID()
+		return nil
+	case characterclasshistory.FieldFactionName:
+		m.ResetFactionName()
+		return nil
+	case characterclasshistory.FieldJoinedAt:
+		m.ResetJoinedAt()
+		return nil
+	case characterclasshistory.FieldLeftAt:
+		m.ResetLeftAt()
+		return nil
+	case characterclasshistory.FieldReason:
+		m.ResetReason()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterClassHistory field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CharacterClassHistoryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.character != nil {
+		edges = append(edges, characterclasshistory.EdgeCharacter)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CharacterClassHistoryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case characterclasshistory.EdgeCharacter:
+		if id := m.character; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CharacterClassHistoryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CharacterClassHistoryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CharacterClassHistoryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedcharacter {
+		edges = append(edges, characterclasshistory.EdgeCharacter)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CharacterClassHistoryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case characterclasshistory.EdgeCharacter:
+		return m.clearedcharacter
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CharacterClassHistoryMutation) ClearEdge(name string) error {
+	switch name {
+	case characterclasshistory.EdgeCharacter:
+		m.ClearCharacter()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterClassHistory unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CharacterClassHistoryMutation) ResetEdge(name string) error {
+	switch name {
+	case characterclasshistory.EdgeCharacter:
+		m.ResetCharacter()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterClassHistory edge %s", name)
 }
 
 // CharacterCompetencyMutation represents an operation that mutates the CharacterCompetency nodes in the graph.
@@ -13490,6 +14387,680 @@ func (m *CharacterIgnoreMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CharacterIgnore edge %s", name)
+}
+
+// CharacterRaceHistoryMutation represents an operation that mutates the CharacterRaceHistory nodes in the graph.
+type CharacterRaceHistoryMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	race_id          *int
+	addrace_id       *int
+	race_name        *string
+	changed_at       *time.Time
+	reason           *string
+	clearedFields    map[string]struct{}
+	character        *int
+	clearedcharacter bool
+	done             bool
+	oldValue         func(context.Context) (*CharacterRaceHistory, error)
+	predicates       []predicate.CharacterRaceHistory
+}
+
+var _ ent.Mutation = (*CharacterRaceHistoryMutation)(nil)
+
+// characterracehistoryOption allows management of the mutation configuration using functional options.
+type characterracehistoryOption func(*CharacterRaceHistoryMutation)
+
+// newCharacterRaceHistoryMutation creates new mutation for the CharacterRaceHistory entity.
+func newCharacterRaceHistoryMutation(c config, op Op, opts ...characterracehistoryOption) *CharacterRaceHistoryMutation {
+	m := &CharacterRaceHistoryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCharacterRaceHistory,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCharacterRaceHistoryID sets the ID field of the mutation.
+func withCharacterRaceHistoryID(id int) characterracehistoryOption {
+	return func(m *CharacterRaceHistoryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CharacterRaceHistory
+		)
+		m.oldValue = func(ctx context.Context) (*CharacterRaceHistory, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CharacterRaceHistory.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCharacterRaceHistory sets the old CharacterRaceHistory of the mutation.
+func withCharacterRaceHistory(node *CharacterRaceHistory) characterracehistoryOption {
+	return func(m *CharacterRaceHistoryMutation) {
+		m.oldValue = func(context.Context) (*CharacterRaceHistory, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CharacterRaceHistoryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CharacterRaceHistoryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CharacterRaceHistoryMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CharacterRaceHistoryMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CharacterRaceHistory.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCharacterID sets the "character_id" field.
+func (m *CharacterRaceHistoryMutation) SetCharacterID(i int) {
+	m.character = &i
+}
+
+// CharacterID returns the value of the "character_id" field in the mutation.
+func (m *CharacterRaceHistoryMutation) CharacterID() (r int, exists bool) {
+	v := m.character
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCharacterID returns the old "character_id" field's value of the CharacterRaceHistory entity.
+// If the CharacterRaceHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterRaceHistoryMutation) OldCharacterID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCharacterID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCharacterID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCharacterID: %w", err)
+	}
+	return oldValue.CharacterID, nil
+}
+
+// ResetCharacterID resets all changes to the "character_id" field.
+func (m *CharacterRaceHistoryMutation) ResetCharacterID() {
+	m.character = nil
+}
+
+// SetRaceID sets the "race_id" field.
+func (m *CharacterRaceHistoryMutation) SetRaceID(i int) {
+	m.race_id = &i
+	m.addrace_id = nil
+}
+
+// RaceID returns the value of the "race_id" field in the mutation.
+func (m *CharacterRaceHistoryMutation) RaceID() (r int, exists bool) {
+	v := m.race_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRaceID returns the old "race_id" field's value of the CharacterRaceHistory entity.
+// If the CharacterRaceHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterRaceHistoryMutation) OldRaceID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRaceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRaceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRaceID: %w", err)
+	}
+	return oldValue.RaceID, nil
+}
+
+// AddRaceID adds i to the "race_id" field.
+func (m *CharacterRaceHistoryMutation) AddRaceID(i int) {
+	if m.addrace_id != nil {
+		*m.addrace_id += i
+	} else {
+		m.addrace_id = &i
+	}
+}
+
+// AddedRaceID returns the value that was added to the "race_id" field in this mutation.
+func (m *CharacterRaceHistoryMutation) AddedRaceID() (r int, exists bool) {
+	v := m.addrace_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRaceID clears the value of the "race_id" field.
+func (m *CharacterRaceHistoryMutation) ClearRaceID() {
+	m.race_id = nil
+	m.addrace_id = nil
+	m.clearedFields[characterracehistory.FieldRaceID] = struct{}{}
+}
+
+// RaceIDCleared returns if the "race_id" field was cleared in this mutation.
+func (m *CharacterRaceHistoryMutation) RaceIDCleared() bool {
+	_, ok := m.clearedFields[characterracehistory.FieldRaceID]
+	return ok
+}
+
+// ResetRaceID resets all changes to the "race_id" field.
+func (m *CharacterRaceHistoryMutation) ResetRaceID() {
+	m.race_id = nil
+	m.addrace_id = nil
+	delete(m.clearedFields, characterracehistory.FieldRaceID)
+}
+
+// SetRaceName sets the "race_name" field.
+func (m *CharacterRaceHistoryMutation) SetRaceName(s string) {
+	m.race_name = &s
+}
+
+// RaceName returns the value of the "race_name" field in the mutation.
+func (m *CharacterRaceHistoryMutation) RaceName() (r string, exists bool) {
+	v := m.race_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRaceName returns the old "race_name" field's value of the CharacterRaceHistory entity.
+// If the CharacterRaceHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterRaceHistoryMutation) OldRaceName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRaceName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRaceName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRaceName: %w", err)
+	}
+	return oldValue.RaceName, nil
+}
+
+// ResetRaceName resets all changes to the "race_name" field.
+func (m *CharacterRaceHistoryMutation) ResetRaceName() {
+	m.race_name = nil
+}
+
+// SetChangedAt sets the "changed_at" field.
+func (m *CharacterRaceHistoryMutation) SetChangedAt(t time.Time) {
+	m.changed_at = &t
+}
+
+// ChangedAt returns the value of the "changed_at" field in the mutation.
+func (m *CharacterRaceHistoryMutation) ChangedAt() (r time.Time, exists bool) {
+	v := m.changed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChangedAt returns the old "changed_at" field's value of the CharacterRaceHistory entity.
+// If the CharacterRaceHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterRaceHistoryMutation) OldChangedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChangedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChangedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChangedAt: %w", err)
+	}
+	return oldValue.ChangedAt, nil
+}
+
+// ResetChangedAt resets all changes to the "changed_at" field.
+func (m *CharacterRaceHistoryMutation) ResetChangedAt() {
+	m.changed_at = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *CharacterRaceHistoryMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *CharacterRaceHistoryMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the CharacterRaceHistory entity.
+// If the CharacterRaceHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CharacterRaceHistoryMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ClearReason clears the value of the "reason" field.
+func (m *CharacterRaceHistoryMutation) ClearReason() {
+	m.reason = nil
+	m.clearedFields[characterracehistory.FieldReason] = struct{}{}
+}
+
+// ReasonCleared returns if the "reason" field was cleared in this mutation.
+func (m *CharacterRaceHistoryMutation) ReasonCleared() bool {
+	_, ok := m.clearedFields[characterracehistory.FieldReason]
+	return ok
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *CharacterRaceHistoryMutation) ResetReason() {
+	m.reason = nil
+	delete(m.clearedFields, characterracehistory.FieldReason)
+}
+
+// ClearCharacter clears the "character" edge to the Character entity.
+func (m *CharacterRaceHistoryMutation) ClearCharacter() {
+	m.clearedcharacter = true
+	m.clearedFields[characterracehistory.FieldCharacterID] = struct{}{}
+}
+
+// CharacterCleared reports if the "character" edge to the Character entity was cleared.
+func (m *CharacterRaceHistoryMutation) CharacterCleared() bool {
+	return m.clearedcharacter
+}
+
+// CharacterIDs returns the "character" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CharacterID instead. It exists only for internal usage by the builders.
+func (m *CharacterRaceHistoryMutation) CharacterIDs() (ids []int) {
+	if id := m.character; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCharacter resets all changes to the "character" edge.
+func (m *CharacterRaceHistoryMutation) ResetCharacter() {
+	m.character = nil
+	m.clearedcharacter = false
+}
+
+// Where appends a list predicates to the CharacterRaceHistoryMutation builder.
+func (m *CharacterRaceHistoryMutation) Where(ps ...predicate.CharacterRaceHistory) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CharacterRaceHistoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CharacterRaceHistoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CharacterRaceHistory, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CharacterRaceHistoryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CharacterRaceHistoryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CharacterRaceHistory).
+func (m *CharacterRaceHistoryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CharacterRaceHistoryMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.character != nil {
+		fields = append(fields, characterracehistory.FieldCharacterID)
+	}
+	if m.race_id != nil {
+		fields = append(fields, characterracehistory.FieldRaceID)
+	}
+	if m.race_name != nil {
+		fields = append(fields, characterracehistory.FieldRaceName)
+	}
+	if m.changed_at != nil {
+		fields = append(fields, characterracehistory.FieldChangedAt)
+	}
+	if m.reason != nil {
+		fields = append(fields, characterracehistory.FieldReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CharacterRaceHistoryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case characterracehistory.FieldCharacterID:
+		return m.CharacterID()
+	case characterracehistory.FieldRaceID:
+		return m.RaceID()
+	case characterracehistory.FieldRaceName:
+		return m.RaceName()
+	case characterracehistory.FieldChangedAt:
+		return m.ChangedAt()
+	case characterracehistory.FieldReason:
+		return m.Reason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CharacterRaceHistoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case characterracehistory.FieldCharacterID:
+		return m.OldCharacterID(ctx)
+	case characterracehistory.FieldRaceID:
+		return m.OldRaceID(ctx)
+	case characterracehistory.FieldRaceName:
+		return m.OldRaceName(ctx)
+	case characterracehistory.FieldChangedAt:
+		return m.OldChangedAt(ctx)
+	case characterracehistory.FieldReason:
+		return m.OldReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown CharacterRaceHistory field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterRaceHistoryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case characterracehistory.FieldCharacterID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCharacterID(v)
+		return nil
+	case characterracehistory.FieldRaceID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRaceID(v)
+		return nil
+	case characterracehistory.FieldRaceName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRaceName(v)
+		return nil
+	case characterracehistory.FieldChangedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChangedAt(v)
+		return nil
+	case characterracehistory.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterRaceHistory field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CharacterRaceHistoryMutation) AddedFields() []string {
+	var fields []string
+	if m.addrace_id != nil {
+		fields = append(fields, characterracehistory.FieldRaceID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CharacterRaceHistoryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case characterracehistory.FieldRaceID:
+		return m.AddedRaceID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CharacterRaceHistoryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case characterracehistory.FieldRaceID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRaceID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterRaceHistory numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CharacterRaceHistoryMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(characterracehistory.FieldRaceID) {
+		fields = append(fields, characterracehistory.FieldRaceID)
+	}
+	if m.FieldCleared(characterracehistory.FieldReason) {
+		fields = append(fields, characterracehistory.FieldReason)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CharacterRaceHistoryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CharacterRaceHistoryMutation) ClearField(name string) error {
+	switch name {
+	case characterracehistory.FieldRaceID:
+		m.ClearRaceID()
+		return nil
+	case characterracehistory.FieldReason:
+		m.ClearReason()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterRaceHistory nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CharacterRaceHistoryMutation) ResetField(name string) error {
+	switch name {
+	case characterracehistory.FieldCharacterID:
+		m.ResetCharacterID()
+		return nil
+	case characterracehistory.FieldRaceID:
+		m.ResetRaceID()
+		return nil
+	case characterracehistory.FieldRaceName:
+		m.ResetRaceName()
+		return nil
+	case characterracehistory.FieldChangedAt:
+		m.ResetChangedAt()
+		return nil
+	case characterracehistory.FieldReason:
+		m.ResetReason()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterRaceHistory field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CharacterRaceHistoryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.character != nil {
+		edges = append(edges, characterracehistory.EdgeCharacter)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CharacterRaceHistoryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case characterracehistory.EdgeCharacter:
+		if id := m.character; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CharacterRaceHistoryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CharacterRaceHistoryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CharacterRaceHistoryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedcharacter {
+		edges = append(edges, characterracehistory.EdgeCharacter)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CharacterRaceHistoryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case characterracehistory.EdgeCharacter:
+		return m.clearedcharacter
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CharacterRaceHistoryMutation) ClearEdge(name string) error {
+	switch name {
+	case characterracehistory.EdgeCharacter:
+		m.ClearCharacter()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterRaceHistory unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CharacterRaceHistoryMutation) ResetEdge(name string) error {
+	switch name {
+	case characterracehistory.EdgeCharacter:
+		m.ResetCharacter()
+		return nil
+	}
+	return fmt.Errorf("unknown CharacterRaceHistory edge %s", name)
 }
 
 // CharacterSkillMutation represents an operation that mutates the CharacterSkill nodes in the graph.

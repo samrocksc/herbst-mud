@@ -10,9 +10,11 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/characterchannel"
+	"herbst-server/db/characterclasshistory"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterignore"
+	"herbst-server/db/characterracehistory"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/npctemplate"
@@ -53,6 +55,8 @@ type CharacterQuery struct {
 	withTellQueue          *TellQueueQuery
 	withShopTemplate       *ShopTemplateQuery
 	withCharacterSkills    *CharacterSkillQuery
+	withClassHistory       *CharacterClassHistoryQuery
+	withRaceHistory        *CharacterRaceHistoryQuery
 	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -420,6 +424,50 @@ func (_q *CharacterQuery) QueryCharacterSkills() *CharacterSkillQuery {
 	return query
 }
 
+// QueryClassHistory chains the current query on the "class_history" edge.
+func (_q *CharacterQuery) QueryClassHistory() *CharacterClassHistoryQuery {
+	query := (&CharacterClassHistoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(characterclasshistory.Table, characterclasshistory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.ClassHistoryTable, character.ClassHistoryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRaceHistory chains the current query on the "race_history" edge.
+func (_q *CharacterQuery) QueryRaceHistory() *CharacterRaceHistoryQuery {
+	query := (&CharacterRaceHistoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, selector),
+			sqlgraph.To(characterracehistory.Table, characterracehistory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.RaceHistoryTable, character.RaceHistoryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Character entity from the query.
 // Returns a *NotFoundError when no Character was found.
 func (_q *CharacterQuery) First(ctx context.Context) (*Character, error) {
@@ -627,6 +675,8 @@ func (_q *CharacterQuery) Clone() *CharacterQuery {
 		withTellQueue:          _q.withTellQueue.Clone(),
 		withShopTemplate:       _q.withShopTemplate.Clone(),
 		withCharacterSkills:    _q.withCharacterSkills.Clone(),
+		withClassHistory:       _q.withClassHistory.Clone(),
+		withRaceHistory:        _q.withRaceHistory.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -798,6 +848,28 @@ func (_q *CharacterQuery) WithCharacterSkills(opts ...func(*CharacterSkillQuery)
 	return _q
 }
 
+// WithClassHistory tells the query-builder to eager-load the nodes that are connected to
+// the "class_history" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithClassHistory(opts ...func(*CharacterClassHistoryQuery)) *CharacterQuery {
+	query := (&CharacterClassHistoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withClassHistory = query
+	return _q
+}
+
+// WithRaceHistory tells the query-builder to eager-load the nodes that are connected to
+// the "race_history" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CharacterQuery) WithRaceHistory(opts ...func(*CharacterRaceHistoryQuery)) *CharacterQuery {
+	query := (&CharacterRaceHistoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRaceHistory = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -877,7 +949,7 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		nodes       = []*Character{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [15]bool{
+		loadedTypes = [17]bool{
 			_q.withUser != nil,
 			_q.withWorld != nil,
 			_q.withRoom != nil,
@@ -893,6 +965,8 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 			_q.withTellQueue != nil,
 			_q.withShopTemplate != nil,
 			_q.withCharacterSkills != nil,
+			_q.withClassHistory != nil,
+			_q.withRaceHistory != nil,
 		}
 	)
 	if _q.withUser != nil {
@@ -1019,6 +1093,20 @@ func (_q *CharacterQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ch
 		if err := _q.loadCharacterSkills(ctx, query, nodes,
 			func(n *Character) { n.Edges.CharacterSkills = []*CharacterSkill{} },
 			func(n *Character, e *CharacterSkill) { n.Edges.CharacterSkills = append(n.Edges.CharacterSkills, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withClassHistory; query != nil {
+		if err := _q.loadClassHistory(ctx, query, nodes,
+			func(n *Character) { n.Edges.ClassHistory = []*CharacterClassHistory{} },
+			func(n *Character, e *CharacterClassHistory) { n.Edges.ClassHistory = append(n.Edges.ClassHistory, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRaceHistory; query != nil {
+		if err := _q.loadRaceHistory(ctx, query, nodes,
+			func(n *Character) { n.Edges.RaceHistory = []*CharacterRaceHistory{} },
+			func(n *Character, e *CharacterRaceHistory) { n.Edges.RaceHistory = append(n.Edges.RaceHistory, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1468,6 +1556,66 @@ func (_q *CharacterQuery) loadCharacterSkills(ctx context.Context, query *Charac
 	}
 	query.Where(predicate.CharacterSkill(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(character.CharacterSkillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CharacterID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadClassHistory(ctx context.Context, query *CharacterClassHistoryQuery, nodes []*Character, init func(*Character), assign func(*Character, *CharacterClassHistory)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(characterclasshistory.FieldCharacterID)
+	}
+	query.Where(predicate.CharacterClassHistory(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.ClassHistoryColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CharacterID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "character_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CharacterQuery) loadRaceHistory(ctx context.Context, query *CharacterRaceHistoryQuery, nodes []*Character, init func(*Character), assign func(*Character, *CharacterRaceHistory)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Character)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(characterracehistory.FieldCharacterID)
+	}
+	query.Where(predicate.CharacterRaceHistory(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(character.RaceHistoryColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

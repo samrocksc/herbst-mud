@@ -11,9 +11,11 @@ import (
 	"herbst-server/db/channelconfig"
 	"herbst-server/db/character"
 	"herbst-server/db/characterchannel"
+	"herbst-server/db/characterclasshistory"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterignore"
+	"herbst-server/db/characterracehistory"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
@@ -328,6 +330,12 @@ func init() {
 	characterchannelDescProfanityFilter := characterchannelFields[10].Descriptor()
 	// characterchannel.DefaultProfanityFilter holds the default value on creation for the profanityFilter field.
 	characterchannel.DefaultProfanityFilter = characterchannelDescProfanityFilter.Default.(bool)
+	characterclasshistoryFields := schema.CharacterClassHistory{}.Fields()
+	_ = characterclasshistoryFields
+	// characterclasshistoryDescReason is the schema descriptor for reason field.
+	characterclasshistoryDescReason := characterclasshistoryFields[5].Descriptor()
+	// characterclasshistory.DefaultReason holds the default value on creation for the reason field.
+	characterclasshistory.DefaultReason = characterclasshistoryDescReason.Default.(string)
 	charactercompetencyFields := schema.CharacterCompetency{}.Fields()
 	_ = charactercompetencyFields
 	// charactercompetencyDescXp is the schema descriptor for xp field.
@@ -358,6 +366,12 @@ func init() {
 	characterignoreDescIgnoredAt := characterignoreFields[1].Descriptor()
 	// characterignore.DefaultIgnoredAt holds the default value on creation for the ignoredAt field.
 	characterignore.DefaultIgnoredAt = characterignoreDescIgnoredAt.Default.(func() time.Time)
+	characterracehistoryFields := schema.CharacterRaceHistory{}.Fields()
+	_ = characterracehistoryFields
+	// characterracehistoryDescReason is the schema descriptor for reason field.
+	characterracehistoryDescReason := characterracehistoryFields[4].Descriptor()
+	// characterracehistory.DefaultReason holds the default value on creation for the reason field.
+	characterracehistory.DefaultReason = characterracehistoryDescReason.Default.(string)
 	characterskillFields := schema.CharacterSkill{}.Fields()
 	_ = characterskillFields
 	// characterskillDescLevel is the schema descriptor for level field.

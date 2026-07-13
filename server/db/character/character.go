@@ -118,6 +118,10 @@ const (
 	EdgeShopTemplate = "shop_template"
 	// EdgeCharacterSkills holds the string denoting the character_skills edge name in mutations.
 	EdgeCharacterSkills = "character_skills"
+	// EdgeClassHistory holds the string denoting the class_history edge name in mutations.
+	EdgeClassHistory = "class_history"
+	// EdgeRaceHistory holds the string denoting the race_history edge name in mutations.
+	EdgeRaceHistory = "race_history"
 	// Table holds the table name of the character in the database.
 	Table = "characters"
 	// UserTable is the table that holds the user relation/edge.
@@ -225,6 +229,20 @@ const (
 	CharacterSkillsInverseTable = "character_skills"
 	// CharacterSkillsColumn is the table column denoting the character_skills relation/edge.
 	CharacterSkillsColumn = "character_id"
+	// ClassHistoryTable is the table that holds the class_history relation/edge.
+	ClassHistoryTable = "character_class_histories"
+	// ClassHistoryInverseTable is the table name for the CharacterClassHistory entity.
+	// It exists in this package in order to avoid circular dependency with the "characterclasshistory" package.
+	ClassHistoryInverseTable = "character_class_histories"
+	// ClassHistoryColumn is the table column denoting the class_history relation/edge.
+	ClassHistoryColumn = "character_id"
+	// RaceHistoryTable is the table that holds the race_history relation/edge.
+	RaceHistoryTable = "character_race_histories"
+	// RaceHistoryInverseTable is the table name for the CharacterRaceHistory entity.
+	// It exists in this package in order to avoid circular dependency with the "characterracehistory" package.
+	RaceHistoryInverseTable = "character_race_histories"
+	// RaceHistoryColumn is the table column denoting the race_history relation/edge.
+	RaceHistoryColumn = "character_id"
 )
 
 // Columns holds all SQL columns for character fields.
@@ -721,6 +739,34 @@ func ByCharacterSkills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCharacterSkillsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByClassHistoryCount orders the results by class_history count.
+func ByClassHistoryCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newClassHistoryStep(), opts...)
+	}
+}
+
+// ByClassHistory orders the results by class_history terms.
+func ByClassHistory(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newClassHistoryStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRaceHistoryCount orders the results by race_history count.
+func ByRaceHistoryCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRaceHistoryStep(), opts...)
+	}
+}
+
+// ByRaceHistory orders the results by race_history terms.
+func ByRaceHistory(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRaceHistoryStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -824,5 +870,19 @@ func newCharacterSkillsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CharacterSkillsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CharacterSkillsTable, CharacterSkillsColumn),
+	)
+}
+func newClassHistoryStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ClassHistoryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ClassHistoryTable, ClassHistoryColumn),
+	)
+}
+func newRaceHistoryStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RaceHistoryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RaceHistoryTable, RaceHistoryColumn),
 	)
 }

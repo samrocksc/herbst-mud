@@ -25,6 +25,7 @@ type Container struct {
 	Dialog             DialogService
 	Chat               ChatService
 	Zone               *ZoneService
+	ReclassRerace      ReclassReraceService
 	Client             *db.Client
 }
 
@@ -51,6 +52,7 @@ func NewContainer(client *db.Client, repos *repository.Container, logger *slog.L
 		Chat:               NewChatService(repos.Character, repos.ChannelSubscription, repos.OfflineTell, repos.Ignore),
 		NPC:                NewNPCService(repos.NPCTemplate),
 		Zone:               NewZoneService(repos.Zone, repos.NPCTemplate),
+		ReclassRerace:      NewReclassReraceService(client, logger),
 		Client:             client,
 	}
 }

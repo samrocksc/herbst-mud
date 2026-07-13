@@ -116,6 +116,18 @@ func (f CharacterChannelFunc) Mutate(ctx context.Context, m db.Mutation) (db.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterChannelMutation", m)
 }
 
+// The CharacterClassHistoryFunc type is an adapter to allow the use of ordinary
+// function as CharacterClassHistory mutator.
+type CharacterClassHistoryFunc func(context.Context, *db.CharacterClassHistoryMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterClassHistoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterClassHistoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterClassHistoryMutation", m)
+}
+
 // The CharacterCompetencyFunc type is an adapter to allow the use of ordinary
 // function as CharacterCompetency mutator.
 type CharacterCompetencyFunc func(context.Context, *db.CharacterCompetencyMutation) (db.Value, error)
@@ -150,6 +162,18 @@ func (f CharacterIgnoreFunc) Mutate(ctx context.Context, m db.Mutation) (db.Valu
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterIgnoreMutation", m)
+}
+
+// The CharacterRaceHistoryFunc type is an adapter to allow the use of ordinary
+// function as CharacterRaceHistory mutator.
+type CharacterRaceHistoryFunc func(context.Context, *db.CharacterRaceHistoryMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CharacterRaceHistoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.CharacterRaceHistoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CharacterRaceHistoryMutation", m)
 }
 
 // The CharacterSkillFunc type is an adapter to allow the use of ordinary

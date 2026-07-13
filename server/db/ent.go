@@ -15,9 +15,11 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/characterchannel"
+	"herbst-server/db/characterclasshistory"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterignore"
+	"herbst-server/db/characterracehistory"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
@@ -126,9 +128,11 @@ func checkColumn(t, c string) error {
 			character.Table:                character.ValidColumn,
 			characterability.Table:         characterability.ValidColumn,
 			characterchannel.Table:         characterchannel.ValidColumn,
+			characterclasshistory.Table:    characterclasshistory.ValidColumn,
 			charactercompetency.Table:      charactercompetency.ValidColumn,
 			characterfaction.Table:         characterfaction.ValidColumn,
 			characterignore.Table:          characterignore.ValidColumn,
+			characterracehistory.Table:     characterracehistory.ValidColumn,
 			characterskill.Table:           characterskill.ValidColumn,
 			charactertag.Table:             charactertag.ValidColumn,
 			competencycategory.Table:       competencycategory.ValidColumn,

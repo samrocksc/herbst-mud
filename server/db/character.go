@@ -138,9 +138,13 @@ type CharacterEdges struct {
 	ShopTemplate []*ShopTemplate `json:"shop_template,omitempty"`
 	// CharacterSkills holds the value of the character_skills edge.
 	CharacterSkills []*CharacterSkill `json:"character_skills,omitempty"`
+	// ClassHistory holds the value of the class_history edge.
+	ClassHistory []*CharacterClassHistory `json:"class_history,omitempty"`
+	// RaceHistory holds the value of the race_history edge.
+	RaceHistory []*CharacterRaceHistory `json:"race_history,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [15]bool
+	loadedTypes [17]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -284,6 +288,24 @@ func (e CharacterEdges) CharacterSkillsOrErr() ([]*CharacterSkill, error) {
 		return e.CharacterSkills, nil
 	}
 	return nil, &NotLoadedError{edge: "character_skills"}
+}
+
+// ClassHistoryOrErr returns the ClassHistory value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) ClassHistoryOrErr() ([]*CharacterClassHistory, error) {
+	if e.loadedTypes[15] {
+		return e.ClassHistory, nil
+	}
+	return nil, &NotLoadedError{edge: "class_history"}
+}
+
+// RaceHistoryOrErr returns the RaceHistory value or an error if the edge
+// was not loaded in eager-loading.
+func (e CharacterEdges) RaceHistoryOrErr() ([]*CharacterRaceHistory, error) {
+	if e.loadedTypes[16] {
+		return e.RaceHistory, nil
+	}
+	return nil, &NotLoadedError{edge: "race_history"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -658,6 +680,16 @@ func (_m *Character) QueryShopTemplate() *ShopTemplateQuery {
 // QueryCharacterSkills queries the "character_skills" edge of the Character entity.
 func (_m *Character) QueryCharacterSkills() *CharacterSkillQuery {
 	return NewCharacterClient(_m.config).QueryCharacterSkills(_m)
+}
+
+// QueryClassHistory queries the "class_history" edge of the Character entity.
+func (_m *Character) QueryClassHistory() *CharacterClassHistoryQuery {
+	return NewCharacterClient(_m.config).QueryClassHistory(_m)
+}
+
+// QueryRaceHistory queries the "race_history" edge of the Character entity.
+func (_m *Character) QueryRaceHistory() *CharacterRaceHistoryQuery {
+	return NewCharacterClient(_m.config).QueryRaceHistory(_m)
 }
 
 // Update returns a builder for updating this Character.

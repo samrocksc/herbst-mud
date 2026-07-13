@@ -20,9 +20,11 @@ import (
 	"herbst-server/db/character"
 	"herbst-server/db/characterability"
 	"herbst-server/db/characterchannel"
+	"herbst-server/db/characterclasshistory"
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/characterfaction"
 	"herbst-server/db/characterignore"
+	"herbst-server/db/characterracehistory"
 	"herbst-server/db/characterskill"
 	"herbst-server/db/charactertag"
 	"herbst-server/db/competencycategory"
@@ -86,12 +88,16 @@ type Client struct {
 	CharacterAbility *CharacterAbilityClient
 	// CharacterChannel is the client for interacting with the CharacterChannel builders.
 	CharacterChannel *CharacterChannelClient
+	// CharacterClassHistory is the client for interacting with the CharacterClassHistory builders.
+	CharacterClassHistory *CharacterClassHistoryClient
 	// CharacterCompetency is the client for interacting with the CharacterCompetency builders.
 	CharacterCompetency *CharacterCompetencyClient
 	// CharacterFaction is the client for interacting with the CharacterFaction builders.
 	CharacterFaction *CharacterFactionClient
 	// CharacterIgnore is the client for interacting with the CharacterIgnore builders.
 	CharacterIgnore *CharacterIgnoreClient
+	// CharacterRaceHistory is the client for interacting with the CharacterRaceHistory builders.
+	CharacterRaceHistory *CharacterRaceHistoryClient
 	// CharacterSkill is the client for interacting with the CharacterSkill builders.
 	CharacterSkill *CharacterSkillClient
 	// CharacterTag is the client for interacting with the CharacterTag builders.
@@ -178,9 +184,11 @@ func (c *Client) init() {
 	c.Character = NewCharacterClient(c.config)
 	c.CharacterAbility = NewCharacterAbilityClient(c.config)
 	c.CharacterChannel = NewCharacterChannelClient(c.config)
+	c.CharacterClassHistory = NewCharacterClassHistoryClient(c.config)
 	c.CharacterCompetency = NewCharacterCompetencyClient(c.config)
 	c.CharacterFaction = NewCharacterFactionClient(c.config)
 	c.CharacterIgnore = NewCharacterIgnoreClient(c.config)
+	c.CharacterRaceHistory = NewCharacterRaceHistoryClient(c.config)
 	c.CharacterSkill = NewCharacterSkillClient(c.config)
 	c.CharacterTag = NewCharacterTagClient(c.config)
 	c.CompetencyCategory = NewCompetencyCategoryClient(c.config)
@@ -315,9 +323,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Character:                NewCharacterClient(cfg),
 		CharacterAbility:         NewCharacterAbilityClient(cfg),
 		CharacterChannel:         NewCharacterChannelClient(cfg),
+		CharacterClassHistory:    NewCharacterClassHistoryClient(cfg),
 		CharacterCompetency:      NewCharacterCompetencyClient(cfg),
 		CharacterFaction:         NewCharacterFactionClient(cfg),
 		CharacterIgnore:          NewCharacterIgnoreClient(cfg),
+		CharacterRaceHistory:     NewCharacterRaceHistoryClient(cfg),
 		CharacterSkill:           NewCharacterSkillClient(cfg),
 		CharacterTag:             NewCharacterTagClient(cfg),
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
@@ -379,9 +389,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Character:                NewCharacterClient(cfg),
 		CharacterAbility:         NewCharacterAbilityClient(cfg),
 		CharacterChannel:         NewCharacterChannelClient(cfg),
+		CharacterClassHistory:    NewCharacterClassHistoryClient(cfg),
 		CharacterCompetency:      NewCharacterCompetencyClient(cfg),
 		CharacterFaction:         NewCharacterFactionClient(cfg),
 		CharacterIgnore:          NewCharacterIgnoreClient(cfg),
+		CharacterRaceHistory:     NewCharacterRaceHistoryClient(cfg),
 		CharacterSkill:           NewCharacterSkillClient(cfg),
 		CharacterTag:             NewCharacterTagClient(cfg),
 		CompetencyCategory:       NewCompetencyCategoryClient(cfg),
@@ -446,14 +458,14 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
 		c.ChannelConfig, c.Character, c.CharacterAbility, c.CharacterChannel,
-		c.CharacterCompetency, c.CharacterFaction, c.CharacterIgnore, c.CharacterSkill,
-		c.CharacterTag, c.CompetencyCategory, c.CompetencyLevelThreshold,
-		c.CraftingRecipe, c.DamageLog, c.DialogNode, c.Effect, c.EffectHook,
-		c.Equipment, c.EquipmentTemplate, c.Faction, c.FactionCategory,
-		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate,
-		c.Quest, c.QuestProgress, c.Race, c.Room, c.ShopItem, c.ShopTemplate, c.Skill,
-		c.SocialCommand, c.SystemLog, c.Tag, c.TellQueue, c.Trigger, c.User, c.World,
-		c.Zone,
+		c.CharacterClassHistory, c.CharacterCompetency, c.CharacterFaction,
+		c.CharacterIgnore, c.CharacterRaceHistory, c.CharacterSkill, c.CharacterTag,
+		c.CompetencyCategory, c.CompetencyLevelThreshold, c.CraftingRecipe,
+		c.DamageLog, c.DialogNode, c.Effect, c.EffectHook, c.Equipment,
+		c.EquipmentTemplate, c.Faction, c.FactionCategory, c.FactionRequiredTag,
+		c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress,
+		c.Race, c.Room, c.ShopItem, c.ShopTemplate, c.Skill, c.SocialCommand,
+		c.SystemLog, c.Tag, c.TellQueue, c.Trigger, c.User, c.World, c.Zone,
 	} {
 		n.Use(hooks...)
 	}
@@ -465,14 +477,14 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Ability, c.AbilityEffect, c.Achievement, c.ActiveEffect, c.AppLog,
 		c.ChannelConfig, c.Character, c.CharacterAbility, c.CharacterChannel,
-		c.CharacterCompetency, c.CharacterFaction, c.CharacterIgnore, c.CharacterSkill,
-		c.CharacterTag, c.CompetencyCategory, c.CompetencyLevelThreshold,
-		c.CraftingRecipe, c.DamageLog, c.DialogNode, c.Effect, c.EffectHook,
-		c.Equipment, c.EquipmentTemplate, c.Faction, c.FactionCategory,
-		c.FactionRequiredTag, c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate,
-		c.Quest, c.QuestProgress, c.Race, c.Room, c.ShopItem, c.ShopTemplate, c.Skill,
-		c.SocialCommand, c.SystemLog, c.Tag, c.TellQueue, c.Trigger, c.User, c.World,
-		c.Zone,
+		c.CharacterClassHistory, c.CharacterCompetency, c.CharacterFaction,
+		c.CharacterIgnore, c.CharacterRaceHistory, c.CharacterSkill, c.CharacterTag,
+		c.CompetencyCategory, c.CompetencyLevelThreshold, c.CraftingRecipe,
+		c.DamageLog, c.DialogNode, c.Effect, c.EffectHook, c.Equipment,
+		c.EquipmentTemplate, c.Faction, c.FactionCategory, c.FactionRequiredTag,
+		c.GameConfig, c.Gender, c.NPCAbility, c.NPCTemplate, c.Quest, c.QuestProgress,
+		c.Race, c.Room, c.ShopItem, c.ShopTemplate, c.Skill, c.SocialCommand,
+		c.SystemLog, c.Tag, c.TellQueue, c.Trigger, c.User, c.World, c.Zone,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -499,12 +511,16 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CharacterAbility.mutate(ctx, m)
 	case *CharacterChannelMutation:
 		return c.CharacterChannel.mutate(ctx, m)
+	case *CharacterClassHistoryMutation:
+		return c.CharacterClassHistory.mutate(ctx, m)
 	case *CharacterCompetencyMutation:
 		return c.CharacterCompetency.mutate(ctx, m)
 	case *CharacterFactionMutation:
 		return c.CharacterFaction.mutate(ctx, m)
 	case *CharacterIgnoreMutation:
 		return c.CharacterIgnore.mutate(ctx, m)
+	case *CharacterRaceHistoryMutation:
+		return c.CharacterRaceHistory.mutate(ctx, m)
 	case *CharacterSkillMutation:
 		return c.CharacterSkill.mutate(ctx, m)
 	case *CharacterTagMutation:
@@ -1850,6 +1866,38 @@ func (c *CharacterClient) QueryCharacterSkills(_m *Character) *CharacterSkillQue
 	return query
 }
 
+// QueryClassHistory queries the class_history edge of a Character.
+func (c *CharacterClient) QueryClassHistory(_m *Character) *CharacterClassHistoryQuery {
+	query := (&CharacterClassHistoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(characterclasshistory.Table, characterclasshistory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.ClassHistoryTable, character.ClassHistoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRaceHistory queries the race_history edge of a Character.
+func (c *CharacterClient) QueryRaceHistory(_m *Character) *CharacterRaceHistoryQuery {
+	query := (&CharacterRaceHistoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(character.Table, character.FieldID, id),
+			sqlgraph.To(characterracehistory.Table, characterracehistory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, character.RaceHistoryTable, character.RaceHistoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CharacterClient) Hooks() []Hook {
 	return c.hooks.Character
@@ -2186,6 +2234,155 @@ func (c *CharacterChannelClient) mutate(ctx context.Context, m *CharacterChannel
 		return (&CharacterChannelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CharacterChannel mutation op: %q", m.Op())
+	}
+}
+
+// CharacterClassHistoryClient is a client for the CharacterClassHistory schema.
+type CharacterClassHistoryClient struct {
+	config
+}
+
+// NewCharacterClassHistoryClient returns a client for the CharacterClassHistory from the given config.
+func NewCharacterClassHistoryClient(c config) *CharacterClassHistoryClient {
+	return &CharacterClassHistoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `characterclasshistory.Hooks(f(g(h())))`.
+func (c *CharacterClassHistoryClient) Use(hooks ...Hook) {
+	c.hooks.CharacterClassHistory = append(c.hooks.CharacterClassHistory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `characterclasshistory.Intercept(f(g(h())))`.
+func (c *CharacterClassHistoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CharacterClassHistory = append(c.inters.CharacterClassHistory, interceptors...)
+}
+
+// Create returns a builder for creating a CharacterClassHistory entity.
+func (c *CharacterClassHistoryClient) Create() *CharacterClassHistoryCreate {
+	mutation := newCharacterClassHistoryMutation(c.config, OpCreate)
+	return &CharacterClassHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CharacterClassHistory entities.
+func (c *CharacterClassHistoryClient) CreateBulk(builders ...*CharacterClassHistoryCreate) *CharacterClassHistoryCreateBulk {
+	return &CharacterClassHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CharacterClassHistoryClient) MapCreateBulk(slice any, setFunc func(*CharacterClassHistoryCreate, int)) *CharacterClassHistoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CharacterClassHistoryCreateBulk{err: fmt.Errorf("calling to CharacterClassHistoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CharacterClassHistoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CharacterClassHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CharacterClassHistory.
+func (c *CharacterClassHistoryClient) Update() *CharacterClassHistoryUpdate {
+	mutation := newCharacterClassHistoryMutation(c.config, OpUpdate)
+	return &CharacterClassHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CharacterClassHistoryClient) UpdateOne(_m *CharacterClassHistory) *CharacterClassHistoryUpdateOne {
+	mutation := newCharacterClassHistoryMutation(c.config, OpUpdateOne, withCharacterClassHistory(_m))
+	return &CharacterClassHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CharacterClassHistoryClient) UpdateOneID(id int) *CharacterClassHistoryUpdateOne {
+	mutation := newCharacterClassHistoryMutation(c.config, OpUpdateOne, withCharacterClassHistoryID(id))
+	return &CharacterClassHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CharacterClassHistory.
+func (c *CharacterClassHistoryClient) Delete() *CharacterClassHistoryDelete {
+	mutation := newCharacterClassHistoryMutation(c.config, OpDelete)
+	return &CharacterClassHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CharacterClassHistoryClient) DeleteOne(_m *CharacterClassHistory) *CharacterClassHistoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CharacterClassHistoryClient) DeleteOneID(id int) *CharacterClassHistoryDeleteOne {
+	builder := c.Delete().Where(characterclasshistory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CharacterClassHistoryDeleteOne{builder}
+}
+
+// Query returns a query builder for CharacterClassHistory.
+func (c *CharacterClassHistoryClient) Query() *CharacterClassHistoryQuery {
+	return &CharacterClassHistoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCharacterClassHistory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CharacterClassHistory entity by its id.
+func (c *CharacterClassHistoryClient) Get(ctx context.Context, id int) (*CharacterClassHistory, error) {
+	return c.Query().Where(characterclasshistory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CharacterClassHistoryClient) GetX(ctx context.Context, id int) *CharacterClassHistory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacter queries the character edge of a CharacterClassHistory.
+func (c *CharacterClassHistoryClient) QueryCharacter(_m *CharacterClassHistory) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(characterclasshistory.Table, characterclasshistory.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, characterclasshistory.CharacterTable, characterclasshistory.CharacterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CharacterClassHistoryClient) Hooks() []Hook {
+	return c.hooks.CharacterClassHistory
+}
+
+// Interceptors returns the client interceptors.
+func (c *CharacterClassHistoryClient) Interceptors() []Interceptor {
+	return c.inters.CharacterClassHistory
+}
+
+func (c *CharacterClassHistoryClient) mutate(ctx context.Context, m *CharacterClassHistoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CharacterClassHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CharacterClassHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CharacterClassHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CharacterClassHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CharacterClassHistory mutation op: %q", m.Op())
 	}
 }
 
@@ -2665,6 +2862,155 @@ func (c *CharacterIgnoreClient) mutate(ctx context.Context, m *CharacterIgnoreMu
 		return (&CharacterIgnoreDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CharacterIgnore mutation op: %q", m.Op())
+	}
+}
+
+// CharacterRaceHistoryClient is a client for the CharacterRaceHistory schema.
+type CharacterRaceHistoryClient struct {
+	config
+}
+
+// NewCharacterRaceHistoryClient returns a client for the CharacterRaceHistory from the given config.
+func NewCharacterRaceHistoryClient(c config) *CharacterRaceHistoryClient {
+	return &CharacterRaceHistoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `characterracehistory.Hooks(f(g(h())))`.
+func (c *CharacterRaceHistoryClient) Use(hooks ...Hook) {
+	c.hooks.CharacterRaceHistory = append(c.hooks.CharacterRaceHistory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `characterracehistory.Intercept(f(g(h())))`.
+func (c *CharacterRaceHistoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CharacterRaceHistory = append(c.inters.CharacterRaceHistory, interceptors...)
+}
+
+// Create returns a builder for creating a CharacterRaceHistory entity.
+func (c *CharacterRaceHistoryClient) Create() *CharacterRaceHistoryCreate {
+	mutation := newCharacterRaceHistoryMutation(c.config, OpCreate)
+	return &CharacterRaceHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CharacterRaceHistory entities.
+func (c *CharacterRaceHistoryClient) CreateBulk(builders ...*CharacterRaceHistoryCreate) *CharacterRaceHistoryCreateBulk {
+	return &CharacterRaceHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CharacterRaceHistoryClient) MapCreateBulk(slice any, setFunc func(*CharacterRaceHistoryCreate, int)) *CharacterRaceHistoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CharacterRaceHistoryCreateBulk{err: fmt.Errorf("calling to CharacterRaceHistoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CharacterRaceHistoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CharacterRaceHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CharacterRaceHistory.
+func (c *CharacterRaceHistoryClient) Update() *CharacterRaceHistoryUpdate {
+	mutation := newCharacterRaceHistoryMutation(c.config, OpUpdate)
+	return &CharacterRaceHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CharacterRaceHistoryClient) UpdateOne(_m *CharacterRaceHistory) *CharacterRaceHistoryUpdateOne {
+	mutation := newCharacterRaceHistoryMutation(c.config, OpUpdateOne, withCharacterRaceHistory(_m))
+	return &CharacterRaceHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CharacterRaceHistoryClient) UpdateOneID(id int) *CharacterRaceHistoryUpdateOne {
+	mutation := newCharacterRaceHistoryMutation(c.config, OpUpdateOne, withCharacterRaceHistoryID(id))
+	return &CharacterRaceHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CharacterRaceHistory.
+func (c *CharacterRaceHistoryClient) Delete() *CharacterRaceHistoryDelete {
+	mutation := newCharacterRaceHistoryMutation(c.config, OpDelete)
+	return &CharacterRaceHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CharacterRaceHistoryClient) DeleteOne(_m *CharacterRaceHistory) *CharacterRaceHistoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CharacterRaceHistoryClient) DeleteOneID(id int) *CharacterRaceHistoryDeleteOne {
+	builder := c.Delete().Where(characterracehistory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CharacterRaceHistoryDeleteOne{builder}
+}
+
+// Query returns a query builder for CharacterRaceHistory.
+func (c *CharacterRaceHistoryClient) Query() *CharacterRaceHistoryQuery {
+	return &CharacterRaceHistoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCharacterRaceHistory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CharacterRaceHistory entity by its id.
+func (c *CharacterRaceHistoryClient) Get(ctx context.Context, id int) (*CharacterRaceHistory, error) {
+	return c.Query().Where(characterracehistory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CharacterRaceHistoryClient) GetX(ctx context.Context, id int) *CharacterRaceHistory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCharacter queries the character edge of a CharacterRaceHistory.
+func (c *CharacterRaceHistoryClient) QueryCharacter(_m *CharacterRaceHistory) *CharacterQuery {
+	query := (&CharacterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(characterracehistory.Table, characterracehistory.FieldID, id),
+			sqlgraph.To(character.Table, character.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, characterracehistory.CharacterTable, characterracehistory.CharacterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CharacterRaceHistoryClient) Hooks() []Hook {
+	return c.hooks.CharacterRaceHistory
+}
+
+// Interceptors returns the client interceptors.
+func (c *CharacterRaceHistoryClient) Interceptors() []Interceptor {
+	return c.inters.CharacterRaceHistory
+}
+
+func (c *CharacterRaceHistoryClient) mutate(ctx context.Context, m *CharacterRaceHistoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CharacterRaceHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CharacterRaceHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CharacterRaceHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CharacterRaceHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CharacterRaceHistory mutation op: %q", m.Op())
 	}
 }
 
@@ -8101,23 +8447,24 @@ func (c *ZoneClient) mutate(ctx context.Context, m *ZoneMutation) (Value, error)
 type (
 	hooks struct {
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, ChannelConfig,
-		Character, CharacterAbility, CharacterChannel, CharacterCompetency,
-		CharacterFaction, CharacterIgnore, CharacterSkill, CharacterTag,
-		CompetencyCategory, CompetencyLevelThreshold, CraftingRecipe, DamageLog,
-		DialogNode, Effect, EffectHook, Equipment, EquipmentTemplate, Faction,
-		FactionCategory, FactionRequiredTag, GameConfig, Gender, NPCAbility,
-		NPCTemplate, Quest, QuestProgress, Race, Room, ShopItem, ShopTemplate, Skill,
-		SocialCommand, SystemLog, Tag, TellQueue, Trigger, User, World, Zone []ent.Hook
+		Character, CharacterAbility, CharacterChannel, CharacterClassHistory,
+		CharacterCompetency, CharacterFaction, CharacterIgnore, CharacterRaceHistory,
+		CharacterSkill, CharacterTag, CompetencyCategory, CompetencyLevelThreshold,
+		CraftingRecipe, DamageLog, DialogNode, Effect, EffectHook, Equipment,
+		EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag, GameConfig,
+		Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room, ShopItem,
+		ShopTemplate, Skill, SocialCommand, SystemLog, Tag, TellQueue, Trigger, User,
+		World, Zone []ent.Hook
 	}
 	inters struct {
 		Ability, AbilityEffect, Achievement, ActiveEffect, AppLog, ChannelConfig,
-		Character, CharacterAbility, CharacterChannel, CharacterCompetency,
-		CharacterFaction, CharacterIgnore, CharacterSkill, CharacterTag,
-		CompetencyCategory, CompetencyLevelThreshold, CraftingRecipe, DamageLog,
-		DialogNode, Effect, EffectHook, Equipment, EquipmentTemplate, Faction,
-		FactionCategory, FactionRequiredTag, GameConfig, Gender, NPCAbility,
-		NPCTemplate, Quest, QuestProgress, Race, Room, ShopItem, ShopTemplate, Skill,
-		SocialCommand, SystemLog, Tag, TellQueue, Trigger, User, World,
-		Zone []ent.Interceptor
+		Character, CharacterAbility, CharacterChannel, CharacterClassHistory,
+		CharacterCompetency, CharacterFaction, CharacterIgnore, CharacterRaceHistory,
+		CharacterSkill, CharacterTag, CompetencyCategory, CompetencyLevelThreshold,
+		CraftingRecipe, DamageLog, DialogNode, Effect, EffectHook, Equipment,
+		EquipmentTemplate, Faction, FactionCategory, FactionRequiredTag, GameConfig,
+		Gender, NPCAbility, NPCTemplate, Quest, QuestProgress, Race, Room, ShopItem,
+		ShopTemplate, Skill, SocialCommand, SystemLog, Tag, TellQueue, Trigger, User,
+		World, Zone []ent.Interceptor
 	}
 )
