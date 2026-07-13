@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"herbst-server/db"
@@ -12,6 +13,7 @@ import (
 	"herbst-server/db/charactercompetency"
 	"herbst-server/db/competencycategory"
 	"herbst-server/db/competencylevelthreshold"
+	"herbst-server/db/systemlog"
 	"herbst-server/events"
 
 	"entgo.io/ent/dialect/sql"
@@ -28,10 +30,17 @@ func RegisterEventRoutes(router *gin.Engine, client *db.Client, logger *slog.Log
 	bus.Subscribe(events.EventCharacterDied, events.DeathPenaltySubscriber(xpSvc, logger, 10)) // 10% death penalty
 	bus.Subscribe(events.EventQuestComplete, events.QuestXPSubscriber(xpSvc, logger))
 
+	// Phase 5: Event system subscribers
+	events.RegisterAchievementSubscriber(client, logger)
+	events.RegisterQuestTriggerSubscriber(client, logger)
+	events.RegisterEventLogSubscriber(client, logger)
+
 	// POST /api/events — the bridge from the game server to the event bus.
 	router.POST("/api/events", handleEvent(logger))
 	// GET /api/events — health/debug endpoint listing active subscriber counts.
 	router.GET("/api/events", handleEventDebug(logger))
+	// GET /api/event-logs — query system_logs for event audit trail.
+	router.GET("/api/event-logs", handleGetEventLogs(client, logger))
 }
 
 func newXPService(client *db.Client, logger *slog.Logger) *xpServiceWrapper {
@@ -244,4 +253,55 @@ XPLoop:
 	}
 
 	return newXP, oldLevel, false, nil
+}
+
+// handleGetEventLogs returns recent system_log entries as event logs.
+func handleGetEventLogs(client *db.Client, logger *slog.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		limit := 100
+		if v := c.Query("limit"); v != "" {
+			if n, err := strconv.Atoi(v); err == nil && n > 0 && n <= 500 {
+				limit = n
+			}
+		}
+		offset := 0
+		if v := c.Query("offset"); v != "" {
+			if n, err := strconv.Atoi(v); err == nil && n >= 0 {
+				offset = n
+			}
+		}
+
+		q := client.SystemLog.Query().
+			Order(systemlog.ByTimestamp(sql.OrderDesc())).
+			Limit(limit).
+			Offset(offset)
+
+		if eventType := c.Query("event_type"); eventType != "" {
+			q = q.Where(systemlog.ActionEQ(eventType))
+		}
+		if charID := c.Query("character_id"); charID != "" {
+			if n, err := strconv.Atoi(charID); err == nil && n > 0 {
+				q = q.Where(systemlog.CharacterIDEQ(n))
+			}
+		}
+
+		logs, err := q.All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query event logs"})
+			return
+		}
+
+		result := make([]gin.H, 0, len(logs))
+		for _, l := range logs {
+			result = append(result, gin.H{
+				"id":            l.ID,
+				"event_type":    l.Action,
+				"character_id":  l.CharacterID,
+				"details":       l.Details,
+				"timestamp":     l.Timestamp,
+			})
+		}
+
+		c.JSON(http.StatusOK, gin.H{"event_logs": result})
+	}
 }

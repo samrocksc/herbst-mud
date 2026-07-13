@@ -23,6 +23,7 @@ import (
 	"herbst-server/db/race"
 	"herbst-server/db/room"
 	"herbst-server/db/shoptemplate"
+	"herbst-server/db/skill"
 	"herbst-server/db/socialcommand"
 	"herbst-server/db/tag"
 	"herbst-server/db/trigger"
@@ -122,6 +123,10 @@ func ExportWorld(ctx context.Context, client *db.Client, worldID string) (*World
 	if err != nil {
 		return nil, err
 	}
+	snap.Skills, err = loadByWorld(ctx, client.Skill.Query().Where(skill.WorldIDEQ(atoi(worldID))).All, skillSliceToMaps)
+	if err != nil {
+		return nil, err
+	}
 
 	return snap, nil
 }
@@ -212,6 +217,7 @@ func dialogNodeSliceToMaps(items []*db.DialogNode) []map[string]interface{} { re
 func effectHookSliceToMaps(items []*db.EffectHook) []map[string]interface{} { return toMaps(items) }
 func socialCommandSliceToMaps(items []*db.SocialCommand) []map[string]interface{} { return toMaps(items) }
 func shopTemplateSliceToMaps(items []*db.ShopTemplate) []map[string]interface{} { return toMaps(items) }
+func skillSliceToMaps(items []*db.Skill) []map[string]interface{} { return toMaps(items) }
 func zoneSliceToMaps(items []*db.Zone) []map[string]interface{} { return toMaps(items) }
 
 func atoi(s string) int {

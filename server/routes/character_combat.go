@@ -285,6 +285,7 @@ func listAllNPCs(repos *repository.Container) gin.HandlerFunc {
 				"dexterity":     npc.Dexterity,
 				"intelligence":  npc.Intelligence,
 				"wisdom":        npc.Wisdom,
+			"charisma":      npc.Charisma,
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{"npcs": result, "count": len(result)})

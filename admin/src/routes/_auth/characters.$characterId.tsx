@@ -2,7 +2,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCharacter, useUpdateCharacter, useAddCharacterGold, useSpendCharacterGold, type CharacterUpdate } from "../../hooks/useCharacters";
+import { useCharacter, useUpdateCharacter, useAddCharacterGold, useSpendCharacterGold, useCharacterSkills, type CharacterUpdate } from "../../hooks/useCharacters";
 import { apiPost } from "../../utils/apiFetch";
 import { PageHeader } from "../../components/PageHeader";
 import { EquippedItemsView } from "../../components/EquippedItemsView";
@@ -226,6 +226,7 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
         <Field label="CON" value={String(character.constitution)} />
         <Field label="INT" value={String(character.intelligence)} />
         <Field label="WIS" value={String(character.wisdom)} />
+        <Field label="CHA" value={String(character.charisma)} />
       </Section>
 
       {character.description && (
@@ -233,6 +234,8 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
           <p className="text-text-muted text-sm">{character.description}</p>
         </Section>
       )}
+
+      <SkillsPanel characterId={character.id} />
     </div>
   );
 }
@@ -364,6 +367,35 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
         Save Changes
       </button>
     </div>
+  );
+}
+
+function SkillsPanel({ characterId }: { characterId: number }) {
+  const { data: skillsData, isLoading, isError } = useCharacterSkills(characterId);
+  const skillEntries = skillsData?.skills ? Object.entries(skillsData.skills) : [];
+
+  return (
+    <Section title={`Skills${skillEntries.length > 0 ? ` (${skillEntries.length})` : ""}`}>
+      {isLoading && <div className="text-text-muted text-sm">Loading skills...</div>}
+      {isError && <div className="text-danger text-sm">Failed to load skills</div>}
+      {!isLoading && !isError && skillEntries.length === 0 && (
+        <div className="text-text-muted text-sm">No skills assigned.</div>
+      )}
+      {skillEntries.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {skillEntries.map(([name, info]) => (
+            <span
+              key={name}
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface border border-border rounded text-xs text-text"
+              title={`Level ${info.level} · +${info.bonus} bonus`}
+            >
+              {name}
+              <span className="text-text-muted font-mono">Lv{info.level}</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </Section>
   );
 }
 

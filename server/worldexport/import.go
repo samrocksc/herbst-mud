@@ -137,5 +137,11 @@ func ImportWorld(ctx context.Context, client *db.Client, snap *WorldSnapshot, ne
 		return nil, fmt.Errorf("import effect_hooks: %w", err)
 	}
 
+	// Phase 12: Skills (world-scoped definitions, parent_skill_id remapped within skills)
+	res.Skills, err = importSkills(ctx, client, snap.Skills, newWorldID, maps)
+	if err != nil {
+		return nil, fmt.Errorf("import skills: %w", err)
+	}
+
 	return res, nil
 }

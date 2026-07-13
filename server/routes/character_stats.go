@@ -150,6 +150,7 @@ func getCharacterStats(repos *repository.Container) gin.HandlerFunc {
 			"constitution":  char.Constitution,
 			"intelligence":  char.Intelligence,
 			"wisdom":        char.Wisdom,
+			"charisma":      char.Charisma,
 			"derived":       derivedStats,
 		})
 	}
@@ -168,6 +169,7 @@ func updateCharacterStats(repos *repository.Container) gin.HandlerFunc {
 			Constitution *int `json:"constitution"`
 			Intelligence *int `json:"intelligence"`
 			Wisdom       *int `json:"wisdom"`
+			Charisma     *int `json:"charisma"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -182,7 +184,7 @@ func updateCharacterStats(repos *repository.Container) gin.HandlerFunc {
 		for name, stat := range map[string]*int{
 			"strength": req.Strength, "dexterity": req.Dexterity,
 			"constitution": req.Constitution, "intelligence": req.Intelligence,
-			"wisdom": req.Wisdom,
+			"wisdom": req.Wisdom, "charisma": req.Charisma,
 		} {
 			if err := validateStat(stat, name); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -195,20 +197,22 @@ func updateCharacterStats(repos *repository.Container) gin.HandlerFunc {
 			Constitution: req.Constitution,
 			Intelligence: req.Intelligence,
 			Wisdom:       req.Wisdom,
-		})
+		Charisma:     req.Charisma,
+	})
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"id":            char.ID,
-			"name":          char.Name,
-			"strength":      char.Strength,
-			"dexterity":     char.Dexterity,
-			"constitution":  char.Constitution,
-			"intelligence":  char.Intelligence,
-			"wisdom":        char.Wisdom,
-		})
+		"id":            char.ID,
+		"name":          char.Name,
+		"strength":      char.Strength,
+		"dexterity":     char.Dexterity,
+		"constitution":  char.Constitution,
+		"intelligence":  char.Intelligence,
+		"wisdom":        char.Wisdom,
+		"charisma":      char.Charisma,
+	})
 	}
 }
 
