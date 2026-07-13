@@ -99,6 +99,12 @@ func (r *entRaceRepo) Update(ctx context.Context, id int, updates RaceUpdates) (
 	if updates.EquipmentSlots != nil {
 		builder = builder.SetEquipmentSlots(updates.EquipmentSlots)
 	}
+	if updates.Resistances != nil {
+		builder = builder.SetResistances(updates.Resistances)
+	}
+	if updates.Vulnerabilities != nil {
+		builder = builder.SetVulnerabilities(updates.Vulnerabilities)
+	}
 	if updates.ClearTags {
 		builder = builder.ClearTags()
 	}

@@ -142,9 +142,14 @@ func main() {
 		log.Printf("Warning: failed to initialize character health: %v", err)
 	}
 
-	// Apply database fixes again (after InitCharacterHealth which might restore 0 HP chars)
+	// Ensure Combat Dummy immortality
 	if err := dbinit.EnsureCombatDummyImmortal(client); err != nil {
 		log.Printf("Warning: failed to ensure Combat Dummy immortality: %v", err)
+	}
+
+	// Seed default resistances for existing races
+	if err := dbinit.SeedDefaultResistances(client); err != nil {
+		log.Printf("Warning: failed to seed default resistances: %v", err)
 	}
 
 	// Initialize world manager (Week 8: Multi-World Support)

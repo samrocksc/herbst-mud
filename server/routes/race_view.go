@@ -8,18 +8,20 @@ import (
 
 // raceView is the JSON shape returned by the API.
 type raceView struct {
-	ID               int      `json:"id"`
-	Name             string   `json:"name"`
-	DisplayName      string   `json:"display_name"`
-	Description      string   `json:"description,omitempty"`
-	StatModifiers    any      `json:"stat_modifiers,omitempty"`
-	SkillGrants      []string `json:"skill_grants,omitempty"`
-	EquipmentSlots   []string `json:"equipment_slots,omitempty"`
-	AbilityModifiers []string `json:"ability_modifiers,omitempty"`
-	RequirementTags  []string `json:"requirement_tags"`
-	Color            string   `json:"color,omitempty"`
-	Tags             []string `json:"tags,omitempty"`
-	WorldID          string   `json:"world_id,omitempty"`
+	ID               int            `json:"id"`
+	Name             string         `json:"name"`
+	DisplayName      string         `json:"display_name"`
+	Description      string         `json:"description,omitempty"`
+	StatModifiers    any            `json:"stat_modifiers,omitempty"`
+	SkillGrants      []string       `json:"skill_grants,omitempty"`
+	EquipmentSlots   []string       `json:"equipment_slots,omitempty"`
+	AbilityModifiers []string       `json:"ability_modifiers,omitempty"`
+	RequirementTags  []string       `json:"requirement_tags"`
+	Color            string         `json:"color,omitempty"`
+	Tags             []string       `json:"tags,omitempty"`
+	WorldID          string         `json:"world_id,omitempty"`
+	Resistances      map[string]int `json:"resistances,omitempty"`
+	Vulnerabilities  map[string]int `json:"vulnerabilities,omitempty"`
 }
 
 // raceToView converts a Race ent model to a raceView.
@@ -53,5 +55,7 @@ func raceToView(r *db.Race) raceView {
 		Color:          r.Color,
 		Tags:           tagNames,
 		WorldID:        r.WorldID,
+		Resistances:    r.Resistances,
+		Vulnerabilities: r.Vulnerabilities,
 	}
 }

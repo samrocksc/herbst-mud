@@ -1705,6 +1705,16 @@ func IsTwoHandedNEQ(v bool) predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(sql.FieldNEQ(FieldIsTwoHanded, v))
 }
 
+// ResistanceModifiersIsNil applies the IsNil predicate on the "resistance_modifiers" field.
+func ResistanceModifiersIsNil() predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldIsNull(FieldResistanceModifiers))
+}
+
+// ResistanceModifiersNotNil applies the NotNil predicate on the "resistance_modifiers" field.
+func ResistanceModifiersNotNil() predicate.EquipmentTemplate {
+	return predicate.EquipmentTemplate(sql.FieldNotNull(FieldResistanceModifiers))
+}
+
 // HasEquipment applies the HasEdge predicate on the "equipment" edge.
 func HasEquipment() predicate.EquipmentTemplate {
 	return predicate.EquipmentTemplate(func(s *sql.Selector) {

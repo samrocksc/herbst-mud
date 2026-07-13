@@ -19,16 +19,18 @@ func updateRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 		}
 
 		var req struct {
-			Name            *string  `json:"name"`
-			DisplayName     *string  `json:"display_name"`
-			Description     *string  `json:"description"`
-			StatModifiers   *string  `json:"stat_modifiers"`
-			SkillGrants     []string `json:"skill_grants"`
-			EquipmentSlots  []string `json:"equipment_slots"`
-			RequirementTags []string `json:"requirement_tags"`
-			Color           *string  `json:"color"`
-			Tags            []string `json:"tags"`
-			WorldID         *string  `json:"world_id"`
+			Name            *string         `json:"name"`
+			DisplayName     *string         `json:"display_name"`
+			Description     *string         `json:"description"`
+			StatModifiers   *string         `json:"stat_modifiers"`
+			SkillGrants     []string        `json:"skill_grants"`
+			EquipmentSlots  []string        `json:"equipment_slots"`
+			RequirementTags []string        `json:"requirement_tags"`
+			Color           *string         `json:"color"`
+			Tags            []string        `json:"tags"`
+			WorldID         *string         `json:"world_id"`
+			Resistances     map[string]int  `json:"resistances"`
+			Vulnerabilities map[string]int  `json:"vulnerabilities"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
@@ -60,6 +62,8 @@ func updateRace(repos *repository.Container, client *db.Client) gin.HandlerFunc 
 			RequirementTags: req.RequirementTags,
 			Color:           req.Color,
 			EquipmentSlots:  req.EquipmentSlots,
+			Resistances:     req.Resistances,
+			Vulnerabilities: req.Vulnerabilities,
 		}
 
 		if req.Tags != nil {

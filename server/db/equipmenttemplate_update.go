@@ -557,6 +557,18 @@ func (_u *EquipmentTemplateUpdate) SetNillableIsTwoHanded(v *bool) *EquipmentTem
 	return _u
 }
 
+// SetResistanceModifiers sets the "resistance_modifiers" field.
+func (_u *EquipmentTemplateUpdate) SetResistanceModifiers(v map[string]int) *EquipmentTemplateUpdate {
+	_u.mutation.SetResistanceModifiers(v)
+	return _u
+}
+
+// ClearResistanceModifiers clears the value of the "resistance_modifiers" field.
+func (_u *EquipmentTemplateUpdate) ClearResistanceModifiers() *EquipmentTemplateUpdate {
+	_u.mutation.ClearResistanceModifiers()
+	return _u
+}
+
 // AddEquipmentIDs adds the "equipment" edge to the Equipment entity by IDs.
 func (_u *EquipmentTemplateUpdate) AddEquipmentIDs(ids ...int) *EquipmentTemplateUpdate {
 	_u.mutation.AddEquipmentIDs(ids...)
@@ -768,6 +780,12 @@ func (_u *EquipmentTemplateUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.IsTwoHanded(); ok {
 		_spec.SetField(equipmenttemplate.FieldIsTwoHanded, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.ResistanceModifiers(); ok {
+		_spec.SetField(equipmenttemplate.FieldResistanceModifiers, field.TypeJSON, value)
+	}
+	if _u.mutation.ResistanceModifiersCleared() {
+		_spec.ClearField(equipmenttemplate.FieldResistanceModifiers, field.TypeJSON)
 	}
 	if _u.mutation.EquipmentCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1362,6 +1380,18 @@ func (_u *EquipmentTemplateUpdateOne) SetNillableIsTwoHanded(v *bool) *Equipment
 	return _u
 }
 
+// SetResistanceModifiers sets the "resistance_modifiers" field.
+func (_u *EquipmentTemplateUpdateOne) SetResistanceModifiers(v map[string]int) *EquipmentTemplateUpdateOne {
+	_u.mutation.SetResistanceModifiers(v)
+	return _u
+}
+
+// ClearResistanceModifiers clears the value of the "resistance_modifiers" field.
+func (_u *EquipmentTemplateUpdateOne) ClearResistanceModifiers() *EquipmentTemplateUpdateOne {
+	_u.mutation.ClearResistanceModifiers()
+	return _u
+}
+
 // AddEquipmentIDs adds the "equipment" edge to the Equipment entity by IDs.
 func (_u *EquipmentTemplateUpdateOne) AddEquipmentIDs(ids ...int) *EquipmentTemplateUpdateOne {
 	_u.mutation.AddEquipmentIDs(ids...)
@@ -1603,6 +1633,12 @@ func (_u *EquipmentTemplateUpdateOne) sqlSave(ctx context.Context) (_node *Equip
 	}
 	if value, ok := _u.mutation.IsTwoHanded(); ok {
 		_spec.SetField(equipmenttemplate.FieldIsTwoHanded, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.ResistanceModifiers(); ok {
+		_spec.SetField(equipmenttemplate.FieldResistanceModifiers, field.TypeJSON, value)
+	}
+	if _u.mutation.ResistanceModifiersCleared() {
+		_spec.ClearField(equipmenttemplate.FieldResistanceModifiers, field.TypeJSON)
 	}
 	if _u.mutation.EquipmentCleared() {
 		edge := &sqlgraph.EdgeSpec{

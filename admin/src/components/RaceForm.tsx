@@ -5,6 +5,7 @@ import { TagInput } from "./TagInput";
 import { Button } from "./Button";
 import { SLOT_CATALOG, DEFAULT_HUMANOID_SLOTS } from "./equipConstants";
 import { FormField, TextareaField, ColorField, FormError } from "./fields";
+import { KeyValueEditor } from "./KeyValueEditor";
 
 type RaceFormProps = Readonly<{
   race: Race | null
@@ -26,6 +27,9 @@ const EMPTY_FORM: RaceInput = {
   requirement_tags: [],
   color: "",
   tags: [],
+  resistances: {},
+  vulnerabilities: {},
+  world_id: "",
 } as const;
 
 function raceToForm(r: Race): RaceInput {
@@ -45,6 +49,8 @@ function raceToForm(r: Race): RaceInput {
     requirement_tags: r.requirement_tags ? [...r.requirement_tags] as unknown as ReadonlyArray<string> : [],
     color: r.color ?? "",
     tags: r.tags ? [...r.tags] as unknown as ReadonlyArray<string> : [],
+    resistances: r.resistances ? { ...r.resistances } : {},
+    vulnerabilities: r.vulnerabilities ? { ...r.vulnerabilities } : {},
   } as const;
 }
 
@@ -107,6 +113,32 @@ export function RaceForm({ race, onSubmit, onCancel, isLoading, error, available
           availableTags={[]} placeholder="Add requirement..." tooltip="Tags that must be satisfied for race to be selectable (empty = playable)" />
         <TagInput label="Race Tags" value={form.tags} onChange={(tags) => set("tags", tags)}
           availableTags={availableTags} placeholder="Add tag..." tooltip="Tags automatically granted to characters of this race" />
+        <div className="pt-2 border-t border-border">
+          <h4 className="text-sm font-semibold text-text mb-1">Resistances</h4>
+          <p className="text-xs text-text-muted mb-2">
+            Damage type → percentage. Positive values reduce damage taken (e.g. fire: 25 = 25% less fire damage).
+          </p>
+          <KeyValueEditor
+            label="Resistances"
+            value={{ ...form.resistances }}
+            onChange={(v) => set("resistances", v)}
+            keyPlaceholder="e.g. fire"
+            tooltip="Map of damage type to resistance percentage. Positive = less damage taken."
+          />
+        </div>
+        <div className="pt-2 border-t border-border">
+          <h4 className="text-sm font-semibold text-text mb-1">Vulnerabilities</h4>
+          <p className="text-xs text-text-muted mb-2">
+            Damage type → percentage. Positive values increase damage taken (e.g. lightning: 25 = 25% more lightning damage).
+          </p>
+          <KeyValueEditor
+            label="Vulnerabilities"
+            value={{ ...form.vulnerabilities }}
+            onChange={(v) => set("vulnerabilities", v)}
+            keyPlaceholder="e.g. lightning"
+            tooltip="Map of damage type to vulnerability percentage. Positive = more damage taken."
+          />
+        </div>
         <ColorField label="Color" value={form.color} onChange={(v) => set("color", v)} placeholder="e.g. #8b5cf6" />
         <div className="flex gap-2 pt-1">
           <Button type="submit" variant="primary" disabled={isLoading || !form.name.trim()} fullWidth>

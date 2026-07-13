@@ -10,6 +10,7 @@ import { NumberField, SelectField, CheckboxField, TextareaField, FormField, Form
 import { ResourceSearchSelect } from "../../components/ResourceSearchSelect";
 import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import { SLOT_OPTIONS, ITEM_TYPE_OPTIONS } from "../../components/itemConstants";
+import { KeyValueEditor } from "../../components/KeyValueEditor";
 
 const EFFECT_TYPE_OPTS = [
   { value: "", label: "— None —" },
@@ -31,6 +32,7 @@ export type TemplateEditForm = Readonly<{
   effect_type: string; effect_value: number; effect_duration: number
   is_container: boolean; container_capacity: number; is_locked: boolean
   key_item_id: string; reveal_condition: string
+  resistance_modifiers: Record<string, number>
 }> & CombatFields
 
 import type { EquipmentTemplate } from "../../hooks/useEquipmentTemplates";
@@ -43,7 +45,11 @@ export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
   const parseStats = (s: Record<string, number> | string): string =>
     typeof s === "string" ? s : JSON.stringify(s);
 
-  const [form, setForm] = useState<TemplateEditForm>(() => ({ ...template, stats: parseStats(template.stats) }));
+  const [form, setForm] = useState<TemplateEditForm>(() => ({
+    ...template,
+    stats: parseStats(template.stats),
+    resistance_modifiers: template.resistance_modifiers ? { ...template.resistance_modifiers } : {},
+  } as TemplateEditForm));
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const updateMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) => apiPut(`${API_BASE}/api/equipment-templates/${itemId}`, body),
@@ -109,6 +115,19 @@ export function TemplateEditForm({ template, itemId, onDone }: Readonly<{
       </div>
       <div className="mt-4 pt-4 border-t border-border">
         <CombatFieldsEditor form={form} onChange={(u) => setForm(prev => ({ ...prev, ...u }))} slot={form.slot} />
+      </div>
+      <div className="mt-4 pt-4 border-t border-border">
+        <h3 className="text-text text-sm font-semibold mb-1">Resistance Modifiers</h3>
+        <p className="text-xs text-text-muted mb-2">
+          Damage type → percentage. Applied to the wearer when this equipment is equipped (e.g. fire: 10 = +10% fire resistance).
+        </p>
+        <KeyValueEditor
+          label="Resistance Modifiers"
+          value={{ ...form.resistance_modifiers }}
+          onChange={(v) => set("resistance_modifiers", v)}
+          keyPlaceholder="e.g. fire"
+          tooltip="Map of damage type to resistance modifier percentage. Positive = more resistance."
+        />
       </div>
       {updateMutation.isError && <FormError message={(updateMutation.error as Error)?.message ?? "Failed to save"} />}
       <div className="flex gap-2 mt-4">

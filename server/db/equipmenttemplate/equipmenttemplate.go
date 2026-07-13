@@ -76,6 +76,8 @@ const (
 	FieldWeaponType = "weapon_type"
 	// FieldIsTwoHanded holds the string denoting the is_two_handed field in the database.
 	FieldIsTwoHanded = "is_two_handed"
+	// FieldResistanceModifiers holds the string denoting the resistance_modifiers field in the database.
+	FieldResistanceModifiers = "resistance_modifiers"
 	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
 	EdgeEquipment = "equipment"
 	// Table holds the table name of the equipmenttemplate in the database.
@@ -124,6 +126,7 @@ var Columns = []string{
 	FieldDamageType,
 	FieldWeaponType,
 	FieldIsTwoHanded,
+	FieldResistanceModifiers,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

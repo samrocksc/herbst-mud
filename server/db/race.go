@@ -37,6 +37,10 @@ type Race struct {
 	Color string `json:"color,omitempty"`
 	// Racial stat growth multipliers per level, e.g., {"hp": 1.1, "mana": 0.9}
 	StatGrowthMultipliers map[string]float64 `json:"stat_growth_multipliers,omitempty"`
+	// Racial resistance percentages by damage type, e.g., {"fire": 25, "cold": 10}
+	Resistances map[string]int `json:"resistances,omitempty"`
+	// Racial vulnerability percentages by damage type, e.g., {"lightning": -25}
+	Vulnerabilities map[string]int `json:"vulnerabilities,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RaceQuery when eager-loading is set.
 	Edges        RaceEdges `json:"edges"`
@@ -88,7 +92,7 @@ func (*Race) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case race.FieldEquipmentSlots, race.FieldRequirementTags, race.FieldStatGrowthMultipliers:
+		case race.FieldEquipmentSlots, race.FieldRequirementTags, race.FieldStatGrowthMultipliers, race.FieldResistances, race.FieldVulnerabilities:
 			values[i] = new([]byte)
 		case race.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -181,6 +185,22 @@ func (_m *Race) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field stat_growth_multipliers: %w", err)
 				}
 			}
+		case race.FieldResistances:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field resistances", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Resistances); err != nil {
+					return fmt.Errorf("unmarshal field resistances: %w", err)
+				}
+			}
+		case race.FieldVulnerabilities:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field vulnerabilities", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Vulnerabilities); err != nil {
+					return fmt.Errorf("unmarshal field vulnerabilities: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -261,6 +281,12 @@ func (_m *Race) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("stat_growth_multipliers=")
 	builder.WriteString(fmt.Sprintf("%v", _m.StatGrowthMultipliers))
+	builder.WriteString(", ")
+	builder.WriteString("resistances=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Resistances))
+	builder.WriteString(", ")
+	builder.WriteString("vulnerabilities=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Vulnerabilities))
 	builder.WriteByte(')')
 	return builder.String()
 }
