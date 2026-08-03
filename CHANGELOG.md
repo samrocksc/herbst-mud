@@ -1,3 +1,5 @@
+- [5e2cda6](http://github.com/samrocksc/herbst-mud/commit/5e2cda6ade2399f19bc1a7ceeba2daba811237da) - 🔵 feat: v0.40.0 — shop system, gold drops, dialog world_id unification, repo cleanup
+- [b08ee4b](http://github.com/samrocksc/herbst-mud/commit/b08ee4b5c7caeb9c39c7fd279657f9193e9df3c1) - chore: auto-update CHANGELOG.md
 - [a7ad4d8](http://github.com/samrocksc/herbst-mud/commit/a7ad4d82252233931117b6e7537d86ddd69e03b4) - 🔵 feat: Phase 5 + 6 — Event System + Charisma & Polish
 - [c3090bf](http://github.com/samrocksc/herbst-mud/commit/c3090bf4cd9334418e6ad8b5b9b9ccbc15e7bcdf) - chore: auto-update CHANGELOG.md
 - [134df9c](http://github.com/samrocksc/herbst-mud/commit/134df9c384a7aa67efb7e9f542bae8cb1e0d8013) - 🔵 feat: Phase 4 — Re-classing & Re-racing with history tracking
